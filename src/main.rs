@@ -1,5 +1,7 @@
-use heraclitus_compiler::prelude::*;
+mod modules;
 mod rules;
+
+use heraclitus_compiler::prelude::*;
 
 fn main() {
     let code = "1 + 2";
