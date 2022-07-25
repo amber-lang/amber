@@ -1,8 +1,10 @@
 use heraclitus_compiler::prelude::*;
 
+#[derive(Debug)]
 enum StatementType {}
 
-struct Statement {
+#[derive(Debug)]
+pub struct Statement {
     value: Option<StatementType>
 }
 
