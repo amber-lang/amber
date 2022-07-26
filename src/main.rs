@@ -5,7 +5,7 @@ use heraclitus_compiler::prelude::*;
 use modules::block;
 
 fn main() {
-    let code = "1 + 2";
+    let code = "true";
     let rules = rules::get_rules();
     let mut cc = Compiler::new("Amber", rules);
     let mut block = block::Block::new();
