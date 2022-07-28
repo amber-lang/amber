@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use heraclitus_compiler::prelude::*;
 use super::statement::Statement;
 
@@ -16,6 +18,7 @@ impl Block {
                     .exit();
             } else {
                 println!("Couldn't load file '{}'", path);
+                exit(1);
             }   
         }
     }
