@@ -1,15 +1,11 @@
 use heraclitus_compiler::prelude::*;
-use super::literal::{
-    bool::Bool,
-    number::Number,
-    text::Text
+use super::{
+    experssion::Expr
 };
 
 #[derive(Debug)]
 enum StatementType {
-    Bool(Bool),
-    Number(Number),
-    Text(Text)
+    Expr(Expr)
 }
 
 #[derive(Debug)]
@@ -20,17 +16,13 @@ pub struct Statement {
 impl Statement {
     fn statement_types(&self) -> Vec<StatementType> {
         vec![
-            StatementType::Bool(Bool::new()),
-            StatementType::Number(Number::new()),
-            StatementType::Text(Text::new())
+            StatementType::Expr(Expr::new())
         ]
     }
     
     fn parse_statement(&mut self, meta: &mut DefaultMetadata, statement: StatementType) -> SyntaxResult {
         match statement {
-            StatementType::Bool(bool) => self.get(meta, bool, StatementType::Bool),
-            StatementType::Number(num) => self.get(meta, num, StatementType::Number),
-            StatementType::Text(txt) => self.get(meta, txt, StatementType::Text)
+            StatementType::Expr(bool) => self.get(meta, bool, StatementType::Expr)
         }
     }
 
