@@ -1,7 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use super::{
-    experssion::Expr
-};
+use super::super::expression::expr::Expr;
 
 #[derive(Debug)]
 enum StatementType {
