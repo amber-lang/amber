@@ -1,7 +1,7 @@
 use std::process::exit;
 
 use heraclitus_compiler::prelude::*;
-use super::statement::Statement;
+use super::statement::statement::Statement;
 
 #[derive(Debug)]
 pub struct Block {
@@ -17,6 +17,8 @@ impl Block {
                     .show()
                     .exit();
             } else {
+                // TODO: Refactor this part of code
+                println!("ERROR at {:?}", details.position);
                 println!("Couldn't load file '{}'", path);
                 exit(1);
             }   

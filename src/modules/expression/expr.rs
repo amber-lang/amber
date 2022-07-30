@@ -4,19 +4,22 @@ use super::literal::{
     number::Number,
     text::Text
 };
+use super::parenthesis::Parenthesis;
 
 #[derive(Debug, Clone)]
 pub enum ExprId {
     Bool,
     Number,
-    Text
+    Text,
+    Parenthesis
 }
 
 #[derive(Debug)]
 pub enum ExprType {
     Bool(Bool),
     Number(Number),
-    Text(Text)
+    Text(Text),
+    Parenthesis(Parenthesis)
 }
 
 #[derive(Debug)]
@@ -30,7 +33,8 @@ impl Expr {
         vec![
             ExprType::Bool(Bool::new()),
             ExprType::Number(Number::new()),
-            ExprType::Text(Text::new())
+            ExprType::Text(Text::new()),
+            ExprType::Parenthesis(Parenthesis::new())
         ]
     }
     
@@ -38,12 +42,13 @@ impl Expr {
         match statement {
             ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool, ExprId::Bool),
             ExprType::Number(num) => self.get(meta, num, ExprType::Number, ExprId::Number),
-            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text, ExprId::Text)
+            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text, ExprId::Text),
+            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis, ExprId::Parenthesis)
         }
     }
 
     // Exclude some syntax module
-    fn exclude(&mut self, expr_id: ExprId) {
+    pub fn exclude(&mut self, expr_id: ExprId) {
         self.exclude = Some(expr_id);
     }
 
@@ -87,6 +92,6 @@ impl SyntaxModule<DefaultMetadata> for Expr {
                 Err(details) => error = Some(details)
             }
         }
-        Ok(())
+        Err(error.unwrap())
     }
 }
