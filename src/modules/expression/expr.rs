@@ -4,6 +4,9 @@ use super::literal::{
     number::Number,
     text::Text
 };
+use super::binop::{
+    add::Add
+};
 use super::parenthesis::Parenthesis;
 
 #[derive(Debug, Clone)]
@@ -11,7 +14,8 @@ pub enum ExprId {
     Bool,
     Number,
     Text,
-    Parenthesis
+    Parenthesis,
+    Add
 }
 
 #[derive(Debug)]
@@ -19,7 +23,8 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    Parenthesis(Parenthesis)
+    Parenthesis(Parenthesis),
+    Add(Add)
 }
 
 #[derive(Debug)]
@@ -31,10 +36,11 @@ pub struct Expr {
 impl Expr {
     fn statement_types(&self) -> Vec<ExprType> {
         vec![
+            ExprType::Add(Add::new()),
+            ExprType::Parenthesis(Parenthesis::new()),
             ExprType::Bool(Bool::new()),
             ExprType::Number(Number::new()),
-            ExprType::Text(Text::new()),
-            ExprType::Parenthesis(Parenthesis::new())
+            ExprType::Text(Text::new())
         ]
     }
     
@@ -43,7 +49,8 @@ impl Expr {
             ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool, ExprId::Bool),
             ExprType::Number(num) => self.get(meta, num, ExprType::Number, ExprId::Number),
             ExprType::Text(txt) => self.get(meta, txt, ExprType::Text, ExprId::Text),
-            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis, ExprId::Parenthesis)
+            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis, ExprId::Parenthesis),
+            ExprType::Add(add) => self.get(meta, add, ExprType::Add, ExprId::Add)
         }
     }
 
