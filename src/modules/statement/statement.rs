@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use crate::parser::ParserMetadata;
+
 use super::super::expression::expr::Expr;
 
 #[derive(Debug)]
@@ -18,7 +20,7 @@ impl Statement {
         ]
     }
     
-    fn parse_statement(&mut self, meta: &mut DefaultMetadata, statement: StatementType) -> SyntaxResult {
+    fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: StatementType) -> SyntaxResult {
         match statement {
             StatementType::Expr(bool) => self.get(meta, bool, StatementType::Expr)
         }
@@ -40,14 +42,14 @@ impl Statement {
     }
 }
 
-impl SyntaxModule<DefaultMetadata> for Statement {
+impl SyntaxModule<ParserMetadata> for Statement {
     fn new() -> Self {
         Statement {
             value: None
         }
     }
 
-    fn parse(&mut self, meta: &mut DefaultMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let mut error = None;
         let statements = self.statement_types();
         for statement in statements {

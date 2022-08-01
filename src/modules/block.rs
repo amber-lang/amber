@@ -1,6 +1,7 @@
 use std::process::exit;
 
 use heraclitus_compiler::prelude::*;
+use crate::parser::ParserMetadata;
 use super::statement::statement::Statement;
 
 #[derive(Debug)]
@@ -9,7 +10,7 @@ pub struct Block {
 }
 
 impl Block {
-    fn error(&mut self, meta: &mut DefaultMetadata, mut details: ErrorDetails) {
+    fn error(&mut self, meta: &mut ParserMetadata, mut details: ErrorDetails) {
         if let Some(path) = meta.path.clone() {
             if let Ok(location) = details.get_pos_by_file(&path) {
                 Logger::new_err(path, location)
@@ -26,14 +27,14 @@ impl Block {
     }
 }
 
-impl SyntaxModule<DefaultMetadata> for Block {
+impl SyntaxModule<ParserMetadata> for Block {
     fn new() -> Self {
         Block {
             statements: vec![]
         }
     }
 
-    fn parse(&mut self, meta: &mut DefaultMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         loop {
             if let None = meta.get_token_at(meta.get_index()) {
                 break;
