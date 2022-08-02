@@ -1,7 +1,4 @@
-use std::vec;
-
 use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::ExprId;
 
 pub struct ParserMetadata {
     pub expr: Vec<Token>,

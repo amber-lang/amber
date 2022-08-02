@@ -3,22 +3,22 @@ use crate::parser::ParserMetadata;
 use super::{super::expr::Expr, Binop};
 
 #[derive(Debug)]
-pub struct Add {
+pub struct Or {
     left: Box<Expr>,
     right: Box<Expr>
 }
 
-impl SyntaxModule<ParserMetadata> for Add {
+impl SyntaxModule<ParserMetadata> for Or {
     fn new() -> Self {
-        Add {
+        Or {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Binop::parse_left_expr(meta, &mut *self.left, "+")?;
-        token(meta, "+")?;
+        Binop::parse_left_expr(meta, &mut *self.left, "or")?;
+        token(meta, "or")?;
         syntax(meta, &mut *self.right)?;
         Ok(())
     }

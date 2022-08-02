@@ -6,6 +6,12 @@ pub mod add;
 pub mod sub;
 pub mod mul;
 pub mod div;
+pub mod and;
+pub mod or;
+pub mod gt;
+pub mod ge;
+pub mod lt;
+pub mod le;
 
 struct Binop;
 

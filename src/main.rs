@@ -7,7 +7,7 @@ use modules::block;
 use parser::ParserMetadata;
 
 fn main() {
-    let code = "12 * (1 - 2) + 3 / 12 - 1";
+    let code = "true and 12 * (1 - 2 or false) + 3 / 12 - 1";
     let rules = rules::get_rules();
     let mut cc = Compiler::new("Amber", rules);
     let mut block = block::Block::new();

@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::parser::ParserMetadata;
-use super::{super::expr::{Expr, ExprId}, Binop};
+use super::{super::expr::Expr, Binop};
 
 #[derive(Debug)]
 pub struct Mul {

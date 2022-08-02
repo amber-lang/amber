@@ -9,21 +9,11 @@ use super::binop::{
     add::Add,
     sub::Sub,
     mul::Mul,
-    div::Div
+    div::Div,
+    and::And,
+    or::Or
 };
 use super::parenthesis::Parenthesis;
-
-#[derive(Debug, Clone)]
-pub enum ExprId {
-    Bool,
-    Number,
-    Text,
-    Parenthesis,
-    Add,
-    Sub,
-    Mul,
-    Div
-}
 
 #[derive(Debug)]
 pub enum ExprType {
@@ -34,7 +24,9 @@ pub enum ExprType {
     Add(Add),
     Sub(Sub),
     Mul(Mul),
-    Div(Div)
+    Div(Div),
+    And(And),
+    Or(Or)
 }
 
 #[derive(Debug)]
@@ -45,6 +37,8 @@ pub struct Expr {
 impl Expr {
     fn statement_types(&self) -> Vec<ExprType> {
         vec![
+            ExprType::And(And::new()),
+            ExprType::Or(Or::new()),
             ExprType::Add(Add::new()),
             ExprType::Sub(Sub::new()),
             ExprType::Mul(Mul::new()),
@@ -58,19 +52,21 @@ impl Expr {
     
     fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: ExprType) -> SyntaxResult {
         match statement {
-            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool, ExprId::Bool),
-            ExprType::Number(num) => self.get(meta, num, ExprType::Number, ExprId::Number),
-            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text, ExprId::Text),
-            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis, ExprId::Parenthesis),
-            ExprType::Add(add) => self.get(meta, add, ExprType::Add, ExprId::Add),
-            ExprType::Sub(sub) => self.get(meta, sub, ExprType::Sub, ExprId::Sub),
-            ExprType::Mul(mul) => self.get(meta, mul, ExprType::Mul, ExprId::Mul),
-            ExprType::Div(div) => self.get(meta, div, ExprType::Div, ExprId::Div)
+            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool),
+            ExprType::Number(num) => self.get(meta, num, ExprType::Number),
+            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text),
+            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis),
+            ExprType::Add(add) => self.get(meta, add, ExprType::Add),
+            ExprType::Sub(sub) => self.get(meta, sub, ExprType::Sub),
+            ExprType::Mul(mul) => self.get(meta, mul, ExprType::Mul),
+            ExprType::Div(div) => self.get(meta, div, ExprType::Div),
+            ExprType::And(and) => self.get(meta, and, ExprType::And),
+            ExprType::Or(or) => self.get(meta, or, ExprType::Or)
         }
     }
 
     // Get result out of the provided module and save it in the internal state
-    fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType, id: ExprId) -> SyntaxResult
+    fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType) -> SyntaxResult
     where
         S: SyntaxModule<ParserMetadata>
     {
