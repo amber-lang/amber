@@ -9,6 +9,8 @@ pub struct Div {
 }
 
 impl SyntaxModule<ParserMetadata> for Div {
+    syntax_name!("Div");
+
     fn new() -> Self {
         Div {
             left: Box::new(Expr::new()),

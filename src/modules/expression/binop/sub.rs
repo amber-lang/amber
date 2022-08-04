@@ -9,6 +9,8 @@ pub struct Sub {
 }
 
 impl SyntaxModule<ParserMetadata> for Sub {
+    syntax_name!("Sub");
+
     fn new() -> Self {
         Sub {
             left: Box::new(Expr::new()),

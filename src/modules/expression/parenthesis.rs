@@ -8,6 +8,8 @@ pub struct Parenthesis {
 }
 
 impl SyntaxModule<ParserMetadata> for Parenthesis {
+    syntax_name!("Parenthesis");
+
     fn new() -> Self {
         Parenthesis {
             value: Box::new(Expr::new())

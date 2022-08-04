@@ -7,6 +7,8 @@ pub struct Bool {
 }
 
 impl SyntaxModule<ParserMetadata> for Bool {
+    syntax_name!("Bool");
+
     fn new() -> Self {
         Bool {
             value: false

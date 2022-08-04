@@ -28,6 +28,8 @@ impl Block {
 }
 
 impl SyntaxModule<ParserMetadata> for Block {
+    syntax_name!("Block");
+
     fn new() -> Self {
         Block {
             statements: vec![]

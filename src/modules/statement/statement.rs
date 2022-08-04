@@ -43,6 +43,8 @@ impl Statement {
 }
 
 impl SyntaxModule<ParserMetadata> for Statement {
+    syntax_name!("Statement");
+
     fn new() -> Self {
         Statement {
             value: None

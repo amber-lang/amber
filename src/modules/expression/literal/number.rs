@@ -7,6 +7,8 @@ pub struct Number {
 }
 
 impl SyntaxModule<ParserMetadata> for Number {
+    syntax_name!("Number");
+
     fn new() -> Self {
         Number {
             value: format!("")

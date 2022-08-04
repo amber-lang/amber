@@ -12,6 +12,8 @@ pub mod gt;
 pub mod ge;
 pub mod lt;
 pub mod le;
+pub mod eq;
+pub mod neq;
 
 struct Binop;
 

@@ -11,7 +11,16 @@ use super::binop::{
     mul::Mul,
     div::Div,
     and::And,
-    or::Or
+    or::Or,
+    gt::Gt,
+    ge::Ge,
+    lt::Lt,
+    le::Le,
+    eq::Eq,
+    neq::Neq
+};
+use super::unop::{
+    not::Not
 };
 use super::parenthesis::Parenthesis;
 
@@ -26,7 +35,14 @@ pub enum ExprType {
     Mul(Mul),
     Div(Div),
     And(And),
-    Or(Or)
+    Or(Or),
+    Gt(Gt),
+    Ge(Ge),
+    Lt(Lt),
+    Le(Le),
+    Eq(Eq),
+    Neq(Neq),
+    Not(Not)
 }
 
 #[derive(Debug)]
@@ -37,12 +53,23 @@ pub struct Expr {
 impl Expr {
     fn statement_types(&self) -> Vec<ExprType> {
         vec![
+            // Logical operators
             ExprType::And(And::new()),
             ExprType::Or(Or::new()),
+            ExprType::Not(Not::new()),
+            // Comparison operators
+            ExprType::Gt(Gt::new()),
+            ExprType::Ge(Ge::new()),
+            ExprType::Lt(Lt::new()),
+            ExprType::Le(Le::new()),
+            ExprType::Eq(Eq::new()),
+            ExprType::Neq(Neq::new()),
+            // Arithmetic operators
             ExprType::Add(Add::new()),
             ExprType::Sub(Sub::new()),
             ExprType::Mul(Mul::new()),
             ExprType::Div(Div::new()),
+            // Literals
             ExprType::Parenthesis(Parenthesis::new()),
             ExprType::Bool(Bool::new()),
             ExprType::Number(Number::new()),
@@ -52,16 +79,27 @@ impl Expr {
     
     fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: ExprType) -> SyntaxResult {
         match statement {
-            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool),
-            ExprType::Number(num) => self.get(meta, num, ExprType::Number),
-            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text),
-            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis),
+            // Logic operators
+            ExprType::And(and) => self.get(meta, and, ExprType::And),
+            ExprType::Or(or) => self.get(meta, or, ExprType::Or),
+            ExprType::Not(not) => self.get(meta, not, ExprType::Not),
+            // Comparison operators
+            ExprType::Gt(cmp) => self.get(meta, cmp, ExprType::Gt),
+            ExprType::Ge(cmp) => self.get(meta, cmp, ExprType::Ge),
+            ExprType::Lt(cmp) => self.get(meta, cmp, ExprType::Lt),
+            ExprType::Le(cmp) => self.get(meta, cmp, ExprType::Le),
+            ExprType::Eq(cmp) => self.get(meta, cmp, ExprType::Eq),
+            ExprType::Neq(cmp) => self.get(meta, cmp, ExprType::Neq),
+            // Arithmetic operators
             ExprType::Add(add) => self.get(meta, add, ExprType::Add),
             ExprType::Sub(sub) => self.get(meta, sub, ExprType::Sub),
             ExprType::Mul(mul) => self.get(meta, mul, ExprType::Mul),
             ExprType::Div(div) => self.get(meta, div, ExprType::Div),
-            ExprType::And(and) => self.get(meta, and, ExprType::And),
-            ExprType::Or(or) => self.get(meta, or, ExprType::Or)
+            // Literals
+            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis),
+            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool),
+            ExprType::Number(num) => self.get(meta, num, ExprType::Number),
+            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text)
         }
     }
 
@@ -82,6 +120,8 @@ impl Expr {
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
+    syntax_name!("Expr");
+
     fn new() -> Self {
         Expr {
             value: None

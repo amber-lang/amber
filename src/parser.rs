@@ -4,7 +4,8 @@ pub struct ParserMetadata {
     pub expr: Vec<Token>,
     index: usize,
     pub path: Option<String>,
-    pub binop_border: Option<usize>
+    pub binop_border: Option<usize>,
+    debug: Option<usize>
 }
 
 impl Metadata for ParserMetadata {
@@ -13,7 +14,8 @@ impl Metadata for ParserMetadata {
             expr: expression,
             index: 0,
             path,
-            binop_border: None
+            binop_border: None,
+            debug: None
         }
     }
 
@@ -30,5 +32,11 @@ impl Metadata for ParserMetadata {
             Some(token) => Some(token.clone()),
             None => None
         }
+    }
+    fn get_debug(&mut self) -> Option<usize> {
+        self.debug
+    }
+    fn set_debug(&mut self, indent: usize) {
+        self.debug = Some(indent)
     }
 }

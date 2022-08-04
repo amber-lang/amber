@@ -7,7 +7,7 @@ use modules::block;
 use parser::ParserMetadata;
 
 fn main() {
-    let code = "true and 12 * (1 - 2 or false) + 3 / 12 - 1";
+    let code = "not true";
     let rules = rules::get_rules();
     let mut cc = Compiler::new("Amber", rules);
     let mut block = block::Block::new();
@@ -16,8 +16,8 @@ fn main() {
         println!("{tokens:?}");
         let path = Some(format!("/path/to/file"));
         let mut meta = ParserMetadata::new(tokens, path);
-        if let Ok(()) = block.parse(&mut meta) {
-            println!("{block:#?}");
+        if let Ok(()) = block.parse_debug(&mut meta) {
+            // println!("{block:#?}");
         }
     }
 }

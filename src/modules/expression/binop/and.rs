@@ -9,6 +9,8 @@ pub struct And {
 }
 
 impl SyntaxModule<ParserMetadata> for And {
+    syntax_name!("And");
+
     fn new() -> Self {
         And {
             left: Box::new(Expr::new()),
