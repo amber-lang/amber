@@ -1,69 +1,113 @@
 use heraclitus_compiler::prelude::*;
+use crate::parser::ParserMetadata;
 use super::literal::{
     bool::Bool,
     number::Number,
     text::Text
 };
+use super::binop::{
+    add::Add,
+    sub::Sub,
+    mul::Mul,
+    div::Div,
+    and::And,
+    or::Or,
+    gt::Gt,
+    ge::Ge,
+    lt::Lt,
+    le::Le,
+    eq::Eq,
+    neq::Neq
+};
+use super::unop::{
+    not::Not
+};
 use super::parenthesis::Parenthesis;
-
-#[derive(Debug, Clone)]
-pub enum ExprId {
-    Bool,
-    Number,
-    Text,
-    Parenthesis
-}
 
 #[derive(Debug)]
 pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    Parenthesis(Parenthesis)
+    Parenthesis(Parenthesis),
+    Add(Add),
+    Sub(Sub),
+    Mul(Mul),
+    Div(Div),
+    And(And),
+    Or(Or),
+    Gt(Gt),
+    Ge(Ge),
+    Lt(Lt),
+    Le(Le),
+    Eq(Eq),
+    Neq(Neq),
+    Not(Not)
 }
 
 #[derive(Debug)]
 pub struct Expr {
-    value: Option<ExprType>,
-    exclude: Option<ExprId>
+    value: Option<ExprType>
 }
 
 impl Expr {
     fn statement_types(&self) -> Vec<ExprType> {
         vec![
+            // Logical operators
+            ExprType::And(And::new()),
+            ExprType::Or(Or::new()),
+            ExprType::Not(Not::new()),
+            // Comparison operators
+            ExprType::Gt(Gt::new()),
+            ExprType::Ge(Ge::new()),
+            ExprType::Lt(Lt::new()),
+            ExprType::Le(Le::new()),
+            ExprType::Eq(Eq::new()),
+            ExprType::Neq(Neq::new()),
+            // Arithmetic operators
+            ExprType::Add(Add::new()),
+            ExprType::Sub(Sub::new()),
+            ExprType::Mul(Mul::new()),
+            ExprType::Div(Div::new()),
+            // Literals
+            ExprType::Parenthesis(Parenthesis::new()),
             ExprType::Bool(Bool::new()),
             ExprType::Number(Number::new()),
-            ExprType::Text(Text::new()),
-            ExprType::Parenthesis(Parenthesis::new())
+            ExprType::Text(Text::new())
         ]
     }
     
-    fn parse_statement(&mut self, meta: &mut DefaultMetadata, statement: ExprType) -> SyntaxResult {
+    fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: ExprType) -> SyntaxResult {
         match statement {
-            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool, ExprId::Bool),
-            ExprType::Number(num) => self.get(meta, num, ExprType::Number, ExprId::Number),
-            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text, ExprId::Text),
-            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis, ExprId::Parenthesis)
+            // Logic operators
+            ExprType::And(and) => self.get(meta, and, ExprType::And),
+            ExprType::Or(or) => self.get(meta, or, ExprType::Or),
+            ExprType::Not(not) => self.get(meta, not, ExprType::Not),
+            // Comparison operators
+            ExprType::Gt(cmp) => self.get(meta, cmp, ExprType::Gt),
+            ExprType::Ge(cmp) => self.get(meta, cmp, ExprType::Ge),
+            ExprType::Lt(cmp) => self.get(meta, cmp, ExprType::Lt),
+            ExprType::Le(cmp) => self.get(meta, cmp, ExprType::Le),
+            ExprType::Eq(cmp) => self.get(meta, cmp, ExprType::Eq),
+            ExprType::Neq(cmp) => self.get(meta, cmp, ExprType::Neq),
+            // Arithmetic operators
+            ExprType::Add(add) => self.get(meta, add, ExprType::Add),
+            ExprType::Sub(sub) => self.get(meta, sub, ExprType::Sub),
+            ExprType::Mul(mul) => self.get(meta, mul, ExprType::Mul),
+            ExprType::Div(div) => self.get(meta, div, ExprType::Div),
+            // Literals
+            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis),
+            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool),
+            ExprType::Number(num) => self.get(meta, num, ExprType::Number),
+            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text)
         }
-    }
-
-    // Exclude some syntax module
-    pub fn exclude(&mut self, expr_id: ExprId) {
-        self.exclude = Some(expr_id);
     }
 
     // Get result out of the provided module and save it in the internal state
-    fn get<M,S>(&mut self, meta: &mut M, mut module: S, cb: impl Fn(S) -> ExprType, id: ExprId) -> SyntaxResult
+    fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType) -> SyntaxResult
     where
-        M: Metadata,
-        S: SyntaxModule<M>
+        S: SyntaxModule<ParserMetadata>
     {
-        // Check if exclusion occurs
-        if let Some(excludes) = &self.exclude {
-            if excludes.clone() as usize == id as usize {
-                return Err(ErrorDetails::from_metadata(meta))
-            }
-        }
         // Match syntax
         match syntax(meta, &mut module) {
             Ok(()) => {
@@ -75,15 +119,16 @@ impl Expr {
     }
 }
 
-impl SyntaxModule<DefaultMetadata> for Expr {
+impl SyntaxModule<ParserMetadata> for Expr {
+    syntax_name!("Expr");
+
     fn new() -> Self {
         Expr {
-            value: None,
-            exclude: None
+            value: None
         }
     }
 
-    fn parse(&mut self, meta: &mut DefaultMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let mut error = None;
         let statements = self.statement_types();
         for statement in statements {

@@ -5,11 +5,17 @@ pub fn get_rules() -> Rules {
         '+', '-', '*', '/',
         '(', ')', '[', ']', '{', '}'
     ];
+    let compounds = vec![
+        ('<', '='),
+        ('>', '='),
+        ('!', '='),
+        ('=', '='),
+    ];
     let region = reg![
         reg!(string as "string literal" => {
             begin: "'",
             end: "'"
         })
     ];
-    Rules::new(symbols, region)
+    Rules::new(symbols, compounds, region)
 }
