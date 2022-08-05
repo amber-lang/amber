@@ -1,9 +1,15 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::{utils::metadata::ParserMetadata, modules::{Type, Typed}};
 
 #[derive(Debug)]
 pub struct Bool {
     value: bool
+}
+
+impl Typed for Bool {
+    fn get_type(&self) -> Type {
+        Type::Bool
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Bool {

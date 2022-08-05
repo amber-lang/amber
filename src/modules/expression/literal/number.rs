@@ -1,9 +1,15 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::{utils::metadata::ParserMetadata, modules::{Typed, Type}};
 
 #[derive(Debug)]
 pub struct Number {
     value: String
+}
+
+impl Typed for Number {
+    fn get_type(&self) -> Type {
+        Type::Num
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Number {

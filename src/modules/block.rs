@@ -1,7 +1,5 @@
-use std::process::exit;
-
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::utils::{metadata::ParserMetadata, error::get_error_logger};
 use super::statement::statement::Statement;
 
 #[derive(Debug)]
@@ -10,20 +8,11 @@ pub struct Block {
 }
 
 impl Block {
-    fn error(&mut self, meta: &mut ParserMetadata, mut details: ErrorDetails) {
-        if let Some(path) = meta.path.clone() {
-            if let Ok(location) = details.get_pos_by_file(&path) {
-                Logger::new_err(path, location)
-                    .attach_message("Undefined syntax")
-                    .show()
-                    .exit();
-            } else {
-                // TODO: Refactor this part of code
-                println!("ERROR at {:?}", details.position);
-                println!("Couldn't load file '{}'", path);
-                exit(1);
-            }   
-        }
+    fn error(&mut self, meta: &mut ParserMetadata, details: ErrorDetails) {
+        get_error_logger(meta, details)
+            .attach_message("Undefined syntax")
+            .show()
+            .exit()
     }
 }
 
@@ -37,6 +26,7 @@ impl SyntaxModule<ParserMetadata> for Block {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        meta.var_mem.push_scope();
         loop {
             if let None = meta.get_token_at(meta.get_index()) {
                 break;
@@ -47,6 +37,7 @@ impl SyntaxModule<ParserMetadata> for Block {
             }
             self.statements.push(statemant);
         }
+        meta.var_mem.pop_scope();
         Ok(())
     }
 }

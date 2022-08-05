@@ -1,11 +1,18 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::utils::metadata::ParserMetadata;
 use super::{super::expr::Expr, Binop};
+use crate::modules::{Type, Typed};
 
 #[derive(Debug)]
 pub struct Gt {
     left: Box<Expr>,
     right: Box<Expr>
+}
+
+impl Typed for Gt {
+    fn get_type(&self) -> Type {
+        Type::Bool
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Gt {

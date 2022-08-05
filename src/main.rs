@@ -1,13 +1,13 @@
 mod modules;
 mod rules;
-mod parser;
+mod utils;
 
 use heraclitus_compiler::prelude::*;
 use modules::block;
-use parser::ParserMetadata;
+use crate::utils::metadata::ParserMetadata;
 
 fn main() {
-    let code = "not true";
+    let code = "let age = 12\nlet name = 'john'";
     let rules = rules::get_rules();
     let mut cc = Compiler::new("Amber", rules);
     let mut block = block::Block::new();
