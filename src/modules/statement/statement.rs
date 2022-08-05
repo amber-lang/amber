@@ -1,11 +1,17 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::utils::metadata::ParserMetadata;
+use crate::modules::expression::expr::Expr;
+use crate::modules::variable::{
+    init::VariableInit,
+    set::VariableSet
+};
 
-use super::super::expression::expr::Expr;
 
 #[derive(Debug)]
 enum StatementType {
-    Expr(Expr)
+    Expr(Expr),
+    VariableInit(VariableInit),
+    VariableSet(VariableSet)
 }
 
 #[derive(Debug)]
@@ -16,13 +22,19 @@ pub struct Statement {
 impl Statement {
     fn statement_types(&self) -> Vec<StatementType> {
         vec![
+            // Variables
+            StatementType::VariableInit(VariableInit::new()),
+            StatementType::VariableSet(VariableSet::new()),
+            // Expression
             StatementType::Expr(Expr::new())
         ]
     }
     
     fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: StatementType) -> SyntaxResult {
         match statement {
-            StatementType::Expr(bool) => self.get(meta, bool, StatementType::Expr)
+            StatementType::Expr(st) => self.get(meta, st, StatementType::Expr),
+            StatementType::VariableInit(st) => self.get(meta, st, StatementType::VariableInit),
+            StatementType::VariableSet(st) => self.get(meta, st, StatementType::VariableSet)
         }
     }
 

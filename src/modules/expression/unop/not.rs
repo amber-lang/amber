@@ -1,10 +1,17 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::{utils::metadata::ParserMetadata, modules::{Type, Typed}};
 use super::super::expr::Expr;
 
 #[derive(Debug)]
 pub struct Not {
-    expr: Box<Expr>
+    expr: Box<Expr>,
+    kind: Type
+}
+
+impl Typed for Not {
+    fn get_type(&self) -> Type {
+        self.kind.clone()
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Not {
@@ -12,7 +19,8 @@ impl SyntaxModule<ParserMetadata> for Not {
 
     fn new() -> Self {
         Not {
-            expr: Box::new(Expr::new())
+            expr: Box::new(Expr::new()),
+            kind: Type::Bool
         }
     }
 

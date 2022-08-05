@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::modules::{Typed, Type};
+use crate::utils::metadata::ParserMetadata;
 use super::literal::{
     bool::Bool,
     number::Number,
@@ -23,6 +24,7 @@ use super::unop::{
     not::Not
 };
 use super::parenthesis::Parenthesis;
+use crate::modules::variable::get::VariableGet;
 
 #[derive(Debug)]
 pub enum ExprType {
@@ -30,6 +32,7 @@ pub enum ExprType {
     Number(Number),
     Text(Text),
     Parenthesis(Parenthesis),
+    VariableGet(VariableGet),
     Add(Add),
     Sub(Sub),
     Mul(Mul),
@@ -47,7 +50,14 @@ pub enum ExprType {
 
 #[derive(Debug)]
 pub struct Expr {
-    value: Option<ExprType>
+    value: Option<ExprType>,
+    kind: Type
+}
+
+impl Typed for Expr {
+    fn get_type(&self) -> Type {
+        self.kind.clone()
+    }
 }
 
 impl Expr {
@@ -70,6 +80,7 @@ impl Expr {
             ExprType::Mul(Mul::new()),
             ExprType::Div(Div::new()),
             // Literals
+            ExprType::VariableGet(VariableGet::new()),
             ExprType::Parenthesis(Parenthesis::new()),
             ExprType::Bool(Bool::new()),
             ExprType::Number(Number::new()),
@@ -80,33 +91,35 @@ impl Expr {
     fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: ExprType) -> SyntaxResult {
         match statement {
             // Logic operators
-            ExprType::And(and) => self.get(meta, and, ExprType::And),
-            ExprType::Or(or) => self.get(meta, or, ExprType::Or),
-            ExprType::Not(not) => self.get(meta, not, ExprType::Not),
+            ExprType::And(ex) => self.get(meta, ex, ExprType::And),
+            ExprType::Or(ex) => self.get(meta, ex, ExprType::Or),
+            ExprType::Not(ex) => self.get(meta, ex, ExprType::Not),
             // Comparison operators
-            ExprType::Gt(cmp) => self.get(meta, cmp, ExprType::Gt),
-            ExprType::Ge(cmp) => self.get(meta, cmp, ExprType::Ge),
-            ExprType::Lt(cmp) => self.get(meta, cmp, ExprType::Lt),
-            ExprType::Le(cmp) => self.get(meta, cmp, ExprType::Le),
-            ExprType::Eq(cmp) => self.get(meta, cmp, ExprType::Eq),
-            ExprType::Neq(cmp) => self.get(meta, cmp, ExprType::Neq),
+            ExprType::Gt(ex) => self.get(meta, ex, ExprType::Gt),
+            ExprType::Ge(ex) => self.get(meta, ex, ExprType::Ge),
+            ExprType::Lt(ex) => self.get(meta, ex, ExprType::Lt),
+            ExprType::Le(ex) => self.get(meta, ex, ExprType::Le),
+            ExprType::Eq(ex) => self.get(meta, ex, ExprType::Eq),
+            ExprType::Neq(ex) => self.get(meta, ex, ExprType::Neq),
             // Arithmetic operators
-            ExprType::Add(add) => self.get(meta, add, ExprType::Add),
-            ExprType::Sub(sub) => self.get(meta, sub, ExprType::Sub),
-            ExprType::Mul(mul) => self.get(meta, mul, ExprType::Mul),
-            ExprType::Div(div) => self.get(meta, div, ExprType::Div),
+            ExprType::Add(ex) => self.get(meta, ex, ExprType::Add),
+            ExprType::Sub(ex) => self.get(meta, ex, ExprType::Sub),
+            ExprType::Mul(ex) => self.get(meta, ex, ExprType::Mul),
+            ExprType::Div(ex) => self.get(meta, ex, ExprType::Div),
             // Literals
-            ExprType::Parenthesis(p) => self.get(meta, p, ExprType::Parenthesis),
-            ExprType::Bool(bool) => self.get(meta, bool, ExprType::Bool),
-            ExprType::Number(num) => self.get(meta, num, ExprType::Number),
-            ExprType::Text(txt) => self.get(meta, txt, ExprType::Text)
+            ExprType::Parenthesis(ex) => self.get(meta, ex, ExprType::Parenthesis),
+            ExprType::Bool(ex) => self.get(meta, ex, ExprType::Bool),
+            ExprType::Number(ex) => self.get(meta, ex, ExprType::Number),
+            ExprType::Text(ex) => self.get(meta, ex, ExprType::Text),
+            // Variables
+            ExprType::VariableGet(ex) => self.get(meta, ex, ExprType::VariableGet)
         }
     }
 
     // Get result out of the provided module and save it in the internal state
     fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType) -> SyntaxResult
     where
-        S: SyntaxModule<ParserMetadata>
+        S: SyntaxModule<ParserMetadata> + Typed
     {
         // Match syntax
         match syntax(meta, &mut module) {
@@ -124,7 +137,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
 
     fn new() -> Self {
         Expr {
-            value: None
+            value: None,
+            kind: Type::Void
         }
     }
 

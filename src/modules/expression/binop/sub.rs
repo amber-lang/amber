@@ -1,11 +1,19 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::utils::metadata::ParserMetadata;
 use super::{super::expr::Expr, Binop};
+use crate::modules::{Type, Typed};
 
 #[derive(Debug)]
 pub struct Sub {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
+    kind: Type
+}
+
+impl Typed for Sub {
+    fn get_type(&self) -> Type {
+        self.kind.clone()
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Sub {
@@ -14,7 +22,8 @@ impl SyntaxModule<ParserMetadata> for Sub {
     fn new() -> Self {
         Sub {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
+            kind: Type::Void
         }
     }
 

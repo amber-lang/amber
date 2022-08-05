@@ -39,9 +39,9 @@ dependencies = [
 
 [[package]]
 name = "heraclitus-compiler"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea7b605e5ba0e0b8c7567790dfcc74df59ff14af0c6f8a95206b181b0a5e2187"
+checksum = "1d775c415a61950b40996367f043987e88efaf679de7cf7fdd7e34811966496a"
 dependencies = [
  "capitalize",
  "colored",

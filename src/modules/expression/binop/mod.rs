@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::utils::metadata::ParserMetadata;
 use super::super::expression::expr::Expr;
 
 pub mod add;
@@ -34,7 +34,7 @@ impl Binop {
     fn binop_left_cut(meta: &mut ParserMetadata, op: impl AsRef<str>) -> Result<usize, ErrorDetails> {
         let old_index = meta.get_index();
         let mut parenthesis = 0;
-        while let Some(token) = meta.get_token_at(meta.get_index()) {
+        while let Some(token) = meta.get_current_token() {
             // If we were supposed to parse just a fraction
             if let Some(border) = meta.binop_border {
                 if border <= meta.get_index() {

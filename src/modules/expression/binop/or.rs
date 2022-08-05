@@ -1,11 +1,18 @@
 use heraclitus_compiler::prelude::*;
-use crate::parser::ParserMetadata;
+use crate::utils::metadata::ParserMetadata;
 use super::{super::expr::Expr, Binop};
+use crate::modules::{Type, Typed};
 
 #[derive(Debug)]
 pub struct Or {
     left: Box<Expr>,
     right: Box<Expr>
+}
+
+impl Typed for Or {
+    fn get_type(&self) -> Type {
+        Type::Bool
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Or {
