@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::metadata::ParserMetadata;
-use super::{super::expr::Expr, Binop};
+use super::{super::expr::Expr, parse_left_expr};
 use crate::modules::{Type, Typed};
 
 
@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Binop::parse_left_expr(meta, &mut *self.left, "and")?;
+        parse_left_expr(meta, &mut *self.left, "and")?;
         token(meta, "and")?;
         syntax(meta, &mut *self.right)?;
         Ok(())

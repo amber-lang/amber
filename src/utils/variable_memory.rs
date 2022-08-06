@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeSet};
 use crate::modules::Type;
 
 pub struct VariableUnit {
@@ -53,7 +53,13 @@ impl VariableMemory {
         None
     }
 
-    pub fn has_variable(&mut self, name: impl AsRef<str>) -> bool {
-        self.get_variable(name).is_some()
+    pub fn get_available_variables(&mut self) -> BTreeSet<&String> {
+    let mut set = BTreeSet::new();
+        for scope in self.mem.iter().rev() {
+            for name in scope.vars.keys() {
+                set.insert(name);
+            }
+        }
+        set
     }
 }
