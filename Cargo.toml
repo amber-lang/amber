@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 heraclitus-compiler = "0.2.1"
+similar-string = "0.1.1"

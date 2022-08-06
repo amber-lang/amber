@@ -7,6 +7,7 @@ name = "amber_native"
 version = "0.1.0"
 dependencies = [
  "heraclitus-compiler",
+ "similar-string",
 ]
 
 [[package]]
@@ -77,6 +78,12 @@ checksum = "d2ad9b889f1b12e0b9ee24db044b5129150d5eada288edc800f789928dc8c0e3"
 dependencies = [
  "unicode-width",
 ]
+
+[[package]]
+name = "similar-string"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac4c16b40a7631a169f9f016df52a281cf64529c58cd4c171fc7a0029f596c77"
 
 [[package]]
 name = "unicode-width"

@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::metadata::ParserMetadata;
-use super::{super::expr::Expr, Binop};
+use super::{super::expr::Expr, parse_left_expr};
 use crate::modules::{Type, Typed};
 
 #[derive(Debug)]
@@ -26,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for Or {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Binop::parse_left_expr(meta, &mut *self.left, "or")?;
+        parse_left_expr(meta, &mut *self.left, "or")?;
         token(meta, "or")?;
         syntax(meta, &mut *self.right)?;
         Ok(())

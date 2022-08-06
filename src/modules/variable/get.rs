@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::{Type, Typed}};
-use super::variable_name_extensions;
+use crate::{utils::{metadata::ParserMetadata}, modules::{Type, Typed}};
+use super::{variable_name_extensions, handle_variable_reference};
 
 #[derive(Debug)]
 pub struct VariableGet {
@@ -25,8 +25,9 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        // TODO: Get the actual type of the variable
+        self.kind = handle_variable_reference(meta, tok, self.name.clone());
         Ok(())
     }
 }

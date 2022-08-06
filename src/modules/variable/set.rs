@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::utils::metadata::ParserMetadata;
-use super::variable_name_extensions;
+use super::{variable_name_extensions, handle_variable_reference};
 
 #[derive(Debug)]
 pub struct VariableSet {
@@ -20,9 +20,11 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
     }
     
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         token(meta, "=")?;
         syntax(meta, &mut *self.value)?;
+        handle_variable_reference(meta, tok, self.name.clone());
         Ok(())
     }
 }
