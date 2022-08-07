@@ -40,8 +40,8 @@ fn binop_left_cut(meta: &mut ParserMetadata, op: impl AsRef<str>) -> Result<usiz
             }
         }
         match token.word.as_str() {
-            "(" => parenthesis += 1,
-            ")" => parenthesis -= 1,
+            "(" | "{" => parenthesis += 1,
+            ")" | "}" => parenthesis -= 1,
             "\n" => break,
             _ => {}
         };
