@@ -15,7 +15,13 @@ pub fn get_rules() -> Rules {
         reg!(string as "string literal" => {
             begin: "'",
             end: "'"
-        })
+        } => [
+            reg!(interp as "string interpolation" => {
+                begin: "{",
+                end: "}",
+                tokenize: true
+            } ref global)
+        ])
     ];
     Rules::new(symbols, compounds, region)
 }
