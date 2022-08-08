@@ -8,7 +8,7 @@ use crate::utils::metadata::ParserMetadata;
 
 fn main() {
     let code = vec![
-        "'interpolate {'this {1} this'} and {'that'} :)'"
+        "$echo test$"
     ].join("\n");
     let rules = rules::get_rules();
     let mut cc = Compiler::new("Amber", rules);
