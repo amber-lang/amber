@@ -128,8 +128,9 @@ impl Expr {
         // Match syntax
         match syntax(meta, &mut module) {
             Ok(()) => {
+                self.kind = module.get_type();
                 self.value = Some(cb(module));
-                Ok(())    
+                Ok(())
             }
             Err(details) => Err(details)
         }

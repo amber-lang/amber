@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::metadata::ParserMetadata;
+use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::{Type, Typed}};
 use super::super::expression::expr::Expr;
 
 pub mod add;
@@ -15,6 +15,24 @@ pub mod le;
 pub mod eq;
 pub mod neq;
 
+
+pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Box<Expr>, right: &Box<Expr>, kind: Type, tok_pos: Option<Token>, message: &str) {
+    if ![left.get_type(), right.get_type()].iter().all(|item| *item == kind) {
+        get_error_logger(meta, ErrorDetails::from_token_option(tok_pos))
+            .attach_message(message)
+            .show()
+            .exit()
+    }
+}
+
+pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Box<Expr>, right: &Box<Expr>, tok_pos: Option<Token>, message: &str) {
+    if left.get_type() != right.get_type() {
+        get_error_logger(meta, ErrorDetails::from_token_option(tok_pos))
+            .attach_message(message)
+            .show()
+            .exit()
+    }
+}
 
 pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: impl AsRef<str>) -> Result<usize, ErrorDetails> {
     // Save left border and run binop left cut border check
