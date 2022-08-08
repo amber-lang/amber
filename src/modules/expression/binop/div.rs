@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::metadata::ParserMetadata;
-use super::{super::expr::Expr, parse_left_expr};
+use super::{super::expr::Expr, parse_left_expr, expression_arms_of_same_type, expression_arms_of_type};
 use crate::modules::{Type, Typed};
 
 #[derive(Debug)]
@@ -29,8 +29,11 @@ impl SyntaxModule<ParserMetadata> for Div {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         parse_left_expr(meta, &mut *self.left, "/")?;
+        let tok = meta.get_current_token();
         token(meta, "/")?;
         syntax(meta, &mut *self.right)?;
+        let error = "Divide operation can only divide numbers";
+        expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
         Ok(())
     }
 }

@@ -8,7 +8,7 @@ use crate::utils::metadata::ParserMetadata;
 
 fn main() {
     let code = vec![
-        "$echo test$"
+        "12 + 1"
     ].join("\n");
     let rules = rules::get_rules();
     let mut cc = Compiler::new("Amber", rules);

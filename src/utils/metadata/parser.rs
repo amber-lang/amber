@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use super::variable_memory::VariableMemory;
+use crate::utils::variable_memory::VariableMemory;
 
 pub struct ParserMetadata {
     pub expr: Vec<Token>,
