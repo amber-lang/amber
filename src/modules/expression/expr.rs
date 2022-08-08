@@ -4,7 +4,8 @@ use crate::utils::metadata::ParserMetadata;
 use super::literal::{
     bool::Bool,
     number::Number,
-    text::Text
+    text::Text,
+    command::Command
 };
 use super::binop::{
     add::Add,
@@ -31,6 +32,7 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
+    Command(Command),
     Parenthesis(Parenthesis),
     VariableGet(VariableGet),
     Add(Add),
@@ -82,6 +84,7 @@ impl Expr {
             // Literals
             ExprType::VariableGet(VariableGet::new()),
             ExprType::Parenthesis(Parenthesis::new()),
+            ExprType::Command(Command::new()),
             ExprType::Bool(Bool::new()),
             ExprType::Number(Number::new()),
             ExprType::Text(Text::new())
@@ -108,6 +111,7 @@ impl Expr {
             ExprType::Div(ex) => self.get(meta, ex, ExprType::Div),
             // Literals
             ExprType::Parenthesis(ex) => self.get(meta, ex, ExprType::Parenthesis),
+            ExprType::Command(ex) => self.get(meta, ex, ExprType::Command),
             ExprType::Bool(ex) => self.get(meta, ex, ExprType::Bool),
             ExprType::Number(ex) => self.get(meta, ex, ExprType::Number),
             ExprType::Text(ex) => self.get(meta, ex, ExprType::Text),
