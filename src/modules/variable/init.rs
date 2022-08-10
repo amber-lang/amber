@@ -1,9 +1,8 @@
 use heraclitus_compiler::prelude::*;
-
-use crate::modules::{Type, Typed};
+use crate::modules::{Typed};
 use crate::modules::expression::expr::Expr;
-use crate::utils::error::get_error_logger;
-use crate::utils::metadata::ParserMetadata;
+use crate::translate::module::TranslateModule;
+use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::variable_name_extensions;
 
 #[derive(Debug)]
@@ -31,5 +30,13 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         // Add a variable to the memory
         meta.var_mem.add_variable(self.name.clone(), self.expr.get_type());
         Ok(())
+    }
+}
+
+impl TranslateModule for VariableInit {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        let name = self.name.clone();
+        let expr = self.expr.translate(meta);
+        format!("{name}={expr}")
     }
 }

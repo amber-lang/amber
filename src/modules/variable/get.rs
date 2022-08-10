@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata}, modules::{Type, Typed}};
+use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{Type, Typed}};
+use crate::translate::module::TranslateModule;
 use super::{variable_name_extensions, handle_variable_reference};
 
 #[derive(Debug)]
@@ -29,5 +30,11 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
         self.name = variable(meta, variable_name_extensions())?;
         self.kind = handle_variable_reference(meta, tok, self.name.clone());
         Ok(())
+    }
+}
+
+impl TranslateModule for VariableGet {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        format!("${}", self.name)
     }
 }

@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::metadata::ParserMetadata, modules::{Type, Typed}};
+use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 
 #[derive(Debug)]
@@ -30,5 +31,11 @@ impl SyntaxModule<ParserMetadata> for Parenthesis {
         self.kind = self.value.get_type();
         token(meta, ")")?;
         Ok(())
+    }
+}
+
+impl TranslateModule for Parenthesis {
+    fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
+        format!("({})", self.value.translate(meta))
     }
 }

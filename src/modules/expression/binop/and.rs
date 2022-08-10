@@ -1,5 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::{translate_computation, ArithOp};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::translate::module::TranslateModule;
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_same_type};
 use crate::modules::{Type, Typed};
 
@@ -34,5 +36,12 @@ impl SyntaxModule<ParserMetadata> for And {
         let error = "Logical and operation can only be used on arguments of the same type";
         expression_arms_of_same_type(meta, &self.left, &self.right, tok, error);
         Ok(())
+    }
+}
+impl TranslateModule for And {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        let left = self.left.translate(meta);
+        let right = self.right.translate(meta);
+        translate_computation(meta, ArithOp::And, Some(left), Some(right))
     }
 }

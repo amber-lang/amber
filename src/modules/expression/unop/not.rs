@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::{Type, Typed}};
+use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
 use super::super::expr::Expr;
 
 #[derive(Debug)]
@@ -31,3 +31,9 @@ impl SyntaxModule<ParserMetadata> for Not {
     }
 }
 
+impl TranslateModule for Not {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        let expr = self.expr.translate(meta);
+        translate_computation(meta, ArithOp::Not, None, Some(expr))
+    }
+}

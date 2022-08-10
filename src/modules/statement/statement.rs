@@ -1,11 +1,12 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::metadata::ParserMetadata;
+use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::Expr;
+use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
     set::VariableSet
 };
-
+use crate::handle_types;
 
 #[derive(Debug)]
 enum StatementType {
@@ -20,23 +21,12 @@ pub struct Statement {
 }
 
 impl Statement {
-    fn statement_types(&self) -> Vec<StatementType> {
-        vec![
-            // Variables
-            StatementType::VariableInit(VariableInit::new()),
-            StatementType::VariableSet(VariableSet::new()),
-            // Expression
-            StatementType::Expr(Expr::new())
-        ]
-    }
-    
-    fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: StatementType) -> SyntaxResult {
-        match statement {
-            StatementType::Expr(st) => self.get(meta, st, StatementType::Expr),
-            StatementType::VariableInit(st) => self.get(meta, st, StatementType::VariableInit),
-            StatementType::VariableSet(st) => self.get(meta, st, StatementType::VariableSet)
-        }
-    }
+    handle_types!(StatementType, [
+        // Variables
+        VariableInit, VariableSet,
+        // Expression
+        Expr
+    ]);
 
     // Get result out of the provided module and save it in the internal state
     fn get<M,S>(&mut self, meta: &mut M, mut module: S, cb: impl Fn(S) -> StatementType) -> SyntaxResult
@@ -65,13 +55,19 @@ impl SyntaxModule<ParserMetadata> for Statement {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let mut error = None;
-        let statements = self.statement_types();
+        let statements = self.get_modules();
         for statement in statements {
-            match self.parse_statement(meta, statement) {
+            match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
                 Err(details) => error = Some(details)
             }
         }
         Err(error.unwrap())
+    }
+}
+
+impl TranslateModule for Statement {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        self.translate_match(meta, &self.value.as_ref().unwrap())
     }
 }
