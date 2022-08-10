@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::Expr;
-use crate::utils::metadata::ParserMetadata;
+use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
+use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_variable_reference};
 
 #[derive(Debug)]
@@ -26,5 +26,13 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         syntax(meta, &mut *self.value)?;
         handle_variable_reference(meta, tok, self.name.clone());
         Ok(())
+    }
+}
+
+impl TranslateModule for VariableSet {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        let name = self.name.clone();
+        let expr = self.value.translate(meta);
+        format!("{name}={expr}")
     }
 }

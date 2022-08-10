@@ -1,6 +1,7 @@
-use std::vec;
-
+use std::collections::VecDeque;
 use heraclitus_compiler::prelude::*;
+use crate::translate::module::TranslateModule;
+use crate::utils::TranslateMetadata;
 use crate::utils::metadata::ParserMetadata;
 use crate::modules::expression::expr::Expr;
 
@@ -50,4 +51,27 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         }
         Err(ErrorDetails::from_metadata(meta))
     }
+}
+
+pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>) -> String {
+    // TODO: [H15] Fix issues related to the escaping
+    let mut result = vec![];
+    let mut interps = VecDeque::from_iter(interps);
+    let mut strings = VecDeque::from_iter(strings);
+    let mut is_even = false;
+    loop {
+        let value = if is_even { interps.pop_front() } else { strings.pop_front() };
+        match value {
+            Some(translated) => {
+                if is_even {
+                    result.push(format!("{{{translated}}}"))
+                } else {
+                    result.push(translated)
+                }
+            },
+            None => break
+        }
+        is_even = !is_even;
+    }
+    result.join("")
 }

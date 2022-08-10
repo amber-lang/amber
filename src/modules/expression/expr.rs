@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::{Typed, Type};
-use crate::utils::metadata::ParserMetadata;
+use crate::translate::module::TranslateModule;
+use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::literal::{
     bool::Bool,
     number::Number,
@@ -26,6 +27,7 @@ use super::unop::{
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
+use crate::handle_types;
 
 #[derive(Debug)]
 pub enum ExprType {
@@ -63,62 +65,17 @@ impl Typed for Expr {
 }
 
 impl Expr {
-    fn statement_types(&self) -> Vec<ExprType> {
-        vec![
-            // Logical operators
-            ExprType::And(And::new()),
-            ExprType::Or(Or::new()),
-            ExprType::Not(Not::new()),
-            // Comparison operators
-            ExprType::Gt(Gt::new()),
-            ExprType::Ge(Ge::new()),
-            ExprType::Lt(Lt::new()),
-            ExprType::Le(Le::new()),
-            ExprType::Eq(Eq::new()),
-            ExprType::Neq(Neq::new()),
-            // Arithmetic operators
-            ExprType::Add(Add::new()),
-            ExprType::Sub(Sub::new()),
-            ExprType::Mul(Mul::new()),
-            ExprType::Div(Div::new()),
-            // Literals
-            ExprType::VariableGet(VariableGet::new()),
-            ExprType::Parenthesis(Parenthesis::new()),
-            ExprType::Command(Command::new()),
-            ExprType::Bool(Bool::new()),
-            ExprType::Number(Number::new()),
-            ExprType::Text(Text::new())
-        ]
-    }
-    
-    fn parse_statement(&mut self, meta: &mut ParserMetadata, statement: ExprType) -> SyntaxResult {
-        match statement {
-            // Logic operators
-            ExprType::And(ex) => self.get(meta, ex, ExprType::And),
-            ExprType::Or(ex) => self.get(meta, ex, ExprType::Or),
-            ExprType::Not(ex) => self.get(meta, ex, ExprType::Not),
-            // Comparison operators
-            ExprType::Gt(ex) => self.get(meta, ex, ExprType::Gt),
-            ExprType::Ge(ex) => self.get(meta, ex, ExprType::Ge),
-            ExprType::Lt(ex) => self.get(meta, ex, ExprType::Lt),
-            ExprType::Le(ex) => self.get(meta, ex, ExprType::Le),
-            ExprType::Eq(ex) => self.get(meta, ex, ExprType::Eq),
-            ExprType::Neq(ex) => self.get(meta, ex, ExprType::Neq),
-            // Arithmetic operators
-            ExprType::Add(ex) => self.get(meta, ex, ExprType::Add),
-            ExprType::Sub(ex) => self.get(meta, ex, ExprType::Sub),
-            ExprType::Mul(ex) => self.get(meta, ex, ExprType::Mul),
-            ExprType::Div(ex) => self.get(meta, ex, ExprType::Div),
-            // Literals
-            ExprType::Parenthesis(ex) => self.get(meta, ex, ExprType::Parenthesis),
-            ExprType::Command(ex) => self.get(meta, ex, ExprType::Command),
-            ExprType::Bool(ex) => self.get(meta, ex, ExprType::Bool),
-            ExprType::Number(ex) => self.get(meta, ex, ExprType::Number),
-            ExprType::Text(ex) => self.get(meta, ex, ExprType::Text),
-            // Variables
-            ExprType::VariableGet(ex) => self.get(meta, ex, ExprType::VariableGet)
-        }
-    }
+    handle_types!(ExprType, [
+        // Logical operators
+        And, Or, Not,
+        // Comparison operators
+        Gt, Ge, Lt, Le, Eq, Neq,
+        // Arithmetic operators
+        Add, Sub, Mul, Div,
+        // Literals
+        VariableGet, Parenthesis,
+        Command, Bool, Number, Text
+    ]);
 
     // Get result out of the provided module and save it in the internal state
     fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType) -> SyntaxResult
@@ -149,13 +106,19 @@ impl SyntaxModule<ParserMetadata> for Expr {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let mut error = None;
-        let statements = self.statement_types();
+        let statements = self.get_modules();
         for statement in statements {
-            match self.parse_statement(meta, statement) {
+            match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
                 Err(details) => error = Some(details)
             }
         }
         Err(error.unwrap())
+    }
+}
+
+impl TranslateModule for Expr {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        self.translate_match(meta, &self.value.as_ref().unwrap())
     }
 }

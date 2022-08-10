@@ -1,5 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::{translate_computation, ArithOp};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::translate::module::TranslateModule;
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
 use crate::modules::{Type, Typed};
 
@@ -35,5 +37,13 @@ impl SyntaxModule<ParserMetadata> for Mul {
         let error = "Multiply operation can only multiply numbers";
         expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
         Ok(())
+    }
+}
+
+impl TranslateModule for Mul {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        let left = self.left.translate(meta);
+        let right = self.right.translate(meta);
+        translate_computation(meta, ArithOp::Mul, Some(left), Some(right))
     }
 }

@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::{metadata::ParserMetadata, error::get_error_logger};
+use crate::{utils::{metadata::ParserMetadata, error::get_error_logger, TranslateMetadata}};
+use crate::translate::module::TranslateModule;
 use super::statement::statement::Statement;
 
 #[derive(Debug)]
@@ -39,5 +40,13 @@ impl SyntaxModule<ParserMetadata> for Block {
         }
         meta.var_mem.pop_scope();
         Ok(())
+    }
+}
+
+impl TranslateModule for Block {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        self.statements.iter()
+            .map(|module| module.translate(meta))
+            .collect::<Vec<_>>().join(";\n")
     }
 }
