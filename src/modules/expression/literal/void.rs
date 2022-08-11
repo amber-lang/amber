@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for Void {
 }
 
 impl TranslateModule for Void {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         format!("''")
     }
 }

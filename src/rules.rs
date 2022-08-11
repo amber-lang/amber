@@ -16,7 +16,17 @@ pub fn get_rules() -> Rules {
             begin: "'",
             end: "'"
         } => [
-            reg!(interp as "string interpolation" => {
+            reg!(str_interp as "string interpolation" => {
+                begin: "{",
+                end: "}",
+                tokenize: true
+            } ref global)
+        ]),
+        reg!(command as "command literal" => {
+            begin: "$",
+            end: "$"
+        } => [
+            reg!(com_interp as "command interpolation" => {
                 begin: "{",
                 end: "}",
                 tokenize: true

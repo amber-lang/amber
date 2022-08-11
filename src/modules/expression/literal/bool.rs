@@ -31,7 +31,7 @@ impl SyntaxModule<ParserMetadata> for Bool {
 }
 
 impl TranslateModule for Bool {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         format!("{}", if self.value { 1 } else { 0 })
     }
 }
