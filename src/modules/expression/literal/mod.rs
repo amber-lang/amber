@@ -1,7 +1,5 @@
 use std::collections::VecDeque;
 use heraclitus_compiler::prelude::*;
-use crate::translate::module::TranslateModule;
-use crate::utils::TranslateMetadata;
 use crate::utils::metadata::ParserMetadata;
 use crate::modules::expression::expr::Expr;
 
@@ -17,13 +15,14 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     // Handle full string
     if let Ok(word) = token_by(meta, |word| word.starts_with(letter) && word.ends_with(letter) && word.len() > 1) {
         let stripped = word.chars().take(word.len() - 1).skip(1).collect::<String>();
-        strings.push(stripped);
+        strings.push(stripped.clone());
         Ok((strings, interps))
     }
     else {
         let mut is_interp = false;
         // Initialize string
-        strings.push(token_by(meta, |word| word.starts_with(letter))?);
+        let start = token_by(meta, |word| word.starts_with(letter))?;
+        strings.push(start.chars().skip(1).collect::<String>());
         // Factor rest of the interpolation
         while let Some(token) = meta.get_current_token() {
             // Track interpolations
@@ -43,6 +42,11 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                     strings.push(token.word.clone());
                     if token.word.ends_with(letter) {
                         meta.increment_index();
+                        // Right trim the symbol
+                        let trimmed = strings.last().unwrap()
+                            .chars().take(token.word.len() - 1).collect::<String>();
+                        // replace the last string
+                        *strings.last_mut().unwrap() = trimmed;
                         return Ok((strings, interps))
                     }
                 }
@@ -54,7 +58,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
 }
 
 pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>) -> String {
-    // TODO: [H15] Fix issues related to the escaping
+    // TODO: [A15] Fix issues related to the escaping
     let mut result = vec![];
     let mut interps = VecDeque::from_iter(interps);
     let mut strings = VecDeque::from_iter(strings);

@@ -4,8 +4,9 @@ version = 3
 
 [[package]]
 name = "amber_native"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
+ "colored",
  "heraclitus-compiler",
  "similar-string",
 ]

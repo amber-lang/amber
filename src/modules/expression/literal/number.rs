@@ -29,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for Number {
 }
 
 impl TranslateModule for Number {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         format!("{}", self.value)
     }
 }
