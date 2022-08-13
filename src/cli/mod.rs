@@ -15,7 +15,6 @@ use std::fs;
 
 pub struct CLI {
     args: Vec<String>,
-    path: Option<String>,
     flags: FlagRegistry,
     name: String,
     exe_name: String,
@@ -28,7 +27,6 @@ impl CLI {
     pub fn new() -> Self {
         CLI {
             args: vec![],
-            path: None,
             flags: FlagRegistry::new(),
             name: format!("Amber"),
             exe_name: format!("amber"),
@@ -112,12 +110,9 @@ impl CLI {
         let rules = rules::get_rules();
         let mut cc = Compiler::new("Amber", rules);
         let mut block = block::Block::new();
-        cc.load(code);
-        if let Some(path) = path {
-            cc.set_path(path);
-        }
+        cc.load(code.clone());
         if let Ok(tokens) = cc.tokenize() {
-            let mut meta = ParserMetadata::new(tokens, self.path.clone());
+            let mut meta = ParserMetadata::new(tokens, path.clone(), Some(code.clone()));
             if let Ok(()) = block.parse(&mut meta) {
                 let mut meta = TranslateMetadata::new();
                 return format!("#!/bin/bash\n{}", block.translate(&mut meta));

@@ -1,1 +1,6 @@
-$echo test$
+let a = 1
+let b = 12.2
+let b = '12 + {a + 5} + 3'
+let c = '1 + 2'
+let d = this + 1
+$echo {d}$

@@ -68,7 +68,12 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>)
         match value {
             Some(translated) => {
                 if is_even {
-                    result.push(format!("{{{translated}}}"))
+                    if translated.starts_with('$') {
+                        result.push(format!("{translated}"));
+                    }
+                    else {
+                        result.push(format!("${{{translated}}}"))
+                    }
                 } else {
                     result.push(translated)
                 }
