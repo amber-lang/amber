@@ -1,12 +1,12 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::{Typed, Type};
 use crate::translate::module::TranslateModule;
+use crate::utils::error::get_error_logger;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::literal::{
     bool::Bool,
     number::Number,
-    text::Text,
-    command::Command
+    text::Text
 };
 use super::binop::{
     add::Add,
@@ -27,6 +27,7 @@ use super::unop::{
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
+use crate::modules::command::expr::CommandExpr;
 use crate::handle_types;
 
 #[derive(Debug)]
@@ -34,7 +35,7 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    Command(Command),
+    CommandExpr(CommandExpr),
     Parenthesis(Parenthesis),
     VariableGet(VariableGet),
     Add(Add),
@@ -73,8 +74,8 @@ impl Expr {
         // Arithmetic operators
         Add, Sub, Mul, Div,
         // Literals
-        VariableGet, Parenthesis,
-        Command, Bool, Number, Text
+        Parenthesis, CommandExpr, Bool, Number, Text,
+        VariableGet
     ]);
 
     // Get result out of the provided module and save it in the internal state
@@ -92,6 +93,12 @@ impl Expr {
             Err(details) => Err(details)
         }
     }
+
+    fn error(&self, meta: &mut ParserMetadata) {
+        get_error_logger(meta, ErrorDetails::from_metadata(meta))
+            .attach_message("Expected expression")
+            .show().exit();
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
@@ -100,7 +107,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
     fn new() -> Self {
         Expr {
             value: None,
-            kind: Type::Void
+            kind: Type::Null
         }
     }
 
@@ -113,6 +120,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 Err(details) => error = Some(details)
             }
         }
+        self.error(meta);
         Err(error.unwrap())
     }
 }

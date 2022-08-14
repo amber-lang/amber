@@ -22,7 +22,7 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, token: Option<Token>
                 error = error.attach_comment(comment);
             }
             error.show().exit();
-            Type::Void
+            Type::Null
         }
     }
 }

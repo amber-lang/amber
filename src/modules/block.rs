@@ -29,8 +29,14 @@ impl SyntaxModule<ParserMetadata> for Block {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         meta.var_mem.push_scope();
         loop {
-            if let None = meta.get_token_at(meta.get_index()) {
-                break;
+            match meta.get_current_token() {
+                Some(token) => {
+                    if ["\n", ";"].contains(&token.word.as_str()) {
+                        meta.increment_index();
+                        continue;
+                    }
+                }
+                None => break
             }
             let mut statemant = Statement::new();
             if let Err(details) = statemant.parse(meta) {

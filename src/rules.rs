@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 
 pub fn get_rules() -> Rules {
     let symbols = vec![
-        '+', '-', '*', '/',
+        '+', '-', '*', '/', '\n', ';',
         '(', ')', '[', ']', '{', '}'
     ];
     let compounds = vec![

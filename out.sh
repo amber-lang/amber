@@ -1,2 +1,2 @@
-#!/bin/bash
-echo test
+a=12;
+a=12

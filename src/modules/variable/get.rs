@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     fn new() -> Self {
         VariableGet {
             name: format!(""),
-            kind: Type::Void
+            kind: Type::Null
         }
     }
 

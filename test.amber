@@ -1,1 +1,3 @@
-$echo test$
+let a = 12
+a = a + 12
+$echo {a}$

@@ -5,20 +5,22 @@ pub struct ParserMetadata {
     pub expr: Vec<Token>,
     index: usize,
     pub path: Option<String>,
+    pub code: Option<String>,
     pub binop_border: Option<usize>,
     pub var_mem: VariableMemory,
     debug: Option<usize>
 }
 
 impl Metadata for ParserMetadata {
-    fn new(expression: Vec<Token>, path: Option<String>) -> Self {
+    fn new(tokens: Vec<Token>, path: Option<String>, code: Option<String>) -> Self {
         ParserMetadata {
-            expr: expression,
+            expr: tokens,
             index: 0,
             path,
+            code,
             binop_border: None,
-            debug: None,
-            var_mem: VariableMemory::new()
+            var_mem: VariableMemory::new(),
+            debug: None
         }
     }
 

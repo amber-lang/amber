@@ -3,25 +3,25 @@ use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{Type, Typed}};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 
-use super::{parse_interpolated_region, translate_interpolated_region};
+use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
 
 #[derive(Debug)]
-pub struct Command {
+pub struct CommandExpr {
     strings: Vec<String>,
     interps: Vec<Expr>
 }
 
-impl Typed for Command {
+impl Typed for CommandExpr {
     fn get_type(&self) -> Type {
         Type::Text
     }
 }
 
-impl SyntaxModule<ParserMetadata> for Command {
-    syntax_name!("Command");
+impl SyntaxModule<ParserMetadata> for CommandExpr {
+    syntax_name!("CommandExpr");
 
     fn new() -> Self {
-        Command {
+        CommandExpr {
             strings: vec![],
             interps: vec![]
         }
@@ -33,12 +33,12 @@ impl SyntaxModule<ParserMetadata> for Command {
     }
 }
 
-impl TranslateModule for Command {
+impl TranslateModule for CommandExpr {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         // Translate all interpolations
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
-        format!("{}", translate_interpolated_region(self.strings.clone(), interps.clone()))
+        format!("$({})", translate_interpolated_region(self.strings.clone(), interps.clone()))
     }
 }

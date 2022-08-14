@@ -6,13 +6,15 @@ use crate::modules::variable::{
     init::VariableInit,
     set::VariableSet
 };
+use crate::modules::command::statement::CommandStatement;
 use crate::handle_types;
 
 #[derive(Debug)]
 enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
-    VariableSet(VariableSet)
+    VariableSet(VariableSet),
+    CommandStatement(CommandStatement)
 }
 
 #[derive(Debug)]
@@ -24,6 +26,8 @@ impl Statement {
     handle_types!(StatementType, [
         // Variables
         VariableInit, VariableSet,
+        // Command
+        CommandStatement,
         // Expression
         Expr
     ]);
@@ -68,6 +72,9 @@ impl SyntaxModule<ParserMetadata> for Statement {
 
 impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.translate_match(meta, &self.value.as_ref().unwrap())
+        let translated = self.translate_match(meta, &self.value.as_ref().unwrap());
+        if translated.starts_with("$(") {
+            format!("echo {} > /dev/null 2>&1", translated)
+        } else { translated }
     }
 }

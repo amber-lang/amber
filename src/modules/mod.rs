@@ -2,6 +2,7 @@ pub mod statement;
 pub mod expression;
 pub mod block;
 pub mod variable;
+pub mod command;
 
 #[macro_export]
 macro_rules! handle_types {
@@ -37,7 +38,7 @@ pub enum Type {
     Text,
     Bool,
     Num,
-    Void
+    Null
 }
 
 trait Typed {
