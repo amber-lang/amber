@@ -7,7 +7,6 @@ pub mod bool;
 pub mod number;
 pub mod text;
 pub mod void;
-pub mod command;
 
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), ErrorDetails> {
     let mut strings = vec![];
@@ -68,12 +67,7 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>)
         match value {
             Some(translated) => {
                 if is_even {
-                    if translated.starts_with('$') {
-                        result.push(format!("{translated}"));
-                    }
-                    else {
-                        result.push(format!("${{{translated}}}"))
-                    }
+                    result.push(format!("{translated}"));
                 } else {
                     result.push(translated)
                 }

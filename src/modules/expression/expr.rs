@@ -5,8 +5,7 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::literal::{
     bool::Bool,
     number::Number,
-    text::Text,
-    command::Command
+    text::Text
 };
 use super::binop::{
     add::Add,
@@ -27,6 +26,7 @@ use super::unop::{
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
+use crate::modules::command::expr::CommandExpr;
 use crate::handle_types;
 
 #[derive(Debug)]
@@ -34,7 +34,7 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    Command(Command),
+    CommandExpr(CommandExpr),
     Parenthesis(Parenthesis),
     VariableGet(VariableGet),
     Add(Add),
@@ -74,7 +74,7 @@ impl Expr {
         Add, Sub, Mul, Div,
         // Literals
         VariableGet, Parenthesis,
-        Command, Bool, Number, Text
+        CommandExpr, Bool, Number, Text
     ]);
 
     // Get result out of the provided module and save it in the internal state

@@ -6,13 +6,15 @@ use crate::modules::variable::{
     init::VariableInit,
     set::VariableSet
 };
+use crate::modules::command::statement::CommandStatement;
 use crate::handle_types;
 
 #[derive(Debug)]
 enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
-    VariableSet(VariableSet)
+    VariableSet(VariableSet),
+    CommandStatement(CommandStatement)
 }
 
 #[derive(Debug)]
@@ -24,6 +26,8 @@ impl Statement {
     handle_types!(StatementType, [
         // Variables
         VariableInit, VariableSet,
+        // Command
+        CommandStatement,
         // Expression
         Expr
     ]);
