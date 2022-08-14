@@ -39,7 +39,7 @@ pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, l
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            format!("$(echo {left} {op} {right} | bc -l)")
+            format!("$(echo {left} '{op}' {right} | bc -l)")
         }
     }
 }

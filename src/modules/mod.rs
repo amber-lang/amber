@@ -38,7 +38,7 @@ pub enum Type {
     Text,
     Bool,
     Num,
-    Void
+    Null
 }
 
 trait Typed {

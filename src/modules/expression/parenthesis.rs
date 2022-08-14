@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Parenthesis {
     fn new() -> Self {
         Parenthesis {
             value: Box::new(Expr::new()),
-            kind: Type::Void
+            kind: Type::Null
         }
     }
 

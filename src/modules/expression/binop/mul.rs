@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
         Mul {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
-            kind: Type::Void
+            kind: Type::Null
         }
     }
 

@@ -3,28 +3,28 @@ use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{Type, Typed}};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug)]
-pub struct Void {}
+pub struct Null {}
 
-impl Typed for Void {
+impl Typed for Null {
     fn get_type(&self) -> Type {
-        Type::Void
+        Type::Null
     }
 }
 
-impl SyntaxModule<ParserMetadata> for Void {
-    syntax_name!("Void");
+impl SyntaxModule<ParserMetadata> for Null {
+    syntax_name!("Null");
 
     fn new() -> Self {
-        Void {}
+        Null {}
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "void")?;
+        token(meta, "null")?;
         Ok(())        
     }
 }
 
-impl TranslateModule for Void {
+impl TranslateModule for Null {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         format!("''")
     }

@@ -72,6 +72,9 @@ impl SyntaxModule<ParserMetadata> for Statement {
 
 impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.translate_match(meta, &self.value.as_ref().unwrap())
+        let translated = self.translate_match(meta, &self.value.as_ref().unwrap());
+        if translated.starts_with("$(") {
+            format!("echo {} > /dev/null 2>&1", translated)
+        } else { translated }
     }
 }

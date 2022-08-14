@@ -6,7 +6,7 @@ use crate::modules::expression::expr::Expr;
 pub mod bool;
 pub mod number;
 pub mod text;
-pub mod void;
+pub mod null;
 
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), ErrorDetails> {
     let mut strings = vec![];
@@ -56,6 +56,58 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     }
 }
 
+fn translate_escaped_string(string: String) -> String {
+    let mut chars = string.chars().peekable();
+    let mut result = String::new();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => {
+                match chars.peek() {
+                    Some('n') => {
+                        result.push('\n');
+                        chars.next();
+                    },
+                    Some('t') => {
+                        result.push('\t');
+                        chars.next();
+                    },
+                    Some('r') => {
+                        result.push('\r');
+                        chars.next();
+                    },
+                    Some('0') => {
+                        result.push('\0');
+                        chars.next();
+                    },
+                    Some('\'') => {
+                        result.push('\'');
+                        chars.next();
+                    },
+                    Some('\"') => {
+                        result.push('\"');
+                        chars.next();
+                    },
+                    Some('\\') => {
+                        result.push('\\');
+                        chars.next();
+                    },
+                    Some('{') => {
+                        result.push('{');
+                        chars.next();
+                    },
+                    Some('$') => {
+                        result.push('$');
+                        chars.next();
+                    },
+                    _ => result.push(c)
+                }
+            },
+            _ => result.push(c)
+        }
+    }
+    result
+}
+
 pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>) -> String {
     // TODO: [A15] Fix issues related to the escaping
     let mut result = vec![];
@@ -67,9 +119,9 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>)
         match value {
             Some(translated) => {
                 if is_even {
-                    result.push(format!("{translated}"));
+                    result.push(translated);
                 } else {
-                    result.push(translated)
+                    result.push(translate_escaped_string(translated));
                 }
             },
             None => break

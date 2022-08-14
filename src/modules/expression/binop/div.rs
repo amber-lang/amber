@@ -7,13 +7,12 @@ use crate::translate::module::TranslateModule;
 #[derive(Debug)]
 pub struct Div {
     left: Box<Expr>,
-    right: Box<Expr>,
-    kind: Type
+    right: Box<Expr>
 }
 
 impl Typed for Div {
     fn get_type(&self) -> Type {
-        self.kind.clone()
+        Type::Num
     }
 }
 
@@ -23,8 +22,7 @@ impl SyntaxModule<ParserMetadata> for Div {
     fn new() -> Self {
         Div {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new()),
-            kind: Type::Void
+            right: Box::new(Expr::new())
         }
     }
 
