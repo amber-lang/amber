@@ -1,132 +1,125 @@
 pub mod flag_registry;
+pub mod cli;
 
-use heraclitus_compiler::prelude::*;
-use colored::Colorize;
-use crate::modules::block;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use crate::rules;
-use flag_registry::FlagRegistry;
-use std::env;
-use std::os::unix::prelude::PermissionsExt;
-use std::process::Command;
-use std::{io, io::prelude::*};
-use std::fs;
+#[cfg(test)]
+mod tests {
+    use super::cli::CLI;
 
-pub struct CLI {
-    args: Vec<String>,
-    flags: FlagRegistry,
-    name: String,
-    exe_name: String,
-    version: String,
-    ext: String
-}
-
-
-impl CLI {
-    pub fn new() -> Self {
-        CLI {
-            args: vec![],
-            flags: FlagRegistry::new(),
-            name: format!("Amber"),
-            exe_name: format!("amber"),
-            version: format!("{}", env!("CARGO_PKG_VERSION")),
-            ext: format!(".amber")
-        }
+    #[test]
+    fn hello_world() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo Hello World$").trim(), "Hello World");
     }
 
-    pub fn run(&mut self) {
-        self.flags.register("-e", true);
-        self.flags.register("-h", false);
-        self.flags.register("--help", false);
-        self.args = self.flags.parse(env::args().collect());
-        // Check all flags
-        if self.flags.flag_triggered("-e") {
-            match self.flags.get_flag("-e").unwrap().value.clone() {
-                Some(code) => {
-                    let translation = self.compile(code.clone(), None);
-                    self.execute(translation);
-                },
-                None => {
-                    Logger::new_err_msg("No value passed after -e flag")
-                        .attach_comment("You can write code that has to be evaluated after the -e flag")
-                        .show().exit();
-                }
-            }
-        }
-        // Parse input file
-        else if self.args.len() >= 2 {
-            let input = self.args[1].clone();
-            match self.read_file(input.clone()) {
-                Ok(code) => {
-                    let code = self.compile(code, Some(input.clone()));
-                    // Save to the output file
-                    if self.args.len() >= 3 {
-                        let output = self.args[2].clone();
-                        match fs::File::create(output.clone()) {
-                            Ok(mut file) => {
-                                write!(file, "{}", code).unwrap();
-                                let mut perm = fs::metadata(output.clone()).unwrap().permissions();
-                                perm.set_mode(0o755);
-                                file.set_permissions(perm).unwrap();
-                            },
-                            Err(err) => {
-                                Logger::new_err_msg(err.to_string()).show().exit();
-                            }
-                        }
-                    }
-                    // Evaluate
-                    else {
-                        self.execute(code);
-                    }
-                }
-                Err(err) => {
-                    Logger::new_err_msg(err.to_string()).show().exit();
-                }
-            }
-        }
-        else {
-            println!("{}'s compiler", self.name);
-            println!("Version {}\n", self.version);
-            println!("USAGE:\t\t\t\tEXAMPLE:");
-            println!("{}", "For evaluation:".dimmed());
-            {
-                let example = format!("{} foo{}", self.exe_name, self.ext).dimmed();
-                println!("\t{} [INPUT]\t\t{}", self.exe_name, example);
-            }
-            {
-                let example = format!("{} -e \"\\$echo Hello World\\$\"", self.exe_name).dimmed();
-                println!("\t{} -e [EXPR]\t\t{}", self.exe_name, example);
-            }
-            println!("{}", "For compiling:".dimmed());
-            {
-                let example = format!("{} foo{} bar{}", self.exe_name, self.ext, self.ext).dimmed();
-                println!("\t{} [INPUT] [OUTPUT]\t{}", self.exe_name, example);
-            }
-        }
+    #[test]
+    fn add() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {15 + 45}$").trim(), "60");
     }
 
-    fn compile(&self, code: String, path: Option<String>) -> String {
-        let rules = rules::get_rules();
-        let mut cc = Compiler::new("Amber", rules);
-        let mut block = block::Block::new();
-        cc.load(code.clone());
-        if let Ok(tokens) = cc.tokenize() {
-            let mut meta = ParserMetadata::new(tokens, path.clone(), Some(code.clone()));
-            if let Ok(()) = block.parse(&mut meta) {
-                let mut meta = TranslateMetadata::new();
-                return format!("{}", block.translate(&mut meta));
-            }
-        }
-        format!("[err]")
+    #[test]
+    fn mul() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {3 * 4}$").trim(), "12");
     }
 
-    fn execute(&self, code: String) {
-        Command::new(format!("/bin/bash")).arg("-c").arg(code).spawn().unwrap().wait().unwrap();
+    #[test]
+    fn div() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {21 / 3}$").trim(), "7");
     }
 
-    #[inline]
-    fn read_file(&self, path: impl AsRef<str>) -> io::Result<String> {
-        fs::read_to_string(path.as_ref())
+    #[test]
+    fn sub() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {21 - 7}$").trim(), "14");
+    }
+
+    #[test]
+    fn text() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {'Hello World'}$").trim(), "Hello World");
+    }
+
+    #[test]
+    fn bool() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {true}$").trim(), "1");
+        assert_eq!(cli.test_eval("$echo {false}$").trim(), "0");
+    }
+
+    #[test]
+    fn number() {
+        let cli = CLI::new();
+        assert_eq!(cli.test_eval("$echo {42}$").trim(), "42");
+    }
+
+    #[test]
+    fn variable() {
+        let cli = CLI::new();
+        let code = "
+            let x = 42
+            $echo {x}$
+            x = 21
+            $echo {x}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "42\n21");
+    }
+
+    #[test]
+    fn nested_string_interp() {
+        let cli = CLI::new();
+        let code = "
+            let x = 'welcome {'to'} wonderful {'world'}'
+            $echo {x}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "welcome to wonderful world");
+    }
+
+    #[test]
+    fn complex_arithmetic() {
+        let cli = CLI::new();
+        let code = "
+            let x = 21
+            let y = 2
+            let z = 3
+            $echo {x + y * z}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "27");
+    }
+
+    #[test]
+    fn very_complex_arithmetic() {
+        let cli = CLI::new();
+        let code = "
+            let x = 21
+            let y = 2
+            let z = 6
+            let a = 4
+            $echo {x + y * z / a}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "24");
+    }
+
+    #[test]
+    fn paranthesis() {
+        let cli = CLI::new();
+        let code = "
+            let x = 21
+            let y = 2
+            let z = 6
+            let a = 2
+            $echo {(x + y) * z / a}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "69");
+    }
+
+    #[test]
+    fn command_interpolation() {
+        let cli = CLI::new();
+        let code = "
+            $echo {$echo {$echo Hello World$}$}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "Hello World");
     }
 }

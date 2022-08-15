@@ -1,7 +1,7 @@
 use crate::utils::TranslateMetadata;
 
 pub enum ArithType {
-    BasicCalculator
+    BcSed
 }
 
 pub enum ArithOp {
@@ -22,8 +22,10 @@ pub enum ArithOp {
 
 pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
-        ArithType::BasicCalculator => {
+        ArithType::BcSed => {
             let (left, right) = (left.unwrap_or(format!("")), right.unwrap_or(format!("")));
+            // Removes trailing zeros from the expression
+            let sed_regex = "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//";
             let op = match operation {
                 ArithOp::Add => "+",
                 ArithOp::Sub => "-",
@@ -39,7 +41,7 @@ pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, l
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            format!("$(echo {left} '{op}' {right} | bc -l)")
+            format!("$(echo {left} '{op}' {right} | bc -l | sed '{sed_regex}')")
         }
     }
 }
