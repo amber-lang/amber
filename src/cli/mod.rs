@@ -122,4 +122,14 @@ mod tests {
         ";
         assert_eq!(cli.test_eval(code).trim(), "Hello World");
     }
+
+    #[test]
+    fn comment() {
+        let cli = CLI::new();
+        let code = "
+            # this is a comment
+            let a = 42 # this is a comment as well
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "");
+    }
 }

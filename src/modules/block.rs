@@ -31,9 +31,17 @@ impl SyntaxModule<ParserMetadata> for Block {
         loop {
             match meta.get_current_token() {
                 Some(token) => {
+                    // Handle the end of line or command
                     if ["\n", ";"].contains(&token.word.as_str()) {
                         meta.increment_index();
                         continue;
+                    }
+                    // Handle comments
+                    else if let Some(token) = meta.get_current_token() {
+                        if token.word.starts_with("#") {
+                            meta.increment_index();
+                            continue
+                        }
                     }
                 }
                 None => break

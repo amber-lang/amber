@@ -31,7 +31,11 @@ pub fn get_rules() -> Rules {
                 end: "}",
                 tokenize: true
             } ref global)
-        ])
+        ]),
+        reg!(comment as "comment" => {
+            begin: "#",
+            end: "\n"
+        })
     ];
     Rules::new(symbols, compounds, region)
 }
