@@ -8,13 +8,12 @@ use crate::modules::{Type, Typed};
 #[derive(Debug)]
 pub struct Mul {
     left: Box<Expr>,
-    right: Box<Expr>,
-    kind: Type
+    right: Box<Expr>
 }
 
 impl Typed for Mul {
     fn get_type(&self) -> Type {
-        self.kind.clone()
+        Type::Num
     }
 }
 
@@ -24,8 +23,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
     fn new() -> Self {
         Mul {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new()),
-            kind: Type::Null
+            right: Box::new(Expr::new())
         }
     }
 

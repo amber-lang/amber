@@ -7,7 +7,7 @@ pub struct TranslateMetadata {
 impl TranslateMetadata {
     pub fn new() -> Self {
         TranslateMetadata {
-            arith_module: ArithType::BasicCalculator
+            arith_module: ArithType::BcSed
         }
     }
 }

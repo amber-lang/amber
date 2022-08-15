@@ -4,9 +4,10 @@ mod modules;
 mod rules;
 mod utils;
 mod translate;
-mod cli;
+pub mod cli;
+use cli::cli::CLI;
 
 fn main() { 
-    let mut cli = cli::CLI::new();
+    let mut cli = CLI::new();
     cli.run();
 }
