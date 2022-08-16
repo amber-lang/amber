@@ -122,4 +122,50 @@ mod tests {
         ";
         assert_eq!(cli.test_eval(code).trim(), "Hello World");
     }
+<<<<<<< Updated upstream
+=======
+
+    #[test]
+    fn comment() {
+        let cli = CLI::new();
+        let code = "
+            # this is a comment
+            let a = 42 # this is a comment as well
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "");
+    }
+
+    #[test]
+    fn compare_eq_texts() {
+        let cli = CLI::new();
+        let code = "
+            let x = 'Hello World'
+            let y = 'Hello World'
+            $echo {x == y}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "1");
+    }
+
+    #[test]
+    fn compare_eq_numbers() {
+        let cli = CLI::new();
+        let code = "
+            let x = 42
+            let y = 42
+            $echo {x == y}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "1");
+    }
+
+    #[test]
+    fn compare_neq_numbers() {
+        let cli = CLI::new();
+        let code = "
+            let x = 42
+            let y = 24
+            $echo {x != y}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "1");
+    }
+>>>>>>> Stashed changes
 }

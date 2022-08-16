@@ -42,6 +42,11 @@ impl TranslateModule for Eq {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
+        // Handle text comparison
+        if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
+            format!("$([ \"_{left}\" != \"_{right}\" ]; echo $?)")
+        } else {
+            translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
+        }
     }
 }

@@ -114,8 +114,9 @@ impl CLI {
                 let mut meta = TranslateMetadata::new();
                 return format!("{}", block.translate(&mut meta));
             }
+            return format!("[parsing err]")
         }
-        format!("[err]")
+        format!("[lexing err]")
     }
 
     fn execute(&self, code: String) {

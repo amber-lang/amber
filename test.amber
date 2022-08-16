@@ -1,4 +1,23 @@
+<<<<<<< Updated upstream
 let a = 12
 let b = 2
 let c = 3
 $echo {(a + b) * c}$
+=======
+let soda = 'other'
+
+if {
+    soda == 'coke' {
+        $echo "I like coke"$
+    }
+    soda == 'sprite' {
+        $echo "I like sprite"$
+    }
+    soda == 'fanta' {
+        $echo "I like fanta"$
+    }
+    else {
+        $echo "I don't like soda"$
+    }
+}
+>>>>>>> Stashed changes

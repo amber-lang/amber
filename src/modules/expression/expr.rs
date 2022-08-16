@@ -56,6 +56,7 @@ pub enum ExprType {
 #[derive(Debug)]
 pub struct Expr {
     value: Option<ExprType>,
+    can_fail: bool,
     kind: Type
 }
 
@@ -77,6 +78,10 @@ impl Expr {
         Parenthesis, CommandExpr, Bool, Number, Text,
         VariableGet
     ]);
+
+    pub fn cannot_fail(&mut self) {
+        self.can_fail = false;
+    }
 
     // Get result out of the provided module and save it in the internal state
     fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType) -> SyntaxResult
@@ -107,7 +112,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
     fn new() -> Self {
         Expr {
             value: None,
-            kind: Type::Null
+            kind: Type::Null,
+            can_fail: true
         }
     }
 
@@ -120,7 +126,9 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 Err(details) => error = Some(details)
             }
         }
-        self.error(meta);
+        if self.can_fail {
+            self.error(meta);
+        }
         Err(error.unwrap())
     }
 }

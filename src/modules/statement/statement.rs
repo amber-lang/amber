@@ -8,13 +8,19 @@ use crate::modules::variable::{
 };
 use crate::modules::command::statement::CommandStatement;
 use crate::handle_types;
+use crate::modules::conditions::{
+    ifchain::IfChain,
+    ifcond::IfCondition
+};
 
 #[derive(Debug)]
 enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
     VariableSet(VariableSet),
-    CommandStatement(CommandStatement)
+    CommandStatement(CommandStatement),
+    IfCondition(IfCondition),
+    IfChain(IfChain)
 }
 
 #[derive(Debug)]
@@ -24,6 +30,7 @@ pub struct Statement {
 
 impl Statement {
     handle_types!(StatementType, [
+        IfChain, IfCondition,
         // Variables
         VariableInit, VariableSet,
         // Command

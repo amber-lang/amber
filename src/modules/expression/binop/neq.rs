@@ -42,6 +42,10 @@ impl TranslateModule for Neq {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Neq, Some(left), Some(right))
+        if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
+            format!("$([ \"_{left}\" == \"_{right}\" ]; echo $?)")
+        } else {
+            translate_computation(meta, ArithOp::Neq, Some(left), Some(right))
+        }
     }
 }

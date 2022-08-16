@@ -3,6 +3,7 @@ pub mod expression;
 pub mod block;
 pub mod variable;
 pub mod command;
+pub mod conditions;
 
 #[macro_export]
 macro_rules! handle_types {
