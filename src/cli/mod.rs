@@ -165,4 +165,53 @@ mod tests {
         ";
         assert_eq!(cli.test_eval(code).trim(), "1");
     }
+
+    #[test]
+    fn if_statements() {
+        let cli = CLI::new();
+        let code = "
+            let x = 42
+            let y = 24
+            if x == y {
+                $echo {x}$
+            } else {
+                $echo {y}$
+            }
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "24");
+    }
+
+    #[test]
+    fn if_statements_else() {
+        let cli = CLI::new();
+        let code = "
+            let x = 42
+            let y = 24
+            if x == y {
+                $echo {x}$
+            }
+            else {
+                $echo {y}$
+            }
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "24");
+    }
+
+    #[test]
+    fn if_statement_chain() {
+        let cli = CLI::new();
+        let code = "
+            let x = 42
+            let y = 24
+            if {
+                x == y {
+                    $echo {x}$
+                }
+                else {
+                    $echo {y}$
+                }
+            }
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "24");
+    }
 }
