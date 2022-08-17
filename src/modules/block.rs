@@ -35,8 +35,6 @@ impl SyntaxModule<ParserMetadata> for Block {
                         meta.increment_index();
                         continue;
                     }
-<<<<<<< Updated upstream
-=======
                     // Handle comments
                     if token.word.starts_with("#") {
                         meta.increment_index();
@@ -46,7 +44,6 @@ impl SyntaxModule<ParserMetadata> for Block {
                     else if token.word == "}" {
                         break;
                     }
->>>>>>> Stashed changes
                 }
                 None => break
             }

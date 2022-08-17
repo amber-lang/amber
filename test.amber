@@ -1,9 +1,3 @@
-<<<<<<< Updated upstream
-let a = 12
-let b = 2
-let c = 3
-$echo {(a + b) * c}$
-=======
 let soda = 'other'
 
 if {
@@ -20,4 +14,3 @@ if {
         $echo "I don't like soda"$
     }
 }
->>>>>>> Stashed changes

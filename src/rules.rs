@@ -31,16 +31,12 @@ pub fn get_rules() -> Rules {
                 end: "}",
                 tokenize: true
             } ref global)
-<<<<<<< Updated upstream
-        ])
-=======
         ]),
         reg!(comment as "comment" => {
             begin: "#",
             end: "\n",
             allow_left_open: true
         })
->>>>>>> Stashed changes
     ];
     Rules::new(symbols, compounds, region)
 }

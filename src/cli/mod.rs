@@ -122,8 +122,6 @@ mod tests {
         ";
         assert_eq!(cli.test_eval(code).trim(), "Hello World");
     }
-<<<<<<< Updated upstream
-=======
 
     #[test]
     fn comment() {
@@ -167,5 +165,4 @@ mod tests {
         ";
         assert_eq!(cli.test_eval(code).trim(), "1");
     }
->>>>>>> Stashed changes
 }
