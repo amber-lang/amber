@@ -121,6 +121,13 @@ impl SyntaxModule<ParserMetadata> for Expr {
         let mut error = None;
         let statements = self.get_modules();
         for statement in statements {
+            // Handle comments
+            if let Some(token) = meta.get_current_token() {
+                if token.word.starts_with("#") {
+                    meta.increment_index();
+                    continue
+                }
+            }
             match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
                 Err(details) => error = Some(details)
