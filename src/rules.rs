@@ -34,7 +34,8 @@ pub fn get_rules() -> Rules {
         ]),
         reg!(comment as "comment" => {
             begin: "#",
-            end: "\n"
+            end: "\n",
+            allow_left_open: true
         })
     ];
     Rules::new(symbols, compounds, region)

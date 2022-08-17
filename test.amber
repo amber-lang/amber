@@ -1,5 +1,16 @@
-let a = 12
-let b = 2 # test
-let c = 3 # test
-$echo {(a + b) * c}$
-# test
+let soda = 'other'
+
+if {
+    soda == 'coke' {
+        $echo "I like coke"$
+    }
+    soda == 'sprite' {
+        $echo "I like sprite"$
+    }
+    soda == 'fanta' {
+        $echo "I like fanta"$
+    }
+    else {
+        $echo "I don't like soda"$
+    }
+}

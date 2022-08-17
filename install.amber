@@ -1,0 +1,5 @@
+let tag = '1.0.0'
+let place = '/opt/amber'
+let url = 'https://github.com/Ph0enixKM/Amber/releases/download/{tag}/amber.zip'
+
+$test -d "{place}"$

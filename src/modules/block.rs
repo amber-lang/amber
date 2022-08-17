@@ -37,11 +37,13 @@ impl SyntaxModule<ParserMetadata> for Block {
                         continue;
                     }
                     // Handle comments
-                    else if let Some(token) = meta.get_current_token() {
-                        if token.word.starts_with("#") {
-                            meta.increment_index();
-                            continue
-                        }
+                    if token.word.starts_with("#") {
+                        meta.increment_index();
+                        continue
+                    }
+                    // Handle block end
+                    else if token.word == "}" {
+                        break;
                     }
                 }
                 None => break
