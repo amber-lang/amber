@@ -1,4 +1,5 @@
 let a = 12
-let b = 2
-let c = 3
+let b = 2 # test
+let c = 3 # test
 $echo {(a + b) * c}$
+# test
