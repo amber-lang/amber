@@ -6,7 +6,6 @@ use crate::translate::module::TranslateModule;
 use crate::rules;
 use super::flag_registry::FlagRegistry;
 use std::env;
-use std::os::unix::prelude::PermissionsExt;
 use std::process::Command;
 use std::{io, io::prelude::*};
 use std::fs;
@@ -63,9 +62,8 @@ impl CLI {
                         match fs::File::create(output.clone()) {
                             Ok(mut file) => {
                                 write!(file, "{}", code).unwrap();
-                                let mut perm = fs::metadata(output.clone()).unwrap().permissions();
-                                perm.set_mode(0o755);
-                                file.set_permissions(perm).unwrap();
+                                self.set_file_permission(&file, output.clone());
+                                
                             },
                             Err(err) => {
                                 Logger::new_err_msg(err.to_string()).show().exit();
@@ -101,6 +99,19 @@ impl CLI {
                 println!("\t{} [INPUT] [OUTPUT]\t{}", self.exe_name, example);
             }
         }
+    }
+
+    #[cfg(target_os = "windows")]
+    fn set_file_permission(&self, _file: &fs::File, _output: String) {
+        // We don't need to set permission on Windows
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn set_file_permission(&self, file: &std::fs::File, path: String) {
+        use std::os::unix::prelude::PermissionsExt;
+        let mut perm = fs::metadata(path).unwrap().permissions();
+        perm.set_mode(0o755);
+        file.set_permissions(perm).unwrap();
     }
 
     fn compile(&self, code: String, path: Option<String>) -> String {
