@@ -35,7 +35,10 @@ impl FlagRegistry {
 
     #[inline]
     pub fn flag_triggered(&self, name: impl AsRef<str>) -> bool {
-        self.flags.get(name.as_ref()).is_some_and(|flag| flag.triggered)
+        match self.flags.get(name.as_ref()) {
+            Some(flag) => flag.triggered,
+            None => false
+        }
     }
 
     #[inline]

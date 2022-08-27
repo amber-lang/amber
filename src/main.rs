@@ -1,5 +1,3 @@
-#![feature(is_some_with)]
-
 mod modules;
 mod rules;
 mod utils;
