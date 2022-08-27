@@ -1,4 +1,8 @@
 /target
 
+# Test files
+test.amber
+test.sh
+
 # MacOS
 **/.DS_Store

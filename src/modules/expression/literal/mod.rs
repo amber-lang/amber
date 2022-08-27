@@ -13,7 +13,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     let mut interps = vec![];
     // Handle full string
     if let Ok(word) = token_by(meta, |word| word.starts_with(letter) && word.ends_with(letter) && word.len() > 1) {
-        let stripped = word.chars().take(word.len() - 1).skip(1).collect::<String>();
+        let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         strings.push(stripped.clone());
         Ok((strings, interps))
     }
@@ -43,7 +43,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                         meta.increment_index();
                         // Right trim the symbol
                         let trimmed = strings.last().unwrap()
-                            .chars().take(token.word.len() - 1).collect::<String>();
+                            .chars().take(token.word.chars().count() - 1).collect::<String>();
                         // replace the last string
                         *strings.last_mut().unwrap() = trimmed;
                         return Ok((strings, interps))
@@ -56,11 +56,20 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     }
 }
 
-fn translate_escaped_string(string: String) -> String {
+fn translate_escaped_string(string: String, is_str: bool) -> String {
     let mut chars = string.chars().peekable();
     let mut result = String::new();
     while let Some(c) = chars.next() {
         match c {
+            '"' => {
+                if is_str {
+                    result.push('\\');
+                    result.push('\"');
+                }
+                else {
+                    result.push('"');
+                }
+            }
             '\\' => {
                 match chars.peek() {
                     Some('n') => {
@@ -108,7 +117,7 @@ fn translate_escaped_string(string: String) -> String {
     result
 }
 
-pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>) -> String {
+pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>, is_str: bool) -> String {
     // TODO: [A15] Fix issues related to the escaping
     let mut result = vec![];
     let mut interps = VecDeque::from_iter(interps);
@@ -121,7 +130,7 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>)
                 if is_even {
                     result.push(translated);
                 } else {
-                    result.push(translate_escaped_string(translated));
+                    result.push(translate_escaped_string(translated, is_str));
                 }
             },
             None => break

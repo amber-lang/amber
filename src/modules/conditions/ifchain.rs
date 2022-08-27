@@ -29,14 +29,17 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             let mut cond = Expr::new();
             let mut block = Block::new();
             cond.cannot_fail();
+            // Handle comments and empty lines
+            if let Ok(_) = token_by(meta, |token| token.starts_with("#") || token.starts_with("\n")) {
+                continue
+            }
             // Handle else keyword
             if let Ok(_) = token(meta, "else") {
                 is_else = true;
-                break;
+                break
             }
             // Handle end of the if chain
             if let Err(_) = syntax(meta, &mut cond) {
-                println!("{:?}", meta.get_current_token());
                 break
             }
             token(meta, "{")?;
