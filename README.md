@@ -48,5 +48,5 @@ brew install messense/macos-cross-toolchains/x86_64-unknown-linux-gnu
 
 Finally in order to build
 ```bash
-cargo build --release
+amber build.amber
 ```
