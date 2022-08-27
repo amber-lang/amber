@@ -1,0 +1,13 @@
+[build]
+# target = [
+#     'aarch64-apple-darwin',
+#     'aarch64-unknown-linux-musl',
+#     'x86_64-apple-darwin',
+#     'x86_64-unknown-linux-musl'
+# ]
+
+[target.x86_64-unknown-linux-musl]
+linker = "x86_64-unknown-linux-musl-gcc"
+
+[target.aarch64-unknown-linux-musl]
+linker = "aarch64-unknown-linux-musl-gcc"

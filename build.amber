@@ -1,0 +1,18 @@
+let macos_arm = 'aarch64-apple-darwin'
+let linux_arm = 'aarch64-unknown-linux-musl'
+let macos_x64 = 'x86_64-apple-darwin'
+let linux_x64 = 'x86_64-unknown-linux-musl'
+
+# Check if such directory exists
+$test -f "Cargo.toml" > /dev/null$
+
+if $echo \$?$ == '0' {
+    $cargo build --release --target {macos_arm} --target {linux_arm} --target {macos_x64} --target {linux_x64}$
+    # Move ambers to the release directory
+    $mv target/aarch64-apple-darwin/release/amber target/release/amber_macos_aarch64$
+    $mv target/aarch64-unknown-linux-musl/release/amber target/release/amber_linux_aarch64$
+    $mv target/x86_64-apple-darwin/release/amber target/release/amber_macos_x86_64$
+    $mv target/x86_64-unknown-linux-musl/release/amber target/release/amber_linux_x86_64$
+} else {
+    $echo "Please run this command in the project root directory"$
+}

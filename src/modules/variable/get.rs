@@ -35,6 +35,6 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 
 impl TranslateModule for VariableGet {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        format!("${}", self.name)
+        format!("${{{}}}", self.name)
     }
 }

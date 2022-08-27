@@ -1,6 +1,30 @@
-let tag = '1.0.0'
+let name = 'AmberNative'
+let target = 'amber'
+let tag = 'v0.1.0-alpha'
 let place = '/opt/amber'
-let url = 'https://github.com/Ph0enixKM/Amber/releases/download/{tag}/amber.zip'
+
+# Detect OS type
+let arch = ''
+let os = ''
+
+# Determine OS type
+if $uname -s$ == 'Darwin' {
+    os = 'macos'
+}
+else {
+    os = 'linux'
+}
+
+# Determine architecture
+if $uname -m$ == 'arm64' {
+    arch = 'aarch64'
+}
+else {
+    arch = 'x86_64'
+}
+
+# Set the download link
+let url = 'https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}'
 
 # Check if such directory exists
 $test -d "{place}" > /dev/null$
@@ -14,7 +38,6 @@ if $echo \$?$ == '0' {
 }
 
 $echo "Installing Amber" $
-let target = 'amber.zip'
 
 # Download Amber
 if {
@@ -43,17 +66,10 @@ if {
 # Create directory for amber
 $sudo mkdir {place} > /dev/null$
 # Move zipped version of amber
-$sudo mv amber.zip {place}/amber.zip$
-# Go to the place (with option to rollback)
-$pushd {place} > /dev/null$
-# Unzip Amber's contents
-$echo 'Unpacking...'$
-$sudo unzip {place}/amber.zip$
-# Remove zip file
-$sudo rm {place}/amber.zip$
+$sudo mv {target} {place}/{target}$
+# Give permissions to execute amber
+$sudo chmod +x {place}/{target}$
 # Create amber symbol link
-$sudo ln -s {place}/amber /usr/local/bin/amber$
-# Go back to where we've been
-$popd {place}$
-
+$sudo ln -s {place}/{target} /usr/local/bin/{target}$
+# Send success message
 $echo "Amber has been installed successfully."$

@@ -83,3 +83,8 @@ fn binop_left_cut(meta: &mut ParserMetadata, op: impl AsRef<str>) -> Result<usiz
     Err(err)
 }
 
+pub fn strip_text_quotes(text: &mut String) {
+    if text.starts_with('"') && text.ends_with('"') {
+        *text = text[1..text.len() - 1].to_string();
+    }
+}

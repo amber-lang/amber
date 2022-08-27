@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "amber_native"
+name = "amber"
 version = "1.0.0"
 dependencies = [
  "colored",
