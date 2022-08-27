@@ -72,4 +72,4 @@ $sudo chmod +x {place}/{target}$
 # Create amber symbol link
 $sudo ln -s {place}/{target} /usr/local/bin/{target}$
 # Send success message
-$echo "Amber has been installed successfully."$
+$echo "Amber has been installed successfully. 🎉"$
