@@ -124,6 +124,15 @@ mod tests {
     }
 
     #[test]
+    fn command_inception() {
+        let cli = CLI::new();
+        let code = "
+        ${${${$echo Hello World$}$}$}$
+        ";
+        assert_eq!(cli.test_eval(code).trim(), "Hello World");
+    }
+
+    #[test]
     fn comment() {
         let cli = CLI::new();
         let code = "

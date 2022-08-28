@@ -39,6 +39,12 @@ impl TranslateModule for CommandStatement {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
-        translate_interpolated_region(self.strings.clone(), interps, false)
+        let mut translation = translate_interpolated_region(self.strings.clone(), interps, false);
+        // Strip down all the inner command interpolations [A32]
+        while translation.starts_with("$(") {
+            let end = translation.len() - 1;
+            translation = translation.get(2..end).unwrap().to_string();
+        }
+        translation
     }
 }
