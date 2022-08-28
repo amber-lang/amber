@@ -45,9 +45,8 @@ impl VariableMemory {
 
     pub fn get_variable(&mut self, name: impl AsRef<str>) -> Option<&VariableUnit> {
         for scope in self.mem.iter().rev() {
-            match scope.vars.get(name.as_ref()) {
-                Some(unit) => return Some(unit),
-                None => {}
+            if let Some(var) = scope.vars.get(name.as_ref()) {
+                return Some(var);
             }
         }
         None

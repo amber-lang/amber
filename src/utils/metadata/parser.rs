@@ -33,10 +33,7 @@ impl Metadata for ParserMetadata {
     }
 
     fn get_token_at(&self, index: usize) -> Option<Token> {
-        match self.expr.get(index) {
-            Some(token) => Some(token.clone()),
-            None => None
-        }
+        self.expr.get(index).cloned()
     }
     fn get_debug(&mut self) -> Option<usize> {
         self.debug

@@ -39,6 +39,6 @@ impl TranslateModule for Text {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
-        format!("\"{}\"", translate_interpolated_region(self.strings.clone(), interps.clone(), true))
+        format!("\"{}\"", translate_interpolated_region(self.strings.clone(), interps, true))
     }
 }

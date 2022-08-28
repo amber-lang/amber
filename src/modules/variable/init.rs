@@ -16,7 +16,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 
     fn new() -> Self {
         VariableInit {
-            name: format!(""),
+            name: String::new(),
             expr: Box::new(Expr::new())
         }
     }

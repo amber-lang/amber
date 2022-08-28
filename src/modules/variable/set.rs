@@ -14,7 +14,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 
     fn new() -> Self {
         VariableSet {
-            name: format!(""),
+            name: String::new(),
             value: Box::new(Expr::new())
         }
     }

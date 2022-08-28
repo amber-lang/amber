@@ -34,7 +34,7 @@ macro_rules! handle_types {
     };
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
     Text,
     Bool,

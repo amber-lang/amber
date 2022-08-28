@@ -29,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut *self.left, "and")?;
+        parse_left_expr(meta, &mut self.left, "and")?;
         let tok = meta.get_current_token();
         token(meta, "and")?;
         syntax(meta, &mut *self.right)?;

@@ -31,7 +31,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         syntax(meta, &mut *self.true_block)?;
         token(meta, "}")?;
         // Parse false block
-        if let Ok(_) = token(meta, "else") {
+        if token(meta, "else").is_ok() {
             token(meta, "{")?;
             let mut false_block = Box::new(Block::new());
             syntax(meta, &mut *false_block)?;
@@ -48,10 +48,10 @@ impl TranslateModule for IfCondition {
         result.push(format!("if [ {} != 0 ]; then", self.expr.translate(meta)));
         result.push(self.true_block.translate(meta));
         if let Some(false_block) = &self.false_block {
-            result.push(format!("else"));
+            result.push("else".to_string());
             result.push(false_block.translate(meta));
         }
-        result.push(format!("fi"));
+        result.push("fi".to_string());
         result.join("\n")
     }
 }

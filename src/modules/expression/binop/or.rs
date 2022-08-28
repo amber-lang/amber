@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for Or {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut *self.left, "or")?;
+        parse_left_expr(meta, &mut self.left, "or")?;
         let tok = meta.get_current_token();
         token(meta, "or")?;
         syntax(meta, &mut *self.right)?;

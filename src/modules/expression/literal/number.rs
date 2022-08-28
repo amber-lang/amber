@@ -18,7 +18,7 @@ impl SyntaxModule<ParserMetadata> for Number {
 
     fn new() -> Self {
         Number {
-            value: format!("")
+            value: String::new()
         }
     }
 
@@ -30,6 +30,6 @@ impl SyntaxModule<ParserMetadata> for Number {
 
 impl TranslateModule for Number {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        format!("{}", self.value)
+        self.value.to_string()
     }
 }
