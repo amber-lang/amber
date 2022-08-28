@@ -62,6 +62,7 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
     while let Some(c) = chars.next() {
         match c {
             '"' => {
+                // Escape double quotes if in a string
                 if is_str {
                     result.push('\\');
                     result.push('\"');
@@ -70,7 +71,14 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                     result.push('"');
                 }
             }
+            '\n' => {
+                // If it's a command then ignore newlines
+                if is_str {
+                    result.push('\n');
+                }
+            }
             '\\' => {
+                // Escape symbols
                 match chars.peek() {
                     Some('n') => {
                         result.push('\n');
