@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, error::get_error_logger, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
-use super::statement::statement::Statement;
+use super::statement::st::Statement;
 
 #[derive(Debug)]
 pub struct Block {
@@ -28,25 +28,20 @@ impl SyntaxModule<ParserMetadata> for Block {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         meta.var_mem.push_scope();
-        loop {
-            match meta.get_current_token() {
-                Some(token) => {
-                    // Handle the end of line or command
-                    if ["\n", ";"].contains(&token.word.as_str()) {
-                        meta.increment_index();
-                        continue;
-                    }
-                    // Handle comments
-                    if token.word.starts_with("#") {
-                        meta.increment_index();
-                        continue
-                    }
-                    // Handle block end
-                    else if token.word == "}" {
-                        break;
-                    }
-                }
-                None => break
+        while let Some(token) = meta.get_current_token() {
+            // Handle the end of line or command
+            if ["\n", ";"].contains(&token.word.as_str()) {
+                meta.increment_index();
+                continue;
+            }
+            // Handle comments
+            if token.word.starts_with('#') {
+                meta.increment_index();
+                continue
+            }
+            // Handle block end
+            else if token.word == "}" {
+                break;
             }
             let mut statemant = Statement::new();
             if let Err(details) = statemant.parse(meta) {

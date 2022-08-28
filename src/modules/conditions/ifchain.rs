@@ -30,16 +30,16 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             let mut block = Block::new();
             cond.cannot_fail();
             // Handle comments and empty lines
-            if let Ok(_) = token_by(meta, |token| token.starts_with("#") || token.starts_with("\n")) {
+            if token_by(meta, |token| token.starts_with('#') || token.starts_with('\n')).is_ok() {
                 continue
             }
             // Handle else keyword
-            if let Ok(_) = token(meta, "else") {
+            if token(meta, "else").is_ok() {
                 is_else = true;
                 break
             }
             // Handle end of the if chain
-            if let Err(_) = syntax(meta, &mut cond) {
+            if syntax(meta, &mut cond).is_err() {
                 break
             }
             token(meta, "{")?;
@@ -75,10 +75,10 @@ impl TranslateModule for IfChain {
             }
         }
         if let Some(false_block) = &self.false_block {
-            result.push(format!("else"));
+            result.push("else".to_string());
             result.push(false_block.translate(meta));
         }
-        result.push(format!("fi"));
+        result.push("fi".to_string());
         result.join("\n")
     }
 }

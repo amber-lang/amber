@@ -14,7 +14,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     // Handle full string
     if let Ok(word) = token_by(meta, |word| word.starts_with(letter) && word.ends_with(letter) && word.len() > 1) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
-        strings.push(stripped.clone());
+        strings.push(stripped);
         Ok((strings, interps))
     }
     else {

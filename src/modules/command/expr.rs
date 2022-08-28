@@ -39,6 +39,6 @@ impl TranslateModule for CommandExpr {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
-        format!("$({})", translate_interpolated_region(self.strings.clone(), interps.clone(), false))
+        format!("$({})", translate_interpolated_region(self.strings.clone(), interps, false))
     }
 }

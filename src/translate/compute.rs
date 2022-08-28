@@ -23,7 +23,7 @@ pub enum ArithOp {
 pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
         ArithType::BcSed => {
-            let (left, right) = (left.unwrap_or(format!("")), right.unwrap_or(format!("")));
+            let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
             // Removes trailing zeros from the expression
             let sed_regex = "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//";
             let op = match operation {

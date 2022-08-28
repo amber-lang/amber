@@ -20,6 +20,12 @@ pub struct FlagRegistry {
     flags: HashMap<String, Flag>
 }
 
+impl Default for FlagRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FlagRegistry {
     #[inline]
     pub fn new() -> Self {

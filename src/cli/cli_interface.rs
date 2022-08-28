@@ -19,15 +19,21 @@ pub struct CLI {
     ext: String
 }
 
+impl Default for CLI {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CLI {
     pub fn new() -> Self {
         CLI {
             args: vec![],
             flags: FlagRegistry::new(),
-            name: format!("Amber"),
-            exe_name: format!("amber"),
-            version: format!("{}", env!("CARGO_PKG_VERSION")),
-            ext: format!(".amber")
+            name: "Amber".to_string(),
+            exe_name: "amber".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+            ext: ".amber".to_string()
         }
     }
 
@@ -40,7 +46,7 @@ impl CLI {
         if self.flags.flag_triggered("-e") {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
-                    let translation = self.compile(code.clone(), None);
+                    let translation = self.compile(code, None);
                     self.execute(translation);
                 },
                 None => {
@@ -55,14 +61,14 @@ impl CLI {
             let input = self.args[1].clone();
             match self.read_file(input.clone()) {
                 Ok(code) => {
-                    let code = self.compile(code, Some(input.clone()));
+                    let code = self.compile(code, Some(input));
                     // Save to the output file
                     if self.args.len() >= 3 {
                         let output = self.args[2].clone();
                         match fs::File::create(output.clone()) {
                             Ok(mut file) => {
                                 write!(file, "{}", code).unwrap();
-                                self.set_file_permission(&file, output.clone());
+                                self.set_file_permission(&file, output);
                                 
                             },
                             Err(err) => {
@@ -120,14 +126,14 @@ impl CLI {
         let mut block = block::Block::new();
         cc.load(code.clone());
         if let Ok(tokens) = cc.tokenize() {
-            let mut meta = ParserMetadata::new(tokens, path.clone(), Some(code.clone()));
+            let mut meta = ParserMetadata::new(tokens, path, Some(code));
             if let Ok(()) = block.parse(&mut meta) {
                 let mut meta = TranslateMetadata::new();
-                return format!("{}", block.translate(&mut meta));
+                return block.translate(&mut meta);
             }
-            return format!("[parsing err]")
+            return "[parsing err]".to_string()
         }
-        format!("[lexing err]")
+        "[lexing err]".to_string()
     }
 
     fn execute(&self, code: String) {

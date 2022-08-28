@@ -26,6 +26,6 @@ impl SyntaxModule<ParserMetadata> for Null {
 
 impl TranslateModule for Null {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        format!("''")
+        "''".to_string()
     }
 }

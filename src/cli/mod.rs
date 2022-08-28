@@ -1,9 +1,9 @@
 pub mod flag_registry;
-pub mod cli;
+pub mod cli_interface;
 
 #[cfg(test)]
 mod tests {
-    use super::cli::CLI;
+    use super::cli_interface::CLI;
 
     #[test]
     fn hello_world() {

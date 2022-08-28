@@ -36,6 +36,6 @@ impl SyntaxModule<ParserMetadata> for Parenthesis {
 
 impl TranslateModule for Parenthesis {
     fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
-        format!("{}", self.value.translate(meta))
+        self.value.translate(meta)
     }
 }

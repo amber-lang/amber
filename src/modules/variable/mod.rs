@@ -12,13 +12,13 @@ pub fn variable_name_extensions() -> Vec<char> {
 
 pub fn handle_variable_reference(meta: &mut ParserMetadata, token: Option<Token>, name: String) -> Type {
     match meta.var_mem.get_variable(name.clone()) {
-        Some(variable_unit) => return variable_unit.kind.clone(),
+        Some(variable_unit) => variable_unit.kind.clone(),
         None => {
-            let message = format!("Variable '{}' does not exist", name.clone());
+            let message = format!("Variable '{}' does not exist", name);
             let details = ErrorDetails::from_token_option(token);
             let mut error = get_error_logger(meta, details).attach_message(message);
             // Find other similar variable if exists
-            if let Some(comment) = handle_similar_variable(meta, name.clone()) {
+            if let Some(comment) = handle_similar_variable(meta, name) {
                 error = error.attach_comment(comment);
             }
             error.show().exit();

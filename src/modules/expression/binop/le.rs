@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for Le {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut *self.left, "<=")?;
+        parse_left_expr(meta, &mut self.left, "<=")?;
         let tok = meta.get_current_token();
         token(meta, "<=")?;
         syntax(meta, &mut *self.right)?;

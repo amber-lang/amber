@@ -123,7 +123,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
         for statement in statements {
             // Handle comments
             if let Some(token) = meta.get_current_token() {
-                if token.word.starts_with("#") {
+                if token.word.starts_with('#') {
                     meta.increment_index();
                     continue
                 }
@@ -142,6 +142,6 @@ impl SyntaxModule<ParserMetadata> for Expr {
 
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.translate_match(meta, &self.value.as_ref().unwrap())
+        self.translate_match(meta, self.value.as_ref().unwrap())
     }
 }
