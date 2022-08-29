@@ -15,14 +15,18 @@ pub mod le;
 pub mod eq;
 pub mod neq;
 
-
-pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Expr, right: &Expr, kind: Type, tok_pos: Option<Token>, message: &str) {
-    if ![left.get_type(), right.get_type()].iter().all(|item| *item == kind) {
+pub fn expression_arms_of_type<U, V>(meta: &mut ParserMetadata, left: &U, right: &V, kinds: &[Type], tok_pos: Option<Token>, message: &str) -> Type
+where
+    U: Typed,
+    V: Typed,
+{
+    if kinds.iter().all(|kind | ![left.get_type(), right.get_type()].iter().all(|item| item == kind)) {
         get_error_logger(meta, ErrorDetails::from_token_option(tok_pos))
             .attach_message(message)
             .show()
             .exit()
     }
+    left.get_type()
 }
 
 pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) {

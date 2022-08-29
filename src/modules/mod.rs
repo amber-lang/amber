@@ -4,6 +4,7 @@ pub mod block;
 pub mod variable;
 pub mod command;
 pub mod conditions;
+pub mod shorthand;
 
 #[macro_export]
 macro_rules! handle_types {
@@ -42,6 +43,6 @@ pub enum Type {
     Null
 }
 
-trait Typed {
+pub trait Typed {
     fn get_type(&self) -> Type;
 }

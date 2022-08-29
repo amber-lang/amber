@@ -8,12 +8,13 @@ use crate::modules::{Type, Typed};
 #[derive(Debug)]
 pub struct Add {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Add {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.kind.clone()
     }
 }
 
@@ -23,7 +24,8 @@ impl SyntaxModule<ParserMetadata> for Add {
     fn new() -> Self {
         Add {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
+            kind: Type::Null
         }
     }
 
@@ -33,8 +35,8 @@ impl SyntaxModule<ParserMetadata> for Add {
         token(meta, "+")?;
         syntax(meta, &mut *self.right)?;
         // If left and right are not of type Number
-        let error = "Add operation can only add numbers";
-        expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
+        let error = "Add operation can only add numbers or text";
+        self.kind = expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num, Type::Text], tok, error);
         Ok(())
     }
 }
@@ -43,6 +45,11 @@ impl TranslateModule for Add {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Add, Some(left), Some(right))
+        if self.kind == Type::Text {
+            format!("{}{}", left, right)
+        }
+        else {
+            translate_computation(meta, ArithOp::Add, Some(left), Some(right))
+        }
     }
 }

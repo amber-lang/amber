@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for Sub {
         token(meta, "-")?;
         syntax(meta, &mut *self.right)?;
         let error = "Substract operation can only substract numbers";
-        expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
+        expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num], tok, error);
         Ok(())
     }
 }

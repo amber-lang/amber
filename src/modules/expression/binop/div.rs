@@ -32,7 +32,7 @@ impl SyntaxModule<ParserMetadata> for Div {
         token(meta, "/")?;
         syntax(meta, &mut *self.right)?;
         let error = "Divide operation can only divide numbers";
-        expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
+        expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num], tok, error);
         Ok(())
     }
 }

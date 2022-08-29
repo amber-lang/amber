@@ -5,7 +5,7 @@ use super::{variable_name_extensions, handle_variable_reference};
 
 #[derive(Debug)]
 pub struct VariableGet {
-    name: String,
+    pub name: String,
     kind: Type
 }
 
