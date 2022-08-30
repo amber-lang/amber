@@ -273,3 +273,41 @@ fn shorthand_div() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "7");
 }
+
+#[test]
+fn if_statements_singleline() {
+    let cli = CLI::new();
+    let code = "
+        let x = 42
+        let y = 24
+        if x == y => $echo {x}$
+        else => $echo {y}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "24");
+}
+
+#[test]
+fn if_statements_else_singleline() {
+    let cli = CLI::new();
+    let code = "
+        let x = 42
+        let y = 24
+        if x == y => $echo {x}$
+        else => $echo {y}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "24");
+}
+
+#[test]
+fn if_statement_chain_singleline() {
+    let cli = CLI::new();
+    let code = "
+        let x = 42
+        let y = 24
+        if {
+            x == y => $echo {x}$
+            else => $echo {y}$
+        }
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "24");
+}

@@ -20,7 +20,7 @@ use crate::modules::shorthand::{
 };
 
 #[derive(Debug)]
-enum StatementType {
+pub enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
     VariableSet(VariableSet),
@@ -35,7 +35,7 @@ enum StatementType {
 
 #[derive(Debug)]
 pub struct Statement {
-    value: Option<StatementType>
+    pub value: Option<StatementType>
 }
 
 impl Statement {

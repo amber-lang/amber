@@ -3,6 +3,7 @@ use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
+use crate::modules::statement::st::Statement;
 
 #[derive(Debug)]
 pub struct IfChain {
@@ -42,18 +43,38 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             if syntax(meta, &mut cond).is_err() {
                 break
             }
-            token(meta, "{")?;
-            syntax(meta, &mut block)?;
-            token(meta, "}")?;
-            self.cond_blocks.push((cond, block));
+            match token(meta, "{") {
+                Ok(_) => {
+                    syntax(meta, &mut block)?;
+                    token(meta, "}")?;
+                    self.cond_blocks.push((cond, block));
+                }
+                Err(_) => {
+                    let mut statement = Statement::new();
+                    token(meta, "=>")?;
+                    syntax(meta, &mut statement)?;
+                    block.push_statement(statement);
+                    self.cond_blocks.push((cond, block));
+                }
+            }
         }
         // Parse false block
         if is_else {
-            token(meta, "{")?;
-            let mut false_block = Box::new(Block::new());
-            syntax(meta, &mut *false_block)?;
-            self.false_block = Some(false_block);
-            token(meta, "}")?;
+            match token(meta, "{") {
+                Ok(_) => {
+                    let mut false_block = Box::new(Block::new());
+                    syntax(meta, &mut *false_block)?;
+                    self.false_block = Some(false_block);
+                    token(meta, "}")?;
+                }
+                Err(_) => {
+                    let mut statement = Statement::new();
+                    token(meta, "=>")?;
+                    syntax(meta, &mut statement)?;
+                    self.false_block = Some(Box::new(Block::new()));
+                    self.false_block.as_mut().unwrap().push_statement(statement);
+                }
+            }
         }
         token(meta, "}")?;
         Ok(())
