@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
         token(meta, "*")?;
         syntax(meta, &mut *self.right)?;
         let error = "Multiply operation can only multiply numbers";
-        expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
+        expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num], tok, error);
         Ok(())
     }
 }

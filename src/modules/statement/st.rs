@@ -12,6 +12,12 @@ use crate::modules::conditions::{
     ifchain::IfChain,
     ifcond::IfCondition
 };
+use crate::modules::shorthand::{
+    add::ShorthandAdd,
+    sub::ShorthandSub,
+    mul::ShorthandMul,
+    div::ShorthandDiv
+};
 
 #[derive(Debug)]
 enum StatementType {
@@ -20,7 +26,11 @@ enum StatementType {
     VariableSet(VariableSet),
     CommandStatement(CommandStatement),
     IfCondition(IfCondition),
-    IfChain(IfChain)
+    IfChain(IfChain),
+    ShorthandAdd(ShorthandAdd),
+    ShorthandSub(ShorthandSub),
+    ShorthandMul(ShorthandMul),
+    ShorthandDiv(ShorthandDiv)
 }
 
 #[derive(Debug)]
@@ -33,6 +43,9 @@ impl Statement {
         IfChain, IfCondition,
         // Variables
         VariableInit, VariableSet,
+        // Short hand
+        ShorthandAdd, ShorthandSub,
+        ShorthandMul, ShorthandDiv,
         // Command
         CommandStatement,
         // Expression

@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for Gt {
         token(meta, ">")?;
         syntax(meta, &mut *self.right)?;
         let error = "Cannot compare two values of different types";
-        expression_arms_of_type(meta, &self.left, &self.right, Type::Num, tok, error);
+        expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num], tok, error);
         Ok(())
     }
 }

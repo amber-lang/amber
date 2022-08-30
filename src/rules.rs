@@ -10,6 +10,10 @@ pub fn get_rules() -> Rules {
         ('>', '='),
         ('!', '='),
         ('=', '='),
+        ('+', '='),
+        ('-', '='),
+        ('*', '='),
+        ('/', '=')
     ];
     let region = reg![
         reg!(string as "string literal" => {
