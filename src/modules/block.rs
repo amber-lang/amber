@@ -9,6 +9,14 @@ pub struct Block {
 }
 
 impl Block {
+    pub fn is_empty(&self) -> bool {
+        self.statements.is_empty()
+    }
+
+    pub fn push_statement(&mut self, statement: Statement) {
+        self.statements.push(statement);
+    }
+
     fn error(&mut self, meta: &mut ParserMetadata, details: ErrorDetails) {
         get_error_logger(meta, details)
             .attach_message("Undefined syntax")
