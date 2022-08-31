@@ -17,7 +17,6 @@ impl SyntaxModule<ParserMetadata> for Break {
         let tok = meta.get_current_token();
         token(meta, "break")?;
         // Detect if the break statement is inside a loop
-        dbg!(meta.loop_ctx);
         if !meta.loop_ctx {
             let details = ErrorDetails::from_token_option(tok);
             get_error_logger(meta, details)
