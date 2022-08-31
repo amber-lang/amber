@@ -8,7 +8,8 @@ pub struct ParserMetadata {
     pub code: Option<String>,
     pub binop_border: Option<usize>,
     pub var_mem: VariableMemory,
-    debug: Option<usize>
+    debug: Option<usize>,
+    pub loop_ctx: bool
 }
 
 impl Metadata for ParserMetadata {
@@ -20,7 +21,8 @@ impl Metadata for ParserMetadata {
             code,
             binop_border: None,
             var_mem: VariableMemory::new(),
-            debug: None
+            debug: None,
+            loop_ctx: false
         }
     }
 

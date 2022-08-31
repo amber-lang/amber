@@ -349,3 +349,22 @@ fn ternary_conditional_nested() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "24");
 }
+
+#[test]
+fn infinite_loop() {
+    let cli = CLI::new();
+    let code = "
+        let a = 0
+        loop {
+            a += 1
+            if a == 5 {
+                continue
+            }
+            $printf \"{a} \"$
+            if a == 10 {
+                break
+            }
+        }
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "1 2 3 4 6 7 8 9 10");
+}
