@@ -311,3 +311,41 @@ fn if_statement_chain_singleline() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "24");
 }
+
+#[test]
+fn ternary_conditional_simple() {
+    let cli = CLI::new();
+    let code = "
+        let a = 12 > 24
+            then 42
+            else 24
+        $echo {a}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "24");
+}
+
+#[test]
+fn ternary_conditional_inline() {
+    let cli = CLI::new();
+    let code = "
+        let a = 12 > 24 then 42 else 24
+        $echo {a}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "24");
+}
+
+#[test]
+fn ternary_conditional_nested() {
+    let cli = CLI::new();
+    let code = "
+        let a = 24 > 12
+            then (12 > 24
+                then 42
+                else 24)
+            else (12 > 6
+                then 24
+                else 12)
+        $echo {a}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "24");
+}

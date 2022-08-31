@@ -28,6 +28,7 @@ use super::unop::{
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
 use crate::modules::command::expr::CommandExpr;
+use crate::modules::conditions::ternary::Ternary;
 use crate::handle_types;
 
 #[derive(Debug)]
@@ -50,7 +51,8 @@ pub enum ExprType {
     Le(Le),
     Eq(Eq),
     Neq(Neq),
-    Not(Not)
+    Not(Not),
+    Ternary(Ternary)
 }
 
 #[derive(Debug)]
@@ -68,6 +70,8 @@ impl Typed for Expr {
 
 impl Expr {
     handle_types!(ExprType, [
+        // Ternary conditional
+        Ternary,
         // Logical operators
         And, Or, Not,
         // Comparison operators
