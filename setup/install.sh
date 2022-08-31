@@ -1,6 +1,6 @@
 name="AmberNative";
 target="amber";
-tag="v0.1.0-alpha";
+tag="v0.1.1-alpha";
 place="/opt/amber";
 arch="";
 os="";
@@ -43,4 +43,4 @@ sudo mkdir ${place} > /dev/null;
 sudo mv ${target} ${place}/${target};
 sudo chmod +x ${place}/${target};
 sudo ln -s ${place}/${target} /usr/local/bin/${target};
-echo "Amber has been installed successfully."
+echo "Amber has been installed successfully. 🎉"
