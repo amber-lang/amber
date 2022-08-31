@@ -18,6 +18,11 @@ use crate::modules::shorthand::{
     mul::ShorthandMul,
     div::ShorthandDiv
 };
+use crate::modules::loops::{
+    infinite_loop::InfiniteLoop,
+    break_stmt::Break,
+    continue_stmt::Continue
+};
 
 #[derive(Debug)]
 pub enum StatementType {
@@ -30,7 +35,10 @@ pub enum StatementType {
     ShorthandAdd(ShorthandAdd),
     ShorthandSub(ShorthandSub),
     ShorthandMul(ShorthandMul),
-    ShorthandDiv(ShorthandDiv)
+    ShorthandDiv(ShorthandDiv),
+    InfiniteLoop(InfiniteLoop),
+    Break(Break),
+    Continue(Continue)
 }
 
 #[derive(Debug)]
@@ -40,6 +48,9 @@ pub struct Statement {
 
 impl Statement {
     handle_types!(StatementType, [
+        // Loops
+        InfiniteLoop, Break, Continue,
+        // Conditions
         IfChain, IfCondition,
         // Variables
         VariableInit, VariableSet,

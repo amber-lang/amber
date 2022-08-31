@@ -3,6 +3,7 @@ use crate::modules::Typed;
 use crate::modules::expression::binop::{parse_left_expr, expression_arms_of_same_type};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
+use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug)]
@@ -33,13 +34,24 @@ impl SyntaxModule<ParserMetadata> for Ternary {
         parse_left_expr(meta, &mut self.cond, "then")?;
         let tok = meta.get_current_token();
         token(meta, "then")?;
-        parse_left_expr(meta, &mut self.true_expr, "else")?;
-        token(meta, "else")?;
-        syntax(meta, &mut *self.false_expr)?;
-        // Return an error if the arms are not of the same type
-        let error = "Ternary operation can only be used on arguments of the same type";
-        expression_arms_of_same_type(meta, &self.true_expr, &self.false_expr, tok, error);
-        Ok(())
+        match parse_left_expr(meta, &mut self.true_expr, "else") {
+            Ok(_) => {
+                token(meta, "else")?;
+                syntax(meta, &mut *self.false_expr)?;
+                // Return an error if the arms are not of the same type
+                let error = "Ternary operation can only be used on arguments of the same type";
+                expression_arms_of_same_type(meta, &self.true_expr, &self.false_expr, tok, error);
+                Ok(())
+            }
+            Err(_) => {
+                let error_details = ErrorDetails::from_token_option(tok);
+                get_error_logger(meta, error_details)
+                    .attach_message("Expected 'else' after 'then' in ternary expression")
+                    .show()
+                    .exit();
+                Ok(())
+            }
+        }
     }
 }
 

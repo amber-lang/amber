@@ -5,6 +5,7 @@ pub mod variable;
 pub mod command;
 pub mod conditions;
 pub mod shorthand;
+pub mod loops;
 
 #[macro_export]
 macro_rules! handle_types {
