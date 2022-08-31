@@ -38,7 +38,7 @@ pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Expr, righ
     }
 }
 
-pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: impl AsRef<str>) -> Result<usize, ErrorDetails> {
+pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -> Result<usize, ErrorDetails> {
     // Save left border and run binop left cut border check
     let old_border = meta.binop_border;
     let new_border = binop_left_cut(meta, op)?;
@@ -51,7 +51,7 @@ pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: impl As
 }
 
 // Check if this binop can actually take place and return a new boundary for the left hand expression
-fn binop_left_cut(meta: &mut ParserMetadata, op: impl AsRef<str>) -> Result<usize, ErrorDetails> {
+fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, ErrorDetails> {
     let old_index = meta.get_index();
     let mut parenthesis = 0;
     while let Some(token) = meta.get_current_token() {
@@ -67,7 +67,7 @@ fn binop_left_cut(meta: &mut ParserMetadata, op: impl AsRef<str>) -> Result<usiz
             "\n" => break,
             _ => {}
         };
-        if parenthesis == 0 && op.as_ref() == token.word {
+        if parenthesis == 0 && op == token.word {
             // Case when the operator is in the beginning of the line
             if meta.get_index() > old_index {
                 let new_index = meta.get_index();
