@@ -9,6 +9,7 @@ pub enum ArithOp {
     Sub,
     Mul,
     Div,
+    Modulo,
     Gt,
     Ge,
     Lt,
@@ -24,6 +25,7 @@ pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, l
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
+            let mut math_lib_flag = true;
             // Removes trailing zeros from the expression
             let sed_regex = "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//";
             let op = match operation {
@@ -31,6 +33,10 @@ pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, l
                 ArithOp::Sub => "-",
                 ArithOp::Mul => "*",
                 ArithOp::Div => "/",
+                ArithOp::Modulo => {
+                    math_lib_flag = false;
+                    "%"
+                },
                 ArithOp::Gt => ">",
                 ArithOp::Ge => ">=",
                 ArithOp::Lt => "<",
@@ -41,7 +47,8 @@ pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, l
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            format!("$(echo {left} '{op}' {right} | bc -l | sed '{sed_regex}')")
+            let math_lib_flag = if math_lib_flag { "-l" } else { "" };
+            format!("$(echo {left} '{op}' {right} | bc {math_lib_flag} | sed '{sed_regex}')")
         }
     }
 }

@@ -13,6 +13,7 @@ use super::binop::{
     sub::Sub,
     mul::Mul,
     div::Div,
+    modulo::Modulo,
     and::And,
     or::Or,
     gt::Gt,
@@ -43,6 +44,7 @@ pub enum ExprType {
     Sub(Sub),
     Mul(Mul),
     Div(Div),
+    Modulo(Modulo),
     And(And),
     Or(Or),
     Gt(Gt),
@@ -77,7 +79,7 @@ impl Expr {
         // Comparison operators
         Gt, Ge, Lt, Le, Eq, Neq,
         // Arithmetic operators
-        Add, Sub, Mul, Div,
+        Add, Sub, Mul, Div, Modulo,
         // Literals
         Parenthesis, CommandExpr, Bool, Number, Text,
         VariableGet

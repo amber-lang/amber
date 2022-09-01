@@ -16,7 +16,8 @@ use crate::modules::shorthand::{
     add::ShorthandAdd,
     sub::ShorthandSub,
     mul::ShorthandMul,
-    div::ShorthandDiv
+    div::ShorthandDiv,
+    modulo::ShorthandModulo
 };
 use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
@@ -36,6 +37,7 @@ pub enum StatementType {
     ShorthandSub(ShorthandSub),
     ShorthandMul(ShorthandMul),
     ShorthandDiv(ShorthandDiv),
+    ShorthandModulo(ShorthandModulo),
     InfiniteLoop(InfiniteLoop),
     Break(Break),
     Continue(Continue)
@@ -57,6 +59,7 @@ impl Statement {
         // Short hand
         ShorthandAdd, ShorthandSub,
         ShorthandMul, ShorthandDiv,
+        ShorthandModulo,
         // Command
         CommandStatement,
         // Expression

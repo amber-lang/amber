@@ -368,3 +368,24 @@ fn infinite_loop() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "1 2 3 4 6 7 8 9 10");
 }
+
+#[test]
+fn modulo_operator() {
+    let cli = CLI::new();
+    let code = "
+        let a = 10 % 3
+        $echo {a}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "1");
+}
+
+#[test]
+fn modulo_shorthand() {
+    let cli = CLI::new();
+    let code = "
+        let a = 10
+        a %= 3
+        $echo {a}$
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "1");
+}
