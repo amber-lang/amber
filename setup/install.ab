@@ -3,25 +3,15 @@ let target = 'amber'
 let tag = 'v0.1.1-alpha'
 let place = '/opt/amber'
 
-# Detect OS type
-let arch = ''
-let os = ''
-
 # Determine OS type
-if $uname -s$ == 'Darwin' {
-    os = 'macos'
-}
-else {
-    os = 'linux'
-}
+let os = $uname -s$ == 'Darwin'
+    then 'macos'
+    else 'linux'
 
 # Determine architecture
-if $uname -m$ == 'arm64' {
-    arch = 'aarch64'
-}
-else {
-    arch = 'x86_64'
-}
+let arch = $uname -m$ == 'arm64'
+    then 'aarch64'
+    else 'x86_64'
 
 # Set the download link
 let url = 'https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}'

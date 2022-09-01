@@ -2,18 +2,8 @@ name="AmberNative";
 target="amber";
 tag="v0.1.1-alpha";
 place="/opt/amber";
-arch="";
-os="";
-if [ $([ "_$(uname -s)" != "_Darwin" ]; echo $?) != 0 ]; then
-os="macos"
-else
-os="linux"
-fi;
-if [ $([ "_$(uname -m)" != "_arm64" ]; echo $?) != 0 ]; then
-arch="aarch64"
-else
-arch="x86_64"
-fi;
+os=$(if [ $([ "_$(uname -s)" != "_Darwin" ]; echo $?) != 0 ]; then echo "macos"; else echo "linux"; fi);
+arch=$(if [ $([ "_$(uname -m)" != "_arm64" ]; echo $?) != 0 ]; then echo "aarch64"; else echo "x86_64"; fi);
 url="https://github.com/Ph0enixKM/${name}/releases/download/${tag}/amber_${os}_${arch}";
 test -d "${place}" > /dev/null;
 if [ $([ "_$(echo $?)" != "_0" ]; echo $?) != 0 ]; then
