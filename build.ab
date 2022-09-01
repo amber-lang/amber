@@ -18,6 +18,9 @@ if $echo \$?$ == '0' {
     $mv target/aarch64-unknown-linux-musl/release/amber target/release/amber_linux_aarch64$
     $mv target/x86_64-apple-darwin/release/amber target/release/amber_macos_x86_64$
     $mv target/x86_64-unknown-linux-musl/release/amber target/release/amber_linux_x86_64$
+    # Recompile installer scripts
+    $cargo run -- setup/install.ab setup/install.sh$
+    $cargo run -- setup/uninstall.ab setup/uninstall.sh$
 } else {
     $echo "Please run this command in the project root directory"$
 }
