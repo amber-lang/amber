@@ -6,6 +6,7 @@ pub mod add;
 pub mod sub;
 pub mod mul;
 pub mod div;
+pub mod modulo;
 pub mod and;
 pub mod or;
 pub mod gt;
