@@ -8,7 +8,7 @@ use crate::modules::variable::{
 };
 use crate::modules::command::statement::CommandStatement;
 use crate::handle_types;
-use crate::modules::conditions::{
+use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition
 };
@@ -23,6 +23,9 @@ use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
     break_stmt::Break,
     continue_stmt::Continue
+};
+use crate::modules::function::{
+    declaration::FunctionDeclaration
 };
 
 #[derive(Debug)]
@@ -40,7 +43,8 @@ pub enum StatementType {
     ShorthandModulo(ShorthandModulo),
     InfiniteLoop(InfiniteLoop),
     Break(Break),
-    Continue(Continue)
+    Continue(Continue),
+    FunctionDeclaration(FunctionDeclaration)
 }
 
 #[derive(Debug)]
@@ -50,6 +54,8 @@ pub struct Statement {
 
 impl Statement {
     handle_types!(StatementType, [
+        // Functions
+        FunctionDeclaration,
         // Loops
         InfiniteLoop, Break, Continue,
         // Conditions

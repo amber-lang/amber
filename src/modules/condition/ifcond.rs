@@ -4,7 +4,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::error::get_warn_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
-use crate::modules::statement::st::{Statement, StatementType};
+use crate::modules::statement::stmt::{Statement, StatementType};
 
 #[derive(Debug)]
 pub struct IfCondition {

@@ -3,9 +3,10 @@ pub mod expression;
 pub mod block;
 pub mod variable;
 pub mod command;
-pub mod conditions;
+pub mod condition;
 pub mod shorthand;
 pub mod loops;
+pub mod function;
 
 #[macro_export]
 macro_rules! handle_types {

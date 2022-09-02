@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, error::get_error_logger, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
-use super::statement::st::Statement;
+use super::statement::stmt::Statement;
 
 #[derive(Debug)]
 pub struct Block {
