@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        self.kind = handle_variable_reference(meta, tok, self.name.clone());
+        self.kind = handle_variable_reference(meta, tok, &self.name);
         Ok(())
     }
 }

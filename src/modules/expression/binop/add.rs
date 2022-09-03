@@ -36,7 +36,9 @@ impl SyntaxModule<ParserMetadata> for Add {
         syntax(meta, &mut *self.right)?;
         // If left and right are not of type Number
         let error = "Add operation can only add numbers or text";
-        self.kind = expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num, Type::Text], tok, error);
+        let l_type = self.left.get_type();
+        let r_type = self.right.get_type();
+        self.kind = expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num, Type::Text], tok, error);
         Ok(())
     }
 }

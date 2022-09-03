@@ -30,6 +30,7 @@ use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
 use crate::modules::command::expr::CommandExpr;
 use crate::modules::condition::ternary::Ternary;
+use crate::modules::function::invocation::FunctionInvocation;
 use crate::handle_types;
 
 #[derive(Debug)]
@@ -54,7 +55,8 @@ pub enum ExprType {
     Eq(Eq),
     Neq(Neq),
     Not(Not),
-    Ternary(Ternary)
+    Ternary(Ternary),
+    FunctionInvocation(FunctionInvocation)
 }
 
 #[derive(Debug)]
@@ -82,6 +84,9 @@ impl Expr {
         Add, Sub, Mul, Div, Modulo,
         // Literals
         Parenthesis, CommandExpr, Bool, Number, Text,
+        // Function invocation
+        FunctionInvocation,
+        // Variable access
         VariableGet
     ]);
 

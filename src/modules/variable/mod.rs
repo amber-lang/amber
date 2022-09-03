@@ -10,12 +10,13 @@ pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
 }
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, token: Option<Token>, name: String) -> Type {
-    match meta.var_mem.get_variable(name.clone()) {
+pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Type {
+    match meta.mem.get_variable(&name) {
         Some(variable_unit) => variable_unit.kind.clone(),
         None => {
+            dbg!(&meta.mem);
             let message = format!("Variable '{}' does not exist", name);
-            let details = ErrorDetails::from_token_option(token);
+            let details = ErrorDetails::from_token_option(tok);
             let mut error = get_error_logger(meta, details).attach_message(message);
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_variable(meta, name) {
@@ -27,8 +28,8 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, token: Option<Token>
     }
 }
 
-fn handle_similar_variable(meta: &mut ParserMetadata, name: String) -> Option<String> {
-    let vars = Vec::from_iter(meta.var_mem.get_available_variables());
+fn handle_similar_variable(meta: &mut ParserMetadata, name: &str) -> Option<String> {
+    let vars = Vec::from_iter(meta.mem.get_available_variables());
     if let Some((match_name, score)) = find_best_similarity(name, &vars) {
         match score >= 0.75 {
             true => Some(format!("Did you mean '{match_name}'?")),

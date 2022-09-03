@@ -42,7 +42,8 @@ pub enum Type {
     Text,
     Bool,
     Num,
-    Null
+    Null,
+    Generic
 }
 
 pub trait Typed {

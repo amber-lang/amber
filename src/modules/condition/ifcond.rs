@@ -14,14 +14,6 @@ pub struct IfCondition {
 }
 
 impl IfCondition {
-    fn translate_block(&self, meta: &mut TranslateMetadata, block: &Block) -> String {
-        if block.is_empty() {
-            ":\n".to_string()
-        } else {
-            block.translate(meta)
-        }
-    }
-
     fn prevent_not_using_if_chain(&self, meta: &mut ParserMetadata, statement: &Statement, tok: Option<Token>) {
         let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StatementType::IfCondition(_) | StatementType::IfChain(_));
         if is_not_if_chain {
@@ -90,10 +82,10 @@ impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
         result.push(format!("if [ {} != 0 ]; then", self.expr.translate(meta)));
-        result.push(self.translate_block(meta, &self.true_block));
+        result.push(self.true_block.translate(meta));
         if let Some(false_block) = &self.false_block {
             result.push("else".to_string());
-            result.push(self.translate_block(meta, false_block));
+            result.push(false_block.translate(meta));
         }
         result.push("fi".to_string());
         result.join("\n")

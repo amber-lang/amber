@@ -1,13 +1,14 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::variable_memory::VariableMemory;
+use crate::utils::memory::Memory;
 
+#[derive(Clone)]
 pub struct ParserMetadata {
     pub expr: Vec<Token>,
     index: usize,
     pub path: Option<String>,
     pub code: Option<String>,
     pub binop_border: Option<usize>,
-    pub var_mem: VariableMemory,
+    pub mem: Memory,
     debug: Option<usize>,
     pub loop_ctx: bool
 }
@@ -20,7 +21,7 @@ impl Metadata for ParserMetadata {
             path,
             code,
             binop_border: None,
-            var_mem: VariableMemory::new(),
+            mem: Memory::new(),
             debug: None,
             loop_ctx: false
         }

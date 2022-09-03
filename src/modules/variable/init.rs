@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
         // Add a variable to the memory
-        meta.var_mem.add_variable(self.name.clone(), self.expr.get_type());
+        meta.mem.add_variable(&self.name, self.expr.get_type());
         Ok(())
     }
 }
