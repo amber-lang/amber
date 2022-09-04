@@ -3,7 +3,7 @@ use crate::{utils::metadata::ParserMetadata, modules::{Type, Typed}};
 use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Parenthesis {
     value: Box<Expr>,
     kind: Type

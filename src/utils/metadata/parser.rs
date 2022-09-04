@@ -38,9 +38,11 @@ impl Metadata for ParserMetadata {
     fn get_token_at(&self, index: usize) -> Option<Token> {
         self.expr.get(index).cloned()
     }
+
     fn get_debug(&mut self) -> Option<usize> {
         self.debug
     }
+
     fn set_debug(&mut self, indent: usize) {
         self.debug = Some(indent)
     }

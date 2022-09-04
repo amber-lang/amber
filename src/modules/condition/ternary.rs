@@ -6,7 +6,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Box<Expr>,

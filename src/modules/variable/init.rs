@@ -5,7 +5,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::variable_name_extensions;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VariableInit {
     name: String,
     expr: Box<Expr>

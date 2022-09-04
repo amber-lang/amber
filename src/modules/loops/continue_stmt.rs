@@ -3,7 +3,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Continue;
 
 impl SyntaxModule<ParserMetadata> for Continue {

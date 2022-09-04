@@ -4,7 +4,7 @@ use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
 use crate::modules::{Type, Typed};
 use crate::translate::module::TranslateModule;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Div {
     left: Box<Expr>,
     right: Box<Expr>

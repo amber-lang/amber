@@ -5,7 +5,7 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::Statement;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IfChain {
     cond_blocks: Vec<(Expr, Block)>,
     false_block: Option<Box<Block>>

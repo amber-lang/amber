@@ -5,7 +5,7 @@ use crate::translate::module::TranslateModule;
 
 use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CommandStatement {
     strings: Vec<String>,
     interps: Vec<Expr>

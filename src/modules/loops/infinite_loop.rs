@@ -3,7 +3,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct InfiniteLoop {
     block: Block,
 }

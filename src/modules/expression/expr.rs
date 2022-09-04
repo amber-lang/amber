@@ -33,7 +33,7 @@ use crate::modules::condition::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::handle_types;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExprType {
     Bool(Bool),
     Number(Number),
@@ -59,7 +59,7 @@ pub enum ExprType {
     FunctionInvocation(FunctionInvocation)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Expr {
     value: Option<ExprType>,
     can_fail: bool,

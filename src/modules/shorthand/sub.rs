@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::{modules::{variable::{variable_name_extensions, handle_variable_reference}, expression::{expr::Expr, binop::expression_arms_of_type}, Type}, utils::ParserMetadata, translate::{module::TranslateModule, compute::{ArithOp, translate_computation}}};
 use crate::modules::Typed;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ShorthandSub {
     var: String,
     expr: Box<Expr>,

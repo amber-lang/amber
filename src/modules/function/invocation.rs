@@ -8,11 +8,12 @@ use crate::modules::Typed;
 
 use super::{handle_function_reference, handle_function_parameters};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionInvocation {
     name: String,
     args: Vec<Expr>,
-    kind: Type
+    kind: Type,
+    id: usize
 }
 
 impl Typed for FunctionInvocation {
@@ -28,7 +29,8 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
         FunctionInvocation {
             name: String::new(),
             args: vec![],
-            kind: Type::Null
+            kind: Type::Null,
+            id: 0
         }
     }
 
@@ -52,14 +54,14 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             };
         }
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-        self.kind = handle_function_parameters(meta, &self.name, &types);
+        (self.kind, self.id) = handle_function_parameters(meta, &self.name, &types);
         Ok(())
     }
 }
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
+        let name = if self.id != 0 { format!("_{}_{}", self.id, self.name) } else { self.name.clone() };
         let args = self.args.iter().map(|arg| arg.translate(meta)).collect::<Vec<String>>().join(" ");
         format!("{name} {args}")
     }

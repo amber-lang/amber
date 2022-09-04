@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::{utils::metadata::{ParserMetadata, TranslateMetadata}, modules::{Typed, Type}};
 use crate::translate::module::TranslateModule;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Number {
     value: String
 }

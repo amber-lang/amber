@@ -7,12 +7,26 @@ use crate::modules::block::Block;
 
 use super::{handle_existing_function, handle_add_function, skip_function_body};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
     pub name: String,
     pub args: Vec<(String, Type)>,
     pub returns: Type,
-    pub body: Block
+    pub body: Block,
+    pub id: usize
+}
+
+impl FunctionDeclaration {
+    fn set_args_as_variables(&self, meta: &mut TranslateMetadata) -> String {
+        meta.increase_indent();
+        let mut result = vec![];
+        for (index, (name, _kind)) in self.args.clone().iter().enumerate() {
+            let indent = meta.gen_indent();
+            result.push(format!("{indent}{name}=${}", index + 1));
+        }
+        meta.decrease_indent();
+        result.join("\n")
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
@@ -23,7 +37,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             name: String::new(),
             args: vec![],
             returns: Type::Generic,
-            body: Block::new()
+            body: Block::new(),
+            id: 0
         }
     }
 
@@ -54,22 +69,33 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         token(meta, "}")?;
         // Add the function to the memory
         let body = meta.expr[index_begin..index_end].iter().cloned().collect::<Vec<Token>>();
-        handle_add_function(meta, &self.name, &self.args, self.returns.clone(), tok, body);
+        self.id = handle_add_function(meta, &self.name, &self.args, self.returns.clone(), tok, body);
         Ok(())
     }
 }
 
 impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        // Increase indentation level
-        meta.increase_indent();
-        // Parse the function body
         let mut result = vec![];
-        result.push(format!("function {} {{", self.name));
-        result.push(meta.gen_indent() + &self.body.translate(meta));
-        result.push("}".to_string());
-        // Decrease the indentation
-        meta.decrease_indent();
+        // Get blocks of the function
+        let blocks = meta.mem
+            .get_function_instances(self.id)
+            .unwrap()
+            .iter()
+            .cloned()
+            .collect::<Vec<_>>();
+        // Translate each one of them
+        for (index, function) in blocks.iter().enumerate() {
+            let mut name = self.name.clone();
+            if index != 0 {
+                name = format!("_{}_{}", index, name);
+            }
+            // Parse the function body
+            result.push(format!("function {} {{", name));
+            result.push(self.set_args_as_variables(meta));
+            result.push(function.body.translate(meta));
+            result.push("}".to_string());
+        }
         // Return the translation
         result.join("\n")
     }

@@ -127,8 +127,8 @@ impl CLI {
         cc.load(code.clone());
         if let Ok(tokens) = cc.tokenize() {
             let mut meta = ParserMetadata::new(tokens, path, Some(code));
-            if let Ok(()) = block.parse_debug(&mut meta) {
-                let mut meta = TranslateMetadata::new();
+            if let Ok(()) = block.parse(&mut meta) {
+                let mut meta = TranslateMetadata::new(&meta);
                 return block.translate(&mut meta);
             }
             return "[parsing err]".to_string()

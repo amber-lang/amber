@@ -6,7 +6,7 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::{Statement, StatementType};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IfCondition {
     expr: Box<Expr>,
     true_block: Box<Block>,

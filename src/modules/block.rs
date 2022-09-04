@@ -3,7 +3,7 @@ use crate::{utils::{metadata::ParserMetadata, error::get_error_logger, Translate
 use crate::translate::module::TranslateModule;
 use super::statement::stmt::Statement;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Block {
     statements: Vec<Statement>
 }
@@ -64,13 +64,16 @@ impl SyntaxModule<ParserMetadata> for Block {
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        if self.is_empty() {
+        meta.increase_indent();
+        let result = if self.is_empty() {
             ":".to_string()
         }
         else {
             self.statements.iter()
-                .map(|module| module.translate(meta))
+                .map(|module| meta.gen_indent() + &module.translate(meta))
                 .collect::<Vec<_>>().join(";\n")
-        }
+        };
+        meta.decrease_indent();
+        result
     }
 }

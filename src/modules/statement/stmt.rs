@@ -28,7 +28,7 @@ use crate::modules::function::{
     declaration::FunctionDeclaration
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
@@ -47,7 +47,7 @@ pub enum StatementType {
     FunctionDeclaration(FunctionDeclaration)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Statement {
     pub value: Option<StatementType>
 }
