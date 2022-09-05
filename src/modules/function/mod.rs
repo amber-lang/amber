@@ -3,6 +3,7 @@ use similar_string::find_best_similarity;
 use crate::modules::Type;
 use crate::utils::{ParserMetadata, error::get_error_logger};
 use super::block::Block;
+use super::variable::handle_identifier_name;
 
 pub mod declaration;
 pub mod invocation;
@@ -33,6 +34,7 @@ pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) {
 }
 
 pub fn handle_add_function(meta: &mut ParserMetadata, name: &str, args: &[(String, Type)], returns: Type, tok: Option<Token>, body: Vec<Token>) -> usize {
+    handle_identifier_name(meta, name, tok.clone());
     let any_generic = args.iter().any(|(_, kind)| kind == &Type::Generic);
     let any_typed = args.iter().any(|(_, kind)| kind != &Type::Generic);
     // Either all arguments are generic or typed

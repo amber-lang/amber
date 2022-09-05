@@ -88,7 +88,7 @@ impl TranslateModule for FunctionDeclaration {
         for (index, function) in blocks.iter().enumerate() {
             let mut name = self.name.clone();
             if index != 0 {
-                name = format!("_{}_{}", index, name);
+                name = format!("__{}_{}", index, name);
             }
             // Parse the function body
             result.push(format!("function {} {{", name));

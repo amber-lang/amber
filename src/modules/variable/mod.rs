@@ -37,3 +37,22 @@ fn handle_similar_variable(meta: &mut ParserMetadata, name: &str) -> Option<Stri
         }
     } else { None }
 }
+
+pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) {
+    // Validate if the variable name uses the reserved prefix
+    if name.chars().take(2).all(|chr| chr == '_') {
+        let new_name = name.get(1..).unwrap();
+        let message = format!("Indentifier '{name}' is not allowed");
+        let comment = format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.");
+        let details = ErrorDetails::from_token_option(tok);
+        get_error_logger(meta, details)
+            .attach_message(message)
+            .attach_comment(comment)
+            .show().exit();
+    }
+}
+
+pub fn handle_add_variable(meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>) {
+    handle_identifier_name(meta, name, tok);
+    meta.mem.add_variable(name, kind);
+}

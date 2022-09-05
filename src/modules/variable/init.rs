@@ -3,7 +3,7 @@ use crate::modules::{Typed};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use super::variable_name_extensions;
+use super::{variable_name_extensions, handle_add_variable};
 
 #[derive(Debug, Clone)]
 pub struct VariableInit {
@@ -24,11 +24,12 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "let")?;
         // Get the variable name
+        let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
         // Add a variable to the memory
-        meta.mem.add_variable(&self.name, self.expr.get_type());
+        handle_add_variable(meta, &self.name, self.expr.get_type(), tok);
         Ok(())
     }
 }

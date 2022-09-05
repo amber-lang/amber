@@ -61,7 +61,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = if self.id != 0 { format!("_{}_{}", self.id, self.name) } else { self.name.clone() };
+        let name = if self.id != 0 { format!("__{}_{}", self.id, self.name) } else { self.name.clone() };
         let args = self.args.iter().map(|arg| arg.translate(meta)).collect::<Vec<String>>().join(" ");
         format!("{name} {args}")
     }
