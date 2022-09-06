@@ -1,9 +1,11 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::block::Block;
+use crate::context;
 
 use super::{handle_existing_function, handle_add_function, skip_function_body};
 
@@ -48,28 +50,37 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         handle_existing_function(meta, tok.clone());
-        // Get the arguments
-        token(meta, "(")?;
-        while let Some(tok) = meta.get_current_token() {
-            if tok.word == ")" {
-                break;
+        context!({
+            // Get the arguments
+            token(meta, "(")?;
+            while let Some(tok) = meta.get_current_token() {
+                if tok.word == ")" {
+                    break;
+                }
+                let name = variable(meta, variable_name_extensions())?;
+                self.args.push((name, Type::Generic));
+                match token(meta, ")") {
+                    Ok(_) => break,
+                    Err(_) => token(meta, ",")?
+                };
             }
-            let name = variable(meta, variable_name_extensions())?;
-            self.args.push((name, Type::Generic));
-            match token(meta, ")") {
-                Ok(_) => break,
-                Err(_) => token(meta, ",")?
-            };
-        }
-        // Parse the body
-        token(meta, "{")?;
-        let index_begin = meta.get_index();
-        skip_function_body(meta);
-        let index_end = meta.get_index();
-        token(meta, "}")?;
-        // Add the function to the memory
-        let body = meta.expr[index_begin..index_end].iter().cloned().collect::<Vec<Token>>();
-        self.id = handle_add_function(meta, &self.name, &self.args, self.returns.clone(), tok, body);
+            // Parse the body
+            token(meta, "{")?;
+            let index_begin = meta.get_index();
+            skip_function_body(meta);
+            let index_end = meta.get_index();
+            token(meta, "}")?;
+            // Add the function to the memory
+            let body = meta.expr[index_begin..index_end].iter().cloned().collect::<Vec<Token>>();
+            self.id = handle_add_function(meta, &self.name, &self.args, self.returns.clone(), tok, body);
+            Ok(())
+        }, |err| {
+            let message = format!("Failed to parse function declaration '{}'", self.name);
+            get_error_logger(meta, err)
+                .attach_message(message)
+                .show()
+                .exit();
+        });
         Ok(())
     }
 }

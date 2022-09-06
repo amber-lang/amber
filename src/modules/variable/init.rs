@@ -1,7 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use crate::context;
 use crate::modules::{Typed};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
+use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_add_variable};
 
@@ -26,10 +28,19 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         // Get the variable name
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        token(meta, "=")?;
-        syntax(meta, &mut *self.expr)?;
-        // Add a variable to the memory
-        handle_add_variable(meta, &self.name, self.expr.get_type(), tok);
+        context!({
+            token(meta, "=")?;
+            syntax(meta, &mut *self.expr)?;
+            // Add a variable to the memory
+            handle_add_variable(meta, &self.name, self.expr.get_type(), tok);
+            Ok(())
+        }, |details| {
+            let message = format!("Expected '=' after variable name '{}'", self.name);
+            get_error_logger(meta, details)
+                .attach_message(message)
+                .show()
+                .exit();
+        });
         Ok(())
     }
 }

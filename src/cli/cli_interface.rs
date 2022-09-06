@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use colored::Colorize;
 use crate::modules::block;
+use crate::translate::check_all_blocks;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::rules;
@@ -125,15 +126,32 @@ impl CLI {
         let mut cc = Compiler::new("Amber", rules);
         let mut block = block::Block::new();
         cc.load(code.clone());
-        if let Ok(tokens) = cc.tokenize() {
-            let mut meta = ParserMetadata::new(tokens, path, Some(code));
-            if let Ok(()) = block.parse(&mut meta) {
-                let mut meta = TranslateMetadata::new(&meta);
-                return block.translate(&mut meta);
+        match cc.tokenize() {
+            Ok(tokens) => {
+                let mut meta = ParserMetadata::new(tokens, path, Some(code));
+                check_all_blocks(&mut meta);
+                if let Ok(()) = block.parse(&mut meta) {
+                    let mut meta = TranslateMetadata::new(&meta);
+                    return block.translate(&mut meta);
+                }
+                return "[parsing err]".to_string()
+            },
+            Err((err_type, details)) => {
+                let error_message = match err_type {
+                    LexerErrorType::Singleline => {
+                        format!("Singleline {} not closed", details.data.as_ref().unwrap())
+                    },
+                    LexerErrorType::Unclosed => {
+                        format!("Unclosed {}", details.data.as_ref().unwrap())
+                    }
+                };
+                let pos = details.get_pos_by_code(code.clone());
+                Logger::new_err_at_position(path, Some(code), pos)
+                    .attach_message(error_message)
+                    .show().exit();
+                return "[tokenizing err]".to_string()
             }
-            return "[parsing err]".to_string()
         }
-        "[lexing err]".to_string()
     }
 
     fn execute(&self, code: String) {
