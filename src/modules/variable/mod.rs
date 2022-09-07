@@ -17,7 +17,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 
 pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Type {
     handle_identifier_name(meta, name, tok.clone());
-    match meta.mem.get_variable(&name) {
+    match meta.mem.get_variable(name) {
         Some(variable_unit) => variable_unit.kind.clone(),
         None => {
             let message = format!("Variable '{}' does not exist", name);

@@ -53,9 +53,9 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         context!({
             // Get the arguments
             token(meta, "(")?;
-            while let Some(tok) = meta.get_current_token() {
-                if tok.word == ")" {
-                    break;
+            loop {
+                if token(meta, ")").is_ok() {
+                    break
                 }
                 let name = variable(meta, variable_name_extensions())?;
                 self.args.push((name, Type::Generic));
@@ -71,7 +71,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             let index_end = meta.get_index();
             token(meta, "}")?;
             // Add the function to the memory
-            let body = meta.expr[index_begin..index_end].iter().cloned().collect::<Vec<Token>>();
+            let body = meta.expr[index_begin..index_end].to_vec();
             self.id = handle_add_function(meta, &self.name, &self.args, self.returns.clone(), tok, body);
             Ok(())
         }, |err| {
@@ -88,13 +88,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
 impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
-        // Get blocks of the function
-        let blocks = meta.mem
-            .get_function_instances(self.id)
-            .unwrap()
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>();
+        let blocks = meta.mem.get_function_instances(self.id).unwrap().to_vec();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
             let mut name = self.name.clone();

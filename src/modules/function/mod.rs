@@ -23,7 +23,7 @@ pub fn skip_function_body(meta: &mut ParserMetadata) {
 
 pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) {
     let name = tok.as_ref().unwrap().word.clone();
-    if let Some(_) = meta.mem.get_function(&name) {
+    if meta.mem.get_function(&name).is_some() {
         let message = format!("Function '{}' already exists", name);
         let details = ErrorDetails::from_token_option(tok);
         get_error_logger(meta, details)
@@ -60,7 +60,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, name: &str, args: &[(Strin
     }
 }
 
-pub fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type]) -> usize {
+fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type]) -> usize {
     let function = meta.mem.get_function(name).unwrap().clone();
     let mut block = Block::new();
     // Create a new parser metadata specific for the function parsing context
@@ -77,12 +77,12 @@ pub fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Typ
         // Pop function body
         new_meta.mem.pop_scope();
         // Persist the new function instance
-        meta.mem.add_function_instance(function.id, &args, Type::Text,  block)
+        meta.mem.add_function_instance(function.id, args, Type::Text,  block)
     } else { 0 }
 }
 
 pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) {
-    if meta.mem.get_function(&name).is_none() {
+    if meta.mem.get_function(name).is_none() {
         let message = format!("Function '{}' does not exist", name);
         let details = ErrorDetails::from_token_option(tok);
         let mut error = get_error_logger(meta, details).attach_message(message);
@@ -95,9 +95,9 @@ pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
 }
 
 pub fn handle_function_parameters(meta: &mut ParserMetadata, name: &str, args: &[Type]) -> (Type, usize) {
-    let function_unit = meta.mem.get_function(&name).unwrap().clone();
+    let function_unit = meta.mem.get_function(name).unwrap().clone();
     // TODO: Here is a good place to insert trace
-    (function_unit.returns.clone(), run_function_with_args(meta, name, args))
+    (function_unit.returns, run_function_with_args(meta, name, args))
 }
 
 fn handle_similar_function(meta: &mut ParserMetadata, name: &str) -> Option<String> {

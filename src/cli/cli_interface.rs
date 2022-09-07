@@ -134,7 +134,7 @@ impl CLI {
                     let mut meta = TranslateMetadata::new(&meta);
                     return block.translate(&mut meta);
                 }
-                return "[parsing err]".to_string()
+                "[parsing err]".to_string()
             },
             Err((err_type, details)) => {
                 let error_message = match err_type {
@@ -149,7 +149,7 @@ impl CLI {
                 Logger::new_err_at_position(path, Some(code), pos)
                     .attach_message(error_message)
                     .show().exit();
-                return "[tokenizing err]".to_string()
+                "[tokenizing err]".to_string()
             }
         }
     }

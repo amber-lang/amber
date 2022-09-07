@@ -61,7 +61,7 @@ impl Memory {
     }
 
     pub fn add_variable(&mut self, name: &str, kind: Type) -> bool {
-        if self.get_function(&name).is_some() {
+        if self.get_function(name).is_some() {
             return false;
         }
         let scope = self.scopes.last_mut().unwrap();
@@ -89,7 +89,7 @@ impl Memory {
 
     pub fn add_function(&mut self, name: &str, args: &[(String, Type)], returns: Type, body: Vec<Token>) -> Option<usize> {
         // Make sure that there is no variable with the same name
-        if self.get_variable(&name).is_some() {
+        if self.get_variable(name).is_some() {
             return None;
         }
         let typed = !args.iter().any(|(_, kind)| kind == &Type::Generic);
@@ -99,7 +99,7 @@ impl Memory {
         let success = scope.funs.insert(name.to_string(), FunctionDecl {
             name: name.to_string(),
             args: args.to_vec(),
-            returns: returns.clone(),
+            returns,
             body,
             typed,
             id

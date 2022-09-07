@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
         self.name = variable(meta, variable_name_extensions())?;
         // Get the arguments
         token(meta, "(")?;
-        handle_function_reference(meta, tok.clone(), &self.name);
+        handle_function_reference(meta, tok, &self.name);
         while let Some(tok) = meta.get_current_token() {
             if tok.word == ")" {
                 break;

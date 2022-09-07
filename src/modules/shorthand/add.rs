@@ -37,11 +37,12 @@ impl TranslateModule for ShorthandAdd {
     fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         let name = self.var.clone();
+        let var = format!("${{{name}}}");
         if self.kind == Type::Text {
             format!("{}+={}", name, expr)
         }
         else {
-            format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(name.clone()), Some(expr)))
+            format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
         }
     }
 }

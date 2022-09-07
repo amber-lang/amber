@@ -37,6 +37,7 @@ impl TranslateModule for ShorthandSub {
     fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         let name = self.var.clone();
-        format!("{}={}", name, translate_computation(meta, ArithOp::Sub, Some(name.clone()), Some(expr)))
+        let var = format!("${{{name}}}");
+        format!("{}={}", name, translate_computation(meta, ArithOp::Sub, Some(var), Some(expr)))
     }
 }
