@@ -1,9 +1,9 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, error::get_error_logger, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
-use super::statement::st::Statement;
+use super::statement::stmt::Statement;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Block {
     statements: Vec<Statement>
 }
@@ -35,7 +35,7 @@ impl SyntaxModule<ParserMetadata> for Block {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        meta.var_mem.push_scope();
+        meta.mem.push_scope();
         while let Some(token) = meta.get_current_token() {
             // Handle the end of line or command
             if ["\n", ";"].contains(&token.word.as_str()) {
@@ -57,15 +57,23 @@ impl SyntaxModule<ParserMetadata> for Block {
             }
             self.statements.push(statemant);
         }
-        meta.var_mem.pop_scope();
+        meta.mem.pop_scope();
         Ok(())
     }
 }
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.statements.iter()
-            .map(|module| module.translate(meta))
-            .collect::<Vec<_>>().join(";\n")
+        meta.increase_indent();
+        let result = if self.is_empty() {
+            ":".to_string()
+        }
+        else {
+            self.statements.iter()
+                .map(|module| meta.gen_indent() + &module.translate(meta))
+                .collect::<Vec<_>>().join(";\n")
+        };
+        meta.decrease_indent();
+        result
     }
 }

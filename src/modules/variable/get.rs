@@ -3,7 +3,7 @@ use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{Type, Typed}};
 use crate::translate::module::TranslateModule;
 use super::{variable_name_extensions, handle_variable_reference};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VariableGet {
     pub name: String,
     kind: Type
@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        self.kind = handle_variable_reference(meta, tok, self.name.clone());
+        self.kind = handle_variable_reference(meta, tok, &self.name);
         Ok(())
     }
 }

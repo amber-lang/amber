@@ -5,7 +5,7 @@ use crate::translate::module::TranslateModule;
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_same_type};
 use crate::modules::{Type, Typed};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Or {
     left: Box<Expr>,
     right: Box<Expr>

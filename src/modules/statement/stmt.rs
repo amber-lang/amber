@@ -8,7 +8,7 @@ use crate::modules::variable::{
 };
 use crate::modules::command::statement::CommandStatement;
 use crate::handle_types;
-use crate::modules::conditions::{
+use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition
 };
@@ -24,8 +24,11 @@ use crate::modules::loops::{
     break_stmt::Break,
     continue_stmt::Continue
 };
+use crate::modules::function::{
+    declaration::FunctionDeclaration
+};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
@@ -40,16 +43,19 @@ pub enum StatementType {
     ShorthandModulo(ShorthandModulo),
     InfiniteLoop(InfiniteLoop),
     Break(Break),
-    Continue(Continue)
+    Continue(Continue),
+    FunctionDeclaration(FunctionDeclaration)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Statement {
     pub value: Option<StatementType>
 }
 
 impl Statement {
     handle_types!(StatementType, [
+        // Functions
+        FunctionDeclaration,
         // Loops
         InfiniteLoop, Break, Continue,
         // Conditions
@@ -95,6 +101,12 @@ impl SyntaxModule<ParserMetadata> for Statement {
         let mut error = None;
         let statements = self.get_modules();
         for statement in statements {
+            // If the statement is an expression, we want it to not fire it's own error
+            let statement = if let StatementType::Expr(mut expr) = statement {
+                expr.cannot_fail();
+                StatementType::Expr(expr)
+            } else { statement };
+            // Try to parse the statement
             match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
                 Err(details) => error = Some(details)

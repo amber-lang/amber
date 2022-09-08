@@ -3,7 +3,7 @@ use crate::{modules::expression::expr::Expr, translate::module::TranslateModule}
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_variable_reference};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VariableSet {
     name: String,
     value: Box<Expr>
@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         self.name = variable(meta, variable_name_extensions())?;
         token(meta, "=")?;
         syntax(meta, &mut *self.value)?;
-        handle_variable_reference(meta, tok, self.name.clone());
+        handle_variable_reference(meta, tok, &self.name);
         Ok(())
     }
 }

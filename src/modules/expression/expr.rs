@@ -29,10 +29,11 @@ use super::unop::{
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
 use crate::modules::command::expr::CommandExpr;
-use crate::modules::conditions::ternary::Ternary;
+use crate::modules::condition::ternary::Ternary;
+use crate::modules::function::invocation::FunctionInvocation;
 use crate::handle_types;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExprType {
     Bool(Bool),
     Number(Number),
@@ -54,10 +55,11 @@ pub enum ExprType {
     Eq(Eq),
     Neq(Neq),
     Not(Not),
-    Ternary(Ternary)
+    Ternary(Ternary),
+    FunctionInvocation(FunctionInvocation)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Expr {
     value: Option<ExprType>,
     can_fail: bool,
@@ -82,6 +84,9 @@ impl Expr {
         Add, Sub, Mul, Div, Modulo,
         // Literals
         Parenthesis, CommandExpr, Bool, Number, Text,
+        // Function invocation
+        FunctionInvocation,
+        // Variable access
         VariableGet
     ]);
 

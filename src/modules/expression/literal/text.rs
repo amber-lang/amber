@@ -5,7 +5,7 @@ use crate::modules::expression::expr::Expr;
 
 use super::{parse_interpolated_region, translate_interpolated_region};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Text {
     strings: Vec<String>,
     interps: Vec<Expr>

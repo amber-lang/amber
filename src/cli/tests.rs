@@ -389,3 +389,41 @@ fn modulo_shorthand() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "1");
 }
+
+#[test]
+fn function() {
+    let cli = CLI::new();
+    let code = "
+        fun test() {
+            $echo Hello World$
+        }
+        test()
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "Hello World");
+}
+
+#[test]
+fn function_with_args() {
+    let cli = CLI::new();
+    let code = "
+        fun test(a, b) {
+            $echo {a}$
+            $echo {b}$
+        }
+        test('Hello', 'World')
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "Hello\nWorld");
+}
+
+#[test]
+fn function_with_args_different_types() {
+    let cli = CLI::new();
+    let code = "
+        fun test(a, b) {
+            $echo {a + b}$
+        }
+        test('Hello', 'World')
+        test(11, 42)
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "HelloWorld\n53");
+}

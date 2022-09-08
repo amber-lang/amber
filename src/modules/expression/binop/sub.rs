@@ -5,7 +5,7 @@ use crate::translate::module::TranslateModule;
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
 use crate::modules::{Type, Typed};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sub {
     left: Box<Expr>,
     right: Box<Expr>
@@ -33,7 +33,9 @@ impl SyntaxModule<ParserMetadata> for Sub {
         token(meta, "-")?;
         syntax(meta, &mut *self.right)?;
         let error = "Substract operation can only substract numbers";
-        expression_arms_of_type(meta, &*self.left, &*self.right, &[Type::Num], tok, error);
+        let l_type = self.left.get_type();
+        let r_type = self.right.get_type();
+        expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num], tok, error);
         Ok(())
     }
 }
