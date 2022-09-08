@@ -7,7 +7,7 @@ use crate::translate::module::TranslateModule;
 use crate::modules::block::Block;
 use crate::context;
 
-use super::{handle_existing_function, handle_add_function, skip_function_body};
+use super::declaration_utils::*;
 
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {

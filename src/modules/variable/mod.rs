@@ -64,8 +64,3 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
             .show().exit();
     }
 }
-
-pub fn handle_add_variable(meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>) {
-    handle_identifier_name(meta, name, tok);
-    meta.mem.add_variable(name, kind);
-}

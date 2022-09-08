@@ -6,7 +6,7 @@ use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::Typed;
 
-use super::{handle_function_reference, handle_function_parameters};
+use super::invocation_utils::*;
 
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
@@ -41,9 +41,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
         // Get the arguments
         token(meta, "(")?;
         handle_function_reference(meta, tok, &self.name);
-        while let Some(tok) = meta.get_current_token() {
-            if tok.word == ")" {
-                break;
+        loop {
+            if token(meta, ")").is_ok() {
+                break
             }
             let mut expr = Expr::new();
             syntax(meta, &mut expr)?;
