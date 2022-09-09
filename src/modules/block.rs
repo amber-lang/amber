@@ -9,10 +9,12 @@ pub struct Block {
 }
 
 impl Block {
+    // Get whether this block is empty
     pub fn is_empty(&self) -> bool {
         self.statements.is_empty()
     }
 
+    // Push a parsed statement into the block
     pub fn push_statement(&mut self, statement: Statement) {
         self.statements.push(statement);
     }

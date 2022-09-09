@@ -10,7 +10,8 @@ pub struct ParserMetadata {
     pub binop_border: Option<usize>,
     pub mem: Memory,
     debug: Option<usize>,
-    pub loop_ctx: bool
+    pub loop_ctx: bool,
+    pub function_ctx: bool
 }
 
 impl Metadata for ParserMetadata {
@@ -23,7 +24,8 @@ impl Metadata for ParserMetadata {
             binop_border: None,
             mem: Memory::new(),
             debug: None,
-            loop_ctx: false
+            loop_ctx: false,
+            function_ctx: false
         }
     }
 
