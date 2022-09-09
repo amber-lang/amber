@@ -9,8 +9,10 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type]) 
     let mut block = Block::new();
     // Create a new parser metadata specific for the function parsing context
     let mut new_meta = meta.clone();
+    let function_ctx = new_meta.function_ctx;
     new_meta.expr = function.body.clone();
     new_meta.set_index(0);
+    new_meta.function_ctx = true;
     // Create a sub context for new variables
     new_meta.mem.push_scope();
     for (kind, (name, _generic)) in args.iter().zip(function.args.iter()) {
@@ -20,6 +22,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type]) 
     if let Ok(()) = syntax(&mut new_meta, &mut block) {
         // Pop function body
         new_meta.mem.pop_scope();
+        new_meta.function_ctx = function_ctx;
         // Persist the new function instance
         meta.mem.add_function_instance(function.id, args, Type::Text,  block)
     } else { 0 }
