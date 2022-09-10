@@ -1,10 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::Type;
+use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
-use crate::modules::Typed;
 
 use super::invocation_utils::*;
 

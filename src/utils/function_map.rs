@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::modules::{Type, block::Block};
+use crate::modules::{types::Type, block::Block};
 
 #[derive(Clone, Debug)]
 pub struct FunctionInstance {

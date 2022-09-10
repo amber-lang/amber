@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::{Typed, Type};
+use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::error::get_error_logger;
 use crate::utils::{ParserMetadata, TranslateMetadata};

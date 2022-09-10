@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, translate::compute::{translate_computation, ArithOp}};
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
-use crate::modules::{Type, Typed};
+use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]

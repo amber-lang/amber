@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, BTreeSet};
-use crate::modules::{Type, block::Block};
+use crate::modules::{types::Type, block::Block};
 
 use super::function_map::{FunctionMap, FunctionInstance};
 

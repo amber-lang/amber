@@ -7,6 +7,7 @@ pub mod condition;
 pub mod shorthand;
 pub mod loops;
 pub mod function;
+pub mod types;
 
 #[macro_export]
 macro_rules! handle_types {
@@ -35,17 +36,4 @@ macro_rules! handle_types {
             }
         }
     };
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Type {
-    Text,
-    Bool,
-    Num,
-    Null,
-    Generic
-}
-
-pub trait Typed {
-    fn get_type(&self) -> Type;
 }

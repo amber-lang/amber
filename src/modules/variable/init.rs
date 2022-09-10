@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::context;
-use crate::modules::{Typed, Type};
+use crate::modules::types::{Typed, Type};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::error::get_error_logger;

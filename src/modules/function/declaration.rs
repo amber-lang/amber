@@ -1,10 +1,11 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::Type;
+use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::block::Block;
+use crate::modules::types::parseType;
 use crate::context;
 
 use super::declaration_utils::*;
@@ -58,11 +59,21 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     break
                 }
                 let name = variable(meta, variable_name_extensions())?;
+                // Optionally parse the argument type
+                match token(meta, ":") {
+                    Ok(_) => self.args.push((name.clone(), parseType(meta)?)),
+                    Err(_) => {}
+                }
                 self.args.push((name, Type::Generic));
                 match token(meta, ")") {
                     Ok(_) => break,
                     Err(_) => token(meta, ",")?
                 };
+            }
+            // Optionally parse the return type
+            match token(meta, ":") {
+                Ok(_) => self.returns = parseType(meta)?,
+                Err(_) => {}
             }
             // Parse the body
             token(meta, "{")?;
