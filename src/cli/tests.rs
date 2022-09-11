@@ -427,3 +427,39 @@ fn function_with_args_different_types() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "HelloWorld\n53");
 }
+
+#[test]
+fn function_with_typed_args() {
+    let cli = CLI::new();
+    let code = "
+        fun test(a: Num, b: Num) {
+            $echo {a + b}$
+        }
+        test(11, 42)
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "53");
+}
+#[test]
+fn function_with_typed_different_args() {
+    let cli = CLI::new();
+    let code = "
+        fun test(a: Num, b: Text) {
+            $echo {a}$
+            $echo {b}$
+        }
+        test(11, 'Hello')
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "11\nHello");
+}
+
+#[test]
+fn function_with_typed_args_text() {
+    let cli = CLI::new();
+    let code = "
+        fun test(a: Text, b: Text) {
+            $echo {a + b}$
+        }
+        test('Hello', 'World')
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "HelloWorld");
+}
