@@ -46,7 +46,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
         new_meta.mem.pop_scope();
         new_meta.function_ctx = function_ctx;
         // Persist the new function instance
-        meta.mem.add_function_instance(function.id, args, function.returns.clone(),  block)
+        meta.mem.add_function_instance(function.id, args, function.returns,  block)
     } else { 0 }
 }
 
