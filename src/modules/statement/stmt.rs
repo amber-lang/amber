@@ -27,6 +27,9 @@ use crate::modules::loops::{
 use crate::modules::function::{
     declaration::FunctionDeclaration
 };
+use crate::modules::imports::{
+    import_file::ImportFile
+};
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -44,7 +47,8 @@ pub enum StatementType {
     InfiniteLoop(InfiniteLoop),
     Break(Break),
     Continue(Continue),
-    FunctionDeclaration(FunctionDeclaration)
+    FunctionDeclaration(FunctionDeclaration),
+    ImportFile(ImportFile)
 }
 
 #[derive(Debug, Clone)]
@@ -54,6 +58,8 @@ pub struct Statement {
 
 impl Statement {
     handle_types!(StatementType, [
+        // Imports
+        ImportFile,
         // Functions
         FunctionDeclaration,
         // Loops
