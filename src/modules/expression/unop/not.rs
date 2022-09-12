@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
+use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
 use super::super::expr::Expr;
 
 #[derive(Debug, Clone)]

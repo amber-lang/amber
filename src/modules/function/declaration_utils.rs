@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::Type;
+use crate::modules::types::Type;
 use crate::utils::{ParserMetadata, error::get_error_logger};
 use crate::modules::variable::{handle_identifier_name};
 

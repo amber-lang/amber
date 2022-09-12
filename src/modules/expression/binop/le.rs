@@ -3,7 +3,7 @@ use crate::translate::compute::{ArithOp, translate_computation};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
-use crate::modules::{Type, Typed};
+use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Le {

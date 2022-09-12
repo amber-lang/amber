@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::{ParserMetadata, TranslateMetadata}, modules::{Typed, Type}};
+use crate::{utils::metadata::{ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]

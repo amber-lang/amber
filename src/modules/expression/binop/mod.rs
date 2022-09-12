@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::{Type, Typed}};
+use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::types::{Type, Typed}};
 use super::super::expression::expr::Expr;
 
 pub mod add;

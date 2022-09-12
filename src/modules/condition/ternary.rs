@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::Typed;
+use crate::modules::types::{Type, Typed};
 use crate::modules::expression::binop::{parse_left_expr, expression_arms_of_same_type};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
@@ -14,7 +14,7 @@ pub struct Ternary {
 }
 
 impl Typed for Ternary {
-    fn get_type(&self) -> crate::modules::Type {
+    fn get_type(&self) -> Type {
         self.true_expr.get_type()
     }
 }

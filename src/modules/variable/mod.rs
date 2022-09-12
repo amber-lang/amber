@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::{Type}};
+use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::{types::Type}};
 use similar_string::find_best_similarity;
 
 pub mod init;

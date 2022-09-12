@@ -1,10 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::Type;
+use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
-use crate::modules::Typed;
 
 use super::invocation_utils::*;
 
@@ -40,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
         self.name = variable(meta, variable_name_extensions())?;
         // Get the arguments
         token(meta, "(")?;
-        handle_function_reference(meta, tok, &self.name);
+        handle_function_reference(meta, tok.clone(), &self.name);
         loop {
             if token(meta, ")").is_ok() {
                 break
@@ -54,7 +53,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             };
         }
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-        (self.kind, self.id) = handle_function_parameters(meta, &self.name, &types);
+        (self.kind, self.id) = handle_function_parameters(meta, &self.name, &types, tok);
         Ok(())
     }
 }

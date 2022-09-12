@@ -1,6 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::{modules::{variable::{variable_name_extensions, handle_variable_reference}, expression::{expr::Expr, binop::expression_arms_of_type}, Type}, utils::ParserMetadata, translate::{module::TranslateModule, compute::{ArithOp, translate_computation}}};
-use crate::modules::Typed;
+use crate::modules::expression::{expr::Expr, binop::expression_arms_of_type};
+use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
+use crate::modules::types::{Type, Typed};
 
 #[derive(Debug, Clone)]
 pub struct ShorthandAdd {
@@ -34,7 +37,7 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 }
 
 impl TranslateModule for ShorthandAdd {
-    fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         let name = self.var.clone();
         let var = format!("${{{name}}}");
