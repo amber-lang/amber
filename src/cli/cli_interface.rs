@@ -121,7 +121,7 @@ impl CLI {
         file.set_permissions(perm).unwrap();
     }
 
-    pub fn create_compiler(&self, code: String, path: Option<String>) -> Compiler {
+    pub fn create_compiler(&self, code: String) -> Compiler {
         let rules = rules::get_rules();
         let mut cc = Compiler::new("Amber", rules);
         cc.load(code.clone());
@@ -129,7 +129,7 @@ impl CLI {
     }
 
     pub fn compile(&self, code: String, path: Option<String>) -> String {
-        let cc = self.create_compiler(code.clone(), path.clone());
+        let cc = self.create_compiler(code.clone());
         let mut block = block::Block::new();
         match cc.tokenize() {
             Ok(tokens) => {
