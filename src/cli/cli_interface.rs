@@ -129,7 +129,7 @@ impl CLI {
     }
 
     pub fn compile(&self, code: String, path: Option<String>) -> String {
-        let cc = self.create_compiler(code.clone(), path);
+        let cc = self.create_compiler(code.clone(), path.clone());
         let mut block = block::Block::new();
         match cc.tokenize() {
             Ok(tokens) => {
