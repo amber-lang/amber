@@ -121,11 +121,16 @@ impl CLI {
         file.set_permissions(perm).unwrap();
     }
 
-    fn compile(&self, code: String, path: Option<String>) -> String {
+    pub fn create_compiler(&self, code: String, path: Option<String>) -> Compiler {
         let rules = rules::get_rules();
         let mut cc = Compiler::new("Amber", rules);
-        let mut block = block::Block::new();
         cc.load(code.clone());
+        cc
+    }
+
+    pub fn compile(&self, code: String, path: Option<String>) -> String {
+        let cc = self.create_compiler(code.clone(), path);
+        let mut block = block::Block::new();
         match cc.tokenize() {
             Ok(tokens) => {
                 let mut meta = ParserMetadata::new(tokens, path, Some(code));
