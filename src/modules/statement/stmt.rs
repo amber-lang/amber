@@ -28,7 +28,7 @@ use crate::modules::function::{
     declaration::FunctionDeclaration
 };
 use crate::modules::imports::{
-    import_file::ImportFile
+    import::Import
 };
 
 #[derive(Debug, Clone)]
@@ -48,7 +48,7 @@ pub enum StatementType {
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
-    ImportFile(ImportFile)
+    Import(Import)
 }
 
 #[derive(Debug, Clone)]
@@ -59,7 +59,7 @@ pub struct Statement {
 impl Statement {
     handle_types!(StatementType, [
         // Imports
-        ImportFile,
+        Import,
         // Functions
         FunctionDeclaration,
         // Loops

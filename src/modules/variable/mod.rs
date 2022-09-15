@@ -11,7 +11,7 @@ pub fn variable_name_extensions() -> Vec<char> {
 }
 
 pub fn variable_name_keywords() -> Vec<&'static str> {
-    vec!["true", "false", "null", "if", "loop", "break", "continue", "fun", "else", "let"]
+    vec!["true", "false", "null", "if", "loop", "break", "continue", "fun", "else", "let", "pub", "import", "from"]
 }
 
 

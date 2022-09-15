@@ -1,10 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, BTreeSet};
-use crate::modules::{types::Type, block::Block};
+use crate::modules::{types::Type, block::Block, function::declaration_utils::FunctionDeclSyntax};
 
-use super::function_map::{FunctionMap, FunctionInstance};
-
-// TODO: Change (args, returns) to function descriptor
+use super::{function_map::{FunctionMap, FunctionInstance}, exports::Exports};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -13,6 +11,7 @@ pub struct FunctionDecl {
     pub returns: Type,
     pub body: Vec<Token>,
     pub typed: bool,
+    pub is_public: bool,
     pub id: usize
 }
 
@@ -41,14 +40,16 @@ impl ScopeUnit {
 pub struct Memory {
     scopes: Vec<ScopeUnit>,
     // Map of all generated functions based on their invocations
-    function_map: FunctionMap
+    function_map: FunctionMap,
+    pub exports: Exports
 }
 
 impl Memory {
     pub fn new() -> Memory {
         Memory {
             scopes: vec![],
-            function_map: FunctionMap::new()
+            function_map: FunctionMap::new(),
+            exports: Exports::new()
         }
     }
 
@@ -87,23 +88,41 @@ impl Memory {
         set
     }
 
-    pub fn add_function(&mut self, name: &str, args: &[(String, Type)], returns: Type, body: Vec<Token>) -> Option<usize> {
+    pub fn add_existing_function_declaration(&mut self, decl: FunctionDecl) -> bool {
         // Make sure that there is no variable with the same name
-        if self.get_variable(name).is_some() {
+        if self.get_variable(&decl.name).is_some() {
+            return false
+        }
+        let scope = self.scopes.last_mut().unwrap();
+        // Add function declaration to the exports
+        self.exports.add_function(decl.clone());
+        // Add function declaration to the scope
+        scope.funs.insert(decl.name.to_string(), decl).is_none()
+    }
+
+    pub fn add_function_declaration(&mut self, decl: FunctionDeclSyntax) -> Option<usize> {
+        // Make sure that there is no variable with the same name
+        if self.get_variable(&decl.name).is_some() {
             return None;
         }
-        let typed = !args.iter().any(|(_, kind)| kind == &Type::Generic);
+        let typed = !decl.args.iter().any(|(_, kind)| kind == &Type::Generic);
         let scope = self.scopes.last_mut().unwrap();
-        // Add function declaration
+        // Add function declaration to the function map
         let id = self.function_map.add_declaration();
-        let success = scope.funs.insert(name.to_string(), FunctionDecl {
-            name: name.to_string(),
-            args: args.to_vec(),
-            returns,
-            body,
+        // Create a new function declaration
+        let function_declaration = FunctionDecl {
+            name: decl.name.to_string(),
+            args: decl.args.to_vec(),
+            returns: decl.returns,
+            is_public: decl.is_public,
+            body: decl.body,
             typed,
-            id
-        });
+            id,
+        };
+        // Add function declaration to the scope
+        let success = scope.funs.insert(decl.name.to_string(), function_declaration.clone());
+        // Add function declaration to the exports
+        self.exports.add_function(function_declaration);
         // If this is a new function, return its id
         if success.is_none() {
             Some(id)

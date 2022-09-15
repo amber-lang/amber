@@ -121,15 +121,31 @@ impl CLI {
         file.set_permissions(perm).unwrap();
     }
 
-    pub fn create_compiler(&self, code: String) -> Compiler {
+    pub fn create_compiler(code: String) -> Compiler {
         let rules = rules::get_rules();
         let mut cc = Compiler::new("Amber", rules);
         cc.load(code.clone());
         cc
     }
 
+    pub fn tokenize_error(path: Option<String>, code: String, (err_type, details): (LexerErrorType, ErrorDetails)) -> String {
+        let error_message = match err_type {
+            LexerErrorType::Singleline => {
+                format!("Singleline {} not closed", details.data.as_ref().unwrap())
+            },
+            LexerErrorType::Unclosed => {
+                format!("Unclosed {}", details.data.as_ref().unwrap())
+            }
+        };
+        let pos = details.get_pos_by_code(code.clone());
+        Logger::new_err_at_position(path, Some(code), pos)
+            .attach_message(error_message)
+            .show().exit();
+        "[tokenizing err]".to_string()
+    }
+
     pub fn compile(&self, code: String, path: Option<String>) -> String {
-        let cc = self.create_compiler(code.clone());
+        let cc = Self::create_compiler(code.clone());
         let mut block = block::Block::new();
         match cc.tokenize() {
             Ok(tokens) => {
@@ -141,21 +157,7 @@ impl CLI {
                 }
                 "[parsing err]".to_string()
             },
-            Err((err_type, details)) => {
-                let error_message = match err_type {
-                    LexerErrorType::Singleline => {
-                        format!("Singleline {} not closed", details.data.as_ref().unwrap())
-                    },
-                    LexerErrorType::Unclosed => {
-                        format!("Unclosed {}", details.data.as_ref().unwrap())
-                    }
-                };
-                let pos = details.get_pos_by_code(code.clone());
-                Logger::new_err_at_position(path, Some(code), pos)
-                    .attach_message(error_message)
-                    .show().exit();
-                "[tokenizing err]".to_string()
-            }
+            Err(error) => Self::tokenize_error(path, code, error)
         }
     }
 

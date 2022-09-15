@@ -3,7 +3,17 @@ use crate::modules::types::Type;
 use crate::utils::{ParserMetadata, error::get_error_logger};
 use crate::modules::variable::{handle_identifier_name};
 
-pub fn skip_function_body(meta: &mut ParserMetadata) {
+#[derive(Debug, Clone)]
+pub struct FunctionDeclSyntax {
+    pub name: String,
+    pub args: Vec<(String, Type)>,
+    pub returns: Type,
+    pub body: Vec<Token>,
+    pub is_public: bool
+}
+
+pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize) {
+    let index_begin = meta.get_index();
     let mut scope = 1;
     while let Some(tok) = meta.get_current_token() {
         match tok.word.as_str() {
@@ -14,6 +24,8 @@ pub fn skip_function_body(meta: &mut ParserMetadata) {
         if scope == 0 { break }
         meta.increment_index();
     }
+    let index_end = meta.get_index();
+    (index_begin, index_end)
 }
 
 pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) {
@@ -29,12 +41,13 @@ pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) {
     }
 }
 
-pub fn handle_add_function(meta: &mut ParserMetadata, name: &str, args: &[(String, Type)], returns: Type, tok: Option<Token>, body: Vec<Token>) -> usize {
-    handle_identifier_name(meta, name, tok.clone());
-    let any_generic = args.iter().any(|(_, kind)| kind == &Type::Generic);
-    let any_typed = args.iter().any(|(_, kind)| kind != &Type::Generic);
+pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, decl: FunctionDeclSyntax) -> usize {
+    let name = decl.name.clone();
+    handle_identifier_name(meta, &name, tok.clone());
+    let any_generic = decl.args.iter().any(|(_, kind)| kind == &Type::Generic);
+    let any_typed = decl.args.iter().any(|(_, kind)| kind != &Type::Generic);
     // Either all arguments are generic or typed
-    if any_typed && (any_generic || returns == Type::Generic) {
+    if any_typed && (any_generic || decl.returns == Type::Generic) {
         get_error_logger(meta, ErrorDetails::from_token_option(tok.clone()))
             .attach_message(format!("Function '{}' has a mix of generic and typed arguments", name))
             .attach_comment("Please decide whether to use generics or types for all arguments")
@@ -42,7 +55,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, name: &str, args: &[(Strin
             .exit();
     }
     // Try to add the function to the memory
-    match meta.mem.add_function(name, args, returns, body) {
+    match meta.mem.add_function_declaration(decl) {
         // Return the id of the function
         Some(id) => id,
         // If the function already exists, show an error

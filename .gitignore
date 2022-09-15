@@ -1,8 +1,8 @@
 /target
 
 # Test files
-test.ab
-test.sh
+test*.ab
+test*.sh
 
 # MacOS
 **/.DS_Store
