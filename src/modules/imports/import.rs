@@ -16,7 +16,7 @@ pub struct Import {
 
 impl Import {
     fn handle_export(&mut self, meta: &mut ParserMetadata, exports: Exports) {
-        for export in exports.get_exports().to_owned() {
+        for export in exports.get_exports().iter().cloned() {
             match export {
                 ExportUnit::Function(mut func_decl) => {
                     func_decl.is_public = false;

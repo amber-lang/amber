@@ -120,7 +120,7 @@ impl Memory {
             id,
         };
         // Add function declaration to the scope
-        let success = scope.funs.insert(decl.name.to_string(), function_declaration.clone());
+        let success = scope.funs.insert(decl.name, function_declaration.clone());
         // Add function declaration to the exports
         self.exports.add_function(function_declaration);
         // If this is a new function, return its id

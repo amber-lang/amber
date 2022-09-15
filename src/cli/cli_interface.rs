@@ -124,7 +124,7 @@ impl CLI {
     pub fn create_compiler(code: String) -> Compiler {
         let rules = rules::get_rules();
         let mut cc = Compiler::new("Amber", rules);
-        cc.load(code.clone());
+        cc.load(code);
         cc
     }
 
