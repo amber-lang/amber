@@ -1,5 +1,4 @@
 use std::fs;
-
 use heraclitus_compiler::prelude::*;
 use crate::cli::cli_interface::CLI;
 use crate::modules::block::Block;

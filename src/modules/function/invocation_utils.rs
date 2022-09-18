@@ -16,7 +16,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
     // Check if the function can exist
     if function.typed {
         if function.args.len() != args.len() {
-            let err_details = ErrorDetails::from_token_option(tok.clone());
+            let err_details = ErrorDetails::from_token_option(meta, tok.clone());
             let were_was = if args.len() == 1 { "was" } else { "were" };
             let error = format!("Function '{}' expects {} arguments, but {} {were_was} given", name, function.args.len(), args.len());
             get_error_logger(meta, err_details)
@@ -26,7 +26,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
         }
         for (index, (arg, kind)) in function.args.iter().enumerate() {
             if kind != &args[index] {
-                let err_details = ErrorDetails::from_token_option(tok.clone());
+                let err_details = ErrorDetails::from_token_option(meta, tok.clone());
                 let error = format!("Function '{}' expects argument '{}' to be of type '{}', but '{}' was given", name, arg, kind, args[index]);
                 get_error_logger(meta, err_details)
                     .attach_message(error)
@@ -53,7 +53,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
 pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) {
     if meta.mem.get_function(name).is_none() {
         let message = format!("Function '{}' does not exist", name);
-        let details = ErrorDetails::from_token_option(tok);
+        let details = ErrorDetails::from_token_option(meta, tok);
         let mut error = get_error_logger(meta, details).attach_message(message);
         // Find other similar variable if exists
         if let Some(comment) = handle_similar_function(meta, name) {

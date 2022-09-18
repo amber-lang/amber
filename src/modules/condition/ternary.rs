@@ -44,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
                 Ok(())
             }
             Err(_) => {
-                let error_details = ErrorDetails::from_token_option(tok);
+                let error_details = ErrorDetails::from_token_option(meta, tok);
                 get_error_logger(meta, error_details)
                     .attach_message("Expected 'else' after 'then' in ternary expression")
                     .show()

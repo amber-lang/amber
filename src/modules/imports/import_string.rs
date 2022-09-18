@@ -22,7 +22,7 @@ impl SyntaxModule<ParserMetadata> for ImportString {
         }
         else {
             let tok = meta.get_current_token();
-            get_error_logger(meta, ErrorDetails::from_token_option(tok))
+            get_error_logger(meta, ErrorDetails::from_token_option(meta, tok))
                 .attach_message("Import string cannot interpolate expressions")
                 .show().exit();
         }

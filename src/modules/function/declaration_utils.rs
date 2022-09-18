@@ -33,7 +33,7 @@ pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) {
     handle_identifier_name(meta, &name, tok.clone());
     if meta.mem.get_function(&name).is_some() {
         let message = format!("Function '{}' already exists", name);
-        let details = ErrorDetails::from_token_option(tok);
+        let details = ErrorDetails::from_token_option(meta, tok);
         get_error_logger(meta, details)
             .attach_message(message)
             .show()
@@ -48,7 +48,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, decl: 
     let any_typed = decl.args.iter().any(|(_, kind)| kind != &Type::Generic);
     // Either all arguments are generic or typed
     if any_typed && (any_generic || decl.returns == Type::Generic) {
-        get_error_logger(meta, ErrorDetails::from_token_option(tok.clone()))
+        get_error_logger(meta, ErrorDetails::from_token_option(meta, tok.clone()))
             .attach_message(format!("Function '{}' has a mix of generic and typed arguments", name))
             .attach_comment("Please decide whether to use generics or types for all arguments")
             .show()
@@ -60,7 +60,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, decl: 
         Some(id) => id,
         // If the function already exists, show an error
         None => {
-            get_error_logger(meta, ErrorDetails::from_token_option(tok))
+            get_error_logger(meta, ErrorDetails::from_token_option(meta, tok))
                 .attach_message(format!("Function '{}' already exists", name))
                 .show()
                 .exit();

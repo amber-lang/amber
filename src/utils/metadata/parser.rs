@@ -48,4 +48,12 @@ impl Metadata for ParserMetadata {
     fn set_debug(&mut self, indent: usize) {
         self.debug = Some(indent)
     }
+
+    fn get_code(&self) -> Option<&String> {
+        self.code.as_ref()
+    }
+
+    fn get_path(&self) -> Option<String> {
+        self.path.clone()
+    }
 }

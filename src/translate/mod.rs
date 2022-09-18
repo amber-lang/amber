@@ -14,7 +14,7 @@ pub fn check_all_blocks(meta: &mut ParserMetadata) {
             _ => ()
         }
         if stack < 0 {
-            get_error_logger(meta, ErrorDetails::from_token_option(Some(token.clone())))
+            get_error_logger(meta, ErrorDetails::from_token_option(meta, Some(token.clone())))
                 .attach_comment("There are too many closing brackets")
                 .show().exit();
         }

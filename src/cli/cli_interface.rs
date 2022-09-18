@@ -137,8 +137,9 @@ impl CLI {
                 format!("Unclosed {}", details.data.as_ref().unwrap())
             }
         };
-        let pos = details.get_pos_by_code(code.clone());
-        Logger::new_err_at_position(path, Some(code), pos)
+        let meta = ParserMetadata::new(vec![], path, Some(code.clone()));
+        let pos = details.get_pos_by_code(code);
+        Logger::new_err_at_position(&meta, pos)
             .attach_message(error_message)
             .show().exit();
         "[tokenizing err]".to_string()
