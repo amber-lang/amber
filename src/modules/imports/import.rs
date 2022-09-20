@@ -27,11 +27,12 @@ impl Import {
         }
     }
 
-    fn handle_import(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> SyntaxResult {
         let imported_code = fs::read_to_string(&self.path.value).unwrap();
         let cc = CLI::create_compiler(imported_code.clone());
         match cc.tokenize() {
             Ok(tokens) => {
+                self.block.set_scopeless();
                 // Save snapshot of current file
                 let code = meta.code.clone();
                 let path = meta.path.clone();
@@ -39,6 +40,7 @@ impl Import {
                 let exports = meta.mem.exports.clone();
                 let index = meta.get_index();
                 // Parse the imported file
+                meta.push_trace(ErrorDetails::from_token_option(meta, tok));
                 meta.path = Some(self.path.value.clone());
                 meta.code = Some(imported_code);
                 meta.expr = tokens;
@@ -51,6 +53,7 @@ impl Import {
                 meta.expr = expr;
                 meta.mem.exports = exports;
                 meta.set_index(index);
+                meta.pop_trace();
             },
             Err(error) => {
                 CLI::tokenize_error(meta.path.clone(), imported_code, error);
@@ -72,16 +75,19 @@ impl SyntaxModule<ParserMetadata> for Import {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "import")?;
+        let tok = meta.get_current_token();
         token(meta, "*")?;
         token(meta, "from")?;
         syntax(meta, &mut self.path)?;
-        self.handle_import(meta)?;
+        self.handle_import(meta, tok)?;
         Ok(())
     }
 }
 
 impl TranslateModule for Import {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.block.translate(meta)
+        let tr = self.block.translate(meta);
+        dbg!(tr.clone());
+        tr
     }
 }

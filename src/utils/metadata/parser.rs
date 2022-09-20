@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::memory::Memory;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ParserMetadata {
     pub expr: Vec<Token>,
     index: usize,
@@ -10,8 +10,19 @@ pub struct ParserMetadata {
     pub binop_border: Option<usize>,
     pub mem: Memory,
     debug: Option<usize>,
+    pub trace: Vec<ErrorDetails>,
     pub loop_ctx: bool,
     pub function_ctx: bool
+}
+
+impl ParserMetadata {
+    pub fn push_trace(&mut self, details: ErrorDetails) {
+        self.trace.push(details);
+    }
+
+    pub fn pop_trace(&mut self) -> Option<ErrorDetails> {
+        self.trace.pop()
+    }
 }
 
 impl Metadata for ParserMetadata {
@@ -24,6 +35,7 @@ impl Metadata for ParserMetadata {
             binop_border: None,
             mem: Memory::new(),
             debug: None,
+            trace: Vec::new(),
             loop_ctx: false,
             function_ctx: false
         }

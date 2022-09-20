@@ -11,8 +11,8 @@ pub struct FunctionInstance {
 #[derive(Clone, Debug)]
 // This is a map of all generated functions based on their invocations
 pub struct FunctionMap {
-    map: HashMap<usize, Vec<FunctionInstance>>,
-    current_id: usize
+    pub map: HashMap<usize, Vec<FunctionInstance>>,
+    pub current_id: usize
 }
 
 impl FunctionMap {
@@ -40,5 +40,13 @@ impl FunctionMap {
 
     pub fn get(&self, id: usize) -> Option<&Vec<FunctionInstance>> {
         self.map.get(&id)
+    }
+
+    pub fn update_id(&mut self, new_id: usize) {
+        self.current_id = new_id;
+    }
+
+    pub fn get_id(&self) -> usize {
+        self.current_id
     }
 }

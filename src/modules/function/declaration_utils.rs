@@ -55,7 +55,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, decl: 
             .exit();
     }
     // Try to add the function to the memory
-    match meta.mem.add_function_declaration(decl) {
+    match meta.mem.add_function_declaration(meta.clone(), decl) {
         // Return the id of the function
         Some(id) => id,
         // If the function already exists, show an error

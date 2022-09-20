@@ -8,7 +8,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
     let function = meta.mem.get_function(name).unwrap().clone();
     let mut block = Block::new();
     // Create a new parser metadata specific for the function parsing context
-    let mut new_meta = meta.clone();
+    let mut new_meta = function.meta.clone();
     let function_ctx = new_meta.function_ctx;
     new_meta.expr = function.body.clone();
     new_meta.set_index(0);
@@ -45,6 +45,8 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
         // Pop function body
         new_meta.mem.pop_scope();
         new_meta.function_ctx = function_ctx;
+        // Update function map
+        meta.mem.update_function_map_counter(&new_meta);
         // Persist the new function instance
         meta.mem.add_function_instance(function.id, args, function.returns,  block)
     } else { 0 }

@@ -1,8 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, BTreeSet};
 use crate::modules::{types::Type, block::Block, function::declaration_utils::FunctionDeclSyntax};
-
-use super::{function_map::{FunctionMap, FunctionInstance}, exports::Exports};
+use super::{function_map::{FunctionMap, FunctionInstance}, exports::Exports, ParserMetadata};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -10,6 +9,7 @@ pub struct FunctionDecl {
     pub args: Vec<(String, Type)>,
     pub returns: Type,
     pub body: Vec<Token>,
+    pub meta: ParserMetadata,
     pub typed: bool,
     pub is_public: bool,
     pub id: usize
@@ -100,7 +100,7 @@ impl Memory {
         scope.funs.insert(decl.name.to_string(), decl).is_none()
     }
 
-    pub fn add_function_declaration(&mut self, decl: FunctionDeclSyntax) -> Option<usize> {
+    pub fn add_function_declaration(&mut self, meta: ParserMetadata, decl: FunctionDeclSyntax) -> Option<usize> {
         // Make sure that there is no variable with the same name
         if self.get_variable(&decl.name).is_some() {
             return None;
@@ -116,6 +116,7 @@ impl Memory {
             returns: decl.returns,
             is_public: decl.is_public,
             body: decl.body,
+            meta,
             typed,
             id,
         };
@@ -152,6 +153,34 @@ impl Memory {
 
     pub fn get_function_instances(&self, id: usize) -> Option<&Vec<FunctionInstance>> {
         self.function_map.get(id)
+    }
+
+    // This function will update current metadata based on the newly created one with the function map
+    pub fn update_function_maps(&mut self, new_meta: &mut ParserMetadata) {
+        // Update function declarations
+        for (id, funs_remote) in new_meta.mem.function_map.map.iter() {
+            for fun_remote in funs_remote {
+                // Get the function declaration
+                
+                // Update the function declaration
+                new_meta.mem.add_existing_function_declaration(fun);
+            }
+            let has_new_values = match self.function_map.get(*id) {
+                Some(funs_local) => {
+                    // TODO: We have to create a way to get all the new body definitions
+                    // Perhaps in a way of tuple (id, body_index) on the new_meta
+                    // This way we can iterate over all the new bodies and add them to the local function map
+                }
+                None => {
+                    self.function_map.map.insert(*id, funs_remote.clone());    
+                }
+            };
+            // if has_new_values {
+            //     // Update function map entry (we can replace it because it has the )
+            //     self.function_map.map.insert(*id, funs_remote.clone());
+            // }
+        }
+        self.function_map.update_id(meta.mem.function_map.get_id());
     }
 
     pub fn get_available_functions(&self) -> BTreeSet<&String> {
