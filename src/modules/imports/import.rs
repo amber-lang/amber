@@ -2,6 +2,7 @@ use std::fs;
 use heraclitus_compiler::prelude::*;
 use crate::cli::cli_interface::CLI;
 use crate::modules::block::Block;
+use crate::utils::error::get_error_logger;
 use crate::utils::exports::{Exports, ExportUnit};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -27,8 +28,22 @@ impl Import {
         }
     }
 
-    fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> SyntaxResult {
-        let imported_code = fs::read_to_string(&self.path.value).unwrap();
+    fn resolve_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> String {
+        match fs::read_to_string(&self.path.value) {
+            Ok(content) => content,
+            Err(err) => {
+                let details = ErrorDetails::from_token_option(meta, tok);
+                get_error_logger(meta, details)
+                    .attach_message(format!("Failed to read file '{}'", &self.path.value))
+                    .attach_comment(err.to_string())
+                    .show()
+                    .exit();
+                String::new()
+            }
+        }
+    }
+
+    fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, imported_code: String) -> SyntaxResult {
         let cc = CLI::create_compiler(imported_code.clone());
         match cc.tokenize() {
             Ok(tokens) => {
@@ -78,8 +93,10 @@ impl SyntaxModule<ParserMetadata> for Import {
         let tok = meta.get_current_token();
         token(meta, "*")?;
         token(meta, "from")?;
+        let tok_str = meta.get_current_token();
         syntax(meta, &mut self.path)?;
-        self.handle_import(meta, tok)?;
+        let imported_code = self.resolve_import(meta, tok_str);
+        self.handle_import(meta, tok, imported_code)?;
         Ok(())
     }
 }
