@@ -1,0 +1,5 @@
+import * from 'io/print.ab';
+
+pub fun is_even(n: Num) {
+    print(n % 2 == 0 then 'even' else 'odd')
+}

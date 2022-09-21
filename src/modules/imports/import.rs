@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::Path;
 use heraclitus_compiler::prelude::*;
 use crate::cli::cli_interface::CLI;
 use crate::modules::block::Block;
@@ -28,8 +29,28 @@ impl Import {
         }
     }
 
+    fn resolve_path(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> String {
+        let mut path = meta.path.as_ref()
+            .map_or_else(|| Path::new("."), |path| Path::new(path))
+            .to_path_buf();
+        path.pop();
+        path.push(&self.path.value);
+        match path.to_str() {
+            Some(path) => path.to_string(),
+            None => {
+                let details = ErrorDetails::from_token_option(meta, tok);
+                get_error_logger(meta, details)
+                    .attach_message(format!("Could not resolve path '{}'", path.display()))
+                    .attach_comment("Path is not valid UTF-8")
+                    .show()
+                    .exit();
+                String::new()
+            }
+        }
+    }
+
     fn resolve_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> String {
-        match fs::read_to_string(&self.path.value) {
+        match fs::read_to_string(self.resolve_path(meta, tok.clone())) {
             Ok(content) => content,
             Err(err) => {
                 let details = ErrorDetails::from_token_option(meta, tok);
