@@ -86,8 +86,6 @@ impl SyntaxModule<ParserMetadata> for Import {
 
 impl TranslateModule for Import {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let tr = self.block.translate(meta);
-        dbg!(tr.clone());
-        tr
+        self.block.translate(meta)
     }
 }

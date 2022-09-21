@@ -108,7 +108,6 @@ impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
         let blocks = meta.mem.get_function_instances(self.id).unwrap().to_vec();
-        dbg!(&blocks.len(), &self.name);
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
             let mut name = self.name.clone();

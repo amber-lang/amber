@@ -12,7 +12,7 @@ pub struct FunctionInvocation {
     name: String,
     args: Vec<Expr>,
     kind: Type,
-    id: usize
+    variant_id: usize
 }
 
 impl Typed for FunctionInvocation {
@@ -29,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             name: String::new(),
             args: vec![],
             kind: Type::Null,
-            id: 0
+            variant_id: 0
         }
     }
 
@@ -53,14 +53,14 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             };
         }
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-        (self.kind, self.id) = handle_function_parameters(meta, &self.name, &types, tok);
+        (self.kind, self.variant_id) = handle_function_parameters(meta, &self.name, &types, tok);
         Ok(())
     }
 }
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = if self.id != 0 { format!("__{}_{}", self.id, self.name) } else { self.name.clone() };
+        let name = if self.variant_id != 0 { format!("__{}_{}", self.variant_id, self.name) } else { self.name.clone() };
         let args = self.args.iter().map(|arg| arg.translate(meta)).collect::<Vec<String>>().join(" ");
         format!("{name} {args}")
     }

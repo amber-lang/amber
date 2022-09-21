@@ -41,12 +41,4 @@ impl FunctionMap {
     pub fn get(&self, id: usize) -> Option<&Vec<FunctionInstance>> {
         self.map.get(&id)
     }
-
-    pub fn update_id(&mut self, new_id: usize) {
-        self.current_id = new_id;
-    }
-
-    pub fn get_id(&self) -> usize {
-        self.current_id
-    }
 }

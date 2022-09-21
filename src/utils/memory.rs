@@ -155,32 +155,8 @@ impl Memory {
         self.function_map.get(id)
     }
 
-    // This function will update current metadata based on the newly created one with the function map
-    pub fn update_function_maps(&mut self, new_meta: &mut ParserMetadata) {
-        // Update function declarations
-        for (id, funs_remote) in new_meta.mem.function_map.map.iter() {
-            for fun_remote in funs_remote {
-                // Get the function declaration
-                
-                // Update the function declaration
-                new_meta.mem.add_existing_function_declaration(fun);
-            }
-            let has_new_values = match self.function_map.get(*id) {
-                Some(funs_local) => {
-                    // TODO: We have to create a way to get all the new body definitions
-                    // Perhaps in a way of tuple (id, body_index) on the new_meta
-                    // This way we can iterate over all the new bodies and add them to the local function map
-                }
-                None => {
-                    self.function_map.map.insert(*id, funs_remote.clone());    
-                }
-            };
-            // if has_new_values {
-            //     // Update function map entry (we can replace it because it has the )
-            //     self.function_map.map.insert(*id, funs_remote.clone());
-            // }
-        }
-        self.function_map.update_id(meta.mem.function_map.get_id());
+    pub fn set_function_map(&mut self, old_meta: &ParserMetadata) {
+        self.function_map = old_meta.mem.function_map.clone();
     }
 
     pub fn get_available_functions(&self) -> BTreeSet<&String> {
