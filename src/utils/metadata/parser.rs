@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::memory::Memory;
+use crate::utils::import_history::ImportHistory;
 
 #[derive(Clone, Debug)]
 pub struct ParserMetadata {
@@ -11,6 +12,7 @@ pub struct ParserMetadata {
     pub mem: Memory,
     debug: Option<usize>,
     pub trace: Vec<ErrorDetails>,
+    pub import_history: ImportHistory,
     pub loop_ctx: bool,
     pub function_ctx: bool
 }
@@ -30,12 +32,13 @@ impl Metadata for ParserMetadata {
         ParserMetadata {
             expr: tokens,
             index: 0,
-            path,
+            path: path.clone(),
             code,
             binop_border: None,
             mem: Memory::new(),
             debug: None,
             trace: Vec::new(),
+            import_history: ImportHistory::new(path),
             loop_ctx: false,
             function_ctx: false
         }

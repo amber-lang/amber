@@ -36,7 +36,17 @@ impl Import {
         path.pop();
         path.push(&self.path.value);
         match path.to_str() {
-            Some(path) => path.to_string(),
+            Some(path) => {
+                if meta.import_history.add_import(meta.path.clone(), path.to_string()).is_none() {
+                    let details = ErrorDetails::from_token_option(meta, tok);
+                    get_error_logger(meta, details)
+                        .attach_message("Circular import detected")
+                        .attach_comment("Due to shell limitations, circular imports are not allowed")
+                        .show()
+                        .exit();
+                }
+                path.to_string()
+            }
             None => {
                 let details = ErrorDetails::from_token_option(meta, tok);
                 get_error_logger(meta, details)
