@@ -468,7 +468,7 @@ fn function_with_typed_args_text() {
 fn import_existing_file() {
     let cli = CLI::new();
     let code = "
-        import * from 'tests/print.ab'
+        import * from 'tests/io/print.ab'
         print('Hello World')
     ";
     assert_eq!(cli.test_eval(code).trim(), "Hello World");
