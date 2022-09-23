@@ -45,9 +45,9 @@ pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type,ErrorDetails> {
                     meta.increment_index();
                     Ok(Type::Num)
                 },
-                _ => Err(ErrorDetails::from_token_option(Some(token)))
+                _ => Err(ErrorDetails::from_token_option(meta, Some(token)))
             }
         },
-        None => Err(ErrorDetails::with_eof())
+        None => Err(ErrorDetails::with_eof(meta))
     }
 }

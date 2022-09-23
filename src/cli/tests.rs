@@ -463,3 +463,23 @@ fn function_with_typed_args_text() {
     ";
     assert_eq!(cli.test_eval(code).trim(), "HelloWorld");
 }
+
+#[test]
+fn import_existing_file() {
+    let cli = CLI::new();
+    let code = "
+        import * from 'tests/io/print.ab'
+        print('Hello World')
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "Hello World");
+}
+
+#[test]
+fn import_existing_nested_file() {
+    let cli = CLI::new();
+    let code = "
+        import * from 'tests/is_even.ab'
+        is_even(10)
+    ";
+    assert_eq!(cli.test_eval(code).trim(), "even");
+}

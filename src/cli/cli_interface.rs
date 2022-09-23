@@ -121,11 +121,33 @@ impl CLI {
         file.set_permissions(perm).unwrap();
     }
 
-    fn compile(&self, code: String, path: Option<String>) -> String {
+    pub fn create_compiler(code: String) -> Compiler {
         let rules = rules::get_rules();
         let mut cc = Compiler::new("Amber", rules);
+        cc.load(code);
+        cc
+    }
+
+    pub fn tokenize_error(path: Option<String>, code: String, (err_type, details): (LexerErrorType, ErrorDetails)) -> String {
+        let error_message = match err_type {
+            LexerErrorType::Singleline => {
+                format!("Singleline {} not closed", details.data.as_ref().unwrap())
+            },
+            LexerErrorType::Unclosed => {
+                format!("Unclosed {}", details.data.as_ref().unwrap())
+            }
+        };
+        let meta = ParserMetadata::new(vec![], path, Some(code.clone()));
+        let pos = details.get_pos_by_code(code);
+        Logger::new_err_at_position(&meta, pos)
+            .attach_message(error_message)
+            .show().exit();
+        "[tokenizing err]".to_string()
+    }
+
+    pub fn compile(&self, code: String, path: Option<String>) -> String {
+        let cc = Self::create_compiler(code.clone());
         let mut block = block::Block::new();
-        cc.load(code.clone());
         match cc.tokenize() {
             Ok(tokens) => {
                 let mut meta = ParserMetadata::new(tokens, path, Some(code));
@@ -136,21 +158,7 @@ impl CLI {
                 }
                 "[parsing err]".to_string()
             },
-            Err((err_type, details)) => {
-                let error_message = match err_type {
-                    LexerErrorType::Singleline => {
-                        format!("Singleline {} not closed", details.data.as_ref().unwrap())
-                    },
-                    LexerErrorType::Unclosed => {
-                        format!("Unclosed {}", details.data.as_ref().unwrap())
-                    }
-                };
-                let pos = details.get_pos_by_code(code.clone());
-                Logger::new_err_at_position(path, Some(code), pos)
-                    .attach_message(error_message)
-                    .show().exit();
-                "[tokenizing err]".to_string()
-            }
+            Err(error) => Self::tokenize_error(path, code, error)
         }
     }
 

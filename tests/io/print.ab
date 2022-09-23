@@ -1,0 +1,3 @@
+pub fun print(text) {
+    $echo {text}$
+}

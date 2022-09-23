@@ -11,7 +11,7 @@ pub fn variable_name_extensions() -> Vec<char> {
 }
 
 pub fn variable_name_keywords() -> Vec<&'static str> {
-    vec!["true", "false", "null", "if", "loop", "break", "continue", "fun", "else", "let"]
+    vec!["true", "false", "null", "if", "loop", "break", "continue", "fun", "else", "let", "pub", "import", "from"]
 }
 
 
@@ -21,7 +21,7 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
         Some(variable_unit) => variable_unit.kind.clone(),
         None => {
             let message = format!("Variable '{}' does not exist", name);
-            let details = ErrorDetails::from_token_option(tok);
+            let details = ErrorDetails::from_token_option(meta, tok);
             let mut error = get_error_logger(meta, details).attach_message(message);
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_variable(meta, name) {
@@ -49,7 +49,7 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
         let new_name = name.get(1..).unwrap();
         let message = format!("Indentifier '{name}' is not allowed");
         let comment = format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.");
-        let details = ErrorDetails::from_token_option(tok.clone());
+        let details = ErrorDetails::from_token_option(meta, tok.clone());
         get_error_logger(meta, details)
             .attach_message(message)
             .attach_comment(comment)
@@ -58,7 +58,7 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
     // Validate if the variable name is a keyword
     if variable_name_keywords().contains(&name) {
         let message = format!("Indentifier '{name}' is a reserved keyword");
-        let details = ErrorDetails::from_token_option(tok);
+        let details = ErrorDetails::from_token_option(meta, tok);
         get_error_logger(meta, details)
             .attach_message(message)
             .show().exit();

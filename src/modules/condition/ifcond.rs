@@ -17,7 +17,7 @@ impl IfCondition {
     fn prevent_not_using_if_chain(&self, meta: &mut ParserMetadata, statement: &Statement, tok: Option<Token>) {
         let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StatementType::IfCondition(_) | StatementType::IfChain(_));
         if is_not_if_chain {
-            let details = ErrorDetails::from_token_option(tok);
+            let details = ErrorDetails::from_token_option(meta, tok);
             // TODO: [A34] Add a comment pointing to the website documentation
             get_warn_logger(meta, details)
                 .attach_message("You should use if-chain instead of nested if else statements")

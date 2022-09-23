@@ -18,7 +18,7 @@ pub mod neq;
 
 pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, kinds: &[Type], tok_pos: Option<Token>, message: &str) -> Type {
     if kinds.iter().all(|kind | ![left, right].iter().all(|item| **item == *kind)) {
-        get_error_logger(meta, ErrorDetails::from_token_option(tok_pos))
+        get_error_logger(meta, ErrorDetails::from_token_option(meta, tok_pos))
             .attach_message(message)
             .show()
             .exit()
@@ -28,7 +28,7 @@ pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &T
 
 pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) {
     if left.get_type() != right.get_type() {
-        get_error_logger(meta, ErrorDetails::from_token_option(tok_pos))
+        get_error_logger(meta, ErrorDetails::from_token_option(meta, tok_pos))
             .attach_message(message)
             .show()
             .exit()

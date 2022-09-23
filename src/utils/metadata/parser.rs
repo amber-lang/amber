@@ -1,7 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::memory::Memory;
+use crate::utils::import_history::ImportHistory;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ParserMetadata {
     pub expr: Vec<Token>,
     index: usize,
@@ -10,8 +11,20 @@ pub struct ParserMetadata {
     pub binop_border: Option<usize>,
     pub mem: Memory,
     debug: Option<usize>,
+    pub trace: Vec<ErrorDetails>,
+    pub import_history: ImportHistory,
     pub loop_ctx: bool,
     pub function_ctx: bool
+}
+
+impl ParserMetadata {
+    pub fn push_trace(&mut self, details: ErrorDetails) {
+        self.trace.push(details);
+    }
+
+    pub fn pop_trace(&mut self) -> Option<ErrorDetails> {
+        self.trace.pop()
+    }
 }
 
 impl Metadata for ParserMetadata {
@@ -19,11 +32,13 @@ impl Metadata for ParserMetadata {
         ParserMetadata {
             expr: tokens,
             index: 0,
-            path,
+            path: path.clone(),
             code,
             binop_border: None,
             mem: Memory::new(),
             debug: None,
+            trace: Vec::new(),
+            import_history: ImportHistory::new(path),
             loop_ctx: false,
             function_ctx: false
         }
@@ -47,5 +62,13 @@ impl Metadata for ParserMetadata {
 
     fn set_debug(&mut self, indent: usize) {
         self.debug = Some(indent)
+    }
+
+    fn get_code(&self) -> Option<&String> {
+        self.code.as_ref()
+    }
+
+    fn get_path(&self) -> Option<String> {
+        self.path.clone()
     }
 }

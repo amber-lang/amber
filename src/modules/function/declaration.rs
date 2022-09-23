@@ -16,7 +16,8 @@ pub struct FunctionDeclaration {
     pub args: Vec<(String, Type)>,
     pub returns: Type,
     pub body: Block,
-    pub id: usize
+    pub id: usize,
+    pub is_public: bool
 }
 
 impl FunctionDeclaration {
@@ -41,11 +42,16 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             args: vec![],
             returns: Type::Generic,
             body: Block::new(),
-            id: 0
+            id: 0,
+            is_public: false
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Check if this function is public
+        if token(meta, "pub").is_ok() {
+            self.is_public = true;
+        }
         token(meta, "fun")?;
         // Get the function name
         let tok = meta.get_current_token();
@@ -76,13 +82,16 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             }
             // Parse the body
             token(meta, "{")?;
-            let index_begin = meta.get_index();
-            skip_function_body(meta);
-            let index_end = meta.get_index();
+            let (index_begin, index_end) = skip_function_body(meta);
             token(meta, "}")?;
             // Add the function to the memory
-            let body = meta.expr[index_begin..index_end].to_vec();
-            self.id = handle_add_function(meta, &self.name, &self.args, self.returns.clone(), tok, body);
+            self.id = handle_add_function(meta, tok, FunctionDeclSyntax {
+                name: self.name.clone(),
+                args: self.args.clone(),
+                returns: self.returns.clone(),
+                body: meta.expr[index_begin..index_end].to_vec(),
+                is_public: self.is_public
+            });
             Ok(())
         }, |err| {
             let message = format!("Failed to parse function declaration '{}'", self.name);
