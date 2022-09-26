@@ -50,3 +50,8 @@ Finally in order to build
 ```bash
 amber build.ab
 ```
+
+In order to parse AST with a debug trace run cargo with the following environment variable:
+```bash
+AMBER_DEBUG_PARSER=true cargo run <file.ab>
+```

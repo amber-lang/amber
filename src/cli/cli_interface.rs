@@ -152,6 +152,14 @@ impl CLI {
             Ok(tokens) => {
                 let mut meta = ParserMetadata::new(tokens, path, Some(code));
                 check_all_blocks(&mut meta);
+                if let Ok(val) = env::var("AMBER_DEBUG_PARSER") {
+                    if val == "true" {
+                        if let Ok(()) = block.parse_debug(&mut meta) {
+                            let mut meta = TranslateMetadata::new(&meta);
+                            return block.translate(&mut meta);
+                        }
+                    }
+                }
                 if let Ok(()) = block.parse(&mut meta) {
                     let mut meta = TranslateMetadata::new(&meta);
                     return block.translate(&mut meta);
