@@ -35,7 +35,7 @@ impl SyntaxModule<ParserMetadata> for Lt {
         let error = "Cannot compare two values of different types";
         let l_type = self.left.get_type();
         let r_type = self.right.get_type();
-        expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num], tok, error);
+        expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num], tok, error)?;
         Ok(())
     }
 }

@@ -51,9 +51,10 @@ impl CLI {
                     self.execute(translation);
                 },
                 None => {
-                    Logger::new_err_msg("No value passed after -e flag")
-                        .attach_comment("You can write code that has to be evaluated after the -e flag")
-                        .show().exit();
+                    Message::new_err_msg("No value passed after -e flag")
+                        .comment("You can write code that has to be evaluated after the -e flag")
+                        .show();
+                    std::process::exit(1);
                 }
             }
         }
@@ -73,7 +74,8 @@ impl CLI {
                                 
                             },
                             Err(err) => {
-                                Logger::new_err_msg(err.to_string()).show().exit();
+                                Message::new_err_msg(err.to_string()).show();
+                                std::process::exit(1);
                             }
                         }
                     }
@@ -83,7 +85,8 @@ impl CLI {
                     }
                 }
                 Err(err) => {
-                    Logger::new_err_msg(err.to_string()).show().exit();
+                    Message::new_err_msg(err.to_string()).show();
+                    std::process::exit(1);
                 }
             }
         }
@@ -128,21 +131,20 @@ impl CLI {
         cc
     }
 
-    pub fn tokenize_error(path: Option<String>, code: String, (err_type, details): (LexerErrorType, ErrorDetails)) -> String {
+    pub fn tokenize_error(path: Option<String>, code: String, (err_type, pos): (LexerErrorType, PositionInfo)) -> String {
         let error_message = match err_type {
             LexerErrorType::Singleline => {
-                format!("Singleline {} not closed", details.data.as_ref().unwrap())
+                format!("Singleline {} not closed", pos.data.as_ref().unwrap())
             },
             LexerErrorType::Unclosed => {
-                format!("Unclosed {}", details.data.as_ref().unwrap())
+                format!("Unclosed {}", pos.data.as_ref().unwrap())
             }
         };
         let meta = ParserMetadata::new(vec![], path, Some(code.clone()));
-        let pos = details.get_pos_by_code(code);
-        Logger::new_err_at_position(&meta, pos)
-            .attach_message(error_message)
-            .show().exit();
-        "[tokenizing err]".to_string()
+        Message::new_err_at_position(&meta, pos)
+            .message(error_message)
+            .show();
+        std::process::exit(1);
     }
 
     pub fn compile(&self, code: String, path: Option<String>) -> String {
@@ -151,12 +153,20 @@ impl CLI {
         match cc.tokenize() {
             Ok(tokens) => {
                 let mut meta = ParserMetadata::new(tokens, path, Some(code));
-                check_all_blocks(&mut meta);
-                if let Ok(()) = block.parse(&mut meta) {
-                    let mut meta = TranslateMetadata::new(&meta);
-                    return block.translate(&mut meta);
+                if let Err(Failure::Loud(err)) = check_all_blocks(&mut meta) {
+                    err.show();
+                    std::process::exit(1);
                 }
-                "[parsing err]".to_string()
+                match block.parse(&mut meta) {
+                    Ok(_) => {
+                        let mut meta = TranslateMetadata::new(&meta);
+                        return block.translate(&mut meta);
+                    },
+                    Err(failure) => {
+                        failure.unwrap_loud().show();
+                        std::process::exit(1);
+                    }
+                }
             },
             Err(error) => Self::tokenize_error(path, code, error)
         }

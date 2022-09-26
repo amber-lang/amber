@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, error::get_error_logger, TranslateMetadata}};
+use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
 use super::statement::stmt::Statement;
 
@@ -22,13 +22,6 @@ impl Block {
     // Push a parsed statement into the block
     pub fn push_statement(&mut self, statement: Statement) {
         self.statements.push(statement);
-    }
-
-    fn error(&mut self, meta: &mut ParserMetadata, details: ErrorDetails) {
-        get_error_logger(meta, details)
-            .attach_message("Undefined syntax")
-            .show()
-            .exit()
     }
 }
 
@@ -60,8 +53,11 @@ impl SyntaxModule<ParserMetadata> for Block {
                 break;
             }
             let mut statemant = Statement::new();
-            if let Err(details) = statemant.parse(meta) {
-                self.error(meta, details);
+            if let Err(failure) = statemant.parse(meta) {
+                return match failure {
+                    Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
+                    Failure::Loud(err) => return Err(Failure::Loud(err))
+                }
             }
             self.statements.push(statemant);
         }

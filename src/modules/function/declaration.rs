@@ -1,12 +1,10 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
-use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::block::Block;
 use crate::modules::types::parse_type;
-use crate::context;
 
 use super::declaration_utils::*;
 
@@ -56,8 +54,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         // Get the function name
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        handle_existing_function(meta, tok.clone());
-        context!({
+        handle_existing_function(meta, tok.clone())?;
+        return context!({
             // Get the arguments
             token(meta, "(")?;
             loop {
@@ -91,16 +89,11 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 returns: self.returns.clone(),
                 body: meta.expr[index_begin..index_end].to_vec(),
                 is_public: self.is_public
-            });
+            })?;
             Ok(())
-        }, |err| {
-            let message = format!("Failed to parse function declaration '{}'", self.name);
-            get_error_logger(meta, err)
-                .attach_message(message)
-                .show()
-                .exit();
-        });
-        Ok(())
+        }, |pos| {
+            error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
+        })
     }
 }
 

@@ -34,7 +34,7 @@ impl SyntaxModule<ParserMetadata> for Eq {
         token(meta, "==")?;
         syntax(meta, &mut *self.right)?;
         let error = "Cannot compare two values of different types";
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error);
+        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error)?;
         Ok(())
     }
 }

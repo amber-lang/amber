@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::{ParserMetadata, error::get_error_logger};
+use crate::utils::ParserMetadata;
 
 #[derive(Debug, Clone)]
 pub struct ImportString {
@@ -21,10 +21,7 @@ impl SyntaxModule<ParserMetadata> for ImportString {
             self.value = value[1..value.len() - 1].to_string();
         }
         else {
-            let tok = meta.get_current_token();
-            get_error_logger(meta, ErrorDetails::from_token_option(meta, tok))
-                .attach_message("Import string cannot interpolate expressions")
-                .show().exit();
+            return error!(meta, meta.get_current_token(), "Import string cannot interpolate expressions")
         }
         Ok(())
     }

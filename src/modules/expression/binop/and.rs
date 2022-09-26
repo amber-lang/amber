@@ -34,7 +34,7 @@ impl SyntaxModule<ParserMetadata> for And {
         token(meta, "and")?;
         syntax(meta, &mut *self.right)?;
         let error = "Logical and operation can only be used on arguments of the same type";
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error);
+        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error)?;
         Ok(())
     }
 }

@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         self.name = variable(meta, variable_name_extensions())?;
         token(meta, "=")?;
         syntax(meta, &mut *self.value)?;
-        handle_variable_reference(meta, tok, &self.name);
+        handle_variable_reference(meta, tok, &self.name)?;
         Ok(())
     }
 }

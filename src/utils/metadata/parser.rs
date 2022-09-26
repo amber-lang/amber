@@ -11,18 +11,18 @@ pub struct ParserMetadata {
     pub binop_border: Option<usize>,
     pub mem: Memory,
     debug: Option<usize>,
-    pub trace: Vec<ErrorDetails>,
+    pub trace: Vec<PositionInfo>,
     pub import_history: ImportHistory,
     pub loop_ctx: bool,
     pub function_ctx: bool
 }
 
 impl ParserMetadata {
-    pub fn push_trace(&mut self, details: ErrorDetails) {
-        self.trace.push(details);
+    pub fn push_trace(&mut self, position: PositionInfo) {
+        self.trace.push(position);
     }
 
-    pub fn pop_trace(&mut self) -> Option<ErrorDetails> {
+    pub fn pop_trace(&mut self) -> Option<PositionInfo> {
         self.trace.pop()
     }
 }
