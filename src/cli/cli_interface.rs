@@ -47,8 +47,13 @@ impl CLI {
         if self.flags.flag_triggered("-e") {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
-                    let translation = self.compile(code, None);
-                    self.execute(translation);
+                    match self.compile(code, None) {
+                        Ok(translation) => self.execute(translation),
+                        Err(err) => {
+                            err.show();
+                            std::process::exit(1);
+                        }
+                    }
                 },
                 None => {
                     Message::new_err_msg("No value passed after -e flag")
@@ -63,26 +68,34 @@ impl CLI {
             let input = self.args[1].clone();
             match self.read_file(input.clone()) {
                 Ok(code) => {
-                    let code = self.compile(code, Some(input));
-                    // Save to the output file
-                    if self.args.len() >= 3 {
-                        let output = self.args[2].clone();
-                        match fs::File::create(output.clone()) {
-                            Ok(mut file) => {
-                                write!(file, "{}", code).unwrap();
-                                self.set_file_permission(&file, output);
-                                
-                            },
-                            Err(err) => {
-                                Message::new_err_msg(err.to_string()).show();
-                                std::process::exit(1);
+                    match self.compile(code, Some(input)) {
+                        Ok(code) => {
+                            // Save to the output file
+                            if self.args.len() >= 3 {
+                                let output = self.args[2].clone();
+                                match fs::File::create(output.clone()) {
+                                    Ok(mut file) => {
+                                        write!(file, "{}", code).unwrap();
+                                        self.set_file_permission(&file, output);
+                                        
+                                    },
+                                    Err(err) => {
+                                        Message::new_err_msg(err.to_string()).show();
+                                        std::process::exit(1);
+                                    }
+                                }
                             }
+                            // Evaluate
+                            else {
+                                self.execute(code);
+                            }
+                        },
+                        Err(err) => {
+                            err.show();
+                            std::process::exit(1);
                         }
                     }
-                    // Evaluate
-                    else {
-                        self.execute(code);
-                    }
+                    
                 }
                 Err(err) => {
                     Message::new_err_msg(err.to_string()).show();
@@ -131,7 +144,7 @@ impl CLI {
         cc
     }
 
-    pub fn tokenize_error(path: Option<String>, code: String, (err_type, pos): (LexerErrorType, PositionInfo)) -> String {
+    pub fn tokenize_error(path: Option<String>, code: String, (err_type, pos): (LexerErrorType, PositionInfo)) -> Message {
         let error_message = match err_type {
             LexerErrorType::Singleline => {
                 format!("Singleline {} not closed", pos.data.as_ref().unwrap())
@@ -141,32 +154,27 @@ impl CLI {
             }
         };
         let meta = ParserMetadata::new(vec![], path, Some(code.clone()));
-        Message::new_err_at_position(&meta, pos)
-            .message(error_message)
-            .show();
-        std::process::exit(1);
+        Message::new_err_at_position(&meta, pos).message(error_message)
     }
 
-    pub fn compile(&self, code: String, path: Option<String>) -> String {
+    pub fn compile(&self, code: String, path: Option<String>) -> Result<String, Message> {
         let cc = Self::create_compiler(code.clone());
         let mut block = block::Block::new();
         match cc.tokenize() {
             Ok(tokens) => {
                 let mut meta = ParserMetadata::new(tokens, path, Some(code));
                 if let Err(Failure::Loud(err)) = check_all_blocks(&mut meta) {
-                    err.show();
-                    std::process::exit(1);
+                    return Err(err);
                 }
                 if let Ok(val) = env::var("AMBER_DEBUG_PARSER") {
                     if val == "true" {
-                        match block.parse_debug(&mut meta) {
+                        return match block.parse_debug(&mut meta) {
                             Ok(()) => {
                                 let mut meta = TranslateMetadata::new(&meta);
-                                return block.translate(&mut meta);
+                                Ok(block.translate(&mut meta))
                             },
                             Err(failure) => {
-                                failure.unwrap_loud().show();
-                                std::process::exit(1);
+                                Err(failure.unwrap_loud())
                             }
                         }
                     }
@@ -174,15 +182,14 @@ impl CLI {
                 match block.parse(&mut meta) {
                     Ok(()) => {
                         let mut meta = TranslateMetadata::new(&meta);
-                        return block.translate(&mut meta);
+                        Ok(block.translate(&mut meta))
                     },
                     Err(failure) => {
-                        failure.unwrap_loud().show();
-                        std::process::exit(1);
+                        Err(failure.unwrap_loud())
                     }
                 }
             },
-            Err(error) => Self::tokenize_error(path, code, error)
+            Err(error) => Err(Self::tokenize_error(path, code, error))
         }
     }
 
@@ -191,11 +198,15 @@ impl CLI {
     }
 
     pub fn test_eval(&self, code: impl AsRef<str>) -> String {
-        let translation = self.compile(code.as_ref().to_string(), None);
-        let child = Command::new("/bin/bash")
-            .arg("-c").arg::<&str>(translation.as_ref())
-            .output().unwrap();
-        String::from_utf8_lossy(&child.stdout).to_string()
+        match self.compile(code.as_ref().to_string(), None) {
+            Ok(code) => {
+                let child = Command::new("/bin/bash")
+                    .arg("-c").arg::<&str>(code.as_ref())
+                    .output().unwrap();
+                String::from_utf8_lossy(&child.stdout).to_string()
+            },
+            Err(err) => format!("ERROR: {}", err.message.unwrap())
+        }
     }
 
     #[inline]
