@@ -101,10 +101,6 @@ impl Memory {
     }
 
     pub fn add_function_declaration(&mut self, meta: ParserMetadata, decl: FunctionDeclSyntax) -> Option<usize> {
-        // Make sure that there is no variable with the same name
-        if self.get_variable(&decl.name).is_some() {
-            return None;
-        }
         let typed = !decl.args.iter().any(|(_, kind)| kind == &Type::Generic);
         let scope = self.scopes.last_mut().unwrap();
         // Add function declaration to the function map

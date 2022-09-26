@@ -157,8 +157,22 @@ impl CLI {
                     err.show();
                     std::process::exit(1);
                 }
+                if let Ok(val) = env::var("AMBER_DEBUG_PARSER") {
+                    if val == "true" {
+                        match block.parse_debug(&mut meta) {
+                            Ok(()) => {
+                                let mut meta = TranslateMetadata::new(&meta);
+                                return block.translate(&mut meta);
+                            },
+                            Err(failure) => {
+                                failure.unwrap_loud().show();
+                                std::process::exit(1);
+                            }
+                        }
+                    }
+                }
                 match block.parse(&mut meta) {
-                    Ok(_) => {
+                    Ok(()) => {
                         let mut meta = TranslateMetadata::new(&meta);
                         return block.translate(&mut meta);
                     },

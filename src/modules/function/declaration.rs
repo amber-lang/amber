@@ -19,15 +19,17 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, meta: &mut TranslateMetadata) -> String {
-        meta.increase_indent();
-        let mut result = vec![];
-        for (index, (name, _kind)) in self.args.clone().iter().enumerate() {
-            let indent = meta.gen_indent();
-            result.push(format!("{indent}{name}=${}", index + 1));
-        }
-        meta.decrease_indent();
-        result.join("\n")
+    fn set_args_as_variables(&self, meta: &mut TranslateMetadata) -> Option<String> {
+        if !self.args.is_empty() {
+            meta.increase_indent();
+            let mut result = vec![];
+            for (index, (name, _kind)) in self.args.clone().iter().enumerate() {
+                let indent = meta.gen_indent();
+                result.push(format!("{indent}{name}=${}", index + 1));
+            }
+            meta.decrease_indent();
+            Some(result.join("\n"))
+        } else { None }
     }
 }
 
@@ -109,9 +111,11 @@ impl TranslateModule for FunctionDeclaration {
             }
             // Parse the function body
             result.push(format!("function {} {{", name));
-            result.push(self.set_args_as_variables(meta));
+            if let Some(args) = self.set_args_as_variables(meta) {
+                result.push(args); 
+            }
             result.push(function.body.translate(meta));
-            result.push("}".to_string());
+            result.push(meta.gen_indent() + "}");
         }
         // Return the translation
         result.join("\n")
