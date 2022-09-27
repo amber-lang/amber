@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 use heraclitus_compiler::prelude::*;
-use crate::cli::cli_interface::CLI;
+use crate::compiler::AmberCompiler;
 use crate::modules::block::Block;
 use crate::utils::exports::{Exports, ExportUnit};
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -62,8 +62,7 @@ impl Import {
     }
 
     fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, imported_code: String) -> SyntaxResult {
-        let cc = CLI::create_compiler(imported_code.clone());
-        match cc.tokenize() {
+        match AmberCompiler::new(imported_code.clone(), meta.path.clone()).tokenize() {
             Ok(tokens) => {
                 self.block.set_scopeless();
                 // Save snapshot of current file
@@ -87,12 +86,12 @@ impl Import {
                 meta.mem.exports = exports;
                 meta.set_index(index);
                 meta.pop_trace();
-            },
-            Err(error) => {
-                CLI::tokenize_error(meta.path.clone(), imported_code, error);
+                Ok(())
+            }
+            Err(err) => {
+                Err(Failure::Loud(err))
             }
         }
-        Ok(())
     }
 }
 
