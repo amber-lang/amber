@@ -360,7 +360,7 @@ fn infinite_loop() {
             }
         }
     ";
-    test_amber!(code, "1 2 3 4 5 6 7 8 9 10 ");
+    test_amber!(code, "1 2 3 4 6 7 8 9 10");
 }
 
 #[test]
@@ -402,7 +402,7 @@ fn function_with_args() {
         }
         test('Hello', 'World')
     ";
-    test_amber!(code, "Hello World");
+    test_amber!(code, "Hello\nWorld");
 }
 
 #[test]

@@ -5,8 +5,7 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::rules;
 use std::process::Command;
-use std::{io, io::prelude::*};
-use std::fs;
+use std::env;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 
@@ -28,24 +27,6 @@ impl AmberCompiler {
     pub fn load_code(mut self, code: String) -> Self {
         self.cc.load(code);
         self
-    }
-
-    pub fn set_parse_debug(mut self, debug: bool) -> Self {
-        self.is_parse_debug = debug;
-        self
-    }
-
-    pub fn tokenize_error(path: Option<String>, code: String, (err_type, pos): (LexerErrorType, PositionInfo)) -> Message {
-        let error_message = match err_type {
-            LexerErrorType::Singleline => {
-                format!("Singleline {} not closed", pos.data.as_ref().unwrap())
-            },
-            LexerErrorType::Unclosed => {
-                format!("Unclosed {}", pos.data.as_ref().unwrap())
-            }
-        };
-        let meta = ParserMetadata::new(vec![], path, Some(code.clone()));
-        Message::new_err_at_position(&meta, pos).message(error_message)
     }
 
     pub fn tokenize(&self) -> Result<Vec<Token>, Message> {
@@ -75,8 +56,12 @@ impl AmberCompiler {
         }
         let mut block = block::Block::new();
         // Parse with debug or not
-        let result = if self.is_parse_debug {
-            block.parse_debug(&mut meta)
+        let result = if let Ok(value) = env::var("AMBER_DEBUG_PARSER") {
+            if value == "true" {
+                block.parse_debug(&mut meta)
+            } else {
+                block.parse(&mut meta)
+            }
         } else {
             block.parse(&mut meta)
         };
