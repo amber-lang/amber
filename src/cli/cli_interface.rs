@@ -63,7 +63,7 @@ impl CLI {
             let input = self.args[1].clone();
             match self.read_file(input.clone()) {
                 Ok(code) => {
-                    match AmberCompiler::new(code, Some(input.clone())).compile() {
+                    match AmberCompiler::new(code, Some(input)).compile() {
                         Ok(code) => {
                             // Save to the output file
                             if self.args.len() >= 3 {

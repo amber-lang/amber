@@ -87,8 +87,9 @@ impl AmberCompiler {
         Command::new("/bin/bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
     }
 
+    #[allow(dead_code)]
     pub fn test_eval(&self) -> Result<String, Message> {
-        self.compile().map_or_else(|err| Err(err), |code| {
+        self.compile().map_or_else(Err, |code| {
             let child = Command::new("/bin/bash")
                 .arg("-c").arg::<&str>(code.as_ref())
                 .output().unwrap();

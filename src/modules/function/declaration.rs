@@ -57,7 +57,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         handle_existing_function(meta, tok.clone())?;
-        return context!({
+        context!({
             // Get the arguments
             token(meta, "(")?;
             loop {

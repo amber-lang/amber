@@ -37,7 +37,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         self.function_ctx = meta.function_ctx;
-        return context!({
+        context!({
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
             // Add a variable to the memory
