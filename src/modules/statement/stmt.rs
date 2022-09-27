@@ -30,6 +30,7 @@ use crate::modules::function::{
 use crate::modules::imports::{
     import::Import
 };
+use crate::modules::main::Main;
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -48,7 +49,8 @@ pub enum StatementType {
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
-    Import(Import)
+    Import(Import),
+    Main(Main)
 }
 
 #[derive(Debug, Clone)]
@@ -61,7 +63,7 @@ impl Statement {
         // Imports
         Import,
         // Functions
-        FunctionDeclaration,
+        FunctionDeclaration, Main,
         // Loops
         InfiniteLoop, Break, Continue,
         // Conditions
@@ -107,18 +109,18 @@ impl SyntaxModule<ParserMetadata> for Statement {
         let mut error = None;
         let statements = self.get_modules();
         for statement in statements {
-            // If the statement is an expression, we want it to not fire it's own error
-            let statement = if let StatementType::Expr(mut expr) = statement {
-                expr.cannot_fail();
-                StatementType::Expr(expr)
-            } else { statement };
             // Try to parse the statement
             match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
-                Err(details) => error = Some(details)
+                Err(failure) => {
+                    match failure {
+                        Failure::Loud(err) => return Err(Failure::Loud(err)),
+                        Failure::Quiet(err) => error = Some(err)
+                    }
+                }
             }
         }
-        Err(error.unwrap())
+        Err(Failure::Quiet(error.unwrap()))
     }
 }
 

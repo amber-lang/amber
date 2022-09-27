@@ -29,7 +29,6 @@ impl SyntaxModule<ParserMetadata> for IfChain {
         loop {
             let mut cond = Expr::new();
             let mut block = Block::new();
-            cond.cannot_fail();
             // Handle comments and empty lines
             if token_by(meta, |token| token.starts_with('#') || token.starts_with('\n')).is_ok() {
                 continue

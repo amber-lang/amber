@@ -1,3 +1,7 @@
 pub fun print(text) {
     $echo {text}$
 }
+
+main {
+    print('Hello, World!')
+}

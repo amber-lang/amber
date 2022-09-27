@@ -9,6 +9,7 @@ pub mod loops;
 pub mod function;
 pub mod types;
 pub mod imports;
+pub mod main;
 
 #[macro_export]
 macro_rules! handle_types {
