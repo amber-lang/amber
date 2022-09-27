@@ -64,20 +64,22 @@ impl Import {
     fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, imported_code: String) -> SyntaxResult {
         match AmberCompiler::new(imported_code.clone(), meta.path.clone()).tokenize() {
             Ok(tokens) => {
-                self.block.set_scopeless();
                 // Save snapshot of current file
                 let code = meta.code.clone();
                 let path = meta.path.clone();
                 let expr = meta.expr.clone();
                 let exports = meta.mem.exports.clone();
                 let index = meta.get_index();
+                let scopes = meta.mem.scopes.clone();
                 // Parse the imported file
                 meta.push_trace(PositionInfo::from_token(meta, tok));
                 meta.path = Some(self.path.value.clone());
                 meta.code = Some(imported_code);
                 meta.expr = tokens;
                 meta.set_index(0);
+                meta.mem.scopes = vec![];
                 syntax(meta, &mut self.block)?;
+                meta.mem.scopes = scopes;
                 self.handle_export(meta, meta.mem.exports.clone());
                 // Restore snapshot of current file
                 meta.code = code;

@@ -43,7 +43,7 @@ impl CLI {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
                     match AmberCompiler::new(code, None).compile() {
-                        Ok(code) => AmberCompiler::execute(code),
+                        Ok(code) => AmberCompiler::execute(code, self.flags.get_args()),
                         Err(err) => {
                             err.show();
                             std::process::exit(1);
@@ -71,7 +71,7 @@ impl CLI {
                             }
                             // Execute the code
                             else {
-                                AmberCompiler::execute(code);
+                                AmberCompiler::execute(code, self.flags.get_args());
                             }
                         },
                         Err(err) => {

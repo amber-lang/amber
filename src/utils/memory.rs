@@ -38,9 +38,9 @@ impl ScopeUnit {
 
 #[derive(Clone, Debug)]
 pub struct Memory {
-    scopes: Vec<ScopeUnit>,
+    pub scopes: Vec<ScopeUnit>,
     // Map of all generated functions based on their invocations
-    function_map: FunctionMap,
+    pub function_map: FunctionMap,
     pub exports: Exports
 }
 
@@ -51,6 +51,10 @@ impl Memory {
             function_map: FunctionMap::new(),
             exports: Exports::new()
         }
+    }
+    
+    pub fn get_depth(&self) -> usize {
+        self.scopes.len()
     }
 
     pub fn push_scope(&mut self) {

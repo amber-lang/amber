@@ -5,18 +5,13 @@ use super::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
-    statements: Vec<Statement>,
-    is_scope: bool
+    statements: Vec<Statement>
 }
 
 impl Block {
     // Get whether this block is empty
     pub fn is_empty(&self) -> bool {
         self.statements.is_empty()
-    }
-
-    pub fn set_scopeless(&mut self) {
-        self.is_scope = false;
     }
 
     // Push a parsed statement into the block
@@ -30,8 +25,7 @@ impl SyntaxModule<ParserMetadata> for Block {
 
     fn new() -> Self {
         Block {
-            statements: vec![],
-            is_scope: true
+            statements: vec![]
         }
     }
 
@@ -68,16 +62,17 @@ impl SyntaxModule<ParserMetadata> for Block {
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        if self.is_scope { meta.increase_indent(); }
+        meta.increase_indent();
         let result = if self.is_empty() {
             ":".to_string()
         }
         else {
             self.statements.iter()
-                .map(|module| meta.gen_indent() + &module.translate(meta))
+                .map(|statement| meta.gen_indent() + &statement.translate(meta))
+                .filter(|translation| !translation.trim().is_empty())
                 .collect::<Vec<_>>().join(";\n")
         };
-        if self.is_scope { meta.decrease_indent(); }
+        meta.decrease_indent();
         result
     }
 }

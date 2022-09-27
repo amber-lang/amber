@@ -83,7 +83,8 @@ impl AmberCompiler {
             .map(|(block, meta)| self.translate(block, meta))
     }
 
-    pub fn execute(code: String) {
+    pub fn execute(code: String, flags: &[String]) {
+        let code = format!("set -- {};\n\n{}", flags.join(" "), code);
         Command::new("/bin/bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
     }
 

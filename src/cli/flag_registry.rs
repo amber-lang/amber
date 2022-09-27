@@ -17,7 +17,8 @@ impl Flag {
 }
 
 pub struct FlagRegistry {
-    flags: HashMap<String, Flag>
+    flags: HashMap<String, Flag>,
+    args: Vec<String>
 }
 
 impl Default for FlagRegistry {
@@ -30,13 +31,19 @@ impl FlagRegistry {
     #[inline]
     pub fn new() -> Self {
         FlagRegistry {
-            flags: HashMap::new()
+            flags: HashMap::new(),
+            args: vec![]
         }
     }
 
     #[inline]
     pub fn get_flag(&self, name: impl AsRef<str>) -> Option<&Flag> {
         self.flags.get(name.as_ref())
+    }
+
+    #[inline]
+    pub fn get_args(&self) -> &Vec<String> {
+        &self.args
     }
 
     #[inline]
@@ -55,7 +62,12 @@ impl FlagRegistry {
     pub fn parse(&mut self, args: Vec<String>) -> Vec<String> {
         let mut result = vec![];
         let mut is_value_flag = None;
+        let mut is_args = false;
         for arg in args.iter() {
+            if is_args {
+                self.args.push(arg.clone());
+                continue;
+            }
             if let Some(name) = &is_value_flag {
                 let flag = self.flags.get_mut(name).unwrap();
                 flag.value = Some(arg.clone());
@@ -66,6 +78,10 @@ impl FlagRegistry {
                 if flag.takes_value {
                     is_value_flag = Some(arg.clone());
                 }
+                continue
+            }
+            if arg == "--" {
+                is_args = true;
                 continue
             }
             result.push(arg.to_string())
