@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::types::{Type, Typed}};
+use crate::{utils::{metadata::ParserMetadata}, modules::types::{Type, Typed}};
 use super::super::expression::expr::Expr;
 
 pub mod add;
@@ -16,26 +16,23 @@ pub mod le;
 pub mod eq;
 pub mod neq;
 
-pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, kinds: &[Type], tok_pos: Option<Token>, message: &str) -> Type {
+pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, kinds: &[Type], tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
     if kinds.iter().all(|kind | ![left, right].iter().all(|item| **item == *kind)) {
-        get_error_logger(meta, ErrorDetails::from_token_option(meta, tok_pos))
-            .attach_message(message)
-            .show()
-            .exit()
+        error!(meta, tok_pos, message)
+    } else {
+        Ok(left.clone())
     }
-    left.clone()
 }
 
-pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) {
+pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) -> SyntaxResult {
     if left.get_type() != right.get_type() {
-        get_error_logger(meta, ErrorDetails::from_token_option(meta, tok_pos))
-            .attach_message(message)
-            .show()
-            .exit()
+        error!(meta, tok_pos, message)
+    } else {
+        Ok(())
     }
 }
 
-pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -> Result<usize, ErrorDetails> {
+pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -> Result<usize, Failure> {
     // Save left border and run binop left cut border check
     let old_border = meta.binop_border;
     let new_border = binop_left_cut(meta, op)?;
@@ -48,7 +45,7 @@ pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -
 }
 
 // Check if this binop can actually take place and return a new boundary for the left hand expression
-fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, ErrorDetails> {
+fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, Failure> {
     let old_index = meta.get_index();
     let mut parenthesis = 0;
     while let Some(token) = meta.get_current_token() {
@@ -72,16 +69,16 @@ fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, ErrorDet
                 return Ok(new_index)
             }
             else {
-                let err = ErrorDetails::from_metadata(meta);
+                let err = PositionInfo::from_metadata(meta);
                 meta.set_index(old_index);
-                return Err(err)
+                return Err(Failure::Quiet(err))
             }
         }
         meta.increment_index();
     }
-    let err = ErrorDetails::from_metadata(meta);
+    let err = PositionInfo::from_metadata(meta);
     meta.set_index(old_index);
-    Err(err)
+    Err(Failure::Quiet(err))
 }
 
 pub fn strip_text_quotes(text: &mut String) {

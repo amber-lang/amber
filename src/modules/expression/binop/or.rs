@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for Or {
         token(meta, "or")?;
         syntax(meta, &mut *self.right)?;
         let error = "Logical or operation can only be used on arguments of the same type";
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error);
+        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error)?;
         Ok(())
     }
 }

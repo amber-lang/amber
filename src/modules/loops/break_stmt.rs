@@ -1,6 +1,5 @@
 use heraclitus_compiler::prelude::*;
 use crate::translate::module::TranslateModule;
-use crate::utils::error::get_error_logger;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
@@ -18,11 +17,7 @@ impl SyntaxModule<ParserMetadata> for Break {
         token(meta, "break")?;
         // Detect if the break statement is inside a loop
         if !meta.loop_ctx {
-            let details = ErrorDetails::from_token_option(meta, tok);
-            get_error_logger(meta, details)
-                .attach_message("Break statement can only be used inside a loop")
-                .show()
-                .exit();
+            return error!(meta, tok, "Break statement can only be used inside a loop")
         }
         Ok(())
     }

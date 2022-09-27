@@ -1,7 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
-use crate::utils::error::get_error_logger;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::literal::{
     bool::Bool,
@@ -109,12 +108,6 @@ impl Expr {
             Err(details) => Err(details)
         }
     }
-
-    fn error(&self, meta: &mut ParserMetadata) {
-        get_error_logger(meta, ErrorDetails::from_metadata(meta))
-            .attach_message("Expected expression")
-            .show().exit();
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
@@ -129,7 +122,6 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let mut error = None;
         let statements = self.get_modules();
         for statement in statements {
             // Handle comments
@@ -141,13 +133,15 @@ impl SyntaxModule<ParserMetadata> for Expr {
             }
             match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
-                Err(details) => error = Some(details)
+                Err(failure) => {
+                    if let Failure::Loud(err) = failure {
+                        return Err(Failure::Loud(err))
+                    }
+                }
             }
         }
-        if self.can_fail {
-            self.error(meta);
-        }
-        Err(error.unwrap())
+        // TODO: Handle this `can_fail` atribute
+        error!(meta, meta.get_current_token(), "Expected expression")
     }
 }
 

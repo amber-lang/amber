@@ -38,7 +38,7 @@ impl SyntaxModule<ParserMetadata> for Add {
         let error = "Add operation can only add numbers or text";
         let l_type = self.left.get_type();
         let r_type = self.right.get_type();
-        self.kind = expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num, Type::Text], tok, error);
+        self.kind = expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num, Type::Text], tok, error)?;
         Ok(())
     }
 }

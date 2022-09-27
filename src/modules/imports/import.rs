@@ -1,9 +1,8 @@
 use std::fs;
 use std::path::Path;
 use heraclitus_compiler::prelude::*;
-use crate::cli::cli_interface::CLI;
+use crate::compiler::AmberCompiler;
 use crate::modules::block::Block;
-use crate::utils::error::get_error_logger;
 use crate::utils::exports::{Exports, ExportUnit};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -29,7 +28,7 @@ impl Import {
         }
     }
 
-    fn resolve_path(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> String {
+    fn resolve_path(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> Result<String, Failure> {
         let mut path = meta.path.as_ref()
             .map_or_else(|| Path::new("."), |path| Path::new(path))
             .to_path_buf();
@@ -38,45 +37,32 @@ impl Import {
         match path.to_str() {
             Some(path) => {
                 if meta.import_history.add_import(meta.path.clone(), path.to_string()).is_none() {
-                    let details = ErrorDetails::from_token_option(meta, tok);
-                    get_error_logger(meta, details)
-                        .attach_message("Circular import detected")
-                        .attach_comment("Due to shell limitations, circular imports are not allowed")
-                        .show()
-                        .exit();
+                    return error!(meta, tok => {
+                        message: "Circular import detected",
+                        comment: "Please remove the circular import"
+                    })
                 }
-                path.to_string()
+                Ok(path.to_string())
             }
-            None => {
-                let details = ErrorDetails::from_token_option(meta, tok);
-                get_error_logger(meta, details)
-                    .attach_message(format!("Could not resolve path '{}'", path.display()))
-                    .attach_comment("Path is not valid UTF-8")
-                    .show()
-                    .exit();
-                String::new()
-            }
+            None => error!(meta, tok => {
+                message: format!("Could not resolve path '{}'", path.display()),
+                comment: "Path is not valid UTF-8"
+            })
         }
     }
 
-    fn resolve_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> String {
-        match fs::read_to_string(self.resolve_path(meta, tok.clone())) {
-            Ok(content) => content,
-            Err(err) => {
-                let details = ErrorDetails::from_token_option(meta, tok);
-                get_error_logger(meta, details)
-                    .attach_message(format!("Failed to read file '{}'", &self.path.value))
-                    .attach_comment(err.to_string())
-                    .show()
-                    .exit();
-                String::new()
-            }
+    fn resolve_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> Result<String, Failure> {
+        match fs::read_to_string(self.resolve_path(meta, tok.clone())?) {
+            Ok(content) => Ok(content),
+            Err(err) => error!(meta, tok => {
+                message: format!("Could not read file '{}'", self.path.value),
+                comment: err.to_string()
+            })
         }
     }
 
     fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, imported_code: String) -> SyntaxResult {
-        let cc = CLI::create_compiler(imported_code.clone());
-        match cc.tokenize() {
+        match AmberCompiler::new(imported_code.clone(), meta.path.clone()).tokenize() {
             Ok(tokens) => {
                 self.block.set_scopeless();
                 // Save snapshot of current file
@@ -86,7 +72,7 @@ impl Import {
                 let exports = meta.mem.exports.clone();
                 let index = meta.get_index();
                 // Parse the imported file
-                meta.push_trace(ErrorDetails::from_token_option(meta, tok));
+                meta.push_trace(PositionInfo::from_token(meta, tok));
                 meta.path = Some(self.path.value.clone());
                 meta.code = Some(imported_code);
                 meta.expr = tokens;
@@ -100,12 +86,12 @@ impl Import {
                 meta.mem.exports = exports;
                 meta.set_index(index);
                 meta.pop_trace();
-            },
-            Err(error) => {
-                CLI::tokenize_error(meta.path.clone(), imported_code, error);
+                Ok(())
+            }
+            Err(err) => {
+                Err(Failure::Loud(err))
             }
         }
-        Ok(())
     }
 }
 
@@ -126,7 +112,7 @@ impl SyntaxModule<ParserMetadata> for Import {
         token(meta, "from")?;
         let tok_str = meta.get_current_token();
         syntax(meta, &mut self.path)?;
-        let imported_code = self.resolve_import(meta, tok_str);
+        let imported_code = self.resolve_import(meta, tok_str)?;
         self.handle_import(meta, tok, imported_code)?;
         Ok(())
     }

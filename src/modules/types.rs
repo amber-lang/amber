@@ -28,7 +28,7 @@ pub trait Typed {
     fn get_type(&self) -> Type;
 }
 
-pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type,ErrorDetails> {
+pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
     match tok {
         Some(token) => {
@@ -45,9 +45,9 @@ pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type,ErrorDetails> {
                     meta.increment_index();
                     Ok(Type::Num)
                 },
-                _ => Err(ErrorDetails::from_token_option(meta, Some(token)))
+                _ => Err(Failure::Quiet(PositionInfo::from_token(meta, Some(token))))
             }
         },
-        None => Err(ErrorDetails::with_eof(meta))
+        None => Err(Failure::Quiet(PositionInfo::at_eof(meta)))
     }
 }

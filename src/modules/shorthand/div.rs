@@ -28,10 +28,10 @@ impl SyntaxModule<ParserMetadata> for ShorthandDiv {
         self.var = variable(meta, variable_name_extensions())?;
         let tok = meta.get_current_token();
         token(meta, "/=")?;
-        self.kind = handle_variable_reference(meta, var_tok, &self.var);
+        self.kind = handle_variable_reference(meta, var_tok, &self.var)?;
         self.expr.parse(meta)?;
         let message = "Division operation can only divide numbers";
-        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), &[Type::Num], tok, message);
+        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), &[Type::Num], tok, message)?;
         Ok(())
     }
 }

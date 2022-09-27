@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, error::get_error_logger}, modules::{types::Type}};
+use crate::{utils::metadata::ParserMetadata, modules::{types::Type}};
 use similar_string::find_best_similarity;
 
 pub mod init;
@@ -15,20 +15,18 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 }
 
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Type {
-    handle_identifier_name(meta, name, tok.clone());
+pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<Type, Failure> {
+    handle_identifier_name(meta, name, tok.clone())?;
     match meta.mem.get_variable(name) {
-        Some(variable_unit) => variable_unit.kind.clone(),
+        Some(variable_unit) => Ok(variable_unit.kind.clone()),
         None => {
             let message = format!("Variable '{}' does not exist", name);
-            let details = ErrorDetails::from_token_option(meta, tok);
-            let mut error = get_error_logger(meta, details).attach_message(message);
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_variable(meta, name) {
-                error = error.attach_comment(comment);
+                error!(meta, tok, message, comment)
+            } else {
+                error!(meta, tok, message)
             }
-            error.show().exit();
-            Type::Null
         }
     }
 }
@@ -43,24 +41,18 @@ fn handle_similar_variable(meta: &mut ParserMetadata, name: &str) -> Option<Stri
     } else { None }
 }
 
-pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) {
+pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix
     if name.chars().take(2).all(|chr| chr == '_') {
         let new_name = name.get(1..).unwrap();
-        let message = format!("Indentifier '{name}' is not allowed");
-        let comment = format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.");
-        let details = ErrorDetails::from_token_option(meta, tok.clone());
-        get_error_logger(meta, details)
-            .attach_message(message)
-            .attach_comment(comment)
-            .show().exit();
+        return error!(meta, tok => {
+            message: format!("Indentifier '{name}' is not allowed"),
+            comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
+        })
     }
     // Validate if the variable name is a keyword
     if variable_name_keywords().contains(&name) {
-        let message = format!("Indentifier '{name}' is a reserved keyword");
-        let details = ErrorDetails::from_token_option(meta, tok);
-        get_error_logger(meta, details)
-            .attach_message(message)
-            .show().exit();
+        return error!(meta, tok, format!("Indentifier '{name}' is a reserved keyword"))
     }
+    Ok(())
 }

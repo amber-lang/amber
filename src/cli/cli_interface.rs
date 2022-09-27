@@ -1,13 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use colored::Colorize;
-use crate::modules::block;
-use crate::translate::check_all_blocks;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use crate::rules;
+use crate::compiler::AmberCompiler;
 use super::flag_registry::FlagRegistry;
 use std::env;
-use std::process::Command;
 use std::{io, io::prelude::*};
 use std::fs;
 
@@ -47,13 +42,19 @@ impl CLI {
         if self.flags.flag_triggered("-e") {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
-                    let translation = self.compile(code, None);
-                    self.execute(translation);
+                    match AmberCompiler::new(code, None).compile() {
+                        Ok(code) => AmberCompiler::execute(code),
+                        Err(err) => {
+                            err.show();
+                            std::process::exit(1);
+                        }
+                    }
                 },
                 None => {
-                    Logger::new_err_msg("No value passed after -e flag")
-                        .attach_comment("You can write code that has to be evaluated after the -e flag")
-                        .show().exit();
+                    Message::new_err_msg("No value passed after -e flag")
+                        .comment("You can write code that has to be evaluated after the -e flag")
+                        .show();
+                    std::process::exit(1);
                 }
             }
         }
@@ -62,28 +63,26 @@ impl CLI {
             let input = self.args[1].clone();
             match self.read_file(input.clone()) {
                 Ok(code) => {
-                    let code = self.compile(code, Some(input));
-                    // Save to the output file
-                    if self.args.len() >= 3 {
-                        let output = self.args[2].clone();
-                        match fs::File::create(output.clone()) {
-                            Ok(mut file) => {
-                                write!(file, "{}", code).unwrap();
-                                self.set_file_permission(&file, output);
-                                
-                            },
-                            Err(err) => {
-                                Logger::new_err_msg(err.to_string()).show().exit();
+                    match AmberCompiler::new(code, Some(input)).compile() {
+                        Ok(code) => {
+                            // Save to the output file
+                            if self.args.len() >= 3 {
+                                Self::save_to_file(self.args[2].clone(), code)
                             }
+                            // Execute the code
+                            else {
+                                AmberCompiler::execute(code);
+                            }
+                        },
+                        Err(err) => {
+                            err.show();
+                            std::process::exit(1);
                         }
-                    }
-                    // Evaluate
-                    else {
-                        self.execute(code);
                     }
                 }
                 Err(err) => {
-                    Logger::new_err_msg(err.to_string()).show().exit();
+                    Message::new_err_msg(err.to_string()).show();
+                    std::process::exit(1);
                 }
             }
         }
@@ -109,77 +108,31 @@ impl CLI {
     }
 
     #[cfg(target_os = "windows")]
-    fn set_file_permission(&self, _file: &fs::File, _output: String) {
+    fn set_file_permission(_file: &fs::File, _output: String) {
         // We don't need to set permission on Windows
     }
 
     #[cfg(not(target_os = "windows"))]
-    fn set_file_permission(&self, file: &std::fs::File, path: String) {
+    fn set_file_permission(file: &std::fs::File, path: String) {
         use std::os::unix::prelude::PermissionsExt;
         let mut perm = fs::metadata(path).unwrap().permissions();
         perm.set_mode(0o755);
         file.set_permissions(perm).unwrap();
     }
 
-    pub fn create_compiler(code: String) -> Compiler {
-        let rules = rules::get_rules();
-        let mut cc = Compiler::new("Amber", rules);
-        cc.load(code);
-        cc
-    }
-
-    pub fn tokenize_error(path: Option<String>, code: String, (err_type, details): (LexerErrorType, ErrorDetails)) -> String {
-        let error_message = match err_type {
-            LexerErrorType::Singleline => {
-                format!("Singleline {} not closed", details.data.as_ref().unwrap())
+    #[inline]
+    fn save_to_file(output_path: String, code: String) {
+        match fs::File::create(output_path.clone()) {
+            Ok(mut file) => {
+                write!(file, "{}", code).unwrap();
+                Self::set_file_permission(&file, output_path);
+                
             },
-            LexerErrorType::Unclosed => {
-                format!("Unclosed {}", details.data.as_ref().unwrap())
+            Err(err) => {
+                Message::new_err_msg(err.to_string()).show();
+                std::process::exit(1);
             }
-        };
-        let meta = ParserMetadata::new(vec![], path, Some(code.clone()));
-        let pos = details.get_pos_by_code(code);
-        Logger::new_err_at_position(&meta, pos)
-            .attach_message(error_message)
-            .show().exit();
-        "[tokenizing err]".to_string()
-    }
-
-    pub fn compile(&self, code: String, path: Option<String>) -> String {
-        let cc = Self::create_compiler(code.clone());
-        let mut block = block::Block::new();
-        match cc.tokenize() {
-            Ok(tokens) => {
-                let mut meta = ParserMetadata::new(tokens, path, Some(code));
-                check_all_blocks(&mut meta);
-                if let Ok(val) = env::var("AMBER_DEBUG_PARSER") {
-                    if val == "true" {
-                        if let Ok(()) = block.parse_debug(&mut meta) {
-                            let mut meta = TranslateMetadata::new(&meta);
-                            return block.translate(&mut meta);
-                        }
-                    }
-                }
-                if let Ok(()) = block.parse(&mut meta) {
-                    let mut meta = TranslateMetadata::new(&meta);
-                    return block.translate(&mut meta);
-                }
-                "[parsing err]".to_string()
-            },
-            Err(error) => Self::tokenize_error(path, code, error)
         }
-    }
-
-    fn execute(&self, code: String) {
-        Command::new("/bin/bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
-    }
-
-    pub fn test_eval(&self, code: impl AsRef<str>) -> String {
-        let translation = self.compile(code.as_ref().to_string(), None);
-        let child = Command::new("/bin/bash")
-            .arg("-c").arg::<&str>(translation.as_ref())
-            .output().unwrap();
-        String::from_utf8_lossy(&child.stdout).to_string()
     }
 
     #[inline]

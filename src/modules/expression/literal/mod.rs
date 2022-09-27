@@ -8,7 +8,7 @@ pub mod number;
 pub mod text;
 pub mod null;
 
-pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), ErrorDetails> {
+pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
     // Handle full string
@@ -52,7 +52,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
             }
             meta.increment_index();
         }
-        Err(ErrorDetails::from_metadata(meta))
+        Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
     }
 }
 
