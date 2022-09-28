@@ -1,7 +1,10 @@
+use crate::modules::block::Block;
+
 #[derive(Debug, Clone)]
 pub struct ImportHistory {
     pub imports: Vec<String>,
-    pub import_graph: Vec<Vec<usize>>
+    pub import_graph: Vec<Vec<usize>>,
+    pub import_map: Vec<Block>
 }
 
 impl ImportHistory {
@@ -17,7 +20,8 @@ impl ImportHistory {
     pub fn new(initial_path: Option<String>) -> Self {
         ImportHistory {
             imports: vec![Self::get_path(initial_path)],
-            import_graph: vec![vec![]]
+            import_graph: vec![vec![]],
+            import_map: vec![]
         }
     }
 
@@ -61,5 +65,22 @@ impl ImportHistory {
                 Some(dst_id)
             }
         }
+    }
+
+    fn topological_sort_util(&self, v: usize, visited: &mut Vec<bool>, stack: &mut Vec<usize>) {
+        visited[v] = true;
+        for i in self.import_graph[v].iter() {
+            if !visited[*i] {
+                self.topological_sort_util(*i, visited, stack);
+            }
+        }
+        stack.push(v);
+    }
+
+    pub fn topological_sort(&self) -> Vec<usize> {
+        let mut stack = Vec::new();
+        let mut visited = vec![false; self.imports.len()];
+        self.topological_sort_util(0, &mut visited, &mut stack);
+        stack
     }
 }
