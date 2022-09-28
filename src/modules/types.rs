@@ -26,6 +26,9 @@ impl Display for Type {
 
 pub trait Typed {
     fn get_type(&self) -> Type;
+    fn has_echo(&self) -> bool {
+        false
+    }
 }
 
 pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {

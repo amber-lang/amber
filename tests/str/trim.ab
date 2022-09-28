@@ -1,0 +1,7 @@
+pub fun trim(text) {
+    echo '$\{text##*( )}'
+}
+
+main {
+    trim('long text')
+}

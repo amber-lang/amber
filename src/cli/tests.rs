@@ -30,7 +30,7 @@ fn hello_world() {
 
 #[test]
 fn hello_world_error() {
-    test_amber_err!("echo Hello World", "Variable 'echo' does not exist");
+    test_amber_err!("echo Hello World", "Variable 'Hello' does not exist");
 }
 
 #[test]
@@ -388,7 +388,7 @@ fn function() {
         fun test() {
             $echo Hello World$
         }
-        test()
+        echo test()
     ";
     test_amber!(code, "Hello World");
 }
@@ -400,9 +400,9 @@ fn function_with_args() {
             $echo {a}$
             $echo {b}$
         }
-        test('Hello', 'World')
+        echo test('Hello', 'World')
     ";
-    test_amber!(code, "Hello\nWorld");
+    test_amber!(code, "Hello World");
 }
 
 #[test]
@@ -411,8 +411,8 @@ fn function_with_args_different_types() {
         fun test(a, b) {
             $echo {a + b}$
         }
-        test('Hello', 'World')
-        test(11, 42)
+        echo test('Hello', 'World')
+        echo test(11, 42)
     ";
     test_amber!(code, "HelloWorld\n53");
 }
@@ -423,7 +423,7 @@ fn function_with_typed_args() {
         fun test(a: Num, b: Num) {
             $echo {a + b}$
         }
-        test(11, 42)
+        echo test(11, 42)
     ";
     test_amber!(code, "53");
 }
@@ -434,9 +434,9 @@ fn function_with_typed_different_args() {
             $echo {a}$
             $echo {b}$
         }
-        test(11, 'Hello')
+        echo test(11, 'Hello')
     ";
-    test_amber!(code, "11\nHello");
+    test_amber!(code, "11 Hello");
 }
 
 #[test]
@@ -445,7 +445,7 @@ fn function_with_typed_args_text() {
         fun test(a: Text, b: Text) {
             $echo {a + b}$
         }
-        test('Hello', 'World')
+        echo test('Hello', 'World')
     ";
     test_amber!(code, "HelloWorld");
 }
@@ -453,8 +453,8 @@ fn function_with_typed_args_text() {
 #[test]
 fn import_existing_file() {
     let code = "
-        import * from 'tests/io/print.ab'
-        print('Hello World')
+        import * from 'tests/str/trim.ab'
+        echo trim('    Hello World     ')
     ";
     test_amber!(code, "Hello World");
 }
@@ -463,7 +463,7 @@ fn import_existing_file() {
 fn import_existing_nested_file() {
     let code = "
         import * from 'tests/is_even.ab'
-        is_even(10)
+        echo is_even(10)
     ";
     test_amber!(code, "even");
 }

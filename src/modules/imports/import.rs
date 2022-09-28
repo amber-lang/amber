@@ -62,7 +62,7 @@ impl Import {
     }
 
     fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, imported_code: String) -> SyntaxResult {
-        match AmberCompiler::new(imported_code.clone(), meta.path.clone()).tokenize() {
+        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone())).tokenize() {
             Ok(tokens) => {
                 // Save snapshot of current file
                 let code = meta.code.clone();
@@ -114,7 +114,11 @@ impl SyntaxModule<ParserMetadata> for Import {
         token(meta, "from")?;
         let tok_str = meta.get_current_token();
         syntax(meta, &mut self.path)?;
-        let imported_code = self.resolve_import(meta, tok_str)?;
+        let imported_code = if self.path.value == "[standard library]" {
+            AmberCompiler::import_std()
+        } else {
+            self.resolve_import(meta, tok_str)?
+        };
         self.handle_import(meta, tok, imported_code)?;
         Ok(())
     }

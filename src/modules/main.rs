@@ -29,7 +29,6 @@ impl SyntaxModule<ParserMetadata> for Main {
         token(meta, "main")?;
         // Main cannot be parsed inside of a block
         if meta.mem.get_depth() > 1 {
-            dbg!(meta.mem.get_depth());
             return error!(meta, tok, "Main module must be in the global scope")
         }
         // If this main is included in other file, skip it
