@@ -5,7 +5,7 @@ use super::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
-    statements: Vec<Statement>
+    pub statements: Vec<Statement>
 }
 
 impl Block {

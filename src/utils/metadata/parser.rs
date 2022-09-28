@@ -14,7 +14,8 @@ pub struct ParserMetadata {
     pub trace: Vec<PositionInfo>,
     pub import_history: ImportHistory,
     pub loop_ctx: bool,
-    pub function_ctx: bool
+    pub function_ctx: bool,
+    pub messages: Vec<Message>
 }
 
 impl ParserMetadata {
@@ -24,6 +25,10 @@ impl ParserMetadata {
 
     pub fn pop_trace(&mut self) -> Option<PositionInfo> {
         self.trace.pop()
+    }
+
+    pub fn add_message(&mut self, message: Message) {
+        self.messages.push(message);
     }
 }
 
@@ -40,7 +45,8 @@ impl Metadata for ParserMetadata {
             trace: Vec::new(),
             import_history: ImportHistory::new(path),
             loop_ctx: false,
-            function_ctx: false
+            function_ctx: false,
+            messages: Vec::new(),
         }
     }
 

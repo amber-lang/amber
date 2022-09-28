@@ -43,7 +43,10 @@ impl CLI {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
                     match AmberCompiler::new(code, None).compile() {
-                        Ok(code) => AmberCompiler::execute(code, self.flags.get_args()),
+                        Ok((code, messages)) => {
+                            messages.iter().for_each(|m| m.show());
+                            AmberCompiler::execute(code, self.flags.get_args())
+                        },
                         Err(err) => {
                             err.show();
                             std::process::exit(1);
@@ -64,7 +67,8 @@ impl CLI {
             match self.read_file(input.clone()) {
                 Ok(code) => {
                     match AmberCompiler::new(code, Some(input)).compile() {
-                        Ok(code) => {
+                        Ok((code, messages)) => {
+                            messages.iter().for_each(|m| m.show());
                             // Save to the output file
                             if self.args.len() >= 3 {
                                 Self::save_to_file(self.args[2].clone(), code)
