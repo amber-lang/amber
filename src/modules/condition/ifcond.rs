@@ -17,7 +17,9 @@ impl IfCondition {
         let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StatementType::IfCondition(_) | StatementType::IfChain(_));
         if is_not_if_chain {
             // TODO: [A34] Add a comment pointing to the website documentation
-            return error!(meta, tok, "You should use if-chain instead of nested if else statements")
+            let message = Message::new_warn_at_token(meta, tok)
+                .message("You should use if-chain instead of nested if else statements");
+            meta.add_message(message);
         }
         Ok(())
     }
@@ -56,7 +58,14 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
             match token(meta, "{") {
                 Ok(_) => {
                     let mut false_block = Box::new(Block::new());
+                    let tok = meta.get_current_token();
                     syntax(meta, &mut *false_block)?;
+                    // Check if the statement is using if chain syntax sugar
+                    if false_block.statements.len() == 1 {
+                        if let Some(statement) = false_block.statements.first() {
+                            self.prevent_not_using_if_chain(meta, statement, tok)?;
+                        }
+                    }
                     self.false_block = Some(false_block);
                     token(meta, "}")?;
                 }

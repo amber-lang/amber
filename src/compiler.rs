@@ -77,10 +77,10 @@ impl AmberCompiler {
         block.translate(&mut meta)
     }
 
-    pub fn compile(&self) -> Result<String, Message> {
+    pub fn compile(&self) -> Result<(String, Vec<Message>), Message> {
         self.tokenize()
             .and_then(|tokens| self.parse(tokens))
-            .map(|(block, meta)| self.translate(block, meta))
+            .map(|(block, meta)| (self.translate(block, meta.clone()), meta.messages))
     }
 
     pub fn execute(code: String, flags: &[String]) {
@@ -90,7 +90,7 @@ impl AmberCompiler {
 
     #[allow(dead_code)]
     pub fn test_eval(&self) -> Result<String, Message> {
-        self.compile().map_or_else(Err, |code| {
+        self.compile().map_or_else(Err, |(code, _)| {
             let child = Command::new("/bin/bash")
                 .arg("-c").arg::<&str>(code.as_ref())
                 .output().unwrap();
