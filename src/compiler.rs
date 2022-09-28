@@ -80,7 +80,7 @@ impl AmberCompiler {
     pub fn compile(&self) -> Result<(String, Vec<Message>), Message> {
         self.tokenize()
             .and_then(|tokens| self.parse(tokens))
-            .map(|(block, meta)| (self.translate(block, meta.clone()), meta.messages.clone()))
+            .map(|(block, meta)| (self.translate(block, meta.clone()), meta.messages))
     }
 
     pub fn execute(code: String, flags: &[String]) {
