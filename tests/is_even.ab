@@ -1,5 +1,5 @@
-import * from 'io/print.ab';
+import * from 'str/trim.ab';
 
 pub fun is_even(n: Num) {
-    print(n % 2 == 0 then 'even' else 'odd')
+    echo n % 2 == 0 then trim('  even  ') else 'odd'
 }

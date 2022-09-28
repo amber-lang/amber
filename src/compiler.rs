@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::block;
+use crate::modules::block::Block;
 use crate::translate::check_all_blocks;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -48,13 +48,13 @@ impl AmberCompiler {
         }
     }
 
-    pub fn parse(&self, tokens: Vec<Token>) -> Result<(block::Block, ParserMetadata), Message> {
+    pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
         if let Err(Failure::Loud(err)) = check_all_blocks(&mut meta) {
             return Err(err);
         }
-        let mut block = block::Block::new();
+        let mut block = Block::new();
         // Parse with debug or not
         let result = if let Ok(value) = env::var("AMBER_DEBUG_PARSER") {
             if value == "true" {
@@ -72,7 +72,7 @@ impl AmberCompiler {
         }
     }
 
-    pub fn translate(&self, block: block::Block, meta: ParserMetadata) -> String {
+    pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
         let mut meta = TranslateMetadata::new(&meta);
         block.translate(&mut meta)
     }
@@ -89,12 +89,18 @@ impl AmberCompiler {
     }
 
     #[allow(dead_code)]
-    pub fn test_eval(&self) -> Result<String, Message> {
+    pub fn test_eval(&mut self) -> Result<String, Message> {
         self.compile().map_or_else(Err, |(code, _)| {
             let child = Command::new("/bin/bash")
                 .arg("-c").arg::<&str>(code.as_ref())
                 .output().unwrap();
             Ok(String::from_utf8_lossy(&child.stdout).to_string())
         })
+    }
+
+    pub fn import_std() -> String {
+        [
+            include_str!("std/main.ab")
+        ].join("\n")
     }
 }

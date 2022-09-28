@@ -1,0 +1,4 @@
+pub fun input() {
+    $read$
+    echo '$REPLY'
+}

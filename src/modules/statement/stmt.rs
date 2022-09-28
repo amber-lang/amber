@@ -31,6 +31,7 @@ use crate::modules::imports::{
     import::Import
 };
 use crate::modules::main::Main;
+use crate::modules::builtin::echo::Echo;
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -50,7 +51,8 @@ pub enum StatementType {
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
     Import(Import),
-    Main(Main)
+    Main(Main),
+    Echo(Echo)
 }
 
 #[derive(Debug, Clone)]
@@ -75,7 +77,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandStatement,
+        CommandStatement, Echo,
         // Expression
         Expr
     ]);
@@ -128,7 +130,7 @@ impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let translated = self.translate_match(meta, self.value.as_ref().unwrap());
         // This is a workaround that handles $(...) which cannot be used as a statement
-        if translated.starts_with("$(") {
+        if translated.starts_with('$') {
             format!("echo {} > /dev/null 2>&1", translated)
         } else { translated }
     }
