@@ -10,8 +10,7 @@ use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
 pub struct Import {
-    path: ImportString,
-    block: Block
+    path: ImportString
 }
 
 impl Import {
@@ -28,6 +27,16 @@ impl Import {
         }
     }
 
+    fn add_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, path: &str) -> SyntaxResult {
+        if meta.import_history.add_import(meta.get_path(), path.to_string()).is_none() {
+            return error!(meta, tok => {
+                message: "Circular import detected",
+                comment: "Please remove the circular import"
+            })
+        }
+        Ok(())
+    }
+
     fn resolve_path(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> Result<String, Failure> {
         let mut path = meta.path.as_ref()
             .map_or_else(|| Path::new("."), |path| Path::new(path))
@@ -36,12 +45,7 @@ impl Import {
         path.push(&self.path.value);
         match path.to_str() {
             Some(path) => {
-                if meta.import_history.add_import(meta.path.clone(), path.to_string()).is_none() {
-                    return error!(meta, tok => {
-                        message: "Circular import detected",
-                        comment: "Please remove the circular import"
-                    })
-                }
+                self.add_import(meta, tok, path)?;
                 Ok(path.to_string())
             }
             None => error!(meta, tok => {
@@ -64,6 +68,7 @@ impl Import {
     fn handle_import(&mut self, meta: &mut ParserMetadata, tok: Option<Token>, imported_code: String) -> SyntaxResult {
         match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone())).tokenize() {
             Ok(tokens) => {
+                let mut block = Block::new();
                 // Save snapshot of current file
                 let code = meta.code.clone();
                 let path = meta.path.clone();
@@ -78,8 +83,9 @@ impl Import {
                 meta.expr = tokens;
                 meta.set_index(0);
                 meta.mem.scopes = vec![];
-                syntax(meta, &mut self.block)?;
+                syntax(meta, &mut block)?;
                 meta.mem.scopes = scopes;
+                meta.import_history.import_map.push(block);
                 self.handle_export(meta, meta.mem.exports.clone());
                 // Restore snapshot of current file
                 meta.code = code;
@@ -102,8 +108,7 @@ impl SyntaxModule<ParserMetadata> for Import {
 
     fn new() -> Self {
         Self {
-            path: ImportString::new(),
-            block: Block::new()
+            path: ImportString::new()
         }
     }
 
@@ -115,6 +120,7 @@ impl SyntaxModule<ParserMetadata> for Import {
         let tok_str = meta.get_current_token();
         syntax(meta, &mut self.path)?;
         let imported_code = if self.path.value == "[standard library]" {
+            self.add_import(meta, tok_str, "[standard library]")?;
             AmberCompiler::import_std()
         } else {
             self.resolve_import(meta, tok_str)?
@@ -125,7 +131,7 @@ impl SyntaxModule<ParserMetadata> for Import {
 }
 
 impl TranslateModule for Import {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.block.translate(meta)
+    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
+        "".to_string()
     }
 }

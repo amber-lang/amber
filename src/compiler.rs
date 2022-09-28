@@ -73,8 +73,17 @@ impl AmberCompiler {
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
+        let imports_sorted = meta.import_history.topological_sort();
+        let imports_blocks = meta.import_history.import_map.clone();
         let mut meta = TranslateMetadata::new(&meta);
-        block.translate(&mut meta)
+        let mut result = vec![];
+        for index in imports_sorted.iter() {
+            if *index != 0 {
+                result.push(imports_blocks[*index - 1].translate(&mut meta));
+            }
+        }
+        result.push(block.translate(&mut meta));
+        result.join("\n")
     }
 
     pub fn compile(&self) -> Result<(String, Vec<Message>), Message> {
