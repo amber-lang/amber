@@ -92,6 +92,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 body: meta.expr[index_begin..index_end].to_vec(),
                 is_public: self.is_public
             })?;
+            dbg!(self.id, self.name.clone());
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
@@ -105,10 +106,7 @@ impl TranslateModule for FunctionDeclaration {
         let blocks = meta.mem.get_function_instances(self.id).unwrap().to_vec();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            let mut name = self.name.clone();
-            if index != 0 {
-                name = format!("__{}_{}", index, name);
-            }
+            let name = format!("__{}_v{}_{}", self.id, index, self.name);
             // Parse the function body
             result.push(format!("function {} {{", name));
             if let Some(args) = self.set_args_as_variables(meta) {

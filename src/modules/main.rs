@@ -53,7 +53,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             meta.mem.push_scope();
             // Create variables
             for arg in self.args.iter() {
-                meta.mem.add_variable(arg, Type::Text);
+                meta.mem.add_variable(arg, Type::Text, false);
             }
             // Parse the block
             syntax(meta, &mut self.block)?;
