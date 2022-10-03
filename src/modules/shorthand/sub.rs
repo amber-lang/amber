@@ -9,7 +9,8 @@ use crate::modules::types::{Type, Typed};
 pub struct ShorthandSub {
     var: String,
     expr: Box<Expr>,
-    kind: Type
+    kind: Type,
+    global_id: Option<usize>
 }
 
 impl SyntaxModule<ParserMetadata> for ShorthandSub {
@@ -19,7 +20,8 @@ impl SyntaxModule<ParserMetadata> for ShorthandSub {
         Self {
             var: String::new(),
             expr: Box::new(Expr::new()),
-            kind: Type::Null
+            kind: Type::Null,
+            global_id: None
         }
     }
 
@@ -28,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for ShorthandSub {
         self.var = variable(meta, variable_name_extensions())?;
         let tok = meta.get_current_token();
         token(meta, "-=")?;
-        self.kind = handle_variable_reference(meta, var_tok, &self.var)?;
+        (self.global_id, self.kind) = handle_variable_reference(meta, var_tok, &self.var)?;
         self.expr.parse(meta)?;
         let message = "Substract operation can only substract numbers";
         expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), &[Type::Num, Type::Text], tok, message)?;
@@ -39,7 +41,10 @@ impl SyntaxModule<ParserMetadata> for ShorthandSub {
 impl TranslateModule for ShorthandSub {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
-        let name = self.var.clone();
+        let name = match self.global_id {
+            Some(id) => format!("__{id}_{}", self.var),
+            None => self.var.clone()
+        };
         let var = format!("${{{name}}}");
         format!("{}={}", name, translate_computation(meta, ArithOp::Sub, Some(var), Some(expr)))
     }

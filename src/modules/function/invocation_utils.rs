@@ -28,7 +28,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
     // Create a sub context for new variables
     new_meta.mem.push_scope();
     for (kind, (name, _generic)) in args.iter().zip(function.args.iter()) {
-        new_meta.mem.add_variable(name, kind.clone());
+        new_meta.mem.add_variable(name, kind.clone(), false);
     }
     // Parse the function body
     syntax(&mut new_meta, &mut block)?;
@@ -41,17 +41,19 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
     Ok(meta.mem.add_function_instance(function.id, args, function.returns,  block))
 }
 
-pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<(), Failure> {
-    if meta.mem.get_function(name).is_none() {
-        let message = format!("Function '{}' does not exist", name);
-        // Find other similar variable if exists
-        return if let Some(comment) = handle_similar_function(meta, name) {
-            error!(meta, tok, message, comment)
-        } else {
-            error!(meta, tok, message)
+pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<usize, Failure> {
+    match meta.mem.get_function(name) {
+        Some(fun_decl) => Ok(fun_decl.id),
+        None => {
+            let message = format!("Function '{}' does not exist", name);
+            // Find other similar variable if exists
+            if let Some(comment) = handle_similar_function(meta, name) {
+                error!(meta, tok, message, comment)
+            } else {
+                error!(meta, tok, message)
+            }
         }
     }
-    Ok(())
 }
 
 pub fn handle_function_parameters(meta: &mut ParserMetadata, name: &str, args: &[Type], tok: Option<Token>) -> Result<(Type, usize), Failure> {

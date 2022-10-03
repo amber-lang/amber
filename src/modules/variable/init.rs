@@ -9,13 +9,13 @@ use super::{variable_name_extensions, handle_identifier_name};
 pub struct VariableInit {
     name: String,
     expr: Box<Expr>,
-    function_ctx: bool
+    global_id: Option<usize>
 }
 
 impl VariableInit {
-    fn handle_add_variable(&self, meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>) -> SyntaxResult {
+    fn handle_add_variable(&mut self, meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>, is_global: bool) -> SyntaxResult {
         handle_identifier_name(meta, name, tok)?;
-        meta.mem.add_variable(name, kind);
+        self.global_id = meta.mem.add_variable(name, kind, is_global);
         Ok(())
     }
 }
@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         VariableInit {
             name: String::new(),
             expr: Box::new(Expr::new()),
-            function_ctx: false
+            global_id: None
         }
     }
 
@@ -36,12 +36,11 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         // Get the variable name
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        self.function_ctx = meta.function_ctx;
         context!({
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
             // Add a variable to the memory
-            self.handle_add_variable(meta, &self.name, self.expr.get_type(), tok)?;
+            self.handle_add_variable(meta, &self.name.clone(), self.expr.get_type(), tok, !meta.function_ctx)?;
             Ok(())
         }, |position| {
             error_pos!(meta, position, format!("Expected '=' after variable name '{}'", self.name))
@@ -53,10 +52,9 @@ impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.name.clone();
         let expr = self.expr.translate(meta);
-        if self.function_ctx {
-            format!("local {name}={expr}")
-        } else {
-            format!("{name}={expr}")
+        match self.global_id {
+            Some(id) => format!("__{id}_{name}={expr}"),
+            None => format!("local {name}={expr}")
         }
     }
 }

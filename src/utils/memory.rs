@@ -18,7 +18,8 @@ pub struct FunctionDecl {
 #[derive(Clone, Debug)]
 pub struct VariableDecl {
     pub name: String,
-    pub kind: Type
+    pub kind: Type,
+    pub global_id: Option<usize>
 }
 
 #[derive(Clone, Debug)]
@@ -41,6 +42,7 @@ pub struct Memory {
     pub scopes: Vec<ScopeUnit>,
     // Map of all generated functions based on their invocations
     pub function_map: FunctionMap,
+    pub variable_id: usize,
     pub exports: Exports
 }
 
@@ -49,7 +51,8 @@ impl Memory {
         Memory {
             scopes: vec![],
             function_map: FunctionMap::new(),
-            exports: Exports::new()
+            exports: Exports::new(),
+            variable_id: 0
         }
     }
     
@@ -65,12 +68,19 @@ impl Memory {
         self.scopes.pop()
     }
 
-    pub fn add_variable(&mut self, name: &str, kind: Type) -> bool {
-        if self.get_function(name).is_some() {
-            return false;
+    pub fn add_variable(&mut self, name: &str, kind: Type, global: bool) -> Option<usize> {
+        let mut global_id = None;
+        if global {
+            global_id = Some(self.variable_id);
+            self.variable_id += 1;
         }
         let scope = self.scopes.last_mut().unwrap();
-        scope.vars.insert(name.to_string(), VariableDecl { name: name.to_string(), kind }).is_none()
+        scope.vars.insert(name.to_string(), VariableDecl {
+            name: name.to_string(),
+            kind,
+            global_id
+        });
+        global_id
     }
 
     pub fn get_variable(&self, name: &str) -> Option<&VariableDecl> {
@@ -93,15 +103,12 @@ impl Memory {
     }
 
     pub fn add_existing_function_declaration(&mut self, decl: FunctionDecl) -> bool {
-        // Make sure that there is no variable with the same name
-        if self.get_variable(&decl.name).is_some() {
-            return false
-        }
         let scope = self.scopes.last_mut().unwrap();
         // Add function declaration to the exports
         self.exports.add_function(decl.clone());
         // Add function declaration to the scope
-        scope.funs.insert(decl.name.to_string(), decl).is_none()
+        let res = scope.funs.insert(decl.name.to_string(), decl);
+        res.is_none()
     }
 
     pub fn add_function_declaration(&mut self, meta: ParserMetadata, decl: FunctionDeclSyntax) -> Option<usize> {

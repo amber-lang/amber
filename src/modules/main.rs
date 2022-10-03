@@ -29,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for Main {
         token(meta, "main")?;
         // Main cannot be parsed inside of a block
         if meta.mem.get_depth() > 1 {
-            return error!(meta, tok, "Main module must be in the global scope")
+            return error!(meta, tok, "Main must be in the global scope")
         }
         // If this main is included in other file, skip it
         if !meta.trace.is_empty() {
@@ -53,7 +53,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             meta.mem.push_scope();
             // Create variables
             for arg in self.args.iter() {
-                meta.mem.add_variable(arg, Type::Text);
+                meta.mem.add_variable(arg, Type::Text, false);
             }
             // Parse the block
             syntax(meta, &mut self.block)?;

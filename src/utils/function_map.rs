@@ -5,7 +5,7 @@ use crate::modules::{types::Type, block::Block};
 pub struct FunctionInstance {
     pub args: Vec<Type>,
     pub returns: Type,
-    pub body: Block,
+    pub body: Block
 }
 
 #[derive(Clone, Debug)]

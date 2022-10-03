@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use std::path::Path;
 use crate::utils::ParserMetadata;
 
 #[derive(Debug, Clone)]
@@ -7,9 +8,26 @@ pub struct ImportString {
 }
 
 impl ImportString {
-    pub fn std_lib_path(&mut self) {
+    fn resolve_path(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> SyntaxResult {
         if self.value == "std" {
             self.value = "[standard library]".to_string();
+            return Ok(())
+
+        }
+        let mut path = meta.path.as_ref()
+            .map_or_else(|| Path::new("."), |path| Path::new(path))
+            .to_path_buf();
+        path.pop();
+        path.push(&self.value);
+        match path.to_str() {
+            Some(path) => {
+                self.value = path.to_string();
+                Ok(())
+            }
+            None => error!(meta, tok => {
+                message: format!("Could not resolve path '{}'", path.display()),
+                comment: "Path is not valid UTF-8"
+            })
         }
     }
 }
@@ -24,10 +42,11 @@ impl SyntaxModule<ParserMetadata> for ImportString {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let tok = meta.get_current_token();
         let value = token_by(meta, |word| word.starts_with('\''))?;
         if value.ends_with('\'') {
             self.value = value[1..value.len() - 1].to_string();
-            self.std_lib_path();
+            self.resolve_path(meta, tok)?;
         }
         else {
             return error!(meta, meta.get_current_token(), "Import string cannot interpolate expressions")
