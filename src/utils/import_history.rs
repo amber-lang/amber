@@ -1,10 +1,15 @@
 use crate::modules::block::Block;
 
+use super::exports::Exports;
+
 #[derive(Debug, Clone)]
 pub struct ImportHistory {
     pub imports: Vec<String>,
     pub import_graph: Vec<Vec<usize>>,
-    pub import_map: Vec<Block>
+    // Used to resolve imports in the correct order (topological sort)
+    pub import_blocks: Vec<Option<Block>>,
+    // Used to resolve problem with 
+    pub exports: Vec<Option<Exports>>
 }
 
 impl ImportHistory {
@@ -21,7 +26,8 @@ impl ImportHistory {
         ImportHistory {
             imports: vec![Self::get_path(initial_path)],
             import_graph: vec![vec![]],
-            import_map: vec![]
+            import_blocks: vec![None],
+            exports: vec![None]
         }
     }
 
@@ -60,10 +66,30 @@ impl ImportHistory {
             None => {
                 let dst_id = self.imports.len();
                 self.imports.push(path);
+                self.exports.push(None);
+                self.import_blocks.push(None);
                 self.import_graph.push(vec![]);
                 self.import_graph[src_id].push(dst_id);
                 Some(dst_id)
             }
+        }
+    }
+
+    pub fn add_import_block(&mut self, path: Option<String>, block: Block) {
+        let path_id = self.get_path_id(&Self::get_path(path)).unwrap();
+        self.import_blocks[path_id] = Some(block);
+    }
+
+    pub fn add_export(&mut self, path: Option<String>, exports: Exports) {
+        let path_id = self.get_path_id(&Self::get_path(path)).unwrap();
+        self.exports[path_id] = Some(exports);
+    }
+
+    pub fn get_export(&mut self, path: Option<String>) -> Option<Exports> {
+        if let Some(path_id) = self.get_path_id(&Self::get_path(path)) {
+            self.exports[path_id].clone()
+        } else {
+            None
         }
     }
 

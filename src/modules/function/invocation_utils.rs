@@ -47,7 +47,7 @@ pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
         None => {
             let message = format!("Function '{}' does not exist", name);
             // Find other similar variable if exists
-            return if let Some(comment) = handle_similar_function(meta, name) {
+            if let Some(comment) = handle_similar_function(meta, name) {
                 error!(meta, tok, message, comment)
             } else {
                 error!(meta, tok, message)

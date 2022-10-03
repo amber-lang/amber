@@ -103,15 +103,12 @@ impl Memory {
     }
 
     pub fn add_existing_function_declaration(&mut self, decl: FunctionDecl) -> bool {
-        // Make sure that there is no variable with the same name
-        if self.get_variable(&decl.name).is_some() {
-            return false
-        }
         let scope = self.scopes.last_mut().unwrap();
         // Add function declaration to the exports
         self.exports.add_function(decl.clone());
         // Add function declaration to the scope
-        scope.funs.insert(decl.name.to_string(), decl).is_none()
+        let res = scope.funs.insert(decl.name.to_string(), decl);
+        res.is_none()
     }
 
     pub fn add_function_declaration(&mut self, meta: ParserMetadata, decl: FunctionDeclSyntax) -> Option<usize> {

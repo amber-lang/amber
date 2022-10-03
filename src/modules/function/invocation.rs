@@ -42,7 +42,6 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
         // Get the arguments
         token(meta, "(")?;
         self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
-        // dbg!(self.id, self.name.clone());
         loop {
             if token(meta, ")").is_ok() {
                 break

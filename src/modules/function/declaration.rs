@@ -92,7 +92,6 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 body: meta.expr[index_begin..index_end].to_vec(),
                 is_public: self.is_public
             })?;
-            dbg!(self.id, self.name.clone());
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
