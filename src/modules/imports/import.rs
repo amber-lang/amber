@@ -105,6 +105,9 @@ impl SyntaxModule<ParserMetadata> for Import {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "import")?;
         let tok = meta.get_current_token();
+        if meta.mem.get_depth() > 1 {
+            return error!(meta, tok, "Imports must be in the global scope")
+        }
         token(meta, "*")?;
         token(meta, "from")?;
         let tok_str = meta.get_current_token();
