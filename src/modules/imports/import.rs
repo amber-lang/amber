@@ -25,9 +25,9 @@ impl Import {
             for export_unit in exports.clone() {
                 match export_unit {
                     ExportUnit::Function(mut func) => {
-                        if &func.name == &name {
+                        if func.name == name {
                             found = true;
-                            func.name = alias.unwrap_or(name.clone());
+                            func.name = alias.unwrap_or_else(|| name.clone());
                             if !meta.mem.add_existing_function_declaration(func) {
                                 return error!(meta, tok => {
                                     message: format!("Function '{}' is already defined", name)
