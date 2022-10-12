@@ -105,7 +105,7 @@ impl TranslateModule for FunctionDeclaration {
         let blocks = meta.mem.get_function_instances(self.id).unwrap().to_vec();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            let name = format!("__{}_v{}_{}", self.id, index, self.name);
+            let name = format!("__{}_v{}", self.id, index);
             // Parse the function body
             result.push(format!("function {} {{", name));
             if let Some(args) = self.set_args_as_variables(meta) {

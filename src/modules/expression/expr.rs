@@ -71,6 +71,10 @@ impl Typed for Expr {
 }
 
 impl Expr {
+    pub fn is_function_invocation(&self) -> bool {
+        matches!(self.value, Some(ExprType::FunctionInvocation(_)))
+    }
+
     handle_types!(ExprType, [
         // Ternary conditional
         Ternary,
