@@ -37,9 +37,14 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 
 impl TranslateModule for VariableGet {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        match self.global_id {
+        let res = match self.global_id {
             Some(id) => format!("${{__{id}_{}}}", self.name),
             None => format!("${{{}}}", self.name)
+        };
+        if let Type::Text = self.get_type() {
+            format!("\"{}\"", res)
+        } else {
+            res
         }
     }
 }

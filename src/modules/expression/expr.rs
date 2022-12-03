@@ -71,8 +71,11 @@ impl Typed for Expr {
 }
 
 impl Expr {
-    pub fn is_function_invocation(&self) -> bool {
-        matches!(self.value, Some(ExprType::FunctionInvocation(_)))
+    pub fn is_child_process(&self) -> bool {
+        matches!(self.value,
+            Some(ExprType::FunctionInvocation(_)) |
+            Some(ExprType::CommandExpr(_))
+        )
     }
 
     handle_types!(ExprType, [
@@ -138,7 +141,6 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 }
             }
         }
-        // TODO: Handle this `can_fail` atribute
         error!(meta, meta.get_current_token(), "Expected expression")
     }
 }

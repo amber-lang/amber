@@ -2,3 +2,27 @@ pub fun input() {
     $read$
     echo '$REPLY'
 }
+
+pub fun replace_once(source, pattern, replacement) {
+    echo $echo "\$\{source/{pattern}/{replacement}}"$
+}
+
+pub fun replace(source, pattern, replacement) {
+    echo $echo "\$\{source//{pattern}/{replacement}}"$
+}
+
+pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
+    echo $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+}
+
+pub fun file_read(path) {
+    echo $cat "{path}"$
+}
+
+pub fun file_write(path, content) {
+    $echo "{content}" > "{path}"$
+}
+
+pub fun file_append(path, content) {
+    $echo "{content}" >> "{path}"$
+}

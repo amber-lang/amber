@@ -17,7 +17,7 @@ let arch = $uname -m$ == 'arm64'
 let url = 'https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}'
 
 # Check if such directory exists
-$test -d "{place}" > /dev/null$
+$test -d "{place}"$
 
 if $echo \$?$ == '0' {
     echo 'Amber already installed'
@@ -54,12 +54,12 @@ if {
     }
 }
 # Create directory for amber
-$sudo mkdir {place} > /dev/null$
+$sudo mkdir "{place}" > /dev/null$
 # Move zipped version of amber
-$sudo mv {target} {place}/{target}$
+$sudo mv "{target}" "{place}/{target}"$
 # Give permissions to execute amber
-$sudo chmod +x {place}/{target}$
+$sudo chmod +x "{place}/{target}"$
 # Create amber symbol link
-$sudo ln -s {place}/{target} /usr/local/bin/{target}$
+$sudo ln -s "{place}/{target}" "/usr/local/bin/{target}"$
 # Send success message
 echo 'Amber has been installed successfully. 🎉'

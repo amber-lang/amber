@@ -64,6 +64,6 @@ impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("__{}_v{}", self.id, self.variant_id);
         let args = self.args.iter().map(|arg| arg.translate(meta)).collect::<Vec<String>>().join(" ");
-        format!("$({name} {args})")
+        format!("\"$({name} {args})\"")
     }
 }
