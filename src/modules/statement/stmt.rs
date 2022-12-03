@@ -130,7 +130,7 @@ impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let translated = self.translate_match(meta, self.value.as_ref().unwrap());
         // This is a workaround that handles $(...) which cannot be used as a statement
-        if translated.starts_with('$') {
+        if translated.starts_with('$') || translated.starts_with("\"$") {
             format!("echo {} > /dev/null 2>&1", translated)
         } else { translated }
     }

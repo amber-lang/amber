@@ -23,9 +23,9 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         let start = token_by(meta, |word| word.starts_with(letter))?;
         strings.push(start.chars().skip(1).collect::<String>());
         // Factor rest of the interpolation
-        while let Some(token) = meta.get_current_token() {
+        while let Some(tok) = meta.get_current_token() {
             // Track interpolations
-            match token.word.as_str() {
+            match tok.word.as_str() {
                 "{" => is_interp = true,
                 "}" => is_interp = false,
                 // Manage inserting strings and intrpolations
@@ -33,17 +33,15 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                     let mut expr = Expr::new();
                     syntax(meta, &mut expr)?;
                     interps.push(expr);
-                    // TODO: [H50] In the next release of Heraclitus
-                    // Change this line to `meta.offset_index(-1)`
-                    meta.set_index(meta.get_index() - 1);
+                    meta.offset_index(-1);
                 }
                 else {
-                    strings.push(token.word.clone());
-                    if token.word.ends_with(letter) {
+                    strings.push(tok.word.clone());
+                    if tok.word.ends_with(letter) {
                         meta.increment_index();
                         // Right trim the symbol
                         let trimmed = strings.last().unwrap()
-                            .chars().take(token.word.chars().count() - 1).collect::<String>();
+                            .chars().take(tok.word.chars().count() - 1).collect::<String>();
                         // replace the last string
                         *strings.last_mut().unwrap() = trimmed;
                         return Ok((strings, interps))
@@ -126,7 +124,6 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
 }
 
 pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>, is_str: bool) -> String {
-    // TODO: [A15] Fix issues related to the escaping
     let mut result = vec![];
     let mut interps = VecDeque::from_iter(interps);
     let mut strings = VecDeque::from_iter(strings);
@@ -136,7 +133,11 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>,
         match value {
             Some(translated) => {
                 if is_even {
-                    result.push(translated);
+                    if translated.starts_with("\"") && translated.ends_with("\"") {
+                        result.push(translated.get(1..translated.len() - 1).unwrap().to_string());
+                    } else {
+                        result.push(translated);
+                    }
                 } else {
                     result.push(translate_escaped_string(translated, is_str));
                 }

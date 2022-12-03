@@ -6,22 +6,32 @@ use crate::translate::module::TranslateModule;
 use crate::rules;
 use std::process::Command;
 use std::env;
+use std::time::Instant;
+use colored::Colorize;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
+const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
+const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 
 pub struct AmberCompiler {
     pub cc: Compiler,
-    pub path: Option<String>,
-    pub is_parse_debug: bool,
+    pub path: Option<String>
 }
 
 impl AmberCompiler {
     pub fn new(code: String, path: Option<String>) -> AmberCompiler {
         AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
-            path,
-            is_parse_debug: false,
+            path
         }.load_code(code)
+    }
+
+    fn env_flag_set(flag: &str) -> bool {
+        if let Ok(value) = env::var(flag) {
+            value == "1" || value == "true"
+        } else {
+            false
+        }
     }
 
     pub fn load_code(mut self, code: String) -> Self {
@@ -30,8 +40,15 @@ impl AmberCompiler {
     }
 
     pub fn tokenize(&self) -> Result<Vec<Token>, Message> {
+        let time = Instant::now();
         match self.cc.tokenize() {
-            Ok(tokens) => Ok(tokens),
+            Ok(tokens) => {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                    println!("[{}]\tin\t{}ms\t{pathname}", "Tokenize".cyan(), time.elapsed().as_millis());
+                }
+                Ok(tokens)
+            },
             Err((err_type, pos)) => {
                 let error_message = match err_type {
                     LexerErrorType::Singleline => {
@@ -55,16 +72,17 @@ impl AmberCompiler {
             return Err(err);
         }
         let mut block = Block::new();
+        let time = Instant::now();
         // Parse with debug or not
-        let result = if let Ok(value) = env::var("AMBER_DEBUG_PARSER") {
-            if value == "true" {
-                block.parse_debug(&mut meta)
-            } else {
-                block.parse(&mut meta)
-            }
+        let result = if Self::env_flag_set(AMBER_DEBUG_PARSER) {
+            block.parse_debug(&mut meta)
         } else {
             block.parse(&mut meta)
         };
+        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            println!("[{}]\tin\t{}ms\t{pathname}", "Parsed".blue(), time.elapsed().as_millis());
+        }
         // Return result
         match result {
             Ok(()) => Ok((block, meta)),
@@ -78,10 +96,15 @@ impl AmberCompiler {
         let _imports = meta.import_history.imports.clone();
         let mut meta = TranslateMetadata::new(&meta);
         let mut result = vec![];
+        let time = Instant::now();
         for index in imports_sorted.iter() {
             if let Some(block) = imports_blocks[*index].clone() {
                 result.push(block.translate(&mut meta));
             }
+        }
+        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            println!("[{}]\tin\t{}ms\t{pathname}", "Translate".magenta(), time.elapsed().as_millis());
         }
         result.push(block.translate(&mut meta));
         result.join("\n")
