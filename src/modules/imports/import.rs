@@ -15,6 +15,7 @@ pub struct Import {
     token_import: Option<Token>,
     token_path: Option<Token>,
     is_all: bool,
+    is_pub: bool,
     export_defs: Vec<(String, Option<String>, Option<Token>)>
 }
 
@@ -28,8 +29,8 @@ impl Import {
                     None => continue,
                 }
             }
-            // This function should not be furher exported
-            fun.is_public = false;
+            // Determine if imported functions should be exported further
+            fun.is_public = self.is_pub;
             let name = fun.name.clone();
             if meta.add_fun_declaration_existing(fun).is_none() {
                 return error!(meta, self.token_import.clone() => {
@@ -101,11 +102,13 @@ impl SyntaxModule<ParserMetadata> for Import {
             token_import: None,
             token_path: None,
             is_all: false,
+            is_pub: false,
             export_defs: vec![]
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.is_pub = token(meta, "pub").is_ok();
         self.token_import = meta.get_current_token();
         token(meta, "import")?;
         if !meta.is_global_scope() {

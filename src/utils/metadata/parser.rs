@@ -111,6 +111,10 @@ impl ParserMetadata {
     /// Adds a function declaration that that was already parsed - this function is probably imported
     pub fn add_fun_declaration_existing(&mut self, fun: FunctionDecl) -> Option<usize> {
         let global_id = self.gen_fun_id();
+        // Add the function to the public function list
+        if fun.is_public {
+            self.context.pub_funs.push(fun.clone());
+        }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_fun(fun).then(|| global_id)
