@@ -4,16 +4,16 @@
 
 # Amber
 
-Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts. In addition to that - the main functionality works in an abstraction layer meaning that you can recompile standard library in a way so that it uses your proxy that can disable / enable certain features. It's particulary well suited for cloud services.
+Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts. It's particulary well suited for cloud services.
 
 > **[Warning]**
 > This software is not ready for extended usage.
 
 ## Install
-This compiler currently works on Windows (WSL), Linux and MacoOS - all x86 and ARM 64 bit.
+This compiler currently works on Windows (WSL), Linux and MacOS - all x86 and ARM 64 bit.
 
 ### MacOS
-Make sure that your operating system satisfies the follorwing prerequsites
+Make sure that the operating system meets the following prerequisites
 - Bash or Zsh or any other Bourne-again shell (usually comes with MacOS)
 - Ruby 2.0 or newer (usually comes with MacOS)
 
@@ -22,7 +22,7 @@ sudo ruby -e "require 'open-uri'; puts open('https://raw.githubusercontent.com/P
 ```
 
 ### Linux
-Make sure that your operating system satisfies the follorwing prerequsites
+Make sure that the operating system meets the following prerequisites
 - Bash or Zsh or any other Bourne-again shell
 - Curl tool for downloading the installation script
 
