@@ -7,7 +7,7 @@ pub mod compute;
 
 pub fn check_all_blocks(meta: &mut ParserMetadata) -> SyntaxResult {
     let mut stack = 0;
-    for token in meta.expr.iter() {
+    for token in meta.context.expr.iter() {
         match token.word.as_str() {
             "{" => stack += 1,
             "}" => stack -= 1,

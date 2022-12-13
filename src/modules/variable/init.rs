@@ -13,9 +13,9 @@ pub struct VariableInit {
 }
 
 impl VariableInit {
-    fn handle_add_variable(&mut self, meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>, is_global: bool) -> SyntaxResult {
+    fn handle_add_variable(&mut self, meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>) -> SyntaxResult {
         handle_identifier_name(meta, name, tok)?;
-        self.global_id = meta.mem.add_variable(name, kind, is_global);
+        self.global_id = meta.add_var(name, kind);
         Ok(())
     }
 }
@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
             // Add a variable to the memory
-            self.handle_add_variable(meta, &self.name.clone(), self.expr.get_type(), tok, !meta.function_ctx)?;
+            self.handle_add_variable(meta, &self.name.clone(), self.expr.get_type(), tok)?;
             Ok(())
         }, |position| {
             error_pos!(meta, position, format!("Expected '=' after variable name '{}'", self.name))

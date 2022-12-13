@@ -91,10 +91,11 @@ impl AmberCompiler {
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
-        let imports_sorted = meta.import_history.topological_sort();
-        let imports_blocks = meta.import_history.import_blocks.clone();
-        let _imports = meta.import_history.imports.clone();
-        let mut meta = TranslateMetadata::new(&meta);
+        let imports_sorted = meta.import_cache.topological_sort();
+        let imports_blocks = meta.import_cache.files.iter()
+            .map(|file| file.metadata.as_ref().map(|meta| meta.block.clone()))
+            .collect::<Vec<Option<Block>>>();
+        let mut meta = TranslateMetadata::new(meta);
         let mut result = vec![];
         let time = Instant::now();
         for index in imports_sorted.iter() {
@@ -110,10 +111,10 @@ impl AmberCompiler {
         result.join("\n")
     }
 
-    pub fn compile(&self) -> Result<(String, Vec<Message>), Message> {
+    pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         self.tokenize()
             .and_then(|tokens| self.parse(tokens))
-            .map(|(block, meta)| (self.translate(block, meta.clone()), meta.messages))
+            .map(|(block, meta)| (meta.messages.clone(), self.translate(block, meta)))
     }
 
     pub fn execute(code: String, flags: &[String]) {
@@ -123,7 +124,7 @@ impl AmberCompiler {
 
     #[allow(dead_code)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
-        self.compile().map_or_else(Err, |(code, _)| {
+        self.compile().map_or_else(Err, |(_, code)| {
             let child = Command::new("/bin/bash")
                 .arg("-c").arg::<&str>(code.as_ref())
                 .output().unwrap();

@@ -43,7 +43,7 @@ impl CLI {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
                     match AmberCompiler::new(code, None).compile() {
-                        Ok((code, messages)) => {
+                        Ok((messages, code)) => {
                             messages.iter().for_each(|m| m.show());
                             AmberCompiler::execute(code, self.flags.get_args())
                         },
@@ -67,7 +67,7 @@ impl CLI {
             match self.read_file(input.clone()) {
                 Ok(code) => {
                     match AmberCompiler::new(code, Some(input)).compile() {
-                        Ok((code, messages)) => {
+                        Ok((messages, code)) => {
                             messages.iter().for_each(|m| m.show());
                             // Save to the output file
                             if self.args.len() >= 3 {

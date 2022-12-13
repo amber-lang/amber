@@ -16,7 +16,7 @@ impl SyntaxModule<ParserMetadata> for Continue {
         let tok = meta.get_current_token();
         token(meta, "continue")?;
         // Detect if the break statement is inside a loop
-        if !meta.loop_ctx {
+        if !meta.context.is_loop_ctx {
             return error!(meta, tok, "Continue statement can only be used inside a loop")
         }
         Ok(())

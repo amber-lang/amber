@@ -28,11 +28,11 @@ impl SyntaxModule<ParserMetadata> for Main {
         let tok = meta.get_current_token();
         token(meta, "main")?;
         // Main cannot be parsed inside of a block
-        if meta.mem.get_depth() > 1 {
+        if !meta.is_global_scope() {
             return error!(meta, tok, "Main must be in the global scope")
         }
         // If this main is included in other file, skip it
-        if !meta.trace.is_empty() {
+        if !meta.context.trace.is_empty() {
             self.is_skipped = true;
         }
         context!({
@@ -50,15 +50,15 @@ impl SyntaxModule<ParserMetadata> for Main {
             }
             token(meta, "{")?;
             // Create a new scope for variables
-            meta.mem.push_scope();
+            meta.push_scope();
             // Create variables
             for arg in self.args.iter() {
-                meta.mem.add_variable(arg, Type::Text, false);
+                meta.add_var(arg, Type::Text);
             }
             // Parse the block
             syntax(meta, &mut self.block)?;
             // Remove the scope made for variables
-            meta.mem.pop_scope();
+            meta.pop_scope();
             token(meta, "}")?;
             Ok(())
         }, |pos| {

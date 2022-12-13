@@ -1,3 +1,4 @@
+use std::mem::swap;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 use crate::modules::types::Type;
@@ -5,44 +6,44 @@ use crate::utils::ParserMetadata;
 use crate::modules::block::Block;
 
 fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], tok: Option<Token>) -> Result<usize, Failure> {
-    let function = meta.mem.get_function(name).unwrap().clone();
-    let mut block = Block::new();
-    // Create a new parser metadata specific for the function parsing context
-    let mut new_meta = function.meta.clone();
-    let function_ctx = new_meta.function_ctx;
-    new_meta.expr = function.body.clone();
-    new_meta.set_index(0);
-    new_meta.function_ctx = true;
-    new_meta.mem.set_function_map(meta);
-    // Check if the function can exist
-    if function.typed {
-        if function.args.len() != args.len() {
-            return error!(meta, tok, format!("Function '{}' expects {} arguments, but {} were given", name, function.args.len(), args.len()))
-        }
-        for (index, (arg, kind)) in function.args.iter().enumerate() {
+    let fun = meta.get_fun_declaration(name).unwrap().clone();
+    // Check if there are the correct amount of arguments
+    if fun.arg_names.len() != args.len() {
+        // Determine the correct grammar
+        let txt_arguments = if fun.arg_names.len() == 1 { "argument" } else { "arguments" };
+        let txt_given = if args.len() == 1 { "was given" } else { "were given" };
+        // Return an error
+        return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}, but {} {txt_given}", name, fun.arg_names.len(), args.len()))
+    }
+    // Check if the function argument types match
+    if fun.is_args_typed {
+        for (index, (arg, kind)) in fun.arg_names.iter().zip(fun.arg_types.iter()).enumerate() {
             if kind != &args[index] {
                 return error!(meta, tok, format!("Argument '{}' of function '{}' expects type '{}', but '{}' was given", arg, name, kind, args[index]))
             }
         }
     }
+    let mut ctx = meta.fun_cache.get_context(fun.id).unwrap().clone();
+    let mut block = Block::new();
+    // Swap the contexts to use the function context
+    swap(&mut ctx, &mut meta.context);
     // Create a sub context for new variables
-    new_meta.mem.push_scope();
-    for (kind, (name, _generic)) in args.iter().zip(function.args.iter()) {
-        new_meta.mem.add_variable(name, kind.clone(), false);
+    meta.push_scope();
+    for (kind, name) in args.iter().zip(fun.arg_names.iter()) {
+        meta.add_var(name, kind.clone());
     }
     // Parse the function body
-    syntax(&mut new_meta, &mut block)?;
+    syntax(meta, &mut block)?;
     // Pop function body
-    new_meta.mem.pop_scope();
-    new_meta.function_ctx = function_ctx;
-    // Update function map
-    meta.mem.set_function_map(&new_meta);
+    meta.pop_scope();
+    // Restore old context
+    swap(&mut ctx, &mut meta.context);
     // Persist the new function instance
-    Ok(meta.mem.add_function_instance(function.id, args, function.returns,  block))
+    Ok(meta.add_fun_instance(fun.to_interface(), block))
 }
 
 pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<usize, Failure> {
-    match meta.mem.get_function(name) {
+    match meta.get_fun_declaration(name) {
         Some(fun_decl) => Ok(fun_decl.id),
         None => {
             let message = format!("Function '{}' does not exist", name);
@@ -56,14 +57,17 @@ pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
     }
 }
 
-pub fn handle_function_parameters(meta: &mut ParserMetadata, name: &str, args: &[Type], tok: Option<Token>) -> Result<(Type, usize), Failure> {
-    let function_unit = meta.mem.get_function(name).unwrap().clone();
-    // TODO: Here is a good place to insert trace
-    Ok((function_unit.returns, run_function_with_args(meta, name, args, tok)?))
+pub fn handle_function_parameters(meta: &mut ParserMetadata, id: usize, name: &str, args: &[Type], tok: Option<Token>) -> Result<(Type, usize), Failure> {
+    let function_unit = meta.get_fun_declaration(name).unwrap().clone();
+    // If the function was previously called with the same arguments, return the cached variant
+    match meta.fun_cache.get_instances(id).unwrap().iter().find(|fun| fun.args == args) {
+        Some(fun) => Ok((function_unit.returns, fun.variant_id)),
+        None => Ok((function_unit.returns, run_function_with_args(meta, name, args, tok)?))
+    }
 }
 
 fn handle_similar_function(meta: &mut ParserMetadata, name: &str) -> Option<String> {
-    let vars = Vec::from_iter(meta.mem.get_available_functions());
+    let vars = Vec::from_iter(meta.get_fun_names());
     if let Some((match_name, score)) = find_best_similarity(name, &vars) {
         match score >= 0.75 {
             true => Some(format!("Did you mean '{match_name}'?")),

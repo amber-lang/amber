@@ -2,15 +2,8 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::types::Type;
 use crate::utils::ParserMetadata;
 use crate::modules::variable::{handle_identifier_name};
-
-#[derive(Debug, Clone)]
-pub struct FunctionDeclSyntax {
-    pub name: String,
-    pub args: Vec<(String, Type)>,
-    pub returns: Type,
-    pub body: Vec<Token>,
-    pub is_public: bool
-}
+use crate::utils::context::Context;
+use crate::utils::function_interface::FunctionInterface;
 
 pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize) {
     let index_begin = meta.get_index();
@@ -31,26 +24,26 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize) {
 pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
-    if meta.mem.get_function(&name).is_some() {
+    if meta.get_fun_declaration(&name).is_some() {
         return error!(meta, tok, format!("Function '{}' already exists", name))
     }
     Ok(())
 }
 
-pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, decl: FunctionDeclSyntax) -> Result<usize, Failure> {
-    let name = decl.name.clone();
+pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: FunctionInterface, ctx: Context) -> Result<usize, Failure> {
+    let name = fun.name.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
-    let any_generic = decl.args.iter().any(|(_, kind)| kind == &Type::Generic);
-    let any_typed = decl.args.iter().any(|(_, kind)| kind != &Type::Generic);
+    let any_generic = fun.arg_types.iter().any(|kind| kind == &Type::Generic);
+    let any_typed = fun.arg_types.iter().any(|kind| kind != &Type::Generic);
     // Either all arguments are generic or typed
-    if any_typed && (any_generic || decl.returns == Type::Generic) {
+    if any_typed && (any_generic || fun.returns == Type::Generic) {
         return error!(meta, tok => {
             message: format!("Function '{}' has a mix of generic and typed arguments", name),
             comment: "Please decide whether to use generics or types for all arguments"
         })
     }
     // Try to add the function to the memory
-    match meta.mem.add_function_declaration(meta.clone(), decl) {
+    match meta.add_fun_declaration(fun, ctx) {
         // Return the id of the function
         Some(id) => Ok(id),
         // If the function already exists, show an error
