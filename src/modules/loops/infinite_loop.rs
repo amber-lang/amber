@@ -21,13 +21,13 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
         token(meta, "loop")?;
         token(meta, "{")?;
         // Save loop context state and set it to true
-        let ctx = meta.loop_ctx;
-        meta.loop_ctx = true;
+        let ctx = meta.context.is_loop_ctx;
+        meta.context.is_loop_ctx = true;
         // Parse loop
         syntax(meta, &mut self.block)?;
         token(meta, "}")?;
         // Restore loop context state
-        meta.loop_ctx = ctx;
+        meta.context.is_loop_ctx = ctx;
         Ok(())
     }
 }

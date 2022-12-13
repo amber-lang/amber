@@ -55,7 +55,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             };
         }
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-        (self.kind, self.variant_id) = handle_function_parameters(meta, &self.name, &types, tok)?;
+        (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, &self.name, &types, tok)?;
         Ok(())
     }
 }

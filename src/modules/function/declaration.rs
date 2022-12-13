@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::block::Block;
@@ -11,7 +12,8 @@ use super::declaration_utils::*;
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
     pub name: String,
-    pub args: Vec<(String, Type)>,
+    pub arg_names: Vec<String>,
+    pub arg_types: Vec<Type>,
     pub returns: Type,
     pub body: Block,
     pub id: usize,
@@ -20,10 +22,10 @@ pub struct FunctionDeclaration {
 
 impl FunctionDeclaration {
     fn set_args_as_variables(&self, meta: &mut TranslateMetadata) -> Option<String> {
-        if !self.args.is_empty() {
+        if !self.arg_names.is_empty() {
             meta.increase_indent();
             let mut result = vec![];
-            for (index, (name, _kind)) in self.args.clone().iter().enumerate() {
+            for (index, name) in self.arg_names.clone().iter().enumerate() {
                 let indent = meta.gen_indent();
                 result.push(format!("{indent}{name}=${}", index + 1));
             }
@@ -39,7 +41,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
     fn new() -> Self {
         FunctionDeclaration {
             name: String::new(),
-            args: vec![],
+            arg_names: vec![],
+            arg_types: vec![],
             returns: Type::Generic,
             body: Block::new(),
             id: 0,
@@ -67,8 +70,14 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 let name = variable(meta, variable_name_extensions())?;
                 // Optionally parse the argument type
                 match token(meta, ":") {
-                    Ok(_) => self.args.push((name.clone(), parse_type(meta)?)),
-                    Err(_) => self.args.push((name, Type::Generic))
+                    Ok(_) => {
+                        self.arg_names.push(name.clone());
+                        self.arg_types.push(parse_type(meta)?);
+                    },
+                    Err(_) => {
+                        self.arg_names.push(name.clone());
+                        self.arg_types.push(Type::Generic);
+                    }
                 }
                 match token(meta, ")") {
                     Ok(_) => break,
@@ -83,15 +92,19 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             // Parse the body
             token(meta, "{")?;
             let (index_begin, index_end) = skip_function_body(meta);
+            // Create a new context with the function body
+            let expr = meta.context.expr[index_begin..index_end].to_vec();
+            let ctx = meta.context.clone().function_invocation(expr);
             token(meta, "}")?;
             // Add the function to the memory
-            self.id = handle_add_function(meta, tok, FunctionDeclSyntax {
+            self.id = handle_add_function(meta, tok, FunctionInterface {
+                id: None,
                 name: self.name.clone(),
-                args: self.args.clone(),
+                arg_names: self.arg_names.clone(),
+                arg_types: self.arg_types.clone(),
                 returns: self.returns.clone(),
-                body: meta.expr[index_begin..index_end].to_vec(),
                 is_public: self.is_public
-            })?;
+            }, ctx)?;
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
@@ -102,7 +115,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
 impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
-        let blocks = meta.mem.get_function_instances(self.id).unwrap().to_vec();
+        let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
             let name = format!("__{}_v{}", self.id, index);
@@ -111,7 +124,7 @@ impl TranslateModule for FunctionDeclaration {
             if let Some(args) = self.set_args_as_variables(meta) {
                 result.push(args); 
             }
-            result.push(function.body.translate(meta));
+            result.push(function.block.translate(meta));
             result.push(meta.gen_indent() + "}");
         }
         // Return the translation

@@ -14,7 +14,7 @@ impl ImportString {
             return Ok(())
 
         }
-        let mut path = meta.path.as_ref()
+        let mut path = meta.context.path.as_ref()
             .map_or_else(|| Path::new("."), |path| Path::new(path))
             .to_path_buf();
         path.pop();

@@ -12,25 +12,9 @@ macro_rules! test_amber {
     };
 }
 
-macro_rules! test_amber_err {
-    ($code:expr, $result:expr) => {
-        {
-            match AmberCompiler::new($code.to_string(), None).test_eval() {
-                Ok(result) => panic!("PASSED: Expected error, got {}", result),
-                Err(err) => assert_eq!(err.message.unwrap(), $result)
-            }
-        }
-    };
-}
-
 #[test]
 fn hello_world() {
     test_amber!("echo 'Hello World'", "Hello World");
-}
-
-#[test]
-fn hello_world_error() {
-    test_amber_err!("echo Hello World", "Variable 'Hello' does not exist");
 }
 
 #[test]
@@ -427,6 +411,7 @@ fn function_with_typed_args() {
     ";
     test_amber!(code, "53");
 }
+
 #[test]
 fn function_with_typed_different_args() {
     let code = "
@@ -442,7 +427,7 @@ fn function_with_typed_different_args() {
 #[test]
 fn function_with_typed_args_text() {
     let code = "
-        fun test(a: Text, b: Text) {
+        pub fun test(a: Text, b: Text) {
             echo a + b
         }
         echo test('Hello', 'World')
@@ -453,7 +438,7 @@ fn function_with_typed_args_text() {
 #[test]
 fn import_existing_file() {
     let code = "
-        import * from 'tests/str/trim.ab'
+        import * from 'test_files/str/trim.ab'
         echo trim('    Hello World     ')
     ";
     test_amber!(code, "Hello World");
@@ -462,7 +447,7 @@ fn import_existing_file() {
 #[test]
 fn import_existing_nested_file() {
     let code = "
-        import * from 'tests/is_even.ab'
+        import * from 'test_files/is_even.ab'
         echo is_even(10)
     ";
     test_amber!(code, "even");

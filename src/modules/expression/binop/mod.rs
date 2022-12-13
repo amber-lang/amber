@@ -45,7 +45,7 @@ pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -
 }
 
 // Check if this binop can actually take place and return a new boundary for the left hand expression
-fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, Failure> {
+pub fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, Failure> {
     let old_index = meta.get_index();
     let mut parenthesis = 0;
     while let Some(token) = meta.get_current_token() {

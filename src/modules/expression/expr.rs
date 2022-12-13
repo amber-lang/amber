@@ -123,16 +123,9 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let statements = self.get_modules();
-        for statement in statements {
-            // Handle comments
-            if let Some(token) = meta.get_current_token() {
-                if token.word.starts_with('#') {
-                    meta.increment_index();
-                    continue
-                }
-            }
-            match self.parse_match(meta, statement) {
+        let exprs = self.get_modules();
+        for expr in exprs {
+            match self.parse_match(meta, expr) {
                 Ok(()) => return Ok(()),
                 Err(failure) => {
                     if let Failure::Loud(err) = failure {

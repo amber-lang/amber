@@ -1,9 +1,10 @@
 use std::fs;
+use std::mem::swap;
 use heraclitus_compiler::prelude::*;
 use crate::compiler::AmberCompiler;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
-use crate::utils::exports::{Exports, ExportUnit};
+use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use super::import_string::ImportString;
@@ -18,53 +19,29 @@ pub struct Import {
 }
 
 impl Import {
-    fn handle_export(&mut self, meta: &mut ParserMetadata, exports: Exports) -> SyntaxResult {
-        let exports = exports.get_exports().iter().cloned();
-        for (name, alias, tok) in self.export_defs.drain(..) {
-            let mut found = false;
-            for export_unit in exports.clone() {
-                match export_unit {
-                    ExportUnit::Function(mut func) => {
-                        if func.name == name {
-                            found = true;
-                            func.name = alias.unwrap_or_else(|| name.clone());
-                            if !meta.mem.add_existing_function_declaration(func) {
-                                return error!(meta, tok => {
-                                    message: format!("Function '{}' is already defined", name)
-                                })
-                            }
-                            break
-                        }
-                    }
+    fn handle_export(&mut self, meta: &mut ParserMetadata, pub_funs: Vec<FunctionDecl>) -> SyntaxResult {
+        for mut fun in pub_funs {
+            if !self.is_all {
+                match self.export_defs.iter().find(|(name, ..)| fun.name == *name) {
+                    Some((_, Some(alias), _)) => fun.name = alias.clone(),
+                    Some((_, None, _)) => (),
+                    None => continue,
                 }
             }
-            if !found {
-                return error!(meta, tok => {
-                    message: format!("Export '{}' not found in module '{}'", &name, self.path.value),
-                    comment: "Exports are case-sensitive"
+            // This function should not be furher exported
+            fun.is_public = false;
+            let name = fun.name.clone();
+            if meta.add_fun_declaration_existing(fun).is_none() {
+                return error!(meta, self.token_import.clone() => {
+                    message: format!("Function '{}' is already defined", name)
                 })
-            }   
-        }
-        if self.is_all {
-            for export in exports {
-                match export {
-                    ExportUnit::Function(mut func_decl) => {
-                        let name = func_decl.name.clone();
-                        func_decl.is_public = false;
-                        if !meta.mem.add_existing_function_declaration(func_decl) {
-                            return error!(meta, self.token_import.clone() => {
-                                message: format!("Function '{}' is already defined", name)
-                            })
-                        }
-                    }
-                }
             }
         }
         Ok(())
     }
 
     fn add_import(&mut self, meta: &mut ParserMetadata, path: &str) -> SyntaxResult {
-        if meta.import_history.add_import(meta.get_path(), path.to_string()).is_none() {
+        if meta.import_cache.add_import_entry(meta.get_path(), path.to_string()).is_none() {
             return error!(meta, self.token_path.clone() => {
                 message: "Circular import detected",
                 comment: "Please remove the circular import"
@@ -84,8 +61,9 @@ impl Import {
     }
 
     fn handle_import(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        match meta.import_history.get_export(Some(self.path.value.clone())) {
-            Some(exports) => self.handle_export(meta, exports),
+        // If the import was already cached, we don't need to recompile it
+        match meta.import_cache.get_import_pub_funs(Some(self.path.value.clone())) {
+            Some(pub_funs) => self.handle_export(meta, pub_funs),
             None => self.handle_compile_code(meta, imported_code)
         }
     }
@@ -95,38 +73,21 @@ impl Import {
             Ok(tokens) => {
                 let mut block = Block::new();
                 // Save snapshot of current file
-                let code = meta.code.clone();
-                let path = meta.path.clone();
-                let expr = meta.expr.clone();
-                let exports = meta.mem.exports.clone();
-                let index = meta.get_index();
-                let scopes = meta.mem.scopes.clone();
-                // Parse the imported file
-                meta.push_trace(PositionInfo::from_token(meta, self.token_import.clone()));
-                meta.path = Some(self.path.value.clone());
-                meta.code = Some(imported_code);
-                meta.expr = tokens;
-                meta.set_index(0);
-                meta.mem.scopes = vec![];
+                let position = PositionInfo::from_token(meta, self.token_import.clone());
+                let mut ctx = Context::new(Some(self.path.value.clone()), tokens)
+                    .file_import(&meta.context.trace, position);
+                swap(&mut ctx, &mut meta.context);
+                // Parse imported code
                 syntax(meta, &mut block)?;
                 // Restore snapshot of current file
-                meta.mem.scopes = scopes;
-                meta.code = code;
-                meta.path = path;
-                meta.expr = expr;
-                meta.set_index(index);
-                meta.pop_trace();
-                // Finalize importing phase
-                meta.import_history.add_import_block(Some(self.path.value.clone()), block);
-                meta.import_history.add_export(Some(self.path.value.clone()), meta.mem.exports.clone());
-                self.handle_export(meta, meta.mem.exports.clone())?;
-                // Restore exports
-                meta.mem.exports = exports;
+                swap(&mut ctx, &mut meta.context);
+                // Persist compiled file to cache
+                meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, ctx.pub_funs.clone());
+                // Handle exports (add to current file)
+                self.handle_export(meta, ctx.pub_funs)?;
                 Ok(())
             }
-            Err(err) => {
-                Err(Failure::Loud(err))
-            }
+            Err(err) => Err(Failure::Loud(err))
         }
     }
 }
@@ -147,7 +108,7 @@ impl SyntaxModule<ParserMetadata> for Import {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.token_import = meta.get_current_token();
         token(meta, "import")?;
-        if meta.mem.get_depth() > 1 {
+        if !meta.is_global_scope() {
             return error!(meta, self.token_import.clone(), "Imports must be in the global scope")
         }
         match token(meta, "*") {
@@ -182,6 +143,7 @@ impl SyntaxModule<ParserMetadata> for Import {
         } else {
             self.add_import(meta, &self.path.value.clone())?;
             self.resolve_import(meta)?
+
         };
         self.handle_import(meta, imported_code)?;
         Ok(())

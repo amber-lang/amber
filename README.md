@@ -51,7 +51,13 @@ Finally in order to build
 amber build.ab
 ```
 
-In order to parse AST with a debug trace run cargo with the following environment variable:
+Debugging Amber:
 ```bash
+// Shows the AST
 AMBER_DEBUG_PARSER=true cargo run <file.ab>
+// Shows the time it took to compile each phase
+AMBER_DEBUG_TIME=true cargo run <file.ab>
+
+// Flamegraph is a profiling tool that is used to visualize the time each function took to execute
+sudo cargo flamegraph -- <file.ab> <file.sh>
 ```

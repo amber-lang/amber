@@ -4,5 +4,8 @@
 test*.ab
 test*.sh
 
+# Flamegraph files
+flamegraph.svg
+
 # MacOS
 **/.DS_Store

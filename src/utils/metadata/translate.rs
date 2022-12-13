@@ -1,17 +1,17 @@
-use crate::{translate::compute::ArithType, utils::memory::Memory};
+use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
 use super::ParserMetadata;
 
 pub struct TranslateMetadata {
     pub arith_module: ArithType,
-    pub mem: Memory,
+    pub fun_cache: FunctionCache,
     pub indent: i64
 }
 
 impl TranslateMetadata {
-    pub fn new(meta: &ParserMetadata) -> Self {
+    pub fn new(meta: ParserMetadata) -> Self {
         TranslateMetadata {
             arith_module: ArithType::BcSed,
-            mem: meta.mem.clone(),
+            fun_cache: meta.fun_cache,
             indent: -1
         }
     }

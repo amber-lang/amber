@@ -1,6 +1,6 @@
 pub mod metadata;
-pub mod memory;
-pub mod function_map;
-pub mod exports;
-pub mod import_history;
+pub mod context;
+pub mod function_cache;
+pub mod import_cache;
+pub mod function_interface;
 pub use metadata::*;
