@@ -10,7 +10,8 @@ pub struct ShorthandAdd {
     var: String,
     expr: Box<Expr>,
     kind: Type,
-    global_id: Option<usize>
+    global_id: Option<usize>,
+    is_ref: bool
 }
 
 impl SyntaxModule<ParserMetadata> for ShorthandAdd {
@@ -21,7 +22,8 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
             var: String::new(),
             expr: Box::new(Expr::new()),
             kind: Type::Null,
-            global_id: None
+            global_id: None,
+            is_ref: false
         }
     }
 
@@ -30,7 +32,10 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
         self.var = variable(meta, variable_name_extensions())?;
         let tok = meta.get_current_token();
         token(meta, "+=")?;
-        (self.global_id, self.kind) = handle_variable_reference(meta, var_tok, &self.var)?;
+        let variable = handle_variable_reference(meta, var_tok, &self.var)?;
+        self.kind = variable.kind;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
         self.expr.parse(meta)?;
         let message = "Add operation can only add numbers or text";
         expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), &[Type::Num, Type::Text], tok, message)?;
@@ -43,13 +48,13 @@ impl TranslateModule for ShorthandAdd {
         let expr = self.expr.translate(meta);
         let name = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
-            None => self.var.clone()   
+            None => if self.is_ref { format!("eval ${{{}}}", self.var) } else { self.var.clone() }
         };
-        let var = format!("${{{name}}}");
         if self.kind == Type::Text {
             format!("{}+={}", name, expr)
         }
         else {
+            let var = format!("${{{name}}}");
             format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
         }
     }

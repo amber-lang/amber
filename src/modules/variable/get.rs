@@ -30,7 +30,9 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        (self.global_id, self.kind) = handle_variable_reference(meta, tok, &self.name)?;
+        let variable = handle_variable_reference(meta, tok, &self.name)?;
+        self.kind = variable.kind;
+        self.global_id = variable.global_id;
         Ok(())
     }
 }

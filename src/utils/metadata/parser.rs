@@ -68,7 +68,25 @@ impl ParserMetadata {
     pub fn add_var(&mut self, name: &str, kind: Type) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(name, kind, global_id);
+        scope.add_var(VariableDecl {
+            name: name.to_string(),
+            kind,
+            global_id,
+            is_ref: false
+        });
+        global_id
+    }
+
+    /// Adds a parameter as variable to the current scope
+    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
+        let global_id = self.is_global_scope().then(|| self.gen_var_id());
+        let scope = self.context.scopes.last_mut().unwrap();
+        scope.add_var(VariableDecl {
+            name: name.to_string(),
+            kind,
+            global_id,
+            is_ref
+        });
         global_id
     }
 

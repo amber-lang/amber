@@ -1,3 +1,5 @@
+use std::mem::swap;
+
 use heraclitus_compiler::prelude::*;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -21,13 +23,13 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
         token(meta, "loop")?;
         token(meta, "{")?;
         // Save loop context state and set it to true
-        let ctx = meta.context.is_loop_ctx;
-        meta.context.is_loop_ctx = true;
+        let mut new_is_loop_ctx = true;
+        swap(&mut new_is_loop_ctx, &mut meta.context.is_loop_ctx);
         // Parse loop
         syntax(meta, &mut self.block)?;
         token(meta, "}")?;
         // Restore loop context state
-        meta.context.is_loop_ctx = ctx;
+        swap(&mut new_is_loop_ctx, &mut meta.context.is_loop_ctx);
         Ok(())
     }
 }

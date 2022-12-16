@@ -9,6 +9,7 @@ pub struct FunctionInterface {
     pub name: String,
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
+    pub arg_refs: Vec<bool>,
     pub returns: Type,
     pub is_public: bool
 }
@@ -20,6 +21,7 @@ impl FunctionInterface {
             name: self.name,
             arg_names: self.arg_names,
             arg_types: self.arg_types,
+            arg_refs: self.arg_refs,
             returns: self.returns,
             is_args_typed,
             is_public: self.is_public,

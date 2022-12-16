@@ -1,4 +1,5 @@
 use std::mem::swap;
+use itertools::izip;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 use crate::modules::types::Type;
@@ -29,8 +30,8 @@ fn run_function_with_args(meta: &mut ParserMetadata, name: &str, args: &[Type], 
     swap(&mut ctx, &mut meta.context);
     // Create a sub context for new variables
     meta.push_scope();
-    for (kind, name) in args.iter().zip(fun.arg_names.iter()) {
-        meta.add_var(name, kind.clone());
+    for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
+        meta.add_param(name, kind.clone(), is_ref.clone());
     }
     // Parse the function body
     syntax(meta, &mut block)?;

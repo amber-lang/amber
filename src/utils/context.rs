@@ -9,6 +9,7 @@ pub struct FunctionDecl {
     pub name: String,
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
+    pub arg_refs: Vec<bool>,
     pub returns: Type,
     pub is_args_typed: bool,
     pub is_public: bool,
@@ -22,6 +23,7 @@ impl FunctionDecl {
             name: self.name,
             arg_names: self.arg_names,
             arg_types: self.arg_types,
+            arg_refs: self.arg_refs,
             returns: self.returns,
             is_public: self.is_public
         }
@@ -32,7 +34,8 @@ impl FunctionDecl {
 pub struct VariableDecl {
     pub name: String,
     pub kind: Type,
-    pub global_id: Option<usize>
+    pub global_id: Option<usize>,
+    pub is_ref: bool
 }
 
 #[derive(Clone, Debug)]
@@ -53,12 +56,8 @@ impl ScopeUnit {
     /* Variables */
 
     /// Persists a variable declaration in the scope
-    pub fn add_var(&mut self, name: &str, kind: Type, global_id: Option<usize>) {
-        self.vars.insert(name.to_string(), VariableDecl {
-            name: name.to_string(),
-            kind,
-            global_id
-        });
+    pub fn add_var(&mut self, var: VariableDecl) {
+        self.vars.insert(var.name.clone(), var);
     }
 
     /// Fetches a variable declaration from the scope
@@ -107,7 +106,9 @@ pub struct Context {
     /// Determines if the context is in a loop
     pub is_loop_ctx: bool,
     /// This is a list of ids of all the public functions in the file
-    pub pub_funs: Vec<FunctionDecl>
+    pub pub_funs: Vec<FunctionDecl>,
+    /// The return type of the currently parsed function
+    pub fun_ret_type: Option<Type>
 }
 
 // FIXME: Move the scope related structures to the separate file
@@ -121,7 +122,8 @@ impl Context {
             trace: vec![],
             is_fun_ctx: false,
             is_loop_ctx: false,
-            pub_funs: vec![]
+            pub_funs: vec![],
+            fun_ret_type: None
         }
     }
 

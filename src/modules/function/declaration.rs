@@ -12,6 +12,7 @@ use super::declaration_utils::*;
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
     pub name: String,
+    pub arg_refs: Vec<bool>,
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
     pub returns: Type,
@@ -43,6 +44,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             name: String::new(),
             arg_names: vec![],
             arg_types: vec![],
+            arg_refs: vec![],
             returns: Type::Generic,
             body: Block::new(),
             id: 0,
@@ -67,14 +69,17 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 if token(meta, ")").is_ok() {
                     break
                 }
+                let is_ref = token(meta, "ref").is_ok();
                 let name = variable(meta, variable_name_extensions())?;
                 // Optionally parse the argument type
                 match token(meta, ":") {
                     Ok(_) => {
+                        self.arg_refs.push(is_ref);
                         self.arg_names.push(name.clone());
                         self.arg_types.push(parse_type(meta)?);
                     },
                     Err(_) => {
+                        self.arg_refs.push(is_ref);
                         self.arg_names.push(name.clone());
                         self.arg_types.push(Type::Generic);
                     }
@@ -102,6 +107,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 name: self.name.clone(),
                 arg_names: self.arg_names.clone(),
                 arg_types: self.arg_types.clone(),
+                arg_refs: self.arg_refs.clone(),
                 returns: self.returns.clone(),
                 is_public: self.is_public
             }, ctx)?;

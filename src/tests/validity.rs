@@ -452,3 +452,12 @@ fn import_existing_nested_file() {
     ";
     test_amber!(code, "even");
 }
+
+#[test]
+fn public_import() {
+    let code = "
+        import * from 'test_files/is_even.ab'
+        echo trim(' test ')
+    ";
+    test_amber!(code, "test");
+}
