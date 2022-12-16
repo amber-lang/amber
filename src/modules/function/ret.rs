@@ -10,7 +10,13 @@ use crate::modules::types::parse_type;
 
 #[derive(Debug, Clone)]
 pub struct Ret {
-    pub expr: Box<Expr>
+    pub expr: Expr
+}
+
+impl Typed for Ret {
+    fn get_type(&self) -> Type {
+        self.expr.get_type()
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Ret {
@@ -18,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for Ret {
 
     fn new() -> Self {
         Ret {
-            expr: Box::new(Expr::new())
+            expr: Expr::new()
         }
     }
 
@@ -31,9 +37,9 @@ impl SyntaxModule<ParserMetadata> for Ret {
                 "Return statements can only be used inside of functions"
             );
         }
-        syntax(meta, &mut *self.expr)?;
-        match meta.context.fun_ret_type {
-            Some(ret_type) => if ret_type != self.expr.get_type() {
+        syntax(meta, &mut self.expr)?;
+        match meta.context.fun_ret_type.as_ref() {
+            Some(ret_type) => if ret_type != &self.expr.get_type() {
                 return error!(meta, tok,
                     "Return type does not match function return type",
                     format!("Given type: {}, expected type: {}", self.expr.get_type(), ret_type)

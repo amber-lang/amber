@@ -25,7 +25,8 @@ use crate::modules::loops::{
     continue_stmt::Continue
 };
 use crate::modules::function::{
-    declaration::FunctionDeclaration
+    declaration::FunctionDeclaration,
+    ret::Ret
 };
 use crate::modules::imports::{
     import::Import
@@ -50,6 +51,7 @@ pub enum StatementType {
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
+    Ret(Ret),
     Import(Import),
     Main(Main),
     Echo(Echo)
@@ -65,7 +67,7 @@ impl Statement {
         // Imports
         Import,
         // Functions
-        FunctionDeclaration, Main,
+        FunctionDeclaration, Main, Ret,
         // Loops
         InfiniteLoop, Break, Continue,
         // Conditions
