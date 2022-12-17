@@ -1,9 +1,13 @@
+use std::collections::VecDeque;
+
 use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
 use super::ParserMetadata;
 
 pub struct TranslateMetadata {
     pub arith_module: ArithType,
     pub fun_cache: FunctionCache,
+    pub stmt_queue: VecDeque<String>,
+    pub fun_name: Option<(String, usize, usize)>,
     pub indent: i64
 }
 
@@ -12,6 +16,8 @@ impl TranslateMetadata {
         TranslateMetadata {
             arith_module: ArithType::BcSed,
             fun_cache: meta.fun_cache,
+            fun_name: None,
+            stmt_queue: VecDeque::new(),
             indent: -1
         }
     }

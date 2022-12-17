@@ -1,4 +1,4 @@
-import * from 'str/trim.ab';
+pub import * from 'str/trim.ab';
 
 pub fun is_even(n: Num) {
     echo n % 2 == 0 then trim('  even  ') else 'odd'

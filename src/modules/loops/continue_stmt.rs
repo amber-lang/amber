@@ -15,7 +15,7 @@ impl SyntaxModule<ParserMetadata> for Continue {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         token(meta, "continue")?;
-        // Detect if the break statement is inside a loop
+        // Detect if the continue statement is inside a loop
         if !meta.context.is_loop_ctx {
             return error!(meta, tok, "Continue statement can only be used inside a loop")
         }

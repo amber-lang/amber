@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::{types::Type}};
+use crate::utils::{metadata::ParserMetadata, context::VariableDecl};
 use similar_string::find_best_similarity;
 
 pub mod init;
@@ -15,10 +15,10 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 }
 
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<(Option<usize>, Type), Failure> {
+pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var(name) {
-        Some(variable_unit) => Ok((variable_unit.global_id, variable_unit.kind.clone())),
+        Some(variable_unit) => Ok(variable_unit.clone()),
         None => {
             let message = format!("Variable '{}' does not exist", name);
             // Find other similar variable if exists
@@ -33,12 +33,9 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
 
 fn handle_similar_variable(meta: &mut ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_var_names());
-    if let Some((match_name, score)) = find_best_similarity(name, &vars) {
-        match score >= 0.75 {
-            true => Some(format!("Did you mean '{match_name}'?")),
-            false => None
-        }
-    } else { None }
+    find_best_similarity(name, &vars)
+        .map(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
+        .flatten()
 }
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {

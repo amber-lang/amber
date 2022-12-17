@@ -72,10 +72,19 @@ impl Typed for Expr {
 
 impl Expr {
     pub fn is_child_process(&self) -> bool {
-        matches!(self.value,
-            Some(ExprType::FunctionInvocation(_)) |
-            Some(ExprType::CommandExpr(_))
-        )
+        matches!(self.value, Some(ExprType::CommandExpr(_)))
+    }
+
+    pub fn is_var(&self) -> bool {
+        matches!(self.value, Some(ExprType::VariableGet(_)))
+    }
+
+    // Get the variable name if the expression is a variable access
+    pub fn get_var_translated_name(&self) -> Option<String> {
+        match &self.value {
+            Some(ExprType::VariableGet(var)) => Some(var.get_translated_name()),
+            _ => None
+        }
     }
 
     handle_types!(ExprType, [

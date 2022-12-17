@@ -68,7 +68,7 @@ impl TranslateModule for Block {
         }
         else {
             self.statements.iter()
-                .map(|statement| meta.gen_indent() + &statement.translate(meta))
+                .map(|statement| statement.translate(meta))
                 .filter(|translation| !translation.trim().is_empty())
                 .collect::<Vec<_>>().join(";\n")
         };

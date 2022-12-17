@@ -370,7 +370,7 @@ fn modulo_shorthand() {
 fn function() {
     let code = "
         fun test() {
-            echo 'Hello World'
+            ret 'Hello World'
         }
         echo test()
     ";
@@ -381,19 +381,18 @@ fn function() {
 fn function_with_args() {
     let code = "
         fun test(a, b) {
-            echo a
-            echo b
+            ret '{a} {b}'
         }
         echo test('Hello', 'World')
     ";
-    test_amber!(code, "Hello\nWorld");
+    test_amber!(code, "Hello World");
 }
 
 #[test]
 fn function_with_args_different_types() {
     let code = "
         fun test(a, b) {
-            echo a + b
+            ret a + b
         }
         echo test('Hello', 'World')
         echo test(11, 42)
@@ -405,7 +404,7 @@ fn function_with_args_different_types() {
 fn function_with_typed_args() {
     let code = "
         fun test(a: Num, b: Num) {
-            echo a + b
+            ret a + b
         }
         echo test(11, 42)
     ";
@@ -419,7 +418,7 @@ fn function_with_typed_different_args() {
             echo a
             echo b
         }
-        echo test(11, 'Hello')
+        test(11, 'Hello')
     ";
     test_amber!(code, "11\nHello");
 }
@@ -430,7 +429,7 @@ fn function_with_typed_args_text() {
         pub fun test(a: Text, b: Text) {
             echo a + b
         }
-        echo test('Hello', 'World')
+        test('Hello', 'World')
     ";
     test_amber!(code, "HelloWorld");
 }
@@ -451,4 +450,33 @@ fn import_existing_nested_file() {
         echo is_even(10)
     ";
     test_amber!(code, "even");
+}
+
+#[test]
+fn public_import() {
+    let code = "
+        import * from 'test_files/is_even.ab'
+        echo trim(' test ')
+    ";
+    test_amber!(code, "test");
+}
+
+#[test]
+fn function_ref_swap() {
+    let code = "
+        fun swap(ref a, ref b) {
+            let temp = a
+            a = b
+            b = temp
+        }
+        
+        let a = 12
+        let b = 24
+        
+        swap(a, b)
+        
+        echo a
+        echo b
+    ";
+    test_amber!(code, "24\n12");
 }
