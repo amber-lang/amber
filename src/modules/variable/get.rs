@@ -7,7 +7,17 @@ use super::{variable_name_extensions, handle_variable_reference};
 pub struct VariableGet {
     pub name: String,
     kind: Type,
-    global_id: Option<usize>
+    global_id: Option<usize>,
+    is_ref: bool
+}
+
+impl VariableGet {
+    pub fn get_translated_name(&self) -> String {
+        match self.global_id {
+            Some(id) => format!("__{id}_{}", self.name),
+            None => self.name.to_string()
+        }
+    }
 }
 
 impl Typed for VariableGet {
@@ -23,7 +33,8 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
         VariableGet {
             name: String::new(),
             kind: Type::Null,
-            global_id: None
+            global_id: None,
+            is_ref: false
         }
     }
 
@@ -33,16 +44,16 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
         let variable = handle_variable_reference(meta, tok, &self.name)?;
         self.kind = variable.kind;
         self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
         Ok(())
     }
 }
 
 impl TranslateModule for VariableGet {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        let res = match self.global_id {
-            Some(id) => format!("${{__{id}_{}}}", self.name),
-            None => format!("${{{}}}", self.name)
-        };
+        let name = self.get_translated_name();
+        let ref_prefix = if self.is_ref { "!" } else { "" };
+        let res = format!("${{{ref_prefix}{name}}}");
         if let Type::Text = self.get_type() {
             format!("\"{}\"", res)
         } else {

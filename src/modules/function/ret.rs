@@ -1,12 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
-use crate::modules::variable::variable_name_extensions;
-use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::modules::block::Block;
-use crate::modules::types::parse_type;
 
 #[derive(Debug, Clone)]
 pub struct Ret {
@@ -53,7 +49,9 @@ impl SyntaxModule<ParserMetadata> for Ret {
 
 impl TranslateModule for Ret {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        // FIXME: Set return value to a variable and terminate the expression
-        "return".to_string()
+        let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
+        let result = self.expr.translate(meta);
+        meta.stmt_queue.push_back(format!("__AMBER_FUN_{name}{id}_v{variant}={result}"));
+        format!("return 0")
     }
 }

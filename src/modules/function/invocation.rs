@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use itertools::izip;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -11,6 +12,7 @@ use super::invocation_utils::*;
 pub struct FunctionInvocation {
     name: String,
     args: Vec<Expr>,
+    refs: Vec<bool>,
     kind: Type,
     variant_id: usize,
     id: usize
@@ -29,6 +31,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
         FunctionInvocation {
             name: String::new(),
             args: vec![],
+            refs: vec![],
             kind: Type::Null,
             variant_id: 0,
             id: 0
@@ -54,16 +57,26 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 Err(_) => token(meta, ",")?
             };
         }
+        let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-        (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, &self.name, &types, tok)?;
+        let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
+        self.refs = function_unit.arg_refs.clone();
+        (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit, &types, &var_names, tok)?;
         Ok(())
     }
 }
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = format!("__{}_v{}", self.id, self.variant_id);
-        let args = self.args.iter().map(|arg| arg.translate(meta)).collect::<Vec<String>>().join(" ");
-        format!("\"$({name} {args})\"")
+        let name = format!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | {
+            if *is_ref {
+                arg.get_var_translated_name().unwrap()
+            } else {
+                arg.translate(meta)
+            }
+        }).collect::<Vec<String>>().join(" ");
+        meta.stmt_queue.push_back(format!("{name} {args}"));
+        format!("${{__AMBER_FUN_{}{}_v{}}}", self.name, self.id, self.variant_id)
     }
 }

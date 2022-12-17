@@ -122,17 +122,21 @@ impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
+        let prev_fun_name = meta.fun_name.clone();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            let name = format!("__{}_v{}", self.id, index);
+            let name = format!("{}__{}_v{}", self.name, self.id, index);
+            meta.fun_name = Some((self.name.clone(), self.id, index));
             // Parse the function body
-            result.push(format!("function {} {{", name));
+            result.push(format!("function {name} {{"));
             if let Some(args) = self.set_args_as_variables(meta) {
                 result.push(args); 
             }
             result.push(function.block.translate(meta));
             result.push(meta.gen_indent() + "}");
         }
+        // Restore the function name
+        meta.fun_name = prev_fun_name;
         // Return the translation
         result.join("\n")
     }

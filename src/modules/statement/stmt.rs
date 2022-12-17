@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
@@ -137,10 +138,16 @@ impl SyntaxModule<ParserMetadata> for Statement {
 
 impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        // Translate the statement
         let translated = self.translate_match(meta, self.value.as_ref().unwrap());
         // This is a workaround that handles $(...) which cannot be used as a statement
-        if translated.starts_with('$') || translated.starts_with("\"$") {
+        let translated = if translated.starts_with('$') || translated.starts_with("\"$") {
             format!("echo {} > /dev/null 2>&1", translated)
-        } else { translated }
+        } else { translated };
+        // Get all the required supplemental statements
+        let indentation = meta.gen_indent();
+        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st + ";\n").join("");
+        // Return all the statements
+        statements + &indentation + &translated
     }
 }
