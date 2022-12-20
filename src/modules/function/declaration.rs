@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -22,13 +23,16 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, meta: &mut TranslateMetadata) -> Option<String> {
+    fn set_args_as_variables(&self, meta: &mut TranslateMetadata, function: &FunctionInstance) -> Option<String> {
         if !self.arg_names.is_empty() {
             meta.increase_indent();
             let mut result = vec![];
-            for (index, name) in self.arg_names.clone().iter().enumerate() {
+            for (index, (name, kind)) in self.arg_names.clone().iter().zip(function.args.iter()).enumerate() {
                 let indent = meta.gen_indent();
-                result.push(format!("{indent}{name}=${}", index + 1));
+                match kind {
+                    Type::Array(_) => result.push(format!("{indent}local {name}=(\"${{!{}}}\")", index + 1)),
+                    _ => result.push(format!("{indent}local {name}=${}", index + 1))
+                }
             }
             meta.decrease_indent();
             Some(result.join("\n"))
@@ -129,7 +133,7 @@ impl TranslateModule for FunctionDeclaration {
             meta.fun_name = Some((self.name.clone(), self.id, index));
             // Parse the function body
             result.push(format!("function {name} {{"));
-            if let Some(args) = self.set_args_as_variables(meta) {
+            if let Some(args) = self.set_args_as_variables(meta, &function) {
                 result.push(args); 
             }
             result.push(function.block.translate(meta));

@@ -480,3 +480,46 @@ fn function_ref_swap() {
     ";
     test_amber!(code, "24\n12");
 }
+
+#[test]
+fn function_ref_text_escaped() {
+    let code = "
+        fun test(ref a) {
+            a = 'Hello World'
+        }
+        
+        let a = 'Goodbye World'
+        test(a)
+        echo a
+    ";
+    test_amber!(code, "Hello World");
+}
+
+#[test]
+fn array_init() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        echo a
+    ";
+    test_amber!(code, "1 2 3 4 5");
+}
+
+#[test]
+fn array_assign() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        a[2] = 42
+        echo a
+    ";
+    test_amber!(code, "1 2 42 4 5");
+}
+
+#[test]
+fn array_assign_out_of_bounds() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        a[10] = 42
+        echo a
+    ";
+    test_amber!(code, "1 2 3 4 5 42");
+}

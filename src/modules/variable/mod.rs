@@ -1,6 +1,9 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::{metadata::ParserMetadata, context::VariableDecl};
 use similar_string::find_best_similarity;
+use crate::modules::types::{Typed, Type};
+
+use super::expression::expr::Expr;
 
 pub mod init;
 pub mod set;
@@ -11,7 +14,22 @@ pub fn variable_name_extensions() -> Vec<char> {
 }
 
 pub fn variable_name_keywords() -> Vec<&'static str> {
-    vec!["true", "false", "null", "if", "loop", "break", "continue", "fun", "else", "let", "pub", "import", "from"]
+    vec![
+        // Literals
+        "true", "false", "null",
+        // Variable keywords
+        "let", 
+        // Control flow keywords
+        "if", "then", "else",
+        // Loop keywords
+        "loop", "break", "continue",
+        // Module keywords
+        "pub", "import", "from",
+        // Function keywords
+        "fun", "ret", "ref", "echo",
+        // Types
+        "Text", "Number", "Bool", "Null"
+    ]
 }
 
 
@@ -52,4 +70,21 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
         return error!(meta, tok, format!("Indentifier '{name}' is a reserved keyword"))
     }
     Ok(())
+}
+
+pub fn handle_index_accessor(meta: &mut ParserMetadata) -> Result<Option<Expr>, Failure> {
+    if token(meta, "[").is_ok() {
+        let tok = meta.get_current_token();
+        let mut index = Expr::new();
+        syntax(meta, &mut index)?;
+        if index.get_type() != Type::Num {
+            return error!(meta, tok => {
+                message: format!("Index accessor must be a number"),
+                comment: format!("The index accessor must be a number, not a {}", index.get_type())
+            })
+        }
+        token(meta, "]")?;
+        return Ok(Some(index));
+    }
+    Ok(None)
 }

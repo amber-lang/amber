@@ -73,7 +73,11 @@ impl TranslateModule for FunctionInvocation {
             if *is_ref {
                 arg.get_var_translated_name().unwrap()
             } else {
-                arg.translate(meta)
+                let translation = arg.translate(meta);
+                // If the argument is an array, we have to 
+                (translation.starts_with("\"${") && translation.ends_with("[@]}\""))
+                    .then(|| translation.get(3..translation.len() - 2).unwrap().to_string())
+                    .unwrap_or_else(|| translation)
             }
         }).collect::<Vec<String>>().join(" ");
         meta.stmt_queue.push_back(format!("{name} {args}"));

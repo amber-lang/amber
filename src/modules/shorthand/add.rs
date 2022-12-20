@@ -45,17 +45,20 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 
 impl TranslateModule for ShorthandAdd {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let expr = self.expr.translate(meta);
+        let expr = self.is_ref
+            .then(|| self.expr.translate_eval(meta))
+            .unwrap_or_else(|| self.expr.translate(meta));
         let name = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
             None => if self.is_ref { format!("eval ${{{}}}", self.var) } else { self.var.clone() }
         };
-        if self.kind == Type::Text {
-            format!("{}+={}", name, expr)
-        }
-        else {
-            let var = format!("${{{name}}}");
-            format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
+        match self.kind {
+            Type::Text => format!("{}+={}", name, expr),
+            Type::Array(_) => format!("{}+=({})", name, expr),
+            _ => {
+                let var = format!("${{{name}}}");
+                format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
+            }
         }
     }
 }

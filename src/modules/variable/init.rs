@@ -51,7 +51,10 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.name.clone();
-        let expr = self.expr.translate(meta);
+        let mut  expr = self.expr.translate(meta);
+        if let Type::Array(_) = self.expr.get_type() {
+            expr = format!("({expr})");
+        } 
         match self.global_id {
             Some(id) => format!("__{id}_{name}={expr}"),
             None => format!("local {name}={expr}")

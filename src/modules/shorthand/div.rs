@@ -45,7 +45,9 @@ impl SyntaxModule<ParserMetadata> for ShorthandDiv {
 
 impl TranslateModule for ShorthandDiv {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let expr = self.expr.translate(meta);
+        let expr = self.is_ref
+            .then(|| self.expr.translate_eval(meta))
+            .unwrap_or_else(|| self.expr.translate(meta));
         let name = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
             None => if self.is_ref { format!("eval ${{{}}}", self.var) } else { self.var.clone() }

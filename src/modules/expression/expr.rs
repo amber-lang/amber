@@ -5,7 +5,8 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::literal::{
     bool::Bool,
     number::Number,
-    text::Text
+    text::Text,
+    array::Array
 };
 use super::binop::{
     add::Add,
@@ -55,7 +56,8 @@ pub enum ExprType {
     Neq(Neq),
     Not(Not),
     Ternary(Ternary),
-    FunctionInvocation(FunctionInvocation)
+    FunctionInvocation(FunctionInvocation),
+    Array(Array)
 }
 
 #[derive(Debug, Clone)]
@@ -97,7 +99,7 @@ impl Expr {
         // Arithmetic operators
         Add, Sub, Mul, Div, Modulo,
         // Literals
-        Parenthesis, CommandExpr, Bool, Number, Text,
+        Parenthesis, CommandExpr, Bool, Number, Text, Array,
         // Function invocation
         FunctionInvocation,
         // Variable access
