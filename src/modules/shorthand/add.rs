@@ -37,25 +37,29 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         self.expr.parse(meta)?;
-        let message = "Add operation can only add numbers or text";
-        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), &[Type::Num, Type::Text], tok, message)?;
+        let message = format!("Cannot add value of type '{}' with value of type '{}'", self.kind, self.expr.get_type());
+        let predicate = |kind| matches!(kind, Type::Num | Type::Text | Type::Array(_));
+        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), predicate, tok, &message)?;
         Ok(())
     }
 }
 
 impl TranslateModule for ShorthandAdd {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let expr = self.expr.translate(meta);
+        let expr = self.is_ref
+            .then(|| self.expr.translate_eval(meta, true))
+            .unwrap_or_else(|| self.expr.translate(meta));
         let name = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
-            None => if self.is_ref { format!("eval ${{{}}}", self.var) } else { self.var.clone() }
+            None => if self.is_ref { format!("eval \"${{{}}}\"", self.var) } else { self.var.clone() }
         };
-        if self.kind == Type::Text {
-            format!("{}+={}", name, expr)
-        }
-        else {
-            let var = format!("${{{name}}}");
-            format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
+        match self.kind {
+            Type::Text => format!("{}+={}", name, expr),
+            Type::Array(_) => format!("{}+=({})", name, expr),
+            _ => {
+                let var = format!("${{{name}}}");
+                format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
+            }
         }
     }
 }

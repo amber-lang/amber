@@ -23,7 +23,10 @@ impl SyntaxModule<ParserMetadata> for Number {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.value = number(meta, vec![])?;
+        if let Ok(sym) = token(meta, "-") {
+            self.value.push_str(&sym);
+        }
+        self.value += &number(meta, vec![])?;
         Ok(())
     }
 }

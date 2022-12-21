@@ -38,17 +38,20 @@ impl SyntaxModule<ParserMetadata> for ShorthandMul {
         self.is_ref = variable.is_ref;
         self.expr.parse(meta)?;
         let message = "Multiplication operation can only multiply numbers";
-        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), &[Type::Num, Type::Text], tok, message)?;
+        let predicate = |kind| matches!(kind, Type::Num);
+        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), predicate, tok, message)?;
         Ok(())
     }
 }
 
 impl TranslateModule for ShorthandMul {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let expr = self.expr.translate(meta);
+        let expr = self.is_ref
+            .then(|| self.expr.translate_eval(meta, true))
+            .unwrap_or_else(|| self.expr.translate(meta));
         let name = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
-            None => if self.is_ref { format!("eval ${{{}}}", self.var) } else { self.var.clone() }
+            None => if self.is_ref { format!("eval \"${{{}}}\"", self.var) } else { self.var.clone() }
         };
         let var = format!("${{{name}}}");
         format!("{}={}", name, translate_computation(meta, ArithOp::Mul, Some(var), Some(expr)))

@@ -50,7 +50,7 @@ impl SyntaxModule<ParserMetadata> for Ret {
 impl TranslateModule for Ret {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
-        let result = self.expr.translate(meta);
+        let result = self.expr.translate_eval(meta, false);
         meta.stmt_queue.push_back(format!("__AMBER_FUN_{name}{id}_v{variant}={result}"));
         format!("return 0")
     }
