@@ -523,3 +523,65 @@ fn array_assign_out_of_bounds() {
     ";
     test_amber!(code, "1 2 3 4 5 42");
 }
+
+#[test]
+fn array_pass_by_copy() {
+    let code = "
+        fun test(a) {
+            a[2] = 42
+            echo a[2]
+        }
+        
+        let a = [1, 2, 3, 4, 5]
+        test(a)
+        echo a
+    ";
+    test_amber!(code, "42\n1 2 3 4 5");
+}
+
+#[test]
+fn array_pass_by_ref() {
+    let code = "
+        fun test(ref a) {
+            a[2] = 42
+            echo a[1]
+        }
+        
+        let a = [1, 2, 3, 4, 5]
+        test(a)
+        echo a
+    ";
+    test_amber!(code, "2\n1 2 42 4 5");
+}
+
+#[test]
+fn add_arrays() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        let b = [6, 7, 8, 9, 10]
+        let c = a + b
+        echo c
+    ";
+    test_amber!(code, "1 2 3 4 5 6 7 8 9 10");
+}
+
+#[test]
+fn shorthand_add_arrays() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        let b = [6, 7, 8, 9, 10]
+        a += b
+        echo a
+    ";
+    test_amber!(code, "1 2 3 4 5 6 7 8 9 10");
+}
+
+#[test]
+fn add_arrays_literal() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        let c = a + [6, 7, 8, 9, 10]
+        echo c
+    ";
+    test_amber!(code, "1 2 3 4 5 6 7 8 9 10");
+}

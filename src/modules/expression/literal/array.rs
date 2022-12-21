@@ -76,8 +76,9 @@ impl SyntaxModule<ParserMetadata> for Array {
 impl TranslateModule for Array {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("__AMBER_ARRAY_{}", meta.gen_array_id());
-        let args = self.exprs.iter().map(|expr| expr.translate(meta)).collect::<Vec<String>>().join(" ");
+        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<String>>().join(" ");
+        let quote = meta.quote();
         meta.stmt_queue.push_back(format!("{name}=({args})"));
-        format!("\"${{{name}[@]}}\"")
+        format!("{quote}${{{name}[@]}}{quote}")
     }
 }

@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata}, modules::types::{Type, Typed}};
 use super::super::expression::expr::Expr;
@@ -16,11 +17,11 @@ pub mod le;
 pub mod eq;
 pub mod neq;
 
-pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, kinds: &[Type], tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
-    if kinds.iter().all(|kind | ![left, right].iter().all(|item| **item == *kind)) {
-        error!(meta, tok_pos, message)
-    } else {
+pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, predicate: impl Fn(Type) -> bool, tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
+    if left == right && [left, right].iter().all(|kind| predicate(kind.deref().clone())) {
         Ok(left.clone())
+    } else {
+        error!(meta, tok_pos, message)
     }
 }
 
@@ -38,7 +39,12 @@ pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -
     let new_border = binop_left_cut(meta, op)?;
     meta.binop_border = Some(new_border);
     // Parse the left expression
-    syntax(meta, module)?;
+    if let Err(err) = syntax(meta, module) {
+        dbg!("ERR");
+        // Revert border back to the original
+        meta.binop_border = old_border;
+        return Err(err)
+    }
     // Revert border back to the original
     meta.binop_border = old_border;
     Ok(new_border)
@@ -56,8 +62,8 @@ pub fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, Fail
             }
         }
         match token.word.as_str() {
-            "(" | "{" => parenthesis += 1,
-            ")" | "}" => parenthesis -= 1,
+            "(" | "{" | "[" => parenthesis += 1,
+            ")" | "}" | "]" => parenthesis -= 1,
             "\n" => break,
             _ => {}
         };

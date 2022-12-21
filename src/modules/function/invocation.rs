@@ -73,8 +73,8 @@ impl TranslateModule for FunctionInvocation {
             if *is_ref {
                 arg.get_var_translated_name().unwrap()
             } else {
-                let translation = arg.translate(meta);
-                // If the argument is an array, we have to 
+                let translation = arg.translate_eval(meta, false);
+                // If the argument is an array, we have to get just the "name[@]" part
                 (translation.starts_with("\"${") && translation.ends_with("[@]}\""))
                     .then(|| translation.get(3..translation.len() - 2).unwrap().to_string())
                     .unwrap_or_else(|| translation)

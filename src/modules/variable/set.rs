@@ -62,22 +62,24 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 
 impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = match &self.index {
-            Some(index) => format!("{}[{}]", self.name, index.translate(meta)),
-            None => self.name.clone()
-        };
+        let name = self.name.clone();
+        let index = self.index.as_ref()
+            .map(|index| format!("[{}]", self.is_ref
+                .then(|| index.translate_eval(meta, true))
+                .unwrap_or_else(|| index.translate(meta))))
+            .unwrap_or_else(|| String::new());
         let mut expr = self.is_ref
-            .then(|| self.value.translate_eval(meta))
+            .then(|| self.value.translate_eval(meta, true))
             .unwrap_or_else(|| self.value.translate(meta));
         if let Type::Array(_) = self.value.get_type() {
             expr = format!("({})", expr);
         }
         if self.is_ref {
-            format!("eval ${{{name}}}={expr}")
+            format!("eval \"${{{name}}}{index}={expr}\"")
         } else {
             match self.global_id {
-                Some(id) => format!("__{id}_{name}={expr}"),
-                None => format!("{name}={expr}")
+                Some(id) => format!("__{id}_{name}{index}={expr}"),
+                None => format!("{name}{index}={expr}")
             }
         }
     }

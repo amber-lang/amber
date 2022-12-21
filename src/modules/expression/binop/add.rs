@@ -34,24 +34,28 @@ impl SyntaxModule<ParserMetadata> for Add {
         let tok = meta.get_current_token();
         token(meta, "+")?;
         syntax(meta, &mut *self.right)?;
-        // If left and right are not of type Number
-        let error = "Add operation can only add numbers or text";
         let l_type = self.left.get_type();
         let r_type = self.right.get_type();
-        self.kind = expression_arms_of_type(meta, &l_type, &r_type, &[Type::Num, Type::Text], tok, error)?;
+        let message = format!("Cannot add value of type '{}' with value of type '{}'", self.left.get_type(), self.right.get_type());
+        let predicate = |kind| matches!(kind, Type::Num | Type::Text | Type::Array(_));
+        self.kind = expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, &message)?;
         Ok(())
     }
 }
 
 impl TranslateModule for Add {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        if self.kind == Type::Text {
-            format!("{}{}", left, right)
-        }
-        else {
-            translate_computation(meta, ArithOp::Add, Some(left), Some(right))
+        let left = self.left.translate_eval(meta, false);
+        let right = self.right.translate_eval(meta, false);
+        let quote = meta.quote();
+        match self.kind {
+            Type::Array(_) => {
+                let id = meta.gen_array_id();
+                meta.stmt_queue.push_back(format!("__AMBER_ARRAY_ADD_{id}=({left} {right})"));
+                format!("{quote}${{__AMBER_ARRAY_ADD_{id}[@]}}{quote}")
+            },
+            Type::Text => format!("{}{}", left, right),
+            _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
         }
     }
 }

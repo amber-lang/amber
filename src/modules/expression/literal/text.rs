@@ -39,7 +39,7 @@ impl TranslateModule for Text {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
-        let eval_esc = if meta.eval_ctx { "\\\"" } else { "" };
-        format!("\"{eval_esc}{}{eval_esc}\"", translate_interpolated_region(self.strings.clone(), interps, true))
+        let quote = meta.quote();
+        format!("{quote}{}{quote}", translate_interpolated_region(self.strings.clone(), interps, true))
     }
 }

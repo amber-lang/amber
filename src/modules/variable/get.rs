@@ -23,14 +23,10 @@ impl VariableGet {
 
 impl Typed for VariableGet {
     fn get_type(&self) -> Type {
-        match *self.index {
+        match (&*self.index, self.kind.clone()) {
             // Return the type of the array element if indexed
-            Some(_) => match self.kind.clone() {
-                Type::Array(kind) => *kind,
-                // This should never happen
-                _ => Type::Null
-            },
-            None => self.kind.clone()
+            (Some(_), Type::Array(kind)) => *kind,
+            _ => self.kind.clone()
         }
     }
 }
@@ -71,16 +67,22 @@ impl TranslateModule for VariableGet {
         let res = format!("${{{ref_prefix}{name}}}");
         // Text variables need to be encapsulated in string literals
         // Otherwise, they will be "spreaded" into tokens
-        let eval_esc = if meta.eval_ctx { "\\\"" } else { "" };
-        match self.kind {
-            Type::Text => format!("\"{eval_esc}{res}{eval_esc}\""),
-            Type::Array(_) => match *self.index {
-                Some(ref expr) => {
-                    let index = expr.translate(meta);
-                    format!("\"{eval_esc}${{{ref_prefix}{name}[{index}]}}{eval_esc}\"")
-                },
-                None => format!("\"{eval_esc}${{{ref_prefix}{name}[@]}}{eval_esc}\"")
+        let quote = meta.quote();
+        match (self.is_ref, &self.kind) {
+            (false, Type::Array(_)) => match *self.index {
+                Some(ref expr) => format!("{quote}${{{name}[{}]}}{quote}", expr.translate(meta)),
+                None => format!("{quote}${{{name}[@]}}{quote}")
             },
+            (true, Type::Array(_)) => match *self.index {
+                Some(ref expr) => {
+                    let id = meta.gen_array_id();
+                    let expr = expr.translate_eval(meta, true);
+                    meta.stmt_queue.push_back(format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{${name}[{expr}]}}\\\"\""));
+                    format!("$__AMBER_ARRAY_GET_{id}_{name}") // echo $__ARRAY_GET
+                },
+                None => format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
+            },
+            (_, Type::Text) => format!("{quote}{res}{quote}"),
             _ => res
         }
     }

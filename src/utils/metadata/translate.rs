@@ -51,4 +51,12 @@ impl TranslateMetadata {
         self.array_id += 1;
         id
     }
+
+    // Returns the appropriate amount of quotes with escape symbols.
+    // This helps to avoid problems with `eval` expressions.
+    pub fn quote(&self) -> &'static str {
+        self.eval_ctx
+            .then(|| "\\\"")
+            .unwrap_or("\"")
+    }
 }
