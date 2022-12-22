@@ -36,7 +36,7 @@ impl SyntaxModule<ParserMetadata> for Add {
         syntax(meta, &mut *self.right)?;
         let l_type = self.left.get_type();
         let r_type = self.right.get_type();
-        let message = format!("Cannot add value of type '{}' with value of type '{}'", self.left.get_type(), self.right.get_type());
+        let message = format!("Cannot add value of type '{l_type}' with value of type '{r_type}'");
         let predicate = |kind| matches!(kind, Type::Num | Type::Text | Type::Array(_));
         self.kind = expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, &message)?;
         Ok(())
