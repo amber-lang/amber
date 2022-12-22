@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::{types::{Type, Typed}, expression::{expr::Expr, binop::{parse_left_expr, expression_arms_of_type}}}};
+use crate::{utils::metadata::ParserMetadata, modules::{types::{Type, Typed}, expression::{expr::Expr, binop::{parse_left_expr, expression_arms_of_type}}}, translate::compute::{translate_computation, ArithOp}};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
@@ -7,6 +7,7 @@ use crate::utils::TranslateMetadata;
 pub struct Range {
     from: Box<Expr>,
     to: Box<Expr>,
+    neq: bool
 }
 
 impl Typed for Range {
@@ -21,7 +22,8 @@ impl SyntaxModule<ParserMetadata> for Range {
     fn new() -> Self {
         Range {
             from: Box::new(Expr::new()),
-            to: Box::new(Expr::new())
+            to: Box::new(Expr::new()),
+            neq: false
         }
     }
 
@@ -29,6 +31,7 @@ impl SyntaxModule<ParserMetadata> for Range {
         parse_left_expr(meta, self.from.as_mut(), "..")?;
         let tok = meta.get_current_token();
         token(meta, "..")?;
+        token(meta, "=").is_err().then(|| self.neq = true);
         syntax(meta, self.to.as_mut())?;
         let l_type = self.from.get_type();
         let r_type = self.to.get_type();
@@ -41,6 +44,13 @@ impl SyntaxModule<ParserMetadata> for Range {
 
 impl TranslateModule for Range {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        format!("$(seq {} {})", self.from.translate(meta), self.to.translate(meta))
+        let from = self.from.translate(meta);
+        let to = self.to.translate(meta);
+        if self.neq {
+            let to_neq = translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string()));
+            format!("$(seq {} {})", from, to_neq)
+        } else {
+            format!("$(seq {} {})", from, to)
+        }
     }
 }
