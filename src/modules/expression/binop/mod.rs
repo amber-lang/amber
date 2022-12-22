@@ -40,7 +40,6 @@ pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -
     meta.binop_border = Some(new_border);
     // Parse the left expression
     if let Err(err) = syntax(meta, module) {
-        dbg!("ERR");
         // Revert border back to the original
         meta.binop_border = old_border;
         return Err(err)

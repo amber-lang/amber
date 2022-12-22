@@ -8,6 +8,7 @@ pub mod number;
 pub mod text;
 pub mod null;
 pub mod array;
+pub mod range;
 
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
