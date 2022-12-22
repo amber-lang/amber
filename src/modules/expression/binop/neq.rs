@@ -33,8 +33,10 @@ impl SyntaxModule<ParserMetadata> for Neq {
         let tok = meta.get_current_token();
         token(meta, "!=")?;
         syntax(meta, &mut *self.right)?;
-        let error = "Cannot compare two values of different types";
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error)?;
+        let l_type = self.left.get_type();
+        let r_type = self.right.get_type();
+        let message = format!("Cannot compare two values of different types '{l_type}' != '{r_type}'");
+        expression_arms_of_same_type(meta, &self.left, &self.right, tok, &message)?;
         Ok(())
     }
 }

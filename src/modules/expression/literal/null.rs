@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}};
 use crate::translate::module::TranslateModule;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Null {}
 
 impl Typed for Null {

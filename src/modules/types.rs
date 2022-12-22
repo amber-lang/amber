@@ -62,12 +62,18 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                     Ok(Type::Null)
                 },
                 "[" => {
+                    let index = meta.get_index();
                     meta.increment_index();
-                    let t = parse_type(meta)?;
-                    token(meta, "]")?;
-                    match t {
-                        Type::Array(_) => error!(meta, tok, "Arrays cannot be nested due to the Bash limitations"),
-                        _ => Ok(Type::Array(Box::new(t))),
+                    match try_parse_type(meta) {
+                        Ok(Type::Array(_)) => error!(meta, tok, "Arrays cannot be nested due to the Bash limitations"),
+                        Ok(result_type) => {
+                            token(meta, "]")?;
+                            Ok(Type::Array(Box::new(result_type)))
+                        },
+                        Err(_) => {
+                            meta.set_index(index);
+                            Err(Failure::Quiet(PositionInfo::at_eof(meta)))
+                        }
                     }
                 },
                 // Error messages to help users of other languages understand the syntax
@@ -90,6 +96,8 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                 _ => Err(Failure::Quiet(PositionInfo::at_eof(meta)))
             }
         },
-        None => Err(Failure::Quiet(PositionInfo::at_eof(meta)))
+        None => {
+            Err(Failure::Quiet(PositionInfo::at_eof(meta)))
+        }
     }
 }

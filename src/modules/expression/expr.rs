@@ -7,7 +7,8 @@ use super::literal::{
     number::Number,
     text::Text,
     array::Array,
-    range::Range
+    range::Range,
+    null::Null
 };
 use super::binop::{
     add::Add,
@@ -59,7 +60,8 @@ pub enum ExprType {
     Ternary(Ternary),
     FunctionInvocation(FunctionInvocation),
     Array(Array),
-    Range(Range)
+    Range(Range),
+    Null(Null)
 }
 
 #[derive(Debug, Clone)]
@@ -101,7 +103,7 @@ impl Expr {
         // Arithmetic operators
         Add, Sub, Mul, Div, Modulo,
         // Literals
-        Range, Parenthesis, CommandExpr, Bool, Number, Text, Array,
+        Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null,
         // Function invocation
         FunctionInvocation,
         // Variable access
