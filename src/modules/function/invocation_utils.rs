@@ -53,6 +53,10 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
         meta.add_param(name, kind.clone(), is_ref.clone());
     }
+    // Set the expected return type if specified
+    if fun.returns != Type::Generic {
+        meta.context.fun_ret_type = Some(fun.returns.clone());
+    }
     // Parse the function body
     syntax(meta, &mut block)?;
     // Pop function body

@@ -22,6 +22,7 @@ use crate::modules::shorthand::{
 };
 use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
+    iter_loop::IterLoop,
     break_stmt::Break,
     continue_stmt::Continue
 };
@@ -49,6 +50,7 @@ pub enum StatementType {
     ShorthandDiv(ShorthandDiv),
     ShorthandModulo(ShorthandModulo),
     InfiniteLoop(InfiniteLoop),
+    IterLoop(IterLoop),
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
@@ -70,7 +72,7 @@ impl Statement {
         // Functions
         FunctionDeclaration, Main, Ret,
         // Loops
-        InfiniteLoop, Break, Continue,
+        InfiniteLoop, IterLoop, Break, Continue,
         // Conditions
         IfChain, IfCondition,
         // Variables

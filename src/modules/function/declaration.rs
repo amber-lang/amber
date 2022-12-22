@@ -101,7 +101,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             // Optionally parse the return type
             match token(meta, ":") {
                 Ok(_) => self.returns = parse_type(meta)?,
-                Err(_) => self.returns = Type::Text
+                Err(_) => self.returns = Type::Generic
             }
             // Parse the body
             token(meta, "{")?;

@@ -3,6 +3,7 @@ use colored::Colorize;
 use crate::compiler::AmberCompiler;
 use super::flag_registry::FlagRegistry;
 use std::env;
+use std::process::Command;
 use std::{io, io::prelude::*};
 use std::fs;
 
@@ -45,6 +46,7 @@ impl CLI {
                     match AmberCompiler::new(code, None).compile() {
                         Ok((messages, code)) => {
                             messages.iter().for_each(|m| m.show());
+                            (!messages.is_empty()).then(|| self.render_dash());
                             AmberCompiler::execute(code, self.flags.get_args())
                         },
                         Err(err) => {
@@ -75,6 +77,7 @@ impl CLI {
                             }
                             // Execute the code
                             else {
+                                (!messages.is_empty()).then(|| self.render_dash());
                                 AmberCompiler::execute(code, self.flags.get_args());
                             }
                         },
@@ -137,6 +140,17 @@ impl CLI {
                 std::process::exit(1);
             }
         }
+    }
+
+    #[inline]
+    #[allow(unused_must_use)]
+    fn render_dash(&self) {
+        let str = "%.s─".dimmed();
+        Command::new("bash")
+            .arg("-c")
+            .arg(format!("printf {str} $(seq 1 $(tput cols))"))
+            .spawn().unwrap().wait();
+        println!();
     }
 
     #[inline]
