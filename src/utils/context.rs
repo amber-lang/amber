@@ -1,8 +1,8 @@
 use heraclitus_compiler::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use crate::modules::types::Type;
 
-use super::function_interface::FunctionInterface;
+use super::{function_interface::FunctionInterface, cc_flags::CCFlags};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -108,7 +108,9 @@ pub struct Context {
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
     /// The return type of the currently parsed function
-    pub fun_ret_type: Option<Type>
+    pub fun_ret_type: Option<Type>,
+    /// List of compiler flags
+    pub cc_flags: HashSet<CCFlags>
 }
 
 // FIXME: Move the scope related structures to the separate file
@@ -123,7 +125,8 @@ impl Context {
             is_fun_ctx: false,
             is_loop_ctx: false,
             pub_funs: vec![],
-            fun_ret_type: None
+            fun_ret_type: None,
+            cc_flags: HashSet::new()
         }
     }
 

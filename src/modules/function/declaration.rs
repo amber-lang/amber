@@ -1,7 +1,11 @@
+use std::collections::HashSet;
+use std::mem::swap;
+
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::utils::cc_flags::get_ccflag_by_name;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -62,6 +66,12 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let mut flags = HashSet::new();
+        // Get all the user-defined compiler flags
+        while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
+            // Push to the flags vector as it is more safe in case of parsing errors
+            flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+        }
         // Check if this function is public
         if token(meta, "pub").is_ok() {
             self.is_public = true;
@@ -72,6 +82,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         self.name = variable(meta, variable_name_extensions())?;
         handle_existing_function(meta, tok.clone())?;
         context!({
+            // Set the compiler flags
+            swap(&mut meta.context.cc_flags, &mut flags);
             // Get the arguments
             token(meta, "(")?;
             loop {
@@ -120,6 +132,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 returns: self.returns.clone(),
                 is_public: self.is_public
             }, ctx)?;
+            // Restore the compiler flags
+            swap(&mut meta.context.cc_flags, &mut flags);
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))

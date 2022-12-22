@@ -26,7 +26,8 @@ use super::binop::{
     neq::Neq
 };
 use super::unop::{
-    not::Not
+    not::Not,
+    cast::Cast
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
@@ -61,7 +62,8 @@ pub enum ExprType {
     FunctionInvocation(FunctionInvocation),
     Array(Array),
     Range(Range),
-    Null(Null)
+    Null(Null),
+    Cast(Cast)
 }
 
 #[derive(Debug, Clone)]
@@ -97,11 +99,13 @@ impl Expr {
         // Ternary conditional
         Ternary,
         // Logical operators
-        And, Or, Not,
+        And, Or,
         // Comparison operators
         Gt, Ge, Lt, Le, Eq, Neq,
         // Arithmetic operators
         Add, Sub, Mul, Div, Modulo,
+        // Unary operators
+        Cast, Not,
         // Literals
         Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null,
         // Function invocation

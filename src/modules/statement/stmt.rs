@@ -28,7 +28,7 @@ use crate::modules::loops::{
 };
 use crate::modules::function::{
     declaration::FunctionDeclaration,
-    ret::Ret
+    ret::Return
 };
 use crate::modules::imports::{
     import::Import
@@ -54,7 +54,7 @@ pub enum StatementType {
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
-    Ret(Ret),
+    Return(Return),
     Import(Import),
     Main(Main),
     Echo(Echo)
@@ -70,7 +70,7 @@ impl Statement {
         // Imports
         Import,
         // Functions
-        FunctionDeclaration, Main, Ret,
+        FunctionDeclaration, Main, Return,
         // Loops
         InfiniteLoop, IterLoop, Break, Continue,
         // Conditions
@@ -118,7 +118,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
         for statement in statements {
             // Handle comments
             if let Some(token) = meta.get_current_token() {
-                if token.word.starts_with('#') {
+                if token.word.starts_with("//") {
                     meta.increment_index();
                     continue
                 }
@@ -143,9 +143,9 @@ impl TranslateModule for Statement {
         // Translate the statement
         let translated = self.translate_match(meta, self.value.as_ref().unwrap());
         // This is a workaround that handles $(...) which cannot be used as a statement
-        let translated = if translated.starts_with('$') || translated.starts_with("\"$") {
-            format!("echo {} > /dev/null 2>&1", translated)
-        } else { translated };
+        let translated = (matches!(self.value, Some(StatementType::Expr(_))) || translated.starts_with('$') || translated.starts_with("\"$"))
+            .then(|| format!("echo {} > /dev/null 2>&1", translated))
+            .unwrap_or_else(|| translated);
         // Get all the required supplemental statements
         let indentation = meta.gen_indent();
         let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st + ";\n").join("");

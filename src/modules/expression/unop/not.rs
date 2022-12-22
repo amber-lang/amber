@@ -4,13 +4,12 @@ use super::super::expr::Expr;
 
 #[derive(Debug, Clone)]
 pub struct Not {
-    expr: Box<Expr>,
-    kind: Type
+    expr: Box<Expr>
 }
 
 impl Typed for Not {
     fn get_type(&self) -> Type {
-        self.kind.clone()
+        Type::Bool
     }
 }
 
@@ -19,8 +18,7 @@ impl SyntaxModule<ParserMetadata> for Not {
 
     fn new() -> Self {
         Not {
-            expr: Box::new(Expr::new()),
-            kind: Type::Bool
+            expr: Box::new(Expr::new())
         }
     }
 
