@@ -47,7 +47,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: F
         let flag_name = get_ccflag_name(CCFlags::AllowGenericReturn);
         let message = Message::new_warn_at_token(meta, tok.clone())
             .message("Function has typed arguments but a generic return type")
-            .comment(format!("To surpress this warning, specify a return type for the function '{name}' or use ![{flag_name}] before the parent function declaration"));
+            .comment(format!("To surpress this warning, specify a return type for the function '{name}' or use #[{flag_name}] before the parent function declaration"));
         meta.add_message(message);
     }
     // Try to add the function to the memory

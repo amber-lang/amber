@@ -21,7 +21,7 @@ impl IfCondition {
             // TODO: [A34] Add a comment pointing to the website documentation
             let message = Message::new_warn_at_token(meta, tok)
                 .message("You should use if-chain instead of nested if else statements")
-                .comment(format!("To surpress this warning, use ![{flag_name}] before the parent function declaration"));
+                .comment(format!("To surpress this warning, use #[{flag_name}] before the parent function declaration"));
             meta.add_message(message);
         }
         Ok(())
