@@ -34,6 +34,9 @@ impl SyntaxModule<ParserMetadata> for Array {
         // Try to parse array type
         match try_parse_type(meta) {
             Ok(kind) => {
+                if matches!(kind, Type::Array(_)) {
+                    return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
+                }
                 self.kind = Type::Array(Box::new(kind));
                 token(meta, "]")?;
             },
@@ -44,6 +47,9 @@ impl SyntaxModule<ParserMetadata> for Array {
             Err(Failure::Quiet(_)) => {
                 loop {
                     let tok = meta.get_current_token();
+                    if let Ok(_) = token(meta, "[") {
+                        return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
+                    }
                     // Parse array value
                     let mut value = Expr::new();
                     syntax(meta, &mut value)?;

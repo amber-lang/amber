@@ -628,3 +628,12 @@ fn range_loop_inclusive() {
     ";
     test_amber!(code, "0\n1\n2\n3\n4\n5");
 }
+
+#[test]
+fn null() {
+    let code = "
+        let a = null
+        echo a
+    ";
+    test_amber!(code, "");
+}
