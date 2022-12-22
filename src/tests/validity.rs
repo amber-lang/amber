@@ -608,3 +608,23 @@ fn loop_in_index_value() {
     ";
     test_amber!(code, "0\n1\n1\n2\n2\n3\n3\n4\n4\n5");
 }
+
+#[test]
+fn range_loop() {
+    let code = "
+        loop i in 0..5 {
+            echo i
+        }
+    ";
+    test_amber!(code, "0\n1\n2\n3\n4");
+}
+
+#[test]
+fn range_loop_inclusive() {
+    let code = "
+        loop i in 0..=5 {
+            echo i
+        }
+    ";
+    test_amber!(code, "0\n1\n2\n3\n4\n5");
+}
