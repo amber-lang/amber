@@ -41,7 +41,9 @@ impl SyntaxModule<ParserMetadata> for Ret {
                     format!("Given type: {}, expected type: {}", self.expr.get_type(), ret_type)
                 );
             },
-            None => {}
+            None => {
+                meta.context.fun_ret_type = Some(self.expr.get_type());
+            }
         }
         Ok(())
     }

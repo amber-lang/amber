@@ -585,3 +585,26 @@ fn add_arrays_literal() {
     ";
     test_amber!(code, "1 2 3 4 5 6 7 8 9 10");
 }
+
+#[test]
+fn loop_in() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        loop i in a {
+            echo i
+        }
+    ";
+    test_amber!(code, "1\n2\n3\n4\n5");
+}
+
+#[test]
+fn loop_in_index_value() {
+    let code = "
+        let a = [1, 2, 3, 4, 5]
+        loop i, v in a {
+            echo i
+            echo v
+        }
+    ";
+    test_amber!(code, "0\n1\n1\n2\n2\n3\n3\n4\n4\n5");
+}

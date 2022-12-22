@@ -36,11 +36,17 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: F
     let any_generic = fun.arg_types.iter().any(|kind| kind == &Type::Generic);
     let any_typed = fun.arg_types.iter().any(|kind| kind != &Type::Generic);
     // Either all arguments are generic or typed
-    if any_typed && (any_generic || fun.returns == Type::Generic) {
+    if any_typed && any_generic {
         return error!(meta, tok => {
             message: format!("Function '{}' has a mix of generic and typed arguments", name),
             comment: "Please decide whether to use generics or types for all arguments"
         })
+    }
+    if any_typed && fun.returns == Type::Generic {
+        let message = Message::new_warn_at_token(meta, tok.clone())
+            .message("Function has typed arguments but a generic return type")
+            .comment(format!("To surpress this warning, specify a return type for the function '{name}'"));
+        meta.add_message(message);
     }
     // Try to add the function to the memory
     match meta.add_fun_declaration(fun, ctx) {
