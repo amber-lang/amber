@@ -22,13 +22,15 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
-        "loop", "break", "continue",
+        "loop", "break", "continue", "in",
         // Module keywords
         "pub", "import", "from",
         // Function keywords
-        "fun", "ret", "ref", "echo",
+        "fun", "return", "ref", "fail", "failed",
         // Types
-        "Text", "Number", "Bool", "Null"
+        "Text", "Number", "Bool", "Null",
+        // Misc
+        "echo", "silent", "status"
     ]
 }
 
@@ -58,7 +60,7 @@ fn handle_similar_variable(meta: &mut ParserMetadata, name: &str) -> Option<Stri
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix
-    if name.chars().take(2).all(|chr| chr == '_') {
+    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
         let new_name = name.get(1..).unwrap();
         return error!(meta, tok => {
             message: format!("Indentifier '{name}' is not allowed"),

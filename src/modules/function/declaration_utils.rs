@@ -6,20 +6,23 @@ use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 use crate::utils::context::Context;
 use crate::utils::function_interface::FunctionInterface;
 
-pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize) {
+pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
     let index_begin = meta.get_index();
+    let mut is_failable = false;
     let mut scope = 1;
     while let Some(tok) = meta.get_current_token() {
         match tok.word.as_str() {
             "{" => scope += 1,
             "}" => scope -= 1,
+            "fail" => is_failable = true,
+            "?" => is_failable = true,
             _ => {}
         }
         if scope == 0 { break }
         meta.increment_index();
     }
     let index_end = meta.get_index();
-    (index_begin, index_end)
+    (index_begin, index_end, is_failable)
 }
 
 pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {

@@ -36,6 +36,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             self.is_skipped = true;
         }
         context!({
+            meta.context.is_main_ctx = true;
             if token(meta, "(").is_ok() {
                 loop {
                     if token(meta, ")").is_ok() {
@@ -60,6 +61,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             // Remove the scope made for variables
             meta.pop_scope();
             token(meta, "}")?;
+            meta.context.is_main_ctx = false;
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, "Undefined syntax in main block")

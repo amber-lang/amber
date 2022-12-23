@@ -28,13 +28,17 @@ use crate::modules::loops::{
 };
 use crate::modules::function::{
     declaration::FunctionDeclaration,
-    ret::Return
+    ret::Return,
+    fail::Fail
 };
 use crate::modules::imports::{
     import::Import
 };
 use crate::modules::main::Main;
-use crate::modules::builtin::echo::Echo;
+use crate::modules::builtin::{
+    echo::Echo,
+    silent::Silent
+};
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -55,9 +59,11 @@ pub enum StatementType {
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
     Return(Return),
+    Fail(Fail),
     Import(Import),
     Main(Main),
-    Echo(Echo)
+    Echo(Echo),
+    Silent(Silent)
 }
 
 #[derive(Debug, Clone)]
@@ -70,7 +76,7 @@ impl Statement {
         // Imports
         Import,
         // Functions
-        FunctionDeclaration, Main, Return,
+        FunctionDeclaration, Main, Return, Fail,
         // Loops
         InfiniteLoop, IterLoop, Break, Continue,
         // Conditions
@@ -82,7 +88,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandStatement, Echo,
+        Silent, CommandStatement, Echo, 
         // Expression
         Expr
     ]);

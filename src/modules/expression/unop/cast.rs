@@ -36,9 +36,14 @@ impl SyntaxModule<ParserMetadata> for Cast {
             let message = Message::new_warn_at_token(meta, tok)
                 .message(format!("Casting a value of type '{l_type}' value to a '{r_type}' is not recommended"))
                 .comment(format!("To suppress this warning, use #[{flag_name}] before the parent function declaration"));
-            match self.kind {
-                Type::Array(_) | Type::Null => meta.add_message(message),
-                Type::Num => if self.expr.get_type() == Type::Text { meta.add_message(message) },
+            match (l_type, r_type) {
+                (Type::Array(left), Type::Array(right)) => {
+                    if *left != *right && !matches!(*left, Type::Bool | Type::Num) && !matches!(*right, Type::Bool | Type::Num) {
+                        meta.add_message(message);
+                    }
+                },
+                (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => meta.add_message(message),
+                (Type::Text, Type::Num) => { meta.add_message(message) },
                 _ => {}
             }
         }

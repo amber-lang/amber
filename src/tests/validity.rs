@@ -111,7 +111,7 @@ fn paranthesis() {
 #[test]
 fn command_interpolation() {
     let code = "
-        echo $echo {$echo Hello World$}$
+        echo $echo {$echo Hello World$ failed {}}$ failed {}
     ";
     test_amber!(code, "Hello World");
 }
@@ -119,7 +119,7 @@ fn command_interpolation() {
 #[test]
 fn command_inception() {
     let code = "
-        ${${${$echo Hello World$}$}$}$
+        $echo {$echo {$echo {$echo Hello World$ failed {}}$ failed {}}$ failed {}}$ failed {}
     ";
     test_amber!(code, "Hello World");
 }
@@ -333,14 +333,16 @@ fn ternary_conditional_nested() {
 fn infinite_loop() {
     let code = "
         let a = 0
-        loop {
-            a += 1
-            if a == 5 {
-                continue
-            }
-            $printf \"{a} \"$
-            if a == 10 {
-                break
+        main {
+            loop {
+                a += 1
+                if a == 5 {
+                    continue
+                }
+                $printf \"{a} \"$?
+                if a == 10 {
+                    break
+                }
             }
         }
     ";
@@ -636,4 +638,78 @@ fn null() {
         echo a
     ";
     test_amber!(code, "");
+}
+
+#[test]
+fn failed() {
+    let code = "
+        import { sum } from 'std'
+        let requirements = [true, true, true]
+        
+        main {
+            silent {
+                $make -v$ failed => requirements[0] = false
+                $gcc -v$ failed => requirements[1] = false
+                $you don\\'t have this$ failed => requirements[2] = false
+            }
+        
+            if sum(requirements as [Num]) == 3 {
+                echo 'All requirements are met'
+            } else {
+                echo 'Requirements not met'
+                fail
+            }
+        }
+    ";
+    test_amber!(code, "Requirements not met");
+}
+
+#[test]
+fn nested_failed() {
+    let code = "
+        fun inner_c() {
+            echo 'inner_c'
+            fail
+        }
+        
+        fun inner_b() {
+            inner_c()?
+            echo 'inner_b'
+        }
+        
+        fun inner_a() {
+            inner_b()?
+            echo 'inner_a'
+        }
+        
+        main {
+            inner_a()?
+            echo 'main'
+        }
+    ";
+    test_amber!(code, "inner_c");
+}
+
+#[test]
+fn silent() {
+    let code = "
+        main {
+            silent {
+                echo 'Hello World'
+                $non-existant command$?
+            }
+        }
+    ";
+    test_amber!(code, "Hello World");
+}
+
+#[test]
+fn status() {
+    let code = "
+        silent $non-existant command$ failed {
+            echo status
+            echo status
+        }
+    ";
+    test_amber!(code, "127\n0");
 }

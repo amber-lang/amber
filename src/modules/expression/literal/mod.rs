@@ -9,6 +9,7 @@ pub mod text;
 pub mod null;
 pub mod array;
 pub mod range;
+pub mod status;
 
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
@@ -97,11 +98,21 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                         chars.next();
                     },
                     Some('\'') => {
-                        result.push('\'');
+                        if is_str {
+                            result.push('\'');
+                        } else {
+                            result.push('\\');
+                            result.push('\'');
+                        }
                         chars.next();
                     },
                     Some('\"') => {
-                        result.push('\"');
+                        if is_str {
+                            result.push('\"');
+                        } else {
+                            result.push('\\');
+                            result.push('\"');
+                        }
                         chars.next();
                     },
                     Some('\\') => {

@@ -83,7 +83,7 @@ impl TranslateModule for Array {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("__AMBER_ARRAY_{}", meta.gen_array_id());
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<String>>().join(" ");
-        let quote = meta.quote();
+        let quote = meta.gen_quote();
         meta.stmt_queue.push_back(format!("{name}=({args})"));
         format!("{quote}${{{name}[@]}}{quote}")
     }

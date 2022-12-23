@@ -117,7 +117,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             }
             // Parse the body
             token(meta, "{")?;
-            let (index_begin, index_end) = skip_function_body(meta);
+            let (index_begin, index_end, is_failable) = skip_function_body(meta);
             // Create a new context with the function body
             let expr = meta.context.expr[index_begin..index_end].to_vec();
             let ctx = meta.context.clone().function_invocation(expr);
@@ -130,7 +130,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 arg_types: self.arg_types.clone(),
                 arg_refs: self.arg_refs.clone(),
                 returns: self.returns.clone(),
-                is_public: self.is_public
+                is_public: self.is_public,
+                is_failable: is_failable
             }, ctx)?;
             // Restore the compiler flags
             swap(&mut meta.context.cc_flags, &mut flags);

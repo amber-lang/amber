@@ -11,7 +11,8 @@ pub struct FunctionInterface {
     pub arg_types: Vec<Type>,
     pub arg_refs: Vec<bool>,
     pub returns: Type,
-    pub is_public: bool
+    pub is_public: bool,
+    pub is_failable: bool,
 }
 
 impl FunctionInterface {
@@ -25,6 +26,7 @@ impl FunctionInterface {
             returns: self.returns,
             is_args_typed,
             is_public: self.is_public,
+            is_failable: self.is_failable,
             id
         }
     }

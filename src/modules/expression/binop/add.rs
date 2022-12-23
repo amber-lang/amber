@@ -47,7 +47,7 @@ impl TranslateModule for Add {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let left = self.left.translate_eval(meta, false);
         let right = self.right.translate_eval(meta, false);
-        let quote = meta.quote();
+        let quote = meta.gen_quote();
         match self.kind {
             Type::Array(_) => {
                 let id = meta.gen_array_id();
