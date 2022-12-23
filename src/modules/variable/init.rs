@@ -9,7 +9,8 @@ use super::{variable_name_extensions, handle_identifier_name};
 pub struct VariableInit {
     name: String,
     expr: Box<Expr>,
-    global_id: Option<usize>
+    global_id: Option<usize>,
+    is_fun_ctx: bool
 }
 
 impl VariableInit {
@@ -27,7 +28,8 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         VariableInit {
             name: String::new(),
             expr: Box::new(Expr::new()),
-            global_id: None
+            global_id: None,
+            is_fun_ctx: false
         }
     }
 
@@ -41,6 +43,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             syntax(meta, &mut *self.expr)?;
             // Add a variable to the memory
             self.handle_add_variable(meta, &self.name.clone(), self.expr.get_type(), tok)?;
+            self.is_fun_ctx = meta.context.is_fun_ctx;
             Ok(())
         }, |position| {
             error_pos!(meta, position, format!("Expected '=' after variable name '{}'", self.name))
@@ -54,10 +57,13 @@ impl TranslateModule for VariableInit {
         let mut  expr = self.expr.translate(meta);
         if let Type::Array(_) = self.expr.get_type() {
             expr = format!("({expr})");
-        } 
+        }
+        let local = self.is_fun_ctx
+            .then(|| "local ")
+            .unwrap_or_else(|| "");
         match self.global_id {
             Some(id) => format!("__{id}_{name}={expr}"),
-            None => format!("local {name}={expr}")
+            None => format!("{local}{name}={expr}")
         }
     }
 }

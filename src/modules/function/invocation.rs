@@ -1,11 +1,11 @@
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
-
 use super::invocation_utils::*;
 
 #[derive(Debug, Clone)]
@@ -15,7 +15,9 @@ pub struct FunctionInvocation {
     refs: Vec<bool>,
     kind: Type,
     variant_id: usize,
-    id: usize
+    id: usize,
+    failed: Failed,
+    is_failable: bool
 }
 
 impl Typed for FunctionInvocation {
@@ -34,7 +36,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             refs: vec![],
             kind: Type::Null,
             variant_id: 0,
-            id: 0
+            id: 0,
+            failed: Failed::new(),
+            is_failable: false
         }
     }
 
@@ -58,6 +62,17 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             };
         }
         let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+        self.is_failable = function_unit.is_failable;
+        if self.is_failable {
+            match syntax(meta, &mut self.failed) {
+                Ok(_) => {},
+                Err(Failure::Quiet(_)) => return error!(meta, tok => {
+                    message: "This function can fail. Please handle the failure",
+                    comment: "You can use '?' in the end to propagate the failure"
+                }),
+                Err(err) => return Err(err)
+            }
+        }
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
         let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
         self.refs = function_unit.arg_refs.clone();
@@ -69,6 +84,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        let silent = meta.gen_silent();
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | {
             if *is_ref {
                 arg.get_var_translated_name().unwrap()
@@ -80,7 +96,11 @@ impl TranslateModule for FunctionInvocation {
                     .unwrap_or_else(|| translation)
             }
         }).collect::<Vec<String>>().join(" ");
-        meta.stmt_queue.push_back(format!("{name} {args}"));
+        meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
+        if self.is_failable {
+            let failed = self.failed.translate(meta);
+            meta.stmt_queue.push_back(failed);
+        }
         format!("${{__AMBER_FUN_{}{}_v{}}}", self.name, self.id, self.variant_id)
     }
 }

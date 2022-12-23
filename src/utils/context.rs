@@ -13,6 +13,7 @@ pub struct FunctionDecl {
     pub returns: Type,
     pub is_args_typed: bool,
     pub is_public: bool,
+    pub is_failable: bool,
     pub id: usize
 }
 
@@ -25,7 +26,8 @@ impl FunctionDecl {
             arg_types: self.arg_types,
             arg_refs: self.arg_refs,
             returns: self.returns,
-            is_public: self.is_public
+            is_public: self.is_public,
+            is_failable: self.is_failable
         }
     }
 }
@@ -105,6 +107,8 @@ pub struct Context {
     pub is_fun_ctx: bool,
     /// Determines if the context is in a loop
     pub is_loop_ctx: bool,
+    /// Determines if the context is in the main block
+    pub is_main_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
     /// The return type of the currently parsed function
@@ -124,6 +128,7 @@ impl Context {
             trace: vec![],
             is_fun_ctx: false,
             is_loop_ctx: false,
+            is_main_ctx: false,
             pub_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new()

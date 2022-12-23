@@ -15,8 +15,12 @@ pub struct TranslateMetadata {
     pub fun_name: Option<(String, usize, usize)>,
     /// Array id is used to determine the array that is being evaluated.
     pub array_id: usize,
+    /// Value ID - used to store values in variables.
+    pub value_id: usize,
     /// Determines whether the current context is a context in bash's `eval`.
     pub eval_ctx: bool,
+    /// Determines whether the current context should be silenced.
+    pub silenced: bool,
     /// The current indentation level.
     pub indent: i64
 }
@@ -29,7 +33,9 @@ impl TranslateMetadata {
             fun_name: None,
             stmt_queue: VecDeque::new(),
             array_id: 0,
+            value_id: 0,
             eval_ctx: false,
+            silenced: false,
             indent: -1
         }
     }
@@ -52,9 +58,19 @@ impl TranslateMetadata {
         id
     }
 
+    pub fn gen_value_id(&mut self) -> usize {
+        let id = self.value_id;
+        self.value_id += 1;
+        id
+    }
+
+    pub fn gen_silent(&self) -> &'static str {
+        self.silenced.then(|| " > /dev/null 2>&1").unwrap_or("")
+    }
+
     // Returns the appropriate amount of quotes with escape symbols.
     // This helps to avoid problems with `eval` expressions.
-    pub fn quote(&self) -> &'static str {
+    pub fn gen_quote(&self) -> &'static str {
         self.eval_ctx
             .then(|| "\\\"")
             .unwrap_or("\"")

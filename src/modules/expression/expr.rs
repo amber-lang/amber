@@ -8,7 +8,8 @@ use super::literal::{
     text::Text,
     array::Array,
     range::Range,
-    null::Null
+    null::Null,
+    status::Status
 };
 use super::binop::{
     add::Add,
@@ -63,7 +64,8 @@ pub enum ExprType {
     Array(Array),
     Range(Range),
     Null(Null),
-    Cast(Cast)
+    Cast(Cast),
+    Status(Status)
 }
 
 #[derive(Debug, Clone)]
@@ -79,10 +81,6 @@ impl Typed for Expr {
 }
 
 impl Expr {
-    pub fn is_child_process(&self) -> bool {
-        matches!(self.value, Some(ExprType::CommandExpr(_)))
-    }
-
     pub fn is_var(&self) -> bool {
         matches!(self.value, Some(ExprType::VariableGet(_)))
     }
@@ -107,7 +105,7 @@ impl Expr {
         // Unary operators
         Cast, Not,
         // Literals
-        Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null,
+        Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null, Status,
         // Function invocation
         FunctionInvocation,
         // Variable access

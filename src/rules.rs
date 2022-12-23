@@ -49,7 +49,12 @@ pub fn get_rules() -> Rules {
             begin: "//",
             end: "\n",
             allow_left_open: true
-        })
+        }),
+        reg!(interp as "interpolation" => {
+            begin: "{",
+            end: "}",
+            tokenize: true
+        } ref global)
     ];
     Rules::new(symbols, compounds, region)
 }
