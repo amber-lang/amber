@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
+use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::{Statement, StatementType};
@@ -15,10 +16,12 @@ pub struct IfCondition {
 impl IfCondition {
     fn prevent_not_using_if_chain(&self, meta: &mut ParserMetadata, statement: &Statement, tok: Option<Token>) -> Result<(), Failure> {
         let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StatementType::IfCondition(_) | StatementType::IfChain(_));
-        if is_not_if_chain {
+        if is_not_if_chain && !meta.context.cc_flags.contains(&CCFlags::AllowNestedIfElse) {
+            let flag_name = get_ccflag_name(CCFlags::AllowNestedIfElse);
             // TODO: [A34] Add a comment pointing to the website documentation
             let message = Message::new_warn_at_token(meta, tok)
-                .message("You should use if-chain instead of nested if else statements");
+                .message("You should use if-chain instead of nested if else statements")
+                .comment(format!("To surpress this warning, use #[{flag_name}] before the parent function declaration"));
             meta.add_message(message);
         }
         Ok(())

@@ -4,7 +4,7 @@ pub fn get_rules() -> Rules {
     let symbols = vec![
         '+', '-', '*', '/', '%', '\n', ';', ':',
         '(', ')', '[', ']', '{', '}', ',', '.',
-        '<', '>', '='
+        '<', '>', '=', '!'
     ];
     let compounds = vec![
         ('<', '='),
@@ -17,7 +17,8 @@ pub fn get_rules() -> Rules {
         ('*', '='),
         ('/', '='),
         ('%', '='),
-        ('.', '.')
+        ('.', '.'),
+        ('/', '/')
     ];
     let region = reg![
         reg!(string as "string literal" => {
@@ -40,8 +41,12 @@ pub fn get_rules() -> Rules {
                 tokenize: true
             } ref global)
         ]),
+        reg!(cc_flag as "compiler flag" => {
+            begin: "#[",
+            end: "]"
+        }),
         reg!(comment as "comment" => {
-            begin: "#",
+            begin: "//",
             end: "\n",
             allow_left_open: true
         })

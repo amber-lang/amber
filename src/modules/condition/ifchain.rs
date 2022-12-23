@@ -30,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             let mut cond = Expr::new();
             let mut block = Block::new();
             // Handle comments and empty lines
-            if token_by(meta, |token| token.starts_with('#') || token.starts_with('\n')).is_ok() {
+            if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
                 continue
             }
             // Handle else keyword

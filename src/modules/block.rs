@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
@@ -38,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Block {
                 continue;
             }
             // Handle comments
-            if token.word.starts_with('#') {
+            if token.word.starts_with("//") {
                 meta.increment_index();
                 continue
             }
@@ -62,6 +64,9 @@ impl SyntaxModule<ParserMetadata> for Block {
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        // Save the current statement queue and create a new one
+        let mut new_queue = VecDeque::new();
+        std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         meta.increase_indent();
         let result = if self.is_empty() {
             ":".to_string()
@@ -73,6 +78,8 @@ impl TranslateModule for Block {
                 .collect::<Vec<_>>().join(";\n")
         };
         meta.decrease_indent();
+        // Restore the old statement queue
+        std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         result
     }
 }

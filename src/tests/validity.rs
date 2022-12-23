@@ -127,8 +127,8 @@ fn command_inception() {
 #[test]
 fn comment() {
     let code = "
-        # this is a comment
-        let a = 42 # this is a comment as well
+        // this is a comment
+        let a = 42 // this is a comment as well
     ";
     test_amber!(code, "");
 }
@@ -370,7 +370,7 @@ fn modulo_shorthand() {
 fn function() {
     let code = "
         fun test() {
-            ret 'Hello World'
+            return 'Hello World'
         }
         echo test()
     ";
@@ -381,7 +381,7 @@ fn function() {
 fn function_with_args() {
     let code = "
         fun test(a, b) {
-            ret '{a} {b}'
+            return '{a} {b}'
         }
         echo test('Hello', 'World')
     ";
@@ -392,7 +392,7 @@ fn function_with_args() {
 fn function_with_args_different_types() {
     let code = "
         fun test(a, b) {
-            ret a + b
+            return a + b
         }
         echo test('Hello', 'World')
         echo test(11, 42)
@@ -404,7 +404,7 @@ fn function_with_args_different_types() {
 fn function_with_typed_args() {
     let code = "
         fun test(a: Num, b: Num) {
-            ret a + b
+            return a + b
         }
         echo test(11, 42)
     ";
