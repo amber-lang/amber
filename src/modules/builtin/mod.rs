@@ -1,2 +1,2 @@
 pub mod echo;
-pub mod silent;
+pub mod nameof;

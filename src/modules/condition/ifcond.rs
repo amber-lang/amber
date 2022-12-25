@@ -51,7 +51,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
             }
             Err(_) => {
                 let mut statement = Statement::new();
-                token(meta, "=>")?;
+                token(meta, ":")?;
                 syntax(meta, &mut statement)?;
                 self.true_block.push_statement(statement);
             }
@@ -73,7 +73,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
                     token(meta, "}")?;
                 }
                 Err(_) => {
-                    token(meta, "=>")?;
+                    token(meta, ":")?;
                     let tok = meta.get_current_token();
                     let mut statement = Statement::new();
                     syntax(meta, &mut statement)?;

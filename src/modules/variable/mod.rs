@@ -18,7 +18,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Literals
         "true", "false", "null",
         // Variable keywords
-        "let", 
+        "let", "as", "is",
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
@@ -29,8 +29,10 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "fun", "return", "ref", "fail", "failed",
         // Types
         "Text", "Number", "Bool", "Null",
+        // Command Modifiers
+        "silent", "unsafe",
         // Misc
-        "echo", "silent", "status"
+        "echo", "status", "nameof"
     ]
 }
 

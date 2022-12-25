@@ -50,7 +50,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 }
                 Err(_) => {
                     let mut statement = Statement::new();
-                    token(meta, "=>")?;
+                    token(meta, ":")?;
                     syntax(meta, &mut statement)?;
                     block.push_statement(statement);
                     self.cond_blocks.push((cond, block));
@@ -68,7 +68,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 }
                 Err(_) => {
                     let mut statement = Statement::new();
-                    token(meta, "=>")?;
+                    token(meta, ":")?;
                     syntax(meta, &mut statement)?;
                     self.false_block = Some(Box::new(Block::new()));
                     self.false_block.as_mut().unwrap().push_statement(statement);

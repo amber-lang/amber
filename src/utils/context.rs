@@ -109,6 +109,8 @@ pub struct Context {
     pub is_loop_ctx: bool,
     /// Determines if the context is in the main block
     pub is_main_ctx: bool,
+    /// Determines if the context is in an unsafe block
+    pub is_unsafe_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
     /// The return type of the currently parsed function
@@ -129,6 +131,7 @@ impl Context {
             is_fun_ctx: false,
             is_loop_ctx: false,
             is_main_ctx: false,
+            is_unsafe_ctx: false,
             pub_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new()

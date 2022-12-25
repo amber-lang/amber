@@ -28,13 +28,15 @@ use super::binop::{
 };
 use super::unop::{
     not::Not,
-    cast::Cast
+    cast::Cast,
+    is::Is
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
 use crate::modules::command::expr::CommandExpr;
 use crate::modules::condition::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
+use crate::modules::builtin::nameof::Nameof;
 use crate::handle_types;
 
 #[derive(Debug, Clone)]
@@ -65,12 +67,14 @@ pub enum ExprType {
     Range(Range),
     Null(Null),
     Cast(Cast),
-    Status(Status)
+    Status(Status),
+    Nameof(Nameof),
+    Is(Is)
 }
 
 #[derive(Debug, Clone)]
 pub struct Expr {
-    value: Option<ExprType>,
+    pub value: Option<ExprType>,
     kind: Type
 }
 
@@ -103,7 +107,7 @@ impl Expr {
         // Arithmetic operators
         Add, Sub, Mul, Div, Modulo,
         // Unary operators
-        Cast, Not,
+        Cast, Not, Nameof, Is,
         // Literals
         Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null, Status,
         // Function invocation

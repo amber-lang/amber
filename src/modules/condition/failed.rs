@@ -26,26 +26,38 @@ impl SyntaxModule<ParserMetadata> for Failed {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
+        if meta.context.is_unsafe_ctx {
+            return Ok(());
+        }
         if let Ok(_) = token(meta, "?") {
             if !meta.context.is_fun_ctx && !meta.context.is_main_ctx {
                 return error!(meta, tok, "The '?' operator can only be used in the main block or function body")
             }
             self.is_question_mark = true;
-            self.is_main = meta.context.is_main_ctx;
-            self.is_parsed = true;
-            return Ok(())
-        }
-        token(meta, "failed")?;
-        match token(meta, "{") {
-            Ok(_) => {
-                syntax(meta, &mut *self.block)?;
-                token(meta, "}")?;
-            },
-            Err(_) => {
-                token(meta, "=>")?;
-                let mut statement = Statement::new();
-                syntax(meta, &mut statement)?;
-                self.block.push_statement(statement);
+        } else {
+            token(meta, "failed")?;
+            match token(meta, "{") {
+                Ok(_) => {
+                    let tok = meta.get_current_token();
+                    syntax(meta, &mut *self.block)?;
+                    if self.block.is_empty() {
+                        let message = Message::new_warn_at_token(meta, tok)
+                            .message("Empty failed block")
+                            .comment("You should use 'unsafe' modifier to run commands without handling errors");
+                        meta.messages.push(message);
+                    }
+                    token(meta, "}")?;
+                },
+                Err(_) => {
+                    match token(meta, ":") {
+                        Ok(_) => {
+                            let mut statement = Statement::new();
+                            syntax(meta, &mut statement)?;
+                            self.block.push_statement(statement);
+                        },
+                        Err(_) => return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    }
+                }
             }
         }
         self.is_main = meta.context.is_main_ctx;
@@ -63,9 +75,17 @@ impl TranslateModule for Failed {
                 .unwrap_or("return $?");
             // the condition of '$?' clears the status code thus we need to store it in a variable
             if self.is_question_mark {
+                // if the failed expression is in the main block we need to clear the return value
+                let clear_return = if !self.is_main {
+                    let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
+                    format!("__AMBER_FUN_{name}{id}_v{variant}=''")
+                } else {
+                    String::new()
+                };
                 vec![
                     "__AMBER_STATUS=$?;",
                     "if [ $__AMBER_STATUS != 0 ]; then",
+                    &clear_return,
                     &format!("$(exit $__AMBER_STATUS)"),
                     ret,
                     "fi"

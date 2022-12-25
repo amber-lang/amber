@@ -264,8 +264,8 @@ fn if_statements_singleline() {
     let code = "
         let x = 42
         let y = 24
-        if x == y => echo x
-        else => echo y
+        if x == y: echo x
+        else: echo y
     ";
     test_amber!(code, "24");
 }
@@ -275,8 +275,8 @@ fn if_statements_else_singleline() {
     let code = "
         let x = 42
         let y = 24
-        if x == y => echo x
-        else => echo y
+        if x == y: echo x
+        else: echo y
     ";
     test_amber!(code, "24");
 }
@@ -287,8 +287,8 @@ fn if_statement_chain_singleline() {
         let x = 42
         let y = 24
         if {
-            x == y => echo x
-            else => echo y
+            x == y: echo x
+            else: echo y
         }
     ";
     test_amber!(code, "24");
@@ -648,9 +648,9 @@ fn failed() {
         
         main {
             silent {
-                $make -v$ failed => requirements[0] = false
-                $gcc -v$ failed => requirements[1] = false
-                $you don\\'t have this$ failed => requirements[2] = false
+                $make -v$ failed: requirements[0] = false
+                $gcc -v$ failed: requirements[1] = false
+                $you don\\'t have this$ failed: requirements[2] = false
             }
         
             if sum(requirements as [Num]) == 3 {
@@ -712,4 +712,71 @@ fn status() {
         }
     ";
     test_amber!(code, "127\n0");
+}
+
+#[test]
+fn test_std_library() {
+    let code = "
+        import * from 'std'
+
+        main {
+            // Split a string into a list of strings (characters)
+            echo chars('hello world')
+            // Split a string into a list of strings by a delimiter
+            echo split('hello world', 'l')
+            // Join a list of strings into a string
+            echo join(split('hello world', 'l'), 'l')
+            // Transform string into a lowercase string
+            echo lower('HELLO WORLD')
+            // Transform string into an uppercase string
+            echo upper('hello world')
+            // Trim whitespace from the beginning and end of a string
+            echo '|{trim(' hello world ')}|'
+            // Trim whitespace from the beginning of a string
+            echo '|{trim_left(' hello world ')}|'
+            // Trim whitespace from the end of a string
+            echo '|{trim_right(' hello world ')}|'
+            // Get the length of a string or list
+            echo len('hello world')
+            echo len([1,2,3])
+            // Replace all occurrences of a substring with another substring
+            echo replace('hello world', 'world', 'universe')
+            // Parse text into a number
+            echo parse('123')?
+            // Parse text into a number - do some code if failed
+            echo parse('XDDDDabc123') failed {
+                echo 'Parsing Failed'
+            }
+        }
+    ";
+    test_amber!(code, vec![
+        "h e l l o   w o r l d",
+        "he  o wor d",
+        "hello world",
+        "hello world",
+        "HELLO WORLD",
+        "|hello world|",
+        "|hello world |",
+        "| hello world|",
+        "11",
+        "3",
+        "hello universe",
+        "123",
+        "Parsing Failed",
+    ].join("\n"));
+}
+
+#[test]
+fn chained_modifiers() {
+    let code = "
+        unsafe silent {
+            echo 'Hello World'
+            $non-existant command$
+        }
+        // Test for expression
+        let _ = silent unsafe $non-existant command$
+        // Test for single statement
+        silent unsafe $non-existant command$
+    ";
+    test_amber!(code, "Hello World");
 }
