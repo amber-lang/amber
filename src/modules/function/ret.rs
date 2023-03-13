@@ -53,6 +53,9 @@ impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
         let result = self.expr.translate_eval(meta, false);
+        let result = matches!(self.expr.get_type(), Type::Array(_))
+            .then(|| format!("({result})"))
+            .unwrap_or_else(|| result);
         meta.stmt_queue.push_back(format!("__AMBER_FUN_{name}{id}_v{variant}={result}"));
         format!("return 0")
     }

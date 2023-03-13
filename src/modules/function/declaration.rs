@@ -72,11 +72,16 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             // Push to the flags vector as it is more safe in case of parsing errors
             flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
+        let tok = meta.get_current_token();
         // Check if this function is public
         if token(meta, "pub").is_ok() {
             self.is_public = true;
         }
         token(meta, "fun")?;
+        // Check if we are in the global scope
+        if !meta.is_global_scope() {
+            return error!(meta, tok, "Functions can only be declared in the global scope")
+        }
         // Get the function name
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;

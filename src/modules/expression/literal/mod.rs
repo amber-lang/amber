@@ -40,7 +40,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                 }
                 else {
                     strings.push(tok.word.clone());
-                    if tok.word.ends_with(letter) {
+                    if tok.word.ends_with(letter) && !tok.word.ends_with(format!("\\{}", letter).as_str()) {
                         meta.increment_index();
                         // Right trim the symbol
                         let trimmed = strings.last().unwrap()
@@ -71,16 +71,16 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                 else {
                     result.push('"');
                 }
-            }
-            '\n' => {
-                // If it's a command then ignore newlines
-                if is_str {
-                    result.push('\n');
-                }
-            }
+            },
             '\\' => {
                 // Escape symbols
                 match chars.peek() {
+                    Some('\n') => {
+                        // We want to escape new line characters
+                        if !is_str {
+                            chars.next();
+                        }
+                    }
                     Some('n') => {
                         result.push('\n');
                         chars.next();

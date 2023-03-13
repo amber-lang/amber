@@ -1,15 +1,20 @@
+use std::mem::swap;
+
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{types::{Type, Typed}, condition::failed::Failed}};
+use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{types::{Type, Typed}, condition::failed::Failed, expression::expr::ExprType}};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
-
 use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
+
+use super::modifier::CommandModifier;
 
 #[derive(Debug, Clone)]
 pub struct CommandExpr {
     strings: Vec<String>,
     interps: Vec<Expr>,
-    failed: Failed
+    modifier: CommandModifier,
+    failed: Failed,
+    is_silent_expr: bool
 }
 
 impl Typed for CommandExpr {
@@ -25,20 +30,36 @@ impl SyntaxModule<ParserMetadata> for CommandExpr {
         CommandExpr {
             strings: vec![],
             interps: vec![],
-            failed: Failed::new()
+            modifier: CommandModifier::new().parse_expr(),
+            failed: Failed::new(),
+            is_silent_expr: false
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
-        (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
-        match syntax(meta, &mut self.failed) {
-            Ok(_) => Ok(()),
-            Err(Failure::Quiet(_)) => error!(meta, tok => {
-                message: "Every command statement must handle failed execution",
-                comment: "You can use '?' in the end to fail the exit code of the command"
-            }),
-            Err(err) => Err(err)
+        match syntax(meta, &mut self.modifier) {
+            // If the command modifier was parsed successfully, then we swap the result
+            Ok(_) => {
+                if let Some(ExprType::CommandExpr(command)) = &mut self.modifier.expr.value.clone() {
+                    swap(command, self);
+                    // Retrieve the silent modifier from the command modifier
+                    self.is_silent_expr = command.modifier.is_silent;
+                }
+                Ok(())
+            },
+            Err(Failure::Loud(err)) => return Err(Failure::Loud(err)),
+            Err(Failure::Quiet(_)) => {
+                let tok = meta.get_current_token();
+                (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
+                match syntax(meta, &mut self.failed) {
+                    Ok(_) => Ok(()),
+                    Err(Failure::Quiet(_)) => error!(meta, tok => {
+                        message: "Every command statement must handle failed execution",
+                        comment: "You can use '?' in the end to fail the exit code of the command"
+                    }),
+                    Err(err) => Err(err)
+                }
+            }
         }
     }
 }
@@ -50,13 +71,14 @@ impl TranslateModule for CommandExpr {
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
         let failed = self.failed.translate(meta);
+        let silent = self.is_silent_expr.then(|| " 2>/dev/null").unwrap_or("");
         if failed.is_empty() {
-            format!("$({})", translate_interpolated_region(self.strings.clone(), interps, false))
+            format!("$({}{silent})", translate_interpolated_region(self.strings.clone(), interps, false))
         } else {
             let id = meta.gen_value_id();
             let quote = meta.gen_quote();
             let translation = translate_interpolated_region(self.strings.clone(), interps, false);
-            meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation})"));
+            meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation}{silent})"));
             meta.stmt_queue.push_back(failed);
             format!("{quote}${{__AMBER_VAL_{id}}}{quote}")
         }

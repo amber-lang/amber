@@ -67,6 +67,8 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     if let Type::Generic = fun.returns {
         fun.returns = ctx.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
     };
+    // Set the new argument types
+    fun.arg_types = args.iter().cloned().collect();
     // Persist the new function instance
     Ok((fun.returns.clone(), meta.add_fun_instance(fun.to_interface(), block)))
 }

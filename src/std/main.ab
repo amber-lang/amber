@@ -1,33 +1,88 @@
-pub fun input() {
-    $read$
+pub fun input(): Text {
+    unsafe $read$
     return '$REPLY'
 }
 
 pub fun replace_once(source, pattern, replacement) {
-    return $echo "\$\{source/{pattern}/{replacement}}"$
+    return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
 }
 
 pub fun replace(source, pattern, replacement) {
-    return $echo "\$\{source//{pattern}/{replacement}}"$
+    return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
 }
 
 pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
-    return $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+    return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
 }
 
 pub fun file_read(path) {
-    return $cat "{path}"$
+    return $cat "{path}"$?
 }
 
 pub fun file_write(path, content) {
-    return $echo "{content}" > "{path}"$
+    return $echo "{content}" > "{path}"$?
 }
 
 pub fun file_append(path, content) {
-    return $echo "{content}" >> "{path}"$
+    return $echo "{content}" >> "{path}"$?
+}
+
+pub fun split(text: Text, delimiter: Text): [Text] {
+    let result = [Text]
+    unsafe $IFS="{delimiter}" read -ra {nameof result} <<< "\${nameof text}"$
+    return result
+}
+
+pub fun join(list: [Text], delimiter: Text): Text {
+    return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
+}
+
+pub fun trim(text: Text): Text {
+    return unsafe $echo "{text}" | xargs$
+}
+
+pub fun trim_left(text: Text): Text {
+    return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
+}
+
+pub fun trim_right(text: Text): Text {
+    return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
+}
+
+pub fun lower(text: Text): Text {
+    return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
+}
+
+pub fun upper(text: Text): Text {
+    return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
+}
+
+#[allow_absurd_cast]
+pub fun len(value): Num {
+    unsafe {
+        if value is Text:
+            return $echo "\$\{#{nameof value}}"$ as Num
+        else:
+            return $echo "\$\{#{nameof value}[@]}"$ as Num
+    }
+}
+
+#[allow_absurd_cast]
+pub fun parse(text: Text): Num {
+    $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
+    return text as Num
+}
+
+#[allow_absurd_cast]
+pub fun chars(text: Text): [Text] {
+    let chars = [Text]
+    unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
+        {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
+    done;$
+    return chars
 }
 
 #[allow_absurd_cast]
 pub fun sum(list: [Num]): Num {
-    return $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ failed {} as Num
+    return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
 }

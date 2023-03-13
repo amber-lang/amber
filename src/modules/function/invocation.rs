@@ -72,6 +72,14 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 }),
                 Err(err) => return Err(err)
             }
+        } else {
+            let tok = meta.get_current_token();
+            if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str())) {
+                let message = Message::new_warn_at_token(meta, tok)
+                    .message("This function cannot fail")
+                    .comment(format!("You can remove the '{symbol}' in the end"));
+                meta.add_message(message);
+            }
         }
         let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
         let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
@@ -101,6 +109,11 @@ impl TranslateModule for FunctionInvocation {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        format!("${{__AMBER_FUN_{}{}_v{}}}", self.name, self.id, self.variant_id)
+        if matches!(self.kind, Type::Array(_)) {
+            let quote = meta.gen_quote();
+            format!("{quote}${{__AMBER_FUN_{}{}_v{}[@]}}{quote}", self.name, self.id, self.variant_id)
+        } else {
+            format!("${{__AMBER_FUN_{}{}_v{}}}", self.name, self.id, self.variant_id)
+        }
     }
 }

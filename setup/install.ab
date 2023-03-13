@@ -1,65 +1,67 @@
 let name = 'AmberNative'
 let target = 'amber'
-let tag = 'v0.1.1-alpha'
+let tag = '0.2.0-alpha'
 let place = '/opt/amber'
 
-# Determine OS type
-let os = $uname -s$ == 'Darwin'
-    then 'macos'
-    else 'linux'
+unsafe {
+    // Determine OS type
+    let os = $uname -s$ == 'Darwin'
+        then 'macos'
+        else 'linux'
 
-# Determine architecture
-let arch = $uname -m$ == 'arm64'
-    then 'aarch64'
-    else 'x86_64'
+    // Determine architecture
+    let arch = $uname -m$ == 'arm64'
+        then 'aarch64'
+        else 'x86_64'
 
-# Set the download link
-let url = 'https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}'
+    // Set the download link
+    let url = 'https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}'
 
-# Check if such directory exists
-$test -d "{place}"$
+    // Check if such directory exists
+    $test -d "{place}"$
 
-if $echo \$?$ == '0' {
-    echo 'Amber already installed'
-    echo 'It seems that Amber is already installed on your system. ({place})'
-    echo 'If you want to reinstall Amber, uninstall it first.'
-    echo '(Find out more at https://amber.marbl.cc)'
-    $exit 0$
+    if $echo \$?$ == '0' {
+        echo 'Amber already installed'
+        echo 'It seems that Amber is already installed on your system. ({place})'
+        echo 'If you want to reinstall Amber, uninstall it first.'
+        echo '(Find out more at https://amber.marbl.cc)'
+        $exit 0$
+    }
+
+    echo 'Installing Amber'
+
+    // Download Amber
+    if {
+        // Check if ruby is installed
+        $ruby -v > /dev/null; echo \$?$ == '0' {
+            let code = 'require "open-uri"; open("{target}", "wb") do |file|; file << open("{url}").read; end'
+            echo 'Using ruby as a download method...'
+            $ruby -e "{code}"$
+        }
+        // Check if curl is installed
+        $curl -v > /dev/null; echo \$?$ == '0' {
+            echo 'Using curl as a download method...'
+            $curl -o "{target}" "{url}"$
+        }
+        // Check if wget is installed
+        $wget -v > /dev/null; echo \$?$ == '0' {
+            echo 'Using wget as a download method...'
+            $wget -O "{target}" "{url}"$
+        }
+        else {
+            echo 'Neither ruby, curl or wget are installed on your system.'
+            echo 'Please install one of them and try again.'
+            $exit 1$
+        }
+    }
+    // Create directory for amber
+    $sudo mkdir "{place}" > /dev/null$
+    // Move zipped version of amber
+    $sudo mv "{target}" "{place}/{target}"$
+    // Give permissions to execute amber
+    $sudo chmod +x "{place}/{target}"$
+    // Create amber symbol link
+    $sudo ln -s "{place}/{target}" "/usr/local/bin/{target}"$
+    // Send success message
+    echo 'Amber has been installed successfully. 🎉'
 }
-
-echo 'Installing Amber'
-
-# Download Amber
-if {
-    # Check if ruby is installed
-    $ruby -v > /dev/null; echo \$?$ == '0' {
-        let code = 'require "open-uri"; open("{target}", "wb") do |file|; file << open("{url}").read; end'
-        echo 'Using ruby as a download method...'
-        $ruby -e "{code}"$
-    }
-    # Check if curl is installed
-    $curl -v > /dev/null; echo \$?$ == '0' {
-        echo 'Using curl as a download method...'
-        $curl -o "{target}" "{url}"$
-    }
-    # Check if wget is installed
-    $wget -v > /dev/null; echo \$?$ == '0' {
-        echo 'Using wget as a download method...'
-        $wget -O "{target}" "{url}"$
-    }
-    else {
-        echo 'Neither ruby, curl or wget are installed on your system.'
-        echo 'Please install one of them and try again.'
-        $exit 1$
-    }
-}
-# Create directory for amber
-$sudo mkdir "{place}" > /dev/null$
-# Move zipped version of amber
-$sudo mv "{target}" "{place}/{target}"$
-# Give permissions to execute amber
-$sudo chmod +x "{place}/{target}"$
-# Create amber symbol link
-$sudo ln -s "{place}/{target}" "/usr/local/bin/{target}"$
-# Send success message
-echo 'Amber has been installed successfully. 🎉'

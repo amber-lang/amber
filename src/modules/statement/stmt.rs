@@ -7,7 +7,10 @@ use crate::modules::variable::{
     init::VariableInit,
     set::VariableSet
 };
-use crate::modules::command::statement::CommandStatement;
+use crate::modules::command::{
+    statement::CommandStatement,
+    modifier::CommandModifier
+};
 use crate::handle_types;
 use crate::modules::condition::{
     ifchain::IfChain,
@@ -36,8 +39,7 @@ use crate::modules::imports::{
 };
 use crate::modules::main::Main;
 use crate::modules::builtin::{
-    echo::Echo,
-    silent::Silent
+    echo::Echo
 };
 
 #[derive(Debug, Clone)]
@@ -63,7 +65,7 @@ pub enum StatementType {
     Import(Import),
     Main(Main),
     Echo(Echo),
-    Silent(Silent)
+    CommandModifier(CommandModifier)
 }
 
 #[derive(Debug, Clone)]
@@ -88,7 +90,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        Silent, CommandStatement, Echo, 
+        CommandModifier, CommandStatement, Echo, 
         // Expression
         Expr
     ]);
