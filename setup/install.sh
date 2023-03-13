@@ -1,6 +1,6 @@
 __0_name="AmberNative";
 __1_target="amber";
-__2_tag="v0.1.1-alpha";
+__2_tag="0.2.0-alpha";
 __3_place="/opt/amber";
     os=$(if [ $([ "_$(uname -s)" != "_Darwin" ]; echo $?) != 0 ]; then echo "macos"; else echo "linux"; fi);
     arch=$(if [ $([ "_$(uname -m)" != "_arm64" ]; echo $?) != 0 ]; then echo "aarch64"; else echo "x86_64"; fi);
