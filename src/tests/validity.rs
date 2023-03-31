@@ -780,3 +780,40 @@ fn chained_modifiers() {
     ";
     test_amber!(code, "Hello World");
 }
+
+#[test]
+fn chained_modifiers_commands() {
+    let code = "
+        unsafe silent {
+            echo 'Hello World'
+            $non-existant command$
+        }
+        // Test for expression
+        let _ = silent unsafe $non-existant command$
+        // Test for single statement
+        silent unsafe $non-existant command$
+    ";
+    test_amber!(code, "Hello World");
+}
+
+#[test]
+fn chained_modifiers_functions() {
+    let code = "
+        fun foo(a) {
+            echo a
+            fail 1
+        }
+
+        fun bar() {
+            echo 'this should not appear'
+        }
+        
+        unsafe foo('one')
+        unsafe {
+            foo('two')
+        }
+        unsafe silent foo('this should not appear')
+        silent bar()
+    ";
+    test_amber!(code, "one\ntwo");
+}

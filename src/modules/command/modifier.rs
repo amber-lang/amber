@@ -81,8 +81,8 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
         swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
         if self.is_expr {
             syntax(meta, &mut *self.expr)?;
-            if !matches!(self.expr.value, Some(ExprType::CommandExpr(_))) {
-                return error!(meta, tok, format!("Expected command expression, after '{sequence}' command modifiers."));
+            if !matches!(self.expr.value, Some(ExprType::CommandExpr(_) | ExprType::FunctionInvocation(_))) {
+                return error!(meta, tok, format!("Expected command or function call, after '{sequence}' command modifiers."));
             }
         } else {
             match token(meta, "{") {
@@ -104,7 +104,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 
 impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        meta.silenced = true;
+        meta.silenced = self.is_silent;
         let result = if self.is_expr {
             return self.expr.translate(meta)
         } else {
