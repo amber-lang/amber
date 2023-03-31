@@ -6,7 +6,7 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Failed {
-    is_parsed: bool,
+    pub is_parsed: bool,
     is_question_mark: bool,
     is_main: bool,
     block: Box<Block>
@@ -27,6 +27,8 @@ impl SyntaxModule<ParserMetadata> for Failed {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         if meta.context.is_unsafe_ctx {
+            self.is_main = meta.context.is_main_ctx;
+            self.is_parsed = true;
             return Ok(());
         }
         if let Ok(_) = token(meta, "?") {
