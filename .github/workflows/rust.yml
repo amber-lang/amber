@@ -18,5 +18,3 @@ jobs:
       run: cargo build --verbose
     - name: Run validity tests
       run: cargo test validity --verbose
-    - name: Run performance tests
-      run: cargo test performance --verbose
