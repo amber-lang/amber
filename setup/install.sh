@@ -2,35 +2,121 @@ __0_name="AmberNative";
 __1_target="amber";
 __2_tag="0.2.0-alpha";
 __3_place="/opt/amber";
-    os=$(if [ $([ "_$(uname -s)" != "_Darwin" ]; echo $?) != 0 ]; then echo "macos"; else echo "linux"; fi);
-    arch=$(if [ $([ "_$(uname -m)" != "_arm64" ]; echo $?) != 0 ]; then echo "aarch64"; else echo "x86_64"; fi);
+    __AMBER_VAL_0=$(uname -s);
+    __AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    os=$(if [ $([ "_${__AMBER_VAL_0}" != "_Darwin" ]; echo $?) != 0 ]; then echo "macos"; else echo "linux"; fi);
+    __AMBER_VAL_1=$(uname -m);
+    __AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    arch=$(if [ $([ "_${__AMBER_VAL_1}" != "_arm64" ]; echo $?) != 0 ]; then echo "aarch64"; else echo "x86_64"; fi);
     url="https://github.com/Ph0enixKM/${__0_name}/releases/download/${__2_tag}/amber_${os}_${arch}";
-    test -d "${__3_place}" > /dev/null 2>&1;
-    if [ $([ "_$(echo $?)" != "_0" ]; echo $?) != 0 ]; then
+    test -d "${__3_place}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    __AMBER_VAL_2=$(echo $?);
+    __AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    if [ $([ "_${__AMBER_VAL_2}" != "_0" ]; echo $?) != 0 ]; then
         echo "Amber already installed";
         echo "It seems that Amber is already installed on your system. (${__3_place})";
         echo "If you want to reinstall Amber, uninstall it first.";
         echo "(Find out more at https://amber.marbl.cc)";
-        exit 0 > /dev/null 2>&1
+        exit 0
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi
 fi;
     echo "Installing Amber";
-    if [ $([ "_$(ruby -v > /dev/null; echo $?)" != "_0" ]; echo $?) != 0 ]; then
+    __AMBER_VAL_3=$(ruby -v > /dev/null; echo $?);
+    __AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    __AMBER_VAL_4=$(curl -v > /dev/null; echo $?);
+    __AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    __AMBER_VAL_5=$(wget -v > /dev/null; echo $?);
+    __AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    if [ $([ "_${__AMBER_VAL_3}" != "_0" ]; echo $?) != 0 ]; then
         code="require \"open-uri\"; open(\"${__1_target}\", \"wb\") do |file|; file << open(\"${url}\").read; end";
         echo "Using ruby as a download method...";
-        ruby -e "${code}" > /dev/null 2>&1
-elif [ $([ "_$(curl -v > /dev/null; echo $?)" != "_0" ]; echo $?) != 0 ]; then
+        ruby -e "${code}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi
+elif [ $([ "_${__AMBER_VAL_4}" != "_0" ]; echo $?) != 0 ]; then
         echo "Using curl as a download method...";
-        curl -o "${__1_target}" "${url}" > /dev/null 2>&1
-elif [ $([ "_$(wget -v > /dev/null; echo $?)" != "_0" ]; echo $?) != 0 ]; then
+        curl -o "${__1_target}" "${url}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi
+elif [ $([ "_${__AMBER_VAL_5}" != "_0" ]; echo $?) != 0 ]; then
         echo "Using wget as a download method...";
-        wget -O "${__1_target}" "${url}" > /dev/null 2>&1
+        wget -O "${__1_target}" "${url}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi
 else
         echo "Neither ruby, curl or wget are installed on your system.";
         echo "Please install one of them and try again.";
-        exit 1 > /dev/null 2>&1
+        exit 1
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi
 fi;
-    sudo mkdir "${__3_place}" > /dev/null > /dev/null 2>&1;
-    sudo mv "${__1_target}" "${__3_place}/${__1_target}" > /dev/null 2>&1;
-    sudo chmod +x "${__3_place}/${__1_target}" > /dev/null 2>&1;
-    sudo ln -s "${__3_place}/${__1_target}" "/usr/local/bin/${__1_target}" > /dev/null 2>&1;
+    sudo mkdir "${__3_place}" > /dev/null
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    sudo mv "${__1_target}" "${__3_place}/${__1_target}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    sudo chmod +x "${__3_place}/${__1_target}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    sudo ln -s "${__3_place}/${__1_target}" "/usr/local/bin/${__1_target}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
     echo "Amber has been installed successfully. 🎉"

@@ -21,8 +21,8 @@ pub fn get_rules() -> Rules {
     ];
     let region = reg![
         reg!(string as "string literal" => {
-            begin: "'",
-            end: "'"
+            begin: "\"",
+            end: "\""
         } => [
             reg!(str_interp as "string interpolation" => {
                 begin: "{",

@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 pub struct Flag {
     pub takes_value: bool,

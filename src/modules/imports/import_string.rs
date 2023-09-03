@@ -43,8 +43,8 @@ impl SyntaxModule<ParserMetadata> for ImportString {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
-        let value = token_by(meta, |word| word.starts_with('\''))?;
-        if value.ends_with('\'') {
+        let value = token_by(meta, |word| word.starts_with('"'))?;
+        if value.ends_with('"') {
             self.value = value[1..value.len() - 1].to_string();
             self.resolve_path(meta, tok)?;
         }

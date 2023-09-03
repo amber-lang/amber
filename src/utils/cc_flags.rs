@@ -24,3 +24,4 @@ pub fn get_ccflag_name(flag: CCFlags) -> &'static str {
         CCFlags::UndefinedFlag => "undefined_flag"
     }
 }
+

@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for Text {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        (self.strings, self.interps) = parse_interpolated_region(meta, '\'')?;
+        (self.strings, self.interps) = parse_interpolated_region(meta, '"')?;
         Ok(())
     }
 }

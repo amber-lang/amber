@@ -30,7 +30,7 @@ impl CLI {
             name: "Amber".to_string(),
             exe_name: "amber".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
-            ext: ".amber".to_string()
+            ext: ".ab".to_string()
         }
     }
 
@@ -43,6 +43,7 @@ impl CLI {
         if self.flags.flag_triggered("-e") {
             match self.flags.get_flag("-e").unwrap().value.clone() {
                 Some(code) => {
+                    let code = format!("import * from \"std\"\n{code}");
                     match AmberCompiler::new(code, None).compile() {
                         Ok((messages, code)) => {
                             messages.iter().for_each(|m| m.show());

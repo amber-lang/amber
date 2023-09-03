@@ -14,7 +14,7 @@ macro_rules! test_amber {
 
 #[test]
 fn hello_world() {
-    test_amber!("echo 'Hello World'", "Hello World");
+    test_amber!("echo \"Hello World\"", "Hello World");
 }
 
 #[test]
@@ -39,7 +39,12 @@ fn sub() {
 
 #[test]
 fn text() {
-    test_amber!("echo 'Hello World'", "Hello World");
+    test_amber!("echo \"Hello World\"", "Hello World");
+}
+
+#[test]
+fn text_escaped() {
+    test_amber!("echo \"Hello \\\"World\\\"\"", "Hello \"World\"");
 }
 
 #[test]
@@ -67,10 +72,19 @@ fn variable() {
 #[test]
 fn nested_string_interp() {
     let code = "
-        let x = 'welcome {'to'} wonderful {'world'}'
+        let x = \"welcome {\"to\"} wonderful {\"world\"}\"
         echo x
     ";
     test_amber!(code, "welcome to wonderful world");
+}
+
+#[test]
+fn text_escaped_interpolated() {
+    let code = "
+        let x = \"World\"
+        echo \"Hello \\\"{x}\\\"\"
+    ";
+    test_amber!(code, "Hello \"World\"");
 }
 
 #[test]
@@ -136,8 +150,8 @@ fn comment() {
 #[test]
 fn compare_eq_texts() {
     let code = "
-        let x = 'Hello World'
-        let y = 'Hello World'
+        let x = \"Hello World\"
+        let y = \"Hello World\"
         echo x == y
     ";
     test_amber!(code, "1");
@@ -212,8 +226,8 @@ fn if_statement_chain() {
 #[test]
 fn shorthand_add_text() {
     let code = "
-        let x = 'Hello '
-        x += 'World'
+        let x = \"Hello \"
+        x += \"World\"
         echo x
     ";
     test_amber!(code, "Hello World");
@@ -372,7 +386,7 @@ fn modulo_shorthand() {
 fn function() {
     let code = "
         fun test() {
-            return 'Hello World'
+            return \"Hello World\"
         }
         echo test()
     ";
@@ -383,9 +397,9 @@ fn function() {
 fn function_with_args() {
     let code = "
         fun test(a, b) {
-            return '{a} {b}'
+            return \"{a} {b}\"
         }
-        echo test('Hello', 'World')
+        echo test(\"Hello\", \"World\")
     ";
     test_amber!(code, "Hello World");
 }
@@ -396,7 +410,7 @@ fn function_with_args_different_types() {
         fun test(a, b) {
             return a + b
         }
-        echo test('Hello', 'World')
+        echo test(\"Hello\", \"World\")
         echo test(11, 42)
     ";
     test_amber!(code, "HelloWorld\n53");
@@ -420,7 +434,7 @@ fn function_with_typed_different_args() {
             echo a
             echo b
         }
-        test(11, 'Hello')
+        test(11, \"Hello\")
     ";
     test_amber!(code, "11\nHello");
 }
@@ -431,7 +445,7 @@ fn function_with_typed_args_text() {
         pub fun test(a: Text, b: Text) {
             echo a + b
         }
-        test('Hello', 'World')
+        test(\"Hello\", \"World\")
     ";
     test_amber!(code, "HelloWorld");
 }
@@ -439,8 +453,8 @@ fn function_with_typed_args_text() {
 #[test]
 fn import_existing_file() {
     let code = "
-        import * from 'test_files/str/trim.ab'
-        echo trim('    Hello World     ')
+        import * from \"test_files/str/trim.ab\"
+        echo trim(\"    Hello World     \")
     ";
     test_amber!(code, "Hello World");
 }
@@ -448,7 +462,7 @@ fn import_existing_file() {
 #[test]
 fn import_existing_nested_file() {
     let code = "
-        import * from 'test_files/is_even.ab'
+        import * from \"test_files/is_even.ab\"
         echo is_even(10)
     ";
     test_amber!(code, "even");
@@ -457,8 +471,8 @@ fn import_existing_nested_file() {
 #[test]
 fn public_import() {
     let code = "
-        import * from 'test_files/is_even.ab'
-        echo trim(' test ')
+        import * from \"test_files/is_even.ab\"
+        echo trim(\" test \")
     ";
     test_amber!(code, "test");
 }
@@ -487,10 +501,10 @@ fn function_ref_swap() {
 fn function_ref_text_escaped() {
     let code = "
         fun test(ref a) {
-            a = 'Hello World'
+            a = \"Hello World\"
         }
         
-        let a = 'Goodbye World'
+        let a = \"Goodbye World\"
         test(a)
         echo a
     ";
@@ -643,7 +657,7 @@ fn null() {
 #[test]
 fn failed() {
     let code = "
-        import { sum } from 'std'
+        import { sum } from \"std\"
         let requirements = [true, true, true]
         
         main {
@@ -654,9 +668,9 @@ fn failed() {
             }
         
             if sum(requirements as [Num]) == 3 {
-                echo 'All requirements are met'
+                echo \"All requirements are met\"
             } else {
-                echo 'Requirements not met'
+                echo \"Requirements not met\"
                 fail
             }
         }
@@ -668,23 +682,23 @@ fn failed() {
 fn nested_failed() {
     let code = "
         fun inner_c() {
-            echo 'inner_c'
+            echo \"inner_c\"
             fail
         }
         
         fun inner_b() {
             inner_c()?
-            echo 'inner_b'
+            echo \"inner_b\"
         }
         
         fun inner_a() {
             inner_b()?
-            echo 'inner_a'
+            echo \"inner_a\"
         }
         
         main {
             inner_a()?
-            echo 'main'
+            echo \"main\"
         }
     ";
     test_amber!(code, "inner_c");
@@ -695,7 +709,7 @@ fn silent() {
     let code = "
         main {
             silent {
-                echo 'Hello World'
+                echo \"Hello World\"
                 $non-existant command$?
             }
         }
@@ -717,35 +731,35 @@ fn status() {
 #[test]
 fn test_std_library() {
     let code = "
-        import * from 'std'
+        import * from \"std\"
 
         main {
             // Split a string into a list of strings (characters)
-            echo chars('hello world')
+            echo chars(\"hello world\")
             // Split a string into a list of strings by a delimiter
-            echo split('hello world', 'l')
+            echo split(\"hello world\", \"l\")
             // Join a list of strings into a string
-            echo join(split('hello world', 'l'), 'l')
+            echo join(split(\"hello world\", \"l\"), \"l\")
             // Transform string into a lowercase string
-            echo lower('HELLO WORLD')
+            echo lower(\"HELLO WORLD\")
             // Transform string into an uppercase string
-            echo upper('hello world')
+            echo upper(\"hello world\")
             // Trim whitespace from the beginning and end of a string
-            echo '|{trim(' hello world ')}|'
+            echo \"|{trim(\" hello world \")}|\"
             // Trim whitespace from the beginning of a string
-            echo '|{trim_left(' hello world ')}|'
+            echo \"|{trim_left(\" hello world \")}|\"
             // Trim whitespace from the end of a string
-            echo '|{trim_right(' hello world ')}|'
+            echo \"|{trim_right(\" hello world \")}|\"
             // Get the length of a string or list
-            echo len('hello world')
+            echo len(\"hello world\")
             echo len([1,2,3])
             // Replace all occurrences of a substring with another substring
-            echo replace('hello world', 'world', 'universe')
+            echo replace(\"hello world\", \"world\", \"universe\")
             // Parse text into a number
-            echo parse('123')?
+            echo parse(\"123\")?
             // Parse text into a number - do some code if failed
-            echo parse('XDDDDabc123') failed {
-                echo 'Parsing Failed'
+            echo parse(\"XDDDDabc123\") failed {
+                echo \"Parsing Failed\"
             }
         }
     ";
@@ -770,7 +784,7 @@ fn test_std_library() {
 fn chained_modifiers() {
     let code = "
         unsafe silent {
-            echo 'Hello World'
+            echo \"Hello World\"
             $non-existant command$
         }
         // Test for expression
@@ -785,7 +799,7 @@ fn chained_modifiers() {
 fn chained_modifiers_commands() {
     let code = "
         unsafe silent {
-            echo 'Hello World'
+            echo \"Hello World\"
             $non-existant command$
         }
         // Test for expression
@@ -805,14 +819,14 @@ fn chained_modifiers_functions() {
         }
 
         fun bar() {
-            echo 'this should not appear'
+            echo \"this should not appear\"
         }
         
-        unsafe foo('one')
+        unsafe foo(\"one\")
         unsafe {
-            foo('two')
+            foo(\"two\")
         }
-        unsafe silent foo('this should not appear')
+        unsafe silent foo(\"this should not appear\")
         silent bar()
     ";
     test_amber!(code, "one\ntwo");

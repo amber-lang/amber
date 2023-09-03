@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata}, modules::types::{Type, Typed}};
 use super::super::expression::expr::Expr;
@@ -18,7 +17,7 @@ pub mod eq;
 pub mod neq;
 
 pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, predicate: impl Fn(Type) -> bool, tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
-    if left == right && [left, right].iter().all(|kind| predicate(kind.deref().clone())) {
+    if left == right && [left, right].iter().all(|kind| predicate((*kind).clone())) {
         Ok(left.clone())
     } else {
         error!(meta, tok_pos, message)

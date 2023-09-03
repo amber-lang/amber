@@ -1,7 +1,7 @@
 pub fun trim(text) {
-    return '$\{text##*( )}'
+    return "$\{{nameof text}##*( )}"
 }
 
 main {
-    trim('long text')
+    trim("long text")
 }

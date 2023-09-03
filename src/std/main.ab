@@ -1,6 +1,6 @@
 pub fun input(): Text {
     unsafe $read$
-    return '$REPLY'
+    return "$REPLY"
 }
 
 pub fun replace_once(source, pattern, replacement) {
