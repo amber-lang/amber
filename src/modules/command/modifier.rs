@@ -78,7 +78,10 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             }
         }
         sequence = sequence.trim().to_string();
-        swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
+        let is_unsafe = self.is_unsafe;
+        if is_unsafe {
+            swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
+        }
         if self.is_expr {
             syntax(meta, &mut *self.expr)?;
             if !matches!(self.expr.value, Some(ExprType::CommandExpr(_) | ExprType::FunctionInvocation(_))) {
@@ -97,7 +100,9 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
                 }
             }
         }
-        swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
+        if is_unsafe {
+            swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
+        }
         Ok(())
     }
 }

@@ -23,13 +23,7 @@ if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
 fi;
-    __AMBER_VAL_2=$(echo $?);
-    __AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-$(exit $__AMBER_STATUS)
-:
-fi;
-    if [ $([ "_${__AMBER_VAL_2}" != "_0" ]; echo $?) != 0 ]; then
+    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Amber already installed";
         echo "It seems that Amber is already installed on your system. (${__3_place})";
         echo "If you want to reinstall Amber, uninstall it first.";
@@ -42,25 +36,14 @@ $(exit $__AMBER_STATUS)
 fi
 fi;
     echo "Installing Amber";
-    __AMBER_VAL_3=$(ruby -v > /dev/null; echo $?);
-    __AMBER_STATUS=$?;
+    isDone=0;
+            ruby -v > /dev/null 2>&1
+__AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
 fi;
-    __AMBER_VAL_4=$(curl -v > /dev/null; echo $?);
-    __AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-$(exit $__AMBER_STATUS)
-:
-fi;
-    __AMBER_VAL_5=$(wget -v > /dev/null; echo $?);
-    __AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-$(exit $__AMBER_STATUS)
-:
-fi;
-    if [ $([ "_${__AMBER_VAL_3}" != "_0" ]; echo $?) != 0 ]; then
+    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         code="require \"open-uri\"; open(\"${__1_target}\", \"wb\") do |file|; file << open(\"${url}\").read; end";
         echo "Using ruby as a download method...";
         ruby -e "${code}"
@@ -68,24 +51,42 @@ __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
-fi
-elif [ $([ "_${__AMBER_VAL_4}" != "_0" ]; echo $?) != 0 ]; then
+fi;
+        isDone=1
+fi;
+            curl -v > /dev/null 2>&1
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using curl as a download method...";
         curl -o "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
-fi
-elif [ $([ "_${__AMBER_VAL_5}" != "_0" ]; echo $?) != 0 ]; then
+fi;
+        isDone=1
+fi;
+            wget -v > /dev/null 2>&1
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using wget as a download method...";
         wget -O "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
-fi
-else
+fi;
+        isDone=1
+fi;
+    if [ $(echo  '!' ${isDone} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Neither ruby, curl or wget are installed on your system.";
         echo "Please install one of them and try again.";
         exit 1

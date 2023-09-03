@@ -20,7 +20,7 @@ unsafe {
     // Check if such directory exists
     $test -d "{place}"$
 
-    if $echo \$?$ == "0" {
+    if status == 0 {
         echo "Amber already installed"
         echo "It seems that Amber is already installed on your system. ({place})"
         echo "If you want to reinstall Amber, uninstall it first."
@@ -29,31 +29,36 @@ unsafe {
     }
 
     echo "Installing Amber"
+    let isDone = false
 
-    // Download Amber
-    if {
-        // Check if ruby is installed
-        $ruby -v > /dev/null; echo \$?$ == "0" {
-            let code = "require \"open-uri\"; open(\"{target}\", \"wb\") do |file|; file << open(\"{url}\").read; end"
-            echo "Using ruby as a download method..."
-            $ruby -e "{code}"$
-        }
-        // Check if curl is installed
-        $curl -v > /dev/null; echo \$?$ == "0" {
-            echo "Using curl as a download method..."
-            $curl -o "{target}" "{url}"$
-        }
-        // Check if wget is installed
-        $wget -v > /dev/null; echo \$?$ == "0" {
-            echo "Using wget as a download method..."
-            $wget -O "{target}" "{url}"$
-        }
-        else {
-            echo "Neither ruby, curl or wget are installed on your system."
-            echo "Please install one of them and try again."
-            $exit 1$
-        }
+    silent $ruby -v$
+    if status == 0 {
+        let code = "require \"open-uri\"; open(\"{target}\", \"wb\") do |file|; file << open(\"{url}\").read; end"
+        echo "Using ruby as a download method..."
+        $ruby -e "{code}"$
+        isDone = true
     }
+
+    silent $curl -v$
+    if status == 0 {
+        echo "Using curl as a download method..."
+        $curl -o "{target}" "{url}"$
+        isDone = true
+    }
+
+    silent $wget -v$
+    if status == 0 {
+        echo "Using wget as a download method..."
+        $wget -O "{target}" "{url}"$
+        isDone = true
+    }
+
+    if not isDone {
+        echo "Neither ruby, curl or wget are installed on your system."
+        echo "Please install one of them and try again."
+        $exit 1$
+    }
+
     // Create directory for amber
     $sudo mkdir "{place}" > /dev/null$
     // Move zipped version of amber
