@@ -1,6 +1,6 @@
 let name = "AmberNative"
 let target = "amber"
-let tag = "0.2.0-alpha"
+let tag = "0.3.0-alpha"
 let place = "/opt/amber"
 
 unsafe {

@@ -1,6 +1,6 @@
 __0_name="AmberNative";
 __1_target="amber";
-__2_tag="0.2.0-alpha";
+__2_tag="0.3.0-alpha";
 __3_place="/opt/amber";
     __AMBER_VAL_0=$(uname -s);
     __AMBER_STATUS=$?;
