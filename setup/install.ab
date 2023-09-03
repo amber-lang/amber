@@ -35,7 +35,7 @@ unsafe {
     if status == 0 {
         let code = "require \"open-uri\"; open(\"{target}\", \"wb\") do |file|; file << open(\"{url}\").read; end"
         echo "Using ruby as a download method..."
-        $ruby -e "{code}"$
+        $sudo ruby -e "{code}"$
         isDone = true
     }
 
