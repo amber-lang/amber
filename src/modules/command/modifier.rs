@@ -32,6 +32,12 @@ impl CommandModifier {
         self.is_expr = true;
         self
     }
+
+    fn flip_unsafe(&mut self, meta: &mut ParserMetadata, is_unsafe: bool) {
+        if is_unsafe {
+            swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for CommandModifier {
@@ -79,30 +85,36 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
         }
         sequence = sequence.trim().to_string();
         let is_unsafe = self.is_unsafe;
-        if is_unsafe {
-            swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
-        }
+        self.flip_unsafe(meta, is_unsafe);
         if self.is_expr {
-            syntax(meta, &mut *self.expr)?;
+            if let Err(err) = syntax(meta, &mut *self.expr) {
+                self.flip_unsafe(meta, is_unsafe);
+                return Err(err)
+            }
             if !matches!(self.expr.value, Some(ExprType::CommandExpr(_) | ExprType::FunctionInvocation(_))) {
+                self.flip_unsafe(meta, is_unsafe);
                 return error!(meta, tok, format!("Expected command or function call, after '{sequence}' command modifiers."));
             }
         } else {
             match token(meta, "{") {
                 Ok(_) => {
-                    syntax(meta, &mut *self.block)?;
+                    if let Err(err) = syntax(meta, &mut *self.block) {
+                        self.flip_unsafe(meta, is_unsafe);
+                        return Err(err)
+                    }
                     token(meta, "}")?;
                 },
                 Err(_) => {
                     let mut statement = Statement::new();
-                    syntax(meta, &mut statement)?;
+                    if let Err(err) = syntax(meta, &mut statement) {
+                        self.flip_unsafe(meta, is_unsafe);
+                        return Err(err)
+                    }
                     self.block.push_statement(statement);
                 }
             }
         }
-        if is_unsafe {
-            swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
-        }
+        self.flip_unsafe(meta, is_unsafe);
         Ok(())
     }
 }

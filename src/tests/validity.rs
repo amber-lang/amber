@@ -210,6 +210,20 @@ fn if_statements_else() {
 fn if_statement_chain() {
     let code = "
         let x = 42
+        let y = 42
+        if {
+            x == y {
+                echo x
+            }
+        }
+    ";
+    test_amber!(code, "42");
+}
+
+#[test]
+fn if_statement_chain_else() {
+    let code = "
+        let x = 42
         let y = 24
         if {
             x == y {

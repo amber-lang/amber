@@ -22,7 +22,6 @@ impl SyntaxModule<ParserMetadata> for IfChain {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let mut is_else = false;
         token(meta, "if")?;
         // Parse true block
         token(meta, "{")?;
@@ -35,11 +34,26 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             }
             // Handle else keyword
             if token(meta, "else").is_ok() {
-                is_else = true;
-                break
+                match token(meta, "{") {
+                    Ok(_) => {
+                        let mut false_block = Box::new(Block::new());
+                        syntax(meta, &mut *false_block)?;
+                        self.false_block = Some(false_block);
+                        token(meta, "}")?;
+                    }
+                    Err(_) => {
+                        let mut statement = Statement::new();
+                        token(meta, ":")?;
+                        syntax(meta, &mut statement)?;
+                        self.false_block = Some(Box::new(Block::new()));
+                        self.false_block.as_mut().unwrap().push_statement(statement);
+                    }
+                }
+                token(meta, "}")?;
+                return Ok(())
             }
             if token(meta, "}").is_ok() {
-                break
+                return Ok(())
             }
             // Handle end of the if chain
             if let Err(err) = syntax(meta, &mut cond) {
@@ -60,26 +74,6 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 }
             }
         }
-        // Parse false block
-        if is_else {
-            match token(meta, "{") {
-                Ok(_) => {
-                    let mut false_block = Box::new(Block::new());
-                    syntax(meta, &mut *false_block)?;
-                    self.false_block = Some(false_block);
-                    token(meta, "}")?;
-                }
-                Err(_) => {
-                    let mut statement = Statement::new();
-                    token(meta, ":")?;
-                    syntax(meta, &mut statement)?;
-                    self.false_block = Some(Box::new(Block::new()));
-                    self.false_block.as_mut().unwrap().push_statement(statement);
-                }
-            }
-        }
-        token(meta, "}")?;
-        Ok(())
     }
 }
 

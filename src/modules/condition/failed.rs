@@ -61,6 +61,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
+                    dbg!("FAILED");
                     return error!(meta, tok, "Failed expression must be followed by a block or statement")
                 }
             }
