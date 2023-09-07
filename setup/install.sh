@@ -2,6 +2,8 @@ function hasFailed__18_v0 {
     local command=$1
             ${command} > /dev/null 2>&1
 __AMBER_STATUS=$?;
+${command}
+echo STATUS: $__AMBER_STATUS
 if [ $__AMBER_STATUS != 0 ]; then
 :
 fi;
