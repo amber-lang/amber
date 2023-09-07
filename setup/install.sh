@@ -1,3 +1,14 @@
+function hasFailed__18_v0 {
+    local command=$1
+            ${command} > /dev/null 2>&1
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+$(exit $__AMBER_STATUS)
+:
+fi;
+    __AMBER_FUN_hasFailed18_v0=$(echo $__AMBER_STATUS '!=' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
+    return 0
+}
 __0_name="AmberNative";
 __1_target="amber";
 __2_tag="0.3.0-alpha";
@@ -36,57 +47,35 @@ $(exit $__AMBER_STATUS)
 fi
 fi;
     echo "Installing Amber";
-    isDone=0;
-            ruby -v > /dev/null 2>&1
-__AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-$(exit $__AMBER_STATUS)
-:
-fi;
-    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+    hasFailed__18_v0 "ruby -v";
+    hasFailed__18_v0 "curl -v";
+    hasFailed__18_v0 "wget -V";
+    if [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         code="require \"open-uri\"; open(\"${__1_target}\", \"wb\") do |file|; file << open(\"${url}\").read; end";
         echo "Using ruby as a download method...";
-        ruby -e "${code}"
+        sudo ruby -e "${code}"
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
-fi;
-        isDone=1
-fi;
-            curl -v > /dev/null 2>&1
-__AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-$(exit $__AMBER_STATUS)
-:
-fi;
-    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+fi
+elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using curl as a download method...";
         curl -o "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
-fi;
-        isDone=1
-fi;
-            wget -v > /dev/null 2>&1
-__AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-$(exit $__AMBER_STATUS)
-:
-fi;
-    if [ $(echo $__AMBER_STATUS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+fi
+elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using wget as a download method...";
         wget -O "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
-fi;
-        isDone=1
-fi;
-    if [ $(echo  '!' ${isDone} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+fi
+else
         echo "Neither ruby, curl or wget are installed on your system.";
         echo "Please install one of them and try again.";
         exit 1
