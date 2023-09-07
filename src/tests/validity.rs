@@ -725,7 +725,7 @@ fn status() {
             echo status
         }
     ";
-    test_amber!(code, "127\n0");
+    test_amber!(code, "127\n127");
 }
 
 #[test]

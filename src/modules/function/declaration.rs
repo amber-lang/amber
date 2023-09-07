@@ -110,6 +110,10 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         self.arg_types.push(Type::Generic);
                     }
                 }
+                let tok = meta.get_current_token();
+                if token(meta, "=").is_ok() {
+                    return error!(meta, tok, "Default values for function arguments are not yet supported")
+                }
                 match token(meta, ")") {
                     Ok(_) => break,
                     Err(_) => token(meta, ",")?

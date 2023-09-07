@@ -151,7 +151,7 @@ impl TranslateModule for Statement {
         // Translate the statement
         let translated = self.translate_match(meta, self.value.as_ref().unwrap());
         // This is a workaround that handles $(...) which cannot be used as a statement
-        let translated = (matches!(self.value, Some(StatementType::Expr(_))) || translated.starts_with('$') || translated.starts_with("\"$"))
+        let translated = (matches!(self.value, Some(StatementType::Expr(_))) || translated.starts_with("$(") || translated.starts_with("\"$("))
             .then(|| format!("echo {} > /dev/null 2>&1", translated))
             .unwrap_or_else(|| translated);
         // Get all the required supplemental statements

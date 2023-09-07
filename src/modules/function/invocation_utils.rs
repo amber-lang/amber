@@ -46,8 +46,11 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     }
     let mut ctx = meta.fun_cache.get_context(fun.id).unwrap().clone();
     let mut block = Block::new();
+    let mut binop_border = None;
     // Swap the contexts to use the function context
     swap(&mut ctx, &mut meta.context);
+    // Swap the binop border to clear it
+    swap(&mut binop_border, &mut meta.binop_border);
     // Create a sub context for new variables
     meta.push_scope();
     for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
@@ -63,6 +66,8 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     meta.pop_scope();
     // Restore old context
     swap(&mut ctx, &mut meta.context);
+    // Restore old binop border
+    swap(&mut binop_border, &mut meta.binop_border);
     // Set the new return type or null if nothing was returned
     if let Type::Generic = fun.returns {
         fun.returns = ctx.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
