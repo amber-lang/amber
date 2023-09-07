@@ -48,9 +48,12 @@ fi
 fi;
     echo "Installing Amber";
     hasFailed__18_v0 "ruby -v";
+    __AMBER_FUN_hasFailed18_v0__36 = ${__AMBER_FUN_hasFailed18_v0};
     hasFailed__18_v0 "curl -v";
+    __AMBER_FUN_hasFailed18_v0__41 = ${__AMBER_FUN_hasFailed18_v0};
     hasFailed__18_v0 "wget -V";
-    if [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+    __AMBER_FUN_hasFailed18_v0__45 = ${__AMBER_FUN_hasFailed18_v0};
+    if [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0__36} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         code="require \"open-uri\"; open(\"${__1_target}\", \"wb\") do |file|; file << open(\"${url}\").read; end";
         echo "Using ruby as a download method...";
         sudo ruby -e "${code}"
@@ -59,7 +62,7 @@ if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
 fi
-elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0__41} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using curl as a download method...";
         curl -o "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
@@ -67,7 +70,7 @@ if [ $__AMBER_STATUS != 0 ]; then
 $(exit $__AMBER_STATUS)
 :
 fi
-elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0__45} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using wget as a download method...";
         wget -O "${__1_target}" "${url}"
 __AMBER_STATUS=$?;

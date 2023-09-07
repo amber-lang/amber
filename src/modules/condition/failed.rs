@@ -26,39 +26,42 @@ impl SyntaxModule<ParserMetadata> for Failed {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
-        if meta.context.is_unsafe_ctx {
-            self.is_main = meta.context.is_main_ctx;
-            self.is_parsed = true;
-            return Ok(());
-        }
         if let Ok(_) = token(meta, "?") {
-            if !meta.context.is_fun_ctx && !meta.context.is_main_ctx {
+            if !meta.context.is_fun_ctx && !meta.context.is_main_ctx && !meta.context.is_unsafe_ctx {
                 return error!(meta, tok, "The '?' operator can only be used in the main block or function body")
             }
             self.is_question_mark = true;
         } else {
-            token(meta, "failed")?;
-            match token(meta, "{") {
-                Ok(_) => {
-                    let tok = meta.get_current_token();
-                    syntax(meta, &mut *self.block)?;
-                    if self.block.is_empty() {
-                        let message = Message::new_warn_at_token(meta, tok)
-                            .message("Empty failed block")
-                            .comment("You should use 'unsafe' modifier to run commands without handling errors");
-                        meta.messages.push(message);
+            match token(meta, "failed") {
+                Ok(_) => match token(meta, "{") {
+                    Ok(_) => {
+                        let tok = meta.get_current_token();
+                        syntax(meta, &mut *self.block)?;
+                        if self.block.is_empty() {
+                            let message = Message::new_warn_at_token(meta, tok)
+                                .message("Empty failed block")
+                                .comment("You should use 'unsafe' modifier to run commands without handling errors");
+                            meta.messages.push(message);
+                        }
+                        token(meta, "}")?;
+                    },
+                    Err(_) => {
+                        match token(meta, ":") {
+                            Ok(_) => {
+                                let mut statement = Statement::new();
+                                syntax(meta, &mut statement)?;
+                                self.block.push_statement(statement);
+                            },
+                            Err(_) => return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                        }
                     }
-                    token(meta, "}")?;
                 },
-                Err(_) => {
-                    match token(meta, ":") {
-                        Ok(_) => {
-                            let mut statement = Statement::new();
-                            syntax(meta, &mut statement)?;
-                            self.block.push_statement(statement);
-                        },
-                        Err(_) => return error!(meta, tok, "Failed expression must be followed by a block or statement")
-                    }
+                Err(_) => if meta.context.is_unsafe_ctx {
+                    self.is_main = meta.context.is_main_ctx;
+                    self.is_parsed = true;
+                    return Ok(());
+                } else {
+                    return error!(meta, tok, "Failed expression must be followed by a block or statement")
                 }
             }
         }
@@ -73,8 +76,8 @@ impl TranslateModule for Failed {
         if self.is_parsed {
             let block = self.block.translate(meta);
             let ret = self.is_main
-                .then(|| "exit $?")
-                .unwrap_or("return $?");
+                .then(|| "exit $__AMBER_STATUS")
+                .unwrap_or("return $__AMBER_STATUS");
             // the condition of '$?' clears the status code thus we need to store it in a variable
             if self.is_question_mark {
                 // if the failed expression is in the main block we need to clear the return value
@@ -88,7 +91,6 @@ impl TranslateModule for Failed {
                     "__AMBER_STATUS=$?;",
                     "if [ $__AMBER_STATUS != 0 ]; then",
                     &clear_return,
-                    &format!("$(exit $__AMBER_STATUS)"),
                     ret,
                     "fi"
                 ].join("\n")
@@ -96,7 +98,6 @@ impl TranslateModule for Failed {
                 vec![
                     "__AMBER_STATUS=$?;",
                     "if [ $__AMBER_STATUS != 0 ]; then",
-                    &format!("$(exit $__AMBER_STATUS)"),
                     &block,
                     "fi"
                 ].join("\n")

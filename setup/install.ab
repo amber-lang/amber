@@ -36,7 +36,11 @@ unsafe {
         not hasFailed("ruby -v") {
             let code = "require \"open-uri\"; open(\"{target}\", \"wb\") do |file|; file << open(\"{url}\").read; end"
             echo "Using ruby as a download method..."
-            $sudo ruby -e "{code}"$    
+            $sudo ruby -e "{code}"$ failed {
+                echo "Ruby failed to download amber."
+                echo "Please try again or use another download method."
+                $exit 1$
+            }
         }
         not hasFailed("curl -v") {
             echo "Using curl as a download method..."
