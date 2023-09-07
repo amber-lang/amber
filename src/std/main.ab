@@ -87,7 +87,7 @@ pub fun sum(list: [Num]): Num {
 }
 
 pub fun hasFailed(command: Text): Bool {
-    unsafe silent ${command}$
+    unsafe silent $eval {command}$
     return status != 0
 }
 
