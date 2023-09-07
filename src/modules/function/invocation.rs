@@ -16,6 +16,7 @@ pub struct FunctionInvocation {
     kind: Type,
     variant_id: usize,
     id: usize,
+    line: usize,
     failed: Failed,
     is_failable: bool
 }
@@ -37,6 +38,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             kind: Type::Null,
             variant_id: 0,
             id: 0,
+            line: 0,
             failed: Failed::new(),
             is_failable: false
         }
@@ -45,6 +47,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Get the function name
         let tok = meta.get_current_token();
+        if let Some(ref tok) = tok {
+            self.line = tok.pos.0;
+        }
         self.name = variable(meta, variable_name_extensions())?;
         // Get the arguments
         token(meta, "(")?;
@@ -89,6 +94,17 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     }
 }
 
+impl FunctionInvocation {
+    fn get_variable(&self, meta: &mut TranslateMetadata, name: &str) -> String {
+        if matches!(self.kind, Type::Array(_)) {
+            let quote = meta.gen_quote();
+            format!("{quote}${{{name}[@]}}{quote}")
+        } else {
+            format!("${{{name}}}")
+        }
+    }
+}
+
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("{}__{}_v{}", self.name, self.id, self.variant_id);
@@ -105,15 +121,20 @@ impl TranslateModule for FunctionInvocation {
             }
         }).collect::<Vec<String>>().join(" ");
         meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
+        let invocation_return = self.get_variable(meta, &format!("__AMBER_FUN_{}{}_v{}", self.name, self.id, self.variant_id));
+        let invocation_instance = self.get_variable(meta, &format!("__AMBER_FUN_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line));
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        if matches!(self.kind, Type::Array(_)) {
-            let quote = meta.gen_quote();
-            format!("{quote}${{__AMBER_FUN_{}{}_v{}[@]}}{quote}", self.name, self.id, self.variant_id)
-        } else {
-            format!("${{__AMBER_FUN_{}{}_v{}}}", self.name, self.id, self.variant_id)
-        }
+        meta.stmt_queue.push_back(
+            format!("__AMBER_FUN_{}{}_v{}__{}={}", self.name, self.id, self.variant_id, self.line, if matches!(self.kind, Type::Array(_)) {
+                // If the function returns an array we have to store the intermediate result in a variable that is of type array
+                format!("({})", invocation_return)
+            } else {
+                invocation_return
+            })
+        );
+        invocation_instance
     }
 }
