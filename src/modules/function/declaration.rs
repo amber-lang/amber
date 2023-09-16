@@ -77,7 +77,12 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         if token(meta, "pub").is_ok() {
             self.is_public = true;
         }
-        token(meta, "fun")?;
+        if let Err(err) = token(meta, "fun") {
+            if flags.len() > 0 {
+                return error!(meta, tok, "Compiler flags can only be used in function declarations")
+            }
+            return Err(err)
+        }
         // Check if we are in the global scope
         if !meta.is_global_scope() {
             return error!(meta, tok, "Functions can only be declared in the global scope")
