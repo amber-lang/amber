@@ -845,3 +845,227 @@ fn chained_modifiers_functions() {
     ";
     test_amber!(code, "one\ntwo");
 }
+
+#[test]
+fn variable_ref_set_text() {
+    let code = "
+        fun foo(ref a) {
+            a = \"one\"
+        }
+
+        let a = \"two\"
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "one");
+}
+
+#[test]
+fn variable_ref_set_num() {
+    let code = "
+        fun foo(ref a) {
+            a = 42
+        }
+
+        let a = 24
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "42");
+}
+
+#[test]
+fn variable_ref_set_bool() {
+    let code = "
+        fun foo(ref a) {
+            a = false
+        }
+
+        let a = true
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "0");
+}
+
+#[test]
+fn variable_ref_set_array() {
+    let code = "
+        fun foo(ref a) {
+            a = [1, 2, 3]
+        }
+
+        let a = [3, 2, 1]
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "1 2 3");
+}
+
+#[test]
+fn variable_ref_add_shorthand_text() {
+    let code = "
+        fun foo(ref a) {
+            a += \"one\"
+        }
+
+        let a = \"two\"
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "twoone");
+}
+
+#[test]
+fn variable_ref_add_shorthand_num() {
+    let code = "
+        fun foo(ref a) {
+            a += 12
+        }
+
+        let a = 24
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "36");
+}
+
+#[test]
+fn variable_ref_add_shorthand_array() {
+    let code = "
+        fun foo(ref a) {
+            a += [4, 5, 6]
+        }
+
+        let a = [1, 2, 3]
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "1 2 3 4 5 6");
+}
+
+#[test]
+fn variable_ref_sub_shorthand_num() {
+    let code = "
+        fun foo(ref a) {
+            a -= 12
+        }
+
+        let a = 36
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "24");
+}
+
+#[test]
+fn variable_ref_mul_shorthand_num() {
+    let code = "
+        fun foo(ref a) {
+            a *= 2
+        }
+
+        let a = 6
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "12");
+}
+
+#[test]
+fn variable_ref_div_shorthand_num() {
+    let code = "
+        fun foo(ref a) {
+            a /= 3
+        }
+
+        let a = 15
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "5");
+}
+
+#[test]
+fn variable_ref_mod_shorthand_num() {
+    let code = "
+        fun foo(ref a) {
+            a %= 5
+        }
+
+        let a = 17
+        foo(a)
+        echo a
+    ";
+    test_amber!(code, "2");
+}
+
+#[test]
+fn variable_ref_add_arithmetic_text() {
+    let code = "
+        fun foo(ref a, b) {
+            a = a + b
+        }
+
+        let a = \"two\"
+        foo(a, \"one\")
+        echo a
+    ";
+    test_amber!(code, "twoone");
+}
+
+#[test]
+fn variable_ref_sub_arithmetic_text() {
+    let code = "
+        fun foo(ref a, b) {
+            a = a - b
+        }
+
+        let a = \"twoone\"
+        foo(a, \"one\")
+        echo a
+    ";
+    test_amber!(code, "two");
+}
+
+#[test]
+fn variable_ref_mul_arithmetic_num() {
+    let code = "
+        fun foo(ref a, b) {
+            a = a * b
+        }
+
+        let a = 6
+        foo(a, 2)
+        echo a
+    ";
+    test_amber!(code, "12");
+}
+
+#[test]
+fn variable_ref_div_arithmetic_num() {
+    let code = "
+        fun foo(ref a, b) {
+            a = a / b
+        }
+
+        let a = 15
+        foo(a, 3)
+        echo a
+    ";
+    test_amber!(code, "5");
+}
+
+#[test]
+fn variable_ref_mod_arithmetic_num() {
+    let code = "
+        fun foo(ref a, b) {
+            a = a % b
+        }
+
+        let a = 17
+        foo(a, 5)
+        echo a
+    ";
+    test_amber!(code, "2");
+}

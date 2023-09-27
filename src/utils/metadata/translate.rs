@@ -75,4 +75,10 @@ impl TranslateMetadata {
             .then(|| "\\\"")
             .unwrap_or("\"")
     }
+
+    pub fn gen_subprocess(&mut self, stmt: &str) -> String {
+        self.eval_ctx
+            .then(|| format!("$(eval \"{}\")", stmt))
+            .unwrap_or_else(|| format!("$({})", stmt))
+    }
 }

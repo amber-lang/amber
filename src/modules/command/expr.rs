@@ -73,7 +73,8 @@ impl TranslateModule for CommandExpr {
         let failed = self.failed.translate(meta);
         let silent = self.is_silent_expr.then(|| " 2>/dev/null").unwrap_or("");
         if failed.is_empty() {
-            format!("$({}{silent})", translate_interpolated_region(self.strings.clone(), interps, false))
+            let translation = translate_interpolated_region(self.strings.clone(), interps, false);
+            meta.gen_subprocess(&(translation + silent))
         } else {
             let id = meta.gen_value_id();
             let quote = meta.gen_quote();

@@ -48,9 +48,9 @@ impl TranslateModule for Range {
         let to = self.to.translate(meta);
         if self.neq {
             let to_neq = translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string()));
-            format!("$(seq {} {})", from, to_neq)
+            meta.gen_subprocess(&format!("seq {} {}", from, to_neq))
         } else {
-            format!("$(seq {} {})", from, to)
+            meta.gen_subprocess(&format!("seq {} {}", from, to))
         }
     }
 }
