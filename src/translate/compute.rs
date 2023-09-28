@@ -21,7 +21,7 @@ pub enum ArithOp {
     Or
 }
 
-pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
+pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
@@ -58,5 +58,5 @@ pub fn translate_computation_eval(meta: &mut TranslateMetadata, operation: Arith
     meta.eval_ctx = true;
     let result = translate_computation(meta, operation, left, right);
     meta.eval_ctx = old_eval;
-    return result;
+    result
 }

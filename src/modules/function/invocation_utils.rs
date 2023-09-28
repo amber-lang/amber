@@ -78,7 +78,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     Ok((fun.returns.clone(), meta.add_fun_instance(fun.to_interface(), block)))
 }
 
-pub fn handle_function_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<usize, Failure> {
+pub fn handle_function_reference(meta: &ParserMetadata, tok: Option<Token>, name: &str) -> Result<usize, Failure> {
     match meta.get_fun_declaration(name) {
         Some(fun_decl) => Ok(fun_decl.id),
         None => {
@@ -109,7 +109,7 @@ pub fn handle_function_parameters(meta: &mut ParserMetadata, id: usize, fun: Fun
     }
 }
 
-fn handle_similar_function(meta: &mut ParserMetadata, name: &str) -> Option<String> {
+fn handle_similar_function(meta: &ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_fun_names());
     find_best_similarity(name, &vars)
         .map(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))

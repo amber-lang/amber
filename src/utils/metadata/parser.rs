@@ -114,12 +114,12 @@ impl ParserMetadata {
         let global_id = self.gen_fun_id();
         // Add the function to the public function list
         if fun.is_public {
-            let decl = fun.clone().to_fun_declaration(global_id);
+            let decl = fun.clone().as_fun_declaration(global_id);
             self.context.pub_funs.push(decl);
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun(fun.to_fun_declaration(global_id)).then(|| {
+        scope.add_fun(fun.as_fun_declaration(global_id)).then(|| {
             // Add the function to the function cache
             self.fun_cache.add_declaration(global_id, ctx);
             global_id
@@ -142,7 +142,7 @@ impl ParserMetadata {
     /// This function returns the id of the function instance variant
     pub fn add_fun_instance(&mut self, fun: FunctionInterface, block: Block) -> usize {
         let id = fun.id.expect("Function id is not set");
-        self.fun_cache.add_instance(id, fun.to_fun_instance(block))
+        self.fun_cache.add_instance(id, fun.as_fun_instance(block))
     }
 
     /// Gets a function declaration from the current scope or any parent scope

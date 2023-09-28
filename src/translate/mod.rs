@@ -5,7 +5,7 @@ use crate::utils::ParserMetadata;
 pub mod module;
 pub mod compute;
 
-pub fn check_all_blocks(meta: &mut ParserMetadata) -> SyntaxResult {
+pub fn check_all_blocks(meta: &ParserMetadata) -> SyntaxResult {
     let mut stack = 0;
     for token in meta.context.expr.iter() {
         match token.word.as_str() {

@@ -16,7 +16,7 @@ pub struct FunctionInterface {
 }
 
 impl FunctionInterface {
-    pub fn to_fun_declaration(self, id: usize) -> FunctionDecl {
+    pub fn as_fun_declaration(self, id: usize) -> FunctionDecl {
         let is_args_typed = self.arg_types.iter().all(|t| t != &Type::Generic);
         FunctionDecl {
             name: self.name,
@@ -31,7 +31,7 @@ impl FunctionInterface {
         }
     }
 
-    pub fn to_fun_instance(self, block: Block) -> FunctionInstance {
+    pub fn as_fun_instance(self, block: Block) -> FunctionInstance {
         FunctionInstance {
             variant_id: 0,
             args: self.arg_types,

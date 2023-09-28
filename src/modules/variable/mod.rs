@@ -37,7 +37,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 }
 
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
+pub fn handle_variable_reference(meta: &ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var(name) {
         Some(variable_unit) => Ok(variable_unit.clone()),
@@ -53,14 +53,14 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
     }
 }
 
-fn handle_similar_variable(meta: &mut ParserMetadata, name: &str) -> Option<String> {
+fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_var_names());
     find_best_similarity(name, &vars)
         .map(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
         .flatten()
 }
 
-pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
+pub fn handle_identifier_name(meta: &ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
         let new_name = name.get(1..).unwrap();
