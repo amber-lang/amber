@@ -36,7 +36,8 @@ pub trait Typed {
 // Tries to parse the type - if it fails, it fails loudly
 pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
-    try_parse_type(meta).or_else(|_| error!(meta, tok, "Expected a data type"))
+    try_parse_type(meta)
+        .map_err(|_| Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type")))
 }
 
 // Tries to parse the type - if it fails, it fails quietly

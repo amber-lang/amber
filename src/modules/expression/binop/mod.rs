@@ -16,7 +16,7 @@ pub mod le;
 pub mod eq;
 pub mod neq;
 
-pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &Type, predicate: impl Fn(Type) -> bool, tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
+pub fn expression_arms_of_type(meta: &ParserMetadata, left: &Type, right: &Type, predicate: impl Fn(Type) -> bool, tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
     if left == right && [left, right].iter().all(|kind| predicate((*kind).clone())) {
         Ok(left.clone())
     } else {
@@ -24,7 +24,7 @@ pub fn expression_arms_of_type(meta: &mut ParserMetadata, left: &Type, right: &T
     }
 }
 
-pub fn expression_arms_of_same_type(meta: &mut ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) -> SyntaxResult {
+pub fn expression_arms_of_same_type(meta: &ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) -> SyntaxResult {
     if left.get_type() != right.get_type() {
         error!(meta, tok_pos, message)
     } else {

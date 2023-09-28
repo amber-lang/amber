@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for CommandExpr {
                 }
                 Ok(())
             },
-            Err(Failure::Loud(err)) => return Err(Failure::Loud(err)),
+            Err(Failure::Loud(err)) => Err(Failure::Loud(err)),
             Err(Failure::Quiet(_)) => {
                 let tok = meta.get_current_token();
                 (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
@@ -71,16 +71,18 @@ impl TranslateModule for CommandExpr {
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
         let failed = self.failed.translate(meta);
-        let silent = self.is_silent_expr.then(|| " 2>/dev/null").unwrap_or("");
+        let silent = if self.is_silent_expr { " 2>/dev/null" } else { "" };
         if failed.is_empty() {
-            format!("$({}{silent})", translate_interpolated_region(self.strings.clone(), interps, false))
+            let translation = translate_interpolated_region(self.strings.clone(), interps, false);
+            meta.gen_subprocess(&(translation + silent))
         } else {
             let id = meta.gen_value_id();
             let quote = meta.gen_quote();
+            let dollar = meta.gen_dollar();
             let translation = translate_interpolated_region(self.strings.clone(), interps, false);
             meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation}{silent})"));
             meta.stmt_queue.push_back(failed);
-            format!("{quote}${{__AMBER_VAL_{id}}}{quote}")
+            format!("{quote}{dollar}{{__AMBER_VAL_{id}}}{quote}")
         }
     }
 }

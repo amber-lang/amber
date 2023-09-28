@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Array {
             Err(Failure::Quiet(_)) => {
                 loop {
                     let tok = meta.get_current_token();
-                    if let Ok(_) = token(meta, "[") {
+                    if token(meta, "[").is_ok() {
                         return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
                     }
                     // Parse array value
@@ -84,7 +84,8 @@ impl TranslateModule for Array {
         let name = format!("__AMBER_ARRAY_{}", meta.gen_array_id());
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<String>>().join(" ");
         let quote = meta.gen_quote();
+        let dollar = meta.gen_dollar();
         meta.stmt_queue.push_back(format!("{name}=({args})"));
-        format!("{quote}${{{name}[@]}}{quote}")
+        format!("{quote}{dollar}{{{name}[@]}}{quote}")
     }
 }

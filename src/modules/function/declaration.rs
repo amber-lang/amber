@@ -78,7 +78,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             self.is_public = true;
         }
         if let Err(err) = token(meta, "fun") {
-            if flags.len() > 0 {
+            if !flags.is_empty() {
                 return error!(meta, tok, "Compiler flags can only be used in function declarations")
             }
             return Err(err)
@@ -145,7 +145,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 arg_refs: self.arg_refs.clone(),
                 returns: self.returns.clone(),
                 is_public: self.is_public,
-                is_failable: is_failable
+                is_failable
             }, ctx)?;
             // Restore the compiler flags
             swap(&mut meta.context.cc_flags, &mut flags);
@@ -167,7 +167,7 @@ impl TranslateModule for FunctionDeclaration {
             meta.fun_name = Some((self.name.clone(), self.id, index));
             // Parse the function body
             result.push(format!("function {name} {{"));
-            if let Some(args) = self.set_args_as_variables(meta, &function, &self.arg_refs) {
+            if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args); 
             }
             result.push(function.block.translate(meta));

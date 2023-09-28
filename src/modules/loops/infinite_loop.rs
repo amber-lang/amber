@@ -36,11 +36,9 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 
 impl TranslateModule for InfiniteLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        vec![
-            "while :".to_string(),
+        ["while :".to_string(),
             "do".to_string(),
             self.block.translate(meta),
-            "done".to_string()
-        ].join("\n")
+            "done".to_string()].join("\n")
     }
 }

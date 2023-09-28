@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::{expr::Expr, binop::expression_arms_of_type};
 use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
+use crate::translate::compute::translate_computation_eval;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
 use crate::modules::types::{Type, Typed};
@@ -49,17 +50,27 @@ impl TranslateModule for ShorthandAdd {
         let expr = self.is_ref
             .then(|| self.expr.translate_eval(meta, true))
             .unwrap_or_else(|| self.expr.translate(meta));
-        let name = match self.global_id {
+        let name: String = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
-            None => if self.is_ref { format!("eval \"${{{}}}\"", self.var) } else { self.var.clone() }
+            None => if self.is_ref { format!("${{{}}}", self.var) } else { self.var.clone() }
         };
-        match self.kind {
+        let stmt = match self.kind {
             Type::Text => format!("{}+={}", name, expr),
             Type::Array(_) => format!("{}+=({})", name, expr),
             _ => {
-                let var = format!("${{{name}}}");
-                format!("{}={}", name, translate_computation(meta, ArithOp::Add, Some(var), Some(expr)))
+                let var = if self.is_ref { format!("\\${{{name}}}") } else { format!("${{{name}}}") };
+                let translated_computation = if self.is_ref {
+                    translate_computation_eval(meta, ArithOp::Add, Some(var), Some(expr))
+                } else {
+                    translate_computation(meta, ArithOp::Add, Some(var), Some(expr))
+                };
+                format!("{}={}", name, translated_computation)
             }
+        };
+        if self.is_ref {
+            format!("eval \"{}\"", stmt)
+        } else {
+            stmt
         }
     }
 }

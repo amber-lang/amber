@@ -61,7 +61,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             match meta.get_current_token() {
                 Some(tok) => {
                     sequence.push_str(tok.word.as_str());
-                    sequence.push_str(" ");
+                    sequence.push(' ');
                     match tok.word.as_str() {
                         "unsafe" => {
                             self.is_unsafe = true;

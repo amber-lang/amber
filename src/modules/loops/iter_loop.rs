@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "loop")?;
         self.iter_name = variable(meta, variable_name_extensions())?;
-        if let Ok(_) = token(meta, ",") {
+        if token(meta, ",").is_ok() {
             self.iter_index = Some(self.iter_name.clone());
             self.iter_name = variable(meta, variable_name_extensions())?;
         }
@@ -79,22 +79,18 @@ impl TranslateModule for IterLoop {
                 meta.increase_indent();
                 let indent = meta.gen_indent();
                 meta.decrease_indent();
-                vec![
-                    format!("{index}=0;"),
+                [format!("{index}=0;"),
                     format!("for {name} in {iterable}"),
                     "do".to_string(),
                     self.block.translate(meta),
                     format!("{indent}let {index}=${{{index}}}+1"),
-                    "done".to_string()
-                ].join("\n")
+                    "done".to_string()].join("\n")
             },
             None => {
-                vec![
-                    format!("for {name} in {iterable}"),
+                [format!("for {name} in {iterable}"),
                     "do".to_string(),
                     self.block.translate(meta),
-                    "done".to_string()
-                ].join("\n")
+                    "done".to_string()].join("\n")
             }
         }
     }

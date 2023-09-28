@@ -49,7 +49,7 @@ impl TranslateModule for Eq {
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
             strip_text_quotes(&mut left);
             strip_text_quotes(&mut right);
-            format!("$([ \"_{left}\" != \"_{right}\" ]; echo $?)")
+            meta.gen_subprocess(&format!("[ \"_{left}\" != \"_{right}\" ]; echo $?"))
         } else {
             translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
         }

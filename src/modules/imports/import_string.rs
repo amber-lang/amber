@@ -8,7 +8,7 @@ pub struct ImportString {
 }
 
 impl ImportString {
-    fn resolve_path(&mut self, meta: &mut ParserMetadata, tok: Option<Token>) -> SyntaxResult {
+    fn resolve_path(&mut self, meta: &ParserMetadata, tok: Option<Token>) -> SyntaxResult {
         if self.value == "std" {
             self.value = "[standard library]".to_string();
             return Ok(())

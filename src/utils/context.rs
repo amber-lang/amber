@@ -18,7 +18,7 @@ pub struct FunctionDecl {
 }
 
 impl FunctionDecl {
-    pub fn to_interface(self) -> FunctionInterface {
+    pub fn into_interface(self) -> FunctionInterface {
         FunctionInterface {
             id: Some(self.id),
             name: self.name,
@@ -145,9 +145,9 @@ impl Context {
         self
     }
 
-    pub fn file_import(mut self, trace: &Vec<PositionInfo>, position: PositionInfo) -> Self {
+    pub fn file_import(mut self, trace: &[PositionInfo], position: PositionInfo) -> Self {
         // Initialize the trace
-        self.trace = trace.clone();
+        self.trace = trace.to_vec();
         // Push the position to the trace
         self.trace.push(position);
         self

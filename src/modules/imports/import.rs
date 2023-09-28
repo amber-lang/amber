@@ -51,7 +51,7 @@ impl Import {
         Ok(())
     }
 
-    fn resolve_import(&mut self, meta: &mut ParserMetadata) -> Result<String, Failure> {
+    fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
         match fs::read_to_string(self.path.value.clone()) {
             Ok(content) => Ok(content),
             Err(err) => error!(meta, self.token_path.clone() => {

@@ -70,7 +70,7 @@ impl ImportCache {
             // If so add it to the graph
             Some(dst_path_id) => {
                 self.import_graph[src_path_id].push(dst_path_id);
-                (!self.contains_cycle(src_path_id)).then(|| dst_path_id)
+                (!self.contains_cycle(src_path_id)).then_some(dst_path_id)
             }
             // If not add it to the graph and create a new import entry
             None => {
@@ -93,8 +93,7 @@ impl ImportCache {
 
     pub fn get_import_pub_funs(&mut self, path: Option<String>) -> Option<Vec<FunctionDecl>> {
         self.get_path_id(&Self::get_path(path))
-            .map(|path_id| self.files[path_id].metadata.as_ref().map(|meta| meta.pub_funs.clone()))
-            .flatten()
+            .and_then(|path_id| self.files[path_id].metadata.as_ref().map(|meta| meta.pub_funs.clone()))
     }
 
     fn topological_sort_util(&self, v: usize, visited: &mut Vec<bool>, stack: &mut Vec<usize>) {

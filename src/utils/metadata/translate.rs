@@ -65,14 +65,22 @@ impl TranslateMetadata {
     }
 
     pub fn gen_silent(&self) -> &'static str {
-        self.silenced.then(|| " > /dev/null 2>&1").unwrap_or("")
+        if self.silenced { " > /dev/null 2>&1" } else { "" }
     }
 
     // Returns the appropriate amount of quotes with escape symbols.
     // This helps to avoid problems with `eval` expressions.
     pub fn gen_quote(&self) -> &'static str {
+        if self.eval_ctx { "\\\"" } else { "\"" }
+    }
+
+    pub fn gen_subprocess(&self, stmt: &str) -> String {
         self.eval_ctx
-            .then(|| "\\\"")
-            .unwrap_or("\"")
+            .then(|| format!("$(eval \"{}\")", stmt))
+            .unwrap_or_else(|| format!("$({})", stmt))
+    }
+
+    pub fn gen_dollar(&self) -> &'static str {
+        if self.eval_ctx { "\\$" } else { "$" }
     }
 }
