@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::{expr::Expr, binop::expression_arms_of_type};
 use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
+use crate::translate::compute::translate_computation_eval;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
 use crate::modules::types::{Type, Typed};
@@ -51,9 +52,15 @@ impl TranslateModule for ShorthandSub {
             .unwrap_or_else(|| self.expr.translate(meta));
         let name = match self.global_id {
             Some(id) => format!("__{id}_{}", self.var),
-            None => if self.is_ref { format!("eval \"${{{}}}\"", self.var) } else { self.var.clone() }
+            None => if self.is_ref { format!("${{{}}}", self.var) } else { self.var.clone() }
         };
-        let var = format!("${{{name}}}");
-        format!("{}={}", name, translate_computation(meta, ArithOp::Sub, Some(var), Some(expr)))
+        let var = if self.is_ref { format!("\\${{{name}}}") } else { format!("${{{name}}}") };
+        if self.is_ref {
+            let expr = translate_computation_eval(meta, ArithOp::Sub, Some(var), Some(expr));
+            format!("eval \"{}={}\"", name, expr)
+        } else {
+            let expr = translate_computation(meta, ArithOp::Sub, Some(var), Some(expr));
+            format!("{}={}", name, expr)
+        }
     }
 }

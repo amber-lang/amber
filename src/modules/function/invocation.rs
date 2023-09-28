@@ -95,12 +95,13 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 }
 
 impl FunctionInvocation {
-    fn get_variable(&self, meta: &mut TranslateMetadata, name: &str) -> String {
+    fn get_variable(&self, meta: &mut TranslateMetadata, name: &str, dollar_override: bool) -> String {
+        let dollar = dollar_override.then(|| "$").unwrap_or_else(|| meta.gen_dollar());
         if matches!(self.kind, Type::Array(_)) {
             let quote = meta.gen_quote();
-            format!("{quote}${{{name}[@]}}{quote}")
+            format!("{quote}{dollar}{{{name}[@]}}{quote}")
         } else {
-            format!("${{{name}}}")
+            format!("{dollar}{{{name}}}")
         }
     }
 }
@@ -121,8 +122,9 @@ impl TranslateModule for FunctionInvocation {
             }
         }).collect::<Vec<String>>().join(" ");
         meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
-        let invocation_return = self.get_variable(meta, &format!("__AMBER_FUN_{}{}_v{}", self.name, self.id, self.variant_id));
-        let invocation_instance = self.get_variable(meta, &format!("__AMBER_FUN_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line));
+        let invocation_return = &format!("__AMBER_FUN_{}{}_v{}", self.name, self.id, self.variant_id);
+        let invocation_instance = &format!("__AMBER_FUN_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line);
+        let parsed_invocation_return = self.get_variable(meta, invocation_return, true);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
@@ -130,11 +132,11 @@ impl TranslateModule for FunctionInvocation {
         meta.stmt_queue.push_back(
             format!("__AMBER_FUN_{}{}_v{}__{}={}", self.name, self.id, self.variant_id, self.line, if matches!(self.kind, Type::Array(_)) {
                 // If the function returns an array we have to store the intermediate result in a variable that is of type array
-                format!("({})", invocation_return)
+                format!("({})", parsed_invocation_return)
             } else {
-                invocation_return
+                parsed_invocation_return
             })
         );
-        invocation_instance
+        self.get_variable(meta, invocation_instance, false)
     }
 }

@@ -1015,18 +1015,19 @@ fn variable_ref_add_arithmetic_text() {
 }
 
 #[test]
-fn variable_ref_sub_arithmetic_text() {
+fn variable_ref_sub_arithmetic_num() {
     let code = "
         fun foo(ref a, b) {
             a = a - b
         }
 
-        let a = \"twoone\"
-        foo(a, \"one\")
+        let a = 36
+        foo(a, 12)
         echo a
     ";
-    test_amber!(code, "two");
+    test_amber!(code, "24");
 }
+
 
 #[test]
 fn variable_ref_mul_arithmetic_num() {
@@ -1068,4 +1069,36 @@ fn variable_ref_mod_arithmetic_num() {
         echo a
     ";
     test_amber!(code, "2");
+}
+
+#[test]
+fn variable_ref_command() {
+    let code = "
+        fun foo(ref a) {
+            a = $echo Test$?
+        }
+        
+        let a = \"\"
+        unsafe foo(a)
+        echo a
+    ";
+    test_amber!(code, "Test");
+}
+
+#[test]
+fn variable_ref_function_invocation() {
+    let code = "
+        fun reverse(input: Text): Text {
+            return unsafe $echo {input} | rev$
+        }
+        
+        fun foo(ref a) {
+            a = reverse(\"mars\")
+        }
+        
+        let a = \"\"
+        unsafe foo(a)
+        echo a
+    ";
+    test_amber!(code, "sram");
 }

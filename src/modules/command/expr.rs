@@ -78,10 +78,11 @@ impl TranslateModule for CommandExpr {
         } else {
             let id = meta.gen_value_id();
             let quote = meta.gen_quote();
+            let dollar = meta.gen_dollar();
             let translation = translate_interpolated_region(self.strings.clone(), interps, false);
             meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation}{silent})"));
             meta.stmt_queue.push_back(failed);
-            format!("{quote}${{__AMBER_VAL_{id}}}{quote}")
+            format!("{quote}{dollar}{{__AMBER_VAL_{id}}}{quote}")
         }
     }
 }

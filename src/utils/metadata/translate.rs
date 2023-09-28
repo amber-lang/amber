@@ -76,9 +76,15 @@ impl TranslateMetadata {
             .unwrap_or("\"")
     }
 
-    pub fn gen_subprocess(&mut self, stmt: &str) -> String {
+    pub fn gen_subprocess(&self, stmt: &str) -> String {
         self.eval_ctx
             .then(|| format!("$(eval \"{}\")", stmt))
             .unwrap_or_else(|| format!("$({})", stmt))
+    }
+
+    pub fn gen_dollar(&self) -> &'static str {
+        self.eval_ctx
+            .then(|| "\\$")
+            .unwrap_or_else(|| "$")
     }
 }
