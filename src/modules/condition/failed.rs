@@ -26,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
-        if let Ok(_) = token(meta, "?") {
+        if token(meta, "?").is_ok() {
             if !meta.context.is_fun_ctx && !meta.context.is_main_ctx && !meta.context.is_unsafe_ctx {
                 return error!(meta, tok, "The '?' operator can only be used in the main block or function body")
             }
@@ -76,9 +76,7 @@ impl TranslateModule for Failed {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         if self.is_parsed {
             let block = self.block.translate(meta);
-            let ret = self.is_main
-                .then(|| "exit $__AMBER_STATUS")
-                .unwrap_or("return $__AMBER_STATUS");
+            let ret = if self.is_main { "exit $__AMBER_STATUS" } else { "return $__AMBER_STATUS" };
             // the condition of '$?' clears the status code thus we need to store it in a variable
             if self.is_question_mark {
                 // if the failed expression is in the main block we need to clear the return value
@@ -88,20 +86,16 @@ impl TranslateModule for Failed {
                 } else {
                     String::new()
                 };
-                vec![
-                    "__AMBER_STATUS=$?;",
+                ["__AMBER_STATUS=$?;",
                     "if [ $__AMBER_STATUS != 0 ]; then",
                     &clear_return,
                     ret,
-                    "fi"
-                ].join("\n")
+                    "fi"].join("\n")
             } else {
-                vec![
-                    "__AMBER_STATUS=$?;",
+                ["__AMBER_STATUS=$?;",
                     "if [ $__AMBER_STATUS != 0 ]; then",
                     &block,
-                    "fi"
-                ].join("\n")
+                    "fi"].join("\n")
             }
         } else {
             String::new()

@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Array {
             Err(Failure::Quiet(_)) => {
                 loop {
                     let tok = meta.get_current_token();
-                    if let Ok(_) = token(meta, "[") {
+                    if token(meta, "[").is_ok() {
                         return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
                     }
                     // Parse array value

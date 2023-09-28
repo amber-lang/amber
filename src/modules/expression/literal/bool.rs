@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for Bool {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let value = token_by(meta, |value| vec!["true", "false"].contains(&value.as_str()))?;
+        let value = token_by(meta, |value| ["true", "false"].contains(&value.as_str()))?;
         self.value = value == "true";
         Ok(())        
     }

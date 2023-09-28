@@ -67,7 +67,7 @@ impl TranslateModule for VariableSet {
             .map(|index| format!("[{}]", self.is_ref
                 .then(|| index.translate_eval(meta, true))
                 .unwrap_or_else(|| index.translate(meta))))
-            .unwrap_or_else(|| String::new());
+            .unwrap_or_default();
         let mut expr = self.is_ref
             .then(|| self.value.translate_eval(meta, true))
             .unwrap_or_else(|| self.value.translate(meta));

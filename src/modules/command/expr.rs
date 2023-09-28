@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for CommandExpr {
                 }
                 Ok(())
             },
-            Err(Failure::Loud(err)) => return Err(Failure::Loud(err)),
+            Err(Failure::Loud(err)) => Err(Failure::Loud(err)),
             Err(Failure::Quiet(_)) => {
                 let tok = meta.get_current_token();
                 (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
@@ -71,7 +71,7 @@ impl TranslateModule for CommandExpr {
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
         let failed = self.failed.translate(meta);
-        let silent = self.is_silent_expr.then(|| " 2>/dev/null").unwrap_or("");
+        let silent = if self.is_silent_expr { " 2>/dev/null" } else { "" };
         if failed.is_empty() {
             let translation = translate_interpolated_region(self.strings.clone(), interps, false);
             meta.gen_subprocess(&(translation + silent))

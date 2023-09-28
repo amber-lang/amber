@@ -56,8 +56,7 @@ pub fn handle_variable_reference(meta: &ParserMetadata, tok: Option<Token>, name
 fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_var_names());
     find_best_similarity(name, &vars)
-        .map(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
-        .flatten()
+        .and_then(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
 }
 
 pub fn handle_identifier_name(meta: &ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {

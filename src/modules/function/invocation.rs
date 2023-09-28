@@ -96,7 +96,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl FunctionInvocation {
     fn get_variable(&self, meta: &TranslateMetadata, name: &str, dollar_override: bool) -> String {
-        let dollar = dollar_override.then(|| "$").unwrap_or_else(|| meta.gen_dollar());
+        let dollar = dollar_override.then_some("$").unwrap_or_else(|| meta.gen_dollar());
         if matches!(self.kind, Type::Array(_)) {
             let quote = meta.gen_quote();
             format!("{quote}{dollar}{{{name}[@]}}{quote}")
@@ -118,7 +118,7 @@ impl TranslateModule for FunctionInvocation {
                 // If the argument is an array, we have to get just the "name[@]" part
                 (translation.starts_with("\"${") && translation.ends_with("[@]}\""))
                     .then(|| translation.get(3..translation.len() - 2).unwrap().to_string())
-                    .unwrap_or_else(|| translation)
+                    .unwrap_or(translation)
             }
         }).collect::<Vec<String>>().join(" ");
         meta.stmt_queue.push_back(format!("{name} {args}{silent}"));

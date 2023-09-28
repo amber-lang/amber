@@ -56,9 +56,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 return Ok(())
             }
             // Handle end of the if chain
-            if let Err(err) = syntax(meta, &mut cond) {
-                return Err(err)
-            }
+            syntax(meta, &mut cond)?;
             match token(meta, "{") {
                 Ok(_) => {
                     syntax(meta, &mut block)?;

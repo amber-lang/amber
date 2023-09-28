@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut *self.expr, "as")?;
+        parse_left_expr(meta, &mut self.expr, "as")?;
         let tok = meta.get_current_token();
         token(meta, "as")?;
         self.kind = parse_type(meta)?;

@@ -146,7 +146,7 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>,
         match value {
             Some(translated) => {
                 if is_even {
-                    if translated.starts_with("\"") && translated.ends_with("\"") {
+                    if translated.starts_with('\"') && translated.ends_with('\"') {
                         result.push(translated.get(1..translated.len() - 1).unwrap().to_string());
                     } else {
                         result.push(translated);

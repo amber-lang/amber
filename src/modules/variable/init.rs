@@ -58,9 +58,7 @@ impl TranslateModule for VariableInit {
         if let Type::Array(_) = self.expr.get_type() {
             expr = format!("({expr})");
         }
-        let local = self.is_fun_ctx
-            .then(|| "local ")
-            .unwrap_or_else(|| "");
+        let local = if self.is_fun_ctx { "local " } else { "" };
         match self.global_id {
             Some(id) => format!("__{id}_{name}={expr}"),
             None => format!("{local}{name}={expr}")

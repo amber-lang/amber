@@ -68,7 +68,7 @@ impl AmberCompiler {
     pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
-        if let Err(Failure::Loud(err)) = check_all_blocks(&mut meta) {
+        if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
         let mut block = Block::new();

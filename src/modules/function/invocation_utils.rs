@@ -54,7 +54,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Create a sub context for new variables
     meta.push_scope();
     for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
-        meta.add_param(name, kind.clone(), is_ref.clone());
+        meta.add_param(name, kind.clone(), *is_ref);
     }
     // Set the expected return type if specified
     if fun.returns != Type::Generic {
@@ -73,9 +73,9 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
         fun.returns = ctx.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
     };
     // Set the new argument types
-    fun.arg_types = args.iter().cloned().collect();
+    fun.arg_types = args.to_vec();
     // Persist the new function instance
-    Ok((fun.returns.clone(), meta.add_fun_instance(fun.to_interface(), block)))
+    Ok((fun.returns.clone(), meta.add_fun_instance(fun.into_interface(), block)))
 }
 
 pub fn handle_function_reference(meta: &ParserMetadata, tok: Option<Token>, name: &str) -> Result<usize, Failure> {
@@ -112,6 +112,5 @@ pub fn handle_function_parameters(meta: &mut ParserMetadata, id: usize, fun: Fun
 fn handle_similar_function(meta: &ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_fun_names());
     find_best_similarity(name, &vars)
-        .map(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
-        .flatten()
+        .and_then(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
 }

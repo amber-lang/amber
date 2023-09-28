@@ -153,7 +153,7 @@ impl TranslateModule for Statement {
         // This is a workaround that handles $(...) which cannot be used as a statement
         let translated = (matches!(self.value, Some(StatementType::Expr(_))) || translated.starts_with("$(") || translated.starts_with("\"$("))
             .then(|| format!("echo {} > /dev/null 2>&1", translated))
-            .unwrap_or_else(|| translated);
+            .unwrap_or(translated);
         // Get all the required supplemental statements
         let indentation = meta.gen_indent();
         let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st + ";\n").join("");
