@@ -1,18 +1,28 @@
-import { hasFailed } from "std"
+import { hasFailed, includes, exit } from "std"
 
 let name = "AmberNative"
 let target = "amber"
 let tag = "0.3.1-alpha"
 let place = "/opt/amber"
 
-unsafe {
+main {
     // Determine OS type
-    let os = $uname -s$ == "Darwin"
+    let os_type = $uname -s$ failed {
+        echo "Failed to determine OS type."
+        echo "Please try again or use another download method."
+        exit(1)
+    }
+    let os = os_type == "Darwin"
         then "macos"
         else "linux"
 
     // Determine architecture
-    let arch = $uname -m$ == "arm64"
+    let arch_type = $uname -m$ failed {
+        echo "Failed to determine architecture."
+        echo "Please try again or use another download method."
+        exit(1)
+    }
+    let arch = includes(["arm64", "aarch64"], arch_type)
         then "aarch64"
         else "x86_64"
 
@@ -20,14 +30,14 @@ unsafe {
     let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}"
 
     // Check if such directory exists
-    $test -d "{place}"$
+    unsafe $test -d "{place}"$
 
     if status == 0 {
         echo "Amber already installed"
         echo "It seems that Amber is already installed on your system. ({place})"
         echo "If you want to reinstall Amber, uninstall it first."
         echo "(Find out more at https://amber.marbl.cc)"
-        $exit 0$
+        exit(2)
     }
 
     echo "Installing Amber"
@@ -38,33 +48,57 @@ unsafe {
             echo "Using ruby as a download method..."
             $sudo ruby -e "{code}"$ failed {
                 echo "Ruby failed to download amber."
-                echo "Please try again or use another download method."
-                $exit 1$
+                echo "Something went wrong. Please try again later."
+                exit(1)
             }
         }
         not hasFailed("curl -v") {
             echo "Using curl as a download method..."
-            $curl -o "{target}" "{url}"$
+            $curl -o "{target}" "{url}"$ failed {
+                echo "Curl failed to download amber."
+                echo "Something went wrong. Please try again later."
+                exit(1)
+            }
         }
         not hasFailed("wget -V") {
             echo "Using wget as a download method..."
-            $wget -O "{target}" "{url}"$
+            $wget -O "{target}" "{url}"$ failed {
+                echo "Wget failed to download amber."
+                echo "Something went wrong. Please try again later."
+                exit(1)
+            }
         }
         else {
             echo "Neither ruby, curl or wget are installed on your system."
             echo "Please install one of them and try again."
-            $exit 1$
+            exit(1)
         }
     }
 
     // Create directory for amber
-    $sudo mkdir "{place}" > /dev/null$
+    $sudo mkdir "{place}" > /dev/null$ failed {
+        echo "Failed to create directory for amber."
+        echo "Please make sure that root user can access /opt directory."
+        exit(1)
+    }
     // Move zipped version of amber
-    $sudo mv "{target}" "{place}/{target}"$
+    $sudo mv "{target}" "{place}/{target}"$ failed {
+        echo "Failed to move amber to the installation directory."
+        echo "Please make sure that root user can access /opt directory."
+        exit(1)
+    }
     // Give permissions to execute amber
-    $sudo chmod +x "{place}/{target}"$
+    $sudo chmod +x "{place}/{target}"$ failed {
+        echo "Failed to give permissions to execute amber."
+        echo "Please make sure that root user can access /opt directory."
+        exit(1)
+    }
     // Create amber symbol link
-    $sudo ln -s "{place}/{target}" "/usr/local/bin/{target}"$
+    $sudo ln -s "{place}/{target}" "/usr/local/bin/{target}"$ failed {
+        echo "Failed to create amber symbol link."
+        echo "Please make sure that root user can access /usr/local/bin directory."
+        exit(1)
+    }
     // Send success message
     echo "Amber has been installed successfully. 🎉"
 }

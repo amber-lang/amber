@@ -94,3 +94,8 @@ pub fun hasFailed(command: Text): Bool {
 pub fun exit(code: Num): Null {
     unsafe $exit "{code}"$
 }
+
+pub fun includes(arr, value) {
+    unsafe $[[ "\$\{{nameof arr}[@]}" =~ "{value}" ]]$
+    return status == 0
+}
