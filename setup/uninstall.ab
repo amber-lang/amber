@@ -1,11 +1,21 @@
-unsafe {
-    let place = "/opt/amber"
+import { exit } from "std"
 
-    $test -d "{place}" > /dev/null$
+let place = "/opt/amber"
 
-    if $echo \$?$ == "0" {
-        $sudo rm -rf "{place}"$
-        $sudo rm "/usr/local/bin/amber"$
+main {
+    unsafe $test -d "{place}" > /dev/null$
+
+    if status == 0 {
+        $sudo rm -rf "{place}"$ failed {
+            echo "Failed to remove Amber from {place}"
+            echo "Make sure root has the correct permissions to access this directory"
+            exit(1)
+        }
+        $sudo rm "/usr/local/bin/amber"$ failed {
+            echo "Failed to remove Amber from /usr/local/bin"
+            echo "Make sure root has the correct permissions to access this directory"
+            exit(1)
+        }
         echo "Uninstalled Amber successfully 🎉"
     }
     else {

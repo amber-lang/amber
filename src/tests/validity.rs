@@ -772,9 +772,13 @@ fn test_std_library() {
             // Parse text into a number
             echo parse(\"123\")?
             // Parse text into a number - do some code if failed
-            echo parse(\"XDDDDabc123\") failed {
+            parse(\"XDDDDabc123\") failed {
                 echo \"Parsing Failed\"
             }
+            // Check if array includes certain word
+            echo includes([\"hello\", \"world\"], \"hello\")
+            // Check if array does not include certain word
+            echo includes([\"hello\", \"world\"], \"other\")
         }
     ";
     test_amber!(code, vec![
@@ -791,6 +795,8 @@ fn test_std_library() {
         "hello universe",
         "123",
         "Parsing Failed",
+        "1",
+        "0",
     ].join("\n"));
 }
 
