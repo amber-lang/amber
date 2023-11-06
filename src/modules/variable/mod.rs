@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::{metadata::ParserMetadata, context::VariableDecl};
+use crate::utils::{metadata::ParserMetadata, context::VariableDecl, cc_flags::{get_ccflag_name, CCFlags}};
 use similar_string::find_best_similarity;
 use crate::modules::types::{Typed, Type};
 
@@ -68,11 +68,35 @@ pub fn handle_identifier_name(meta: &ParserMetadata, name: &str, tok: Option<Tok
             comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
         })
     }
+    if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
+        let flag = get_ccflag_name(CCFlags::AllowCamelCase);
+        return Err(Failure::Loud(Message::new_warn_at_token(meta, tok)
+            .message(format!("Indentifier '{name}' is not in snake case"))
+            .comment([
+                "We recommend using snake case with either all uppercase or all lowercase letters for consistency.",
+                format!("To disable this warning use '{flag}' compiler flag").as_str()
+            ].join("\n"))));
+    }
     // Validate if the variable name is a keyword
     if variable_name_keywords().contains(&name) {
         return error!(meta, tok, format!("Indentifier '{name}' is a reserved keyword"))
     }
     Ok(())
+}
+
+fn is_camel_case(name: &str) -> bool {
+    let mut is_lowercase = false;
+    let mut is_uppercase = false;
+    for chr in name.chars() {
+        match chr {
+            '_' => continue,
+            _ if is_lowercase && is_uppercase => return true,
+            _ if chr.is_lowercase() => is_lowercase = true,
+            _ if chr.is_uppercase() => is_uppercase = true,
+            _ => ()
+        }
+    }
+    false
 }
 
 pub fn handle_index_accessor(meta: &mut ParserMetadata) -> Result<Option<Expr>, Failure> {

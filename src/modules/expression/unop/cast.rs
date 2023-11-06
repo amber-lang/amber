@@ -35,7 +35,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
             let r_type = self.kind.clone();
             let message = Message::new_warn_at_token(meta, tok)
                 .message(format!("Casting a value of type '{l_type}' value to a '{r_type}' is not recommended"))
-                .comment(format!("To suppress this warning, use #[{flag_name}] before the parent function declaration"));
+                .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
             match (l_type, r_type) {
                 (Type::Array(left), Type::Array(right)) => {
                     if *left != *right && !matches!(*left, Type::Bool | Type::Num) && !matches!(*right, Type::Bool | Type::Num) {

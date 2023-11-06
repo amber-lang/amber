@@ -58,7 +58,7 @@ impl CLI {
                 },
                 None => {
                     Message::new_err_msg("No value passed after -e flag")
-                        .comment("You can write code that has to be evaluated after the -e flag")
+                        .comment("Write code to be evaluated after the -e flag")
                         .show();
                     std::process::exit(1);
                 }

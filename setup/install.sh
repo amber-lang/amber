@@ -1,11 +1,11 @@
-function hasFailed__18_v0 {
+function has_failed__18_v0 {
     local command=$1
             eval ${command} > /dev/null 2>&1
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 :
 fi;
-    __AMBER_FUN_hasFailed18_v0=$(echo $__AMBER_STATUS '!=' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
+    __AMBER_FUN_has_failed18_v0=$(echo $__AMBER_STATUS '!=' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
     return 0
 };
 function exit__19_v0 {
@@ -73,13 +73,13 @@ fi;
         echo ${__AMBER_FUN_exit19_v0__40} > /dev/null 2>&1
 fi;
     echo "Installing Amber";
-    hasFailed__18_v0 "ruby -v";
-    __AMBER_FUN_hasFailed18_v0__46=${__AMBER_FUN_hasFailed18_v0};
-    hasFailed__18_v0 "curl -v";
-    __AMBER_FUN_hasFailed18_v0__55=${__AMBER_FUN_hasFailed18_v0};
-    hasFailed__18_v0 "wget -V";
-    __AMBER_FUN_hasFailed18_v0__63=${__AMBER_FUN_hasFailed18_v0};
-    if [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0__46} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+    has_failed__18_v0 "ruby -v";
+    __AMBER_FUN_has_failed18_v0__46=${__AMBER_FUN_has_failed18_v0};
+    has_failed__18_v0 "curl -v";
+    __AMBER_FUN_has_failed18_v0__55=${__AMBER_FUN_has_failed18_v0};
+    has_failed__18_v0 "wget -V";
+    __AMBER_FUN_has_failed18_v0__63=${__AMBER_FUN_has_failed18_v0};
+    if [ $(echo  '!' ${__AMBER_FUN_has_failed18_v0__46} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         code="require \"open-uri\"; open(\"${__1_target}\", \"wb\") do |file|; file << open(\"${url}\").read; end";
         echo "Using ruby as a download method...";
         sudo ruby -e "${code}"
@@ -91,7 +91,7 @@ if [ $__AMBER_STATUS != 0 ]; then
             __AMBER_FUN_exit19_v0__52=${__AMBER_FUN_exit19_v0};
             echo ${__AMBER_FUN_exit19_v0__52} > /dev/null 2>&1
 fi
-elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0__55} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+elif [ $(echo  '!' ${__AMBER_FUN_has_failed18_v0__55} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using curl as a download method...";
         curl -o "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
@@ -102,7 +102,7 @@ if [ $__AMBER_STATUS != 0 ]; then
             __AMBER_FUN_exit19_v0__60=${__AMBER_FUN_exit19_v0};
             echo ${__AMBER_FUN_exit19_v0__60} > /dev/null 2>&1
 fi
-elif [ $(echo  '!' ${__AMBER_FUN_hasFailed18_v0__63} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+elif [ $(echo  '!' ${__AMBER_FUN_has_failed18_v0__63} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "Using wget as a download method...";
         wget -O "${__1_target}" "${url}"
 __AMBER_STATUS=$?;
