@@ -86,7 +86,7 @@ pub fun sum(list: [Num]): Num {
     return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
 }
 
-pub fun hasFailed(command: Text): Bool {
+pub fun has_failed(command: Text): Bool {
     unsafe silent $eval {command}$
     return status != 0
 }

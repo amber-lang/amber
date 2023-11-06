@@ -20,22 +20,39 @@ pub struct Import {
 }
 
 impl Import {
-    fn handle_export(&mut self, meta: &mut ParserMetadata, pub_funs: Vec<FunctionDecl>) -> SyntaxResult {
-        for mut fun in pub_funs {
-            if !self.is_all {
-                match self.export_defs.iter().find(|(name, ..)| fun.name == *name) {
-                    Some((_, Some(alias), _)) => fun.name = alias.clone(),
-                    Some((_, None, _)) => (),
-                    None => continue,
+    fn handle_export(&mut self, meta: &mut ParserMetadata, mut pub_funs: Vec<FunctionDecl>) -> SyntaxResult {
+        if !self.is_all {
+            for def in self.export_defs.iter() {
+                let (name, alias, tok) = def.clone();
+                let fun = match pub_funs.iter_mut().find(|fun| fun.name == name) {
+                    Some(fun) => fun,
+                    // Check if the function that is being imported is defined
+                    None => return error!(meta, tok.clone() => {
+                        message: format!("Function '{}' is not defined", name)
+                    })
+                };
+                if let Some(alias) = alias {
+                    fun.name = alias;
+                }
+                fun.is_public = self.is_pub;
+                let name = fun.name.clone();
+                // Check if current function name is already defined
+                if meta.add_fun_declaration_existing(fun.clone()).is_none() {
+                    return error!(meta, self.token_import.clone() => {
+                        message: format!("Function '{}' is already defined", name)
+                    })
                 }
             }
-            // Determine if imported functions should be exported further
-            fun.is_public = self.is_pub;
-            let name = fun.name.clone();
-            if meta.add_fun_declaration_existing(fun).is_none() {
-                return error!(meta, self.token_import.clone() => {
-                    message: format!("Function '{}' is already defined", name)
-                })
+        } else {
+            for mut fun in pub_funs {
+                // Determine if imported functions should be exported further
+                fun.is_public = self.is_pub;
+                let name = fun.name.clone();
+                if meta.add_fun_declaration_existing(fun).is_none() {
+                    return error!(meta, self.token_import.clone() => {
+                        message: format!("Function '{}' is already defined", name)
+                    })
+                }
             }
         }
         Ok(())
