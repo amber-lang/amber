@@ -25,7 +25,7 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
     (index_begin, index_end, is_failable)
 }
 
-pub fn handle_existing_function(meta: &ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
+pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
     if meta.get_fun_declaration(&name).is_some() {

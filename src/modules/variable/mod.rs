@@ -37,7 +37,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 }
 
 
-pub fn handle_variable_reference(meta: &ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
+pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var(name) {
         Some(variable_unit) => Ok(variable_unit.clone()),
@@ -59,7 +59,7 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
         .and_then(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
 }
 
-pub fn handle_identifier_name(meta: &ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
+pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
         let new_name = name.get(1..).unwrap();
@@ -70,12 +70,13 @@ pub fn handle_identifier_name(meta: &ParserMetadata, name: &str, tok: Option<Tok
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
         let flag = get_ccflag_name(CCFlags::AllowCamelCase);
-        return Err(Failure::Loud(Message::new_warn_at_token(meta, tok)
+        let msg = Message::new_warn_at_token(meta, tok.clone())
             .message(format!("Indentifier '{name}' is not in snake case"))
             .comment([
                 "We recommend using snake case with either all uppercase or all lowercase letters for consistency.",
                 format!("To disable this warning use '{flag}' compiler flag").as_str()
-            ].join("\n"))));
+            ].join("\n"));
+        meta.add_message(msg);
     }
     // Validate if the variable name is a keyword
     if variable_name_keywords().contains(&name) {
@@ -96,6 +97,7 @@ fn is_camel_case(name: &str) -> bool {
             _ => ()
         }
     }
+    if is_lowercase && is_uppercase { return true }
     false
 }
 

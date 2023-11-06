@@ -41,7 +41,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
                             let message = Message::new_warn_at_token(meta, tok)
                                 .message("Empty failed block")
                                 .comment("You should use 'unsafe' modifier to run commands without handling errors");
-                            meta.messages.push(message);
+                            meta.add_message(message);
                         }
                         token(meta, "}")?;
                     },
