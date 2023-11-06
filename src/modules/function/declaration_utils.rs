@@ -25,7 +25,7 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
     (index_begin, index_end, is_failable)
 }
 
-pub fn handle_existing_function(meta: &ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
+pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
     if meta.get_fun_declaration(&name).is_some() {
@@ -50,7 +50,7 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: F
         let flag_name = get_ccflag_name(CCFlags::AllowGenericReturn);
         let message = Message::new_warn_at_token(meta, tok.clone())
             .message("Function has typed arguments but a generic return type")
-            .comment(format!("To surpress this warning, specify a return type for the function '{name}' or use #[{flag_name}] before the parent function declaration"));
+            .comment(format!("To suppress this warning, specify a return type for the function '{name}' or use '{flag_name}' compiler flag"));
         meta.add_message(message);
     }
     // Try to add the function to the memory

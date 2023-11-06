@@ -1,4 +1,4 @@
-import { hasFailed, includes, exit } from "std"
+import { has_failed, includes, exit } from "std"
 
 let name = "AmberNative"
 let target = "amber"
@@ -43,7 +43,7 @@ main {
     echo "Installing Amber"
 
     if {
-        not hasFailed("ruby -v") {
+        not has_failed("ruby -v") {
             let code = "require \"open-uri\"; open(\"{target}\", \"wb\") do |file|; file << open(\"{url}\").read; end"
             echo "Using ruby as a download method..."
             $sudo ruby -e "{code}"$ failed {
@@ -52,7 +52,7 @@ main {
                 exit(1)
             }
         }
-        not hasFailed("curl -v") {
+        not has_failed("curl -v") {
             echo "Using curl as a download method..."
             $curl -o "{target}" "{url}"$ failed {
                 echo "Curl failed to download amber."
@@ -60,7 +60,7 @@ main {
                 exit(1)
             }
         }
-        not hasFailed("wget -V") {
+        not has_failed("wget -V") {
             echo "Using wget as a download method..."
             $wget -O "{target}" "{url}"$ failed {
                 echo "Wget failed to download amber."
