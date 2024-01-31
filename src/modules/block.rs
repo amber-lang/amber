@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Block {
                 continue;
             }
             // Handle comments
-            if token.word.starts_with("//") {
+            if token.word.starts_with("//") && !token.word.starts_with("///") {
                 meta.increment_index();
                 continue
             }

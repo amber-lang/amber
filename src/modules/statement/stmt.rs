@@ -34,13 +34,10 @@ use crate::modules::function::{
     ret::Return,
     fail::Fail
 };
-use crate::modules::imports::{
-    import::Import
-};
+use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
-use crate::modules::builtin::{
-    echo::Echo
-};
+use crate::modules::builtin::echo::Echo;
+use super::comment_doc::CommentDoc;
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -65,7 +62,8 @@ pub enum StatementType {
     Import(Import),
     Main(Main),
     Echo(Echo),
-    CommandModifier(CommandModifier)
+    CommandModifier(CommandModifier),
+    CommentDoc(CommentDoc)
 }
 
 #[derive(Debug, Clone)]
@@ -90,7 +88,9 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, CommandStatement, Echo, 
+        CommandModifier, CommandStatement, Echo,
+        // Comment doc
+        CommentDoc,
         // Expression
         Expr
     ]);
@@ -104,7 +104,7 @@ impl Statement {
         match syntax(meta, &mut module) {
             Ok(()) => {
                 self.value = Some(cb(module));
-                Ok(())    
+                Ok(())
             }
             Err(details) => Err(details)
         }
@@ -126,7 +126,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
         for statement in statements {
             // Handle comments
             if let Some(token) = meta.get_current_token() {
-                if token.word.starts_with("//") {
+                if token.word.starts_with("//") && !token.word.starts_with("///") {
                     meta.increment_index();
                     continue
                 }
