@@ -5,7 +5,7 @@ use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct CommentDoc {
-    value: String
+    pub value: String
 }
 
 impl SyntaxModule<ParserMetadata> for CommentDoc {

@@ -25,6 +25,43 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
     (index_begin, index_end, is_failable)
 }
 
+pub fn is_functions_comment_doc(meta: &mut ParserMetadata) -> bool {
+    let index = meta.get_index();
+    let mut is_comment_doc = true;
+    // Multiple linebreaks are merged by heraclitus, so we need to check for them
+    let mut last_line = 0;
+    if let Some(tok) = meta.get_current_token() {
+        if !tok.word.starts_with("///") {
+            return false;
+        }
+    }
+    while let Some(tok) = meta.get_current_token() {
+        // If there was a longer line break, it means the comment ended
+        if !is_comment_doc && tok.pos.0 != last_line + 1 {
+            meta.set_index(index);
+            return false;
+        }
+        if tok.word.starts_with("///") {
+            is_comment_doc = true;
+        }
+        if tok.word.starts_with("\n") {
+            if is_comment_doc {
+                is_comment_doc = false;
+                last_line = tok.pos.0;
+            } else {
+                meta.set_index(index);
+                return false;
+            }
+        }
+        if tok.word.starts_with("fun") {
+            meta.set_index(index);
+            return true;
+        }
+        meta.increment_index();
+    }
+    false
+}
+
 pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
     handle_identifier_name(meta, &name, tok.clone())?;

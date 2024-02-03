@@ -3,6 +3,7 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::cc_flags::get_ccflag_by_name;
@@ -24,7 +25,8 @@ pub struct FunctionDeclaration {
     pub returns: Type,
     pub body: Block,
     pub id: usize,
-    pub is_public: bool
+    pub is_public: bool,
+    pub comment: Option<CommentDoc>
 }
 
 impl FunctionDeclaration {
@@ -61,11 +63,18 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             returns: Type::Generic,
             body: Block::new(),
             id: 0,
-            is_public: false
+            is_public: false,
+            comment: None
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Parse the function comment
+        if is_functions_comment_doc(meta) {
+            let mut comment = CommentDoc::new();
+            syntax(meta, &mut comment)?;
+            self.comment = Some(comment);
+        }
         let mut flags = HashSet::new();
         // Get all the user-defined compiler flags
         while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
@@ -168,7 +177,7 @@ impl TranslateModule for FunctionDeclaration {
             // Parse the function body
             result.push(format!("function {name} {{"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
-                result.push(args); 
+                result.push(args);
             }
             result.push(function.block.translate(meta));
             result.push(meta.gen_indent() + "}");
