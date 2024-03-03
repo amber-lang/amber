@@ -2,6 +2,7 @@ use std::fs;
 use std::mem::swap;
 use heraclitus_compiler::prelude::*;
 use crate::compiler::AmberCompiler;
+use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::context::{Context, FunctionDecl};
@@ -172,6 +173,12 @@ impl SyntaxModule<ParserMetadata> for Import {
 
 impl TranslateModule for Import {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
+        "".to_string()
+    }
+}
+
+impl DocumentationModule for Import {
+    fn document(&self) -> String {
         "".to_string()
     }
 }

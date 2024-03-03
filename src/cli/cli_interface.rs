@@ -36,6 +36,7 @@ impl CLI {
 
     pub fn run(&mut self) {
         self.flags.register("-e", true);
+        self.flags.register("docs", true);
         self.flags.register("-h", false);
         self.flags.register("--help", false);
         self.args = self.flags.parse(env::args().collect());
@@ -60,6 +61,35 @@ impl CLI {
                     Message::new_err_msg("No value passed after -e flag")
                         .comment("Write code to be evaluated after the -e flag")
                         .show();
+                    std::process::exit(1);
+                }
+            }
+        }
+        // Generate documentation
+        else if self.flags.flag_triggered("docs") {
+            let input = match self.flags.get_flag("docs").unwrap().value.clone() {
+                Some(input) => input,
+                None => {
+                    Message::new_err_msg("No input file provided")
+                        .comment("Write the input file after the docs command")
+                        .show();
+                    std::process::exit(1);
+                }
+            };
+            match self.read_file(input.clone()) {
+                Ok(code) => {
+                    match AmberCompiler::new(code, Some(input)).generate_docs() {
+                        Ok(()) => {
+                            Message::new_info_msg("Documentation generated successfully").show();
+                        },
+                        Err(err) => {
+                            err.show();
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                Err(err) => {
+                    Message::new_err_msg(err.to_string()).show();
                     std::process::exit(1);
                 }
             }
@@ -134,7 +164,7 @@ impl CLI {
             Ok(mut file) => {
                 write!(file, "{}", code).unwrap();
                 Self::set_file_permission(&file, output_path);
-                
+
             },
             Err(err) => {
                 Message::new_err_msg(err.to_string()).show();

@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::translate::compute::{ArithOp, translate_computation};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -46,5 +47,11 @@ impl TranslateModule for Sub {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Sub, Some(left), Some(right))
+    }
+}
+
+impl DocumentationModule for Sub {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

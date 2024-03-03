@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::binop::parse_left_expr;
 use crate::modules::expression::expr::Expr;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -42,5 +43,11 @@ impl TranslateModule for Is {
         } else {
             "0".to_string()
         }
+    }
+}
+
+impl DocumentationModule for Is {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

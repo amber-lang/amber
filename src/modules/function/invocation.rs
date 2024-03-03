@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::docs::module::DocumentationModule;
 use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
@@ -138,5 +139,11 @@ impl TranslateModule for FunctionInvocation {
             })
         );
         self.get_variable(meta, invocation_instance, false)
+    }
+}
+
+impl DocumentationModule for FunctionInvocation {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

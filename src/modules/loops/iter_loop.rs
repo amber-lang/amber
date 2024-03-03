@@ -1,6 +1,7 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
@@ -93,5 +94,11 @@ impl TranslateModule for IterLoop {
                     "done".to_string()].join("\n")
             }
         }
+    }
+}
+
+impl DocumentationModule for IterLoop {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

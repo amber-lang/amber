@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::{ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}};
+use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
@@ -43,5 +43,11 @@ impl SyntaxModule<ParserMetadata> for Number {
 impl TranslateModule for Number {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         self.value.to_string()
+    }
+}
+
+impl DocumentationModule for Number {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

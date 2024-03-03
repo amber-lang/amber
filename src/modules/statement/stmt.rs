@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
+use crate::docs::module::DocumentationModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
@@ -159,5 +160,13 @@ impl TranslateModule for Statement {
         let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st + ";\n").join("");
         // Return all the statements
         statements + &indentation + &translated
+    }
+}
+
+impl DocumentationModule for Statement {
+    fn document(&self) -> String {
+        // Document the statement
+        let documented = self.document_match(self.value.as_ref().unwrap());
+        documented
     }
 }

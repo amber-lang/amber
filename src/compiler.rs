@@ -1,9 +1,12 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::translate::check_all_blocks;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::rules;
+use std::fs::File;
+use std::io::Write;
 use std::process::Command;
 use std::env;
 use std::time::Instant;
@@ -90,25 +93,57 @@ impl AmberCompiler {
         }
     }
 
-    pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
+    pub fn get_sorted_ast_forest(&self, block: Block, meta: &ParserMetadata) -> Vec<(String, Block)> {
         let imports_sorted = meta.import_cache.topological_sort();
         let imports_blocks = meta.import_cache.files.iter()
-            .map(|file| file.metadata.as_ref().map(|meta| meta.block.clone()))
-            .collect::<Vec<Option<Block>>>();
-        let mut meta = TranslateMetadata::new(meta);
+            .map(|file| file.metadata.as_ref().map(|meta| (file.path.clone(), meta.block.clone())))
+            .collect::<Vec<Option<(String, Block)>>>();
         let mut result = vec![];
-        let time = Instant::now();
         for index in imports_sorted.iter() {
-            if let Some(block) = imports_blocks[*index].clone() {
-                result.push(block.translate(&mut meta));
+            if let Some((path, block)) = imports_blocks[*index].clone() {
+                result.push((path, block));
             }
+        }
+        result.push((self.path.clone().unwrap_or(String::from("unknown")), block));
+        result
+    }
+
+    pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
+        let ast_forest = self.get_sorted_ast_forest(block, &meta);
+        let mut meta_translate = TranslateMetadata::new(meta);
+        let time = Instant::now();
+        let mut result = vec![];
+        for (_path, block) in ast_forest {
+            result.push(block.translate(&mut meta_translate));
         }
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!("[{}]\tin\t{}ms\t{pathname}", "Translate".magenta(), time.elapsed().as_millis());
         }
-        result.push(block.translate(&mut meta));
         result.join("\n")
+    }
+
+    fn get_file_path(&self, path: &str) -> String {
+        for (index, char) in path.chars().rev().enumerate() {
+            if char == '/' {
+                return path.to_string()
+            }
+            if char == '.' {
+                return path[..path.len() - (index + 1)].to_string()
+            }
+        }
+        path.to_string()
+    }
+
+    pub fn document(&self, block: Block, meta: ParserMetadata) {
+        let ast_forest = self.get_sorted_ast_forest(block, &meta);
+        for (path, block) in ast_forest {
+            let document = block.document();
+            // Save to file
+            let path = format!("{}.md", self.get_file_path(path.as_str()));
+            let mut file = File::create(path).unwrap();
+            file.write_all(document.as_bytes()).unwrap();
+        }
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
@@ -120,6 +155,11 @@ impl AmberCompiler {
     pub fn execute(code: String, flags: &[String]) {
         let code = format!("set -- {};\n\n{}", flags.join(" "), code);
         Command::new("/bin/bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
+    }
+
+    pub fn generate_docs(&self) -> Result<(), Message> {
+        self.tokenize().and_then(|tokens| self.parse(tokens))
+            .map(|(block, meta)| self.document(block, meta))
     }
 
     #[allow(dead_code)]

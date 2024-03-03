@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Typed, Type};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
@@ -63,5 +64,11 @@ impl TranslateModule for VariableInit {
             Some(id) => format!("__{id}_{name}={expr}"),
             None => format!("{local}{name}={expr}")
         }
+    }
+}
+
+impl DocumentationModule for VariableInit {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

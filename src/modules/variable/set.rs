@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
@@ -25,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
             is_ref: false
         }
     }
-    
+
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
@@ -82,5 +83,11 @@ impl TranslateModule for VariableSet {
                 None => format!("{name}{index}={expr}")
             }
         }
+    }
+}
+
+impl DocumentationModule for VariableSet {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

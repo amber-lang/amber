@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{types::{Type, Typed}, expression::expr::Expr}};
+use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
 use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
 
@@ -85,5 +85,11 @@ impl TranslateModule for VariableGet {
             (_, Type::Text) => format!("{quote}{res}{quote}"),
             _ => res
         }
+    }
+}
+
+impl DocumentationModule for VariableGet {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

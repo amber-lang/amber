@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::{types::{Type, Typed, try_parse_type}, expression::expr::Expr}};
+use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{try_parse_type, Type, Typed}}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
@@ -87,5 +87,11 @@ impl TranslateModule for Array {
         let dollar = meta.gen_dollar();
         meta.stmt_queue.push_back(format!("{name}=({args})"));
         format!("{quote}{dollar}{{{name}[@]}}{quote}")
+    }
+}
+
+impl DocumentationModule for Array {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

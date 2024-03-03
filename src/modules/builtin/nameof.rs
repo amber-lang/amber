@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -48,5 +49,11 @@ impl TranslateModule for Nameof {
         let quote = meta.gen_quote();
         let name = &self.name;
         format!("{quote}{name}{quote}")
+    }
+}
+
+impl DocumentationModule for Nameof {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

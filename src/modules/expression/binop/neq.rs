@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -52,5 +53,11 @@ impl TranslateModule for Neq {
         } else {
             translate_computation(meta, ArithOp::Neq, Some(left), Some(right))
         }
+    }
+}
+
+impl DocumentationModule for Neq {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

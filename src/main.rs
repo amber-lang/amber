@@ -2,6 +2,7 @@ mod modules;
 mod rules;
 mod utils;
 mod translate;
+mod docs;
 mod compiler;
 pub mod cli;
 use cli::cli_interface::CLI;

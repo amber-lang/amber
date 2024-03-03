@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -57,5 +58,11 @@ impl TranslateModule for Add {
             Type::Text => format!("{}{}", left, right),
             _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
         }
+    }
+}
+
+impl DocumentationModule for Add {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

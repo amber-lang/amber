@@ -1,8 +1,10 @@
 use std::mem::swap;
-
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{types::{Type, Typed}, condition::failed::Failed, expression::expr::ExprType}};
-use crate::modules::expression::expr::Expr;
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::condition::failed::Failed;
+use crate::modules::types::{Type, Typed};
+use crate::docs::module::DocumentationModule;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
 
@@ -84,5 +86,11 @@ impl TranslateModule for CommandExpr {
             meta.stmt_queue.push_back(failed);
             format!("{quote}{dollar}{{__AMBER_VAL_{id}}}{quote}")
         }
+    }
+}
+
+impl DocumentationModule for CommandExpr {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

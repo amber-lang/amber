@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{types::{Type, Typed}, condition::failed::Failed}};
+use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 
@@ -58,5 +58,11 @@ impl TranslateModule for CommandStatement {
             translation = translation.get(2..end).unwrap().to_string();
         }
         format!("{translation}{silent}\n{failed}").trim_end().to_string()
+    }
+}
+
+impl DocumentationModule for CommandStatement {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

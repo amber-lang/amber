@@ -3,6 +3,7 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::docs::module::DocumentationModule;
 use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
@@ -186,5 +187,12 @@ impl TranslateModule for FunctionDeclaration {
         meta.fun_name = prev_fun_name;
         // Return the translation
         result.join("\n")
+    }
+}
+
+impl DocumentationModule for FunctionDeclaration {
+    fn document(&self) -> String {
+        // TODO: Implement generating docs for functions
+        unimplemented!()
     }
 }

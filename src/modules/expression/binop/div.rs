@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, translate::compute::{translate_computation, ArithOp}};
+use crate::{docs::module::DocumentationModule, translate::compute::{translate_computation, ArithOp}, utils::{metadata::ParserMetadata, TranslateMetadata}};
 use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
@@ -45,5 +45,11 @@ impl TranslateModule for Div {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Div, Some(left), Some(right))
+    }
+}
+
+impl DocumentationModule for Div {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

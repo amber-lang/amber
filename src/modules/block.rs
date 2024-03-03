@@ -1,7 +1,8 @@
 use std::collections::VecDeque;
 
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}};
+use crate::docs::module::DocumentationModule;
+use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use super::statement::stmt::Statement;
 
@@ -81,5 +82,13 @@ impl TranslateModule for Block {
         // Restore the old statement queue
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         result
+    }
+}
+
+impl DocumentationModule for Block {
+    fn document(&self) -> String {
+        self.statements.iter()
+            .map(|statement| statement.document())
+            .collect::<Vec<_>>().join("\n")
     }
 }

@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::{types::{Type, Typed}, expression::{expr::Expr, binop::{parse_left_expr, expression_arms_of_type}}}, translate::compute::{translate_computation, ArithOp}};
+use crate::{docs::module::DocumentationModule, modules::{expression::{binop::{expression_arms_of_type, parse_left_expr}, expr::Expr}, types::{Type, Typed}}, translate::compute::{translate_computation, ArithOp}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
@@ -52,5 +52,11 @@ impl TranslateModule for Range {
         } else {
             meta.gen_subprocess(&format!("seq {} {}", from, to))
         }
+    }
+}
+
+impl DocumentationModule for Range {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

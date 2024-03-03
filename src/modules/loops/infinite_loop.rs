@@ -1,6 +1,7 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
@@ -40,5 +41,11 @@ impl TranslateModule for InfiniteLoop {
             "do".to_string(),
             self.block.translate(meta),
             "done".to_string()].join("\n")
+    }
+}
+
+impl DocumentationModule for InfiniteLoop {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

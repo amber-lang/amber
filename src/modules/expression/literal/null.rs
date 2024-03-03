@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}};
+use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
@@ -20,12 +20,18 @@ impl SyntaxModule<ParserMetadata> for Null {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "null")?;
-        Ok(())        
+        Ok(())
     }
 }
 
 impl TranslateModule for Null {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         "''".to_string()
+    }
+}
+
+impl DocumentationModule for Null {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

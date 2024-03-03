@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{TranslateMetadata, ParserMetadata}, modules::types::{Type, Typed}};
+use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
 
@@ -41,5 +41,11 @@ impl TranslateModule for Text {
             .collect::<Vec<String>>();
         let quote = meta.gen_quote();
         format!("{quote}{}{quote}", translate_interpolated_region(self.strings.clone(), interps, true))
+    }
+}
+
+impl DocumentationModule for Text {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

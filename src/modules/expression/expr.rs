@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -162,5 +163,11 @@ impl SyntaxModule<ParserMetadata> for Expr {
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         self.translate_match(meta, self.value.as_ref().unwrap())
+    }
+}
+
+impl DocumentationModule for Expr {
+    fn document(&self) -> String {
+        self.document_match(self.value.as_ref().unwrap())
     }
 }

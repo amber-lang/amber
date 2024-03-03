@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Type, Typed};
 use crate::modules::expression::binop::{parse_left_expr, expression_arms_of_same_type};
 use crate::modules::expression::expr::Expr;
@@ -54,5 +55,11 @@ impl TranslateModule for Ternary {
         let true_expr = self.true_expr.translate(meta);
         let false_expr = self.false_expr.translate(meta);
         meta.gen_subprocess(&format!("if [ {} != 0 ]; then echo {}; else echo {}; fi", cond, true_expr, false_expr))
+    }
+}
+
+impl DocumentationModule for Ternary {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

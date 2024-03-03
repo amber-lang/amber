@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::{expr::Expr, binop::expression_arms_of_type};
 use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
 use crate::translate::compute::translate_computation_eval;
@@ -62,5 +63,11 @@ impl TranslateModule for ShorthandDiv {
             let eval = translate_computation(meta, ArithOp::Div, Some(var), Some(expr));
             format!("{}={}", name, eval)
         }
+    }
+}
+
+impl DocumentationModule for ShorthandDiv {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

@@ -1,6 +1,7 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::statement::stmt::Statement;
@@ -129,5 +130,11 @@ impl TranslateModule for CommandModifier {
         };
         meta.silenced = false;
         result
+    }
+}
+
+impl DocumentationModule for CommandModifier {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

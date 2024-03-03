@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -81,5 +82,11 @@ impl TranslateModule for Fail {
             meta.stmt_queue.push_back(format!("__AMBER_FUN_{name}{id}_v{variant}=''"));
             format!("return {translate}")
         }
+    }
+}
+
+impl DocumentationModule for Fail {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

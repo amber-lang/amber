@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, TranslateMetadata, cc_flags::{get_ccflag_name, CCFlags}}, modules::{types::{Type, Typed, parse_type}, expression::binop::parse_left_expr}, translate::{module::TranslateModule}};
+use crate::{docs::module::DocumentationModule, modules::{expression::binop::parse_left_expr, types::{parse_type, Type, Typed}}, translate::module::TranslateModule, utils::{cc_flags::{get_ccflag_name, CCFlags}, metadata::ParserMetadata, TranslateMetadata}};
 use super::super::expr::Expr;
 
 #[derive(Debug, Clone)]
@@ -54,5 +54,11 @@ impl SyntaxModule<ParserMetadata> for Cast {
 impl TranslateModule for Cast {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         self.expr.translate(meta)
+    }
+}
+
+impl DocumentationModule for Cast {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

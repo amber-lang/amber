@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::{expr::Expr, binop::expression_arms_of_type};
 use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
 use crate::translate::compute::translate_computation_eval;
@@ -72,5 +73,11 @@ impl TranslateModule for ShorthandAdd {
         } else {
             stmt
         }
+    }
+}
+
+impl DocumentationModule for ShorthandAdd {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }
