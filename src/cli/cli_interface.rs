@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use colored::Colorize;
+use colored::{Colorize, CustomColor};
 use crate::compiler::AmberCompiler;
 use super::flag_registry::FlagRegistry;
 use std::env;
@@ -127,20 +127,29 @@ impl CLI {
         else {
             println!("{}'s compiler", self.name);
             println!("Version {}\n", self.version);
-            println!("USAGE:\t\t\t\tEXAMPLE:");
-            println!("{}", "For evaluation:".dimmed());
+            println!("{}", " USAGE ".custom_color(CustomColor{r: 255, g: 255, b: 255}).on_color("#000"));
+            println!("{}", "For evaluation:".bold());
             {
-                let example = format!("{} foo{}", self.exe_name, self.ext).dimmed();
-                println!("\t{} [INPUT]\t\t{}", self.exe_name, example);
+                println!("  {} [INPUT]", self.exe_name);
+                println!("{}", format!("  {} foo{}\n", self.exe_name, self.ext).dimmed());
             }
             {
-                let example = format!("{} -e \"\\$echo Hello World\\$\"", self.exe_name).dimmed();
-                println!("\t{} -e [EXPR]\t\t{}", self.exe_name, example);
+                println!("  {} -e [EXPR]", self.exe_name);
+                println!("{}", format!("  {} -e \"\\$echo Hello World\\$\"\n", self.exe_name).dimmed());
             }
-            println!("{}", "For compiling:".dimmed());
+            println!("{}", "For compiling:".bold());
             {
-                let example = format!("{} foo{} bar{}", self.exe_name, self.ext, self.ext).dimmed();
-                println!("\t{} [INPUT] [OUTPUT]\t{}", self.exe_name, example);
+                println!("  {} [INPUT] [OUTPUT]", self.exe_name);
+                println!("{}", format!("  {} foo{} bar{}\n", self.exe_name, self.ext, self.ext).dimmed());
+            }
+            println!("{}", "For documentation generation:".bold());
+            {
+                println!("  {} docs [INPUT]", self.exe_name);
+                println!("{}", format!("  {} docs foo{}\n", self.exe_name, self.ext).dimmed());
+            }
+            {
+                println!("  {} docs [INPUT] [OUTPUT DIR]", self.exe_name);
+                println!("{}", format!("  {} docs foo{} docs/", self.exe_name, self.ext).dimmed());
             }
         }
     }
