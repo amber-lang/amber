@@ -6,7 +6,7 @@
 
 Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts. It's particulary well suited for cloud services.
 
-> **[Warning]**
+> [!Warning]
 > This software is not ready for extended usage.
 
 ## Install
