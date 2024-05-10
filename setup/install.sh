@@ -39,6 +39,7 @@ if [ $__AMBER_STATUS != 0 ]; then
 :
 fi;
 __4_agent=$(if [ ${__AMBER_FUN_has_failed18_v0__7} != 0 ]; then echo "unknown"; else echo "${__AMBER_VAL_0}"; fi);
+echo "";
 
     __AMBER_VAL_1=$(uname -s);
     __AMBER_STATUS=$?;
@@ -46,8 +47,8 @@ if [ $__AMBER_STATUS != 0 ]; then
         echo "Failed to determine OS type.";
         echo "Please try again or use another download method.";
         exit__19_v0 1;
-        __AMBER_FUN_exit19_v0__16=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__16} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__18=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__18} > /dev/null 2>&1
 fi;
     os_type="${__AMBER_VAL_1}";
     os=$(if [ $([ "_${os_type}" != "_Darwin" ]; echo $?) != 0 ]; then echo "macos"; else echo "linux"; fi);
@@ -57,14 +58,14 @@ if [ $__AMBER_STATUS != 0 ]; then
         echo "Failed to determine architecture.";
         echo "Please try again or use another download method.";
         exit__19_v0 1;
-        __AMBER_FUN_exit19_v0__26=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__26} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__28=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__28} > /dev/null 2>&1
 fi;
     arch_type="${__AMBER_VAL_2}";
     __AMBER_ARRAY_0=("arm64" "aarch64");
     includes__20_v0 __AMBER_ARRAY_0[@] "${arch_type}";
-    __AMBER_FUN_includes20_v0__28=${__AMBER_FUN_includes20_v0};
-    arch=$(if [ ${__AMBER_FUN_includes20_v0__28} != 0 ]; then echo "aarch64"; else echo "x86_64"; fi);
+    __AMBER_FUN_includes20_v0__30=${__AMBER_FUN_includes20_v0};
+    arch=$(if [ ${__AMBER_FUN_includes20_v0__30} != 0 ]; then echo "aarch64"; else echo "x86_64"; fi);
     url="https://github.com/Ph0enixKM/${__0_name}/releases/download/${__2_tag}/amber_${os}_${arch}";
             test -d "${__3_place}"
 __AMBER_STATUS=$?;
@@ -77,17 +78,17 @@ fi;
         echo "If you want to reinstall Amber, uninstall it first.";
         echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)";
         exit__19_v0 2;
-        __AMBER_FUN_exit19_v0__43=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__43} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__45=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__45} > /dev/null 2>&1
 fi;
     has_failed__18_v0 "curl -V";
-    __AMBER_FUN_has_failed18_v0__47=${__AMBER_FUN_has_failed18_v0};
-    if [ ${__AMBER_FUN_has_failed18_v0__47} != 0 ]; then
+    __AMBER_FUN_has_failed18_v0__49=${__AMBER_FUN_has_failed18_v0};
+    if [ ${__AMBER_FUN_has_failed18_v0__49} != 0 ]; then
         echo "Curl is not installed on your system.";
         echo "Please install \`curl\` and try again.";
         exit__19_v0 1;
-        __AMBER_FUN_exit19_v0__50=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__50} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__52=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__52} > /dev/null 2>&1
 fi;
     echo "Installing Amber... 🚀";
             curl -L -o "${__1_target}" "${url}" > /dev/null 2>&1
@@ -96,8 +97,8 @@ if [ $__AMBER_STATUS != 0 ]; then
             echo "Curl failed to download amber.";
             echo "Something went wrong. Please try again later.";
             exit__19_v0 1 > /dev/null 2>&1;
-            __AMBER_FUN_exit19_v0__59=${__AMBER_FUN_exit19_v0};
-            echo ${__AMBER_FUN_exit19_v0__59} > /dev/null 2>&1
+            __AMBER_FUN_exit19_v0__61=${__AMBER_FUN_exit19_v0};
+            echo ${__AMBER_FUN_exit19_v0__61} > /dev/null 2>&1
 fi;
             sudo mkdir "${__3_place}" > /dev/null 2>&1
 __AMBER_STATUS=$?;
@@ -105,8 +106,8 @@ if [ $__AMBER_STATUS != 0 ]; then
             echo "Failed to create directory for amber.";
             echo "Please make sure that root user can access /opt directory.";
             exit__19_v0 1 > /dev/null 2>&1;
-            __AMBER_FUN_exit19_v0__66=${__AMBER_FUN_exit19_v0};
-            echo ${__AMBER_FUN_exit19_v0__66} > /dev/null 2>&1
+            __AMBER_FUN_exit19_v0__68=${__AMBER_FUN_exit19_v0};
+            echo ${__AMBER_FUN_exit19_v0__68} > /dev/null 2>&1
 fi;
     sudo mv "${__1_target}" "${__3_place}/${__1_target}"
 __AMBER_STATUS=$?;
@@ -114,8 +115,8 @@ if [ $__AMBER_STATUS != 0 ]; then
         echo "Failed to move amber to the installation directory.";
         echo "Please make sure that root user can access /opt directory.";
         exit__19_v0 1;
-        __AMBER_FUN_exit19_v0__72=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__72} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__74=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__74} > /dev/null 2>&1
 fi;
     sudo chmod +x "${__3_place}/${__1_target}"
 __AMBER_STATUS=$?;
@@ -123,8 +124,8 @@ if [ $__AMBER_STATUS != 0 ]; then
         echo "Failed to give permissions to execute amber.";
         echo "Please make sure that root user can access /opt directory.";
         exit__19_v0 1;
-        __AMBER_FUN_exit19_v0__78=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__78} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__80=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__80} > /dev/null 2>&1
 fi;
     sudo ln -s "${__3_place}/${__1_target}" "/usr/local/bin/${__1_target}"
 __AMBER_STATUS=$?;
@@ -132,18 +133,13 @@ if [ $__AMBER_STATUS != 0 ]; then
         echo "Failed to create amber symbol link.";
         echo "Please make sure that root user can access /usr/local/bin directory.";
         exit__19_v0 1;
-        __AMBER_FUN_exit19_v0__84=${__AMBER_FUN_exit19_v0};
-        echo ${__AMBER_FUN_exit19_v0__84} > /dev/null 2>&1
+        __AMBER_FUN_exit19_v0__86=${__AMBER_FUN_exit19_v0};
+        echo ${__AMBER_FUN_exit19_v0__86} > /dev/null 2>&1
 fi;
             curl -G --data-urlencode "agent=${__4_agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" > /dev/null 2>&1
 __AMBER_STATUS=$?;
 if [ $__AMBER_STATUS != 0 ]; then
 :
 fi;
-            echo -e "\033[0;32mAmber has been installed successfully.\033[0m 🎉"
-__AMBER_STATUS=$?;
-if [ $__AMBER_STATUS != 0 ]; then
-:
-fi;
-    echo "
-Now you can use amber by typing \`amber\` in your terminal."
+    echo "Amber has been installed successfully. 🎉";
+    echo "> Now you can use amber by typing \`amber\` in your terminal."

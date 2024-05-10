@@ -2,6 +2,8 @@ import { exit } from "std"
 
 let place = "/opt/amber"
 
+echo ""
+
 main {
     unsafe $test -d "{place}" > /dev/null$
 

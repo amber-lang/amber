@@ -8,6 +8,8 @@ let agent = has_failed("uname -a")
     then "unknown"
     else unsafe $uname -a$
 
+echo ""
+
 main {
     // Determine OS type
     let os_type = $uname -s$ failed {
@@ -88,6 +90,6 @@ main {
     unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
 
     // Send success message
-    unsafe $echo -e "{"\\033[0;32m"}Amber has been installed successfully.{"\\033[0m"} 🎉"$
-    echo "\nNow you can use amber by typing `amber` in your terminal."
+    echo "Amber has been installed successfully. 🎉"
+    echo "> Now you can use amber by typing `amber` in your terminal."
 }
