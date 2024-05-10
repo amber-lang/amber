@@ -60,8 +60,6 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
         loop {
             match meta.get_current_token() {
                 Some(tok) => {
-                    sequence.push_str(tok.word.as_str());
-                    sequence.push(' ');
                     match tok.word.as_str() {
                         "unsafe" => {
                             self.is_unsafe = true;
@@ -79,11 +77,12 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
                             return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
                         }
                     }
+                    sequence.push_str(tok.word.as_str());
+                    sequence.push(' ');
                 },
                 None => return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
             }
         }
-        sequence = sequence.trim().to_string();
         let is_unsafe = self.is_unsafe;
         self.flip_unsafe(meta, is_unsafe);
         if self.is_expr {
@@ -92,8 +91,11 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
                 return Err(err)
             }
             if !matches!(self.expr.value, Some(ExprType::CommandExpr(_) | ExprType::FunctionInvocation(_))) {
+                sequence = sequence.trim().to_string();
+                let count = sequence.split_whitespace().count();
+                let plural = if count > 1 { "s" } else { "" };
                 self.flip_unsafe(meta, is_unsafe);
-                return error!(meta, tok, format!("Expected command or function call, after '{sequence}' command modifiers."));
+                return error!(meta, tok, format!("Expected command or function call, after '{sequence}' command modifier{plural}."));
             }
         } else {
             match token(meta, "{") {

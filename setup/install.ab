@@ -1,9 +1,12 @@
-import { has_failed, includes, exit } from "std"
+import { has_failed, includes, exit, chars } from "std"
 
 let name = "AmberNative"
 let target = "amber"
 let tag = "0.3.1-alpha"
 let place = "/opt/amber"
+let agent = has_failed("uname -a")
+    then "unknown"
+    else unsafe $uname -a$
 
 main {
     // Determine OS type
@@ -36,47 +39,28 @@ main {
         echo "Amber already installed"
         echo "It seems that Amber is already installed on your system. ({place})"
         echo "If you want to reinstall Amber, uninstall it first."
-        echo "(Find out more at https://amber.marbl.cc)"
+        echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)"
         exit(2)
     }
 
-    echo "Installing Amber"
+    // Check if curl is installed
+    if has_failed("curl -V") {
+        echo "Curl is not installed on your system."
+        echo "Please install `curl` and try again."
+        exit(1)
+    }
 
-    if {
-        not has_failed("ruby -v") {
-            let code = "require \"open-uri\"; open(\"{target}\", \"wb\") do |file|; file << open(\"{url}\").read; end"
-            echo "Using ruby as a download method..."
-            $sudo ruby -e "{code}"$ failed {
-                echo "Ruby failed to download amber."
-                echo "Something went wrong. Please try again later."
-                exit(1)
-            }
-        }
-        not has_failed("curl -v") {
-            echo "Using curl as a download method..."
-            $curl -o "{target}" "{url}"$ failed {
-                echo "Curl failed to download amber."
-                echo "Something went wrong. Please try again later."
-                exit(1)
-            }
-        }
-        not has_failed("wget -V") {
-            echo "Using wget as a download method..."
-            $wget -O "{target}" "{url}"$ failed {
-                echo "Wget failed to download amber."
-                echo "Something went wrong. Please try again later."
-                exit(1)
-            }
-        }
-        else {
-            echo "Neither ruby, curl or wget are installed on your system."
-            echo "Please install one of them and try again."
-            exit(1)
-        }
+    echo "Installing Amber... 🚀"
+
+    // Download amber
+    silent $curl -L -o "{target}" "{url}"$ failed {
+        echo "Curl failed to download amber."
+        echo "Something went wrong. Please try again later."
+        exit(1)
     }
 
     // Create directory for amber
-    $sudo mkdir "{place}" > /dev/null$ failed {
+    silent $sudo mkdir "{place}"$ failed {
         echo "Failed to create directory for amber."
         echo "Please make sure that root user can access /opt directory."
         exit(1)
@@ -99,6 +83,11 @@ main {
         echo "Please make sure that root user can access /usr/local/bin directory."
         exit(1)
     }
+
+    // Send feedback to the server
+    unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+
     // Send success message
-    echo "Amber has been installed successfully. 🎉"
+    unsafe $echo -e "{"\\033[0;32m"}Amber has been installed successfully.{"\\033[0m"} 🎉"$
+    echo "\nNow you can use amber by typing `amber` in your terminal."
 }
