@@ -64,14 +64,14 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
         let new_name = name.get(1..).unwrap();
         return error!(meta, tok => {
-            message: format!("Indentifier '{name}' is not allowed"),
+            message: format!("Identifier '{name}' is not allowed"),
             comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
         })
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
         let flag = get_ccflag_name(CCFlags::AllowCamelCase);
         let msg = Message::new_warn_at_token(meta, tok.clone())
-            .message(format!("Indentifier '{name}' is not in snake case"))
+            .message(format!("Identifier '{name}' is not in snake case"))
             .comment([
                 "We recommend using snake case with either all uppercase or all lowercase letters for consistency.",
                 format!("To disable this warning use '{flag}' compiler flag").as_str()
@@ -80,7 +80,7 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
     }
     // Validate if the variable name is a keyword
     if variable_name_keywords().contains(&name) {
-        return error!(meta, tok, format!("Indentifier '{name}' is a reserved keyword"))
+        return error!(meta, tok, format!("Identifier '{name}' is a reserved keyword"))
     }
     Ok(())
 }

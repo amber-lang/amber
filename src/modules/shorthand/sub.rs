@@ -38,7 +38,7 @@ impl SyntaxModule<ParserMetadata> for ShorthandSub {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         self.expr.parse(meta)?;
-        let message = "Substract operation can only substract numbers";
+        let message = "Subtract operation can only subtract numbers";
         let predicate = |kind| matches!(kind, Type::Num);
         expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), predicate, tok, message)?;
         Ok(())
