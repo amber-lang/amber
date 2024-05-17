@@ -111,7 +111,7 @@ fn very_complex_arithmetic() {
 }
 
 #[test]
-fn paranthesis() {
+fn parenthesis() {
     let code = "
         let x = 21
         let y = 2
@@ -724,7 +724,7 @@ fn silent() {
         main {
             silent {
                 echo \"Hello World\"
-                $non-existant command$?
+                $non-existent command$?
             }
         }
     ";
@@ -734,7 +734,7 @@ fn silent() {
 #[test]
 fn status() {
     let code = "
-        silent $non-existant command$ failed {
+        silent $non-existent command$ failed {
             echo status
             echo status
         }
@@ -805,12 +805,12 @@ fn chained_modifiers() {
     let code = "
         unsafe silent {
             echo \"Hello World\"
-            $non-existant command$
+            $non-existent command$
         }
         // Test for expression
-        let _ = silent unsafe $non-existant command$
+        let _ = silent unsafe $non-existent command$
         // Test for single statement
-        silent unsafe $non-existant command$
+        silent unsafe $non-existent command$
     ";
     test_amber!(code, "Hello World");
 }
@@ -820,12 +820,12 @@ fn chained_modifiers_commands() {
     let code = "
         unsafe silent {
             echo \"Hello World\"
-            $non-existant command$
+            $non-existent command$
         }
         // Test for expression
-        let _ = silent unsafe $non-existant command$
+        let _ = silent unsafe $non-existent command$
         // Test for single statement
-        silent unsafe $non-existant command$
+        silent unsafe $non-existent command$
     ";
     test_amber!(code, "Hello World");
 }

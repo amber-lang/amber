@@ -66,7 +66,7 @@ impl TranslateModule for VariableGet {
         let ref_prefix = if self.is_ref { "!" } else { "" };
         let res = format!("${{{ref_prefix}{name}}}");
         // Text variables need to be encapsulated in string literals
-        // Otherwise, they will be "spreaded" into tokens
+        // Otherwise, they will be "spread" into tokens
         let quote = meta.gen_quote();
         match (self.is_ref, &self.kind) {
             (false, Type::Array(_)) => match *self.index {
