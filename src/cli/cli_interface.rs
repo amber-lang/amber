@@ -109,7 +109,7 @@ impl CLI {
             }
             println!("{}", "For compiling:".dimmed());
             {
-                let example = format!("{} foo{} bar{}", self.exe_name, self.ext, self.ext).dimmed();
+                let example = format!("{} foo{} bar.sh", self.exe_name, self.ext).dimmed();
                 println!("\t{} [INPUT] [OUTPUT]\t{}", self.exe_name, example);
             }
         }
