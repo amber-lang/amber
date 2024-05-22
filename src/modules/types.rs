@@ -28,9 +28,6 @@ impl Display for Type {
 
 pub trait Typed {
     fn get_type(&self) -> Type;
-    fn has_echo(&self) -> bool {
-        false
-    }
 }
 
 // Tries to parse the type - if it fails, it fails loudly

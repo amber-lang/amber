@@ -10,7 +10,6 @@ use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::modules::block::Block;
 use crate::modules::types::parse_type;
 
 use super::declaration_utils::*;
@@ -22,7 +21,6 @@ pub struct FunctionDeclaration {
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
     pub returns: Type,
-    pub body: Block,
     pub id: usize,
     pub is_public: bool
 }
@@ -59,7 +57,6 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             arg_types: vec![],
             arg_refs: vec![],
             returns: Type::Generic,
-            body: Block::new(),
             id: 0,
             is_public: false
         }
