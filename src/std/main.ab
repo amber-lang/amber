@@ -43,7 +43,7 @@ pub fun lines(text: Text): [Text] {
 pub fun words(text: Text): [Text] {
   let result = [Text]
   let trimmed = trim(text)
-  unsafe $IFS=\$' ' read -rd '' -a {nameof result} <<<"\${nameof trimmed}"$
+  unsafe $read -rd '' -a {nameof result} <<<"\${nameof text}"$
   return result
 }
 
