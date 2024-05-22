@@ -756,6 +756,10 @@ fn test_std_library() {
             loop line in lines(\"hello\nworld\") {
                 echo line
             }
+            // Split a multiline string into a list of string by one or more spaces
+            loop word in words(\"hello   world ciao     mondo\") {
+                echo word
+            }
             // Join a list of strings into a string
             echo join(split(\"hello world\", \"l\"), \"l\")
             // Transform string into a lowercase string
@@ -790,6 +794,10 @@ fn test_std_library() {
         "he  o wor d",
         "hello",
         "world",
+        "hello",
+        "world",
+        "ciao",
+        "mondo",
         "hello world",
         "hello world",
         "HELLO WORLD",
