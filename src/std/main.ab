@@ -41,7 +41,6 @@ pub fun lines(text: Text): [Text] {
 }
 
 pub fun words(text: Text): [Text] {
-  let result = [Text]
   unsafe $read -rd '' -a {nameof result} <<<"\${nameof text}"$
   return result
 }
