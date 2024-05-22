@@ -4,13 +4,14 @@ let name = "AmberNative"
 let target = "amber"
 let tag = "0.3.1-alpha"
 let place = "/opt/amber"
+let bins_folder = "/usr/local/bin"
 let agent = has_failed("uname -a")
     then "unknown"
     else unsafe $uname -a$
 
 echo ""
 
-main {
+main(args) {
     // Determine OS type
     let os_type = $uname -s$ failed {
         echo "Failed to determine OS type."
@@ -31,8 +32,19 @@ main {
         then "aarch64"
         else "x86_64"
 
-    // Set the download link
-    let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}"
+    let user_only_install = includes(args, "--user")
+    if user_only_install {
+        let home = $echo \$HOME$ failed {
+            echo "User installation requested, but unable to retrieve home directory from $HOME environment."
+            exit(1)
+        }
+        if home == "" {
+            echo "User installation requested, but unable to find home directory."
+            exit(1)
+        }
+        place = "{home}/.local/lib/{arch}/amber"
+        bins_folder = "{home}/.local/bin"
+    }
 
     // Check if such directory exists
     unsafe $test -d "{place}"$
@@ -54,6 +66,29 @@ main {
 
     echo "Installing Amber... 🚀"
 
+    // Make the directories we need first to ensure we have permissions before downloading any files
+    // this decreases the chance that our script results in partial installation leaving assets behind
+    let sudo = user_only_install then "" else "sudo"
+    // Create directory for amber
+    silent ${sudo} mkdir -p "{place}"$ failed {
+        echo "Failed to create directory for amber."
+        if user_only_install {
+            echo "Please make sure that root user can access {place} directory."
+        } else {
+            echo "Please make sure that your user can access {place} directory."
+        }
+        exit(1)
+    }
+    if user_only_install {
+        silent $mkdir -p "{bins_folder}"$ failed {
+            echo "Failed to create directory for amber bin at {bins_folder}."
+            exit(1)
+        }
+    }
+
+    // Set the download link
+    let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}"
+
     // Download amber
     silent $curl -L -o "{target}" "{url}"$ failed {
         echo "Curl failed to download amber."
@@ -61,26 +96,21 @@ main {
         exit(1)
     }
 
-    // Create directory for amber
-    silent $sudo mkdir "{place}"$ failed {
-        echo "Failed to create directory for amber."
-        echo "Please make sure that root user can access /opt directory."
-        exit(1)
-    }
     // Move zipped version of amber
-    $sudo mv "{target}" "{place}/{target}"$ failed {
+    ${sudo} mv "{target}" "{place}/{target}"$ failed {
         echo "Failed to move amber to the installation directory."
         echo "Please make sure that root user can access /opt directory."
         exit(1)
     }
     // Give permissions to execute amber
-    $sudo chmod +x "{place}/{target}"$ failed {
+    ${sudo} chmod +x "{place}/{target}"$ failed {
         echo "Failed to give permissions to execute amber."
         echo "Please make sure that root user can access /opt directory."
         exit(1)
     }
+
     // Create amber symbol link
-    $sudo ln -s "{place}/{target}" "/usr/local/bin/{target}"$ failed {
+    ${sudo} ln -s "{place}/{target}" "{bins_folder}/{target}"$ failed {
         echo "Failed to create amber symbol link."
         echo "Please make sure that root user can access /usr/local/bin directory."
         exit(1)
@@ -92,4 +122,7 @@ main {
     // Send success message
     echo "Amber has been installed successfully. 🎉"
     echo "> Now you can use amber by typing `amber` in your terminal."
+    if user_only_install {
+        echo "> Since you requested a user only install with `--user` ensure that ~/.local/bin is in your \\$PATH."
+    }
 }
