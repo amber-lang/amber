@@ -41,7 +41,7 @@ pub fun lines(text: Text): [Text] {
 }
 
 pub fun words(text: Text): [Text] {
-  unsafe $read -rd '' -a {nameof result} <<<"\${nameof text}"$
+  return split(text, " ")
   return result
 }
 
