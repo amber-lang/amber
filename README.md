@@ -10,30 +10,35 @@ Programming language that compiles to Bash. It's a high level programming langua
 > This software is not ready for extended usage.
 
 ## Install
-This compiler currently works on Windows (WSL), Linux and MacOS - all x86 and ARM 64 bit.
+Amber compiler currently works on:
+- Linux x86 and ARM
+- macOS x86 and ARM (Apple Silicon)
 
-### MacOS
+### macOS / Linux
 Make sure that the operating system meets the following prerequisites
-- Bash or Zsh or any other Bourne-again shell (usually comes with MacOS)
-- Ruby 2.0 or newer (usually comes with MacOS)
-
-```bash
-sudo ruby -e "require 'open-uri'; puts open('https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh').read" | $(echo $SHELL)
-```
-
-### Linux
-Make sure that the operating system meets the following prerequisites
-- Bash or Zsh or any other Bourne-again shell
+- Bourne-again shell (Bash)
 - Curl tool for downloading the installation script
+- Basic calculator `bc` command (On Debian run `sudo apt install bc`)
 
 ```bash
-sudo curl https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh | $(echo $SHELL)
+curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | $(echo /bin/bash)
 ```
 
 #### Via a package manager
 Amber is packaged in the following distros:
 
 Arch (AUR) - `amber-bash`
+
+### Windows support
+As windows does not come with bash installed it makes no sense to support it. Please install WSL 2 on your windows machine and install Linux version of Amber compiler inside.
+
+In order for it to work you may need to run the following code that pulls all the prerequisites.
+
+```bash
+sudo apt install curl bc
+sudo mkdir /opt /usr/local/bin
+```
+
 
 ## Contributing
 In order to contribute, you have to add couple of build targets:
