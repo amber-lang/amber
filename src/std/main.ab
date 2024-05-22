@@ -42,7 +42,6 @@ pub fun lines(text: Text): [Text] {
 
 pub fun words(text: Text): [Text] {
   return split(text, " ")
-  return result
 }
 
 pub fun join(list: [Text], delimiter: Text): Text {
