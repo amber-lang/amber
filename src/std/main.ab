@@ -1,4 +1,5 @@
-pub fun input(): Text {
+pub fun input(prompt: Text): Text {
+    unsafe $printf "\${nameof prompt}"$
     unsafe $read$
     return "$REPLY"
 }
@@ -30,6 +31,12 @@ pub fun file_append(path, content) {
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
     unsafe $IFS="{delimiter}" read -ra {nameof result} <<< "\${nameof text}"$
+    return result
+}
+
+pub fun lines(text: Text): [Text] {
+    let result = [Text]
+    unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
     return result
 }
 

@@ -499,12 +499,12 @@ fn function_ref_swap() {
             a = b
             b = temp
         }
-        
+
         let a = 12
         let b = 24
-        
+
         swap(a, b)
-        
+
         echo a
         echo b
     ";
@@ -517,7 +517,7 @@ fn function_ref_text_escaped() {
         fun test(ref a) {
             a = \"Hello World\"
         }
-        
+
         let a = \"Goodbye World\"
         test(a)
         echo a
@@ -561,7 +561,7 @@ fn array_pass_by_copy() {
             a[2] = 42
             echo a[2]
         }
-        
+
         let a = [1, 2, 3, 4, 5]
         test(a)
         echo a
@@ -576,7 +576,7 @@ fn array_pass_by_ref() {
             a[2] = 42
             echo a[1]
         }
-        
+
         let a = [1, 2, 3, 4, 5]
         test(a)
         echo a
@@ -673,14 +673,14 @@ fn failed() {
     let code = "
         import { sum } from \"std\"
         let requirements = [true, true, true]
-        
+
         main {
             silent {
                 $make -v$ failed: requirements[0] = false
                 $gcc -v$ failed: requirements[1] = false
                 $you don\\'t have this$ failed: requirements[2] = false
             }
-        
+
             if sum(requirements as [Num]) == 3 {
                 echo \"All requirements are met\"
             } else {
@@ -699,17 +699,17 @@ fn nested_failed() {
             echo \"inner_c\"
             fail
         }
-        
+
         fun inner_b() {
             inner_c()?
             echo \"inner_b\"
         }
-        
+
         fun inner_a() {
             inner_b()?
             echo \"inner_a\"
         }
-        
+
         main {
             inner_a()?
             echo \"main\"
@@ -752,6 +752,10 @@ fn test_std_library() {
             echo chars(\"hello world\")
             // Split a string into a list of strings by a delimiter
             echo split(\"hello world\", \"l\")
+            // Split a multiline string to lines of string
+            loop line in lines(\"hello\nworld\") {
+                echo line
+            }
             // Join a list of strings into a string
             echo join(split(\"hello world\", \"l\"), \"l\")
             // Transform string into a lowercase string
@@ -784,6 +788,8 @@ fn test_std_library() {
     test_amber!(code, vec![
         "h e l l o   w o r l d",
         "he  o wor d",
+        "hello",
+        "world",
         "hello world",
         "hello world",
         "HELLO WORLD",
@@ -841,7 +847,7 @@ fn chained_modifiers_functions() {
         fun bar() {
             echo \"this should not appear\"
         }
-        
+
         unsafe foo(\"one\")
         unsafe {
             foo(\"two\")
@@ -1083,7 +1089,7 @@ fn variable_ref_command() {
         fun foo(ref a) {
             a = $echo Test$?
         }
-        
+
         let a = \"\"
         unsafe foo(a)
         echo a
@@ -1097,11 +1103,11 @@ fn variable_ref_function_invocation() {
         fun reverse(input: Text): Text {
             return unsafe $echo {input} | rev$
         }
-        
+
         fun foo(ref a) {
             a = reverse(\"mars\")
         }
-        
+
         let a = \"\"
         unsafe foo(a)
         echo a
