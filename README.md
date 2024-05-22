@@ -30,6 +30,10 @@ Make sure that the operating system meets the following prerequisites
 sudo curl https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh | $(echo $SHELL)
 ```
 
+#### Via a package manager
+Amber is packaged in the following distros:
+
+Arch (AUR) - `amber-bash`
 
 ## Contributing
 In order to contribute, you have to add couple of build targets:
