@@ -40,6 +40,10 @@ pub fun lines(text: Text): [Text] {
     return result
 }
 
+pub fun words(text: Text): [Text] {
+  return split(text, " ")
+}
+
 pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
