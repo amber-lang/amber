@@ -2,7 +2,6 @@ import { has_failed, includes, exit, chars } from "std"
 
 let name = "AmberNative"
 let target = "amber"
-let tag = "0.3.1-alpha"
 let place = "/opt/amber"
 let bins_folder = "/usr/local/bin"
 let agent = has_failed("uname -a")
@@ -10,6 +9,17 @@ let agent = has_failed("uname -a")
     else unsafe $uname -a$
 
 echo ""
+
+fun get_latest_release_tag() {
+    let tag_url = "https://api.github.com/repos/Ph0enixKM/{name}/releases/latest"
+    let tag_json = silent $curl -L "{tag_url}"$?
+    // Get the tag name from the JSON
+    let tag = $echo "\${nameof tag_json}" \
+        | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
+        | grep -Eo "\\"[^\\"]+\\"\$" \
+        | grep -Eo "[^\\"\\s]+"$?
+    return tag
+}
 
 main(args) {
     // Determine OS type
@@ -84,6 +94,12 @@ main(args) {
             echo "Failed to create directory for amber bin at {bins_folder}."
             exit(1)
         }
+    }
+
+    let tag = get_latest_release_tag() failed {
+        echo "Failed to get the latest release tag."
+        echo "Please try again or use another download method."
+        exit(1)
     }
 
     // Set the download link
