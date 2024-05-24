@@ -760,6 +760,10 @@ fn test_std_library() {
             loop word in words(\"hello   world ciao     mondo\") {
                 echo word
             }
+            // Split a joined string into a list of string
+            loop word in words(join([\"hello\", \"world\"], \" \")) {
+                echo word
+            }
             // Join a list of strings into a string
             echo join(split(\"hello world\", \"l\"), \"l\")
             // Transform string into a lowercase string
@@ -798,6 +802,8 @@ fn test_std_library() {
         "world",
         "ciao",
         "mondo",
+        "hello",
+        "world",
         "hello world",
         "hello world",
         "HELLO WORLD",
@@ -1120,5 +1126,5 @@ fn variable_ref_function_invocation() {
         unsafe foo(a)
         echo a
     ";
-    test_amber!(code, "sram");
+    test_amber!(code, "\"sram\"");
 }

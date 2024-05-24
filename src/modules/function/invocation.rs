@@ -97,9 +97,11 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 impl FunctionInvocation {
     fn get_variable(&self, meta: &TranslateMetadata, name: &str, dollar_override: bool) -> String {
         let dollar = dollar_override.then_some("$").unwrap_or_else(|| meta.gen_dollar());
+        let quote = meta.gen_quote();
         if matches!(self.kind, Type::Array(_)) {
-            let quote = meta.gen_quote();
             format!("{quote}{dollar}{{{name}[@]}}{quote}")
+        } else if matches!(self.kind, Type::Text) {
+            format!("{quote}{dollar}{{{name}}}{quote}")
         } else {
             format!("{dollar}{name}")
         }
