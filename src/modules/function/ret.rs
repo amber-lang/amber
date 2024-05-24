@@ -56,7 +56,7 @@ impl TranslateModule for Return {
         let result = matches!(self.expr.get_type(), Type::Array(_))
             .then(|| format!("({result})"))
             .unwrap_or(result);
-        meta.stmt_queue.push_back(format!("__AMBER_FUN_{name}{id}_v{variant}={result}"));
+        meta.stmt_queue.push_back(format!("__AF_{name}{id}_v{variant}={result}"));
         "return 0".to_string()
     }
 }
