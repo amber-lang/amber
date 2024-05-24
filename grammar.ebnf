@@ -1,0 +1,105 @@
+(*
+    This is a basic grammar declaration for Amber written in EBNF.
+    This syntax does not include features that are not fully stable yet.
+*)
+
+root = { statement_global } ;
+
+(* Statement *)
+statement_local = expression | variable_init | variable_set
+    | loop | loop_array | if_statement | if_chain ;
+statement_global = statement_local | function_def | main
+    | import_all | import_ids;
+
+(* Block *)
+singleline_block = ':', statement_local ;
+multiline_block = '{', { statement_local }, '}' ;
+block = singleline_block | multiline_block ;
+
+(* Expression *)
+expression = number | text | boolean | null | list | command
+    | binary_operation | unary_operation | parentheses | ternary
+    | range | range_inclusive | identifier | function_call ;
+
+(* Terminals *)
+ANY_CHAR = ? any character ? ;
+LETTER = 'A'..'Z' | 'a'..'z' ;
+DIGIT = '0'..'9' ;
+TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
+UNARY_OP = '-' | 'not' ;
+BINARY_OP = '+' | '-' | '*' | '/' | '%' | 'and' | 'or' | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
+COMMAND_MOD = 'silent' | 'unsafe';
+VISIBILITY = 'pub'
+
+(* Identifier *)
+any_identifier = (LETTER | '_') , { LETTER | '_' | DIGIT } ;
+internal_identifier = '__' , { LETTER | '_' | DIGIT } ;
+identifier = any_identifier - internal_identifier ;
+
+(* `Num` literal *)
+integer = DIGIT , { DIGIT } ;
+real = integer , '.' , integer ;
+number = integer | real ;
+
+(* `Text` literal *)
+interpolation = '{' , expression , '}' ;
+text = '"' , { ANY_CHAR | interpolation } , '"' ;
+
+(* `Bool` literal *)
+boolean = 'true' | 'false' ;
+
+(* `Null` literal *)
+null = 'null' ;
+
+(* `List` literal *)
+empty_list = '[' , TYPE , ']' ;
+full_list = '[' , [ expression , { ',' , expression } ] , ']' ;
+list = empty_list | full_list ;
+
+(* Command expression *)
+command_modifier = { COMMAND_MOD } ;
+command_modifier_block = command_modifier, multiline_block ;
+command = command_modifier, '$', { ANY_CHAR | interpolation }, '$', failure_handler? ;
+
+(* Operations *)
+binary_operation = expression , BINARY_OP , expression ;
+unary_operation = UNARY_OP , expression ;
+
+(* Parentheses *)
+parentheses = '(', expression, ')' ;
+
+(* Failure handler *)
+failure_propagation = '?';
+failure_block = 'failed', block ;
+failure_handler = ('?' | 'failed'), expression ;
+
+(* Variable *)
+variable_index = '[', expression, ']' ;
+variable_init = 'let', identifier, '=', expression ;
+variable_get = identifier, variable_index? ;
+variable_set = identifier, variable_index?, '=', expression ;
+
+(* Function *)
+function_call = identifier, '(', [ expression, { ',', expression } ], ')' ;
+function_def = VISIBILITY?, 'fun', identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+
+(* Loop *)
+loop = 'loop', block ;
+loop_array = 'loop', identifier, 'in', expression, block ;
+
+(* Ranges *)
+range = expression, '..', expression ;
+range_inclusive = expression, '..=', expression ;
+
+(* Conditional *)
+if_statement = 'if', expression, block, [ 'else', block ] ;
+if_chain = 'if', '{', { expression, block }, [ 'else', block ],  '}' ;
+ternary = expression, 'then', expression, 'else', expression ;
+
+(* Main *)
+main = 'main', [ '(', identifier, ')' ], block ;
+
+(* Imports *)
+import_path = '"', { ANY_CHAR }, '"' ;
+import_all = VISIBILITY?, 'import', '*', 'from', import_path ;
+import_ids = VISIBILITY?, 'import', '{', { identifier, [ 'as', identifier ] }, '}', 'from', import_path ;
