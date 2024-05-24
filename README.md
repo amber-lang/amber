@@ -20,8 +20,14 @@ Make sure that the operating system meets the following prerequisites
 - Curl tool for downloading the installation script
 - Basic calculator `bc` command (On Debian run `sudo apt install bc`)
 
+#### system-wide install
 ```bash
 curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | $(echo /bin/bash)
+```
+
+#### local-user install
+```bash
+curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | $(echo /bin/bash) -s -- --user
 ```
 
 #### Via a package manager
