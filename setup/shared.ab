@@ -45,7 +45,15 @@ pub fun get_bins_folder(user_only: Bool): Text {
     if user_only {
         return "{get_home()}/.local/bin"
     } else {
-        return "/usr/local/bin"
+        // Ensure /usr/local/bin exists for non-user installations
+        let bins_folder = "/usr/local/bin"
+        silent $test -d "{bins_folder}"$ failed {
+            silent $sudo mkdir -p "{bins_folder}"$ failed {
+                echo "Failed to create {bins_folder} directory."
+                exit(1)
+            }
+        }
+        return bins_folder
     }
 }
 
