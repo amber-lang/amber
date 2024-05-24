@@ -24,12 +24,12 @@ Make sure that the operating system meets the following prerequisites
 
 #### system-wide install
 ```bash
-curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | $(echo /bin/bash)
+curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | /bin/bash
 ```
 
 #### local-user install
 ```bash
-curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | $(echo /bin/bash) -s -- --user
+curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | /bin/bash -s -- --user
 ```
 
 #### Via a package manager
