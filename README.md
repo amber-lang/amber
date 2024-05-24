@@ -9,7 +9,7 @@ Programming language that compiles to Bash. It's a high level programming langua
 > [!Warning]
 > This software is not ready for extended usage.
 
-[Join our Github!](https://discord.com/invite/cjHjxbsDvZ)
+[Join our Discord!](https://discord.com/invite/cjHjxbsDvZ)
 
 ## Install
 Amber compiler currently works on:
