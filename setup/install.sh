@@ -98,7 +98,20 @@ function get_bins_folder__31_v0 {
         __AMBER_FUN_get_bins_folder31_v0="${__AMBER_FUN_get_home30_v0__46}/.local/bin";
         return 0
 else
-        __AMBER_FUN_get_bins_folder31_v0="/usr/local/bin";
+        local bins_folder="/usr/local/bin";
+                    test -d "${bins_folder}"
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+                                    sudo mkdir -p "${bins_folder}" > /dev/null 2>&1
+__AMBER_STATUS=$?;
+if [ $__AMBER_STATUS != 0 ]; then
+                        echo "Failed to create ${bins_folder} directory.";
+                        exit__20_v0 1 > /dev/null 2>&1;
+                        __AMBER_FUN_exit20_v0__53=${__AMBER_FUN_exit20_v0};
+                        echo ${__AMBER_FUN_exit20_v0__53} > /dev/null 2>&1
+fi
+fi;
+        __AMBER_FUN_get_bins_folder31_v0="${bins_folder}";
         return 0
 fi
 };
@@ -106,10 +119,10 @@ function get_place__32_v0 {
     local user_only=$1
     if [ ${user_only} != 0 ]; then
         get_home__30_v0 ;
-        __AMBER_FUN_get_home30_v0__54=${__AMBER_FUN_get_home30_v0};
+        __AMBER_FUN_get_home30_v0__62=${__AMBER_FUN_get_home30_v0};
         get_arch__29_v0 ;
-        __AMBER_FUN_get_arch29_v0__54=${__AMBER_FUN_get_arch29_v0};
-        __AMBER_FUN_get_place32_v0="${__AMBER_FUN_get_home30_v0__54}/.local/lib/${__AMBER_FUN_get_arch29_v0__54}/amber";
+        __AMBER_FUN_get_arch29_v0__62=${__AMBER_FUN_get_arch29_v0};
+        __AMBER_FUN_get_place32_v0="${__AMBER_FUN_get_home30_v0__62}/.local/lib/${__AMBER_FUN_get_arch29_v0__62}/amber";
         return 0
 else
         __AMBER_FUN_get_place32_v0="/opt/amber";
