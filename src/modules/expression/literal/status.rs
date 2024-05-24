@@ -27,6 +27,6 @@ impl SyntaxModule<ParserMetadata> for Status {
 
 impl TranslateModule for Status {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "$__AMBER_STATUS".to_string()
+        "$__AS".to_string()
     }
 }

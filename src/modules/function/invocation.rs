@@ -101,7 +101,7 @@ impl FunctionInvocation {
             let quote = meta.gen_quote();
             format!("{quote}{dollar}{{{name}[@]}}{quote}")
         } else {
-            format!("{dollar}{{{name}}}")
+            format!("{dollar}{name}")
         }
     }
 }
@@ -122,15 +122,15 @@ impl TranslateModule for FunctionInvocation {
             }
         }).collect::<Vec<String>>().join(" ");
         meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
-        let invocation_return = &format!("__AMBER_FUN_{}{}_v{}", self.name, self.id, self.variant_id);
-        let invocation_instance = &format!("__AMBER_FUN_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line);
+        let invocation_return = &format!("__AF_{}{}_v{}", self.name, self.id, self.variant_id);
+        let invocation_instance = &format!("__AF_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line);
         let parsed_invocation_return = self.get_variable(meta, invocation_return, true);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
         meta.stmt_queue.push_back(
-            format!("__AMBER_FUN_{}{}_v{}__{}={}", self.name, self.id, self.variant_id, self.line, if matches!(self.kind, Type::Array(_)) {
+            format!("__AF_{}{}_v{}__{}={}", self.name, self.id, self.variant_id, self.line, if matches!(self.kind, Type::Array(_)) {
                 // If the function returns an array we have to store the intermediate result in a variable that is of type array
                 format!("({})", parsed_invocation_return)
             } else {
