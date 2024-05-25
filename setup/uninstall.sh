@@ -1,3 +1,23 @@
+#!/bin/bash
+# Written in [Amber](https://amber-lang.com/)
+# This is the runtime dependency checker. Please do not remove these lines.
+CD=('exit' '[[' 'test' 'sudo' 'test' 'rm')
+MD=()
+for d in "${CD[@]}"
+do
+    if ! command -v $d > /dev/null 2>&1; then
+        MD+=($d)
+    fi
+done
+
+if (( ${#MD[@]} != 0 )); then
+    >&2 echo This program requires for these commands: \( $MD \) to be present in \$PATH.
+    exit 1
+fi
+unset $CD
+unset $MD
+# Dependencies are ok at this point
+
 function exit__21_v0 {
     local code=$1
             exit "${code}"
@@ -60,11 +80,24 @@ function get_bins_folder__30_v0 {
     local user_only=$1
     if [ ${user_only} != 0 ]; then
         get_home__29_v0 ;
-        __AF_get_home29_v0__46=$__AF_get_home29_v0;
-        __AF_get_bins_folder30_v0="$__AF_get_home29_v0__46/.local/bin";
+        __AF_get_home29_v0__46="${__AF_get_home29_v0}";
+        __AF_get_bins_folder30_v0="${__AF_get_home29_v0__46}/.local/bin";
         return 0
 else
-        __AF_get_bins_folder30_v0="/usr/local/bin";
+        local bins_folder="/usr/local/bin"
+                    test -d "${bins_folder}"
+__AS=$?;
+if [ $__AS != 0 ]; then
+                                    sudo mkdir -p "${bins_folder}" > /dev/null 2>&1
+__AS=$?;
+if [ $__AS != 0 ]; then
+                        echo "Failed to create ${bins_folder} directory."
+                        exit__21_v0 1 > /dev/null 2>&1;
+                        __AF_exit21_v0__53=$__AF_exit21_v0;
+                        echo $__AF_exit21_v0__53 > /dev/null 2>&1
+fi
+fi
+        __AF_get_bins_folder30_v0="${bins_folder}";
         return 0
 fi
 }
@@ -72,10 +105,10 @@ function get_place__31_v0 {
     local user_only=$1
     if [ ${user_only} != 0 ]; then
         get_home__29_v0 ;
-        __AF_get_home29_v0__54=$__AF_get_home29_v0;
+        __AF_get_home29_v0__62="${__AF_get_home29_v0}";
         get_arch__28_v0 ;
-        __AF_get_arch28_v0__54=$__AF_get_arch28_v0;
-        __AF_get_place31_v0="$__AF_get_home29_v0__54/.local/lib/$__AF_get_arch28_v0__54/amber";
+        __AF_get_arch28_v0__62="${__AF_get_arch28_v0}";
+        __AF_get_place31_v0="${__AF_get_home29_v0__62}/.local/lib/${__AF_get_arch28_v0__62}/amber";
         return 0
 else
         __AF_get_place31_v0="/opt/amber";
@@ -85,17 +118,17 @@ fi
 echo ""
 args=$1
     get_arch__28_v0 ;
-    __AF_get_arch28_v0__8=$__AF_get_arch28_v0;
-    arch=$__AF_get_arch28_v0__8
+    __AF_get_arch28_v0__8="${__AF_get_arch28_v0}";
+    arch="${__AF_get_arch28_v0__8}"
     includes__22_v1 "${args}" "--user";
     __AF_includes22_v1__10=$__AF_includes22_v1;
     user_only_install=$__AF_includes22_v1__10
     get_place__31_v0 ${user_only_install};
-    __AF_get_place31_v0__11=$__AF_get_place31_v0;
-    place=$__AF_get_place31_v0__11
+    __AF_get_place31_v0__11="${__AF_get_place31_v0}";
+    place="${__AF_get_place31_v0__11}"
     get_bins_folder__30_v0 ${user_only_install};
-    __AF_get_bins_folder30_v0__12=$__AF_get_bins_folder30_v0;
-    bins_folder=$__AF_get_bins_folder30_v0__12
+    __AF_get_bins_folder30_v0__12="${__AF_get_bins_folder30_v0}";
+    bins_folder="${__AF_get_bins_folder30_v0__12}"
             test -d "${place}" > /dev/null
 __AS=$?
     if [ $(echo $__AS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then

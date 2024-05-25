@@ -1,6 +1,5 @@
 #!/bin/bash
 # Written in [Amber](https://amber-lang.com/)
-
 # This is the runtime dependency checker. Please do not remove these lines.
 CD=('eval' 'exit' '[[' 'test' 'sudo' 'test' 'mkdir' 'curl' 'mv' 'chmod' 'ln' 'curl')
 MD=()
