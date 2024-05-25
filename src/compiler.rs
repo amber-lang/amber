@@ -111,7 +111,8 @@ impl AmberCompiler {
         result.push(block.translate(&mut meta));
         let res = result.join("\n");
         format!(
-            "{}\n{}",
+            "{}\n{}\n{}",
+            include_str!("header.sh"),
             rdc::generate(meta.externs),
             res
         )
