@@ -119,7 +119,7 @@ impl AmberCompiler {
 
     pub fn execute(code: String, flags: &[String]) {
         let code = format!("set -- {};\n\n{}", flags.join(" "), code);
-        Command::new("/bin/bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
+        Command::new("/usr/bin/env").arg("bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
     }
 
     #[allow(dead_code)]
