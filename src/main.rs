@@ -25,6 +25,10 @@ struct Cli {
     /// Code to evaluate
     #[arg(short, long)]
     eval: Option<String>,
+
+    /// Disable Runtime Dependency Checker (not recommended)
+    #[arg(long)]
+    disable_rdc: bool
 }
 
 fn main() {
@@ -32,7 +36,7 @@ fn main() {
 
     if let Some(code) = cli.eval {
         let code = format!("import * from \"std\"\n{code}");
-        match AmberCompiler::new(code, None).compile() {
+        match AmberCompiler::new(code, None, cli.disable_rdc).compile() {
             Ok((messages, code)) => {
                 messages.iter().for_each(|m| m.show());
                 (!messages.is_empty()).then(|| render_dash());
@@ -48,7 +52,7 @@ fn main() {
 
         match fs::read_to_string(&input) {
             Ok(code) => {
-                match AmberCompiler::new(code, Some(input)).compile() {
+                match AmberCompiler::new(code, Some(input), cli.disable_rdc).compile() {
                     Ok((messages, code)) => {
                         messages.iter().for_each(|m| m.show());
                         // Save to the output file

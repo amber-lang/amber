@@ -3,7 +3,8 @@ use crate::compiler::AmberCompiler;
 macro_rules! test_amber {
     ($code:expr, $result:expr) => {
         {
-            match AmberCompiler::new($code.to_string(), None).test_eval() {
+            // RDC is disabled in these tests because it will be tested later and could break things
+            match AmberCompiler::new($code.to_string(), None, false).test_eval() {
                 Ok(result) => assert_eq!(result.trim(), $result),
                 Err(err) => panic!("ERROR: {}", err.message.unwrap())
             }

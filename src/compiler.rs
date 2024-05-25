@@ -16,14 +16,16 @@ const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 
 pub struct AmberCompiler {
     pub cc: Compiler,
-    pub path: Option<String>
+    pub path: Option<String>,
+    pub rdc_disabled: bool
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, rdc_disabled: bool) -> AmberCompiler {
         AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
-            path
+            path,
+            rdc_disabled
         }.load_code(code)
     }
 
@@ -110,10 +112,13 @@ impl AmberCompiler {
         }
         result.push(block.translate(&mut meta));
         let res = result.join("\n");
+        let mut header = include_str!("header.sh").to_string();
+        if ! self.rdc_disabled {
+            header += &rdc::generate(meta.externs);
+        }
         format!(
-            "{}\n{}\n{}",
-            include_str!("header.sh"),
-            rdc::generate(meta.externs),
+            "{}\n{}",
+            header,
             res
         )
     }

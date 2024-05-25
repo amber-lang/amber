@@ -87,7 +87,8 @@ impl Import {
     }
 
     fn handle_compile_code(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone())).tokenize() {
+        // FIXME: Disable RDC here, if it is disabled for user code
+        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone()), false).tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();
                 // Save snapshot of current file
