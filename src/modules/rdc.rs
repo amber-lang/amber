@@ -10,7 +10,7 @@ pub fn generate(externals: Vec<String>) -> String {
     let externals = externals.iter().dedup().map(|x| x.clone()).collect::<Vec<_>>();
     let mut code = String::new();
     code += "# This is the runtime dependency checker. Please do not remove these lines.\n";
-    code += format!("CD=(\'{}\')\n", externals.join("\' \'")).as_str();
+    code += format!("AMBER_RDC_CD=(\'{}\')\n", externals.join("\' \'")).as_str();
     code += include_str!("rdc.sh");
     code
 }

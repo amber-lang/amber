@@ -1,21 +1,21 @@
 #!/bin/bash
 # Written in [Amber](https://amber-lang.com/)
 # This is the runtime dependency checker. Please do not remove these lines.
-CD=('exit' '[[' 'test' 'sudo' 'test' 'rm')
-MD=()
-for d in "${CD[@]}"
+AMBER_RDC_CD=('exit' '[[' 'test' 'sudo' 'test' 'rm')
+AMBER_RDC_MD=()
+for d in "${AMBER_RDC_CD[@]}"
 do
     if ! command -v $d > /dev/null 2>&1; then
-        MD+=($d)
+        AMBER_RDC_MD+=($d)
     fi
 done
 
-if (( ${#MD[@]} != 0 )); then
-    >&2 echo This program requires for these commands: \( $MD \) to be present in \$PATH.
+if (( ${#AMBER_RDC_MD[@]} != 0 )); then
+    >&2 echo This program requires for these commands: \( $AMBER_RDC_MD \) to be present in \$PATH.
     exit 1
 fi
-unset $CD
-unset $MD
+unset $AMBER_RDC_CD
+unset $AMBER_RDC_MD
 # Dependencies are ok at this point
 
 function exit__21_v0 {
