@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::{ParserMetadata, TranslateMetadata}, modules::{types::{Type, Typed}, condition::failed::Failed}};
+use crate::{modules::{condition::failed::Failed, rdc::scan_append_externs, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 
@@ -49,6 +49,9 @@ impl TranslateModule for CommandStatement {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
+
+        scan_append_externs(self.strings.clone(), meta);
+        
         let failed = self.failed.translate(meta);
         let mut translation = translate_interpolated_region(self.strings.clone(), interps, false);
         let silent = meta.gen_silent();

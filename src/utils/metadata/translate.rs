@@ -22,7 +22,9 @@ pub struct TranslateMetadata {
     /// Determines whether the current context should be silenced.
     pub silenced: bool,
     /// The current indentation level.
-    pub indent: i64
+    pub indent: i64,
+    /// External commands used
+    pub externs: Vec<String>
 }
 
 impl TranslateMetadata {
@@ -36,7 +38,8 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
-            indent: -1
+            indent: -1,
+            externs: vec![]
         }
     }
 

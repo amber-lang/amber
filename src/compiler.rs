@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::block::Block;
+use crate::modules::rdc;
 use crate::translate::check_all_blocks;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -108,7 +109,12 @@ impl AmberCompiler {
             println!("[{}]\tin\t{}ms\t{pathname}", "Translate".magenta(), time.elapsed().as_millis());
         }
         result.push(block.translate(&mut meta));
-        result.join("\n")
+        let res = result.join("\n");
+        format!(
+            "{}\n{}",
+            rdc::generate(meta.externs),
+            res
+        )
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
