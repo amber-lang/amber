@@ -125,7 +125,7 @@ impl AmberCompiler {
     #[allow(dead_code)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
         self.compile().map_or_else(Err, |(_, code)| {
-            let child = Command::new("/bin/bash")
+            let child = Command::new("/usr/bin/env").arg("bash")
                 .arg("-c").arg::<&str>(code.as_ref())
                 .output().unwrap();
             Ok(String::from_utf8_lossy(&child.stdout).to_string())

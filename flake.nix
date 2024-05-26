@@ -12,17 +12,16 @@
         naersk-lib = pkgs.callPackage naersk { };
       in
       {
-        defaultPackage = naersk-lib.buildPackage {
+        packages.default = naersk-lib.buildPackage {
           src = ./.;
           postInsall = ''
             wrapProgram "$out/bin/amber" --set PATH ${nixpkgs.lib.makeBinPath [
-              pkgs.bash
               pkgs.bc
             ]}
           '';
         };
-        devShell = with pkgs; mkShell {
-          buildInputs = [ bc bash cargo rustc rustfmt pre-commit rustPackages.clippy ];
+        devShells.default = with pkgs; mkShell {
+          buildInputs = [ bc cargo rustc rustfmt pre-commit rustPackages.clippy ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
       }
