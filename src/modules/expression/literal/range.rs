@@ -46,6 +46,7 @@ impl TranslateModule for Range {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let from = self.from.translate(meta);
         let to = self.to.translate(meta);
+        meta.externs.push("seq".into());
         if self.neq {
             let to_neq = translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string()));
             meta.gen_subprocess(&format!("seq {} {}", from, to_neq))

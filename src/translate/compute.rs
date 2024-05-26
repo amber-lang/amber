@@ -21,7 +21,7 @@ pub enum ArithOp {
     Or
 }
 
-pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
+pub fn translate_computation(meta: &mut TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
@@ -48,6 +48,8 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
                 ArithOp::Or => "||"
             };
             let math_lib_flag = if math_lib_flag { "-l" } else { "" };
+            meta.externs.push("bc".into());
+            meta.externs.push("sed".into());
             meta.gen_subprocess(&format!("echo {left} '{op}' {right} | bc {math_lib_flag} | sed '{sed_regex}'"))
         }
     }
