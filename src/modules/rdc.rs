@@ -7,6 +7,10 @@ use crate::utils::TranslateMetadata;
 
 /// Generate the code
 pub fn generate(externals: Vec<String>) -> String {
+    if externals.len() == 0 {
+        return "".to_string();
+    }
+    
     let externals = externals.iter().dedup().map(|x| x.clone()).collect::<Vec<_>>();
     let mut code = String::new();
     code += "# This is the runtime dependency checker. Please do not remove these lines.\n";
