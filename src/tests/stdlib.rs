@@ -309,3 +309,62 @@ fn includes() {
     ";
     test_amber!(code, "Found")
 }
+
+#[test]
+fn dir_exist() {
+    let temp_dir = tempdir().expect("Failed to create temporary directory");
+
+    let code = format!(
+        "
+        import * from \"std\"
+        main {{
+            if dir_exist(\"{tmpdir}\") {{
+                echo \"Found\"
+            }} else {{
+                echo \"Not Found\"
+            }}
+        }}
+        ",
+        tmpdir = temp_dir.path().to_str().unwrap()
+    );
+    test_amber!(code, "Found")
+}
+
+#[test]
+fn file_exist() {
+    let temp_dir = tempdir().expect("Failed to create temporary directory");
+    let file_path = temp_dir.path().join("test_file.txt");
+
+    let _file = fs::File::create(&file_path).expect("Failed to create temporary file");
+
+    let code = format!(
+        "
+        import * from \"std\"
+        main {{
+            if file_exist(\"{file_path}\") {{
+                echo \"Found\"
+            }} else {{
+                echo \"Not Found\"
+            }}
+        }}
+        ",
+        file_path = file_path.to_str().unwrap()
+    );
+    test_amber!(code, "Found");
+
+    fs::remove_file(&file_path).expect("Failed to delete temporary file");
+}
+
+#[test]
+fn lines() {
+    let code = "
+        import { lines } from \"std\"
+        main {
+            loop line in lines(\"hello\\nworld\") {
+                echo \"line: \" + line
+            }
+        }
+    ";
+    test_amber!(code, "line: hello\nline: world")
+}
+
