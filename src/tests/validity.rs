@@ -535,6 +535,15 @@ fn array_init() {
 }
 
 #[test]
+fn array_init_with_trailing_comma() {
+    let code = "
+        let a = [1, 2, 3, 4, 5,]
+        echo a
+    ";
+    test_amber!(code, "1 2 3 4 5");
+}
+
+#[test]
 fn array_assign() {
     let code = "
         let a = [1, 2, 3, 4, 5]
