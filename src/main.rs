@@ -16,23 +16,38 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
 
-#[derive(Parser)]
+#[derive(Parser, Clone, Debug)]
 #[command(version, arg_required_else_help(true))]
-struct Cli {
+pub struct Cli {
     input: Option<PathBuf>,
     output: Option<PathBuf>,
 
     /// Code to evaluate
     #[arg(short, long)]
     eval: Option<String>,
+
+    /// Don't format the output file
+    #[arg(long)]
+    disable_format: bool
+}
+
+impl Default for Cli {
+    fn default() -> Self {
+        Self {
+            input: None,
+            output: None,
+            eval: None,
+            disable_format: false
+        }
+    }
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    if let Some(code) = cli.eval {
+    if let Some(code) = cli.eval.clone() {
         let code = format!("import * from \"std\"\n{code}");
-        match AmberCompiler::new(code, None).compile() {
+        match AmberCompiler::new(code, None, cli).compile() {
             Ok((messages, code)) => {
                 messages.iter().for_each(|m| m.show());
                 (!messages.is_empty()).then(|| render_dash());
@@ -43,12 +58,12 @@ fn main() {
                 std::process::exit(1);
             }
         }
-    } else if let Some(input) = cli.input {
+    } else if let Some(input) = cli.input.clone() {
         let input = String::from(input.to_string_lossy());
 
         match fs::read_to_string(&input) {
             Ok(code) => {
-                match AmberCompiler::new(code, Some(input)).compile() {
+                match AmberCompiler::new(code, Some(input), cli.clone()).compile() {
                     Ok((messages, code)) => {
                         messages.iter().for_each(|m| m.show());
                         // Save to the output file

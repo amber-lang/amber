@@ -1,9 +1,10 @@
 use crate::compiler::AmberCompiler;
+use crate::Cli;
 
 macro_rules! test_amber {
     ($code:expr, $result:expr) => {
         {
-            match AmberCompiler::new($code.to_string(), None).test_eval() {
+            match AmberCompiler::new($code.to_string(), None, Cli::default()).test_eval() {
                 Ok(result) => assert_eq!(result.trim(), $result),
                 Err(err) => panic!("ERROR: {}", err.message.unwrap())
             }

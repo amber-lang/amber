@@ -1,9 +1,10 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::block::Block;
+use crate::modules::formatter::BashFormatter;
 use crate::translate::check_all_blocks;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::rules;
+use crate::{rules, Cli};
 use std::process::Command;
 use std::env;
 use std::time::Instant;
@@ -15,14 +16,16 @@ const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 
 pub struct AmberCompiler {
     pub cc: Compiler,
-    pub path: Option<String>
+    pub path: Option<String>,
+    pub cli_opts: Cli
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
         AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
-            path
+            path,
+            cli_opts
         }.load_code(code)
     }
 
@@ -108,7 +111,14 @@ impl AmberCompiler {
             println!("[{}]\tin\t{}ms\t{pathname}", "Translate".magenta(), time.elapsed().as_millis());
         }
         result.push(block.translate(&mut meta));
-        result.join("\n")
+        let res = result.join("\n");
+
+        if ! self.cli_opts.disable_format {
+            if let Some(formatter) = BashFormatter::get_available() {
+                return formatter.format(res);
+            }
+        }
+        res
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
