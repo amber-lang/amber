@@ -40,14 +40,14 @@ fn input() {
     let output = child.wait_with_output().expect("Failed to read stdout");
     let output_str = String::from_utf8(output.stdout).expect("Failed to convert stdout to String");
 
-    assert_eq!(output_str.trim(), expected_output);
+    assert_eq!(output_str.trim_end_matches('\n'), expected_output);
 }
 
 macro_rules! test_amber {
     ($code:expr, $result:expr) => {
         {
             match AmberCompiler::new($code.to_string(), None).test_eval() {
-                Ok(result) => assert_eq!(result.trim(), $result),
+                Ok(result) => assert_eq!(result.trim_end_matches('\n'), $result),
                 Err(err) => panic!("ERROR: {}", err.message.unwrap())
             }
 
@@ -205,29 +205,27 @@ fn trim() {
     test_amber!(code, "hello world")
 }
 
-// TODO: Write test code for the trim_left function.
-//#[test]
-//fn trim_left() {
-//    let code = "
-//        import * from \"std\"
-//        main {
-//            echo trim_left(\"  hello world  \")
-//        }
-//    ";
-//    test_amber!(code, "hello world  ")
-//}
+#[test]
+fn trim_left() {
+    let code = "
+        import * from \"std\"
+        main {
+            echo trim_left(\"  hello world  \")
+        }
+    ";
+    test_amber!(code, "hello world  ")
+}
 
-// TODO: Write test code for the trim_right function.
-//#[test]
-//fn trim_right() {
-//    let code = "
-//        import * from \"std\"
-//        main {
-//            echo trim_right(\"  hello world  \")
-//        }
-//    ";
-//    test_amber!(code, "  hello world")
-//}
+#[test]
+fn trim_right() {
+    let code = "
+        import * from \"std\"
+        main {
+            echo trim_right(\"  hello world  \")
+        }
+    ";
+    test_amber!(code, "  hello world")
+}
 
 #[test]
 fn lower() {
