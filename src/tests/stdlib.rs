@@ -3,6 +3,45 @@ use std::fs;
 use std::io::Read;
 use std::io::Write;
 use tempfile::tempdir;
+use std::process::{Command, Stdio};
+
+#[test]
+fn input() {
+    let prompt_message = "Please enter your name:";
+    let code = format!(r#"
+        import * from "std"
+        main {{
+            let name = input("{}")
+            echo "Hello, " + name
+        }}
+    "#, prompt_message);
+
+    let input = "Amber";
+    let expected_output = format!("{}Hello, {}", prompt_message, input);
+
+    let compiled_code = AmberCompiler::new(code.to_string(), None).compile().map_or_else(
+        |err| panic!("Compilation Error: {}", err.message.unwrap_or("Unknown error".to_string())),
+        |(_, code)| code
+    );
+
+    let mut child = Command::new("bash")
+        .arg("-c")
+        .arg(compiled_code)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute process");
+
+    {
+        let stdin = child.stdin.as_mut().expect("Failed to open stdin");
+        stdin.write_all(input.as_bytes()).expect("Failed to write to stdin");
+    }
+
+    let output = child.wait_with_output().expect("Failed to read stdout");
+    let output_str = String::from_utf8(output.stdout).expect("Failed to convert stdout to String");
+
+    assert_eq!(output_str.trim(), expected_output);
+}
 
 macro_rules! test_amber {
     ($code:expr, $result:expr) => {
@@ -106,7 +145,6 @@ fn file_append() {
     let temp_dir = tempdir().expect("Failed to create temporary directory");
     let file_path = temp_dir.path().join("test_file.txt");
 
-    // 初期ファイルを作成して書き込む
     let mut initial_file = fs::File::create(&file_path).expect("Failed to create temporary file");
     initial_file.write_all(b"Hello, Amber!\n").expect("Failed to write to temporary file");
 
