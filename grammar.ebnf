@@ -28,8 +28,9 @@ DIGIT = '0'..'9' ;
 TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
 UNARY_OP = '-' | 'not' ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | 'and' | 'or' | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
-COMMAND_MOD = 'silent' | 'unsafe';
-VISIBILITY = 'pub'
+SILENT_MOD = 'silent' ;
+UNSAFE_MOD = 'unsafe' ;
+VISIBILITY = 'pub' ;
 
 (* Identifier *)
 any_identifier = (LETTER | '_') , { LETTER | '_' | DIGIT } ;
@@ -57,9 +58,12 @@ full_list = '[' , [ expression , { ',' , expression } ] , ']' ;
 list = empty_list | full_list ;
 
 (* Command expression *)
-command_modifier = { COMMAND_MOD } ;
+(* The ordering of command modifiers doesn't matter *)
+command_modifier = SILENT_MOD, [ UNSAFE_MOD ] ;
 command_modifier_block = command_modifier, multiline_block ;
-command = command_modifier, '$', { ANY_CHAR | interpolation }, '$', failure_handler? ;
+commnad_base = '$', { ANY_CHAR | interpolation }, '$' ;
+command = [ SILENT_MOD ], commnad_base, [ failure_handler ] ;
+command_unsafe = [ SILENT_MOD ], UNSAFE_MOD, commnad_base ;
 
 (* Operations *)
 binary_operation = expression , BINARY_OP , expression ;
@@ -71,7 +75,7 @@ parentheses = '(', expression, ')' ;
 (* Failure handler *)
 failure_propagation = '?';
 failure_block = 'failed', block ;
-failure_handler = ('?' | 'failed'), expression ;
+failure_handler = failure_propagation | failure_block ;
 
 (* Variable *)
 variable_index = '[', expression, ']' ;
@@ -81,11 +85,16 @@ variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
 function_call = identifier, '(', [ expression, { ',', expression } ], ')' ;
-function_def = VISIBILITY?, 'fun', identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+function_call_failed = [ SILENT_MOD ], function_call, failure_handler ;
+function_call_unsafe = [ SILENT_MOD ], UNSAFE_MOD, function_call ;
+function_def = [ VISIBILITY ], 'fun', identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+function_def_typed = [ VISIBILITY ], 'fun', identifier, '(',
+    [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
 
 (* Loop *)
 loop = 'loop', block ;
 loop_array = 'loop', identifier, 'in', expression, block ;
+loop_array_iterator = 'loop', identifier, ',', identifier, 'in', expression, block ;
 
 (* Ranges *)
 range = expression, '..', expression ;
@@ -101,5 +110,8 @@ main = 'main', [ '(', identifier, ')' ], block ;
 
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
-import_all = VISIBILITY?, 'import', '*', 'from', import_path ;
-import_ids = VISIBILITY?, 'import', '{', { identifier, [ 'as', identifier ] }, '}', 'from', import_path ;
+import_all = [ VISIBILITY ], 'import', '*', 'from', import_path ;
+import_ids = [ VISIBILITY ], 'import', '{', { identifier, [ 'as', identifier ] }, '}', 'from', import_path ;
+
+(* Comment *)
+comment = '//', { ANY_CHAR }, '\n'
