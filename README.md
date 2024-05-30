@@ -15,6 +15,7 @@ Programming language that compiles to Bash. It's a high level programming langua
 Amber compiler currently works on:
 - Linux x86 and ARM
 - macOS x86 and ARM (Apple Silicon)
+- Nix (NixOS)
 
 ### macOS / Linux
 Make sure that the operating system meets the following prerequisites
@@ -36,6 +37,10 @@ curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/in
 Amber is packaged in the following distros:
 
 Arch (AUR) - `amber-bash-bin`
+
+#### Nix
+
+See [NIX.md](./NIX.md)
 
 ### Windows support
 As windows does not come with bash installed it makes no sense to support it. Please install WSL 2 on your windows machine and install Linux version of Amber compiler inside.
