@@ -39,6 +39,12 @@ impl BashFormatter {
         }
     }
 
+    pub fn as_cmd<T: From<&'static str>>(self: &Self) -> T {
+        match self {
+            BashFormatter::shfmt => "shfmt".into()
+        }
+    }
+
     /// Format code using the formatter
     pub fn format(self: &Self, code: String) -> String {
         match self {
