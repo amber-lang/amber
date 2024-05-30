@@ -1,4 +1,5 @@
 use crate::compiler::AmberCompiler;
+use crate::test_amber;
 use std::fs;
 use std::io::Read;
 use std::io::Write;
@@ -43,18 +44,6 @@ fn input() {
     assert_eq!(output_str.trim_end_matches('\n'), expected_output);
 }
 
-macro_rules! test_amber {
-    ($code:expr, $result:expr) => {
-        {
-            match AmberCompiler::new($code.to_string(), None).test_eval() {
-                Ok(result) => assert_eq!(result.trim_end_matches('\n'), $result),
-                Err(err) => panic!("ERROR: {}", err.message.unwrap())
-            }
-
-        }
-    };
-}
-
 #[test]
 fn replace_once() {
     let code = "
@@ -63,6 +52,7 @@ fn replace_once() {
             echo replace_once(\"hello world!\", \"world\", \"Amber\")
         }
     ";
+
     test_amber!(code, "hello Amber!")
 }
 

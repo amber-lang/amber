@@ -1,16 +1,5 @@
 use crate::compiler::AmberCompiler;
-
-macro_rules! test_amber {
-    ($code:expr, $result:expr) => {
-        {
-            match AmberCompiler::new($code.to_string(), None).test_eval() {
-                Ok(result) => assert_eq!(result.trim(), $result),
-                Err(err) => panic!("ERROR: {}", err.message.unwrap())
-            }
-
-        }
-    };
-}
+use crate::test_amber;
 
 #[test]
 fn hello_world() {
@@ -374,7 +363,7 @@ fn infinite_loop() {
             }
         }
     ";
-    test_amber!(code, "1 2 3 4 6 7 8 9 10");
+    test_amber!(code, "1 2 3 4 6 7 8 9 10 ");
 }
 
 #[test]
