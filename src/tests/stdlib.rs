@@ -3,8 +3,23 @@ use crate::test_amber;
 use std::fs;
 use std::io::Read;
 use std::io::Write;
+use std::path::PathBuf;
 use tempfile::tempdir;
+use tempfile::TempDir;
 use std::process::{Command, Stdio};
+
+fn mkfile() -> (PathBuf, TempDir) {
+    let temp_dir = tempdir().expect("Failed to create temporary directory");
+    assert!(temp_dir.path().is_dir(), "Temp directory is not a directory!");
+
+    let file_path = temp_dir.path().join("test_file.txt");
+
+    let mut file = fs::File::create(&file_path).expect("Failed to create temporary file");
+    file.write_all(b"This is a sample file.\n").expect("Failed to write to temporary file");
+    file.flush().expect("Failed to flush file");
+
+    (file_path, temp_dir)
+}
 
 #[test]
 fn input() {
@@ -80,11 +95,7 @@ fn replace_regex() {
 
 #[test]
 fn file_read() {
-    let temp_dir = tempdir().expect("Failed to create temporary directory");
-    let file_path = temp_dir.path().join("test_file.txt");
-
-    let mut file = fs::File::create(&file_path).expect("Failed to create temporary file");
-    file.write_all(b"This is sample file.").expect("Failed to write to temporary file");
+    let (file_path, temp_dir) = mkfile();
 
     let code = format!(
         "
@@ -97,15 +108,14 @@ fn file_read() {
         file_path = file_path.to_str().unwrap()
     );
 
-    test_amber!(code, "This is sample file.");
+    test_amber!(code, "This is a sample file.");
 
-    fs::remove_file(&file_path).expect("Failed to delete temporary file");
+    temp_dir.close().expect("Couldn't close temp dir");
 }
 
 #[test]
 fn file_write() {
-    let temp_dir = tempdir().expect("Failed to create temporary directory");
-    let file_path = temp_dir.path().join("test_file.txt");
+    let (file_path, temp_dir) = mkfile();
 
     let code = format!(
         "
@@ -127,16 +137,12 @@ fn file_write() {
 
     assert_eq!(file_content.trim(), "Hello, Amber!");
 
-    fs::remove_file(&file_path).expect("Failed to delete temporary file");
+    temp_dir.close().expect("Couldn't close temp dir");
 }
 
 #[test]
 fn file_append() {
-    let temp_dir = tempdir().expect("Failed to create temporary directory");
-    let file_path = temp_dir.path().join("test_file.txt");
-
-    let mut initial_file = fs::File::create(&file_path).expect("Failed to create temporary file");
-    initial_file.write_all(b"Hello, Amber!\n").expect("Failed to write to temporary file");
+    let (file_path, temp_dir) = mkfile();
 
     let code = format!(
         "
@@ -156,9 +162,9 @@ fn file_append() {
         .read_to_string(&mut file_content)
         .expect("Failed to read from temporary file");
 
-    assert_eq!(file_content.trim(), "Hello, Amber!\nAppending this line.");
+    assert_eq!(file_content.trim(), "This is a sample file.\nAppending this line.");
 
-    fs::remove_file(&file_path).expect("Failed to delete temporary file");
+    temp_dir.close().expect("Couldn't close temp dir");
 }
 
 #[test]
