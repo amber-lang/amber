@@ -1,5 +1,6 @@
 use crate::compiler::AmberCompiler;
 use crate::test_amber;
+use crate::tests::compile_code;
 use std::fs;
 use std::io::Read;
 use std::io::Write;
@@ -35,10 +36,7 @@ fn input() {
     let input = "Amber";
     let expected_output = format!("{}Hello, {}", prompt_message, input);
 
-    let compiled_code = AmberCompiler::new(code.to_string(), None).compile().map_or_else(
-        |err| panic!("Compilation Error: {}", err.message.unwrap_or("Unknown error".to_string())),
-        |(_, code)| code
-    );
+    let compiled_code = compile_code(code);
 
     let mut child = Command::new("bash")
         .arg("-c")
@@ -321,10 +319,16 @@ fn exit() {
     let code = "
         import * from \"std\"
         main {
-            exit(0)
+            exit(37)
         }
     ";
-    test_amber!(code, "")
+    let code = compile_code(code);
+    let mut cmd = Command::new("bash")
+        .arg("-c").arg(code)
+        .stdout(Stdio::null()).stderr(Stdio::null())
+        .spawn().expect("Couldn't spawn bash");
+
+    assert_eq!(cmd.wait().expect("Couldn't wait for bash to execute").code(), Some(37));
 }
 
 #[test]

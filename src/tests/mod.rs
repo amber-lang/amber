@@ -1,3 +1,5 @@
+use crate::compiler::AmberCompiler;
+
 pub mod validity;
 pub mod stdlib;
 
@@ -12,4 +14,8 @@ macro_rules! test_amber {
 
         }
     };
+}
+
+pub fn compile_code<T: Into<String>>(code: T) -> String {
+    AmberCompiler::new(code.into(), None).compile().unwrap().1
 }
