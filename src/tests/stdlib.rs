@@ -313,7 +313,6 @@ fn has_failed() {
     test_amber!(code, "Command failed")
 }
 
-// TODO: Unable to validate changes in exit code.
 #[test]
 fn exit() {
     let code = "
