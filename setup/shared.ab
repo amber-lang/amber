@@ -1,0 +1,66 @@
+import { exit, includes } from "std"
+
+pub fun get_os(): Text {
+    // Determine OS type
+    let os_type = $uname -s$ failed {
+        echo "Failed to determine OS type."
+        echo "Please try again or use another download method."
+        exit(1)
+    }
+    let os = os_type == "Darwin"
+        then "macos"
+        else "linux"
+
+    return os
+}
+
+pub fun get_arch(): Text {
+    // Determine architecture
+    let arch_type = $uname -m$ failed {
+        echo "Failed to determine architecture."
+        echo "Please try again or use another download method."
+        exit(1)
+    }
+
+    let arch = includes(["arm64", "aarch64"], arch_type)
+        then "aarch64"
+        else "x86_64"
+
+    return arch
+}
+
+fun get_home(): Text {
+    let home = $echo \$HOME$ failed {
+        echo "User installation requested, but unable to retrieve home directory from $HOME environment."
+        exit(1)
+    }
+    if home == "" {
+        echo "User installation requested, but unable to find home directory."
+        exit(1)
+    }
+    return home
+}
+
+pub fun get_bins_folder(user_only: Bool): Text {
+    if user_only {
+        return "{get_home()}/.local/bin"
+    } else {
+        // Ensure /usr/local/bin exists for non-user installations
+        let bins_folder = "/usr/local/bin"
+        silent $test -d "{bins_folder}"$ failed {
+            silent $sudo mkdir -p "{bins_folder}"$ failed {
+                echo "Failed to create {bins_folder} directory."
+                exit(1)
+            }
+        }
+        return bins_folder
+    }
+}
+
+pub fun get_place(user_only: Bool): Text {
+    if user_only {
+        return "{get_home()}/.local/lib/{get_arch()}/amber"
+    } else {
+        return "/opt/amber"
+    }
+}

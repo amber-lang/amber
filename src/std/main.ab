@@ -16,6 +16,20 @@ pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
     return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
 }
 
+pub fun dir_exist(path) {
+    $[ -d "{path}" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun file_exist(path) {
+    $[ -f "{path}" ]$ failed {
+        return false
+    }
+    return true
+}
+
 pub fun file_read(path) {
     return $cat "{path}"$?
 }

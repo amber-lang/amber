@@ -50,6 +50,9 @@ impl SyntaxModule<ParserMetadata> for Array {
                     if token(meta, "[").is_ok() {
                         return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
                     }
+                    if token(meta, "]").is_ok() {
+                        break;
+                    }
                     // Parse array value
                     let mut value = Expr::new();
                     syntax(meta, &mut value)?;

@@ -1,9 +1,8 @@
 import { has_failed, includes, exit, chars } from "std"
+import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 let name = "AmberNative"
 let target = "amber"
-let place = "/opt/amber"
-let bins_folder = "/usr/local/bin"
 let agent = has_failed("uname -a")
     then "unknown"
     else unsafe $uname -a$
@@ -22,39 +21,12 @@ fun get_latest_release_tag() {
 }
 
 main(args) {
-    // Determine OS type
-    let os_type = $uname -s$ failed {
-        echo "Failed to determine OS type."
-        echo "Please try again or use another download method."
-        exit(1)
-    }
-    let os = os_type == "Darwin"
-        then "macos"
-        else "linux"
-
-    // Determine architecture
-    let arch_type = $uname -m$ failed {
-        echo "Failed to determine architecture."
-        echo "Please try again or use another download method."
-        exit(1)
-    }
-    let arch = includes(["arm64", "aarch64"], arch_type)
-        then "aarch64"
-        else "x86_64"
+    let os = get_os()
+    let arch = get_arch()
 
     let user_only_install = includes(args, "--user")
-    if user_only_install {
-        let home = $echo \$HOME$ failed {
-            echo "User installation requested, but unable to retrieve home directory from $HOME environment."
-            exit(1)
-        }
-        if home == "" {
-            echo "User installation requested, but unable to find home directory."
-            exit(1)
-        }
-        place = "{home}/.local/lib/{arch}/amber"
-        bins_folder = "{home}/.local/bin"
-    }
+    let place = get_place(user_only_install)
+    let bins_folder = get_bins_folder(user_only_install)
 
     // Check if such directory exists
     unsafe $test -d "{place}"$

@@ -75,7 +75,7 @@ impl TranslateModule for Block {
             self.statements.iter()
                 .map(|statement| statement.translate(meta))
                 .filter(|translation| !translation.trim().is_empty())
-                .collect::<Vec<_>>().join(";\n")
+                .collect::<Vec<_>>().join("\n")
         };
         meta.decrease_indent();
         // Restore the old statement queue

@@ -1,20 +1,27 @@
-import { exit } from "std"
+import { exit, includes } from "std"
+import { get_arch, get_place, get_bins_folder } from "./shared.ab"
 
-let place = "/opt/amber"
 
 echo ""
 
-main {
+main(args) {
+    let arch = get_arch()
+
+    let user_only_install = includes(args, "--user")
+    let place = get_place(user_only_install)
+    let bins_folder = get_bins_folder(user_only_install)
+
     unsafe $test -d "{place}" > /dev/null$
 
     if status == 0 {
-        $sudo rm -rf "{place}"$ failed {
+        let sudo = user_only_install then "" else "sudo"
+        ${sudo} rm -rf "{place}"$ failed {
             echo "Failed to remove Amber from {place}"
             echo "Make sure root has the correct permissions to access this directory"
             exit(1)
         }
-        $sudo rm "/usr/local/bin/amber"$ failed {
-            echo "Failed to remove Amber from /usr/local/bin"
+        ${sudo} rm "{bins_folder}/amber"$ failed {
+            echo "Failed to remove Amber symlink from {bins_folder}"
             echo "Make sure root has the correct permissions to access this directory"
             exit(1)
         }
