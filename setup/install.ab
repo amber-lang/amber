@@ -3,6 +3,7 @@ import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 let name = "AmberNative"
 let target = "amber"
+let archive = "amber.tar.xz"
 let agent = has_failed("uname -a")
     then "unknown"
     else unsafe $uname -a$
@@ -75,25 +76,39 @@ main(args) {
     }
 
     // Set the download link
-    let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber_{os}_{arch}"
+    let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
 
     // Download amber
-    silent $curl -L -o "{target}" "{url}"$ failed {
+    silent $curl -L -o "{archive}" "{url}"$ failed {
         echo "Curl failed to download amber."
         echo "Something went wrong. Please try again later."
         exit(1)
     }
 
-    // Move zipped version of amber
-    ${sudo} mv "{target}" "{place}/{target}"$ failed {
+    // Move archived version of amber
+    ${sudo} mv "{archive}" "{place}/{archive}"$ failed {
         echo "Failed to move amber to the installation directory."
-        echo "Please make sure that root user can access /opt directory."
+        echo "Please make sure that root user can access {place} directory."
         exit(1)
     }
+
+    // Unarchive amber
+    silent ${sudo} tar --strip-components=1 -xvf {place}/{archive} -C {place}$ failed {
+        echo "Failed to unarchive amber at {place}/{archive}"
+        echo "Please make sure that you have `tar` command installed."
+        exit(1)
+    }
+
+    // Remove the archive
+    ${sudo} rm {place}/{archive}$ failed {
+        echo "Failed to remove downloaded archive at {place}/{archive}"
+        exit(1)
+    }
+
     // Give permissions to execute amber
     ${sudo} chmod +x "{place}/{target}"$ failed {
         echo "Failed to give permissions to execute amber."
-        echo "Please make sure that root user can access /opt directory."
+        echo "Please make sure that root user can access {place} directory."
         exit(1)
     }
 
