@@ -108,7 +108,12 @@ impl AmberCompiler {
             println!("[{}]\tin\t{}ms\t{pathname}", "Translate".magenta(), time.elapsed().as_millis());
         }
         result.push(block.translate(&mut meta));
-        result.join("\n")
+        let res = result.join("\n");
+        format!(
+            "{}\n{}",
+            include_str!("header.sh"),
+            res
+        )
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
