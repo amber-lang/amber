@@ -33,3 +33,27 @@ pub fun lower(text: Text): Text {
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
+
+pub fun split(text: Text, delimiter: Text): [Text] {
+    let result = [Text]
+    unsafe $IFS="{delimiter}" read -ra {nameof result} <<< "\${nameof text}"$
+    return result
+}
+
+#[allow_absurd_cast]
+pub fun parse(text: Text): Num {
+    $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
+    return text as Num
+}
+
+pub fun chars(text: Text): [Text] {
+    let chars = [Text]
+    unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
+        {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
+    done;$
+    return chars
+}
+
+pub fun words(text: Text): [Text] {
+  return split(text, " ")
+}

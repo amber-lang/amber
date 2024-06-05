@@ -30,20 +30,10 @@ pub fun file_append(path, content) {
     return $echo "{content}" >> "{path}"$?
 }
 
-pub fun split(text: Text, delimiter: Text): [Text] {
-    let result = [Text]
-    unsafe $IFS="{delimiter}" read -ra {nameof result} <<< "\${nameof text}"$
-    return result
-}
-
 pub fun lines(text: Text): [Text] {
     let result = [Text]
     unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
     return result
-}
-
-pub fun words(text: Text): [Text] {
-  return split(text, " ")
 }
 
 #[allow_absurd_cast]
@@ -54,20 +44,6 @@ pub fun len(value): Num {
         else:
             return $echo "\$\{#{nameof value}[@]}"$ as Num
     }
-}
-
-#[allow_absurd_cast]
-pub fun parse(text: Text): Num {
-    $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
-    return text as Num
-}
-
-pub fun chars(text: Text): [Text] {
-    let chars = [Text]
-    unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
-        {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
-    done;$
-    return chars
 }
 
 #[allow_absurd_cast]
