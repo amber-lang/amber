@@ -68,9 +68,11 @@ impl TranslateModule for Main {
         } else {
             let quote = meta.gen_quote();
             let dollar = meta.gen_dollar();
-            let args_name = self.args.clone().unwrap_or_else(|| String::new());
-            let variable = format!("{args_name}=({quote}{dollar}@{quote})");
-            format!("{variable}\n{}", self.block.translate(meta))
+            let args = self.args.clone().map_or_else(
+                || String::new(),
+                |name| format!("{name}=({quote}{dollar}@{quote})")
+            );
+            format!("{args}\n{}", self.block.translate(meta))
         }
     }
 }
