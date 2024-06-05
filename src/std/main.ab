@@ -30,12 +30,6 @@ pub fun file_append(path, content) {
     return $echo "{content}" >> "{path}"$?
 }
 
-pub fun lines(text: Text): [Text] {
-    let result = [Text]
-    unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
-    return result
-}
-
 #[allow_absurd_cast]
 pub fun len(value): Num {
     unsafe {

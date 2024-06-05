@@ -57,3 +57,9 @@ pub fun chars(text: Text): [Text] {
 pub fun words(text: Text): [Text] {
   return split(text, " ")
 }
+
+pub fun lines(text: Text): [Text] {
+    let result = [Text]
+    unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
+    return result
+}
