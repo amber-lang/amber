@@ -9,19 +9,6 @@ use tempfile::tempdir;
 use tempfile::TempDir;
 use std::process::{Command, Stdio};
 
-fn mkfile() -> (PathBuf, TempDir) {
-    let temp_dir = tempdir().expect("Failed to create temporary directory");
-    assert!(temp_dir.path().is_dir(), "Temp directory is not a directory!");
-
-    let file_path = temp_dir.path().join("test_file.txt");
-
-    let mut file = fs::File::create(&file_path).expect("Failed to create temporary file");
-    file.write_all(b"This is a sample file.\n").expect("Failed to write to temporary file");
-    file.flush().expect("Failed to flush file");
-
-    (file_path, temp_dir)
-}
-
 #[test]
 fn input() {
     let prompt_message = "Please enter your name:";
@@ -60,7 +47,7 @@ fn input() {
 #[test]
 fn replace_once() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo replace_once(\"hello world!\", \"world\", \"Amber\")
         }
@@ -72,7 +59,7 @@ fn replace_once() {
 #[test]
 fn replace() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo replace(\"banana banana\", \"banana\", \"apple\")
         }
@@ -83,7 +70,7 @@ fn replace() {
 #[test]
 fn replace_regex() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo replace_regex(\"abc123def\", \"[0-9][0-9]*\", \"456\")
         }
@@ -92,83 +79,9 @@ fn replace_regex() {
 }
 
 #[test]
-fn file_read() {
-    let (file_path, temp_dir) = mkfile();
-
-    let code = format!(
-        "
-        import * from \"std\"
-        main {{
-            let f = file_read(\"{file_path}\") failed {{ echo \"Failed\" }}
-            echo f
-        }}
-        ",
-        file_path = file_path.to_str().unwrap()
-    );
-
-    test_amber!(code, "This is a sample file.");
-
-    temp_dir.close().expect("Couldn't close temp dir");
-}
-
-#[test]
-fn file_write() {
-    let (file_path, temp_dir) = mkfile();
-
-    let code = format!(
-        "
-        import * from \"std\"
-        main {{
-            unsafe file_write(\"{file_path}\", \"Hello, Amber!\")
-        }}
-        ",
-        file_path = file_path.to_str().unwrap()
-    );
-
-    test_amber!(code, "");
-
-    let mut file_content = String::new();
-    fs::File::open(&file_path)
-        .expect("Failed to open temporary file")
-        .read_to_string(&mut file_content)
-        .expect("Failed to read from temporary file");
-
-    assert_eq!(file_content.trim(), "Hello, Amber!");
-
-    temp_dir.close().expect("Couldn't close temp dir");
-}
-
-#[test]
-fn file_append() {
-    let (file_path, temp_dir) = mkfile();
-
-    let code = format!(
-        "
-        import * from \"std\"
-        main {{
-            unsafe file_append(\"{file_path}\", \"Appending this line.\")
-        }}
-        ",
-        file_path = file_path.to_str().unwrap()
-    );
-
-    test_amber!(code, "");
-
-    let mut file_content = String::new();
-    fs::File::open(&file_path)
-        .expect("Failed to open temporary file")
-        .read_to_string(&mut file_content)
-        .expect("Failed to read from temporary file");
-
-    assert_eq!(file_content.trim(), "This is a sample file.\nAppending this line.");
-
-    temp_dir.close().expect("Couldn't close temp dir");
-}
-
-#[test]
 fn split() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             let array = split(\"apple,banana,cherry\", \",\")
             echo array[1]
@@ -180,7 +93,7 @@ fn split() {
 #[test]
 fn join() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo join([\"apple\", \"banana\", \"cherry\"], \", \")
         }
@@ -191,7 +104,7 @@ fn join() {
 #[test]
 fn trim() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo trim(\"  hello world  \")
         }
@@ -202,7 +115,7 @@ fn trim() {
 #[test]
 fn trim_left() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo trim_left(\"  hello world  \")
         }
@@ -213,7 +126,7 @@ fn trim_left() {
 #[test]
 fn trim_right() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo trim_right(\"  hello world  \")
         }
@@ -224,7 +137,7 @@ fn trim_right() {
 #[test]
 fn lower() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo lower(\"HELLO WORLD\")
         }
@@ -235,7 +148,7 @@ fn lower() {
 #[test]
 fn upper() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo upper(\"hello world\")
         }
@@ -268,7 +181,7 @@ fn len_list() {
 #[test]
 fn parse() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo parse(\"123\")?
         }
@@ -279,13 +192,196 @@ fn parse() {
 #[test]
 fn chars() {
     let code = "
-        import * from \"std\"
+        import * from \"std/strings\"
         main {
             echo chars(\"hello\")
         }
     ";
     test_amber!(code, "h e l l o")
 }
+
+// includes function
+macro_rules! test_includes {
+    ($name:ident, $array_declaration:expr, $element:expr, $expected:expr) => {
+        #[test]
+        fn $name() {
+            let array_declaration = $array_declaration.to_string();
+            let element = $element.to_string();
+            let code = format!(r#"
+                import * from "std"
+
+                main {{
+                    let array = {array_declaration}
+                    if includes(array, {element}) {{
+                        echo "Found"
+                    }} else {{
+                        echo "Not Found"
+                    }}
+                }}
+            "#);
+
+            test_amber!(code, $expected.to_string())
+        }
+    }
+}
+
+test_includes!(includes_empty_text_array, r#"[Text]"#, "\"\"", "Not Found");
+test_includes!(includes_text_array, r#"["apple", "banana", "cherry"]"#, "\"banana\"", "Found");
+test_includes!(includes_exact_match, r#"["apple", "banana cherry"]"#, "\"banana cherry\"", "Found");
+test_includes!(includes_prefix_match, r#"["apple", "banana cherry"]"#, "\"banana\"", "Not Found");
+test_includes!(includes_partial_match_with_expanded_element, r#"["foo", "bar", "baz"]"#, "\"oo ba\"", "Not Found");
+test_includes!(includes_empty_num_array, r#"[Num]"#, 0, "Not Found");
+
+#[test]
+fn lines() {
+    let code = "
+        import { lines } from \"std/strings\"
+        main {
+            loop line in lines(\"hello\\nworld\") {
+                echo \"line: \" + line
+            }
+        }
+    ";
+    test_amber!(code, "line: hello\nline: world")
+}
+
+
+// fs tests
+
+fn mkfile() -> (PathBuf, TempDir) {
+    let temp_dir = tempdir().expect("Failed to create temporary directory");
+    assert!(temp_dir.path().is_dir(), "Temp directory is not a directory!");
+
+    let file_path = temp_dir.path().join("test_file.txt");
+
+    let mut file = fs::File::create(&file_path).expect("Failed to create temporary file");
+    file.write_all(b"This is a sample file.\n").expect("Failed to write to temporary file");
+    file.flush().expect("Failed to flush file");
+
+    (file_path, temp_dir)
+}
+
+#[test]
+fn file_read() {
+    let (file_path, temp_dir) = mkfile();
+
+    let code = format!(
+        "
+        import * from \"std/fs\"
+        main {{
+            let f = file_read(\"{file_path}\") failed {{ echo \"Failed\" }}
+            echo f
+        }}
+        ",
+        file_path = file_path.to_str().unwrap()
+    );
+
+    test_amber!(code, "This is a sample file.");
+
+    temp_dir.close().expect("Couldn't close temp dir");
+}
+
+#[test]
+fn file_write() {
+    let (file_path, temp_dir) = mkfile();
+
+    let code = format!(
+        "
+        import * from \"std/fs\"
+        main {{
+            unsafe file_write(\"{file_path}\", \"Hello, Amber!\")
+        }}
+        ",
+        file_path = file_path.to_str().unwrap()
+    );
+
+    test_amber!(code, "");
+
+    let mut file_content = String::new();
+    fs::File::open(&file_path)
+        .expect("Failed to open temporary file")
+        .read_to_string(&mut file_content)
+        .expect("Failed to read from temporary file");
+
+    assert_eq!(file_content.trim(), "Hello, Amber!");
+
+    temp_dir.close().expect("Couldn't close temp dir");
+}
+
+#[test]
+fn file_append() {
+    let (file_path, temp_dir) = mkfile();
+
+    let code = format!(
+        "
+        import * from \"std/fs\"
+        main {{
+            unsafe file_append(\"{file_path}\", \"Appending this line.\")
+        }}
+        ",
+        file_path = file_path.to_str().unwrap()
+    );
+
+    test_amber!(code, "");
+
+    let mut file_content = String::new();
+    fs::File::open(&file_path)
+        .expect("Failed to open temporary file")
+        .read_to_string(&mut file_content)
+        .expect("Failed to read from temporary file");
+
+    assert_eq!(file_content.trim(), "This is a sample file.\nAppending this line.");
+
+    temp_dir.close().expect("Couldn't close temp dir");
+}
+
+#[test]
+fn dir_exist() {
+    let temp_dir = tempdir().expect("Failed to create temporary directory");
+
+    let code = format!(
+        "
+        import * from \"std/fs\"
+        main {{
+            if dir_exist(\"{tmpdir}\") {{
+                echo \"Found\"
+            }} else {{
+                echo \"Not Found\"
+            }}
+        }}
+        ",
+        tmpdir = temp_dir.path().to_str().unwrap()
+    );
+    test_amber!(code, "Found")
+}
+
+#[test]
+fn file_exist() {
+    let temp_dir = tempdir().expect("Failed to create temporary directory");
+    let file_path = temp_dir.path().join("test_file.txt");
+
+    let _file = fs::File::create(&file_path).expect("Failed to create temporary file");
+
+    let code = format!(
+        "
+        import * from \"std/fs\"
+        main {{
+            if file_exist(\"{file_path}\") {{
+                echo \"Found\"
+            }} else {{
+                echo \"Not Found\"
+            }}
+        }}
+        ",
+        file_path = file_path.to_str().unwrap()
+    );
+    test_amber!(code, "Found");
+
+    fs::remove_file(&file_path).expect("Failed to delete temporary file");
+}
+
+
+// other
 
 #[test]
 fn sum() {
@@ -329,93 +425,3 @@ fn exit() {
 
     assert_eq!(cmd.wait().expect("Couldn't wait for bash to execute").code(), Some(37));
 }
-
-macro_rules! test_includes {
-    ($name:ident, $array_declaration:expr, $element:expr, $expected:expr) => {
-        #[test]
-        fn $name() {
-            let array_declaration = $array_declaration.to_string();
-            let element = $element.to_string();
-            let code = format!(r#"
-                import * from "std"
-
-                main {{
-                    let array = {array_declaration}
-                    if includes(array, {element}) {{
-                        echo "Found"
-                    }} else {{
-                        echo "Not Found"
-                    }}
-                }}
-            "#);
-
-            test_amber!(code, $expected.to_string())
-        }
-    }
-}
-
-test_includes!(includes_empty_text_array, r#"[Text]"#, "\"\"", "Not Found");
-test_includes!(includes_text_array, r#"["apple", "banana", "cherry"]"#, "\"banana\"", "Found");
-test_includes!(includes_exact_match, r#"["apple", "banana cherry"]"#, "\"banana cherry\"", "Found");
-test_includes!(includes_prefix_match, r#"["apple", "banana cherry"]"#, "\"banana\"", "Not Found");
-test_includes!(includes_partial_match_with_expanded_element, r#"["foo", "bar", "baz"]"#, "\"oo ba\"", "Not Found");
-test_includes!(includes_empty_num_array, r#"[Num]"#, 0, "Not Found");
-
-#[test]
-fn dir_exist() {
-    let temp_dir = tempdir().expect("Failed to create temporary directory");
-
-    let code = format!(
-        "
-        import * from \"std\"
-        main {{
-            if dir_exist(\"{tmpdir}\") {{
-                echo \"Found\"
-            }} else {{
-                echo \"Not Found\"
-            }}
-        }}
-        ",
-        tmpdir = temp_dir.path().to_str().unwrap()
-    );
-    test_amber!(code, "Found")
-}
-
-#[test]
-fn file_exist() {
-    let temp_dir = tempdir().expect("Failed to create temporary directory");
-    let file_path = temp_dir.path().join("test_file.txt");
-
-    let _file = fs::File::create(&file_path).expect("Failed to create temporary file");
-
-    let code = format!(
-        "
-        import * from \"std\"
-        main {{
-            if file_exist(\"{file_path}\") {{
-                echo \"Found\"
-            }} else {{
-                echo \"Not Found\"
-            }}
-        }}
-        ",
-        file_path = file_path.to_str().unwrap()
-    );
-    test_amber!(code, "Found");
-
-    fs::remove_file(&file_path).expect("Failed to delete temporary file");
-}
-
-#[test]
-fn lines() {
-    let code = "
-        import { lines } from \"std\"
-        main {
-            loop line in lines(\"hello\\nworld\") {
-                echo \"line: \" + line
-            }
-        }
-    ";
-    test_amber!(code, "line: hello\nline: world")
-}
-
