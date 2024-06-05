@@ -1,0 +1,35 @@
+pub fun replace_once(source, pattern, replacement) {
+    return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
+}
+
+pub fun replace(source, pattern, replacement) {
+    return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
+}
+
+pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
+    return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+}
+
+pub fun join(list: [Text], delimiter: Text): Text {
+    return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
+}
+
+pub fun trim(text: Text): Text {
+    return unsafe $echo "{text}" | xargs$
+}
+
+pub fun trim_left(text: Text): Text {
+    return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
+}
+
+pub fun trim_right(text: Text): Text {
+    return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
+}
+
+pub fun lower(text: Text): Text {
+    return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
+}
+
+pub fun upper(text: Text): Text {
+    return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
+}

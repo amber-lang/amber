@@ -157,13 +157,11 @@ impl SyntaxModule<ParserMetadata> for Import {
         self.token_path = meta.get_current_token();
         syntax(meta, &mut self.path)?;
         // Import code from file or standard library
-        let imported_code = if self.path.value == "[standard library]" {
-            self.add_import(meta, "[standard library]")?;
-            AmberCompiler::import_std()
+        self.add_import(meta, &self.path.value.clone())?;
+        let imported_code = if self.path.value.starts_with("std") {
+            AmberCompiler::resolve_std(self.path.value.clone(), meta, self.token_import.clone())?
         } else {
-            self.add_import(meta, &self.path.value.clone())?;
             self.resolve_import(meta)?
-
         };
         self.handle_import(meta, imported_code)?;
         Ok(())
