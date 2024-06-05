@@ -1,16 +1,5 @@
 use crate::compiler::AmberCompiler;
-
-macro_rules! test_amber {
-    ($code:expr, $result:expr) => {
-        {
-            match AmberCompiler::new($code.to_string(), None).test_eval() {
-                Ok(result) => assert_eq!(result.trim(), $result),
-                Err(err) => panic!("ERROR: {}", err.message.unwrap())
-            }
-
-        }
-    };
-}
+use crate::test_amber;
 
 #[test]
 fn hello_world() {
@@ -374,7 +363,7 @@ fn infinite_loop() {
             }
         }
     ";
-    test_amber!(code, "1 2 3 4 6 7 8 9 10");
+    test_amber!(code, "1 2 3 4 6 7 8 9 10 ");
 }
 
 #[test]
@@ -749,84 +738,6 @@ fn status() {
         }
     ";
     test_amber!(code, "127\n127");
-}
-
-#[test]
-fn test_std_library() {
-    let code = "
-        import * from \"std\"
-
-        main {
-            // Split a string into a list of strings (characters)
-            echo chars(\"hello world\")
-            // Split a string into a list of strings by a delimiter
-            echo split(\"hello world\", \"l\")
-            // Split a multiline string to lines of string
-            loop line in lines(\"hello\nworld\") {
-                echo line
-            }
-            // Split a multiline string into a list of string by one or more spaces
-            loop word in words(\"hello   world ciao     mondo\") {
-                echo word
-            }
-            // Split a joined string into a list of string
-            loop word in words(join([\"hello\", \"world\"], \" \")) {
-                echo word
-            }
-            // Join a list of strings into a string
-            echo join(split(\"hello world\", \"l\"), \"l\")
-            // Transform string into a lowercase string
-            echo lower(\"HELLO WORLD\")
-            // Transform string into an uppercase string
-            echo upper(\"hello world\")
-            // Trim whitespace from the beginning and end of a string
-            echo \"|{trim(\" hello world \")}|\"
-            // Trim whitespace from the beginning of a string
-            echo \"|{trim_left(\" hello world \")}|\"
-            // Trim whitespace from the end of a string
-            echo \"|{trim_right(\" hello world \")}|\"
-            // Get the length of a string or list
-            echo len(\"hello world\")
-            echo len([1,2,3])
-            // Replace all occurrences of a substring with another substring
-            echo replace(\"hello world\", \"world\", \"universe\")
-            // Parse text into a number
-            echo parse(\"123\")?
-            // Parse text into a number - do some code if failed
-            parse(\"XDDDDabc123\") failed {
-                echo \"Parsing Failed\"
-            }
-            // Check if array includes certain word
-            echo includes([\"hello\", \"world\"], \"hello\")
-            // Check if array does not include certain word
-            echo includes([\"hello\", \"world\"], \"other\")
-        }
-    ";
-    test_amber!(code, vec![
-        "h e l l o   w o r l d",
-        "he  o wor d",
-        "hello",
-        "world",
-        "hello",
-        "world",
-        "ciao",
-        "mondo",
-        "hello",
-        "world",
-        "hello world",
-        "hello world",
-        "HELLO WORLD",
-        "|hello world|",
-        "|hello world |",
-        "| hello world|",
-        "11",
-        "3",
-        "hello universe",
-        "123",
-        "Parsing Failed",
-        "1",
-        "0",
-    ].join("\n"));
 }
 
 #[test]
