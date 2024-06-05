@@ -39,6 +39,7 @@ impl BashFormatter {
         }
     }
 
+    #[allow(dead_code)] // used in tests
     pub fn as_cmd<T: From<&'static str>>(self: &Self) -> T {
         match self {
             BashFormatter::shfmt => "shfmt".into()
@@ -64,10 +65,6 @@ impl BashFormatter {
                 }
 
                 let res = command.wait_with_output().expect("Couldn't wait for shfmt");
-
-                // let mut stdout = command.stdout.expect("Couldn't get shfmt's stdout");
-                // let mut out = String::new();
-                // stdout.read_to_string(&mut out).expect("Couldn't read shfmt's output");
 
                 String::from_utf8(res.stdout).expect("shfmt returned non utf-8 output")
             }
