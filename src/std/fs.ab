@@ -1,0 +1,25 @@
+pub fun dir_exist(path) {
+    $[ -d "{path}" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun file_exist(path) {
+    $[ -f "{path}" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun file_read(path) {
+    return $cat "{path}"$?
+}
+
+pub fun file_write(path, content) {
+    return $echo "{content}" > "{path}"$?
+}
+
+pub fun file_append(path, content) {
+    return $echo "{content}" >> "{path}"$?
+}
