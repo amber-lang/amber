@@ -144,6 +144,7 @@ impl AmberCompiler {
         std_modules.insert("".to_string(), include_str!("std/main.ab").to_string());
         std_modules.insert("std".to_string(), include_str!("std/main.ab").to_string());
         std_modules.insert("strings".to_string(), include_str!("std/strings.ab").to_string());
+        std_modules.insert("fs".to_string(), include_str!("std/fs.ab").to_string());
 
         if let Some(module) = std_modules.get(&path.replace("std/", "")) {
             return Ok(module.clone())
