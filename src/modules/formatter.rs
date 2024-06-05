@@ -52,7 +52,7 @@ impl BashFormatter {
                 let mut command = Command::new("shfmt")
                     .stdout(Stdio::piped())
                     .stdin(Stdio::piped())
-                    .arg("-i").arg("4") // identation
+                    .arg("-i").arg("4") // indentation
                     .arg("-ln").arg("bash") // language
                     .spawn().expect("Couldn't spawn shfmt");
 
