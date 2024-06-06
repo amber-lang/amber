@@ -8,8 +8,8 @@
 # * uploads those artifacts to temporary workflow zip
 # * on success, uploads the artifacts to a GitHub Release
 #
-# Note that the GitHub Release will be created with a generated
-# title/body based on your changelogs.
+# Note that a GitHub Release with this tag is assumed to exist as a draft
+# with the appropriate title/body, and will be undrafted for you.
 
 name: Release
 
@@ -264,7 +264,9 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ needs.plan.outputs.tag }}
-          name: ${{ fromJson(needs.host.outputs.val).announcement_title }}
-          body: ${{ fromJson(needs.host.outputs.val).announcement_github_body }}
+          allowUpdates: true
+          updateOnlyUnreleased: false
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           prerelease: ${{ fromJson(needs.host.outputs.val).announcement_is_prerelease }}
           artifacts: "artifacts/*"

@@ -1,0 +1,47 @@
+name: Release Linux ARM
+
+permissions:
+  contents: write
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Install cross
+        run: cargo install cross
+
+      - name: Build with cross
+        run: cross build --release --target aarch64-unknown-linux-gnu
+
+      - name: Create .tar.xz archive
+        run: |
+          cd target/aarch64-unknown-linux-gnu/release
+          tar -cJf amber-aarch64-unknown-linux-gnu.tar.xz amber
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: amber-aarch64-unknown-linux-gnu
+          path: target/aarch64-unknown-linux-gnu/release/amber-aarch64-unknown-linux-gnu.tar.xz
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: target/aarch64-unknown-linux-gnu/release/amber-aarch64-unknown-linux-gnu.tar.xz
+          asset_name: amber-aarch64-unknown-linux-gnu.tar.xz
+          asset_content_type: application/x-xz
