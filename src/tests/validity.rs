@@ -1048,3 +1048,13 @@ fn variable_ref_function_invocation() {
     ";
     test_amber!(code, "\"sram\"");
 }
+
+#[test]
+fn main_args() {
+    let code = "
+        main(args) {
+            if args is [Text] { echo \"ok\" }
+        }
+    ";
+    test_amber!(code, "ok")
+}
