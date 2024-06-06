@@ -8,7 +8,7 @@ use super::variable::variable_name_extensions;
 
 #[derive(Debug, Clone)]
 pub struct Main {
-    pub args: Vec<String>,
+    pub args: Option<String>,
     pub block: Block,
     pub is_skipped: bool
 }
@@ -18,7 +18,7 @@ impl SyntaxModule<ParserMetadata> for Main {
 
     fn new() -> Self {
         Self {
-            args: vec![],
+            args: None,
             block: Block::new(),
             is_skipped: false
         }
@@ -38,23 +38,15 @@ impl SyntaxModule<ParserMetadata> for Main {
         context!({
             meta.context.is_main_ctx = true;
             if token(meta, "(").is_ok() {
-                loop {
-                    if token(meta, ")").is_ok() {
-                        break;
-                    }
-                    self.args.push(variable(meta, variable_name_extensions())?);
-                    match token(meta, ")") {
-                        Ok(_) => break,
-                        Err(_) => token(meta, ",")?
-                    };
-                }
+                self.args = Some(variable(meta, variable_name_extensions())?);
+                token(meta, ")")?;
             }
             token(meta, "{")?;
             // Create a new scope for variables
             meta.push_scope();
             // Create variables
             for arg in self.args.iter() {
-                meta.add_var(arg, Type::Text);
+                meta.add_var(arg, Type::Array(Box::new(Type::Text)));
             }
             // Parse the block
             syntax(meta, &mut self.block)?;
@@ -71,13 +63,16 @@ impl SyntaxModule<ParserMetadata> for Main {
 
 impl TranslateModule for Main {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let variables = self.args.iter().enumerate()
-            .map(|(index, name)| format!("{name}=${}", index + 1))
-            .collect::<Vec<_>>().join("\n");
         if self.is_skipped {
             String::new()
         } else {
-            format!("{variables}\n{}", self.block.translate(meta))
+            let quote = meta.gen_quote();
+            let dollar = meta.gen_dollar();
+            let args = self.args.clone().map_or_else(
+                || String::new(),
+                |name| format!("{name}=({quote}{dollar}@{quote})")
+            );
+            format!("{args}\n{}", self.block.translate(meta))
         }
     }
 }

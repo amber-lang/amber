@@ -16,6 +16,8 @@ tempfile = "3.10.1"
 
 [profile.release]
 strip = true
+lto = true
+opt-level = 3
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

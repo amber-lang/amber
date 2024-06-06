@@ -330,20 +330,36 @@ fn exit() {
     assert_eq!(cmd.wait().expect("Couldn't wait for bash to execute").code(), Some(37));
 }
 
-#[test]
-fn includes() {
-    let code = "
-        import * from \"std\"
-        main {
-            if includes([\"apple\", \"banana\", \"cherry\"], \"banana\") {
-                echo \"Found\"
-            } else {
-                echo \"Not Found\"
-            }
+macro_rules! test_includes {
+    ($name:ident, $array_declaration:expr, $element:expr, $expected:expr) => {
+        #[test]
+        fn $name() {
+            let array_declaration = $array_declaration.to_string();
+            let element = $element.to_string();
+            let code = format!(r#"
+                import * from "std"
+
+                main {{
+                    let array = {array_declaration}
+                    if includes(array, {element}) {{
+                        echo "Found"
+                    }} else {{
+                        echo "Not Found"
+                    }}
+                }}
+            "#);
+
+            test_amber!(code, $expected.to_string())
         }
-    ";
-    test_amber!(code, "Found")
+    }
 }
+
+test_includes!(includes_empty_text_array, r#"[Text]"#, "\"\"", "Not Found");
+test_includes!(includes_text_array, r#"["apple", "banana", "cherry"]"#, "\"banana\"", "Found");
+test_includes!(includes_exact_match, r#"["apple", "banana cherry"]"#, "\"banana cherry\"", "Found");
+test_includes!(includes_prefix_match, r#"["apple", "banana cherry"]"#, "\"banana\"", "Not Found");
+test_includes!(includes_partial_match_with_expanded_element, r#"["foo", "bar", "baz"]"#, "\"oo ba\"", "Not Found");
+test_includes!(includes_empty_num_array, r#"[Num]"#, 0, "Not Found");
 
 #[test]
 fn dir_exist() {
