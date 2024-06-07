@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
@@ -29,19 +29,7 @@ jobs:
           cd target/aarch64-unknown-linux-gnu/release
           tar -cJf amber-aarch64-unknown-linux-gnu.tar.xz amber
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: amber-aarch64-unknown-linux-gnu
-          path: target/aarch64-unknown-linux-gnu/release/amber-aarch64-unknown-linux-gnu.tar.xz
-
       - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: target/aarch64-unknown-linux-gnu/release/amber-aarch64-unknown-linux-gnu.tar.xz
-          asset_name: amber-aarch64-unknown-linux-gnu.tar.xz
-          asset_content_type: application/x-xz
+            files: target/aarch64-unknown-linux-gnu/release/amber-aarch64-unknown-linux-gnu.tar.xz
