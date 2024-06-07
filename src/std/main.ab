@@ -62,16 +62,16 @@ pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
-pub fun trim(text: Text): Text {
-    return unsafe $echo "{text}" | xargs$
-}
-
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
 
 pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
+}
+
+pub fun trim(text: Text): Text {
+    return trim_left(trim_right(text))
 }
 
 pub fun lower(text: Text): Text {
