@@ -106,10 +106,10 @@ fn trim() {
     let code = "
         import * from \"std/strings\"
         main {
-            echo trim(\"  hello world  \")
+            echo trim(\"  hello   world  \")
         }
     ";
-    test_amber!(code, "hello world")
+    test_amber!(code, "hello   world")
 }
 
 #[test]
@@ -117,10 +117,10 @@ fn trim_left() {
     let code = "
         import * from \"std/strings\"
         main {
-            echo trim_left(\"  hello world  \")
+            echo trim_left(\"  hello   world  \")
         }
     ";
-    test_amber!(code, "hello world  ")
+    test_amber!(code, "hello   world  ")
 }
 
 #[test]
@@ -128,10 +128,10 @@ fn trim_right() {
     let code = "
         import * from \"std/strings\"
         main {
-            echo trim_right(\"  hello world  \")
+            echo trim_right(\"  hello   world  \")
         }
     ";
-    test_amber!(code, "  hello world")
+    test_amber!(code, "  hello   world")
 }
 
 #[test]

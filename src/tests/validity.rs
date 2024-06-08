@@ -100,6 +100,16 @@ fn very_complex_arithmetic() {
 }
 
 #[test]
+fn fractions_with_no_leading_zero() {
+    let code = "
+        let a = .2
+        let b = .1
+        echo a + b
+    ";
+    test_amber!(code, ".3");
+}
+
+#[test]
 fn parenthesis() {
     let code = "
         let x = 21
@@ -1047,4 +1057,14 @@ fn variable_ref_function_invocation() {
         echo a
     ";
     test_amber!(code, "\"sram\"");
+}
+
+#[test]
+fn main_args() {
+    let code = "
+        main(args) {
+            if args is [Text] { echo \"ok\" }
+        }
+    ";
+    test_amber!(code, "ok")
 }
