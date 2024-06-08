@@ -1,4 +1,5 @@
-import { has_failed, includes, exit, chars } from "std"
+import { has_failed, includes, exit } from "std"
+import { chars } from "std/strings"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 let name = "AmberNative"
