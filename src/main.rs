@@ -12,14 +12,16 @@ use clap::Parser;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use std::fs;
-use std::io::prelude::*;
+use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Parser)]
 #[command(version, arg_required_else_help(true))]
 struct Cli {
+    #[arg(help = "'-' to read from stdin")]
     input: Option<PathBuf>,
+    #[arg(help = "'-' to output to stdout, /dev/null to discard")]
     output: Option<PathBuf>,
 
     /// Code to evaluate
@@ -45,46 +47,58 @@ fn main() {
         }
     } else if let Some(input) = cli.input {
         let input = String::from(input.to_string_lossy());
+        let code = {
+            if input == "-" {
+                let mut buf = String::new();
+                match stdin().read_to_string(&mut buf) {
+                    Ok(_) => buf,
+                    Err(err) => handle_err(err)
+                }
+            } else {
+                match fs::read_to_string(&input) {
+                    Ok(code) => code,
+                    Err(err) => handle_err(err)
+                }
+            }
+        };
+        match AmberCompiler::new(code, Some(input)).compile() {
+            Ok((messages, code)) => {
+                messages.iter().for_each(|m| m.show());
+                // Save to the output file
+                if let Some(output) = cli.output {
+                    let outs = String::from(output.to_string_lossy());
+                    if outs == "/dev/null" {
+                        return
+                    }
+                    if outs == "-" {
+                        print!("{code}");
+                    }
 
-        match fs::read_to_string(&input) {
-            Ok(code) => {
-                match AmberCompiler::new(code, Some(input)).compile() {
-                    Ok((messages, code)) => {
-                        messages.iter().for_each(|m| m.show());
-                        // Save to the output file
-                        if let Some(output) = cli.output {
-                            match fs::File::create(&output) {
-                                Ok(mut file) => {
-                                    write!(file, "{}", code).unwrap();
-                                    set_file_permission(
-                                        &file,
-                                        String::from(output.to_string_lossy()),
-                                    );
-                                }
-                                Err(err) => {
-                                    Message::new_err_msg(err.to_string()).show();
-                                    std::process::exit(1);
-                                }
-                            }
+                    match fs::File::create(&output) {
+                        Ok(mut file) => {
+                            write!(file, "{}", code).unwrap();
+                            set_file_permission(
+                                &file,
+                                String::from(output.to_string_lossy()),
+                            );
                         }
-                        // Execute the code
-                        else {
-                            (!messages.is_empty()).then(|| render_dash());
-                            AmberCompiler::execute(code, &vec![]);
+                        Err(err) => {
+                            Message::new_err_msg(err.to_string()).show();
+                            std::process::exit(1);
                         }
                     }
-                    Err(err) => {
-                        err.show();
-                        std::process::exit(1);
-                    }
+                }
+                // Execute the code
+                else {
+                    (!messages.is_empty()).then(|| render_dash());
+                    AmberCompiler::execute(code, &vec![]);
                 }
             }
             Err(err) => {
-                Message::new_err_msg(err.to_string()).show();
+                err.show();
                 std::process::exit(1);
             }
         }
-    } else {
     }
 }
 
@@ -99,6 +113,11 @@ fn set_file_permission(file: &std::fs::File, path: String) {
     let mut perm = fs::metadata(path).unwrap().permissions();
     perm.set_mode(0o755);
     file.set_permissions(perm).unwrap();
+}
+
+fn handle_err(err: std::io::Error) -> ! {
+    Message::new_err_msg(err.to_string()).show();
+    std::process::exit(1);
 }
 
 #[inline]
