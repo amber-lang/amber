@@ -51,3 +51,24 @@ pub fun max(x: Num, y: Num): Num {
     }
     return result;
 }
+
+pub fun pow(base: Num, exponent: Num): Num {
+    let result = 1;
+
+    if (exponent < 0) {
+
+        let divider = 1;
+        loop i in 0..abs(exponent) {
+            divider = divider * base;
+        }
+        result = 1 / divider;
+
+    } else {
+
+        loop i in 0..exponent {
+            result = result * base;
+        }
+
+    }
+    return result;
+}
