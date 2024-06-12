@@ -72,3 +72,20 @@ pub fun pow(base: Num, exponent: Num): Num {
     }
     return result;
 }
+
+pub fun sqrt(x: Num): Num {
+    if (x < 0) {
+        return 0;
+    } else {
+        let result = x;
+        let last = 0;
+        loop {
+            last = result;
+            result = (result + x / result) / 2;
+            if (result == last) {
+                break;
+            }
+        }
+        return result;
+    }
+}
