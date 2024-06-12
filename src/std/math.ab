@@ -1,0 +1,3 @@
+pub fun is_int(x: Num): Bool {
+    return (x % 1 == 0);
+}
