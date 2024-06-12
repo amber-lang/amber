@@ -27,6 +27,11 @@ fn sub() {
 }
 
 #[test]
+fn neg() {
+    test_amber!("echo -42", "-42");
+}
+
+#[test]
 fn text() {
     test_amber!("echo \"Hello World\"", "Hello World");
 }
@@ -97,6 +102,17 @@ fn very_complex_arithmetic() {
         echo x + y * z / a
     ";
     test_amber!(code, "24");
+}
+
+#[test]
+fn neg_complex_arithmetic() {
+    let code = "
+        let x = 21
+        let y = -2
+        let z = 6
+        echo x - y * z / -4
+    ";
+    test_amber!(code, "18");
 }
 
 #[test]
