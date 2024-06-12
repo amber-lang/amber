@@ -8,8 +8,8 @@ pub fun get_os(): Text {
         exit(1)
     }
     let os = os_type == "Darwin"
-        then "macos"
-        else "linux"
+        then "apple-darwin"
+        else "unknown-linux-gnu"
 
     return os
 }

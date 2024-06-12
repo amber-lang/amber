@@ -83,3 +83,6 @@ AMBER_DEBUG_TIME=true cargo run <file.ab>
 // Flamegraph is a profiling tool that is used to visualize the time each function took to execute
 sudo cargo flamegraph -- <file.ab> <file.sh>
 ```
+
+## Github Actions
+We are using `cargo-dist` to build the binaries for all the platforms. The binaries are then uploaded to the release page once a new release a tag is created.
