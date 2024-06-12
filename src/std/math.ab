@@ -155,3 +155,7 @@ pub fun cos(x: Num, precision: Num): Num {
 
     return result;
 }
+
+pub fun tan(x: Num, precision: Num): Num {
+    return sin(x, precision) / cos(x, precision);
+}
