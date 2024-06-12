@@ -1,3 +1,7 @@
+pub fun PI(): Num {
+    return 3.141592653589793;
+}
+
 pub fun is_int(x: Num): Bool {
     return (x % 1 == 0);
 }
@@ -133,11 +137,12 @@ pub fun exp(x: Num, precision: Num): Num {
 }
 
 pub fun sin(x: Num, precision: Num): Num {
-    let result = x;
-    let term = x;
+    let radians = (x * PI()) / 180;
+    let result = radians;
+    let term = radians;
 
     loop i in 1..precision {
-        term = term * (x * -1) * x / ((2 * i) * (2 * i + 1));
+        term = term * (radians * -1) * radians / ((2 * i) * (2 * i + 1));
         result += term;
     }
 
@@ -145,11 +150,12 @@ pub fun sin(x: Num, precision: Num): Num {
 }
 
 pub fun cos(x: Num, precision: Num): Num {
+    let radians = (x * PI()) / 180;
     let result = 1;
     let term = 1;
 
     loop i in 1..precision {
-        term = term * (x * -1) * x / ((2 * i - 1) * (2 * i));
+        term = term * (radians * -1) * radians / ((2 * i - 1) * (2 * i));
         result += term;
     }
 
