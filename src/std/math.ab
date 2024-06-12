@@ -43,3 +43,11 @@ pub fun min(x: Num, y: Num): Num {
     }
     return result;
 }
+
+pub fun max(x: Num, y: Num): Num {
+    let result = x;
+    if (y > x) {
+        result = y;
+    }
+    return result;
+}
