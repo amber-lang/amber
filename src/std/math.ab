@@ -89,3 +89,17 @@ pub fun sqrt(x: Num): Num {
         return result;
     }
 }
+
+pub fun log(x: Num, precision: Num): Num {
+    if (x <= 0) {
+        return 0;
+    }
+    let sum = 0;
+    let width = (x - 1) / precision;
+
+    loop i in 1..precision {
+        sum += width / (1 + (i - 0.5) * width);
+    }
+
+    return sum;
+}
