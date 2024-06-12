@@ -21,3 +21,17 @@ pub fun abs(x: Num): Num {
     }
     return result;
 }
+
+pub fun sign(x: Num): Num {
+    let result = 0;
+
+    if {
+        (x > 0) {
+            result = 1;
+        }
+        (x < 0) {
+            result = -1;
+        }
+    }
+    return result;
+}
