@@ -143,3 +143,15 @@ pub fun sin(x: Num, precision: Num): Num {
 
     return result;
 }
+
+pub fun cos(x: Num, precision: Num): Num {
+    let result = 1;
+    let term = 1;
+
+    loop i in 1..precision {
+        term = term * (x * -1) * x / ((2 * i - 1) * (2 * i));
+        result += term;
+    }
+
+    return result;
+}
