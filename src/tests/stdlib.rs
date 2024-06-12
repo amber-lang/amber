@@ -418,3 +418,123 @@ fn lines() {
     ";
     test_amber!(code, "line: hello\nline: world")
 }
+
+#[test]
+fn is_int() {
+    let code = "
+        import { is_int } from \"std\"
+        main {
+            echo is_int(123)
+            echo is_int(123.321)
+        }
+    ";
+    test_amber!(code, "1\n0")
+}
+
+#[test]
+fn floor() {
+    let code = "
+        import { floor } from \"std\"
+        main {
+            echo floor(123.321)
+            echo floor(123.999)
+        }
+    ";
+    test_amber!(code, "123\n123")
+}
+
+#[test]
+fn ceil() {
+    let code = "
+        import { ceil } from \"std\"
+        main {
+            echo ceil(123.321)
+            echo ceil(123.999)
+        }
+    ";
+    test_amber!(code, "124\n124")
+}
+
+#[test]
+fn round() {
+    let code = "
+        import { round } from \"std\"
+        main {
+            echo round(123.321)
+            echo round(123.999)
+        }
+    ";
+    test_amber!(code, "123\n124")
+}
+
+#[test]
+fn abs() {
+    let code = "
+        import { abs } from \"std\"
+        main {
+            echo abs(-123)
+            echo abs(123)
+        }
+    ";
+    test_amber!(code, "123\n123")
+}
+
+#[test]
+fn sqrt() {
+    let code = "
+        import { sqrt } from \"std\"
+        main {
+            echo sqrt(9)
+            echo sqrt(16)
+        }
+    ";
+    test_amber!(code, "3\n4")
+}
+
+#[test]
+fn pow() {
+    let code = "
+        import { pow } from \"std\"
+        main {
+            echo pow(2, 3)
+            echo pow(3, 2)
+        }
+    ";
+    test_amber!(code, "8\n9")
+}
+
+#[test]
+fn sin() {
+    let code = "
+        import { sin, round } from \"std\"
+        main {
+            echo round(sin(0, 100))
+            echo round(sin(90, 100))
+        }
+    ";
+    test_amber!(code, "0\n1")
+}
+
+#[test]
+fn cos() {
+    let code = "
+        import { cos, round } from \"std\"
+        main {
+            echo round(cos(0, 1000))
+            echo round(cos(90, 1000))
+        }
+    ";
+    test_amber!(code, "1\n0")
+}
+
+#[test]
+fn tan() {
+    let code = "
+        import { tan, round } from \"std\"
+        main {
+            echo round(tan(0, 1000))
+            echo round(tan(45, 1000))
+        }
+    ";
+    test_amber!(code, "0\n1")
+}

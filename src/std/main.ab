@@ -128,3 +128,173 @@ pub fun includes(arr, value) {
     }
     return false
 }
+
+// MATH MODULE
+
+pub fun PI(): Num {
+    return 3.141592653589793;
+}
+
+pub fun is_int(x: Num): Bool {
+    return (x % 1 == 0);
+}
+
+pub fun floor(x: Num): Num {
+    return (x - (x % 1));
+}
+
+pub fun ceil(x: Num): Num {
+    return (x + (1 - (x % 1)));
+}
+
+pub fun round(x: Num): Num {
+    return (x + 0.5 - ((x + 0.5) % 1));
+}
+
+pub fun abs(x: Num): Num {
+    let result = x;
+    if (x < 0) {
+        result = x*-1;
+    }
+    return result;
+}
+
+pub fun sign(x: Num): Num {
+    let result = 0;
+
+    if {
+        (x > 0) {
+            result = 1;
+        }
+        (x < 0) {
+            result = -1;
+        }
+    }
+    return result;
+}
+
+pub fun min(x: Num, y: Num): Num {
+    let result = x;
+    if (y < x) {
+        result = y;
+    }
+    return result;
+}
+
+pub fun max(x: Num, y: Num): Num {
+    let result = x;
+    if (y > x) {
+        result = y;
+    }
+    return result;
+}
+
+pub fun pow(base: Num, exponent: Num): Num {
+    let result = 1;
+
+    if (exponent < 0) {
+
+        let divider = 1;
+        loop i in 0..abs(exponent) {
+            divider = divider * base;
+        }
+        result = 1 / divider;
+
+    } else {
+
+        loop i in 0..exponent {
+            result = result * base;
+        }
+
+    }
+    return result;
+}
+
+pub fun sqrt(x: Num): Num {
+    if (x < 0) {
+        return 0;
+    } else {
+        let result = x;
+        let last = 0;
+        loop {
+            last = result;
+            result = (result + x / result) / 2;
+            if (result == last) {
+                break;
+            }
+        }
+        return result;
+    }
+}
+
+pub fun log(x: Num, precision: Num): Num {
+    if (x <= 0) {
+        return 0;
+    }
+    let sum = 0;
+    let width = (x - 1) / precision;
+
+    loop i in 1..precision {
+        sum += width / (1 + (i - 0.5) * width);
+    }
+
+    return sum;
+}
+
+pub fun log10(x: Num, precision: Num): Num {
+    if (x <= 0) {
+        return 0;
+    }
+
+    let sum = 0;
+    let width = (x - 1) / precision;
+    let log10 = log(10, precision);
+
+    loop i in 1..precision {
+        sum += width / (log10 * (1 + (i - 0.5) * width));
+    }
+
+    return sum;
+}
+
+pub fun exp(x: Num, precision: Num): Num {
+    let result = 1;
+    let term = 1;
+
+    loop i in 1..precision {
+        term = term * x / i;
+        result += term;
+    }
+
+    return result;
+}
+
+pub fun sin(x: Num, precision: Num): Num {
+    let radians = (x * PI()) / 180;
+    let result = radians;
+    let term = radians;
+
+    loop i in 1..precision {
+        term = term * (radians * -1) * radians / ((2 * i) * (2 * i + 1));
+        result += term;
+    }
+
+    return result;
+}
+
+pub fun cos(x: Num, precision: Num): Num {
+    let radians = (x * PI()) / 180;
+    let result = 1;
+    let term = 1;
+
+    loop i in 1..precision {
+        term = term * (radians * -1) * radians / ((2 * i - 1) * (2 * i));
+        result += term;
+    }
+
+    return result;
+}
+
+pub fun tan(x: Num, precision: Num): Num {
+    return sin(x, precision) / cos(x, precision);
+}
