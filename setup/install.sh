@@ -37,7 +37,7 @@ if [ $__AS != 0 ]; then
         echo $__AF_exit23_v0__8 > /dev/null 2>&1
 fi;
     local os_type="${__AMBER_VAL_0}"
-    local os=$(if [ $([ "_${os_type}" != "_Darwin" ]; echo $?) != 0 ]; then echo "macos"; else echo "linux"; fi)
+    local os=$(if [ $([ "_${os_type}" != "_Darwin" ]; echo $?) != 0 ]; then echo "apple-darwin"; else echo "unknown-linux-gnu"; fi)
     __AF_get_os31_v0="${os}";
     return 0
 }
@@ -119,29 +119,48 @@ fi
 }
 __0_name="AmberNative"
 __1_target="amber"
-__2_tag="0.3.1-alpha"
+__2_archive="amber.tar.xz"
 has_failed__22_v0 "uname -a";
 __AF_has_failed22_v0__7=$__AF_has_failed22_v0;
 __AMBER_VAL_3=$(uname -a);
 __AS=$?;
 __3_agent=$(if [ $__AF_has_failed22_v0__7 != 0 ]; then echo "unknown"; else echo "${__AMBER_VAL_3}"; fi)
 echo ""
+function get_latest_release_tag__40_v0 {
+    local tag_url="https://api.github.com/repos/Ph0enixKM/${__0_name}/releases/latest"
+    __AMBER_VAL_4=$(curl -L "${tag_url}" 2>/dev/null);
+    __AS=$?;
+if [ $__AS != 0 ]; then
+__AF_get_latest_release_tag40_v0=''
+return $__AS
+fi;
+    local tag_json="${__AMBER_VAL_4}"
+    __AMBER_VAL_5=$(echo "$tag_json"         | grep -Eo "tag_name\"[^\"]*\"([^\"]+)\""         | grep -Eo "\"[^\"]+\"$"         | grep -Eo "[^\"\s]+");
+    __AS=$?;
+if [ $__AS != 0 ]; then
+__AF_get_latest_release_tag40_v0=''
+return $__AS
+fi;
+    local tag="${__AMBER_VAL_5}"
+    __AF_get_latest_release_tag40_v0="${tag}";
+    return 0
+}
 args=("$@")
     get_os__31_v0 ;
-    __AF_get_os31_v0__14="${__AF_get_os31_v0}";
-    os="${__AF_get_os31_v0__14}"
+    __AF_get_os31_v0__25="${__AF_get_os31_v0}";
+    os="${__AF_get_os31_v0__25}"
     get_arch__32_v0 ;
-    __AF_get_arch32_v0__15="${__AF_get_arch32_v0}";
-    arch="${__AF_get_arch32_v0__15}"
+    __AF_get_arch32_v0__26="${__AF_get_arch32_v0}";
+    arch="${__AF_get_arch32_v0__26}"
     includes__24_v0 args[@] "--user";
-    __AF_includes24_v0__17=$__AF_includes24_v0;
-    user_only_install=$__AF_includes24_v0__17
+    __AF_includes24_v0__28=$__AF_includes24_v0;
+    user_only_install=$__AF_includes24_v0__28
     get_place__35_v0 ${user_only_install};
-    __AF_get_place35_v0__18="${__AF_get_place35_v0}";
-    place="${__AF_get_place35_v0__18}"
+    __AF_get_place35_v0__29="${__AF_get_place35_v0}";
+    place="${__AF_get_place35_v0__29}"
     get_bins_folder__34_v0 ${user_only_install};
-    __AF_get_bins_folder34_v0__19="${__AF_get_bins_folder34_v0}";
-    bins_folder="${__AF_get_bins_folder34_v0__19}"
+    __AF_get_bins_folder34_v0__30="${__AF_get_bins_folder34_v0}";
+    bins_folder="${__AF_get_bins_folder34_v0__30}"
             test -d "${place}"
 __AS=$?
     if [ $(echo $__AS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
@@ -150,17 +169,17 @@ __AS=$?
         echo "If you want to reinstall Amber, uninstall it first."
         echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)"
         exit__23_v0 2;
-        __AF_exit23_v0__29=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__29 > /dev/null 2>&1
+        __AF_exit23_v0__40=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__40 > /dev/null 2>&1
 fi
     has_failed__22_v0 "curl -V";
-    __AF_has_failed22_v0__33=$__AF_has_failed22_v0;
-    if [ $__AF_has_failed22_v0__33 != 0 ]; then
+    __AF_has_failed22_v0__44=$__AF_has_failed22_v0;
+    if [ $__AF_has_failed22_v0__44 != 0 ]; then
         echo "Curl is not installed on your system."
         echo "Please install \`curl\` and try again."
         exit__23_v0 1;
-        __AF_exit23_v0__36=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__36 > /dev/null 2>&1
+        __AF_exit23_v0__47=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__47 > /dev/null 2>&1
 fi
     echo "Installing Amber... 🚀"
     sudo=$(if [ ${user_only_install} != 0 ]; then echo ""; else echo "sudo"; fi)
@@ -174,8 +193,8 @@ else
                 echo "Please make sure that your user can access ${place} directory."
 fi
             exit__23_v0 1 > /dev/null 2>&1;
-            __AF_exit23_v0__52=$__AF_exit23_v0;
-            echo $__AF_exit23_v0__52 > /dev/null 2>&1
+            __AF_exit23_v0__63=$__AF_exit23_v0;
+            echo $__AF_exit23_v0__63 > /dev/null 2>&1
 fi
     if [ ${user_only_install} != 0 ]; then
                     mkdir -p "${bins_folder}" > /dev/null 2>&1
@@ -183,37 +202,65 @@ __AS=$?;
 if [ $__AS != 0 ]; then
                 echo "Failed to create directory for amber bin at ${bins_folder}."
                 exit__23_v0 1 > /dev/null 2>&1;
-                __AF_exit23_v0__57=$__AF_exit23_v0;
-                echo $__AF_exit23_v0__57 > /dev/null 2>&1
+                __AF_exit23_v0__68=$__AF_exit23_v0;
+                echo $__AF_exit23_v0__68 > /dev/null 2>&1
 fi
 fi
-    url="https://github.com/Ph0enixKM/${__0_name}/releases/download/${__2_tag}/amber_${os}_${arch}"
-            curl -L -o "${__1_target}" "${url}" > /dev/null 2>&1
+    get_latest_release_tag__40_v0 ;
+    __AS=$?;
+if [ $__AS != 0 ]; then
+        echo "Failed to get the latest release tag."
+        echo "Please try again or use another download method."
+        exit__23_v0 1;
+        __AF_exit23_v0__75=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__75 > /dev/null 2>&1
+fi;
+    __AF_get_latest_release_tag40_v0__72="${__AF_get_latest_release_tag40_v0}";
+    tag="${__AF_get_latest_release_tag40_v0__72}"
+    url="https://github.com/Ph0enixKM/${__0_name}/releases/download/${tag}/amber-${arch}-${os}.tar.xz"
+            curl -L -o "${__2_archive}" "${url}" > /dev/null 2>&1
 __AS=$?;
 if [ $__AS != 0 ]; then
             echo "Curl failed to download amber."
             echo "Something went wrong. Please try again later."
             exit__23_v0 1 > /dev/null 2>&1;
-            __AF_exit23_v0__68=$__AF_exit23_v0;
-            echo $__AF_exit23_v0__68 > /dev/null 2>&1
+            __AF_exit23_v0__85=$__AF_exit23_v0;
+            echo $__AF_exit23_v0__85 > /dev/null 2>&1
 fi
-    ${sudo} mv "${__1_target}" "${place}/${__1_target}"
+    ${sudo} mv "${__2_archive}" "${place}/${__2_archive}"
 __AS=$?;
 if [ $__AS != 0 ]; then
         echo "Failed to move amber to the installation directory."
-        echo "Please make sure that root user can access /opt directory."
+        echo "Please make sure that root user can access ${place} directory."
         exit__23_v0 1;
-        __AF_exit23_v0__75=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__75 > /dev/null 2>&1
+        __AF_exit23_v0__92=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__92 > /dev/null 2>&1
+fi
+            ${sudo} tar --strip-components=1 -xvf ${place}/${__2_archive} -C ${place} > /dev/null 2>&1
+__AS=$?;
+if [ $__AS != 0 ]; then
+            echo "Failed to unarchive amber at ${place}/${__2_archive}"
+            echo "Please make sure that you have \`tar\` command installed."
+            exit__23_v0 1 > /dev/null 2>&1;
+            __AF_exit23_v0__99=$__AF_exit23_v0;
+            echo $__AF_exit23_v0__99 > /dev/null 2>&1
+fi
+    ${sudo} rm ${place}/${__2_archive}
+__AS=$?;
+if [ $__AS != 0 ]; then
+        echo "Failed to remove downloaded archive at ${place}/${__2_archive}"
+        exit__23_v0 1;
+        __AF_exit23_v0__105=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__105 > /dev/null 2>&1
 fi
     ${sudo} chmod +x "${place}/${__1_target}"
 __AS=$?;
 if [ $__AS != 0 ]; then
         echo "Failed to give permissions to execute amber."
-        echo "Please make sure that root user can access /opt directory."
+        echo "Please make sure that root user can access ${place} directory."
         exit__23_v0 1;
-        __AF_exit23_v0__81=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__81 > /dev/null 2>&1
+        __AF_exit23_v0__112=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__112 > /dev/null 2>&1
 fi
     ${sudo} ln -s "${place}/${__1_target}" "${bins_folder}/${__1_target}"
 __AS=$?;
@@ -221,8 +268,8 @@ if [ $__AS != 0 ]; then
         echo "Failed to create amber symbol link."
         echo "Please make sure that root user can access /usr/local/bin directory."
         exit__23_v0 1;
-        __AF_exit23_v0__88=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__88 > /dev/null 2>&1
+        __AF_exit23_v0__119=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__119 > /dev/null 2>&1
 fi
             curl -G --data-urlencode "agent=${__3_agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" > /dev/null 2>&1
 __AS=$?
