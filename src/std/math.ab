@@ -1,3 +1,7 @@
 pub fun is_int(x: Num): Bool {
     return (x % 1 == 0);
 }
+
+pub fun floor(x: Num): Num {
+    return (x - (x % 1));
+}
