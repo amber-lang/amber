@@ -13,3 +13,11 @@ pub fun ceil(x: Num): Num {
 pub fun round(x: Num): Num {
     return (x + 0.5 - ((x + 0.5) % 1));
 }
+
+pub fun abs(x: Num): Num {
+    let result = x;
+    if (x < 0) {
+        result = x*-1;
+    }
+    return result;
+}
