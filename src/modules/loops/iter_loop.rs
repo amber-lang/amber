@@ -83,7 +83,7 @@ impl TranslateModule for IterLoop {
                     format!("for {name} in {iterable}"),
                     "do".to_string(),
                     self.block.translate(meta),
-                    format!("{indent}let {index}=${{{index}}}+1"),
+                    format!("{indent}(( {index}++ )) || true"),
                     "done".to_string()].join("\n")
             },
             None => {
