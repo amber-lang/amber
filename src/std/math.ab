@@ -9,3 +9,7 @@ pub fun floor(x: Num): Num {
 pub fun ceil(x: Num): Num {
     return (x + (1 - (x % 1)));
 }
+
+pub fun round(x: Num): Num {
+    return (x + 0.5 - ((x + 0.5) % 1));
+}
