@@ -119,3 +119,15 @@ pub fun log10(x: Num, precision: Num): Num {
 
     return sum;
 }
+
+pub fun exp(x: Num, precision: Num): Num {
+    let result = 1;
+    let term = 1;
+
+    loop i in 1..precision {
+        term = term * x / i;
+        result += term;
+    }
+
+    return result;
+}
