@@ -131,3 +131,15 @@ pub fun exp(x: Num, precision: Num): Num {
 
     return result;
 }
+
+pub fun sin(x: Num, precision: Num): Num {
+    let result = x;
+    let term = x;
+
+    loop i in 1..precision {
+        term = term * (x * -1) * x / ((2 * i) * (2 * i + 1));
+        result += term;
+    }
+
+    return result;
+}
