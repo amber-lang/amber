@@ -28,6 +28,7 @@ use super::binop::{
 };
 use super::unop::{
     not::Not,
+    neg::Neg,
     cast::Cast,
     is::Is
 };
@@ -52,6 +53,7 @@ pub enum ExprType {
     Mul(Mul),
     Div(Div),
     Modulo(Modulo),
+    Neg(Neg),
     And(And),
     Or(Or),
     Gt(Gt),
@@ -107,7 +109,7 @@ impl Expr {
         // Arithmetic operators
         Add, Sub, Mul, Div, Modulo,
         // Unary operators
-        Cast, Not, Nameof, Is,
+        Cast, Not, Neg, Nameof, Is,
         // Literals
         Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null, Status,
         // Function invocation
