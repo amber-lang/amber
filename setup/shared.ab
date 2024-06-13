@@ -1,4 +1,4 @@
-import { exit, includes } from "std"
+import { exit, includes, words } from "std"
 
 pub fun get_os(): Text {
     // Determine OS type
@@ -7,11 +7,14 @@ pub fun get_os(): Text {
         echo "Please try again or use another download method."
         exit(1)
     }
-    let os = os_type == "Darwin"
-        then "apple-darwin"
-        else "unknown-linux-gnu"
+    if os_type == "Darwin":
+        return "apple-darwin"
+    
+    silent $ls -l /lib/ld-musl-x86_64.so.1$ failed {
+        return "unknown-linux-gnu"
+    }
 
-    return os
+    return "unknown-linux-musl"
 }
 
 pub fun get_arch(): Text {

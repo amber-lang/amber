@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "amber"
-version = "0.3.2-alpha"
+version = "0.3.3-alpha"
 dependencies = [
  "clap",
  "colored",
