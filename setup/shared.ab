@@ -1,4 +1,4 @@
-import { exit, includes, words } from "std"
+import { exit, includes } from "std"
 
 pub fun get_os(): Text {
     // Determine OS type
