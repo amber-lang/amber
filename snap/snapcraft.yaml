@@ -1,4 +1,5 @@
-name: amber
+name: amber-bash
+icon: assets/amber.png
 title: Amber
 base: core24
 version: '0.3.2-alpha'
