@@ -23,6 +23,7 @@ fun get_latest_release_tag() {
 
 main(args) {
     let os = get_os()
+    echo "OS: {os}"
     let arch = get_arch()
 
     let user_only_install = includes(args, "--user")
