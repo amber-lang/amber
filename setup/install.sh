@@ -165,19 +165,18 @@ args=("$@")
     get_os__32_v0 ;
     __AF_get_os32_v0__25="${__AF_get_os32_v0}";
     os="${__AF_get_os32_v0__25}"
-    echo "OS: ${os}"
     get_arch__33_v0 ;
-    __AF_get_arch33_v0__27="${__AF_get_arch33_v0}";
-    arch="${__AF_get_arch33_v0__27}"
+    __AF_get_arch33_v0__26="${__AF_get_arch33_v0}";
+    arch="${__AF_get_arch33_v0__26}"
     includes__24_v0 args[@] "--user";
-    __AF_includes24_v0__29=$__AF_includes24_v0;
-    user_only_install=$__AF_includes24_v0__29
+    __AF_includes24_v0__28=$__AF_includes24_v0;
+    user_only_install=$__AF_includes24_v0__28
     get_place__36_v0 ${user_only_install};
-    __AF_get_place36_v0__30="${__AF_get_place36_v0}";
-    place="${__AF_get_place36_v0__30}"
+    __AF_get_place36_v0__29="${__AF_get_place36_v0}";
+    place="${__AF_get_place36_v0__29}"
     get_bins_folder__35_v0 ${user_only_install};
-    __AF_get_bins_folder35_v0__31="${__AF_get_bins_folder35_v0}";
-    bins_folder="${__AF_get_bins_folder35_v0__31}"
+    __AF_get_bins_folder35_v0__30="${__AF_get_bins_folder35_v0}";
+    bins_folder="${__AF_get_bins_folder35_v0__30}"
             test -d "${place}"
 __AS=$?
     if [ $(echo $__AS '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
@@ -186,17 +185,17 @@ __AS=$?
         echo "If you want to reinstall Amber, uninstall it first."
         echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)"
         exit__23_v0 2;
-        __AF_exit23_v0__41=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__41 > /dev/null 2>&1
+        __AF_exit23_v0__40=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__40 > /dev/null 2>&1
 fi
     has_failed__22_v0 "curl -V";
-    __AF_has_failed22_v0__45=$__AF_has_failed22_v0;
-    if [ $__AF_has_failed22_v0__45 != 0 ]; then
+    __AF_has_failed22_v0__44=$__AF_has_failed22_v0;
+    if [ $__AF_has_failed22_v0__44 != 0 ]; then
         echo "Curl is not installed on your system."
         echo "Please install \`curl\` and try again."
         exit__23_v0 1;
-        __AF_exit23_v0__48=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__48 > /dev/null 2>&1
+        __AF_exit23_v0__47=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__47 > /dev/null 2>&1
 fi
     echo "Installing Amber... 🚀"
     sudo=$(if [ ${user_only_install} != 0 ]; then echo ""; else echo "sudo"; fi)
@@ -210,8 +209,8 @@ else
                 echo "Please make sure that your user can access ${place} directory."
 fi
             exit__23_v0 1 > /dev/null 2>&1;
-            __AF_exit23_v0__64=$__AF_exit23_v0;
-            echo $__AF_exit23_v0__64 > /dev/null 2>&1
+            __AF_exit23_v0__63=$__AF_exit23_v0;
+            echo $__AF_exit23_v0__63 > /dev/null 2>&1
 fi
     if [ ${user_only_install} != 0 ]; then
                     mkdir -p "${bins_folder}" > /dev/null 2>&1
@@ -219,8 +218,8 @@ __AS=$?;
 if [ $__AS != 0 ]; then
                 echo "Failed to create directory for amber bin at ${bins_folder}."
                 exit__23_v0 1 > /dev/null 2>&1;
-                __AF_exit23_v0__69=$__AF_exit23_v0;
-                echo $__AF_exit23_v0__69 > /dev/null 2>&1
+                __AF_exit23_v0__68=$__AF_exit23_v0;
+                echo $__AF_exit23_v0__68 > /dev/null 2>&1
 fi
 fi
     get_latest_release_tag__41_v0 ;
@@ -229,11 +228,11 @@ if [ $__AS != 0 ]; then
         echo "Failed to get the latest release tag."
         echo "Please try again or use another download method."
         exit__23_v0 1;
-        __AF_exit23_v0__76=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__76 > /dev/null 2>&1
+        __AF_exit23_v0__75=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__75 > /dev/null 2>&1
 fi;
-    __AF_get_latest_release_tag41_v0__73="${__AF_get_latest_release_tag41_v0}";
-    tag="${__AF_get_latest_release_tag41_v0__73}"
+    __AF_get_latest_release_tag41_v0__72="${__AF_get_latest_release_tag41_v0}";
+    tag="${__AF_get_latest_release_tag41_v0__72}"
     url="https://github.com/Ph0enixKM/${__0_name}/releases/download/${tag}/amber-${arch}-${os}.tar.xz"
             curl -L -o "${__2_archive}" "${url}" > /dev/null 2>&1
 __AS=$?;
@@ -241,8 +240,8 @@ if [ $__AS != 0 ]; then
             echo "Curl failed to download amber."
             echo "Something went wrong. Please try again later."
             exit__23_v0 1 > /dev/null 2>&1;
-            __AF_exit23_v0__86=$__AF_exit23_v0;
-            echo $__AF_exit23_v0__86 > /dev/null 2>&1
+            __AF_exit23_v0__85=$__AF_exit23_v0;
+            echo $__AF_exit23_v0__85 > /dev/null 2>&1
 fi
     ${sudo} mv "${__2_archive}" "${place}/${__2_archive}"
 __AS=$?;
@@ -250,8 +249,8 @@ if [ $__AS != 0 ]; then
         echo "Failed to move amber to the installation directory."
         echo "Please make sure that root user can access ${place} directory."
         exit__23_v0 1;
-        __AF_exit23_v0__93=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__93 > /dev/null 2>&1
+        __AF_exit23_v0__92=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__92 > /dev/null 2>&1
 fi
             ${sudo} tar --strip-components=1 -xvf ${place}/${__2_archive} -C ${place} > /dev/null 2>&1
 __AS=$?;
@@ -259,16 +258,16 @@ if [ $__AS != 0 ]; then
             echo "Failed to unarchive amber at ${place}/${__2_archive}"
             echo "Please make sure that you have \`tar\` command installed."
             exit__23_v0 1 > /dev/null 2>&1;
-            __AF_exit23_v0__100=$__AF_exit23_v0;
-            echo $__AF_exit23_v0__100 > /dev/null 2>&1
+            __AF_exit23_v0__99=$__AF_exit23_v0;
+            echo $__AF_exit23_v0__99 > /dev/null 2>&1
 fi
     ${sudo} rm ${place}/${__2_archive}
 __AS=$?;
 if [ $__AS != 0 ]; then
         echo "Failed to remove downloaded archive at ${place}/${__2_archive}"
         exit__23_v0 1;
-        __AF_exit23_v0__106=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__106 > /dev/null 2>&1
+        __AF_exit23_v0__105=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__105 > /dev/null 2>&1
 fi
     ${sudo} chmod +x "${place}/${__1_target}"
 __AS=$?;
@@ -276,8 +275,8 @@ if [ $__AS != 0 ]; then
         echo "Failed to give permissions to execute amber."
         echo "Please make sure that root user can access ${place} directory."
         exit__23_v0 1;
-        __AF_exit23_v0__113=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__113 > /dev/null 2>&1
+        __AF_exit23_v0__112=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__112 > /dev/null 2>&1
 fi
     ${sudo} ln -s "${place}/${__1_target}" "${bins_folder}/${__1_target}"
 __AS=$?;
@@ -285,8 +284,8 @@ if [ $__AS != 0 ]; then
         echo "Failed to create amber symbol link."
         echo "Please make sure that root user can access /usr/local/bin directory."
         exit__23_v0 1;
-        __AF_exit23_v0__120=$__AF_exit23_v0;
-        echo $__AF_exit23_v0__120 > /dev/null 2>&1
+        __AF_exit23_v0__119=$__AF_exit23_v0;
+        echo $__AF_exit23_v0__119 > /dev/null 2>&1
 fi
             curl -G --data-urlencode "agent=${__3_agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" > /dev/null 2>&1
 __AS=$?
