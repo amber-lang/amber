@@ -268,3 +268,5 @@ jobs:
           artifacts: "artifacts/*"
           allowUpdates: true
           prerelease: false
+          omitBody: true
+          omitBodyDuringUpdate: true
