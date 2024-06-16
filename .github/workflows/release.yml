@@ -8,8 +8,8 @@
 # * uploads those artifacts to temporary workflow zip
 # * on success, uploads the artifacts to a GitHub Release
 #
-# Note that a GitHub Release with this tag is assumed to exist as a draft
-# with the appropriate title/body, and will be undrafted for you.
+# Note that the GitHub Release will be created with a generated
+# title/body based on your changelogs.
 
 name: Release
 
@@ -41,6 +41,7 @@ on:
   push:
     tags:
       - '**[0-9]+.[0-9]+.[0-9]+*'
+  pull_request:
 
 jobs:
   # Run 'cargo dist plan' (or host) to determine what tasks we need to do
@@ -125,6 +126,12 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ matrix.packages_install }}
+      - name: Install MUSL dependencies
+        if: contains(matrix.targets, 'x86_64-unknown-linux-musl')
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          sudo apt-get update
+          sudo apt-get install -y musl-tools musl-dev
       - name: Build artifacts
         run: |
           # Actually do builds and make zips and whatnot
@@ -264,9 +271,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ needs.plan.outputs.tag }}
-          allowUpdates: true
-          updateOnlyUnreleased: false
-          omitBodyDuringUpdate: true
-          omitNameDuringUpdate: true
+          name: ${{ fromJson(needs.host.outputs.val).announcement_title }}
+          body: ${{ fromJson(needs.host.outputs.val).announcement_github_body }}
           prerelease: ${{ fromJson(needs.host.outputs.val).announcement_is_prerelease }}
           artifacts: "artifacts/*"
