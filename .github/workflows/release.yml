@@ -131,7 +131,7 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-musl
           sudo apt-get update
-          sudo apt-get install -y musl-tools musl-dev musl-gcc
+          sudo apt-get install -y musl-tools musl-dev
       - name: Build artifacts
         run: |
           # Actually do builds and make zips and whatnot
