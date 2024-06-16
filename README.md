@@ -53,6 +53,11 @@ sudo mkdir /opt /usr/local/bin
 ```
 
 
+## Documentation and examples
+
+Checkout the documentation at https://docs.amber-lang.com and the [examples folder](examples).
+
+
 ## Contributing
 In order to contribute, you have to add couple of build targets:
 ```bash
