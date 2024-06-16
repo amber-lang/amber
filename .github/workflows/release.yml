@@ -127,6 +127,7 @@ jobs:
         run: |
           ${{ matrix.packages_install }}
       - name: Install MUSL dependencies
+        if: contains(matrix.targets, 'x86_64-unknown-linux-musl')
         run: |
           rustup target add x86_64-unknown-linux-musl
           sudo apt-get update
