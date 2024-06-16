@@ -128,7 +128,7 @@ jobs:
           ${{ matrix.packages_install }}
       - name: Build artifacts
         run: |
-          sudo apt-get install musl-tools
+          sudo apt-get install -y musl-tools
           # Actually do builds and make zips and whatnot
           cargo dist build ${{ needs.plan.outputs.tag-flag }} --print=linkage --output-format=json ${{ matrix.dist_args }} > dist-manifest.json
           echo "cargo dist ran successfully"
