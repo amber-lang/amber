@@ -11,52 +11,25 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 #[derive(Debug, Clone)]
 pub struct CommandModifier {
     pub block: Box<Block>,
-    pub expr: Box<Expr>,
-    pub is_expr: bool,
+    pub is_block: bool,
     pub is_unsafe: bool,
     pub is_silent: bool
 }
 
-pub struct CommandModifierExpr {
-    pub modifier: CommandModifier
-}
-
-impl Typed for CommandModifierExpr {
-    fn get_type(&self) -> Type {
-        self.modifier.expr.get_type()
-    }
-}
-
 impl CommandModifier {
     pub fn parse_expr(mut self) -> Self {
-        self.is_expr = true;
+        self.is_block = true;
         self
     }
 
-    fn flip_unsafe(&mut self, meta: &mut ParserMetadata, is_unsafe: bool) {
+    fn flip_modifiers(&mut self, meta: &mut ParserMetadata, is_unsafe: bool) {
         if is_unsafe {
             swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
         }
     }
-}
 
-impl SyntaxModule<ParserMetadata> for CommandModifier {
-    syntax_name!("Command Modifier");
-
-    fn new() -> Self {
-        CommandModifier {
-            block: Box::new(Block::new()),
-            expr: Box::new(Expr::new()),
-            is_expr: false,
-            is_unsafe: false,
-            is_silent: false
-        }
-    }
-
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse_modifier_sequence(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let mut is_matched = false;
-        let mut sequence = String::new();
-        let tok = meta.get_current_token();
         loop {
             match meta.get_current_token() {
                 Some(tok) => {
@@ -77,59 +50,52 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
                             return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
                         }
                     }
-                    sequence.push_str(tok.word.as_str());
-                    sequence.push(' ');
                 },
                 None => return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
             }
         }
-        let is_unsafe = self.is_unsafe;
-        self.flip_unsafe(meta, is_unsafe);
-        if self.is_expr {
-            if let Err(err) = syntax(meta, &mut *self.expr) {
-                self.flip_unsafe(meta, is_unsafe);
+        Ok(())
+    }
+}
+
+impl SyntaxModule<ParserMetadata> for CommandModifier {
+    syntax_name!("Command Modifier");
+
+    fn new() -> Self {
+        CommandModifier {
+            block: Box::new(Block::new()),
+            is_block: true,
+            is_unsafe: false,
+            is_silent: false
+        }
+    }
+
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.parse_modifier_sequence(meta);
+        if self.is_block {
+            let is_unsafe = self.is_unsafe;
+            self.flip_modifiers(meta, is_unsafe);
+            token(meta, "{")?;
+            if let Err(err) = syntax(meta, &mut *self.block) {
+                self.flip_modifiers(meta, is_unsafe);
                 return Err(err)
             }
-            if !matches!(self.expr.value, Some(ExprType::CommandExpr(_) | ExprType::FunctionInvocation(_))) {
-                sequence = sequence.trim().to_string();
-                let count = sequence.split_whitespace().count();
-                let plural = if count > 1 { "s" } else { "" };
-                self.flip_unsafe(meta, is_unsafe);
-                return error!(meta, tok, format!("Expected command or function call, after '{sequence}' command modifier{plural}."));
-            }
-        } else {
-            match token(meta, "{") {
-                Ok(_) => {
-                    if let Err(err) = syntax(meta, &mut *self.block) {
-                        self.flip_unsafe(meta, is_unsafe);
-                        return Err(err)
-                    }
-                    token(meta, "}")?;
-                },
-                Err(_) => {
-                    let mut statement = Statement::new();
-                    if let Err(err) = syntax(meta, &mut statement) {
-                        self.flip_unsafe(meta, is_unsafe);
-                        return Err(err)
-                    }
-                    self.block.push_statement(statement);
-                }
-            }
+            token(meta, "}")?;
+            self.flip_modifiers(meta, is_unsafe);
         }
-        self.flip_unsafe(meta, is_unsafe);
         Ok(())
     }
 }
 
 impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        meta.silenced = self.is_silent;
-        let result = if self.is_expr {
-            return self.expr.translate(meta)
+        if self.is_block {
+            meta.silenced = self.is_silent;
+            let result = self.block.translate(meta);
+            meta.silenced = false;
+            result
         } else {
-            self.block.translate(meta)
-        };
-        meta.silenced = false;
-        result
+            String::new()
+        }
     }
 }

@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
@@ -18,6 +19,7 @@ pub struct FunctionInvocation {
     id: usize,
     line: usize,
     failed: Failed,
+    modifier: CommandModifier,
     is_failable: bool
 }
 
@@ -40,6 +42,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             id: 0,
             line: 0,
             failed: Failed::new(),
+            modifier: CommandModifier::new().parse_expr(),
             is_failable: false
         }
     }
