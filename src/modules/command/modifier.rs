@@ -2,9 +2,6 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use crate::modules::block::Block;
-use crate::modules::expression::expr::{Expr, ExprType};
-use crate::modules::statement::stmt::Statement;
-use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
@@ -18,37 +15,45 @@ pub struct CommandModifier {
 
 impl CommandModifier {
     pub fn parse_expr(mut self) -> Self {
-        self.is_block = true;
+        self.is_block = false;
         self
     }
 
-    fn flip_modifiers(&mut self, meta: &mut ParserMetadata, is_unsafe: bool) {
-        if is_unsafe {
-            swap(&mut self.is_unsafe, &mut meta.context.is_unsafe_ctx);
+    pub fn use_modifiers<F>(
+        &mut self, meta: &mut ParserMetadata, context: F
+    ) -> SyntaxResult where F: FnOnce(&mut Self, &mut ParserMetadata) -> SyntaxResult {
+        let mut is_unsafe_holder = self.is_unsafe;
+        if self.is_unsafe {
+            swap(&mut is_unsafe_holder, &mut meta.context.is_unsafe_ctx);
         }
+        let result = context(self, meta);
+        // Swap back the value
+        if self.is_unsafe {
+            swap(&mut is_unsafe_holder, &mut meta.context.is_unsafe_ctx);
+        }
+        result
     }
 
     fn parse_modifier_sequence(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let mut is_matched = false;
         loop {
             match meta.get_current_token() {
                 Some(tok) => {
                     match tok.word.as_str() {
                         "unsafe" => {
+                            if self.is_unsafe {
+                                return error!(meta, Some(tok.clone()), "You already declared `unsafe` modifier before");
+                            }
                             self.is_unsafe = true;
-                            is_matched = true;
                             meta.increment_index();
                         },
                         "silent" => {
+                            if self.is_silent {
+                                return error!(meta, Some(tok.clone()), "You already declared `silent` modifier before");
+                            }
                             self.is_silent = true;
-                            is_matched = true;
                             meta.increment_index();
                         },
-                        _ => if is_matched {
-                            break;
-                        } else {
-                            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
-                        }
+                        _ => break
                     }
                 },
                 None => return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
@@ -71,17 +76,14 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.parse_modifier_sequence(meta);
+        self.parse_modifier_sequence(meta)?;
         if self.is_block {
-            let is_unsafe = self.is_unsafe;
-            self.flip_modifiers(meta, is_unsafe);
-            token(meta, "{")?;
-            if let Err(err) = syntax(meta, &mut *self.block) {
-                self.flip_modifiers(meta, is_unsafe);
-                return Err(err)
-            }
-            token(meta, "}")?;
-            self.flip_modifiers(meta, is_unsafe);
+            return self.use_modifiers(meta, |this, meta| {
+                token(meta, "{")?;
+                syntax(meta, &mut *this.block)?;
+                token(meta, "}")?;
+                Ok(())
+            })
         }
         Ok(())
     }

@@ -1,3 +1,5 @@
+use std::mem::swap;
+
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
 use crate::modules::command::modifier::CommandModifier;
@@ -48,52 +50,55 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Get the function name
-        let tok = meta.get_current_token();
-        if let Some(ref tok) = tok {
-            self.line = tok.pos.0;
-        }
-        self.name = variable(meta, variable_name_extensions())?;
-        // Get the arguments
-        token(meta, "(")?;
-        self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
-        loop {
-            if token(meta, ")").is_ok() {
-                break
-            }
-            let mut expr = Expr::new();
-            syntax(meta, &mut expr)?;
-            self.args.push(expr);
-            match token(meta, ")") {
-                Ok(_) => break,
-                Err(_) => token(meta, ",")?
-            };
-        }
-        let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
-        self.is_failable = function_unit.is_failable;
-        if self.is_failable {
-            match syntax(meta, &mut self.failed) {
-                Ok(_) => {},
-                Err(Failure::Quiet(_)) => return error!(meta, tok => {
-                    message: "This function can fail. Please handle the failure",
-                    comment: "You can use '?' in the end to propagate the failure"
-                }),
-                Err(err) => return Err(err)
-            }
-        } else {
+        syntax(meta, &mut self.modifier)?;
+        self.modifier.use_modifiers(meta, |_this, meta| {
+            // Get the function name
             let tok = meta.get_current_token();
-            if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str())) {
-                let message = Message::new_warn_at_token(meta, tok)
-                    .message("This function cannot fail")
-                    .comment(format!("You can remove the '{symbol}' in the end"));
-                meta.add_message(message);
+            if let Some(ref tok) = tok {
+                self.line = tok.pos.0;
             }
-        }
-        let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-        let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
-        self.refs = function_unit.arg_refs.clone();
-        (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit, &types, &var_names, tok)?;
-        Ok(())
+            self.name = variable(meta, variable_name_extensions())?;
+            // Get the arguments
+            token(meta, "(")?;
+            self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
+            loop {
+                if token(meta, ")").is_ok() {
+                    break
+                }
+                let mut expr = Expr::new();
+                syntax(meta, &mut expr)?;
+                self.args.push(expr);
+                match token(meta, ")") {
+                    Ok(_) => break,
+                    Err(_) => token(meta, ",")?
+                };
+            }
+            let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+            self.is_failable = function_unit.is_failable;
+            if self.is_failable {
+                match syntax(meta, &mut self.failed) {
+                    Ok(_) => {},
+                    Err(Failure::Quiet(_)) => return error!(meta, tok => {
+                        message: "This function can fail. Please handle the failure",
+                        comment: "You can use '?' in the end to propagate the failure"
+                    }),
+                    Err(err) => return Err(err)
+                }
+            } else {
+                let tok = meta.get_current_token();
+                if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str())) {
+                    let message = Message::new_warn_at_token(meta, tok)
+                        .message("This function cannot fail")
+                        .comment(format!("You can remove the '{symbol}' in the end"));
+                    meta.add_message(message);
+                }
+            }
+            let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
+            let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
+            self.refs = function_unit.arg_refs.clone();
+            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit, &types, &var_names, tok)?;
+            Ok(())
+        })
     }
 }
 
@@ -114,6 +119,8 @@ impl FunctionInvocation {
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        let mut is_silent = self.modifier.is_silent || meta.silenced;
+        swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent();
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | {
             if *is_ref {
@@ -130,6 +137,7 @@ impl TranslateModule for FunctionInvocation {
         let invocation_return = &format!("__AF_{}{}_v{}", self.name, self.id, self.variant_id);
         let invocation_instance = &format!("__AF_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line);
         let parsed_invocation_return = self.get_variable(meta, invocation_return, true);
+        swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
