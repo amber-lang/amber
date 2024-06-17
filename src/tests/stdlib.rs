@@ -178,6 +178,18 @@ fn split() {
 }
 
 #[test]
+fn split_multiline() {
+    let code = "
+        import * from \"std\"
+        main {
+            let array = split(\"apple,ban\nana,cherry\", \",\")
+            echo array
+        }
+    ";
+    test_amber!(code, "apple ban\nana cherry")
+}
+
+#[test]
 fn join() {
     let code = "
         import * from \"std\"

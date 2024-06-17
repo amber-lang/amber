@@ -44,7 +44,7 @@ pub fun file_append(path, content) {
 
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    unsafe $IFS="{delimiter}" read -ra {nameof result} <<< "\${nameof text}"$
+    unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
     return result
 }
 
