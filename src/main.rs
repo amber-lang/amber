@@ -11,6 +11,7 @@ use crate::compiler::AmberCompiler;
 use clap::Parser;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use std::error::Error;
 use std::fs;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -27,7 +28,7 @@ struct Cli {
     eval: Option<String>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     if let Some(code) = cli.eval {
@@ -36,7 +37,8 @@ fn main() {
             Ok((messages, code)) => {
                 messages.iter().for_each(|m| m.show());
                 (!messages.is_empty()).then(|| render_dash());
-                AmberCompiler::execute(code, &vec![])
+                let exit_status = AmberCompiler::execute(code, &vec![])?;
+                std::process::exit(exit_status.code().unwrap_or(1));
             }
             Err(err) => {
                 err.show();
@@ -70,7 +72,8 @@ fn main() {
                         // Execute the code
                         else {
                             (!messages.is_empty()).then(|| render_dash());
-                            AmberCompiler::execute(code, &vec![]);
+                            let exit_status = AmberCompiler::execute(code, &vec![])?;
+                            std::process::exit(exit_status.code().unwrap_or(1));
                         }
                     }
                     Err(err) => {
@@ -86,6 +89,7 @@ fn main() {
         }
     } else {
     }
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]
