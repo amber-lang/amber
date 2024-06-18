@@ -45,10 +45,14 @@ fn text_escaped() {
 fn text_isolated_from_bash() {
     let code = "
         unsafe $SUCCESS=\"FAILURE\"$
-        echo \"This is a $SUCCESS.\"
+        echo \"This is a $SUCCESS\"
+
+        echo \"Today is `date`\"
+
+        echo \"Good job!\"
     ";
     // This should print out "This is a $SUCCESS." and not "This is a FAILURE.""
-    test_amber!(code, "This is a $SUCCESS.");
+    test_amber!(code, "This is a $SUCCESS\nToday is `date`\nGood job!");
 }
 
 #[test]
