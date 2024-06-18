@@ -1084,3 +1084,18 @@ fn main_args() {
     ";
     test_amber!(code, "ok")
 }
+
+#[test]
+fn unsafe_function_call() {
+    let code = "
+        fun safe_division(a: Num, b: Num): Num {
+            if b == 0:
+                fail 1
+            return a / b
+        }
+
+        let result = unsafe safe_division(24, 4)
+        echo \"{result}, {status}\"
+    ";
+    test_amber!(code, "6, 0")
+}

@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::command::command::Command;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -34,7 +35,6 @@ use super::unop::{
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
-use crate::modules::command::expr::CommandExpr;
 use crate::modules::condition::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::nameof::Nameof;
@@ -45,7 +45,6 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    CommandExpr(CommandExpr),
     Parenthesis(Parenthesis),
     VariableGet(VariableGet),
     Add(Add),
@@ -65,6 +64,7 @@ pub enum ExprType {
     Not(Not),
     Ternary(Ternary),
     FunctionInvocation(FunctionInvocation),
+    Command(Command),
     Array(Array),
     Range(Range),
     Null(Null),
@@ -111,9 +111,9 @@ impl Expr {
         // Unary operators
         Cast, Not, Neg, Nameof, Is,
         // Literals
-        Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null, Status,
+        Range, Parenthesis, Bool, Number, Text, Array, Null, Status,
         // Function invocation
-        FunctionInvocation,
+        FunctionInvocation, Command,
         // Variable access
         VariableGet
     ]);

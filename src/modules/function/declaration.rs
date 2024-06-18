@@ -165,7 +165,7 @@ impl TranslateModule for FunctionDeclaration {
             // Parse the function body
             result.push(format!("function {name} {{"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
-                result.push(args); 
+                result.push(args);
             }
             result.push(function.block.translate(meta));
             result.push(meta.gen_indent() + "}");
