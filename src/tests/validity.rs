@@ -42,6 +42,16 @@ fn text_escaped() {
 }
 
 #[test]
+fn text_isolated_from_bash() {
+    let code = "
+        unsafe $SUCCESS=\"FAILURE\"$
+        echo \"This is a $SUCCESS.\"
+    ";
+    // This should print out "This is a $SUCCESS." and not "This is a FAILURE.""
+    test_amber!(code, "This is a $SUCCESS.");
+}
+
+#[test]
 fn bool() {
     test_amber!("echo true", "1");
     test_amber!("echo false", "0");
