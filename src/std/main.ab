@@ -129,19 +129,7 @@ pub fun includes(arr, value) {
     return false
 }
 
-pub fun move(origin: Text, destination: Text): Null {
-    unsafe $mv "{origin}" "{destination}"$
-}
-
-pub fun change_dir(path: Text): Null {
-    if dir_exist(origin) {
-        unsafe $cd "{path}" || exit$
-    }
-
-    return false
-}
-
-pub fun make_symbolic_link(origin: Text, destination: Text): Null {
+pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
         unsafe $ln -s "{origin}" "{path}"$
         return true
@@ -157,7 +145,7 @@ pub fun create_dir(path: Text): Null {
     }
 }
 
-pub fun make_executable(path: Text): Null {
+pub fun make_executable(path: Text): Bool {
     if file_exist(origin) {
         unsafe $chmod +x "{path}"$
         return true
@@ -170,14 +158,4 @@ pub fun make_executable(path: Text): Null {
 pub fun switch_user_permission(user: Text, path: Text): Null {
     // TODO when OR will be available we need to check if the folder or file exist
     unsafe $chown -R "{user}" "{path}"$
-}
-
-pub fun delete(path: Text): Null {
-    if not includes(['/', '.', '..'], path) {
-        unsafe $rm -fr "{path}"$
-        return true
-    }
-
-    echo "The file {$path} can't be deleted!"
-    return false
 }
