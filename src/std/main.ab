@@ -123,6 +123,16 @@ pub fun array_index(array, value): Num {
     }
 }
 
+pub fun array_search(array, value): [Num] {
+    let result = [Num]
+    loop index, element in array {
+        if(value as Text == element as Text) {
+            result += [index]
+        }
+    }
+    return result
+}
+
 pub fun has_failed(command: Text): Bool {
     unsafe silent $eval {command}$
     return status != 0
