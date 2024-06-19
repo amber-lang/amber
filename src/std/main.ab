@@ -115,6 +115,14 @@ pub fun array_value(array, index) {
     return array[index]
 }
 
+pub fun array_index(array, value): Num {
+    loop index, element in array {
+        if(value as Text == element as Text) {
+            return index
+        }
+    }
+}
+
 pub fun has_failed(command: Text): Bool {
     unsafe silent $eval {command}$
     return status != 0
