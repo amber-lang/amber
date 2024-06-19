@@ -111,6 +111,10 @@ pub fun sum(list: [Num]): Num {
     return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
 }
 
+pub fun array_value(array, index) {
+    return array[index]
+}
+
 pub fun has_failed(command: Text): Bool {
     unsafe silent $eval {command}$
     return status != 0
