@@ -163,7 +163,7 @@ pub fun make_executable(path: Text): Bool {
 }
 
 pub fun switch_user_permission(user: Text, path: Text): Bool {
-     if file_exist(origin) or dir_exist(origin) {
+    if file_exist(origin) or dir_exist(origin) {
         unsafe $chown -R "{user}" "{path}"$
         return true
     }
@@ -172,17 +172,25 @@ pub fun switch_user_permission(user: Text, path: Text): Bool {
 }
 
 pub fun download(url: Text, path: Text): Bool {
-        if (is_command(''wget)) {
+    if {
+        not is_command("curl") {
+            unsafe $curl -o "{path}" "{url}"$
+        }
+        not is_command('wget')) {
             unsafe $wget "{url}" -P "{path}"$
-        } else {
+        }
+        not is_command('aria2c')) {
             unsafe $aria2c "{url}" -d "{path}"$
         }
+        return true
+    }
+    return false
 }
 
 pub fun is_root(): Bool {
-        id = unsafe $id -u
-        if (id == 0) {
-            return true
-        }
-        return false
+    id = unsafe $id -u
+    if (id == 0) {
+        return true
+    }
+    return false
 }
