@@ -129,6 +129,13 @@ pub fun includes(arr, value) {
     return false
 }
 
+pub func is_command(command: Text): Bool {
+    if (unsafe $command -v "{command} > /dev/null) {
+        return true
+    }
+    return false
+}
+
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
         unsafe $ln -s "{origin}" "{path}"$
@@ -155,16 +162,6 @@ pub fun make_executable(path: Text): Bool {
     return false
 }
 
-pub fun make_executable(path: Text): Bool {
-    if file_exist(origin) {
-        unsafe $chmod +x "{path}"$
-        return true
-    }
-
-    echo "The file {$path} doesn't exist!"
-    return false
-}
-
 pub fun switch_user_permission(user: Text, path: Text): Bool {
      if file_exist(origin) or dir_exist(origin) {
         unsafe $chown -R "{user}" "{path}"$
@@ -175,5 +172,17 @@ pub fun switch_user_permission(user: Text, path: Text): Bool {
 }
 
 pub fun download(url: Text, path: Text): Bool {
-        unsafe $wget "{url}" -P "{path}"$
+        if (is_command(''wget)) {
+            unsafe $wget "{url}" -P "{path}"$
+        } else {
+            unsafe $aria2c "{url}" -d "{path}"$
+        }
+}
+
+pub fun is_root(): Bool {
+        id = unsafe $id -u
+        if (id == 0) {
+            return true
+        }
+        return false
 }
