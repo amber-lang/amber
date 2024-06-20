@@ -418,3 +418,16 @@ fn lines() {
     ";
     test_amber!(code, "line: hello\nline: world")
 }
+
+#[test]
+fn is_command() {
+    let code = "
+        import { is_command } from \"std\"
+        main {
+            if is_command(\"cat\") {
+                echo \"exist\"
+            }
+        }
+    ";
+    test_amber!(code, "exist")
+}

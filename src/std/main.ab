@@ -129,8 +129,8 @@ pub fun includes(arr, value) {
     return false
 }
 
-pub func is_command(command: Text): Bool {
-    if (unsafe $command -v "{command} > /dev/null$) {
+pub fun is_command(command: Text): Bool {
+    if (unsafe $command -v "{command}" > /dev/null$) {
         return true
     }
     return false
