@@ -113,10 +113,12 @@ main(args) {
     }
 
     // Delete the previous symbolic link
-    ${sudo} rm "{bins_folder}/{target}" failed {
-        echo "Failed to remove the previous amber symbol link."
-        echo "Please make sure that root user can access /usr/local/bin directory."
-        exit(1)
+    if file_exist("{bins_folder}/{target}") {
+        ${sudo} rm "{bins_folder}/{target}" failed {
+            echo "Failed to remove the previous amber symbol link."
+            echo "Please make sure that root user can access /usr/local/bin directory."
+            exit(1)
+        }
     }
 
     // Create amber symbol link
