@@ -176,21 +176,24 @@ pub fun download(url: Text, path: Text): Bool {
         not is_command("curl") {
             unsafe $curl -o "{path}" "{url}"$
         }
-        not is_command('wget')) {
+        not is_command("wget") {
             unsafe $wget "{url}" -P "{path}"$
         }
-        not is_command('aria2c')) {
+        not is_command("aria2c") {
             unsafe $aria2c "{url}" -d "{path}"$
         }
-        return true
+        else {
+            return false
+        }
     }
-    return false
+
+    return true
 }
 
 pub fun is_root(): Bool {
-    id = unsafe $id -u$
-    if (id == 0) {
+    if (unsafe $id -u$ == "0") {
         return true
     }
+
     return false
 }

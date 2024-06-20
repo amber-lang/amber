@@ -495,3 +495,30 @@ fn switch_user_permission() {
     ";
     test_amber!(code, "done")
 }
+
+#[test]
+fn download() {
+    let code = "
+        import { download, is_command } from \"std\"
+        main {
+            if download(\"https://amber-lang.com/\", \"/tmp/amber-homepage\") {
+                unsafe $rm /tmp/amber-homepage$
+                echo \"yes\"
+            }
+        }
+    ";
+    test_amber!(code, "yes")
+}
+
+#[test]
+fn is_root() {
+    let code = "
+        import { is_root } from \"std\"
+        main {
+            if not is_root() {
+                echo \"no\"
+            }
+        }
+    ";
+    test_amber!(code, "no")
+}
