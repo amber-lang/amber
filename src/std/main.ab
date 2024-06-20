@@ -173,13 +173,13 @@ pub fun switch_user_permission(user: Text, path: Text): Bool {
 
 pub fun download(url: Text, path: Text): Bool {
     if {
-        not is_command("curl") {
+        is_command("curl") {
             unsafe $curl -o "{path}" "{url}"$
         }
-        not is_command("wget") {
+        is_command("wget") {
             unsafe $wget "{url}" -P "{path}"$
         }
-        not is_command("aria2c") {
+        is_command("aria2c") {
             unsafe $aria2c "{url}" -d "{path}"$
         }
         else {
