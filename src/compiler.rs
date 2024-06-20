@@ -4,7 +4,6 @@ use crate::translate::check_all_blocks;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::rules;
-use std::collections::HashMap;
 use std::process::Command;
 use std::env;
 use std::time::Instant;
@@ -136,20 +135,5 @@ impl AmberCompiler {
                 .output().unwrap();
             Ok(String::from_utf8_lossy(&child.stdout).to_string())
         })
-    }
-
-    pub fn resolve_std(path: String, meta: &mut ParserMetadata, token_import: Option<Token>) -> Result<String, Failure> {
-        let mut std_modules = HashMap::new();
-
-        std_modules.insert("".to_string(), include_str!("std/main.ab").to_string());
-        std_modules.insert("std".to_string(), include_str!("std/main.ab").to_string());
-        std_modules.insert("strings".to_string(), include_str!("std/strings.ab").to_string());
-        std_modules.insert("fs".to_string(), include_str!("std/fs.ab").to_string());
-
-        if let Some(module) = std_modules.get(&path.replace("std/", "")) {
-            return Ok(module.clone())
-        }
-        
-        Err(Failure::Loud(Message::new_err_at_token(meta, token_import).message("Module not found in stdlib")))
     }
 }
