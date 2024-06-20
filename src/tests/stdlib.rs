@@ -326,6 +326,40 @@ fn has_failed() {
 }
 
 #[test]
+fn array_value() {
+    let code = "
+        import * from \"std\"
+        main {
+            echo array_value([1, 2, 3, 4], 1)
+        }
+    ";
+    test_amber!(code, "2")
+}
+
+#[test]
+fn array_index() {
+    let code = "
+        import * from \"std\"
+        main {
+            echo array_index([1, 2, 3, 4], 3)
+        }
+    ";
+    test_amber!(code, "2")
+}
+
+#[test]
+fn array_search() {
+    let code = "
+        import * from \"std\"
+        main {
+            let result = array_search([1, 2, 3, 4, 3], 3)
+            echo result[0]+result[1]
+        }
+    ";
+    test_amber!(code, "6")
+}
+
+#[test]
 fn exit() {
     let code = "
         import * from \"std\"
