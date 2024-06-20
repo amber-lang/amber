@@ -147,13 +147,13 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
 }
 
 pub fun create_dir(path: Text): Null {
-    if not dir_exist(origin) {
+    if not dir_exist(path) {
         unsafe $mkdir -p "{path}"$
     }
 }
 
 pub fun make_executable(path: Text): Bool {
-    if file_exist(origin) {
+    if file_exist(path) {
         unsafe $chmod +x "{path}"$
         return true
     }
@@ -163,7 +163,7 @@ pub fun make_executable(path: Text): Bool {
 }
 
 pub fun switch_user_permission(user: Text, path: Text): Bool {
-    if file_exist(origin) or dir_exist(origin) {
+    if file_exist(path) or dir_exist(path) {
         unsafe $chown -R "{user}" "{path}"$
         return true
     }

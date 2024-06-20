@@ -432,7 +432,6 @@ fn is_command() {
     test_amber!(code, "exist")
 }
 
-
 #[test]
 fn create_symbolic_link() {
     let code = "
@@ -449,4 +448,50 @@ fn create_symbolic_link() {
         }
     ";
     test_amber!(code, "created")
+}
+
+#[test]
+fn create_dir() {
+    let code = "
+        import { create_dir, dir_exist } from \"std\"
+        main {
+            create_dir(\"/tmp/amber-test\")
+            if dir_exist(\"/tmp/amber-test\") {
+                unsafe $rm /tmp/amber-test$
+                echo \"created\"
+            }
+        }
+    ";
+    test_amber!(code, "created")
+}
+
+#[test]
+fn make_executable() {
+    let code = "
+        import { make_executable } from \"std\"
+        main {
+            unsafe $touch /tmp/amber-symbolic$
+            if make_executable(\"/tmp/amber-symbolic\") {
+                echo \"created\"
+            }
+            unsafe $rm /tmp/amber-symbolic$
+        }
+    ";
+    test_amber!(code, "created")
+}
+
+#[test]
+fn switch_user_permission() {
+    // We use `whoami` to get the running user to assign again the same user as permission
+    let code = "
+        import { switch_user_permission } from \"std\"
+        main {
+            unsafe $touch /tmp/amber-symbolic$
+            if switch_user_permission(unsafe $whoami$,\"/tmp/amber-symbolic\") {
+                echo \"done\"
+            }
+            unsafe $rm /tmp/amber-symbolic$
+        }
+    ";
+    test_amber!(code, "done")
 }
