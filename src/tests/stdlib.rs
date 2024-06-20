@@ -431,3 +431,22 @@ fn is_command() {
     ";
     test_amber!(code, "exist")
 }
+
+
+#[test]
+fn create_symbolic_link() {
+    let code = "
+        import { create_symbolic_link } from \"std\"
+        main {
+            unsafe $touch /tmp/amber-symbolic$
+            if create_symbolic_link(\"/tmp/amber-symbolic\", \"/tmp/amber-symbolic-link\") {
+                echo \"created\"
+            } else {
+                echo \"failed\"
+            }
+            unsafe $rm /tmp/amber-symbolic$
+            unsafe $rm /tmp/amber-symbolic-link$
+        }
+    ";
+    test_amber!(code, "created")
+}

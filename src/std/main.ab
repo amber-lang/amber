@@ -138,7 +138,7 @@ pub fun is_command(command: Text): Bool {
 
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
-        unsafe $ln -s "{origin}" "{path}"$
+        unsafe $ln -s "{origin}" "{destination}"$
         return true
     }
 
