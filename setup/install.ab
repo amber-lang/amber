@@ -116,7 +116,7 @@ main(args) {
     if file_exist("{bins_folder}/{target}") {
         ${sudo} rm "{bins_folder}/{target}" failed {
             echo "Failed to remove the previous amber symbol link."
-            echo "Please make sure that root user can access /usr/local/bin directory."
+            echo "Please make sure that root user can access {bins_folder} directory."
             exit(1)
         }
     }
