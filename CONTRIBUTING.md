@@ -1,4 +1,4 @@
-<img src="assets/amber.png" alt="amber logo" width="200" align="right" />
+<img src="assets/amber.png" alt="amber logo" width="250" align="right" />
 
 # Contributing to Amber
 This is a simple but exhaustive guide to get you started on contributing to amber.
