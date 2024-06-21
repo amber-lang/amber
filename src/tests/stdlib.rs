@@ -5,6 +5,7 @@ use std::fs;
 use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
+use std::time::Duration;
 use tempfile::tempdir;
 use tempfile::TempDir;
 use std::process::{Command, Stdio};
@@ -20,6 +21,16 @@ fn mkfile() -> (PathBuf, TempDir) {
     file.flush().expect("Failed to flush file");
 
     (file_path, temp_dir)
+}
+
+fn http_server() {
+    use tiny_http::{Server, Response};
+    
+    let server = Server::http("127.0.0.1:8081").expect("Can't bind to 127.0.0.1:8081");
+    for req in server.incoming_requests() {
+        req.respond(Response::from_string("ok")).expect("Can't respond");
+        break;
+    }
 }
 
 #[test]
@@ -498,16 +509,25 @@ fn switch_user_permission() {
 
 #[test]
 fn download() {
+    let server = std::thread::spawn(http_server);
+
     let code = "
-        import { download, is_command } from \"std\"
+        import { download, is_command, exit } from \"std\"
         main {
-            if download(\"https://amber-lang.com/\", \"/tmp/amber-homepage\") {
-                unsafe $rm /tmp/amber-homepage$
-                echo \"yes\"
+            let tempfile = unsafe $mktemp$
+            if download(\"http://127.0.0.1:8081/\", tempfile) {
+                $cat {tempfile}$ failed {
+                    echo \"{tempfile} does not exist!!\"
+                }
+                unsafe $rm -f {tempfile}$
             }
         }
     ";
-    test_amber!(code, "yes")
+
+    test_amber!(code, "ok");
+
+    std::thread::sleep(Duration::from_millis(150));
+    assert!(server.is_finished(), "Server has not stopped!");
 }
 
 #[test]
