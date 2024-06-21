@@ -124,7 +124,7 @@ main(args) {
     // Create amber symbol link
     ${sudo} ln -s "{place}/{target}" "{bins_folder}/{target}"$ failed {
         echo "Failed to create amber symbol link."
-        echo "Please make sure that root user can access /usr/local/bin directory."
+        echo "Please make sure that root user can access {bins_folder} directory."
         exit(1)
     }
 
