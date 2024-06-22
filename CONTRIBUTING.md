@@ -114,3 +114,11 @@ fn prints_hi() {
 }
 ```
 </details>
+
+#### Running tests
+To run ALL tests, run `cargo test`.
+
+If you want to run only tests from a specific file, let's say from [`stdlib.rs`](src/tests/stdlib.rs), you add the file name to the command: `cargo test stdlib`
+
+And if there is a specific function, like `test_function()` in `stdlib.rs`, you should add the full path to it: `cargo test stdlib::test_function`
+
