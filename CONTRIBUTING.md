@@ -97,7 +97,7 @@ Basically, the `translate()` method should return a `String` for the compiler to
 `stdlib` is written in Amber. See [`main.ab`](src/std/main) for the code. All `stdlib` functions must be covered by a [test](#4-tests)
 
 ### 4. Tests
-Amber uses `cargo test` for tests. They are written in rust, and they use a `test_amber` macro.
+Amber uses `cargo test` for tests. `stdlib` and `validity` tests usually work by executing amber code and checking its output.
 
 We have [`validity tests`](src/tests/validity.rs) to check the compiler, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).
 
