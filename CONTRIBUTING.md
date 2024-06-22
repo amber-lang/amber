@@ -3,6 +3,26 @@
 # Contributing to Amber
 This is a simple but exhaustive guide to get you started on contributing to amber.
 
+## Contributing guidelines
+Before you dig into Amber, you should know a few things before you contribute.
+
+Any code change is submitted [through a PR](https://github.com/Ph0enixKM/Amber/pulls), which is then approved by at least 2 maintainers.
+
+The way we talk on github is not the same as we would talk in person. When on github, always get straight to the point and be critical.
+
+Personal grudges are forbidden around here, as well as anything offtopic or offensive.
+
+### Opening a PR
+
+Before a PR is opened, it usually has an issue about it first, where we discuss how exactly a feature must be implemented, to avoid making a mistake.
+
+It is recommended that you see how features were already implemented. A good example is [#130](https://github.com/Ph0enixKM/Amber/issues/130)
+
+To create a PR, you should fork the repo, create a branch, do your work in there, and open a PR. It will then be reviewed and pushed into master.
+
+### Getting help
+On the way you will need to get some help with your code. The best way to ask is in [our Discord server](https://discord.com/invite/cjHjxbsDvZ), but you may also ask other contributors personally or post in [Discussions](https://github.com/Ph0enixKM/Amber/discussions).
+
 ## Overview
 Amber consists of the following layers:
 
