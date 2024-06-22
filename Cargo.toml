@@ -1,6 +1,6 @@
 [package]
 name = "amber"
-version = "0.3.2-alpha"
+version = "0.3.3-alpha"
 edition = "2021"
 repository = "https://github.com/Ph0enixKM/Amber"
 
@@ -17,6 +17,8 @@ tempfile = "3.10.1"
 # test dependencies
 [dev-dependencies]
 tiny_http = "0.12.0"
+assert_cmd = "2.0.14"
+predicates = "3.1.0"
 
 [profile.release]
 strip = true
@@ -37,10 +39,13 @@ ci = "github"
 # The installers to generate for each app
 installers = []
 # Target platforms to build apps for (Rust target-triple syntax)
-targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu"]
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-unknown-linux-musl",
+]
 # Publish jobs to run in CI
 pr-run-mode = "skip"
-# Whether cargo-dist should create a Github Release or use an existing draft
-create-release = false
-# Allow modifying the release.yml
+# Allow modifying release.yml
 allow-dirty = ["ci"]

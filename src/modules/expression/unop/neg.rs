@@ -3,35 +3,39 @@ use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types
 use super::super::expr::Expr;
 
 #[derive(Debug, Clone)]
-pub struct Not {
+pub struct Neg {
     expr: Box<Expr>
 }
 
-impl Typed for Not {
+impl Typed for Neg {
     fn get_type(&self) -> Type {
-        Type::Bool
+        Type::Num
     }
 }
 
-impl SyntaxModule<ParserMetadata> for Not {
-    syntax_name!("Not");
+impl SyntaxModule<ParserMetadata> for Neg {
+    syntax_name!("Neg");
 
     fn new() -> Self {
-        Not {
+        Neg {
             expr: Box::new(Expr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "not")?;
+        token(meta, "-")?;
+        let tok = meta.get_current_token();
         syntax(meta, &mut *self.expr)?;
+        if ! matches!(self.expr.get_type(), Type::Num) {
+            return error!(meta, tok, "Only numbers can be negated");
+        }
         Ok(())
     }
 }
 
-impl TranslateModule for Not {
+impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
-        translate_computation(meta, ArithOp::Not, None, Some(expr))
+        translate_computation(meta, ArithOp::Neg, None, Some(expr))
     }
 }

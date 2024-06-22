@@ -27,6 +27,11 @@ fn sub() {
 }
 
 #[test]
+fn neg() {
+    test_amber!("echo -42", "-42");
+}
+
+#[test]
 fn text() {
     test_amber!("echo \"Hello World\"", "Hello World");
 }
@@ -97,6 +102,17 @@ fn very_complex_arithmetic() {
         echo x + y * z / a
     ";
     test_amber!(code, "24");
+}
+
+#[test]
+fn neg_complex_arithmetic() {
+    let code = "
+        let x = 21
+        let y = -2
+        let z = 6
+        echo x - y * z / -4
+    ";
+    test_amber!(code, "18");
 }
 
 #[test]
@@ -1067,4 +1083,19 @@ fn main_args() {
         }
     ";
     test_amber!(code, "ok")
+}
+
+#[test]
+fn unsafe_function_call() {
+    let code = "
+        fun safe_division(a: Num, b: Num): Num {
+            if b == 0:
+                fail 1
+            return a / b
+        }
+
+        let result = unsafe safe_division(24, 4)
+        echo \"{result}, {status}\"
+    ";
+    test_amber!(code, "6, 0")
 }

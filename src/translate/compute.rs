@@ -10,6 +10,7 @@ pub enum ArithOp {
     Mul,
     Div,
     Modulo,
+    Neg,
     Gt,
     Ge,
     Lt,
@@ -37,6 +38,7 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
                     math_lib_flag = false;
                     "%"
                 },
+                ArithOp::Neg => "-",
                 ArithOp::Gt => ">",
                 ArithOp::Ge => ">=",
                 ArithOp::Lt => "<",

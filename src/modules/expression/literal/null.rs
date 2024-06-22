@@ -20,7 +20,7 @@ impl SyntaxModule<ParserMetadata> for Null {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "null")?;
-        Ok(())        
+        Ok(())
     }
 }
 
