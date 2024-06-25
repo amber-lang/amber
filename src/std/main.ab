@@ -121,6 +121,7 @@ pub fun array_index(array, value): Num {
             return index
         }
     }
+    return -1
 }
 
 pub fun array_search(array, value): [Num] {
