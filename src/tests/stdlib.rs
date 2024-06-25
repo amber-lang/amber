@@ -360,6 +360,18 @@ fn array_search() {
 }
 
 #[test]
+fn in_array() {
+    let code = "
+        import * from \"std\"
+        main {
+            let result = in_array([1, 2, 3, 4, 3], 3)
+            echo result
+        }
+    ";
+    test_amber!(code, "1")
+}
+
+#[test]
 fn exit() {
     let code = "
         import * from \"std\"
