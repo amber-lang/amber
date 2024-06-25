@@ -6,6 +6,8 @@ pub mod stdlib;
 pub mod unit;
 pub mod validity;
 
+const FILE_HEADER: &str = include_str!("../../src/header.sh");
+
 #[macro_export]
 macro_rules! test_amber {
     ($code:expr, $result:expr) => {{
@@ -45,14 +47,11 @@ pub fn comp(source: &str, expected: &str) {
 
     let compiled = compile_code(source);
 
-    let header = r#"#!/usr/bin/env bash
-# Written in [Amber](https://amber-lang.com/)
-"#;
-    if !compiled.starts_with(header) {
+    if !compiled.starts_with(FILE_HEADER) {
         panic!("Unexpected header in generated code {compiled}")
     }
     // Ignore newlines before and after the generated code for ease of use
-    let compiled = compiled[65..]
+    let compiled = compiled[FILE_HEADER.len()..]
         .trim_end_matches("\n")
         .trim_start_matches("\n");
 
