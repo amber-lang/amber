@@ -554,3 +554,56 @@ fn is_root() {
     ";
     test_amber!(code, "no")
 }
+
+#[test]
+fn write() {
+    let code = "
+        import { write } from \"std\"
+        main {
+            let path = unsafe $mktemp -d /tmp/amber-XXXX$
+            unsafe $cd {path}$
+            write(\"test\", \"hello\", \"w\")
+            let content = unsafe $cat ./test$
+            if content == \"hello\" {
+                echo \"yes\"
+            }
+            unsafe $rm -fr {path}$
+        }
+    ";
+    test_amber!(code, "yes")
+}
+
+#[test]
+fn get_env_var() {
+    let code = "
+        import { get_env_var, write } from \"std\"
+        main {
+            let path = unsafe $mktemp -d /tmp/amber-XXXX$
+            unsafe $cd {path}$
+            write(\".env\", \"TEST=1\", \"w\")
+            if get_env_var(\"TEST\") == \"1\" {
+                echo \"yes\"
+            }
+            unsafe $rm -fr {path}$
+        }
+    ";
+    test_amber!(code, "yes")
+}
+
+#[test]
+fn load_env_file() {
+    let code = "
+        import { load_env_file, get_env_var, write } from \"std\"
+        main {
+            let path = unsafe $mktemp -d /tmp/amber-XXXX$
+            unsafe $cd {path}$
+            write(\".env\", \"TEST=1\", \"w\")
+            load_env_file()
+            if get_env_var(\"TEST\") == \"1\" {
+                echo \"yes\"
+            }
+            unsafe $rm -fr {path}$
+        }
+    ";
+    test_amber!(code, "no")
+}

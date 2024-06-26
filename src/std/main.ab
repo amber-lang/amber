@@ -197,3 +197,29 @@ pub fun is_root(): Bool {
 
     return false
 }
+
+pub fun write(path: Text, content: Text, mode: Text): Null {
+    if (mode == "w") {
+        unsafe $echo {content} > {path}$
+    } else {
+        unsafe $echo {content} >> {path}$
+    }
+}
+
+pub fun get_env_var(var: Text): Text {
+    let var = unsafe $echo "\${\!var}"$
+    if var != "" {
+        return var
+    }
+
+    if file_exist(".env") {
+        unsafe $source ".env"$
+        return unsafe $echo "\${\!var}"$
+    }
+
+    return ""
+}
+
+pub fun load_env_file(): Null {
+    unsafe $export \$("xargs < .env")$
+}
