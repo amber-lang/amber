@@ -68,6 +68,13 @@ brew install messense/macos-cross-toolchains/aarch64-unknown-linux-musl
 brew install messense/macos-cross-toolchains/x86_64-unknown-linux-gnu
 ```
 
+Compile it:
+```
+git clone https://github.com/Ph0enixKM/Amber
+cd Amber
+cargo build
+```
+
 Finally in order to build
 ```bash
 amber build.ab
