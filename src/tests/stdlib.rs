@@ -326,11 +326,11 @@ fn has_failed() {
 }
 
 #[test]
-fn array_value() {
+fn array_get() {
     let code = "
         import * from \"std\"
         main {
-            echo array_value([1, 2, 3, 4], 1)
+            echo array_get([1, 2, 3, 4], 1)
         }
     ";
     test_amber!(code, "2")
