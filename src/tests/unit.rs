@@ -1,7 +1,7 @@
 use crate::tests::comp;
 
 #[test]
-fn unit_hello() {
+fn hello() {
     comp(
         r#"
         echo "hello"
@@ -13,7 +13,7 @@ fn unit_hello() {
 }
 
 #[test]
-fn unit_basic() {
+fn basic() {
     comp(
         r#"
         import * from "std"
@@ -41,7 +41,7 @@ fn unit_basic() {
 }
 
 #[test]
-fn unit_basic_import() {
+fn basic_import() {
     comp(
         r#"
         import * from "std"
