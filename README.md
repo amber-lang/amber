@@ -9,7 +9,9 @@ Programming language that compiles to Bash. It's a high level programming langua
 > [!Warning]
 > This software is not ready for extended usage.
 
-[Join our Discord!](https://discord.com/invite/cjHjxbsDvZ)
+[Join our Discord](https://discord.com/invite/cjHjxbsDvZ) or
+#amber-lang on irc.oftc.net (irc://irc.oftc.net/#amber-lang) or
+[Join our Matrix room](https://matrix.to/#/#_oftc_#amber-lang:matrix.org)
 
 ## Install
 Amber compiler currently works on:
