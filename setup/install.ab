@@ -1,4 +1,4 @@
-import { has_failed, includes, exit, chars } from "std"
+import { has_failed, includes, exit, chars, input } from "std"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 let name = "AmberNative"
@@ -119,8 +119,10 @@ main(args) {
         exit(1)
     }
 
-    // Send feedback to the server
-    unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+    if (input("Do you want to share your system for telemetry? It will happen only now. [Y/n]") == "Y") {
+        // Send feedback to the server
+        unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+    }
 
     // Send success message
     echo "Amber has been installed successfully. 🎉"
