@@ -337,11 +337,11 @@ fn array_get() {
 }
 
 #[test]
-fn array_index() {
+fn array_first_index() {
     let code = "
         import * from \"std\"
         main {
-            echo array_index([1, 2, 3, 4], 3)
+            echo array_first_index([1, 2, 3, 4], 3)
         }
     ";
     test_amber!(code, "2")

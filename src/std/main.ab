@@ -115,7 +115,7 @@ pub fun array_get(array, index) {
     return array[index]
 }
 
-pub fun array_index(array, value): Num {
+pub fun array_first_index(array, value): Num {
     loop index, element in array {
         if(value as Text == element as Text) {
             return index
@@ -135,7 +135,7 @@ pub fun array_search(array, value): [Num] {
 }
 
 pub fun in_array(array, value): Bool {
-    let result = array_index(array, value)
+    let result = array_first_index(array, value)
     return result >= 0
 }
 
