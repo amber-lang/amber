@@ -19,9 +19,11 @@ parts:
   amber:
     plugin: rust
     source: .
+    build-packages:
+      - yq
     override-pull: |
       craftctl default
-      craftctl set version=$(git describe --tags --abbrev=10)
+      craftctl set version=$(cat $CRAFT_PART_SRC/Cargo.toml | tomlq -rc '.package.version')
 
 
 apps:
