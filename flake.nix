@@ -14,7 +14,7 @@
       {
         packages.default = naersk-lib.buildPackage {
           src = ./.;
-          postInsall = ''
+          postInstall = ''
             wrapProgram "$out/bin/amber" --set PATH ${nixpkgs.lib.makeBinPath [
               pkgs.bc
             ]}
