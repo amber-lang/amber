@@ -556,24 +556,6 @@ fn is_root() {
 }
 
 #[test]
-fn write() {
-    let code = "
-        import { file_write } from \"std\"
-        main {
-            let path = unsafe $mktemp -d /tmp/amber-XXXX$
-            unsafe $cd {path}$
-            file_write(\"test\", \"hello\")
-            let content = unsafe $cat ./test$
-            if content == \"hello\" {
-                echo \"yes\"
-            }
-            unsafe $rm -fr {path}$
-        }
-    ";
-    test_amber!(code, "yes")
-}
-
-#[test]
 fn get_env_var() {
     let code = "
         import { get_env_var, file_write } from \"std\"
