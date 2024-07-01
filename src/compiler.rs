@@ -130,7 +130,7 @@ impl AmberCompiler {
         let header = [
             include_str!("header.sh"),
             "version:", option_env!("CARGO_PKG_VERSION").unwrap(),
-            "date:", Local::now().format("%Y-%m-%d %H:%M:%S").to_string() 
+            "date:", Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str()
         ].join(" ");
         format!("{}\n{}", header, res)
     }
