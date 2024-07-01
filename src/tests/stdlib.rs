@@ -562,7 +562,7 @@ fn get_env_var() {
         main {
             let path = unsafe $mktemp -d /tmp/amber-XXXX$
             unsafe $cd {path}$
-            file_write(\".env\", \"TEST=1\")
+            unsafe file_write(\".env\", \"TEST=1\")
             if get_env_var(\"TEST\") == \"1\" {
                 echo \"yes\"
             }
@@ -579,7 +579,7 @@ fn load_env_file() {
         main {
             let path = unsafe $mktemp -d /tmp/amber-XXXX$
             unsafe $cd {path}$
-            file_write(\".env\", \"TEST=1\")
+            unsafe file_write(\".env\", \"TEST=1\")
             load_env_file()
             if get_env_var(\"TEST\") == \"1\" {
                 echo \"yes\"
