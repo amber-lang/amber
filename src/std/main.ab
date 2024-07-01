@@ -207,14 +207,14 @@ pub fun write(path: Text, content: Text, mode: Text): Null {
 }
 
 pub fun get_env_var(var: Text): Text {
-    let var = unsafe $echo "\${\!var}"$
+    let var = unsafe $echo "\$\{!var}"$
     if var != "" {
         return var
     }
 
     if file_exist(".env") {
         unsafe $source ".env"$
-        return unsafe $echo "\${\!var}"$
+        return unsafe $echo "\$\{!var}"$
     }
 
     return ""
