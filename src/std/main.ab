@@ -198,14 +198,6 @@ pub fun is_root(): Bool {
     return false
 }
 
-pub fun write(path: Text, content: Text, mode: Text): Null {
-    if (mode == "w") {
-        unsafe $echo {content} > {path}$
-    } else {
-        unsafe $echo {content} >> {path}$
-    }
-}
-
 pub fun get_env_var(var: Text): Text {
     let _var = unsafe $echo "\$\{!var}"$
     if _var != "" {

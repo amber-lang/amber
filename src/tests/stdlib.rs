@@ -558,11 +558,11 @@ fn is_root() {
 #[test]
 fn write() {
     let code = "
-        import { write } from \"std\"
+        import { file_write } from \"std\"
         main {
             let path = unsafe $mktemp -d /tmp/amber-XXXX$
             unsafe $cd {path}$
-            write(\"test\", \"hello\", \"w\")
+            file_write(\"test\", \"hello\")
             let content = unsafe $cat ./test$
             if content == \"hello\" {
                 echo \"yes\"
@@ -576,11 +576,11 @@ fn write() {
 #[test]
 fn get_env_var() {
     let code = "
-        import { get_env_var, write } from \"std\"
+        import { get_env_var, file_write } from \"std\"
         main {
             let path = unsafe $mktemp -d /tmp/amber-XXXX$
             unsafe $cd {path}$
-            write(\".env\", \"TEST=1\", \"w\")
+            file_write(\".env\", \"TEST=1\")
             if get_env_var(\"TEST\") == \"1\" {
                 echo \"yes\"
             }
@@ -593,11 +593,11 @@ fn get_env_var() {
 #[test]
 fn load_env_file() {
     let code = "
-        import { load_env_file, get_env_var, write } from \"std\"
+        import { load_env_file, get_env_var, file_write } from \"std\"
         main {
             let path = unsafe $mktemp -d /tmp/amber-XXXX$
             unsafe $cd {path}$
-            write(\".env\", \"TEST=1\", \"w\")
+            file_write(\".env\", \"TEST=1\")
             load_env_file()
             if get_env_var(\"TEST\") == \"1\" {
                 echo \"yes\"
