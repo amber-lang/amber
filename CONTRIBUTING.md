@@ -38,7 +38,12 @@ Amber consists of the following layers:
 All CLI interface is in [`main.rs`](src/main.rs). [`clap`](https://crates.io/crates/clap) handles argument parsing.
 
 ### 2. Compiler
-Compiler consists of these files: [`compiler.rs`](src/compiler.rs), and everything in [`modules`](src/modules).
+Compiler consists of:
+- [`compiler.rs`](src/compiler.rs) - Main entry point for the compiler
+- [`rules.rs`](src/rules.rs) - Syntax rules that are used by Heraclitus framework to correctly output tokens
+- [`utils`](src/utils.rs) - Contains parsing environments, caches, contexts and Amber's implementations of metadata
+- [`modules`](src/modules) - Syntax modules that parse Amber syntax and also handle the translation process
+- [`translate`](src/translate) - Contains a definition of Translate Module trait that is used to translate modules the previously mentioned `modules`
 
 `AmberCompiler` struct by itself is just a bootstrapper for all the syntax modules.
 
