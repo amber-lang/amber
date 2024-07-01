@@ -99,7 +99,7 @@ main(args) {
         exit(1)
     }
 
-    // Remove the archive
+    // Delete the archive
     ${sudo} rm {place}/{archive}$ failed {
         echo "Failed to remove downloaded archive at {place}/{archive}"
         exit(1)
@@ -112,10 +112,19 @@ main(args) {
         exit(1)
     }
 
+    // Delete the previous symbolic link
+    if file_exist("{bins_folder}/{target}") {
+        ${sudo} rm "{bins_folder}/{target}" failed {
+            echo "Failed to remove the previous amber symbol link."
+            echo "Please make sure that root user can access {bins_folder} directory."
+            exit(1)
+        }
+    }
+
     // Create amber symbol link
     ${sudo} ln -s "{place}/{target}" "{bins_folder}/{target}"$ failed {
         echo "Failed to create amber symbol link."
-        echo "Please make sure that root user can access /usr/local/bin directory."
+        echo "Please make sure that root user can access {bins_folder} directory."
         exit(1)
     }
 

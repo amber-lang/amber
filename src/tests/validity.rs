@@ -1076,6 +1076,19 @@ fn variable_ref_function_invocation() {
 }
 
 #[test]
+fn function_calls_on_the_same_line() {
+    let code = "
+        fun f(arg: Num): Num {
+            return arg
+        }
+
+        let a = f(1) + f(2)
+        echo a
+    ";
+    test_amber!(code, "3");
+}
+
+#[test]
 fn main_args() {
     let code = "
         main(args) {
