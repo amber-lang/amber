@@ -75,7 +75,7 @@ cd Amber
 cargo build
 ```
 
-Finally in order to build
+In order to build the installer scripts run:
 ```bash
 amber build.ab
 ```
