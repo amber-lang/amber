@@ -125,7 +125,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         syntax(meta, &mut expr)?;
                         if arg_type != Type::Generic {
                             if arg_type != expr.get_type() {
-                                return error!(meta, name_token, "optional arg doesn't match annotated type");
+                                return error!(meta, name_token, "Optional argument does not match annotated type");
                             }
                         }
                         self.arg_optionals.push(expr);
