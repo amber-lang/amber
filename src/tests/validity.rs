@@ -1099,3 +1099,61 @@ fn unsafe_function_call() {
     ";
     test_amber!(code, "6, 0")
 }
+
+
+#[test]
+fn optional_argument_int_default(){
+    let code = "
+        fun addition(a: Num, b: Num = 100): Num {
+            return a + b
+        }
+        let result = addition(10)
+        echo \"{result}\"
+    ";
+    test_amber!(code, "110")
+}
+
+#[test]
+fn optional_argument_int(){
+    let code = "
+        fun addition(a: Num, b: Num = 100): Num {
+            return a + b
+        }
+        let result = addition(10,1000)
+        echo \"{result}\"
+    ";
+    test_amber!(code, "1010")
+}
+
+#[test]
+fn optional_argument_array_default(){
+    let code = "
+        fun sum_array(a : [Num] = [100,200,300,400]): Num {
+            let sum = 0
+            loop n in a {
+                sum += n;
+            }
+            return sum;
+        }
+        let result = sum_array();
+        echo \"{1000}\"
+    ";
+    test_amber!(code, "1000")
+}
+#[test]
+fn optional_argument_array(){
+    let code = "
+        fun sum_array(a : [Num] = [Num]): Num {
+            let sum = 0
+            loop n in a {
+                sum += n;
+            }
+            return sum;
+        }
+        let x = [100,1000]
+        let result = sum_array(x)
+        echo \"{1100}\"
+    ";
+    test_amber!(code, "1100")
+}
+
