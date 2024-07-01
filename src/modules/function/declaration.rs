@@ -3,7 +3,8 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
-use crate::modules::types::Type;
+use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::cc_flags::get_ccflag_by_name;
 use crate::utils::function_cache::FunctionInstance;
@@ -11,7 +12,6 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::types::parse_type;
-
 use super::declaration_utils::*;
 
 #[derive(Debug, Clone)]
@@ -20,6 +20,7 @@ pub struct FunctionDeclaration {
     pub arg_refs: Vec<bool>,
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
+    pub arg_optionals: Vec<Expr>,
     pub returns: Type,
     pub id: usize,
     pub is_public: bool
@@ -56,6 +57,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             arg_names: vec![],
             arg_types: vec![],
             arg_refs: vec![],
+            arg_optionals: vec![],
             returns: Type::Generic,
             id: 0,
             is_public: false
@@ -88,6 +90,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         handle_existing_function(meta, tok.clone())?;
+        let mut optional = false;
         context!({
             // Set the compiler flags
             swap(&mut meta.context.cc_flags, &mut flags);
@@ -98,13 +101,16 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     break
                 }
                 let is_ref = token(meta, "ref").is_ok();
+                let name_token = meta.get_current_token();//saving for possible error
                 let name = variable(meta, variable_name_extensions())?;
                 // Optionally parse the argument type
+                let mut arg_type = Type::Generic;
                 match token(meta, ":") {
                     Ok(_) => {
                         self.arg_refs.push(is_ref);
                         self.arg_names.push(name.clone());
-                        self.arg_types.push(parse_type(meta)?);
+                        arg_type = parse_type(meta)?;
+                        self.arg_types.push(arg_type.clone());
                     },
                     Err(_) => {
                         self.arg_refs.push(is_ref);
@@ -112,10 +118,25 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         self.arg_types.push(Type::Generic);
                     }
                 }
-                let tok = meta.get_current_token();
-                if token(meta, "=").is_ok() {
-                    return error!(meta, tok, "Default values for function arguments are not yet supported")
+                match token(meta,"="){
+                    Ok(_) => {
+                        optional = true;
+                        let mut expr = Expr::new();
+                        syntax(meta, &mut expr)?;
+                        if arg_type != Type::Generic {
+                            if arg_type != expr.get_type() {
+                                return error!(meta, name_token, "optional arg doesn't match annotated type");
+                            }
+                        }
+                        self.arg_optionals.push(expr);
+                    },
+                    Err(_) => {
+                        if optional{
+                           return error!(meta, name_token, "All args which follow an optional arg must also be optional");
+                        }
+                    },
                 }
+
                 match token(meta, ")") {
                     Ok(_) => break,
                     Err(_) => token(meta, ",")?
@@ -141,6 +162,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 arg_types: self.arg_types.clone(),
                 arg_refs: self.arg_refs.clone(),
                 returns: self.returns.clone(),
+                arg_optionals: self.arg_optionals.clone(),
                 is_public: self.is_public,
                 is_failable
             }, ctx)?;
