@@ -56,7 +56,7 @@ It will have a `parse()` function, where all the magic happens. You can either d
 
 ```rs
 // This code parses the following: `1 + 2`
-fn parse(meta: ParserMetadata) {
+fn parse(meta: &mut ParserMetadata) -> SyntaxResult {
     let digit_1 = meta.get_current_token();     // gets the text (as an Option)
     token(meta, "+")?;                          // matches that there is a "+" and skips it
     let digit_2 = meta.get_current_token();
