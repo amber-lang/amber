@@ -1,15 +1,15 @@
-name: Rust
+name: Cargo Build & Test
 
 on:
-  pull_request_target:
-    branches:
-      - master
+  push:
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build_and_test:
+    name: Rust build and tests
     runs-on: ubuntu-latest
 
     steps:
