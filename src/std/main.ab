@@ -213,5 +213,5 @@ pub fun get_env_var(var: Text): Text {
 }
 
 pub fun load_env_file(): Null {
-    unsafe $export \$("xargs < .env")$
+    unsafe $export "\$(xargs < .env)" > /dev/null$
 }
