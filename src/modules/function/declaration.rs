@@ -101,7 +101,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     break
                 }
                 let is_ref = token(meta, "ref").is_ok();
-                let name_token = meta.get_current_token();//saving for possible error
+                let name_token = meta.get_current_token();
                 let name = variable(meta, variable_name_extensions())?;
                 // Optionally parse the argument type
                 let mut arg_type = Type::Generic;
