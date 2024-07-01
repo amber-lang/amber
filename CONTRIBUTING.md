@@ -21,7 +21,7 @@ It is recommended that you see how features were already implemented. A good exa
 To create a PR, you should fork the repo, create a branch, do your work in there, and open a PR. It will then be reviewed and pushed into master.
 
 ### Getting help
-On the way you will need to get some help with your code. The best way to ask is in [our Discord server](https://discord.com/invite/cjHjxbsDvZ), but you may also ask other contributors personally or post in [Discussions](https://github.com/Ph0enixKM/Amber/discussions).
+Along the way, you may need help with your code. The best way to ask is in [our Discord server](https://discord.com/invite/cjHjxbsDvZ), but you may also ask other contributors personally or post in [Discussions](https://github.com/Ph0enixKM/Amber/discussions).
 
 ## Overview
 Amber consists of the following layers:
