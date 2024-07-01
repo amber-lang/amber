@@ -125,8 +125,12 @@ impl AmberCompiler {
         }
         result.push(block.translate(&mut meta));
         let res = result.join("\n");
-        let header = include_str!("header.sh");
-        format!("{}\n{}", &header.replace("|version|", option_env!("CARGO_PKG_VERSION").unwrap()), res)
+        let header = [
+            include_str!("header.sh"),
+            "version:", option_env!("CARGO_PKG_VERSION").unwrap(),
+            "date:", Local::now().format("%Y-%m-%d %H:%M:%S").to_string() 
+        ].join(" ");
+        format!("{}\n{}", header, res)
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
