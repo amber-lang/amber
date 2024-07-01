@@ -118,7 +118,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         self.arg_types.push(Type::Generic);
                     }
                 }
-                match token(meta,"="){
+                match token(meta,"=") {
                     Ok(_) => {
                         optional = true;
                         let mut expr = Expr::new();
