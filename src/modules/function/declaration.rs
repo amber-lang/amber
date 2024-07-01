@@ -132,7 +132,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     },
                     Err(_) => {
                         if optional {
-                           return error!(meta, name_token, "All args which follow an optional arg must also be optional");
+                           return error!(meta, name_token, "All arguments following an optional argument must also be optional");
                         }
                     },
                 }
