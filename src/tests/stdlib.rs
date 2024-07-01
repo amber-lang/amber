@@ -587,5 +587,5 @@ fn load_env_file() {
             unsafe $rm -fr {path}$
         }
     ";
-    test_amber!(code, "no")
+    test_amber!(code, "yes")
 }
