@@ -128,3 +128,90 @@ pub fun includes(arr, value) {
     }
     return false
 }
+
+pub fun is_command(command: Text): Bool {
+    if (unsafe $command -v "{command}" > /dev/null$) {
+        return true
+    }
+    return false
+}
+
+pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
+    if file_exist(origin) {
+        unsafe $ln -s "{origin}" "{destination}"$
+        return true
+    }
+
+    echo "The file {origin} doesn't exist!"
+    return false
+}
+
+pub fun create_dir(path: Text): Null {
+    if not dir_exist(path) {
+        unsafe $mkdir -p "{path}"$
+    }
+}
+
+pub fun make_executable(path: Text): Bool {
+    if file_exist(path) {
+        unsafe $chmod +x "{path}"$
+        return true
+    }
+
+    echo "The file {path} doesn't exist!"
+    return false
+}
+
+pub fun switch_user_permission(user: Text, path: Text): Bool {
+    if file_exist(path) or dir_exist(path) {
+        unsafe $chown -R "{user}" "{path}"$
+        return true
+    }
+
+    return false
+}
+
+pub fun download(url: Text, path: Text): Bool {
+    if {
+        is_command("curl") {
+            unsafe $curl -o "{path}" "{url}"$
+        }
+        is_command("wget") {
+            unsafe $wget "{url}" -P "{path}"$
+        }
+        is_command("aria2c") {
+            unsafe $aria2c "{url}" -d "{path}"$
+        }
+        else {
+            return false
+        }
+    }
+
+    return true
+}
+
+pub fun is_root(): Bool {
+    if (unsafe $id -u$ == "0") {
+        return true
+    }
+
+    return false
+}
+
+pub fun get_env_var(var: Text): Text {
+    let _var = unsafe $echo "\$\{!var}"$
+    if _var != "" {
+        return _var
+    }
+
+    if file_exist(".env") {
+        unsafe $source ".env"$
+        return unsafe $echo "\$\{!var}"$
+    }
+
+    return ""
+}
+
+pub fun load_env_file(): Null {
+    unsafe $export "\$(xargs < .env)" > /dev/null$
+}

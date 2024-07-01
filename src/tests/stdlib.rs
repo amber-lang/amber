@@ -5,6 +5,7 @@ use std::fs;
 use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
+use std::time::Duration;
 use tempfile::tempdir;
 use tempfile::TempDir;
 use std::process::{Command, Stdio};
@@ -20,6 +21,16 @@ fn mkfile() -> (PathBuf, TempDir) {
     file.flush().expect("Failed to flush file");
 
     (file_path, temp_dir)
+}
+
+fn http_server() {
+    use tiny_http::{Server, Response};
+    
+    let server = Server::http("127.0.0.1:8081").expect("Can't bind to 127.0.0.1:8081");
+    for req in server.incoming_requests() {
+        req.respond(Response::from_string("ok")).expect("Can't respond");
+        break;
+    }
 }
 
 #[test]
@@ -429,4 +440,152 @@ fn lines() {
         }
     ";
     test_amber!(code, "line: hello\nline: world")
+}
+
+#[test]
+fn is_command() {
+    let code = "
+        import { is_command } from \"std\"
+        main {
+            if is_command(\"cat\") {
+                echo \"exist\"
+            }
+        }
+    ";
+    test_amber!(code, "exist")
+}
+
+#[test]
+fn create_symbolic_link() {
+    let code = "
+        import { create_symbolic_link } from \"std\"
+        main {
+            unsafe $touch /tmp/amber-symbolic$
+            if create_symbolic_link(\"/tmp/amber-symbolic\", \"/tmp/amber-symbolic-link\") {
+                echo \"created\"
+            } else {
+                echo \"failed\"
+            }
+            unsafe $rm /tmp/amber-symbolic$
+            unsafe $rm /tmp/amber-symbolic-link$
+        }
+    ";
+    test_amber!(code, "created")
+}
+
+#[test]
+fn create_dir() {
+    let code = "
+        import { create_dir, dir_exist } from \"std\"
+        main {
+            create_dir(\"/tmp/amber-test\")
+            if dir_exist(\"/tmp/amber-test\") {
+                unsafe $rm /tmp/amber-test$
+                echo \"created\"
+            }
+        }
+    ";
+    test_amber!(code, "created")
+}
+
+#[test]
+fn make_executable() {
+    let code = "
+        import { make_executable } from \"std\"
+        main {
+            unsafe $touch /tmp/amber-symbolic$
+            if make_executable(\"/tmp/amber-symbolic\") {
+                echo \"created\"
+            }
+            unsafe $rm /tmp/amber-symbolic$
+        }
+    ";
+    test_amber!(code, "created")
+}
+
+#[test]
+fn switch_user_permission() {
+    // We use `whoami` to get the running user to assign again the same user as permission
+    let code = "
+        import { switch_user_permission } from \"std\"
+        main {
+            unsafe $touch /tmp/amber-symbolic$
+            if switch_user_permission(unsafe $whoami$,\"/tmp/amber-symbolic\") {
+                echo \"done\"
+            }
+            unsafe $rm /tmp/amber-symbolic$
+        }
+    ";
+    test_amber!(code, "done")
+}
+
+#[test]
+fn download() {
+    let server = std::thread::spawn(http_server);
+
+    let code = "
+        import { download, is_command, exit } from \"std\"
+        main {
+            let tempfile = unsafe $mktemp$
+            if download(\"http://127.0.0.1:8081/\", tempfile) {
+                $cat {tempfile}$ failed {
+                    echo \"{tempfile} does not exist!!\"
+                }
+                unsafe $rm -f {tempfile}$
+            }
+        }
+    ";
+
+    test_amber!(code, "ok");
+
+    std::thread::sleep(Duration::from_millis(150));
+    assert!(server.is_finished(), "Server has not stopped!");
+}
+
+#[test]
+fn is_root() {
+    let code = "
+        import { is_root } from \"std\"
+        main {
+            if not is_root() {
+                echo \"no\"
+            }
+        }
+    ";
+    test_amber!(code, "no")
+}
+
+#[test]
+fn get_env_var() {
+    let code = "
+        import { get_env_var, file_write } from \"std\"
+        main {
+            let path = unsafe $mktemp -d /tmp/amber-XXXX$
+            unsafe $cd {path}$
+            unsafe file_write(\".env\", \"TEST=1\")
+            if get_env_var(\"TEST\") == \"1\" {
+                echo \"yes\"
+            }
+            unsafe $rm -fr {path}$
+        }
+    ";
+    test_amber!(code, "yes")
+}
+
+#[test]
+fn load_env_file() {
+    let code = "
+        import { load_env_file, get_env_var, file_write } from \"std\"
+        main {
+            let path = unsafe $mktemp -d /tmp/amber-XXXX$
+            unsafe $cd {path}$
+            unsafe file_write(\".env\", \"TEST=1\")
+            load_env_file()
+            if get_env_var(\"TEST\") == \"1\" {
+                echo \"yes\"
+            }
+            unsafe $rm -fr {path}$
+        }
+    ";
+    test_amber!(code, "yes")
 }
