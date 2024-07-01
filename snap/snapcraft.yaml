@@ -2,7 +2,7 @@ name: amber-bash
 icon: assets/amber.png
 title: Amber
 base: core24
-adopt-info: amber
+adopt-info: amber-bash
 summary: Amber the programming language compiled to bash
 description: |
   Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts.
@@ -16,16 +16,27 @@ confinement: strict
 compression: lzo
 
 parts:
-  amber:
+  amber-bash:
     plugin: rust
     source: .
+    build-packages:
+      - yq
     override-pull: |
       craftctl default
-      craftctl set version=$(git describe --tags --abbrev=10)
+      craftctl set version=$(cat $CRAFT_PART_SRC/Cargo.toml | tomlq -rc '.package.version')
+
+  deps:
+    plugin: nil
+    stage-packages:
+      - bc
+    prime:
+      - bin/bc
+    organize:
+      usr/bin: bin
 
 
 apps:
-  amber:
+  amber-bash:
     command: bin/amber
     plugs:
       - home
