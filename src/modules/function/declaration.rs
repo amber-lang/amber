@@ -131,7 +131,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         self.arg_optionals.push(expr);
                     },
                     Err(_) => {
-                        if optional{
+                        if optional {
                            return error!(meta, name_token, "All args which follow an optional arg must also be optional");
                         }
                     },
