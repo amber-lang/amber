@@ -120,6 +120,9 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 }
                 match token(meta,"=") {
                     Ok(_) => {
+                        if is_ref {
+                            return error!(meta, name_token, "A ref cannot be optional");
+                        }
                         optional = true;
                         let mut expr = Expr::new();
                         syntax(meta, &mut expr)?;

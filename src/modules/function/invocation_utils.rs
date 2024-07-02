@@ -32,7 +32,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
         let min_args = fun.arg_names.len() - fun.arg_optionals.len();
         let opt_argument = if max_args > min_args {&format!("({} optional)",max_args)} else {""};
         // Determine the correct grammar
-        let txt_arguments = if fun.arg_names.len() == 1 { "argument" } else { "arguments" };
+        let txt_arguments = if min_args == 1 { "argument" } else { "arguments" };
         let txt_given = if args.len() == 1 { "was given" } else { "were given" };
         // Return an error
         return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}{opt_argument}, but {} {txt_given}", fun.name, min_args, args.len()))
