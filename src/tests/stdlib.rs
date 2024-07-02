@@ -448,11 +448,15 @@ fn is_command() {
         import { is_command } from \"std\"
         main {
             if is_command(\"cat\") {
-                echo \"exist\"
+                echo \"exist-cat\"
+            }
+
+            if is_command(\"this_is_not_command_amber\") {
+                echo \"exist-error\"
             }
         }
     ";
-    test_amber!(code, "exist")
+    test_amber!(code, "exist-cat")
 }
 
 #[test]
