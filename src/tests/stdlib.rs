@@ -326,17 +326,6 @@ fn has_failed() {
 }
 
 #[test]
-fn array_get() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo array_get([1, 2, 3, 4], 1)
-        }
-    ";
-    test_amber!(code, "2")
-}
-
-#[test]
 fn array_first_index() {
     let code = "
         import * from \"std\"

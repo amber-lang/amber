@@ -111,10 +111,6 @@ pub fun sum(list: [Num]): Num {
     return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
 }
 
-pub fun array_get(array, index) {
-    return array[index]
-}
-
 pub fun array_first_index(array, value): Num {
     loop index, element in array {
         if(value as Text == element as Text) {
