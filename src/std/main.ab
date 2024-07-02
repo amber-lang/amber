@@ -31,7 +31,7 @@ pub fun file_exist(path) {
 }
 
 pub fun file_read(path) {
-    return $cat "{path}"$?
+    return $< "{path}"$?
 }
 
 pub fun file_write(path, content) {
