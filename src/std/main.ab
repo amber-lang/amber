@@ -130,10 +130,10 @@ pub fun includes(arr, value) {
 }
 
 pub fun is_command(command: Text): Bool {
-    if (unsafe $command -v "{command}" > /dev/null$) {
-        return true
+    $[ -x "\$(command -v {command})" ]$ failed {
+        return false
     }
-    return false
+    return true
 }
 
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
