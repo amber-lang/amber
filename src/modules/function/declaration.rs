@@ -101,7 +101,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     break
                 }
                 let is_ref = token(meta, "ref").is_ok();
-                let name_token = meta.get_current_token();//saving for possible error
+                let name_token = meta.get_current_token();
                 let name = variable(meta, variable_name_extensions())?;
                 // Optionally parse the argument type
                 let mut arg_type = Type::Generic;
@@ -118,21 +118,21 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         self.arg_types.push(Type::Generic);
                     }
                 }
-                match token(meta,"="){
+                match token(meta,"=") {
                     Ok(_) => {
                         optional = true;
                         let mut expr = Expr::new();
                         syntax(meta, &mut expr)?;
                         if arg_type != Type::Generic {
                             if arg_type != expr.get_type() {
-                                return error!(meta, name_token, "optional arg doesn't match annotated type");
+                                return error!(meta, name_token, "Optional argument does not match annotated type");
                             }
                         }
                         self.arg_optionals.push(expr);
                     },
                     Err(_) => {
-                        if optional{
-                           return error!(meta, name_token, "All args which follow an optional arg must also be optional");
+                        if optional {
+                           return error!(meta, name_token, "All arguments following an optional argument must also be optional");
                         }
                     },
                 }

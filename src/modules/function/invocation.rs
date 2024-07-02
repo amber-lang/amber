@@ -81,9 +81,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             let actual_arg_count = self.args.len();
             let optional_count = function_unit.arg_optionals.len();
 
-
-            if actual_arg_count < expected_arg_count { //there are missing arguments
-                //check if we can compensate with optional arguments stored in fun_unit
+            // Case when function call is missing arguments
+            if actual_arg_count < expected_arg_count {
+                // Check if we can compensate with optional arguments stored in fun_unit
                 if actual_arg_count >= expected_arg_count - optional_count {
                     let missing = expected_arg_count - actual_arg_count;
                     let provided_optional = optional_count - missing;
