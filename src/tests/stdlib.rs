@@ -1,3 +1,6 @@
+#![cfg(test)]
+extern crate test_generator;
+use test_generator::test_resources;
 use crate::compiler::AmberCompiler;
 use crate::test_amber;
 use crate::tests::compile_code;
@@ -9,6 +12,20 @@ use std::time::Duration;
 use tempfile::tempdir;
 use tempfile::TempDir;
 use std::process::{Command, Stdio};
+
+/*
+ * Autoload the Amber test files for stdlib and match the output with the output.txt file
+ */
+#[test_resources("src/tests/stdlib/*.ab")]
+fn amber_test(input: &str) {
+    let code = fs::read_to_string(input)
+    .expect(&format!("Failed to open {input} test file"));
+
+    let output = fs::read_to_string(input.replace(".ab", ".output.txt"))
+    .expect(&format!("Failed to open *output.txt file"));
+
+    test_amber!(code, output);
+}
 
 fn mkfile() -> (PathBuf, TempDir) {
     let temp_dir = tempdir().expect("Failed to create temporary directory");
@@ -66,18 +83,6 @@ fn input() {
     let output_str = String::from_utf8(output.stdout).expect("Failed to convert stdout to String");
 
     assert_eq!(output_str.trim_end_matches('\n'), expected_output);
-}
-
-#[test]
-fn replace_once() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo replace_once(\"hello world!\", \"world\", \"Amber\")
-        }
-    ";
-
-    test_amber!(code, "hello Amber!")
 }
 
 #[test]

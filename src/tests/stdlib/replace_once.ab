@@ -1,0 +1,4 @@
+import * from "std"
+main {
+    echo replace_once("hello world!", "world", "Amber")
+}
