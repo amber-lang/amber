@@ -1,0 +1,5 @@
+ import * from "std"
+ main {
+	echo trim_left("  hello   world  ")
+} 
+ 

@@ -86,28 +86,6 @@ fn input() {
 }
 
 #[test]
-fn replace() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo replace(\"banana banana\", \"banana\", \"apple\")
-        }
-    ";
-    test_amber!(code, "apple apple")
-}
-
-#[test]
-fn replace_regex() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo replace_regex(\"abc123def\", \"[0-9][0-9]*\", \"456\")
-        }
-    ";
-    test_amber!(code, "abc456def")
-}
-
-#[test]
 fn file_read() {
     let (file_path, temp_dir) = mkfile();
 
@@ -179,96 +157,6 @@ fn file_append() {
     assert_eq!(file_content.trim(), "This is a sample file.\nAppending this line.");
 
     temp_dir.close().expect("Couldn't close temp dir");
-}
-
-#[test]
-fn split() {
-    let code = "
-        import * from \"std\"
-        main {
-            let array = split(\"apple,banana,cherry\", \",\")
-            echo array[1]
-        }
-    ";
-    test_amber!(code, "banana")
-}
-
-#[test]
-fn split_multiline() {
-    let code = "
-        import * from \"std\"
-        main {
-            let array = split(\"apple,ban\nana,cherry\", \",\")
-            echo array
-        }
-    ";
-    test_amber!(code, "apple ban\nana cherry")
-}
-
-#[test]
-fn join() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo join([\"apple\", \"banana\", \"cherry\"], \", \")
-        }
-    ";
-    test_amber!(code, "apple,banana,cherry")
-}
-
-#[test]
-fn trim() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo trim(\"  hello   world  \")
-        }
-    ";
-    test_amber!(code, "hello   world")
-}
-
-#[test]
-fn trim_left() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo trim_left(\"  hello   world  \")
-        }
-    ";
-    test_amber!(code, "hello   world  ")
-}
-
-#[test]
-fn trim_right() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo trim_right(\"  hello   world  \")
-        }
-    ";
-    test_amber!(code, "  hello   world")
-}
-
-#[test]
-fn lower() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo lower(\"HELLO WORLD\")
-        }
-    ";
-    test_amber!(code, "hello world")
-}
-
-#[test]
-fn upper() {
-    let code = "
-        import * from \"std\"
-        main {
-            echo upper(\"hello world\")
-        }
-    ";
-    test_amber!(code, "HELLO WORLD")
 }
 
 #[test]

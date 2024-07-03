@@ -1,0 +1,4 @@
+import * from "std"
+main {
+    echo replace("banana banana", "banana", "apple")
+}
