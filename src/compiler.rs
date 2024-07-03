@@ -129,9 +129,9 @@ impl AmberCompiler {
         let res = result.join("\n");
         let header = [
             include_str!("header.sh"),
-            "# version:", option_env!("CARGO_PKG_VERSION").unwrap(),
-            "date:", Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str()
-        ].join(" ");
+            &("# version: ".to_owned() + option_env!("CARGO_PKG_VERSION").unwrap().to_string().as_str()),
+            &("# date: ".to_owned() + Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str())
+        ].join("\n");
         format!("{}\n{}", header, res)
     }
 
