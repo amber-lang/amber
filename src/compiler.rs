@@ -1,3 +1,5 @@
+extern crate chrono;
+use chrono::prelude::*;
 use crate::modules::block::Block;
 use crate::rules;
 use crate::translate::check_all_blocks;
@@ -125,7 +127,12 @@ impl AmberCompiler {
         }
         result.push(block.translate(&mut meta));
         let res = result.join("\n");
-        format!("{}\n{}", include_str!("header.sh"), res)
+        let header = [
+            include_str!("header.sh"),
+            &("# version: ".to_owned() + option_env!("CARGO_PKG_VERSION").unwrap().to_string().as_str()),
+            &("# date: ".to_owned() + Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str())
+        ].join("\n");
+        format!("{}\n{}", header, res)
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
