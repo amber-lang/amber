@@ -35,7 +35,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
         let txt_arguments = if min_args == 1 { "argument" } else { "arguments" };
         let txt_given = if args.len() == 1 { "was given" } else { "were given" };
         // Return an error
-        return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments} {opt_argument}, but {} {txt_given}", fun.name, min_args, args.len()))
+        return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}{opt_argument}, but {} {txt_given}", fun.name, min_args, args.len()))
     }
     // Check if the function argument types match
     if fun.is_args_typed {
