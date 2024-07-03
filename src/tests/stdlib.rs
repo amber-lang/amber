@@ -36,13 +36,9 @@ fn http_server() {
 #[test]
 fn input() {
     let prompt_message = "Please enter your name:";
-    let code = format!(r#"
-        import * from "std"
-        main {{
-            let name = input("{}")
-            echo "Hello, " + name
-        }}
-    "#, prompt_message);
+
+    let code = fs::read_to_string("src/tests/stdlib_no-output/input.ab")
+    .expect(&format!("Failed to open stdlib_no-output/input.ab test file"));
 
     let input = "Amber";
     let expected_output = format!("{}Hello, {}", prompt_message, input);
@@ -70,12 +66,9 @@ fn input() {
 
 #[test]
 fn exit() {
-    let code = format!(r#"
-        import * from "std"
-        main {{
-            exit(37)
-        }}
-    "#);
+    let code = fs::read_to_string("src/tests/stdlib_no-output/exit.ab")
+    .expect(&format!("Failed to open stdlib_no-output/exit.ab test file"));
+
     let code = compile_code(code);
     let mut cmd = Command::new("bash")
         .arg("-c").arg(code)
@@ -85,54 +78,12 @@ fn exit() {
     assert_eq!(cmd.wait().expect("Couldn't wait for bash to execute").code(), Some(37));
 }
 
-macro_rules! test_includes {
-    ($name:ident, $array_declaration:expr, $element:expr, $expected:expr) => {
-        #[test]
-        fn $name() {
-            let array_declaration = $array_declaration.to_string();
-            let element = $element.to_string();
-            let code = format!(r#"
-                import * from "std"
-
-                main {{
-                    let array = {array_declaration}
-                    if includes(array, {element}) {{
-                        echo "Found"
-                    }} else {{
-                        echo "Not Found"
-                    }}
-                }}
-            "#);
-
-            test_amber!(code, $expected.to_string())
-        }
-    }
-}
-
-test_includes!(includes_empty_text_array, r#"[Text]"#, "\"\"", "Not Found");
-test_includes!(includes_text_array, r#"["apple", "banana", "cherry"]"#, "\"banana\"", "Found");
-test_includes!(includes_exact_match, r#"["apple", "banana cherry"]"#, "\"banana cherry\"", "Found");
-test_includes!(includes_prefix_match, r#"["apple", "banana cherry"]"#, "\"banana\"", "Not Found");
-test_includes!(includes_partial_match_with_expanded_element, r#"["foo", "bar", "baz"]"#, "\"oo ba\"", "Not Found");
-test_includes!(includes_empty_num_array, r#"[Num]"#, 0, "Not Found");
-
 #[test]
 fn download() {
     let server = std::thread::spawn(http_server);
 
-    let code = format!(r#"
-        import * from "std"
-        main {{
-            let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
-            unsafe $cd {{tmpdir}}$
-            if download("http://127.0.0.1:8081/", "./test.txt") {{
-                if file_exist("./test.txt") {{
-                    echo "ok"
-                }}
-            }}
-            unsafe $rm -fr {{tmpdir}}$
-        }}
-    "#);
+    let code = fs::read_to_string("src/tests/stdlib_no-output/download.ab")
+    .expect(&format!("Failed to open stdlib_no-output/download.ab test file"));
 
     test_amber!(code, "ok");
 
