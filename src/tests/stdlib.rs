@@ -18,7 +18,7 @@ fn amber_test(input: &str) {
     .expect(&format!("Failed to open {input} test file"));
 
     let output = fs::read_to_string(input.replace(".ab", ".output.txt"))
-    .expect(&format!("Failed to open *output.txt file"));
+    .expect(&format!("Failed to open {input}.output.txt file"));
 
     test_amber!(code, output);
 }
