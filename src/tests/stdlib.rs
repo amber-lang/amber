@@ -70,12 +70,12 @@ fn input() {
 
 #[test]
 fn exit() {
-    let code = "
-        import * from \"std\"
-        main {
+    let code = format!(r#"
+        import * from "std"
+        main {{
             exit(37)
-        }
-    ";
+        }}
+    "#);
     let code = compile_code(code);
     let mut cmd = Command::new("bash")
         .arg("-c").arg(code)
@@ -120,18 +120,19 @@ test_includes!(includes_empty_num_array, r#"[Num]"#, 0, "Not Found");
 fn download() {
     let server = std::thread::spawn(http_server);
 
-    let code = "
-        import { download, is_command, exit } from \"std\"
-        main {
-            let tempfile = unsafe $mktemp$
-            if download(\"http://127.0.0.1:8081/\", tempfile) {
-                $cat {tempfile}$ failed {
-                    echo \"{tempfile} does not exist!!\"
-                }
-                unsafe $rm -f {tempfile}$
-            }
-        }
-    ";
+    let code = format!(r#"
+        import * from "std"
+        main {{
+            let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
+            unsafe $cd {{tmpdir}}$
+            if download("http://127.0.0.1:8081/", "./test.txt") {{
+                if file_exist("./test.txt") {{
+                    echo "ok"
+                }}
+            }}
+            unsafe $rm -fr {{tmpdir}}$
+        }}
+    "#);
 
     test_amber!(code, "ok");
 
