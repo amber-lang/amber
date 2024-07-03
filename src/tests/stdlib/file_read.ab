@@ -1,0 +1,10 @@
+import * from "std"
+main {
+	let path = unsafe $mktemp -d /tmp/amber-XXXX$
+	unsafe $cd {path}$
+	unsafe file_write("test.txt", "hello")
+	let f = file_read("test.txt") failed {
+		echo "Failed" 
+	}
+	echo f
+}

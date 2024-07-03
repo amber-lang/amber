@@ -1,0 +1,10 @@
+import { is_command } from "std"
+main {
+	if is_command("cat") {
+                echo "exist-cat"
+	}
+
+	if is_command("this_is_not_command_amber") {
+                echo "exist-error"
+	}
+} 
