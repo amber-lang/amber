@@ -37,8 +37,8 @@ fn http_server() {
 fn input() {
     let prompt_message = "Please enter your name:";
 
-    let code = fs::read_to_string("src/tests/stdlib_no-output/input.ab")
-    .expect(&format!("Failed to open stdlib_no-output/input.ab test file"));
+    let code = fs::read_to_string("src/tests/stdlib/no_output/input.ab")
+    .expect(&format!("Failed to open stdlib/no_output/input.ab test file"));
 
     let input = "Amber";
     let expected_output = format!("{}Hello, {}", prompt_message, input);
@@ -66,8 +66,8 @@ fn input() {
 
 #[test]
 fn exit() {
-    let code = fs::read_to_string("src/tests/stdlib_no-output/exit.ab")
-    .expect(&format!("Failed to open stdlib_no-output/exit.ab test file"));
+    let code = fs::read_to_string("src/tests/stdlib/no_output/exit.ab")
+    .expect(&format!("Failed to open stdlib/no_output/exit.ab test file"));
 
     let code = compile_code(code);
     let mut cmd = Command::new("bash")
