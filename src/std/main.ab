@@ -198,7 +198,7 @@ pub fun change_owner(user: Text, path: Text): Bool {
 pub fun download(url: Text, path: Text): Bool {
     if {
         is_command("curl") {
-            unsafe $curl -o "{path}" "{url}"$
+            unsafe $curl -L -o "{path}" "{url}"$
         }
         is_command("wget") {
             unsafe $wget "{url}" -P "{path}"$
