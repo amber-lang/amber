@@ -1,6 +1,6 @@
 import { lines } from "std"
 main {
-	loop line in lines("hello\nworld") {
-                echo "line: " + line
-	}
+    loop line in lines("hello\nworld") {
+        echo "line: " + line
+    }
 } 

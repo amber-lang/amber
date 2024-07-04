@@ -1,6 +1,6 @@
 import { is_root } from "std"
 main {
-	if not is_root() {
-                echo "no"
-	}
+    if not is_root() {
+        echo "no"
+    }
 } 

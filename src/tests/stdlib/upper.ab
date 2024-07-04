@@ -1,4 +1,4 @@
 import * from "std"
 main {
-	echo upper("hello world")
+    echo upper("hello world")
 } 

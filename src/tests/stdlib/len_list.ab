@@ -1,4 +1,4 @@
 import * from "std"
 main {
-	echo len([1, 2, 3, 4])
+    echo len([1, 2, 3, 4])
 } 

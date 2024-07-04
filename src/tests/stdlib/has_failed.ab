@@ -1,8 +1,8 @@
 import * from "std"
 main {
-	if has_failed("ls /nonexistent") {
-		echo "Command failed"
-	} else {
-                echo "Command succeeded"
-	}
+    if has_failed("ls /nonexistent") {
+        echo "Command failed"
+    } else {
+        echo "Command succeeded"
+    }
 }

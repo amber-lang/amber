@@ -1,4 +1,4 @@
 import * from "std"
 main {
-	echo chars("hello")
+    echo chars("hello")
 } 

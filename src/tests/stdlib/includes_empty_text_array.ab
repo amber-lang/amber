@@ -3,8 +3,8 @@ import * from "std"
 main {
     let array = [Text]
     if includes(array, " ") {
-        echo "Found"
+    echo "Found"
     } else {
-        echo "Not Found"
+    echo "Not Found"
     }
 }

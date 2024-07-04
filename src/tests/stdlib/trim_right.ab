@@ -1,4 +1,4 @@
 import * from "std"
 main {
-	echo trim_right("  hello   world  ")
+    echo trim_right("  hello   world  ")
 }

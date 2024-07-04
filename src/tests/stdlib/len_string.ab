@@ -1,4 +1,4 @@
 import * from "std"
 main {
-	echo len("hello")
+    echo len("hello")
 } 
