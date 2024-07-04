@@ -1,11 +1,11 @@
 import * from "std"
 main {
 	let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
-	unsafe $cd {{tmpdir}}$
+	unsafe $cd {tmpdir}$
 	if download("http://127.0.0.1:8081/", "./test.txt") {
 		if file_exist("./test.txt") {
 			    echo "ok"
 		}
 	}
-	unsafe $rm -fr {{tmpdir}}$
+	unsafe $rm -fr {tmpdir}$
 }
