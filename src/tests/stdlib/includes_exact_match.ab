@@ -1,0 +1,10 @@
+import * from "std"
+
+main {
+    let array = ["apple", "banana cherry"]
+    if includes(array, "banana cherry") {
+        echo "Found"
+    } else {
+        echo "Not Found"
+    }
+}

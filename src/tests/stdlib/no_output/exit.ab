@@ -1,0 +1,4 @@
+import * from "std"
+main {
+    exit(37)
+}

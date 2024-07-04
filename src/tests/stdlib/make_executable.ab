@@ -1,0 +1,8 @@
+import { make_executable } from "std"
+main {
+    unsafe $touch /tmp/amber-symbolic$
+    if make_executable("/tmp/amber-symbolic") {
+        echo "created"
+    }
+    unsafe $rm /tmp/amber-symbolic$
+} 
