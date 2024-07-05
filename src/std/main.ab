@@ -248,7 +248,7 @@ pub fun shell_isset(name: Text): Bool {
 }
 
 pub fun shell_constant_set(name: Text, val: Text): Bool {
-    $readonly \$name="\$val" 2> /dev/null$ failed {
+    $readonly \${nameof name}="\${nameof val}" 2> /dev/null$ failed {
         return false
     }
     return true
