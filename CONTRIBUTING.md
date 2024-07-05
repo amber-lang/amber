@@ -107,7 +107,7 @@ Amber uses `cargo test` for tests. `stdlib` and `validity` tests usually work by
 We have [`validity tests`](src/tests/validity.rs) to check the compiler, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).  
 
 The majority of `stdlib` tests are Written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). For every test there is a `*.output.txt` file that contains the expected output.
-Any test will be executed without the need to compile again Amber, will load the Amber scripts and check for the output in the dedicated file to pass the test.
+Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
 
 A part of those tests like for `download` require Rust to load a web server, so there is another folder [`tests/stdlib/no_output`](src/tests/stdlib/no_output) that include just the Amber script, the output is inside the [`stdlib tests`](src/tests/stdlib.rs) file.
 
