@@ -104,7 +104,7 @@ Basically, the `translate()` method should return a `String` for the compiler to
 ### 4. Tests
 Amber uses `cargo test` for tests. `stdlib` and `validity` tests usually work by executing amber code and checking its output.
 
-We have [`validity tests`](src/tests/validity.rs) to check the compiler, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).  
+We have [`validity tests`](src/tests/validity.rs) to check if the compiler outputs a valid bash code, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).  
 
 The majority of `stdlib` tests are Written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). For every test there is a `*.output.txt` file that contains the expected output.
 Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
