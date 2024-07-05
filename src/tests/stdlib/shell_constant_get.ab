@@ -1,5 +1,5 @@
 import * from "std"
 main {
-    shell_constant_set("test_shell_constant_get", "Hello Amber!")
-    return unsafe $echo "\$test_shell_constant_get"$
+    unsafe shell_constant_set("test_shell_constant_get", "Hello Amber!")
+    unsafe $echo "\$test_shell_constant_get"$
 } 

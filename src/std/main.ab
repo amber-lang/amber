@@ -247,31 +247,22 @@ pub fun shell_isset(name: Text): Bool {
     return true
 }
 
-pub fun shell_constant_set(name: Text, val: Text): Bool {
-    $readonly \${nameof name}="\${nameof val}" 2> /dev/null$ failed {
-        return false
-    }
-    return true
+pub fun shell_constant_set(name: Text, val: Text): Null {
+    $readonly \${nameof name}="\${nameof val}" 2> /dev/null$?
 }
 
 pub fun shell_constant_get(name: Text): Text {
-    return unsafe $echo \$\{!{nameof name}}$
+    return $echo \$\{!{nameof name}}$?
 }
 
-pub fun shell_var_set(name: Text, val: Text): Bool {
-    $declare -g \${nameof name}="\${nameof val}" 2> /dev/null$ failed {
-        return false
-    }
-    return true
+pub fun shell_var_set(name: Text, val: Text): Null {
+    $declare -g \${nameof name}="\${nameof val}" 2> /dev/null$?
 }
 
 pub fun shell_var_get(name: Text): Text {
-    return unsafe $echo \$\{!{nameof name}}$
+    return $echo \$\{!{nameof name}}$?
 }
 
-pub fun shell_unset(name: Text): Bool {
-    $unset {name}$ failed {
-        return false
-    }
-    return true
+pub fun shell_unset(name: Text): Null {
+    $unset {name}$?
 }

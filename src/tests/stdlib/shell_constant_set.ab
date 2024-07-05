@@ -1,8 +1,10 @@
 import * from "std"
 main {
-    shell_constant_set("test_shell_constant_set", "Hello Amber")
+    unsafe shell_constant_set("test_shell_constant_set", "Hello Amber")
     let str = ""
     str += unsafe $echo "\$test_shell_constant_set"$
-    if not shell_constant_set("test_shell_constant_set", "Hello Amber"): str += " Shell Constant!"
+    shell_constant_set("test_shell_constant_set", "Hello Amber") failed {
+        str += " Shell Constant!"
+    }
     echo str
 } 
