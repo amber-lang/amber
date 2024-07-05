@@ -241,7 +241,7 @@ pub fun load_env_file(): Null {
 }
 
 pub fun shell_isset(name: Text): Bool {
-    $[[ ! -z \$\{!name+z} ]]$ failed {
+    $[[ ! -z \$\{!{nameof name}+z} ]]$ failed {
         return false
     }
     return true
