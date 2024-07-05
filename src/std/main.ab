@@ -258,7 +258,7 @@ pub fun shell_constant_get(name: Text): Text {
     return unsafe $echo \$\{!name}$
 }
 
-pub fun shell_var_set(name: Text, val: Text): Null {
+pub fun shell_var_set(name: Text, val: Text): Bool {
     $declare -g \$name="\$val" 2> /dev/null$ failed {
         return false
     }
@@ -269,7 +269,7 @@ pub fun shell_var_get(name: Text): Text {
     return unsafe $echo \$\{!name}$
 }
 
-pub fun shell_unset(name: Text): Null {
+pub fun shell_unset(name: Text): Bool {
     $unset {name}$ failed {
         return false
     }
