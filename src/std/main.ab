@@ -259,7 +259,7 @@ pub fun shell_constant_get(name: Text): Text {
 }
 
 pub fun shell_var_set(name: Text, val: Text): Bool {
-    $declare -g \$name="\$val" 2> /dev/null$ failed {
+    $declare -g \${nameof name}="\${nameof val}" 2> /dev/null$ failed {
         return false
     }
     return true
