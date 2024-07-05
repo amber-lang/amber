@@ -266,7 +266,7 @@ pub fun shell_var_set(name: Text, val: Text): Bool {
 }
 
 pub fun shell_var_get(name: Text): Text {
-    return unsafe $echo \$\{!name}$
+    return unsafe $echo \$\{!{nameof name}}$
 }
 
 pub fun shell_unset(name: Text): Bool {
