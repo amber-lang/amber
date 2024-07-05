@@ -14,6 +14,7 @@ use std::process::{Command, Stdio};
  */
 #[test_resources("src/tests/stdlib/*.ab")]
 fn amber_test(input: &str) {
+    println!("{}", input);
     let code = fs::read_to_string(input)
     .expect(&format!("Failed to open {input} test file"));
 
