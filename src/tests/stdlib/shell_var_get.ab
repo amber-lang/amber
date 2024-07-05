@@ -1,0 +1,5 @@
+import * from "std"
+main {
+    unsafe $declare -g test_shell_var_get="Hello Amber!"$
+    echo unsafe shell_var_get("test_shell_var_get")
+}

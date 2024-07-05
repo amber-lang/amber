@@ -16,5 +16,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose
+    - name: Cache dependencies installed with cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+            ./target
+            ~/.cargo
+        key: rust-${{ hashFiles('Cargo.lock') }}
+        restore-keys: rust-${{ hashFiles('Cargo.lock') }}
     - name: Run all tests
       run: cargo test --verbose

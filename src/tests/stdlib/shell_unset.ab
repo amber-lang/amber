@@ -1,0 +1,7 @@
+import * from "std"
+main {
+    unsafe shell_var_set("test_shell_unset", "Hello Amber!")
+    unsafe $echo \$test_shell_unset$
+    unsafe shell_unset("test_shell_unset")
+    unsafe $echo \$test_shell_unset$
+}

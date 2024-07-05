@@ -1,0 +1,10 @@
+import { get_env_var, file_write } from "std"
+main {
+    let path = unsafe $mktemp -d /tmp/amber-XXXX$
+    unsafe $cd {path}$
+    unsafe file_write(".env", "TEST=1")
+    if get_env_var("TEST") == "1" {
+        echo "yes"
+    }
+    unsafe $rm -fr {path}$
+} 
