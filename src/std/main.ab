@@ -239,3 +239,30 @@ pub fun get_env_var(var: Text): Text {
 pub fun load_env_file(): Null {
     unsafe $export "\$(xargs < .env)" > /dev/null$
 }
+
+pub fun shell_isset(name: Text): Bool {
+    $[[ ! -z \$\{!{nameof name}+z} ]]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun shell_constant_set(name: Text, val: Text): Null {
+    $readonly \${nameof name}="\${nameof val}" 2> /dev/null$?
+}
+
+pub fun shell_constant_get(name: Text): Text {
+    return $echo \$\{!{nameof name}}$?
+}
+
+pub fun shell_var_set(name: Text, val: Text): Null {
+    $declare -g \${nameof name}="\${nameof val}" 2> /dev/null$?
+}
+
+pub fun shell_var_get(name: Text): Text {
+    return $echo \$\{!{nameof name}}$?
+}
+
+pub fun shell_unset(name: Text): Null {
+    $unset {name}$?
+}
