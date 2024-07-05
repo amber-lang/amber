@@ -256,7 +256,7 @@ pub fun shell_constant_get(name: Text): Text {
 }
 
 pub fun shell_var_set(name: Text, val: Text): Null {
-    $declare -g \${nameof name}="\${nameof val}" 2> /dev/null$?
+    $export \${nameof name}="\${nameof val}" 2> /dev/null$?
 }
 
 pub fun shell_var_get(name: Text): Text {
