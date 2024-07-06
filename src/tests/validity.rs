@@ -42,6 +42,16 @@ fn text_escaped() {
 }
 
 #[test]
+fn text_unescaped_after() {
+    test_amber!("echo \"Hello\\\\\"", "Hello\\");
+}
+
+#[test]
+fn text_unescaped_before() {
+    test_amber!("echo \"Hello\\\\{12}\"", "Hello\\12");
+}
+
+#[test]
 fn bool() {
     test_amber!("echo true", "1");
     test_amber!("echo false", "0");
