@@ -1,7 +1,7 @@
 pub fun input(prompt: Text): Text {
     unsafe $printf "\${nameof prompt}"$
     unsafe $read$
-    return "$REPLY"
+    return unsafe $echo \$REPLY$
 }
 
 pub fun replace_once(source, pattern, replacement) {
