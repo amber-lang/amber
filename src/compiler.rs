@@ -1,5 +1,6 @@
 extern crate chrono;
 use chrono::prelude::*;
+use itertools::Itertools;
 use crate::modules::block::Block;
 use crate::rules;
 use crate::translate::check_all_blocks;
@@ -26,7 +27,15 @@ impl AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
             path,
         }
-        .load_code(code)
+        .load_code(AmberCompiler::strip_off_shebang(code))
+    }
+
+    fn strip_off_shebang(code: String) -> String {
+        if code.starts_with("#!") {
+            code.split("\n").into_iter().skip(1).collect_vec().join("\n")
+        } else {
+            code
+        }
     }
 
     fn env_flag_set(flag: &str) -> bool {
