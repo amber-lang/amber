@@ -7,7 +7,7 @@ repository = "https://github.com/Ph0enixKM/Amber"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-heraclitus-compiler = "1.5.8"
+heraclitus-compiler = "1.6.1"
 similar-string = "1.4.2"
 colored = "2.0.0"
 itertools = "0.11.0"
