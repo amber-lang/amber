@@ -21,3 +21,12 @@ pub fun in_array(array, value): Bool {
     let result = array_first_index(array, value)
     return result >= 0
 }
+
+pub fun includes(arr, value) {
+    loop v in arr {
+        if v == value {
+            return true
+        }
+    }
+    return false
+}

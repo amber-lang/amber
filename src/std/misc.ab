@@ -1,3 +1,5 @@
+import * from "std/fs"
+
 pub fun get_env_var(var: Text): Text {
     let _var = unsafe $echo "\$\{!var}"$
     if _var != "" {

@@ -1,3 +1,5 @@
+import * from "std/shell"
+
 pub fun download(url: Text, path: Text): Bool {
     if {
         is_command("curl") {

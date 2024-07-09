@@ -74,12 +74,3 @@ pub fun len(value): Num {
             return $echo "\$\{#{nameof value}[@]}"$ as Num
     }
 }
-
-pub fun includes(arr, value) {
-    loop v in arr {
-        if v == value {
-            return true
-        }
-    }
-    return false
-}

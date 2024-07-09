@@ -1,4 +1,4 @@
-import * from "std/array"
+import * from "std/text"
 main {
     echo join(["apple", "banana", "cherry"], ", ")
 }
