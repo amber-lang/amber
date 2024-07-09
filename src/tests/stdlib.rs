@@ -12,7 +12,7 @@ use std::process::{Command, Stdio};
  * Autoload the Amber test files for stdlib and match the output with the output.txt file
  */
 #[test_resources("src/tests/stdlib/*.ab")]
-fn amber_test(input: &str) {
+fn stdlib_test(input: &str) {
     let code = fs::read_to_string(input)
     .expect(&format!("Failed to open {input} test file"));
 
