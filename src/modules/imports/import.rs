@@ -71,7 +71,7 @@ impl Import {
 
     fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
         if self.path.value.starts_with("std") {
-            match stdlib::resolve_std(&self.path.value) {
+            match stdlib::resolve(&self.path.value) {
                 Some(v) => Ok(v),
                 None => error!(meta, self.token_path.clone() => {
                     message: format!("Std module does not exist: {}", self.path.value),

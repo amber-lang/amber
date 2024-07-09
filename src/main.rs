@@ -3,6 +3,7 @@ mod modules;
 mod rules;
 mod translate;
 mod utils;
+mod stdlib;
 
 #[cfg(test)]
 pub mod tests;
