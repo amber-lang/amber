@@ -1,4 +1,4 @@
-import * from "std/action"
+import * from "std/http"
 import * from "std/fs"
 main {
 	let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
