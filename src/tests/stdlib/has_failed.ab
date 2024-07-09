@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/shell"
 main {
     if has_failed("ls /nonexistent") {
         echo "Command failed"

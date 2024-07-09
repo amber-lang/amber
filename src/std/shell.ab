@@ -1,0 +1,56 @@
+pub fun shell_isset(name: Text): Bool {
+    $[[ ! -z \$\{!{nameof name}+z} ]]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun shell_constant_set(name: Text, val: Text): Null {
+    $readonly \${nameof name}="\${nameof val}" 2> /dev/null$?
+}
+
+pub fun shell_constant_get(name: Text): Text {
+    return $echo \$\{!{nameof name}}$?
+}
+
+pub fun shell_var_set(name: Text, val: Text): Null {
+    $export \${nameof name}="\${nameof val}" 2> /dev/null$?
+}
+
+pub fun shell_var_get(name: Text): Text {
+    return $echo \$\{!{nameof name}}$?
+}
+
+pub fun shell_unset(name: Text): Null {
+    $unset {name}$?
+}
+
+pub fun is_command(command: Text): Bool {
+    $[ -x "\$(command -v {command})" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun input(prompt: Text): Text {
+    unsafe $printf "\${nameof prompt}"$
+    unsafe $read$
+    return "$REPLY"
+}
+
+pub fun has_failed(command: Text): Bool {
+    unsafe silent $eval {command}$
+    return status != 0
+}
+
+pub fun exit(code: Num): Null {
+    unsafe $exit "{code}"$
+}
+
+pub fun is_root(): Bool {
+    if (unsafe $id -u$ == "0") {
+        return true
+    }
+
+    return false
+}

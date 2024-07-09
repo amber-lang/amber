@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/fs"
 main {
     let path = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $cd {path}$

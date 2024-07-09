@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/shell"
 main {
     unsafe shell_constant_set("test_shell_constant_set", "Hello Amber")
     let str = ""

@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/split"
 main {
     let array = split("apple,banana,cherry", ",")
     echo array[1]

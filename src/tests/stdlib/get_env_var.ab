@@ -1,4 +1,4 @@
-import { get_env_var, file_write } from "std"
+import { get_env_var, file_write } from "std/misc"
 main {
     let path = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $cd {path}$

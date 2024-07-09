@@ -1,0 +1,23 @@
+pub fun array_first_index(array, value): Num {
+    loop index, element in array {
+        if(value as Text == element as Text) {
+            return index
+        }
+    }
+    return -1
+}
+
+pub fun array_search(array, value): [Num] {
+    let result = [Num]
+    loop index, element in array {
+        if(value as Text == element as Text) {
+            result += [index]
+        }
+    }
+    return result
+}
+
+pub fun in_array(array, value): Bool {
+    let result = array_first_index(array, value)
+    return result >= 0
+}

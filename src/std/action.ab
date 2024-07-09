@@ -1,0 +1,18 @@
+pub fun download(url: Text, path: Text): Bool {
+    if {
+        is_command("curl") {
+            unsafe $curl -L -o "{path}" "{url}"$
+        }
+        is_command("wget") {
+            unsafe $wget "{url}" -P "{path}"$
+        }
+        is_command("aria2c") {
+            unsafe $aria2c "{url}" -d "{path}"$
+        }
+        else {
+            return false
+        }
+    }
+
+    return true
+}

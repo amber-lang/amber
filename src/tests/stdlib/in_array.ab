@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/array"
 main {
     let result = in_array([1, 2, 3, 4, 3], 3)
     echo result
