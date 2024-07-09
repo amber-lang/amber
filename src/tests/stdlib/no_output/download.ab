@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/action"
 main {
 	let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
 	unsafe $cd {tmpdir}$
