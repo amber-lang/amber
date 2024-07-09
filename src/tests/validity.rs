@@ -1170,3 +1170,14 @@ fn optional_argument_array(){
     test_amber!(code, "1100")
 }
 
+#[test]
+fn optional_argument_generic(){
+    let code = "
+        fun echo_var(a = 100){
+            echo a
+        }
+        echo_var(\"hello\")
+    ";
+    test_amber!(code, "hello")
+}
+
