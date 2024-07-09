@@ -1,3 +1,2 @@
-pub mod expr;
-pub mod statement;
+pub mod command;
 pub mod modifier;

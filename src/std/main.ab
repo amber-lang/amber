@@ -31,7 +31,7 @@ pub fun file_exist(path) {
 }
 
 pub fun file_read(path) {
-    return $cat "{path}"$?
+    return $< "{path}"$?
 }
 
 pub fun file_write(path, content) {
@@ -111,6 +111,30 @@ pub fun sum(list: [Num]): Num {
     return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
 }
 
+pub fun array_first_index(array, value): Num {
+    loop index, element in array {
+        if(value as Text == element as Text) {
+            return index
+        }
+    }
+    return -1
+}
+
+pub fun array_search(array, value): [Num] {
+    let result = [Num]
+    loop index, element in array {
+        if(value as Text == element as Text) {
+            result += [index]
+        }
+    }
+    return result
+}
+
+pub fun in_array(array, value): Bool {
+    let result = array_first_index(array, value)
+    return result >= 0
+}
+
 pub fun has_failed(command: Text): Bool {
     unsafe silent $eval {command}$
     return status != 0
@@ -127,4 +151,118 @@ pub fun includes(arr, value) {
         }
     }
     return false
+}
+
+pub fun is_command(command: Text): Bool {
+    $[ -x "\$(command -v {command})" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
+    if file_exist(origin) {
+        unsafe $ln -s "{origin}" "{destination}"$
+        return true
+    }
+
+    echo "The file {origin} doesn't exist!"
+    return false
+}
+
+pub fun create_dir(path: Text): Null {
+    if not dir_exist(path) {
+        unsafe $mkdir -p "{path}"$
+    }
+}
+
+pub fun make_executable(path: Text): Bool {
+    if file_exist(path) {
+        unsafe $chmod +x "{path}"$
+        return true
+    }
+
+    echo "The file {path} doesn't exist!"
+    return false
+}
+
+pub fun change_owner(user: Text, path: Text): Bool {
+    if file_exist(path) or dir_exist(path) {
+        unsafe $chown -R "{user}" "{path}"$
+        return true
+    }
+
+    return false
+}
+
+pub fun download(url: Text, path: Text): Bool {
+    if {
+        is_command("curl") {
+            unsafe $curl -L -o "{path}" "{url}"$
+        }
+        is_command("wget") {
+            unsafe $wget "{url}" -P "{path}"$
+        }
+        is_command("aria2c") {
+            unsafe $aria2c "{url}" -d "{path}"$
+        }
+        else {
+            return false
+        }
+    }
+
+    return true
+}
+
+pub fun is_root(): Bool {
+    if (unsafe $id -u$ == "0") {
+        return true
+    }
+
+    return false
+}
+
+pub fun get_env_var(var: Text): Text {
+    let _var = unsafe $echo "\$\{!var}"$
+    if _var != "" {
+        return _var
+    }
+
+    if file_exist(".env") {
+        unsafe $source ".env"$
+        return unsafe $echo "\$\{!var}"$
+    }
+
+    return ""
+}
+
+pub fun load_env_file(): Null {
+    unsafe $export "\$(xargs < .env)" > /dev/null$
+}
+
+pub fun shell_isset(name: Text): Bool {
+    $[[ ! -z \$\{!{nameof name}+z} ]]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun shell_constant_set(name: Text, val: Text): Null {
+    $readonly \${nameof name}="\${nameof val}" 2> /dev/null$?
+}
+
+pub fun shell_constant_get(name: Text): Text {
+    return $echo \$\{!{nameof name}}$?
+}
+
+pub fun shell_var_set(name: Text, val: Text): Null {
+    $export \${nameof name}="\${nameof val}" 2> /dev/null$?
+}
+
+pub fun shell_var_get(name: Text): Text {
+    return $echo \$\{!{nameof name}}$?
+}
+
+pub fun shell_unset(name: Text): Null {
+    $unset {name}$?
 }

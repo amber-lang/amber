@@ -1,0 +1,5 @@
+import * from "std"
+main {
+    let array = split("apple,banana,cherry", ",")
+    echo array[1]
+}

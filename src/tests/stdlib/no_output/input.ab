@@ -1,0 +1,5 @@
+import * from "std"
+main {
+    let name = input("Please enter your name:")
+    echo "Hello, " + name
+}

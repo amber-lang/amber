@@ -51,8 +51,16 @@ fn text_isolated_from_bash() {
 
         echo \"Good job!\"
     ";
-    // This should print out "This is a $SUCCESS." and not "This is a FAILURE.""
     test_amber!(code, "This is a $SUCCESS\nToday is `date`\nGood job!");
+}
+#[test]
+fn text_unescaped_after() {
+    test_amber!("echo \"Hello\\\\\"", "Hello\\");
+}
+
+#[test]
+fn text_unescaped_before() {
+    test_amber!("echo \"Hello\\\\{12}\"", "Hello\\12");
 }
 
 #[test]
@@ -1090,6 +1098,19 @@ fn variable_ref_function_invocation() {
 }
 
 #[test]
+fn function_calls_on_the_same_line() {
+    let code = "
+        fun f(arg: Num): Num {
+            return arg
+        }
+
+        let a = f(1) + f(2)
+        echo a
+    ";
+    test_amber!(code, "3");
+}
+
+#[test]
 fn main_args() {
     let code = "
         main(args) {
@@ -1097,4 +1118,19 @@ fn main_args() {
         }
     ";
     test_amber!(code, "ok")
+}
+
+#[test]
+fn unsafe_function_call() {
+    let code = "
+        fun safe_division(a: Num, b: Num): Num {
+            if b == 0:
+                fail 1
+            return a / b
+        }
+
+        let result = unsafe safe_division(24, 4)
+        echo \"{result}, {status}\"
+    ";
+    test_amber!(code, "6, 0")
 }
