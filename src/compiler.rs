@@ -173,7 +173,4 @@ impl AmberCompiler {
         })
     }
 
-    pub fn import_std() -> String {
-        [include_str!("std/main.ab")].join("\n")
-    }
 }
