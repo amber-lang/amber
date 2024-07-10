@@ -1,4 +1,4 @@
-import * from "std/shell"
+import * from "std/env"
 
 pub fun download(url: Text, path: Text): Bool {
     if {
