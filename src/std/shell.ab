@@ -48,7 +48,7 @@ pub fun exit(code: Num): Null {
 }
 
 pub fun is_root(): Bool {
-    if (unsafe $id -u$ == "0") {
+    if unsafe $id -u$ == "0" {
         return true
     }
 
