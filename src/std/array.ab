@@ -10,7 +10,7 @@ pub fun array_first_index(array, value): Num {
 pub fun array_search(array, value): [Num] {
     let result = [Num]
     loop index, element in array {
-        if(value as Text == element as Text) {
+        if value as Text == element as Text {
             result += [index]
         }
     }
