@@ -42,6 +42,18 @@ fn text_escaped() {
 }
 
 #[test]
+fn text_isolated_from_bash() {
+    let code = "
+        unsafe $SUCCESS=\"FAILURE\"$
+        echo \"This is a $SUCCESS\"
+
+        echo \"Today is `date`\"
+
+        echo \"Good job!\"
+    ";
+    test_amber!(code, "This is a $SUCCESS\nToday is `date`\nGood job!");
+}
+#[test]
 fn text_unescaped_after() {
     test_amber!("echo \"Hello\\\\\"", "Hello\\");
 }

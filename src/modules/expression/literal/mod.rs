@@ -80,16 +80,19 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                     result.push('"');
                 }
             },
-            '`' => {
-                // Escape backticks if in a string
+            symbol @ ('$' | '`') => {
                 if is_str {
                     result.push('\\');
-                    result.push('`');
                 }
-                else {
-                    result.push('`');
-                }
+                result.push(symbol);
             },
+            '!' => {
+                if is_str {
+                    result += "\"'!'\"";
+                } else {
+                    result.push('!')
+                }
+            }
             '\\' => {
                 // Escape symbols
                 match chars.peek() {
