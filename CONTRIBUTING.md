@@ -30,6 +30,7 @@ Amber consists of the following layers:
 2. [Compiler](#2-compiler)  
    1. [Parser & tokenizer](#21-parser--tokenizer)
    2. [Translator](#22-translator)
+   2. [Built-in](#23-built-in-creation)
 3. [Runtime libraries](#3-runtime-libraries)
    1. [`stdlib`](#31-stdlib)
 4. [Tests](#4-tests)
@@ -95,6 +96,109 @@ fn translate() -> String {
 </details>
 
 Basically, the `translate()` method should return a `String` for the compiler to construct a compiled file from all of them. If it translates to nothing, you should output an empty string, like `String::new()`
+
+#### 2.3. Built-in creation 
+
+In this guide we will see how to create a basic built-in function that in Amber syntax presents like:
+```sh
+builtin "Hello World"
+```
+And compiles to:
+```sh
+echo "Hello World"
+```
+
+Let's create a `src/modules/builtin/builtin.rs` file with the following content:
+
+```rs
+// This is the prelude that imports all necessary stuff of Heraclitus framework for parsing the syntax
+use heraclitus_compiler::prelude::*;
+// Expression module that can parse expressions
+use crate::modules::expression::expr::Expr;
+// Translate module is not included in Heraclitus prelude as it's leaving the backend up to developer
+use crate::translate::module::TranslateModule;
+// Metadata is the object that is carried when iterating over syntax tree.
+// - `ParserMetadata` - it carries the necessary information about the current parsing context such as variables and functions that were declared up to this point, warning messages aggregated up to this point, information whether this syntax is declared in a loop, function, main block, unsafe scope etc.
+// `TranslateMetadata` - it carries the necessary information for translation such as wether we are in a silent scope, in an eval context or what indentation should be used.
+use crate::utils::{ParserMetadata, TranslateMetadata};
+
+// This is a declaration of your built-in. Set the name accordingly.
+#[derive(Debug, Clone)]
+pub struct Builtin {
+    // This particular built-in contains a single expression
+    value: Expr
+}
+
+// This is an implementation of a trait that creates a parser for this module
+impl SyntaxModule<ParserMetadata> for Echo {
+    // Here you can define the name of this built-in that will displayed when debugging the parser
+    syntax_name!("Builtin");
+
+    // This function should always contain the default state of this syntax module
+    fn new() -> Self {
+        Echo {
+            value: Expr::new()
+        }
+    }
+
+    // This is a function that will parse this syntax module "Built-in". It returns SyntaxResult which is a `Result<(), Failure>` where the `Failure` is an Heraclitus primitive that returns an error. It can be either:
+    - `Quiet` - which means that this is not the right syntax module to parse
+    - `Loud` - which means that this is the correct syntax module but there is some critical error in the code that halts the entire compilation process
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // `token` parses a token `builtin` which is basically a command name for our built-in.
+        // If we add `?` in the end of the heraclitus provided function - this function will return a quiet error.
+        token(meta, "builtin")?;
+        // `syntax` parses the `Expr` expression syntax module
+        syntax(meta, &mut self.value)?;
+        // This terminates parsing process with success exit code
+        Ok(())
+    }
+}
+
+// Here we implement the translator for the syntax module. Here we return valid Bash or sh code.
+impl TranslateModule for Builtin {
+    // Here we define the valid translate function. The String returns the current line.
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        // Here we run the translate function on the syntax module `Expr`
+        let value = self.value.translate(meta);
+        // Here we return the Bash code
+        format!("echo {}", value)
+    }
+}
+```
+
+Now let's import it in the main module for built-ins `src/modules/builtin/mod.rs`
+
+```rs
+pub mod echo;
+pub mod nameof;
+// ...
+pub mod builtin;
+```
+
+Now we have to integrate this syntax module with either statement `Stmt` or expression `Expr`. Since this is a statement module, we'll add it to the list of statement syntax modules. Let's modify `src/modules/statement/stmt.rs`:
+
+```rs
+// Let's import it first
+use crate::modules::builtin::builtin::Builtin;
+
+// Let's add it to the statement type enum
+pub enum StatementType {
+    // ...
+    Builtin(Builtin)
+}
+
+// Now, let's add it to the list of statement syntax modules, arranged in the order of parsing precedence:
+impl Statement {
+    handle_types!(StatementType, [
+        // ...
+        Builtin,
+        // ...
+    }
+    
+    // ...
+}
+```
 
 ### 3. Runtime libraries
 #### 3.1. `stdlib`
