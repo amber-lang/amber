@@ -1,4 +1,4 @@
-import { load_env_file, get_env_var } from "std/misc"
+import { load_env_file, get_env_var } from "std/env"
 import { file_write } from "std/fs"
 main {
     let path = unsafe $mktemp -d /tmp/amber-XXXX$
