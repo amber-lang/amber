@@ -73,10 +73,8 @@ impl Import {
         if self.path.value.starts_with("std/") {
             match stdlib::resolve(&self.path.value.replace("std/", "")) {
                 Some(v) => Ok(v),
-                None => error!(meta, self.token_path.clone() => {
-                    message: format!("Std module does not exist: {}", self.path.value),
-                               comment: String::new()
-                })
+                None => error!(meta, self.token_path.clone(),
+                    format!("Standard library module '{}' does not exist", self.path.value))
             }
         } else {
             match fs::read_to_string(self.path.value.clone()) {
