@@ -9,7 +9,7 @@ pub struct ImportString {
 
 impl ImportString {
     fn resolve_path(&mut self, meta: &ParserMetadata, tok: Option<Token>) -> SyntaxResult {
-        if self.value.starts_with("std") {
+        if self.value.starts_with("std/") {
             return Ok(())
         }
         let mut path = meta.context.path.as_ref()
