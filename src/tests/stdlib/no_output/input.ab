@@ -1,4 +1,4 @@
-import * from "std/shell"
+import * from "std/env"
 main {
     let name = input("Please enter your name:")
     echo "Hello, " + name

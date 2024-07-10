@@ -1,4 +1,4 @@
-import { is_command } from "std/shell"
+import { is_command } from "std/env"
 main {
     if is_command("cat") {
         echo "exist-cat"
