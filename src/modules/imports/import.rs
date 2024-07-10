@@ -81,7 +81,7 @@ impl Import {
                 Ok(content) => Ok(content),
                 Err(err) => error!(meta, self.token_path.clone() => {
                     message: format!("Could not read file '{}'", self.path.value),
-                                   comment: err.to_string()
+                    comment: err.to_string()
                 })
             }
         }
