@@ -110,7 +110,10 @@ echo "Hello World"
 
 <details>
 <summary>Let's start!</summary>
-Let's create a `src/modules/builtin/builtin.rs` file with the following content:
+
+Create a `src/modules/builtin/builtin.rs` file with the following content:
+
+
 ```rs
 // This is the prelude that imports all necessary stuff of Heraclitus framework for parsing the syntax
 use heraclitus_compiler::prelude::*;
