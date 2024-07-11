@@ -1,0 +1,8 @@
+ let x = 42
+let y = 24
+if x == y {
+	echo x
+}
+else {
+	echo y
+}
