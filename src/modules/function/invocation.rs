@@ -77,6 +77,22 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 };
             }
             let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+            let expected_arg_count = function_unit.arg_refs.len();
+            let actual_arg_count = self.args.len();
+            let optional_count = function_unit.arg_optionals.len();
+
+            // Case when function call is missing arguments
+            if actual_arg_count < expected_arg_count {
+                // Check if we can compensate with optional arguments stored in fun_unit
+                if actual_arg_count >= expected_arg_count - optional_count {
+                    let missing = expected_arg_count - actual_arg_count;
+                    let provided_optional = optional_count - missing;
+                    for exp in function_unit.arg_optionals.iter().skip(provided_optional){
+                        self.args.push(exp.clone());
+                    }
+                }
+            }
+
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
                 match syntax(meta, &mut self.failed) {
@@ -136,6 +152,7 @@ impl TranslateModule for FunctionInvocation {
                     .unwrap_or(translation)
             }
         }).collect::<Vec<String>>().join(" ");
+
         meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
         let invocation_return = &format!("__AF_{}{}_v{}", self.name, self.id, self.variant_id);
         let invocation_instance = &format!("__AF_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);

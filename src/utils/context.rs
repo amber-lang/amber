@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
+use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
 
 use super::{function_interface::FunctionInterface, cc_flags::CCFlags};
@@ -10,6 +11,7 @@ pub struct FunctionDecl {
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
     pub arg_refs: Vec<bool>,
+    pub arg_optionals : Vec<Expr>,
     pub returns: Type,
     pub is_args_typed: bool,
     pub is_public: bool,
@@ -25,6 +27,7 @@ impl FunctionDecl {
             arg_names: self.arg_names,
             arg_types: self.arg_types,
             arg_refs: self.arg_refs,
+            arg_optionals: self.arg_optionals,
             returns: self.returns,
             is_public: self.is_public,
             is_failable: self.is_failable
