@@ -1,0 +1,8 @@
+let a = 24 > 12
+	then (12 > 24
+                then 42
+	else 24)
+	else (12 > 6
+                then 24
+                else 12)
+echo a
