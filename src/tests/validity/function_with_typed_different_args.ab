@@ -1,0 +1,5 @@
+fun test(a: Num, b: Text) {
+	echo a
+	echo b
+}
+test(11, \"Hello\")

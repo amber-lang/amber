@@ -1,0 +1,4 @@
+fun test() {
+	return \"Hello World\"
+}
+echo test()

@@ -1,0 +1,13 @@
+let a = 0
+main {
+	loop {
+                a += 1
+                if a == 5 {
+                    continue
+                }
+                $printf \"{a} \"$?
+                if a == 10 {
+                    break
+                }
+	}
+}
