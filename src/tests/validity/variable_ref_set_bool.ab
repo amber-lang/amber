@@ -1,0 +1,7 @@
+ fun foo(ref a) {
+	a = false
+}
+
+let a = true
+foo(a)
+echo a
