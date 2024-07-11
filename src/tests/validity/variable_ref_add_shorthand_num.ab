@@ -1,0 +1,7 @@
+fun foo(ref a) {
+	a += 12
+}
+
+let a = 24
+foo(a)
+echo a

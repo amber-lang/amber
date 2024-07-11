@@ -1,0 +1,11 @@
+fun reverse(input: Text): Text {
+	return unsafe $echo {input} | rev$
+}
+
+fun foo(ref a) {
+	a = reverse("mars")
+}
+
+let a = ""
+unsafe foo(a)
+echo a

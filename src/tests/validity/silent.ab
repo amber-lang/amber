@@ -1,6 +1,6 @@
 main {
 	silent {
-		echo \"Hello World\"
+		echo "Hello World"
 		$non-existent command$?
 	}
 }

@@ -1,0 +1,7 @@
+fun foo(ref a) {
+	a %= 5
+}
+
+let a = 17
+foo(a)
+echo a

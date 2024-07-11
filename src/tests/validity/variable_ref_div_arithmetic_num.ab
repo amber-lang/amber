@@ -1,0 +1,7 @@
+fun foo(ref a, b) {
+	a = a / b
+}
+
+let a = 15
+foo(a, 3)
+echo a
