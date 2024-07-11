@@ -1,0 +1,7 @@
+fun test(ref a) {
+	a = \"Hello World\"
+}
+
+let a = \"Goodbye World\"
+test(a)
+echo a
