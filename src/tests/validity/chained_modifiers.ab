@@ -1,0 +1,8 @@
+unsafe silent {
+	echo \"Hello World\"
+	$non-existent command$
+}
+// Test for expression
+let _ = silent unsafe $non-existent command$
+// Test for single statement
+silent unsafe $non-existent command$

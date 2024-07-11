@@ -1,7 +1,7 @@
 fun test(ref a) {
-	a = \"Hello World\"
+	a = "Hello World"
 }
 
-let a = \"Goodbye World\"
+let a = "Goodbye World"
 test(a)
 echo a
