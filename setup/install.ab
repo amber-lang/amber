@@ -1,4 +1,4 @@
-import { has_failed, exit } from "std/shell"
+import { has_failed, exit } from "std/env"
 import { chars, includes } from "std/text"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
