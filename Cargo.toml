@@ -32,6 +32,9 @@ opt-level = 3
 inherits = "release"
 lto = "thin"
 
+[profile.test]
+opt-level = 3
+
 # Config for 'cargo dist'
 [workspace.metadata.dist]
 # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
