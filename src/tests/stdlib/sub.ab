@@ -1,0 +1,4 @@
+import * from "std"
+main {
+    echo sub([4, 5])
+} 

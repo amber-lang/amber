@@ -1,0 +1,11 @@
+{
+	"name": "Rust",
+	"image": "mcr.microsoft.com/devcontainers/rust:1-1-bullseye",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"Ph0enixKM.amber-language"
+			]
+		}
+	}
+}
