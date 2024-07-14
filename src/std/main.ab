@@ -276,3 +276,7 @@ pub fun shell_unset(name: Text): Null {
 pub fun encode64(text: Text): Text {
     return unsafe $echo -n "{text}" | base64$
 }
+
+pub fun decodeb64(encoded: Text): Text {
+    return unsafe $echo "{encoded}" | base64 --decode$
+}
