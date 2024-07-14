@@ -1,4 +1,4 @@
 import * from "std"
 main {
-    echo encode64("hello")
+    echo btoa("hello")
 } 

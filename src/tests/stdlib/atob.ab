@@ -1,4 +1,4 @@
 import * from "std"
 main {
-    echo decode64("aGVsbG8K")
+    echo atob("aGVsbG8K")
 } 
