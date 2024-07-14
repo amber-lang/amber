@@ -273,11 +273,11 @@ pub fun shell_unset(name: Text): Null {
     $unset {name}$?
 }
 
-pub fun encode64(text: Text): Text {
-    return unsafe $echo -n "{text}" | base64$
+pub fun btoa(text: Text): Text {
+    return unsafe $echo "{text}" | base64$
 }
 
-pub fun decodeb64(encoded: Text): Text {
+pub fun atob(encoded: Text): Text {
     return unsafe $echo "{encoded}" | base64 --decode$
 }
 
