@@ -176,6 +176,12 @@ pub fun create_dir(path: Text): Null {
     }
 }
 
+pub fun delete_dir(path: Text): Null {
+    if dir_exist(path) {
+        unsafe $rm -f "{path}"$
+    }
+}
+
 pub fun make_executable(path: Text): Bool {
     if file_exist(path) {
         unsafe $chmod +x "{path}"$

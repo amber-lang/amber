@@ -1,0 +1,8 @@
+import { create_dir, dir_exist, delete_dir } from "std"
+main {
+    create_dir("/tmp/amber-test")
+    if dir_exist("/tmp/amber-test") {
+      delete_dir("/tmp/amber-test")
+      echo "deleted"
+    }
+} 
