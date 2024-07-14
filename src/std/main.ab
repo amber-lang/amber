@@ -280,3 +280,7 @@ pub fun encode64(text: Text): Text {
 pub fun decodeb64(encoded: Text): Text {
     return unsafe $echo "{encoded}" | base64 --decode$
 }
+
+pub fun randint(min: Num, max: Num): Num {
+    return unsafe $shuf -i "{min}-{max}" -n 1$
+}
