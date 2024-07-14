@@ -272,3 +272,7 @@ pub fun shell_var_get(name: Text): Text {
 pub fun shell_unset(name: Text): Null {
     $unset {name}$?
 }
+
+pub fun encode64(text: Text): Text {
+    return unsafe $echo -n "{text}" | base64$
+}
