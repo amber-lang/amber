@@ -1,5 +1,7 @@
 import { has_failed, exit } from "std/env"
-import { chars, includes } from "std/text"
+import { chars } from "std/text"
+import { includes } from "std/array"
+import { file_exist } from "std/fs"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 let name = "AmberNative"
@@ -115,7 +117,7 @@ main(args) {
 
     // Delete the previous symbolic link
     if file_exist("{bins_folder}/{target}") {
-        ${sudo} rm "{bins_folder}/{target}" failed {
+        ${sudo} rm "{bins_folder}/{target}"$ failed {
             echo "Failed to remove the previous amber symbol link."
             echo "Please make sure that root user can access {bins_folder} directory."
             exit(1)
