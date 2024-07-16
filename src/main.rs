@@ -23,7 +23,7 @@ use std::process::Command;
 struct Cli {
     #[arg(help = "'-' to read from stdin")]
     input: Option<PathBuf>,
-    #[arg(help = "'-' to output to stdout, /dev/null to discard")]
+    #[arg(help = "'-|--silence' to output to stdout, /dev/null to discard")]
     output: Option<PathBuf>,
 
     /// Code to evaluate
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if let Some(input) = cli.input {
         let input = String::from(input.to_string_lossy());
         let code = {
-            if input == "-" {
+            if input == "-" || input == "--silence" {
                 let mut buf = String::new();
                 match stdin().read_to_string(&mut buf) {
                     Ok(_) => buf,
@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if let Some(output) = cli.output {
                     let outs = String::from(output.to_string_lossy());
                     if outs == "/dev/null" {
-                        return
+                        return Ok(())
                     }
                     if outs == "-" {
                         print!("{code}");
@@ -94,7 +94,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // Execute the code
                 else {
                     (!messages.is_empty()).then(|| render_dash());
-                    AmberCompiler::execute(code, &vec![]);
+                    let exit_status = AmberCompiler::execute(code, &vec![])?;
+                    std::process::exit(exit_status.code().unwrap_or(1));
                 }
             }
             Err(err) => {
