@@ -34,8 +34,11 @@ use crate::modules::function::{
 };
 use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
-use crate::modules::builtin::echo::Echo;
 use super::comment_doc::CommentDoc;
+use crate::modules::builtin::{
+    echo::Echo,
+    cd::Cd
+};
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -58,6 +61,7 @@ pub enum StatementType {
     Fail(Fail),
     Import(Import),
     Main(Main),
+    Cd(Cd),
     Echo(Echo),
     CommandModifier(CommandModifier),
     CommentDoc(CommentDoc)
@@ -85,7 +89,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo,
+        CommandModifier, Echo, Cd
         // Comment doc
         CommentDoc,
         // Expression

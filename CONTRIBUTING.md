@@ -101,7 +101,7 @@ Basically, the `translate()` method should return a `String` for the compiler to
 
 In this guide we will see how to create a basic built-in function that in Amber syntax presents like:
 ```sh
-builtin "Hello World"
+example "Hello World"
 ```
 And compiles to:
 ```sh
@@ -130,7 +130,7 @@ use crate::docs::module::DocumentationModule;
 
 // This is a declaration of your built-in. Set the name accordingly.
 #[derive(Debug, Clone)]
-pub struct Builtin {
+pub struct Example {
     // This particular built-in contains a single expression
     value: Expr
 }
@@ -138,7 +138,7 @@ pub struct Builtin {
 // This is an implementation of a trait that creates a parser for this module
 impl SyntaxModule<ParserMetadata> for Echo {
     // Here you can define the name of this built-in that will displayed when debugging the parser
-    syntax_name!("Builtin");
+    syntax_name!("Example");
 
     // This function should always contain the default state of this syntax module
     fn new() -> Self {
@@ -153,7 +153,8 @@ impl SyntaxModule<ParserMetadata> for Echo {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // `token` parses a token `builtin` which is basically a command name for our built-in.
         // If we add `?` in the end of the heraclitus provided function - this function will return a quiet error.
-        token(meta, "builtin")?;
+        // Set the name accordingly.
+        token(meta, "example")?;
         // `syntax` parses the `Expr` expression syntax module
         syntax(meta, &mut self.value)?;
         // This terminates parsing process with success exit code
@@ -161,8 +162,8 @@ impl SyntaxModule<ParserMetadata> for Echo {
     }
 }
 
-// Here we implement the translator for the syntax module. Here we return valid Bash or sh code.
-impl TranslateModule for Builtin {
+// Here we implement the translator for the syntax module. Here we return valid Bash or sh code. Set the name accordingly.
+impl TranslateModule for Example {
     // Here we define the valid translate function. The String returns the current line.
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         // Here we run the translate function on the syntax module `Expr`
@@ -193,19 +194,19 @@ Now we have to integrate this syntax module with either statement `Stmt` or expr
 
 ```rs
 // Let's import it first
-use crate::modules::builtin::builtin::Builtin;
+use crate::modules::builtin::builtin::Example;
 
 // Let's add it to the statement type enum
 pub enum StatementType {
     // ...
-    Builtin(Builtin)
+    Example(Example)
 }
 
 // Now, let's add it to the list of statement syntax modules, arranged in the order of parsing precedence:
 impl Statement {
     handle_types!(StatementType, [
         // ...
-        Builtin,
+        Example,
         // ...
     }
 
