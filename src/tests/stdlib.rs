@@ -4,6 +4,7 @@ use test_generator::test_resources;
 use crate::compiler::AmberCompiler;
 use crate::test_amber;
 use crate::tests::compile_code;
+use crate::Cli;
 use std::fs;
 use std::time::Duration;
 use std::process::{Command, Stdio};
