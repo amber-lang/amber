@@ -3,6 +3,7 @@ name = "amber"
 version = "0.3.4-alpha"
 edition = "2021"
 repository = "https://github.com/Ph0enixKM/Amber"
+rust-version = "1.79"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
