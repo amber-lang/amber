@@ -1,0 +1,7 @@
+let x = 42
+let y = 42
+if {
+    x == y {
+        echo x
+    }
+}

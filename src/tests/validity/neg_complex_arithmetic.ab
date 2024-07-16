@@ -1,0 +1,4 @@
+let x = 21
+let y = -2
+let z = 6
+echo x - y * z / -4

@@ -1,4 +1,5 @@
 use crate::modules::{types::Type, block::Block};
+use crate::modules::expression::expr::Expr;
 use super::{context::FunctionDecl, function_cache::FunctionInstance};
 
 
@@ -10,6 +11,7 @@ pub struct FunctionInterface {
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
     pub arg_refs: Vec<bool>,
+    pub arg_optionals : Vec<Expr>,
     pub returns: Type,
     pub is_public: bool,
     pub is_failable: bool,
@@ -23,6 +25,7 @@ impl FunctionInterface {
             arg_names: self.arg_names,
             arg_types: self.arg_types,
             arg_refs: self.arg_refs,
+            arg_optionals: self.arg_optionals,
             returns: self.returns,
             is_args_typed,
             is_public: self.is_public,

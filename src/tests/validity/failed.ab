@@ -1,0 +1,17 @@
+import { sum } from "std/math"
+let requirements = [true, true, true]
+
+main {
+    silent {
+    $make -v$ failed: requirements[0] = false
+        $gcc -v$ failed: requirements[1] = false
+        $you don\'t have this$ failed: requirements[2] = false
+    }
+
+    if sum(requirements as [Num]) == 3 {
+        echo "All requirements are met"
+    } else {
+        echo "Requirements not met"
+        fail
+    }
+}

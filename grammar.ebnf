@@ -61,9 +61,9 @@ list = empty_list | full_list ;
 (* The ordering of command modifiers doesn't matter *)
 command_modifier = SILENT_MOD, [ UNSAFE_MOD ] ;
 command_modifier_block = command_modifier, multiline_block ;
-commnad_base = '$', { ANY_CHAR | interpolation }, '$' ;
-command = [ SILENT_MOD ], commnad_base, [ failure_handler ] ;
-command_unsafe = [ SILENT_MOD ], UNSAFE_MOD, commnad_base ;
+command_base = '$', { ANY_CHAR | interpolation }, '$' ;
+command = [ SILENT_MOD ], command_base, [ failure_handler ] ;
+command_unsafe = [ SILENT_MOD ], UNSAFE_MOD, command_base ;
 
 (* Operations *)
 binary_operation = expression , BINARY_OP , expression ;

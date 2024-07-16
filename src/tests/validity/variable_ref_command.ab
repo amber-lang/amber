@@ -1,0 +1,7 @@
+fun foo(ref a) {
+    a = $echo Test$?
+}
+
+let a = ""
+unsafe foo(a)
+echo a

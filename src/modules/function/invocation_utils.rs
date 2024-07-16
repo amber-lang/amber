@@ -28,11 +28,14 @@ fn ordinal_number(index: usize) -> String {
 fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args: &[Type], tok: Option<Token>) -> Result<(Type, usize), Failure> {
     // Check if there are the correct amount of arguments
     if fun.arg_names.len() != args.len() {
+        let max_args = fun.arg_names.len();
+        let min_args = fun.arg_names.len() - fun.arg_optionals.len();
+        let opt_argument = if max_args > min_args {&format!(" ({} optional)",max_args)} else {""};
         // Determine the correct grammar
-        let txt_arguments = if fun.arg_names.len() == 1 { "argument" } else { "arguments" };
+        let txt_arguments = if min_args == 1 { "argument" } else { "arguments" };
         let txt_given = if args.len() == 1 { "was given" } else { "were given" };
         // Return an error
-        return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}, but {} {txt_given}", fun.name, fun.arg_names.len(), args.len()))
+        return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}{opt_argument}, but {} {txt_given}", fun.name, min_args, args.len()))
     }
     // Check if the function argument types match
     if fun.is_args_typed {

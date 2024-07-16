@@ -1,0 +1,3 @@
+let x = 64
+x -= 16
+echo x

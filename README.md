@@ -9,7 +9,9 @@ Programming language that compiles to Bash. It's a high level programming langua
 > [!Warning]
 > This software is not ready for extended usage.
 
-[Join our Discord!](https://discord.com/invite/cjHjxbsDvZ)
+[Join our Discord](https://discord.com/invite/cjHjxbsDvZ) or
+#amber-lang on irc.oftc.net (irc://irc.oftc.net/#amber-lang) or
+[Join our Matrix room](https://matrix.to/#/#_oftc_#amber-lang:matrix.org)
 
 ## Install
 Amber compiler currently works on:
@@ -68,7 +70,14 @@ brew install messense/macos-cross-toolchains/aarch64-unknown-linux-musl
 brew install messense/macos-cross-toolchains/x86_64-unknown-linux-gnu
 ```
 
-Finally in order to build
+Compile it:
+```
+git clone https://github.com/Ph0enixKM/Amber
+cd Amber
+cargo build
+```
+
+In order to build the installer scripts run:
 ```bash
 amber build.ab
 ```
@@ -83,3 +92,6 @@ AMBER_DEBUG_TIME=true cargo run <file.ab>
 // Flamegraph is a profiling tool that is used to visualize the time each function took to execute
 sudo cargo flamegraph -- <file.ab> <file.sh>
 ```
+
+## Github Actions
+We are using `cargo-dist` to build the binaries for all the platforms. The binaries are then uploaded to the release page once a new release a tag is created.

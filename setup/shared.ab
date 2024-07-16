@@ -1,17 +1,26 @@
-import { exit, includes } from "std"
+import { has_failed, exit } from "std/env"
+import { includes } from "std/array"
 
 pub fun get_os(): Text {
     // Determine OS type
     let os_type = $uname -s$ failed {
-        echo "Failed to determine OS type."
+        echo "Failed to determine OS type (using `uname` command)."
+        echo "Please try again or make sure you have it installed."
+        exit(1)
+    }
+    if os_type == "Darwin":
+        return "apple-darwin"
+    
+    if os_type != "Linux" {
+        echo "Unsupported OS type: {os_type}"
         echo "Please try again or use another download method."
         exit(1)
     }
-    let os = os_type == "Darwin"
-        then "macos"
-        else "linux"
+    
+    if not has_failed("ls -l /lib | grep libc.musl"):
+        return "unknown-linux-musl"
 
-    return os
+    return "unknown-linux-gnu"
 }
 
 pub fun get_arch(): Text {

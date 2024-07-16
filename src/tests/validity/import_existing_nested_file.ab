@@ -1,0 +1,2 @@
+import * from "test_files/is_even.ab"
+echo is_even(10)
