@@ -6,6 +6,9 @@ use crate::modules::formatter::BashFormatter;
 use crate::{rules, Cli};
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use colored::Colorize;
+use heraclitus_compiler::prelude::*;
 use std::env;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
@@ -26,7 +29,6 @@ impl AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
             path,
             cli_opts
-        }.load_code(code)
         }
         .load_code(AmberCompiler::strip_off_shebang(code))
     }
@@ -136,7 +138,7 @@ impl AmberCompiler {
             );
         }
         result.push(block.translate(&mut meta));
-        let res = result.join("\n");
+        let mut res = result.join("\n");
 
         if ! self.cli_opts.disable_format {
             if let Some(formatter) = BashFormatter::get_available() {
