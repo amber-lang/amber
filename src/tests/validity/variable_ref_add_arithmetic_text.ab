@@ -1,0 +1,7 @@
+fun foo(ref a, b) {
+    a = a + b
+}
+
+let a = "two"
+foo(a, "one")
+echo a

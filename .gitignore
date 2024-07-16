@@ -9,3 +9,7 @@ flamegraph.svg
 
 # MacOS
 **/.DS_Store
+
+# Nixos
+.direnv
+result

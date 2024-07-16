@@ -1,0 +1,6 @@
+import { lines } from "std/text"
+main {
+    loop line in lines("hello\nworld") {
+        echo "line: " + line
+    }
+} 

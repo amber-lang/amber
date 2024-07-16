@@ -1,14 +1,14 @@
-use heraclitus_compiler::prelude::*;
+extern crate chrono;
+use chrono::prelude::*;
+use itertools::Itertools;
 use crate::modules::block::Block;
 use crate::modules::formatter::BashFormatter;
-use crate::translate::check_all_blocks;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::{rules, Cli};
-use std::process::Command;
+use crate::translate::check_all_blocks;
+use crate::translate::module::TranslateModule;
 use std::env;
+use std::process::{Command, ExitStatus};
 use std::time::Instant;
-use colored::Colorize;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
@@ -27,6 +27,16 @@ impl AmberCompiler {
             path,
             cli_opts
         }.load_code(code)
+        }
+        .load_code(AmberCompiler::strip_off_shebang(code))
+    }
+
+    fn strip_off_shebang(code: String) -> String {
+        if code.starts_with("#!") {
+            code.split("\n").into_iter().skip(1).collect_vec().join("\n")
+        } else {
+            code
+        }
     }
 
     fn env_flag_set(flag: &str) -> bool {
@@ -48,15 +58,19 @@ impl AmberCompiler {
             Ok(tokens) => {
                 if Self::env_flag_set(AMBER_DEBUG_TIME) {
                     let pathname = self.path.clone().unwrap_or(String::from("unknown"));
-                    println!("[{}]\tin\t{}ms\t{pathname}", "Tokenize".cyan(), time.elapsed().as_millis());
+                    println!(
+                        "[{}]\tin\t{}ms\t{pathname}",
+                        "Tokenize".cyan(),
+                        time.elapsed().as_millis()
+                    );
                 }
                 Ok(tokens)
-            },
+            }
             Err((err_type, pos)) => {
                 let error_message = match err_type {
                     LexerErrorType::Singleline => {
                         format!("Singleline {} not closed", pos.data.as_ref().unwrap())
-                    },
+                    }
                     LexerErrorType::Unclosed => {
                         format!("Unclosed {}", pos.data.as_ref().unwrap())
                     }
@@ -84,18 +98,25 @@ impl AmberCompiler {
         };
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
-            println!("[{}]\tin\t{}ms\t{pathname}", "Parsed".blue(), time.elapsed().as_millis());
+            println!(
+                "[{}]\tin\t{}ms\t{pathname}",
+                "Parsed".blue(),
+                time.elapsed().as_millis()
+            );
         }
         // Return result
         match result {
             Ok(()) => Ok((block, meta)),
-            Err(failure) => Err(failure.unwrap_loud())
+            Err(failure) => Err(failure.unwrap_loud()),
         }
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
         let imports_sorted = meta.import_cache.topological_sort();
-        let imports_blocks = meta.import_cache.files.iter()
+        let imports_blocks = meta
+            .import_cache
+            .files
+            .iter()
             .map(|file| file.metadata.as_ref().map(|meta| meta.block.clone()))
             .collect::<Vec<Option<Block>>>();
         let mut meta = TranslateMetadata::new(meta);
@@ -108,17 +129,27 @@ impl AmberCompiler {
         }
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
-            println!("[{}]\tin\t{}ms\t{pathname}", "Translate".magenta(), time.elapsed().as_millis());
+            println!(
+                "[{}]\tin\t{}ms\t{pathname}",
+                "Translate".magenta(),
+                time.elapsed().as_millis()
+            );
         }
         result.push(block.translate(&mut meta));
         let res = result.join("\n");
 
         if ! self.cli_opts.disable_format {
             if let Some(formatter) = BashFormatter::get_available() {
-                return formatter.format(res);
+                res = formatter.format(res);
             }
         }
-        res
+      
+        let header = [
+            include_str!("header.sh"),
+            &("# version: ".to_owned() + option_env!("CARGO_PKG_VERSION").unwrap().to_string().as_str()),
+            &("# date: ".to_owned() + Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str())
+        ].join("\n");
+        format!("{}\n{}", header, res)
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
@@ -127,24 +158,27 @@ impl AmberCompiler {
             .map(|(block, meta)| (meta.messages.clone(), self.translate(block, meta)))
     }
 
-    pub fn execute(code: String, flags: &[String]) {
+    pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
         let code = format!("set -- {};\n\n{}", flags.join(" "), code);
-        Command::new("/bin/bash").arg("-c").arg(code).spawn().unwrap().wait().unwrap();
+        Ok(Command::new("/usr/bin/env")
+            .arg("bash")
+            .arg("-c")
+            .arg(code)
+            .spawn()?
+            .wait()?)
     }
 
     #[allow(dead_code)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
         self.compile().map_or_else(Err, |(_, code)| {
-            let child = Command::new("/bin/bash")
-                .arg("-c").arg::<&str>(code.as_ref())
-                .output().unwrap();
+            let child = Command::new("/usr/bin/env")
+                .arg("bash")
+                .arg("-c")
+                .arg::<&str>(code.as_ref())
+                .output()
+                .unwrap();
             Ok(String::from_utf8_lossy(&child.stdout).to_string())
         })
     }
 
-    pub fn import_std() -> String {
-        [
-            include_str!("std/main.ab")
-        ].join("\n")
-    }
 }

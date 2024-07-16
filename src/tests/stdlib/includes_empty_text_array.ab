@@ -1,0 +1,10 @@
+import * from "std/array"
+
+main {
+    let array = [Text]
+    if includes(array, " ") {
+        echo "Found"
+    } else {
+        echo "Not Found"
+    }
+}

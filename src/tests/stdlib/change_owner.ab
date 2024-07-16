@@ -1,0 +1,11 @@
+import { change_owner } from "std/fs"
+// We use `whoami` to get the running user to assign again the same user as permission
+main {
+    unsafe $touch /tmp/amber-symbolic$
+    if change_owner(unsafe $whoami$,"/tmp/amber-symbolic") {
+        echo "done"
+    } else {
+	echo "file not exist"
+    }
+    unsafe $rm /tmp/amber-symbolic$
+} 

@@ -9,12 +9,15 @@ Programming language that compiles to Bash. It's a high level programming langua
 > [!Warning]
 > This software is not ready for extended usage.
 
-[Join our Discord!](https://discord.com/invite/cjHjxbsDvZ)
+[Join our Discord](https://discord.com/invite/cjHjxbsDvZ) or
+#amber-lang on irc.oftc.net (irc://irc.oftc.net/#amber-lang) or
+[Join our Matrix room](https://matrix.to/#/#_oftc_#amber-lang:matrix.org)
 
 ## Install
 Amber compiler currently works on:
 - Linux x86 and ARM
 - macOS x86 and ARM (Apple Silicon)
+- Nix (NixOS)
 
 ### macOS / Linux
 Make sure that the operating system meets the following prerequisites
@@ -36,6 +39,10 @@ curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/in
 Amber is packaged in the following distros:
 
 Arch (AUR) - `amber-bash-bin`
+
+#### Nix
+
+See [NIX.md](./NIX.md)
 
 ### Windows support
 As windows does not come with bash installed it makes no sense to support it. Please install WSL 2 on your windows machine and install Linux version of Amber compiler inside.
@@ -63,7 +70,14 @@ brew install messense/macos-cross-toolchains/aarch64-unknown-linux-musl
 brew install messense/macos-cross-toolchains/x86_64-unknown-linux-gnu
 ```
 
-Finally in order to build
+Compile it:
+```
+git clone https://github.com/Ph0enixKM/Amber
+cd Amber
+cargo build
+```
+
+In order to build the installer scripts run:
 ```bash
 amber build.ab
 ```
@@ -78,3 +92,6 @@ AMBER_DEBUG_TIME=true cargo run <file.ab>
 // Flamegraph is a profiling tool that is used to visualize the time each function took to execute
 sudo cargo flamegraph -- <file.ab> <file.sh>
 ```
+
+## Github Actions
+We are using `cargo-dist` to build the binaries for all the platforms. The binaries are then uploaded to the release page once a new release a tag is created.

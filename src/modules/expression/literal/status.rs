@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Status {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "status")?;
-        Ok(())        
+        Ok(())
     }
 }
 

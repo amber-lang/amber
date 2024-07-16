@@ -4,6 +4,7 @@ use heraclitus_compiler::prelude::*;
 use crate::compiler::AmberCompiler;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
+use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -70,12 +71,20 @@ impl Import {
     }
 
     fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
-        match fs::read_to_string(self.path.value.clone()) {
-            Ok(content) => Ok(content),
-            Err(err) => error!(meta, self.token_path.clone() => {
-                message: format!("Could not read file '{}'", self.path.value),
-                comment: err.to_string()
-            })
+        if self.path.value.starts_with("std/") {
+            match stdlib::resolve(&self.path.value.replace("std/", "")) {
+                Some(v) => Ok(v),
+                None => error!(meta, self.token_path.clone(),
+                    format!("Standard library module '{}' does not exist", self.path.value))
+            }
+        } else {
+            match fs::read_to_string(self.path.value.clone()) {
+                Ok(content) => Ok(content),
+                Err(err) => error!(meta, self.token_path.clone() => {
+                    message: format!("Could not read file '{}'", self.path.value),
+                    comment: err.to_string()
+                })
+            }
         }
     }
 
@@ -158,14 +167,9 @@ impl SyntaxModule<ParserMetadata> for Import {
         self.token_path = meta.get_current_token();
         syntax(meta, &mut self.path)?;
         // Import code from file or standard library
-        let imported_code = if self.path.value == "[standard library]" {
-            self.add_import(meta, "[standard library]")?;
-            AmberCompiler::import_std()
-        } else {
-            self.add_import(meta, &self.path.value.clone())?;
-            self.resolve_import(meta)?
+        self.add_import(meta, &self.path.value.clone())?;
+        let imported_code = self.resolve_import(meta)?;
 
-        };
         self.handle_import(meta, imported_code)?;
         Ok(())
     }

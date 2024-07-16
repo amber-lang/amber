@@ -1,0 +1,4 @@
+import * from "std/text"
+main {
+    echo trim_right("  hello   world  ")
+}

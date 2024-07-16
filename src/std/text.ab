@@ -1,9 +1,3 @@
-pub fun input(prompt: Text): Text {
-    unsafe $printf "\${nameof prompt}"$
-    unsafe $read$
-    return "$REPLY"
-}
-
 pub fun replace_once(source, pattern, replacement) {
     return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
 }
@@ -16,35 +10,10 @@ pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
     return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
 }
 
-pub fun dir_exist(path) {
-    $[ -d "{path}" ]$ failed {
-        return false
-    }
-    return true
-}
-
-pub fun file_exist(path) {
-    $[ -f "{path}" ]$ failed {
-        return false
-    }
-    return true
-}
-
-pub fun file_read(path) {
-    return $cat "{path}"$?
-}
-
-pub fun file_write(path, content) {
-    return $echo "{content}" > "{path}"$?
-}
-
-pub fun file_append(path, content) {
-    return $echo "{content}" >> "{path}"$?
-}
 
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    unsafe $IFS="{delimiter}" read -ra {nameof result} <<< "\${nameof text}"$
+    unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
     return result
 }
 
@@ -62,10 +31,6 @@ pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
-pub fun trim(text: Text): Text {
-    return unsafe $echo "{text}" | xargs$
-}
-
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
@@ -74,22 +39,16 @@ pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
 }
 
+pub fun trim(text: Text): Text {
+    return trim_left(trim_right(text))
+}
+
 pub fun lower(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
 }
 
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
-}
-
-#[allow_absurd_cast]
-pub fun len(value): Num {
-    unsafe {
-        if value is Text:
-            return $echo "\$\{#{nameof value}}"$ as Num
-        else:
-            return $echo "\$\{#{nameof value}[@]}"$ as Num
-    }
 }
 
 #[allow_absurd_cast]
@@ -107,20 +66,11 @@ pub fun chars(text: Text): [Text] {
 }
 
 #[allow_absurd_cast]
-pub fun sum(list: [Num]): Num {
-    return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
-}
-
-pub fun has_failed(command: Text): Bool {
-    unsafe silent $eval {command}$
-    return status != 0
-}
-
-pub fun exit(code: Num): Null {
-    unsafe $exit "{code}"$
-}
-
-pub fun includes(arr, value) {
-    unsafe $[[ "\$\{{nameof arr}[@]}" =~ "{value}" ]]$
-    return status == 0
+pub fun len(value): Num {
+    unsafe {
+        if value is Text:
+            return $echo "\$\{#{nameof value}}"$ as Num
+        else:
+            return $echo "\$\{#{nameof value}[@]}"$ as Num
+    }
 }
