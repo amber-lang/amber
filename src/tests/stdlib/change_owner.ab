@@ -5,7 +5,7 @@ main {
     if change_owner(unsafe $whoami$,"/tmp/amber-symbolic") {
         echo "done"
     } else {
-	    echo "file not exist"
+	echo "file not exist"
     }
     unsafe $rm /tmp/amber-symbolic$
 } 
