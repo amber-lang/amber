@@ -20,6 +20,7 @@ pub struct FunctionInvocation {
     variant_id: usize,
     id: usize,
     line: usize,
+    col: usize,
     failed: Failed,
     modifier: CommandModifier,
     is_failable: bool
@@ -43,6 +44,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             variant_id: 0,
             id: 0,
             line: 0,
+            col: 0,
             failed: Failed::new(),
             modifier: CommandModifier::new().parse_expr(),
             is_failable: false
@@ -56,6 +58,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             let tok = meta.get_current_token();
             if let Some(ref tok) = tok {
                 self.line = tok.pos.0;
+                self.col = tok.pos.1;
             }
             self.name = variable(meta, variable_name_extensions())?;
             // Get the arguments
@@ -74,6 +77,22 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 };
             }
             let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+            let expected_arg_count = function_unit.arg_refs.len();
+            let actual_arg_count = self.args.len();
+            let optional_count = function_unit.arg_optionals.len();
+
+            // Case when function call is missing arguments
+            if actual_arg_count < expected_arg_count {
+                // Check if we can compensate with optional arguments stored in fun_unit
+                if actual_arg_count >= expected_arg_count - optional_count {
+                    let missing = expected_arg_count - actual_arg_count;
+                    let provided_optional = optional_count - missing;
+                    for exp in function_unit.arg_optionals.iter().skip(provided_optional){
+                        self.args.push(exp.clone());
+                    }
+                }
+            }
+
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
                 match syntax(meta, &mut self.failed) {
@@ -133,9 +152,10 @@ impl TranslateModule for FunctionInvocation {
                     .unwrap_or(translation)
             }
         }).collect::<Vec<String>>().join(" ");
+
         meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
         let invocation_return = &format!("__AF_{}{}_v{}", self.name, self.id, self.variant_id);
-        let invocation_instance = &format!("__AF_{}{}_v{}__{}", self.name, self.id, self.variant_id, self.line);
+        let invocation_instance = &format!("__AF_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
         let parsed_invocation_return = self.get_variable(meta, invocation_return, true);
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
@@ -143,7 +163,7 @@ impl TranslateModule for FunctionInvocation {
             meta.stmt_queue.push_back(failed);
         }
         meta.stmt_queue.push_back(
-            format!("__AF_{}{}_v{}__{}={}", self.name, self.id, self.variant_id, self.line, if matches!(self.kind, Type::Array(_)) {
+            format!("__AF_{}{}_v{}__{}_{}={}", self.name, self.id, self.variant_id, self.line, self.col, if matches!(self.kind, Type::Array(_)) {
                 // If the function returns an array we have to store the intermediate result in a variable that is of type array
                 format!("({})", parsed_invocation_return)
             } else {

@@ -15,7 +15,12 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     let mut strings = vec![];
     let mut interps = vec![];
     // Handle full string
-    if let Ok(word) = token_by(meta, |word| word.starts_with(letter) && (word.ends_with(letter) && !word.ends_with(format!("\\{}", letter).as_str())) && word.len() > 1) {
+    if let Ok(word) = token_by(meta, |word| {
+        let is_escaped =
+            !word.ends_with(format!("\\\\{}", letter).as_str())
+            && word.ends_with(format!("\\{}", letter).as_str());
+        word.starts_with(letter) && word.ends_with(letter) && word.len() > 1 && !is_escaped
+    }) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         strings.push(stripped);
         Ok((strings, interps))
@@ -40,7 +45,10 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                 }
                 else {
                     strings.push(tok.word.clone());
-                    if tok.word.ends_with(letter) && !tok.word.ends_with(format!("\\{}", letter).as_str()) {
+                    let is_escaped =
+                        !tok.word.ends_with(format!("\\\\{}", letter).as_str())
+                        && tok.word.ends_with(format!("\\{}", letter).as_str());
+                    if tok.word.ends_with(letter) && !is_escaped {
                         meta.increment_index();
                         // Right trim the symbol
                         let trimmed = strings.last().unwrap()
@@ -72,16 +80,19 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                     result.push('"');
                 }
             },
-            '`' => {
-                // Escape backticks if in a string
+            symbol @ ('$' | '`') => {
                 if is_str {
                     result.push('\\');
-                    result.push('`');
                 }
-                else {
-                    result.push('`');
-                }
+                result.push(symbol);
             },
+            '!' => {
+                if is_str {
+                    result += "\"'!'\"";
+                } else {
+                    result.push('!')
+                }
+            }
             '\\' => {
                 // Escape symbols
                 match chars.peek() {
@@ -126,6 +137,7 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                         chars.next();
                     },
                     Some('\\') => {
+                        result.push('\\');
                         result.push('\\');
                         chars.next();
                     },

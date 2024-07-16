@@ -1,0 +1,4 @@
+import * from "std/math"
+main {
+    echo sum([1, 2, 3, 4])
+} 

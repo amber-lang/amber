@@ -9,10 +9,8 @@ pub struct ImportString {
 
 impl ImportString {
     fn resolve_path(&mut self, meta: &ParserMetadata, tok: Option<Token>) -> SyntaxResult {
-        if self.value == "std" {
-            self.value = "[standard library]".to_string();
+        if self.value.starts_with("std/") {
             return Ok(())
-
         }
         let mut path = meta.context.path.as_ref()
             .map_or_else(|| Path::new("."), |path| Path::new(path))

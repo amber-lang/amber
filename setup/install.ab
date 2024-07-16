@@ -1,4 +1,7 @@
-import { has_failed, includes, exit, chars, input } from "std"
+import { has_failed, exit } from "std/env"
+import { chars } from "std/text"
+import { includes } from "std/array"
+import { file_exist } from "std/fs"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 let name = "AmberNative"
@@ -99,7 +102,7 @@ main(args) {
         exit(1)
     }
 
-    // Remove the archive
+    // Delete the archive
     ${sudo} rm {place}/{archive}$ failed {
         echo "Failed to remove downloaded archive at {place}/{archive}"
         exit(1)
@@ -112,10 +115,19 @@ main(args) {
         exit(1)
     }
 
+    // Delete the previous symbolic link
+    if file_exist("{bins_folder}/{target}") {
+        ${sudo} rm "{bins_folder}/{target}"$ failed {
+            echo "Failed to remove the previous amber symbol link."
+            echo "Please make sure that root user can access {bins_folder} directory."
+            exit(1)
+        }
+    }
+
     // Create amber symbol link
     ${sudo} ln -s "{place}/{target}" "{bins_folder}/{target}"$ failed {
         echo "Failed to create amber symbol link."
-        echo "Please make sure that root user can access /usr/local/bin directory."
+        echo "Please make sure that root user can access {bins_folder} directory."
         exit(1)
     }
 

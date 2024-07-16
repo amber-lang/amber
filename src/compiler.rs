@@ -1,3 +1,6 @@
+extern crate chrono;
+use chrono::prelude::*;
+use itertools::Itertools;
 use crate::modules::block::Block;
 use crate::rules;
 use crate::translate::check_all_blocks;
@@ -24,7 +27,15 @@ impl AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
             path,
         }
-        .load_code(code)
+        .load_code(AmberCompiler::strip_off_shebang(code))
+    }
+
+    fn strip_off_shebang(code: String) -> String {
+        if code.starts_with("#!") {
+            code.split("\n").into_iter().skip(1).collect_vec().join("\n")
+        } else {
+            code
+        }
     }
 
     fn env_flag_set(flag: &str) -> bool {
@@ -125,7 +136,12 @@ impl AmberCompiler {
         }
         result.push(block.translate(&mut meta));
         let res = result.join("\n");
-        format!("{}\n{}", include_str!("header.sh"), res)
+        let header = [
+            include_str!("header.sh"),
+            &("# version: ".to_owned() + option_env!("CARGO_PKG_VERSION").unwrap().to_string().as_str()),
+            &("# date: ".to_owned() + Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str())
+        ].join("\n");
+        format!("{}\n{}", header, res)
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
@@ -157,7 +173,4 @@ impl AmberCompiler {
         })
     }
 
-    pub fn import_std() -> String {
-        [include_str!("std/main.ab")].join("\n")
-    }
 }
