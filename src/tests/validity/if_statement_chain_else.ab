@@ -5,6 +5,6 @@ if {
         echo x
     }
     else {
-                echo y
+        echo y
     }
 }
