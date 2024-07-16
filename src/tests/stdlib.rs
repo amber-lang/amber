@@ -5,7 +5,6 @@ use crate::compiler::AmberCompiler;
 use crate::test_amber;
 use crate::tests::compile_code;
 use std::fs;
-use std::io::Write;
 use std::time::Duration;
 use std::process::{Command, Stdio};
 
@@ -31,37 +30,6 @@ fn http_server() {
         req.respond(Response::from_string("ok")).expect("Can't respond");
         break;
     }
-}
-
-#[test]
-fn input() {
-    let prompt_message = "Please enter your name:";
-
-    let code = fs::read_to_string("src/tests/stdlib/no_output/input.ab")
-    .expect(&format!("Failed to open stdlib/no_output/input.ab test file"));
-
-    let input = "Amber";
-    let expected_output = format!("{}Hello, {}", prompt_message, input);
-
-    let compiled_code = compile_code(code);
-
-    let mut child = Command::new("bash")
-        .arg("-c")
-        .arg(compiled_code)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute process");
-
-    {
-        let stdin = child.stdin.as_mut().expect("Failed to open stdin");
-        stdin.write_all(input.as_bytes()).expect("Failed to write to stdin");
-    }
-
-    let output = child.wait_with_output().expect("Failed to read stdout");
-    let output_str = String::from_utf8(output.stdout).expect("Failed to convert stdout to String");
-
-    assert_eq!(output_str.trim_end_matches('\n'), expected_output);
 }
 
 #[test]

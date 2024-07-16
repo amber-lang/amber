@@ -1,4 +1,5 @@
-import { exit, includes, has_failed } from "std"
+import { has_failed, exit } from "std/env"
+import { includes } from "std/array"
 
 pub fun get_os(): Text {
     // Determine OS type

@@ -1,4 +1,4 @@
-import { create_dir, dir_exist } from "std"
+import { create_dir, dir_exist } from "std/fs"
 main {
     create_dir("/tmp/amber-test")
     if dir_exist("/tmp/amber-test") {

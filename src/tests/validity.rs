@@ -717,7 +717,7 @@ fn null() {
 #[test]
 fn failed() {
     let code = "
-        import { sum } from \"std\"
+        import { sum } from \"std/math\"
         let requirements = [true, true, true]
 
         main {

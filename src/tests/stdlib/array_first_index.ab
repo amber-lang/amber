@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/array"
 main {
     echo array_first_index([1, 2, 3, 4], 3)
 } 

@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/fs"
 main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     if dir_exist(tmpdir) {

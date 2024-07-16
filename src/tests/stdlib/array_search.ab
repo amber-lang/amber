@@ -1,4 +1,4 @@
-import * from "std"
+import * from "std/array"
 main {
     let result = array_search([1, 2, 3, 4, 3], 3)
     echo result[0]+result[1]

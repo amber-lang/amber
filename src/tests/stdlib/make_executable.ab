@@ -1,4 +1,4 @@
-import { make_executable } from "std"
+import { make_executable } from "std/fs"
 main {
     unsafe $touch /tmp/amber-symbolic$
     if make_executable("/tmp/amber-symbolic") {
