@@ -1,0 +1,3 @@
+let x = "Hello World"
+let y = "Hello World"
+echo x == y

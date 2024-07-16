@@ -1,0 +1,5 @@
+let x = 21
+let y = 2
+let z = 6
+let a = 2
+echo (x + y) * z / a
