@@ -1,6 +1,6 @@
 fun safe_division(a: Num, b: Num): Num {
     if b == 0:
-                fail 1
+        fail 1
     return a / b
 }
 
