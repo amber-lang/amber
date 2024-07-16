@@ -108,6 +108,8 @@ And compiles to:
 echo "Hello World"
 ```
 
+For a real example based on this guide you can check the [https://github.com/amber-lang/amber/blob/master/src/modules/builtin/cd.rs](`cd` builtin).
+
 <details>
 <summary>Let's start!</summary>
 
@@ -214,6 +216,8 @@ impl Statement {
 }
 ```
 </details>
+
+Don't forget to add a test in the [https://github.com/amber-lang/amber/tree/master/src/tests/validity](`validity`) folder.
 
 ### 3. Runtime libraries
 #### 3.1. `stdlib`
