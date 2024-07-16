@@ -119,7 +119,7 @@ main(args) {
         exit(1)
     }
 
-    if (input("Do you want to share your system for telemetry? It will happen only now. [Y/n]") == "Y") {
+    if (input("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:") != "no") {
         // Send feedback to the server
         unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
     }
