@@ -1,15 +1,15 @@
 fun foo(a) {
-	echo a
-	fail 1
+    echo a
+    fail 1
 }
 
 fun bar() {
-	echo "this should not appear"
+    echo "this should not appear"
 }
 
 unsafe foo("one")
 unsafe {
-	foo("two")
+    foo("two")
 }
 unsafe silent foo("this should not appear")
 silent bar()

@@ -1,6 +1,6 @@
 fun test(ref a) {
-	a[2] = 42
-	echo a[1]
+    a[2] = 42
+    echo a[1]
 }
 
 let a = [1, 2, 3, 4, 5]

@@ -1,5 +1,5 @@
  fun foo(ref a) {
-	a = false
+    a = false
 }
 
 let a = true

@@ -1,7 +1,7 @@
 fun swap(ref a, ref b) {
-	let temp = a
-	a = b
-	b = temp
+    let temp = a
+    a = b
+    b = temp
 }
 
 let a = 12

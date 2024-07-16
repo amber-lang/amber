@@ -1,4 +1,4 @@
 let a = [1, 2, 3, 4, 5]
 loop i in a {
-	echo i
+    echo i
 }

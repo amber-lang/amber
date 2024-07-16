@@ -1,5 +1,5 @@
 fun foo(ref a, b) {
-	a = a * b
+    a = a * b
 }
 
 let a = 6

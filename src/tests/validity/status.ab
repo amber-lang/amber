@@ -1,4 +1,4 @@
 silent $non-existent command$ failed {
-	echo status
-	echo status
+    echo status
+    echo status
 }

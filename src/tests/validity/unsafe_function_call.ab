@@ -1,7 +1,7 @@
 fun safe_division(a: Num, b: Num): Num {
-	if b == 0:
+    if b == 0:
                 fail 1
-	return a / b
+    return a / b
 }
 
 let result = unsafe safe_division(24, 4)

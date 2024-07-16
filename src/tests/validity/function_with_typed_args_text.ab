@@ -1,4 +1,4 @@
 pub fun test(a: Text, b: Text) {
-	echo a + b
+    echo a + b
 }
 test("Hello", "World")

@@ -1,4 +1,4 @@
 fun test() {
-	return "Hello World"
+    return "Hello World"
 }
 echo test()

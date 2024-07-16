@@ -1,5 +1,5 @@
 fun foo(ref a) {
-	a = 42
+    a = 42
 }
 
 let a = 24
