@@ -231,6 +231,7 @@ We have [`validity tests`](src/tests/validity.rs) to check if the compiler outpu
 
 The majority of `stdlib` tests are Written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). For every test there is a `*.output.txt` file that contains the expected output.
 Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
+The `validity` tests are full in Amber in their folder the folder [`tests/validity`](src/tests/validity).
 
 Some tests require additional setup, such as those for `download` that needs Rust to load a web server. These functions require special tests written in Rust that we can find in [`stdlib tests`](src/tests/stdlib.rs) file. The designated directory where to store the amber files is located in [`tests/stdlib/no_output`](src/tests/stdlib/no_output). These tests do not coexist with `.output.txt` files hence the name of this folder.
 
