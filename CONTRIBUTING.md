@@ -108,7 +108,7 @@ And compiles to:
 echo "Hello World"
 ```
 
-For a real example based on this guide you can check the [https://github.com/amber-lang/amber/blob/master/src/modules/builtin/cd.rs](`cd` builtin).
+For a real example based on this guide you can check the [https://github.com/amber-lang/amber/blob/master/src/modules/builtin/cd.rs](`cd` builtin) that is also Failable.
 
 <details>
 <summary>Let's start!</summary>
@@ -121,6 +121,8 @@ Create a `src/modules/builtin/builtin.rs` file with the following content:
 use heraclitus_compiler::prelude::*;
 // Expression module that can parse expressions
 use crate::modules::expression::expr::Expr;
+// Expression module to define if the builtin is failable
+// use crate::modules::condition::failed::Failed;
 // Translate module is not included in Heraclitus prelude as it's leaving the backend up to developer
 use crate::translate::module::TranslateModule;
 // Metadata is the object that is carried when iterating over syntax tree.
@@ -134,7 +136,8 @@ use crate::docs::module::DocumentationModule;
 #[derive(Debug, Clone)]
 pub struct Example {
     // This particular built-in contains a single expression
-    value: Expr
+    value: Expr,
+    // failed: Failed // You need this if you want that is failable
 }
 
 // This is an implementation of a trait that creates a parser for this module
@@ -159,6 +162,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
         token(meta, "example")?;
         // `syntax` parses the `Expr` expression syntax module
         syntax(meta, &mut self.value)?;
+        // syntax(meta, &mut self.failed)?; // You need this if you want that is failable
         // This terminates parsing process with success exit code
         Ok(())
     }
