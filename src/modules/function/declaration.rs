@@ -198,14 +198,23 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     Err(_) => token(meta, ",")?
                 };
             }
+            let mut returns_tok = None;
             // Optionally parse the return type
             match token(meta, ":") {
-                Ok(_) => self.returns = parse_type(meta)?,
+                Ok(_) => {
+                    returns_tok = meta.get_current_token();
+                    self.returns = parse_type(meta)?
+                },
                 Err(_) => self.returns = Type::Generic
             }
             // Parse the body
             token(meta, "{")?;
             let (index_begin, index_end, is_failable) = skip_function_body(meta);
+            if is_failable && !matches!(self.returns, Type::Failable(_) | Type::Generic) {
+                return error!(meta, returns_tok, "Failable functions must return a Failable type");
+            } else if !is_failable && matches!(self.returns, Type::Failable(_)) {
+                return error!(meta, returns_tok, "Non-failable functions cannot return a Failable type");
+            }
             // Create a new context with the function body
             let expr = meta.context.expr[index_begin..index_end].to_vec();
             let ctx = meta.context.clone().function_invocation(expr);
