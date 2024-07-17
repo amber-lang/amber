@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
+use crate::modules::condition::failed::Failed;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 
