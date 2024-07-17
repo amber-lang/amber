@@ -203,6 +203,20 @@ impl Statement {
     // ...
 }
 ```
+
+Now we have to add it to the list of reserved keywords `src/modules/variable/mod.rs`
+
+```rs
+// Let's add it to the keyword list
+pub fn variable_name_keywords() -> Vec<&'static str> {
+    vec![
+        // ...
+        "builtin",
+        // ...
+    ]
+}
+
+```
 </details>
 
 ### 3. Runtime libraries
