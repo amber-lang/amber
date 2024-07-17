@@ -1,3 +1,5 @@
+unsafe $cd /tmp$
 unsafe $touch a$
 mv "a" "b" failed{}
 unsafe $ls b$
+unsafe $rm b$
