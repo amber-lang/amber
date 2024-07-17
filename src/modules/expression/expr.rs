@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::command::command::Command;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -29,12 +30,12 @@ use super::binop::{
 };
 use super::unop::{
     not::Not,
+    neg::Neg,
     cast::Cast,
     is::Is
 };
 use super::parenthesis::Parenthesis;
 use crate::modules::variable::get::VariableGet;
-use crate::modules::command::expr::CommandExpr;
 use crate::modules::condition::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::nameof::Nameof;
@@ -45,7 +46,6 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    CommandExpr(CommandExpr),
     Parenthesis(Parenthesis),
     VariableGet(VariableGet),
     Add(Add),
@@ -53,6 +53,7 @@ pub enum ExprType {
     Mul(Mul),
     Div(Div),
     Modulo(Modulo),
+    Neg(Neg),
     And(And),
     Or(Or),
     Gt(Gt),
@@ -64,6 +65,7 @@ pub enum ExprType {
     Not(Not),
     Ternary(Ternary),
     FunctionInvocation(FunctionInvocation),
+    Command(Command),
     Array(Array),
     Range(Range),
     Null(Null),
@@ -108,11 +110,11 @@ impl Expr {
         // Arithmetic operators
         Add, Sub, Mul, Div, Modulo,
         // Unary operators
-        Cast, Not, Nameof, Is,
+        Cast, Not, Neg, Nameof, Is,
         // Literals
-        Range, Parenthesis, CommandExpr, Bool, Number, Text, Array, Null, Status,
+        Range, Parenthesis, Bool, Number, Text, Array, Null, Status,
         // Function invocation
-        FunctionInvocation,
+        FunctionInvocation, Command,
         // Variable access
         VariableGet
     ]);
@@ -171,3 +173,4 @@ impl DocumentationModule for Expr {
         self.document_match(self.value.as_ref().unwrap())
     }
 }
+

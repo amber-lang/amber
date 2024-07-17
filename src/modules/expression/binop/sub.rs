@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for Sub {
         let tok = meta.get_current_token();
         token(meta, "-")?;
         syntax(meta, &mut *self.right)?;
-        let error = "Substract operation can only substract numbers";
+        let error = "Subtract operation can only subtract numbers";
         let l_type = self.left.get_type();
         let r_type = self.right.get_type();
         let predicate = |kind| matches!(kind, Type::Num);
@@ -55,3 +55,4 @@ impl DocumentationModule for Sub {
         "".to_string()
     }
 }
+

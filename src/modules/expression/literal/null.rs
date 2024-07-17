@@ -35,3 +35,4 @@ impl DocumentationModule for Null {
         "".to_string()
     }
 }
+

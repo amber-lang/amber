@@ -41,3 +41,4 @@ impl DocumentationModule for Bool {
         "".to_string()
     }
 }
+

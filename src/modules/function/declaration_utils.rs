@@ -64,7 +64,6 @@ pub fn is_functions_comment_doc(meta: &mut ParserMetadata) -> bool {
 
 pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
-    handle_identifier_name(meta, &name, tok.clone())?;
     if meta.get_fun_declaration(&name).is_some() {
         return error!(meta, tok, format!("Function '{}' already exists", name))
     }

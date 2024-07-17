@@ -62,3 +62,4 @@ impl DocumentationModule for Eq {
         "".to_string()
     }
 }
+

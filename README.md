@@ -4,30 +4,54 @@
 
 # Amber
 
-Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts. It's particulary well suited for cloud services.
+Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts. It's particularly well suited for cloud services.
 
-> **[Warning]**
+> [!Warning]
 > This software is not ready for extended usage.
 
+[Join our Discord](https://discord.com/invite/cjHjxbsDvZ) or
+#amber-lang on irc.oftc.net (irc://irc.oftc.net/#amber-lang) or
+[Join our Matrix room](https://matrix.to/#/#_oftc_#amber-lang:matrix.org)
+
 ## Install
-This compiler currently works on Windows (WSL), Linux and MacOS - all x86 and ARM 64 bit.
+Amber compiler currently works on:
+- Linux x86 and ARM
+- macOS x86 and ARM (Apple Silicon)
+- Nix (NixOS)
 
-### MacOS
+### macOS / Linux
 Make sure that the operating system meets the following prerequisites
-- Bash or Zsh or any other Bourne-again shell (usually comes with MacOS)
-- Ruby 2.0 or newer (usually comes with MacOS)
+- Bourne-again shell (Bash)
+- Curl tool for downloading the installation script
+- Basic calculator `bc` command (On Debian run `sudo apt install bc`)
 
+#### system-wide install
 ```bash
-sudo ruby -e "require 'open-uri'; puts open('https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh').read" | $(echo $SHELL)
+curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | /bin/bash
 ```
 
-### Linux
-Make sure that the operating system meets the following prerequisites
-- Bash or Zsh or any other Bourne-again shell
-- Curl tool for downloading the installation script
+#### local-user install
+```bash
+curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh" | /bin/bash -s -- --user
+```
+
+#### Via a package manager
+Amber is packaged in the following distros:
+
+Arch (AUR) - `amber-bash-bin`
+
+#### Nix
+
+See [NIX.md](./NIX.md)
+
+### Windows support
+As windows does not come with bash installed it makes no sense to support it. Please install WSL 2 on your windows machine and install Linux version of Amber compiler inside.
+
+In order for it to work you may need to run the following code that pulls all the prerequisites.
 
 ```bash
-sudo curl https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/install.sh | $(echo $SHELL)
+sudo apt install curl bc
+sudo mkdir /opt /usr/local/bin
 ```
 
 
@@ -46,7 +70,14 @@ brew install messense/macos-cross-toolchains/aarch64-unknown-linux-musl
 brew install messense/macos-cross-toolchains/x86_64-unknown-linux-gnu
 ```
 
-Finally in order to build
+Compile it:
+```
+git clone https://github.com/Ph0enixKM/Amber
+cd Amber
+cargo build
+```
+
+In order to build the installer scripts run:
 ```bash
 amber build.ab
 ```
@@ -61,3 +92,6 @@ AMBER_DEBUG_TIME=true cargo run <file.ab>
 // Flamegraph is a profiling tool that is used to visualize the time each function took to execute
 sudo cargo flamegraph -- <file.ab> <file.sh>
 ```
+
+## Github Actions
+We are using `cargo-dist` to build the binaries for all the platforms. The binaries are then uploaded to the release page once a new release a tag is created.

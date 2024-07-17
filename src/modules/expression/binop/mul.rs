@@ -55,3 +55,4 @@ impl DocumentationModule for Mul {
         "".to_string()
     }
 }
+

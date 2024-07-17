@@ -81,3 +81,4 @@ impl DocumentationModule for ShorthandAdd {
         "".to_string()
     }
 }
+

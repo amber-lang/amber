@@ -1,15 +1,58 @@
 [package]
 name = "amber"
-version = "1.0.0"
+version = "0.3.4-alpha"
 edition = "2021"
+repository = "https://github.com/Ph0enixKM/Amber"
+rust-version = "1.79"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-heraclitus-compiler = "1.5.8"
+heraclitus-compiler = "1.6.1"
 similar-string = "1.4.2"
 colored = "2.0.0"
 itertools = "0.11.0"
+clap = { version = "4.4.18", features = ["derive"] }
+tempfile = "3.10.1"
+chrono = "0.4.38"
+test-generator = "0.3.1"
+include_dir = "0.7.4"
+
+# test dependencies
+[dev-dependencies]
+tiny_http = "0.12.0"
+assert_cmd = "2.0.14"
+predicates = "3.1.0"
 
 [profile.release]
-debug = true
+strip = true
+lto = true
+opt-level = 3
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+[profile.test]
+opt-level = 3
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.14.1"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = []
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-unknown-linux-musl",
+]
+# Publish jobs to run in CI
+pr-run-mode = "skip"
+# Allow modifying release.yml
+allow-dirty = ["ci"]

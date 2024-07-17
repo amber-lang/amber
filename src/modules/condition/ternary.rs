@@ -63,3 +63,4 @@ impl DocumentationModule for Ternary {
         "".to_string()
     }
 }
+

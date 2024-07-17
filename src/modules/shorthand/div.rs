@@ -71,3 +71,4 @@ impl DocumentationModule for ShorthandDiv {
         "".to_string()
     }
 }
+

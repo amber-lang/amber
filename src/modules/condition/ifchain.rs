@@ -104,3 +104,4 @@ impl DocumentationModule for IfChain {
         "".to_string()
     }
 }
+

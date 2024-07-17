@@ -1,0 +1,11 @@
+import * from "std/env"
+main {
+    unsafe $test_var_isset="test"$
+    if shell_isset("test_var_isset") {
+        echo "test_var_isset"
+    }
+
+    if shell_isset("test_var_isset2") {
+        echo "test_var_isset2"
+    }
+} 

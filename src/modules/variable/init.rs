@@ -72,3 +72,4 @@ impl DocumentationModule for VariableInit {
         "".to_string()
     }
 }
+

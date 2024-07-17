@@ -71,3 +71,4 @@ impl DocumentationModule for ShorthandMul {
         "".to_string()
     }
 }
+

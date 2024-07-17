@@ -1,20 +1,28 @@
-name: Rust
+name: Cargo Build & Test
 
 on:
   push:
-    branches: [ "*", "**" ]
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  build_and_test:
+    name: Rust build and tests
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose
-    - name: Run validity tests
-      run: cargo test validity --verbose
+    - name: Cache dependencies installed with cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+            ./target
+            ~/.cargo
+        key: rust-${{ hashFiles('Cargo.lock') }}
+        restore-keys: rust-${{ hashFiles('Cargo.lock') }}
+    - name: Run all tests
+      run: cargo test --verbose

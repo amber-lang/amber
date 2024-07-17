@@ -1,0 +1,76 @@
+pub fun replace_once(source, pattern, replacement) {
+    return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
+}
+
+pub fun replace(source, pattern, replacement) {
+    return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
+}
+
+pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
+    return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+}
+
+
+pub fun split(text: Text, delimiter: Text): [Text] {
+    let result = [Text]
+    unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
+    return result
+}
+
+pub fun lines(text: Text): [Text] {
+    let result = [Text]
+    unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
+    return result
+}
+
+pub fun words(text: Text): [Text] {
+  return split(text, " ")
+}
+
+pub fun join(list: [Text], delimiter: Text): Text {
+    return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
+}
+
+pub fun trim_left(text: Text): Text {
+    return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
+}
+
+pub fun trim_right(text: Text): Text {
+    return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
+}
+
+pub fun trim(text: Text): Text {
+    return trim_left(trim_right(text))
+}
+
+pub fun lower(text: Text): Text {
+    return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
+}
+
+pub fun upper(text: Text): Text {
+    return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
+}
+
+#[allow_absurd_cast]
+pub fun parse(text: Text): Num {
+    $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
+    return text as Num
+}
+
+pub fun chars(text: Text): [Text] {
+    let chars = [Text]
+    unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
+        {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
+    done;$
+    return chars
+}
+
+#[allow_absurd_cast]
+pub fun len(value): Num {
+    unsafe {
+        if value is Text:
+            return $echo "\$\{#{nameof value}}"$ as Num
+        else:
+            return $echo "\$\{#{nameof value}[@]}"$ as Num
+    }
+}

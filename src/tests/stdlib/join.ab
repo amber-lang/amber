@@ -1,0 +1,4 @@
+import * from "std/text"
+main {
+    echo join(["apple", "banana", "cherry"], ", ")
+}

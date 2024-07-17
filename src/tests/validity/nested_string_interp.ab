@@ -1,0 +1,2 @@
+let x = "welcome {"to"} wonderful {"world"}"
+echo x 

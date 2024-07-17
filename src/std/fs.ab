@@ -1,0 +1,60 @@
+pub fun dir_exist(path) {
+    $[ -d "{path}" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun file_exist(path) {
+    $[ -f "{path}" ]$ failed {
+        return false
+    }
+    return true
+}
+
+pub fun file_read(path) {
+    return $< "{path}"$?
+}
+
+pub fun file_write(path, content) {
+    return $echo "{content}" > "{path}"$?
+}
+
+pub fun file_append(path, content) {
+    return $echo "{content}" >> "{path}"$?
+}
+
+pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
+    if file_exist(origin) {
+        unsafe $ln -s "{origin}" "{destination}"$
+        return true
+    }
+
+    echo "The file {origin} doesn't exist!"
+    return false
+}
+
+pub fun create_dir(path: Text): Null {
+    if not dir_exist(path) {
+        unsafe $mkdir -p "{path}"$
+    }
+}
+
+pub fun make_executable(path: Text): Bool {
+    if file_exist(path) {
+        unsafe $chmod +x "{path}"$
+        return true
+    }
+
+    echo "The file {path} doesn't exist!"
+    return false
+}
+
+pub fun change_owner(user: Text, path: Text): Bool {
+    if file_exist(path) or dir_exist(path) {
+        unsafe $chown -R "{user}" "{path}"$
+        return true
+    }
+
+    return false
+}

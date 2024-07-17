@@ -1,0 +1,7 @@
+fun foo(ref a, b) {
+    a = a - b
+}
+
+let a = 36
+foo(a, 12)
+echo a

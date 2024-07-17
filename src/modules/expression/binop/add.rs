@@ -66,3 +66,4 @@ impl DocumentationModule for Add {
         "".to_string()
     }
 }
+

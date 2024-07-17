@@ -49,3 +49,4 @@ impl DocumentationModule for InfiniteLoop {
         "".to_string()
     }
 }
+

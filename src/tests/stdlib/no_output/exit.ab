@@ -1,0 +1,4 @@
+import * from "std/env"
+main {
+    exit(37)
+}
