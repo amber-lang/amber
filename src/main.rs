@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if let Some(input) = cli.input {
         let input = String::from(input.to_string_lossy());
         let code = {
-            if input == "-" || input == "--silence" {
+            if input == "-" {
                 let mut buf = String::new();
                 match stdin().read_to_string(&mut buf) {
                     Ok(_) => buf,
