@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
 use super::super::expr::Expr;
+use crate::docs::module::DocumentationModule;
 
 #[derive(Debug, Clone)]
 pub struct Neg {
@@ -37,5 +38,11 @@ impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         translate_computation(meta, ArithOp::Neg, None, Some(expr))
+    }
+}
+
+impl DocumentationModule for Neg {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }

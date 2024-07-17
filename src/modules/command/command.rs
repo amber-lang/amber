@@ -1,7 +1,7 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
-use crate::{modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
@@ -89,5 +89,11 @@ impl Command {
 impl TranslateModule for Command {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         self.translate_command(meta, false)
+    }
+}
+
+impl DocumentationModule for Command {
+    fn document(&self) -> String {
+        "".to_string()
     }
 }
