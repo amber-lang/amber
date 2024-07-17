@@ -1,4 +1,4 @@
-import { has_failed, exit } from "std/env"
+import { has_failed, exit, input } from "std/env"
 import { chars } from "std/text"
 import { includes } from "std/array"
 import { file_exist } from "std/fs"
