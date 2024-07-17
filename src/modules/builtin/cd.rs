@@ -22,6 +22,7 @@ impl SyntaxModule<ParserMetadata> for Cd {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
         syntax(meta, &mut self.value)?;
+        syntax(meta, &mut self.failed)?;
         Ok(())
     }
 }
