@@ -6,8 +6,8 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Mv {
-    from: Expr,
-    to: Expr,
+    source: Expr,
+    destination: Expr,
     failed: Failed,
 }
 
@@ -16,16 +16,16 @@ impl SyntaxModule<ParserMetadata> for Mv {
 
     fn new() -> Self {
         Mv {
-            from: Expr::new(),
-            to: Expr::new(),
+            source: Expr::new(),
+            destination: Expr::new(),
             failed: Failed::new(),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "mv")?;
-        syntax(meta, &mut self.from)?;
-        syntax(meta, &mut self.to)?;
+        syntax(meta, &mut self.source)?;
+        syntax(meta, &mut self.destination)?;
         syntax(meta, &mut self.failed)?;
         Ok(())
     }
@@ -33,8 +33,8 @@ impl SyntaxModule<ParserMetadata> for Mv {
 
 impl TranslateModule for Mv {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let from = self.from.translate(meta);
-        let to = self.to.translate(meta);
-        format!("mv {} {} || exit", from, to)
+        let source = self.source.translate(meta);
+        let destination = self.destination.translate(meta);
+        format!("mv {} {} || exit", source, destination)
     }
 }
