@@ -3,6 +3,7 @@
 # Test files
 test*.ab
 test*.sh
+test*.md
 
 # Flamegraph files
 flamegraph.svg
