@@ -149,6 +149,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
     fn new() -> Self {
         Echo {
             value: Expr::new()
+            // failed: Failed::new() // You need this if you want that is failable
         }
     }
 

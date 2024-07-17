@@ -15,7 +15,8 @@ impl SyntaxModule<ParserMetadata> for Cd {
 
     fn new() -> Self {
         Cd {
-            value: Expr::new()
+            value: Expr::new(),
+            failed: Failed::new()
         }
     }
 
