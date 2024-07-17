@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Written in [Amber](https://amber-lang.com/)
 # version: 0.3.4-alpha
-# date: 2024-07-17 15:53:50
+# date: 2024-07-17 16:35:15
 function file_exist__1_v0 {
     local path=$1
     [ -f "${path}" ];
@@ -166,14 +166,14 @@ __3_agent=$(if [ $__AF_has_failed28_v0__10_13 != 0 ]; then echo "unknown"; else 
 echo ""
 function get_latest_release_tag__68_v0 {
     local tag_url="https://api.github.com/repos/Ph0enixKM/${__0_name}/releases/latest"
-    __AMBER_VAL_4=$(curl -L "${tag_url}" > /dev/null 2>&1);
+    __AMBER_VAL_4=$(curl -sL "${tag_url}");
     __AS=$?;
 if [ $__AS != 0 ]; then
 __AF_get_latest_release_tag68_v0=''
 return $__AS
 fi;
     local tag_json="${__AMBER_VAL_4}"
-    __AMBER_VAL_5=$(echo "$tag_json"         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\""         | grep -Eo "\\"[^\\"]+\\"$"         | grep -Eo "[^\\"\\s]+");
+    __AMBER_VAL_5=$(echo "$tag_json"         | grep -Eo "tag_name\"[^\"]*\"([^\"]+)\""         | grep -Eo "\"[^\"]+\"$"         | grep -Eo "[^\"\s]+");
     __AS=$?;
 if [ $__AS != 0 ]; then
 __AF_get_latest_release_tag68_v0=''

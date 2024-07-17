@@ -15,7 +15,7 @@ echo ""
 
 fun get_latest_release_tag() {
     let tag_url = "https://api.github.com/repos/Ph0enixKM/{name}/releases/latest"
-    let tag_json = silent $curl -L "{tag_url}"$?
+    let tag_json = $curl -sL "{tag_url}"$?
     // Get the tag name from the JSON
     let tag = $echo "\${nameof tag_json}" \
         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
