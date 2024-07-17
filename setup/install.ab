@@ -131,9 +131,10 @@ main(args) {
         exit(1)
     }
 
-    if (input("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:") != "no") {
+    let nickname = input("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    if (nickname != "no") {
         // Send feedback to the server
-        unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+        unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
     }
 
     // Send success message
