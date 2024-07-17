@@ -1,0 +1,4 @@
+import * from "std/env"
+main {
+    echo bold_text("Hello Amber!")
+} 

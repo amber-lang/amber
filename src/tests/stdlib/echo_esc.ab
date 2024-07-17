@@ -1,0 +1,4 @@
+import * from "std/env"
+main {
+    echo_esc("\e[1mHello Amber!\e[0m")
+} 
