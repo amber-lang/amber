@@ -74,3 +74,11 @@ pub fun len(value): Num {
             return $echo "\$\{#{nameof value}[@]}"$ as Num
     }
 }
+
+fun contains(look: Text, me: Text): Bool {
+    unsafe $echo "{look}"|grep -q "{me}"$
+    if status == 0 {
+        return true
+    }
+    return false
+}

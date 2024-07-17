@@ -1,0 +1,6 @@
+import * from "std/text"
+main {
+    if contains("Hello World", "World") {
+        echo "found"
+    }
+} 
