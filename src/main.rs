@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // Save to the output file
                 if let Some(output) = cli.output {
                     let outs = String::from(output.to_string_lossy());
-                    if outs == "/dev/null" {
+                    if outs == "--silent" {
                         return Ok(())
                     }
                     if outs == "-" {
