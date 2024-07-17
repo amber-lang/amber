@@ -36,7 +36,8 @@ use crate::modules::imports::{
 };
 use crate::modules::main::Main;
 use crate::modules::builtin::{
-    echo::Echo
+    echo::Echo,
+    mv::Mv
 };
 
 #[derive(Debug, Clone)]
@@ -61,6 +62,7 @@ pub enum StatementType {
     Import(Import),
     Main(Main),
     Echo(Echo),
+    Mv(Mv),
     CommandModifier(CommandModifier)
 }
 
@@ -86,7 +88,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo,
+        CommandModifier, Echo, Mv,
         // Expression
         Expr
     ]);

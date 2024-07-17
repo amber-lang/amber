@@ -1,0 +1,3 @@
+unsafe $touch a$
+mv "a" "b" failed{}
+unsafe $ls b$
