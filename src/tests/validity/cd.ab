@@ -1,2 +1,2 @@
-cd "/tmp/"
+cd "/tmp/" failed {}
 unsafe $pwd$
