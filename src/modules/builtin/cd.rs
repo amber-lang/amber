@@ -6,7 +6,8 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Cd {
-    value: Expr
+    value: Expr,
+    failed: Failed
 }
 
 impl SyntaxModule<ParserMetadata> for Cd {
