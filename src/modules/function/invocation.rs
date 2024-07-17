@@ -128,9 +128,9 @@ impl FunctionInvocation {
         if matches!(self.kind, Type::Array(_)) {
             format!("{quote}{dollar}{{{name}[@]}}{quote}")
         } else if matches!(self.kind, Type::Text) {
-            format!("{quote}{dollar}{name}{quote}")
-        } else {
             format!("{quote}{dollar}{{{name}}}{quote}")
+        } else {
+            format!("{quote}{dollar}{name}{quote}")
         }
     }
 }
