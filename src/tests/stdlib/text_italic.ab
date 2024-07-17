@@ -1,0 +1,4 @@
+import * from "std/env"
+main {
+    echo text_italic("Hello Amber!")
+} 

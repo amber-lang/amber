@@ -1,4 +1,4 @@
 import * from "std/env"
 main {
-    info("Hello Amber!")
+    print_warning("Hello Amber!")
 } 
