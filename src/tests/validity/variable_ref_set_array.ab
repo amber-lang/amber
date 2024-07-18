@@ -1,0 +1,7 @@
+fun foo(ref a) {
+    a = [1, 2, 3]
+}
+
+let a = [3, 2, 1]
+foo(a)
+echo a
