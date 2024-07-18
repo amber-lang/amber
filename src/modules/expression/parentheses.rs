@@ -4,22 +4,22 @@ use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 
 #[derive(Debug, Clone)]
-pub struct Parenthesis {
+pub struct Parentheses {
     value: Box<Expr>,
     kind: Type
 }
 
-impl Typed for Parenthesis {
+impl Typed for Parentheses {
     fn get_type(&self) -> Type {
         self.kind.clone()
     }
 }
 
-impl SyntaxModule<ParserMetadata> for Parenthesis {
-    syntax_name!("Parenthesis");
+impl SyntaxModule<ParserMetadata> for Parentheses {
+    syntax_name!("Parentheses");
 
     fn new() -> Self {
-        Parenthesis {
+        Parentheses {
             value: Box::new(Expr::new()),
             kind: Type::Null
         }
@@ -34,13 +34,13 @@ impl SyntaxModule<ParserMetadata> for Parenthesis {
     }
 }
 
-impl TranslateModule for Parenthesis {
+impl TranslateModule for Parentheses {
     fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
         self.value.translate(meta)
     }
 }
 
-impl DocumentationModule for Parenthesis {
+impl DocumentationModule for Parentheses {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }

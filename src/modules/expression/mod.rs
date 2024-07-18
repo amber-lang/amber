@@ -1,5 +1,5 @@
 pub mod literal;
 pub mod expr;
-pub mod parenthesis;
+pub mod parentheses;
 pub mod binop;
 pub mod unop;

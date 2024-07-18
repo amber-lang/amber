@@ -12,6 +12,8 @@ use std::io::Write;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use std::env;
+use std::fs;
+use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
 
@@ -84,9 +86,10 @@ impl AmberCompiler {
         }
     }
 
-    pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
+    pub fn parse(&self, tokens: Vec<Token>, is_docs_gen: bool) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
+        meta.is_docs_gen = is_docs_gen;
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
@@ -156,24 +159,40 @@ impl AmberCompiler {
         format!("{}\n{}", header, res)
     }
 
-    fn get_file_path(&self, path: &str) -> String {
-        for (index, char) in path.chars().rev().enumerate() {
-            if char == '/' {
-                return path.to_string()
-            }
-            if char == '.' {
-                return path[..path.len() - (index + 1)].to_string()
-            }
+    pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
+        let base_path = PathBuf::from(meta.get_path().expect("Input file must exist in docs generation"));
+        let base_dir = fs::canonicalize(base_path)
+            .map(|val| val.parent().expect("Parent dir must exist in docs generation").to_owned().clone());
+        if let Err(err) = base_dir {
+            Message::new_err_msg("Couldn't get the absolute path to the provided input file")
+                .comment(err.to_string())
+                .show();
+            std::process::exit(1);
         }
-        path.to_string()
-    }
-
-    pub fn document(&self, block: Block, meta: ParserMetadata) {
+        let base_dir = base_dir.unwrap();
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         for (path, block) in ast_forest {
+            let dep_path = {
+                let dep_path = fs::canonicalize(PathBuf::from(path.clone()));
+                if dep_path.is_err() { continue }
+                dep_path.unwrap()
+            };
+            if !dep_path.starts_with(&base_dir) { continue }
             let document = block.document(&meta);
             // Save to file
-            let path = format!("{}.md", self.get_file_path(path.as_str()));
+            let dir_path = {
+                let file_dir = dep_path.strip_prefix(&base_dir).unwrap();
+                let parent = file_dir.parent().unwrap().display();
+                format!("{}/{output}/{}", base_dir.to_string_lossy(), parent)
+            };
+            if let Err(err) = fs::create_dir_all(dir_path.clone()) {
+                Message::new_err_msg(format!("Couldn't create directory `{dir_path}`. Do you have sufficient permissions?"))
+                    .comment(err.to_string())
+                    .show();
+                std::process::exit(1);
+            }
+            let filename = dep_path.file_stem().unwrap().to_string_lossy();
+            let path = format!("{dir_path}/{filename}.md");
             let mut file = File::create(path).unwrap();
             file.write_all(document.as_bytes()).unwrap();
         }
@@ -181,7 +200,7 @@ impl AmberCompiler {
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         self.tokenize()
-            .and_then(|tokens| self.parse(tokens))
+            .and_then(|tokens| self.parse(tokens, false))
             .map(|(block, meta)| (meta.messages.clone(), self.translate(block, meta)))
     }
 
@@ -195,9 +214,9 @@ impl AmberCompiler {
             .wait()?)
     }
 
-    pub fn generate_docs(&self) -> Result<(), Message> {
-        self.tokenize().and_then(|tokens| self.parse(tokens))
-            .map(|(block, meta)| self.document(block, meta))
+    pub fn generate_docs(&self, output: String) -> Result<(), Message> {
+        self.tokenize().and_then(|tokens| self.parse(tokens, true))
+            .map(|(block, meta)| self.document(block, meta, output))
     }
 
     #[allow(dead_code)]

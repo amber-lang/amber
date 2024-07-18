@@ -89,6 +89,6 @@ impl DocumentationModule for Block {
     fn document(&self, meta: &ParserMetadata) -> String {
         self.statements.iter()
             .map(|statement| statement.document(meta))
-            .collect::<Vec<_>>().join("\n")
+            .collect::<Vec<_>>().join("")
     }
 }

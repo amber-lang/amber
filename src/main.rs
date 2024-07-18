@@ -39,9 +39,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.docs {
         if let Some(input) = cli.input {
             let input = String::from(input.to_string_lossy());
+            let output = {
+                let out = cli.output.unwrap_or_else(|| PathBuf::from("docs"));
+                String::from(out.to_string_lossy())
+            };
             match fs::read_to_string(&input) {
                 Ok(code) => {
-                    match AmberCompiler::new(code, Some(input)).generate_docs() {
+                    match AmberCompiler::new(code, Some(input)).generate_docs(output) {
                         Ok(_) => std::process::exit(0),
                         Err(err) => {
                             err.show();
@@ -54,6 +58,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     std::process::exit(1);
                 }
             }
+        } else {
+            Message::new_err_msg("You need to provide a path to an entry file to generate the documentation").show();
+            std::process::exit(1);
         }
     }
     if let Some(code) = cli.eval {
