@@ -174,10 +174,17 @@ impl AmberCompiler {
         for (path, block) in ast_forest {
             let dep_path = {
                 let dep_path = fs::canonicalize(PathBuf::from(path.clone()));
-                if dep_path.is_err() { continue }
-                dep_path.unwrap()
+                if dep_path.is_err() {
+                    continue
+                }
+                let dep_path = dep_path.unwrap();
+
+                if !dep_path.starts_with(&base_dir) {
+                    continue
+                }
+
+                dep_path
             };
-            if !dep_path.starts_with(&base_dir) { continue }
             let document = block.document(&meta);
             // Save to file
             let dir_path = {
