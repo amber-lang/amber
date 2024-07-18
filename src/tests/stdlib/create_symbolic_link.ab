@@ -3,7 +3,7 @@ main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $touch {tmpdir}/amber-symbolic$
     if create_symbolic_link("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
-        echo "created"
+        echo "Succeded"
     } else {
         echo "failed"
     }

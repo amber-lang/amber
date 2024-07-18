@@ -3,7 +3,7 @@ main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $cd {tmpdir}$
     unsafe $touch test.txt$
-    unsafe file_append("test.txt", "hello")    
+    unsafe file_append("test.txt", "Succeded")
     let f = file_read("test.txt") failed {
         echo "Failed" 
     }

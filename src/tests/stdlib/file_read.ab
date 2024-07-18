@@ -2,7 +2,7 @@ import * from "std/fs"
 main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $cd {tmpdir}$
-    unsafe file_write("test.txt", "hello")
+    unsafe file_write("test.txt", "Succeded")
     let f = file_read("test.txt") failed {
         echo "Failed" 
     }

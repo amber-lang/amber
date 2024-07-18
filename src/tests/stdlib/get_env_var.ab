@@ -5,7 +5,7 @@ main {
     unsafe $cd {tmpdir}$
     unsafe file_write(".env", "TEST=1")
     if get_env_var("TEST") == "1" {
-        echo "yes"
+        echo "Succeded"
     }
     unsafe $rm -fr {tmpdir}$
 } 

@@ -3,7 +3,7 @@ main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $touch {tmpdir}/test.txt$
     if file_exist("{tmpdir}/test.txt") {
-        echo "Found"
+        echo "Succeded"
     } else {
         echo "Not Found"
     }
