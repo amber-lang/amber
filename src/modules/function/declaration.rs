@@ -173,6 +173,9 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         self.arg_types.push(Type::Generic);
                     }
                 }
+                if let Type::Failable(_) = arg_type {
+                    return error!(meta, name_token, "Failable types cannot be used as arguments");
+                }
                 match token(meta,"=") {
                     Ok(_) => {
                         if is_ref {

@@ -40,3 +40,16 @@ fn function_nonfailable_with_typed_failable_return() {
 
     test_amber!(code, "Hello, World!");
 }
+
+#[test]
+#[should_panic(expected = "ERROR: Failable types cannot be used as arguments")]
+fn function_with_failable_typed_arg() {
+    let code = r#"
+        pub fun test(a: Text?) {
+            echo a
+        }
+        test("Hello, World!")
+    "#;
+
+    test_amber!(code, "Hello, World!");
+}
