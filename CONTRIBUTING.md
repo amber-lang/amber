@@ -222,7 +222,7 @@ impl Statement {
 ```
 </details>
 
-Don't forget to add a test in the [https://github.com/amber-lang/amber/tree/master/src/tests/validity](`validity`) folder.
+Don't forget to add a test in the [https://github.com/amber-lang/amber/tree/master/src/tests/validity](`validity`) folder and to add the new builtin to the list of the [reserved keywords](https://github.com/amber-lang/amber/blob/master/src/modules/variable/mod.rs#L16).
 
 ### 3. Runtime libraries
 #### 3.1. `stdlib`
