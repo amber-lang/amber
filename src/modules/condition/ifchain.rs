@@ -100,8 +100,7 @@ impl TranslateModule for IfChain {
 }
 
 impl DocumentationModule for IfChain {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

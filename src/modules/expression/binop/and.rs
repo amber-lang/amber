@@ -48,8 +48,7 @@ impl TranslateModule for And {
 }
 
 impl DocumentationModule for And {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

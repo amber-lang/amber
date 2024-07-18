@@ -67,8 +67,7 @@ impl TranslateModule for ShorthandModulo {
 }
 
 impl DocumentationModule for ShorthandModulo {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

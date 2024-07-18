@@ -51,8 +51,7 @@ impl TranslateModule for Le {
 }
 
 impl DocumentationModule for Le {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

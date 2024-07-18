@@ -57,8 +57,7 @@ impl TranslateModule for Neq {
 }
 
 impl DocumentationModule for Neq {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

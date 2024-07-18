@@ -62,7 +62,7 @@ impl TranslateModule for CommandStatement {
 }
 
 impl DocumentationModule for CommandStatement {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

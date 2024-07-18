@@ -98,8 +98,7 @@ impl TranslateModule for IterLoop {
 }
 
 impl DocumentationModule for IterLoop {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

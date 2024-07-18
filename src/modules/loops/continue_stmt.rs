@@ -31,7 +31,7 @@ impl TranslateModule for Continue {
 }
 
 impl DocumentationModule for Continue {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

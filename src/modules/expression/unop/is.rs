@@ -47,8 +47,7 @@ impl TranslateModule for Is {
 }
 
 impl DocumentationModule for Is {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

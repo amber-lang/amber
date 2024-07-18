@@ -28,11 +28,34 @@ struct Cli {
     /// Code to evaluate
     #[arg(short, long)]
     eval: Option<String>,
+
+    /// Generate docs
+    #[arg(long)]
+    docs: bool
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-
+    if cli.docs {
+        if let Some(input) = cli.input {
+            let input = String::from(input.to_string_lossy());
+            match fs::read_to_string(&input) {
+                Ok(code) => {
+                    match AmberCompiler::new(code, Some(input)).generate_docs() {
+                        Ok(_) => std::process::exit(0),
+                        Err(err) => {
+                            err.show();
+                            std::process::exit(1);
+                        }
+                    }
+                },
+                Err(err) => {
+                    Message::new_err_msg(err.to_string()).show();
+                    std::process::exit(1);
+                }
+            }
+        }
+    }
     if let Some(code) = cli.eval {
         let code = format!("import * from \"std\"\n{code}");
         match AmberCompiler::new(code, None).compile() {

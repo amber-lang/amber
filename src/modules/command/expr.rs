@@ -90,7 +90,7 @@ impl TranslateModule for CommandExpr {
 }
 
 impl DocumentationModule for CommandExpr {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

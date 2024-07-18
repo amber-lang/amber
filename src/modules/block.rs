@@ -86,10 +86,9 @@ impl TranslateModule for Block {
 }
 
 impl DocumentationModule for Block {
-    fn document(&self) -> String {
+    fn document(&self, meta: &ParserMetadata) -> String {
         self.statements.iter()
-            .map(|statement| statement.document())
+            .map(|statement| statement.document(meta))
             .collect::<Vec<_>>().join("\n")
     }
 }
-

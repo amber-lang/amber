@@ -169,8 +169,7 @@ impl TranslateModule for Expr {
 }
 
 impl DocumentationModule for Expr {
-    fn document(&self) -> String {
-        self.document_match(self.value.as_ref().unwrap())
+    fn document(&self, meta: &ParserMetadata) -> String {
+        self.document_match(meta, self.value.as_ref().unwrap())
     }
 }
-

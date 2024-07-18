@@ -45,8 +45,7 @@ impl TranslateModule for InfiniteLoop {
 }
 
 impl DocumentationModule for InfiniteLoop {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

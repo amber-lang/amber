@@ -1,3 +1,5 @@
+use crate::utils::ParserMetadata;
+
 pub trait DocumentationModule {
-    fn document(&self) -> String;
+    fn document(&self, meta: &ParserMetadata) -> String;
 }

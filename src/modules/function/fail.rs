@@ -86,8 +86,7 @@ impl TranslateModule for Fail {
 }
 
 impl DocumentationModule for Fail {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

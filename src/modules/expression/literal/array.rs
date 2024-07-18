@@ -94,8 +94,7 @@ impl TranslateModule for Array {
 }
 
 impl DocumentationModule for Array {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

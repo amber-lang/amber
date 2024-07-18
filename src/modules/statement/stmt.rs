@@ -164,9 +164,9 @@ impl TranslateModule for Statement {
 }
 
 impl DocumentationModule for Statement {
-    fn document(&self) -> String {
+    fn document(&self, meta: &ParserMetadata) -> String {
         // Document the statement
-        let documented = self.document_match(self.value.as_ref().unwrap());
+        let documented = self.document_match(meta, self.value.as_ref().unwrap());
         documented
     }
 }

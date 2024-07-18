@@ -63,8 +63,7 @@ impl TranslateModule for Return {
 }
 
 impl DocumentationModule for Return {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

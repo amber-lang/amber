@@ -69,7 +69,7 @@ impl TranslateModule for CommentDoc {
 }
 
 impl DocumentationModule for CommentDoc {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         self.value.clone() + "\n\n"
     }
 }

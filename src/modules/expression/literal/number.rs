@@ -47,8 +47,7 @@ impl TranslateModule for Number {
 }
 
 impl DocumentationModule for Number {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

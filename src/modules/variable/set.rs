@@ -87,7 +87,7 @@ impl TranslateModule for VariableSet {
 }
 
 impl DocumentationModule for VariableSet {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

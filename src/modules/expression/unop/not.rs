@@ -40,8 +40,7 @@ impl TranslateModule for Not {
 }
 
 impl DocumentationModule for Not {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

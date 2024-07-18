@@ -41,8 +41,7 @@ impl TranslateModule for Parenthesis {
 }
 
 impl DocumentationModule for Parenthesis {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

@@ -32,8 +32,7 @@ impl TranslateModule for Status {
 }
 
 impl DocumentationModule for Status {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

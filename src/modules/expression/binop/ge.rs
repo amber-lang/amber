@@ -51,8 +51,7 @@ impl TranslateModule for Ge {
 }
 
 impl DocumentationModule for Ge {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

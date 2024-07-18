@@ -58,8 +58,7 @@ impl TranslateModule for Eq {
 }
 
 impl DocumentationModule for Eq {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

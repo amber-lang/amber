@@ -42,7 +42,7 @@ impl TranslateModule for Neg {
 }
 
 impl DocumentationModule for Neg {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

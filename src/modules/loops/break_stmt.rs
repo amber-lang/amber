@@ -31,7 +31,7 @@ impl TranslateModule for Break {
 }
 
 impl DocumentationModule for Break {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

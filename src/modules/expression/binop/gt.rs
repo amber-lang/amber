@@ -51,8 +51,7 @@ impl TranslateModule for Gt {
 }
 
 impl DocumentationModule for Gt {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

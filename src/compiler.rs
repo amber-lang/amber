@@ -171,7 +171,7 @@ impl AmberCompiler {
     pub fn document(&self, block: Block, meta: ParserMetadata) {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         for (path, block) in ast_forest {
-            let document = block.document();
+            let document = block.document(&meta);
             // Save to file
             let path = format!("{}.md", self.get_file_path(path.as_str()));
             let mut file = File::create(path).unwrap();
@@ -214,4 +214,3 @@ impl AmberCompiler {
     }
 
 }
-

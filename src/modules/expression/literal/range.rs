@@ -56,8 +56,7 @@ impl TranslateModule for Range {
 }
 
 impl DocumentationModule for Range {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

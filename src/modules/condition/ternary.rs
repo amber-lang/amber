@@ -59,8 +59,7 @@ impl TranslateModule for Ternary {
 }
 
 impl DocumentationModule for Ternary {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

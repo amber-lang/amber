@@ -51,8 +51,7 @@ impl TranslateModule for Modulo {
 }
 
 impl DocumentationModule for Modulo {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

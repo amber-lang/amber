@@ -49,8 +49,7 @@ impl TranslateModule for Div {
 }
 
 impl DocumentationModule for Div {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-

@@ -26,7 +26,9 @@ pub struct FunctionDeclaration {
     pub returns: Type,
     pub id: usize,
     pub is_public: bool,
-    pub comment: Option<CommentDoc>
+    pub comment: Option<CommentDoc>,
+    /// Index of the token in the token vector for this function declaration
+    pub doc_index: Option<usize>
 }
 
 impl FunctionDeclaration {
@@ -49,6 +51,34 @@ impl FunctionDeclaration {
             Some(result.join("\n"))
         } else { None }
     }
+
+    fn render_function_signature(&self, meta: &ParserMetadata) -> String {
+        match self.doc_index {
+            Some(doc_index) => {
+                let mut result = vec![];
+                let mut index = doc_index;
+                let mut parenthesis = 0;
+                loop {
+                    let cur_token = meta.context.expr.get(index);
+                    let cur_word = cur_token.map_or_else(|| String::new(), |v| v.word.clone());
+                    match cur_word.as_str() {
+                        "(" => parenthesis += 1,
+                        ")" => parenthesis -= 1,
+                        "{" if parenthesis == 0 => break,
+                        "" => {
+                            result.push("[Error] when parsing function signature. Please report this issue.".to_string());
+                            break
+                        }
+                        _ => {}
+                    }
+                    result.push(cur_word);
+                    index += 1;
+                }
+                result.join(" ")
+            },
+            None => format!("Docs generator error")
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
@@ -64,7 +94,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             returns: Type::Generic,
             id: 0,
             is_public: false,
-            comment: None
+            comment: None,
+            doc_index: None,
         }
     }
 
@@ -82,6 +113,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
         let tok = meta.get_current_token();
+        self.doc_index = Some(meta.get_index());
         // Check if this function is public
         if token(meta, "pub").is_ok() {
             self.is_public = true;
@@ -213,9 +245,15 @@ impl TranslateModule for FunctionDeclaration {
 }
 
 impl DocumentationModule for FunctionDeclaration {
-    fn document(&self) -> String {
-        // TODO: Implement generating docs for functions
-        unimplemented!()
+    fn document(&self, meta: &ParserMetadata) -> String {
+        let mut result = vec![];
+        result.push(format!("## `{}`", self.name));
+        result.push("```ab".to_string());
+        result.push(self.render_function_signature(meta));
+        result.push("```\n".to_string());
+        if let Some(comment) = &self.comment {
+            result.push(comment.document(meta));
+        }
+        result.join("\n")
     }
 }
-

@@ -176,8 +176,7 @@ impl TranslateModule for FunctionInvocation {
 }
 
 impl DocumentationModule for FunctionInvocation {
-    fn document(&self) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
-
