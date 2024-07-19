@@ -37,49 +37,18 @@ struct Cli {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if cli.docs {
-        if let Some(input) = cli.input {
-            let input = String::from(input.to_string_lossy());
-            let output = {
-                let out = cli.output.unwrap_or_else(|| PathBuf::from("docs"));
-                String::from(out.to_string_lossy())
-            };
-            match fs::read_to_string(&input) {
-                Ok(code) => {
-                    match AmberCompiler::new(code, Some(input)).generate_docs(output) {
-                        Ok(_) => std::process::exit(0),
-                        Err(err) => {
-                            err.show();
-                            std::process::exit(1);
-                        }
-                    }
-                },
-                Err(err) => {
-                    Message::new_err_msg(err.to_string()).show();
-                    std::process::exit(1);
-                }
-            }
-        } else {
-            Message::new_err_msg("You need to provide a path to an entry file to generate the documentation").show();
-            std::process::exit(1);
-        }
+        handle_docs(cli)?;
+    } else if let Some(code) = cli.eval {
+        handle_eval(code)?;
+    } else {
+        handle_compile(cli)?;
     }
-    if let Some(code) = cli.eval {
-        let code = format!("import * from \"std\"\n{code}");
-        match AmberCompiler::new(code, None).compile() {
-            Ok((messages, code)) => {
-                messages.iter().for_each(|m| m.show());
-                (!messages.is_empty()).then(|| render_dash());
-                let exit_status = AmberCompiler::execute(code, &vec![])?;
-                std::process::exit(exit_status.code().unwrap_or(1));
-            }
-            Err(err) => {
-                err.show();
-                std::process::exit(1);
-            }
-        }
-    } else if let Some(input) = cli.input {
-        let input = String::from(input.to_string_lossy());
+    Ok(())
+}
 
+fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
+    if let Some(input) = cli.input {
+        let input = String::from(input.to_string_lossy());
         match fs::read_to_string(&input) {
             Ok(code) => {
                 match AmberCompiler::new(code, Some(input)).compile() {
@@ -119,9 +88,52 @@ fn main() -> Result<(), Box<dyn Error>> {
                 std::process::exit(1);
             }
         }
-    } else {
     }
     Ok(())
+}
+
+fn handle_eval(code: String) -> Result<(), Box<dyn Error>> {
+    let code = format!("import * from \"std\"\n{code}");
+    match AmberCompiler::new(code, None).compile() {
+        Ok((messages, code)) => {
+            messages.iter().for_each(|m| m.show());
+            (!messages.is_empty()).then(|| render_dash());
+            let exit_status = AmberCompiler::execute(code, &vec![])?;
+            std::process::exit(exit_status.code().unwrap_or(1));
+        }
+        Err(err) => {
+            err.show();
+            std::process::exit(1);
+        }
+    }
+}
+
+fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
+    if let Some(input) = cli.input {
+        let input = String::from(input.to_string_lossy());
+        let output = {
+            let out = cli.output.unwrap_or_else(|| PathBuf::from("docs"));
+            String::from(out.to_string_lossy())
+        };
+        match fs::read_to_string(&input) {
+            Ok(code) => {
+                match AmberCompiler::new(code, Some(input)).generate_docs(output) {
+                    Ok(_) => Ok(()),
+                    Err(err) => {
+                        err.show();
+                        std::process::exit(1);
+                    }
+                }
+            },
+            Err(err) => {
+                Message::new_err_msg(err.to_string()).show();
+                std::process::exit(1);
+            }
+        }
+    } else {
+        Message::new_err_msg("You need to provide a path to an entry file to generate the documentation").show();
+        std::process::exit(1);
+    }
 }
 
 #[cfg(target_os = "windows")]
