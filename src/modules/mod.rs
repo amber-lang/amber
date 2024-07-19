@@ -38,5 +38,13 @@ macro_rules! handle_types {
                 ),*
             }
         }
+
+        fn document_match(&self, meta: &ParserMetadata, module: &$enum_name) -> String {
+            match module {
+                $(
+                    $enum_name::$item(module) => module.document(meta)
+                ),*
+            }
+        }
     };
 }

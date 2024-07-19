@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::command::command::Command;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
@@ -33,7 +34,7 @@ use super::unop::{
     cast::Cast,
     is::Is
 };
-use super::parenthesis::Parenthesis;
+use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
 use crate::modules::condition::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
@@ -45,7 +46,7 @@ pub enum ExprType {
     Bool(Bool),
     Number(Number),
     Text(Text),
-    Parenthesis(Parenthesis),
+    Parentheses(Parentheses),
     VariableGet(VariableGet),
     Add(Add),
     Sub(Sub),
@@ -111,7 +112,7 @@ impl Expr {
         // Unary operators
         Cast, Not, Neg, Nameof, Is,
         // Literals
-        Range, Parenthesis, Bool, Number, Text, Array, Null, Status,
+        Range, Parentheses, Bool, Number, Text, Array, Null, Status,
         // Function invocation
         FunctionInvocation, Command,
         // Variable access
@@ -164,5 +165,11 @@ impl SyntaxModule<ParserMetadata> for Expr {
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         self.translate_match(meta, self.value.as_ref().unwrap())
+    }
+}
+
+impl DocumentationModule for Expr {
+    fn document(&self, meta: &ParserMetadata) -> String {
+        self.document_match(meta, self.value.as_ref().unwrap())
     }
 }

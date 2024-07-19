@@ -1,6 +1,7 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -99,5 +100,11 @@ impl TranslateModule for CommandModifier {
         } else {
             String::new()
         }
+    }
+}
+
+impl DocumentationModule for CommandModifier {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }
