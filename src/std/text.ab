@@ -75,10 +75,9 @@ pub fun len(value): Num {
     }
 }
 
-pub fun contains(look: Text, me: Text): Bool {
-    unsafe $echo "{look}"|grep -q "{me}"$
-    if status == 0 {
-        return true
-    }
+pub fun contains(text: Text, phrase: Text): Bool {
+  $echo "{text}" | grep -q "{phrase}"$ failed {
     return false
+  }
+  return true
 }
