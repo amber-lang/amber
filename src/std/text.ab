@@ -76,8 +76,12 @@ pub fun len(value): Num {
 }
 
 pub fun contains(text: Text, phrase: Text): Bool {
-  $echo "{text}" | grep -q "{phrase}"$ failed {
-    return false
+  let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
+    echo 1
+  fi$
+
+  if result == "1" {
+    return true
   }
-  return true
+  return false
 }
