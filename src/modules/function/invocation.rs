@@ -130,7 +130,7 @@ impl FunctionInvocation {
         } else if matches!(self.kind, Type::Text) {
             format!("{quote}{dollar}{{{name}}}{quote}")
         } else {
-            format!("{dollar}{name}")
+            format!("{quote}{dollar}{name}{quote}")
         }
     }
 }
