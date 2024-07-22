@@ -34,11 +34,11 @@ use crate::modules::function::{
 };
 use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
-use super::comment_doc::CommentDoc;
 use crate::modules::builtin::{
     echo::Echo,
     cd::Cd
 };
+use super::comment_doc::CommentDoc;
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -89,7 +89,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo, Cd
+        CommandModifier, Echo, Cd,
         // Comment doc
         CommentDoc,
         // Expression

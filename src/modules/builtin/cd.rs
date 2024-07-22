@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::condition::failed::Failed;
+use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 
@@ -32,5 +33,11 @@ impl TranslateModule for Cd {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let value = self.value.translate(meta);
         format!("cd {} || exit", value)
+    }
+}
+
+impl DocumentationModule for Cd {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "Move the current working directory".to_string()
     }
 }
