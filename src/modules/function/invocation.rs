@@ -2,6 +2,7 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::docs::module::DocumentationModule;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
@@ -130,7 +131,7 @@ impl FunctionInvocation {
         } else if matches!(self.kind, Type::Text) {
             format!("{quote}{dollar}{{{name}}}{quote}")
         } else {
-            format!("{dollar}{name}")
+            format!("{quote}{dollar}{name}{quote}")
         }
     }
 }
@@ -171,5 +172,11 @@ impl TranslateModule for FunctionInvocation {
             })
         );
         self.get_variable(meta, invocation_instance, false)
+    }
+}
+
+impl DocumentationModule for FunctionInvocation {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

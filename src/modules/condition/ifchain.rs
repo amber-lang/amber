@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -95,5 +96,11 @@ impl TranslateModule for IfChain {
         }
         result.push("fi".to_string());
         result.join("\n")
+    }
+}
+
+impl DocumentationModule for IfChain {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

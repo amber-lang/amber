@@ -1,4 +1,4 @@
-import { has_failed, exit } from "std/env"
+import { has_failed, exit, input } from "std/env"
 import { chars } from "std/text"
 import { includes } from "std/array"
 import { file_exist } from "std/fs"
@@ -15,7 +15,7 @@ echo ""
 
 fun get_latest_release_tag() {
     let tag_url = "https://api.github.com/repos/Ph0enixKM/{name}/releases/latest"
-    let tag_json = silent $curl -L "{tag_url}"$?
+    let tag_json = $curl -sL "{tag_url}"$?
     // Get the tag name from the JSON
     let tag = $echo "\${nameof tag_json}" \
         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
@@ -131,8 +131,11 @@ main(args) {
         exit(1)
     }
 
-    // Send feedback to the server
-    unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+    let nickname = input("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    if (nickname != "no") {
+        // Send feedback to the server
+        unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+    }
 
     // Send success message
     echo "Amber has been installed successfully. 🎉"
