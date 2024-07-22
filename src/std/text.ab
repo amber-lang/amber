@@ -80,8 +80,5 @@ pub fun contains(text: Text, phrase: Text): Bool {
     echo 1
   fi$
 
-  if result == "1" {
-    return true
-  }
-  return false
+  return result == "1"
 }
