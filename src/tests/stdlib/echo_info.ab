@@ -1,4 +1,4 @@
 import * from "std/env"
 main {
-    print_success("Hello Amber!")
+    echo_info("Hello Amber!")
 } 

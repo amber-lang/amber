@@ -1,4 +1,0 @@
-import * from "std/env"
-main {
-    print_error("Hello Amber!", 0)
-} 
