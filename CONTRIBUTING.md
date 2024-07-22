@@ -101,12 +101,14 @@ Basically, the `translate()` method should return a `String` for the compiler to
 
 In this guide we will see how to create a basic built-in function that in Amber syntax presents like:
 ```sh
-builtin "Hello World"
+example "Hello World"
 ```
 And compiles to:
 ```sh
 echo "Hello World"
 ```
+
+For a real example based on this guide you can check the [https://github.com/amber-lang/amber/blob/master/src/modules/builtin/cd.rs](`cd` builtin) that is also Failable.
 
 <details>
 <summary>Let's start!</summary>
@@ -119,6 +121,8 @@ Create a `src/modules/builtin/builtin.rs` file with the following content:
 use heraclitus_compiler::prelude::*;
 // Expression module that can parse expressions
 use crate::modules::expression::expr::Expr;
+// Expression module to define if the builtin is failable
+// use crate::modules::condition::failed::Failed;
 // Translate module is not included in Heraclitus prelude as it's leaving the backend up to developer
 use crate::translate::module::TranslateModule;
 // Metadata is the object that is carried when iterating over syntax tree.
@@ -130,20 +134,22 @@ use crate::docs::module::DocumentationModule;
 
 // This is a declaration of your built-in. Set the name accordingly.
 #[derive(Debug, Clone)]
-pub struct Builtin {
+pub struct Example {
     // This particular built-in contains a single expression
-    value: Expr
+    value: Expr,
+    // failed: Failed // You need this if you want that is failable
 }
 
 // This is an implementation of a trait that creates a parser for this module
 impl SyntaxModule<ParserMetadata> for Echo {
     // Here you can define the name of this built-in that will displayed when debugging the parser
-    syntax_name!("Builtin");
+    syntax_name!("Example");
 
     // This function should always contain the default state of this syntax module
     fn new() -> Self {
         Echo {
             value: Expr::new()
+            // failed: Failed::new() // You need this if you want that is failable
         }
     }
 
@@ -153,16 +159,18 @@ impl SyntaxModule<ParserMetadata> for Echo {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // `token` parses a token `builtin` which is basically a command name for our built-in.
         // If we add `?` in the end of the heraclitus provided function - this function will return a quiet error.
-        token(meta, "builtin")?;
+        // Set the name accordingly.
+        token(meta, "example")?;
         // `syntax` parses the `Expr` expression syntax module
         syntax(meta, &mut self.value)?;
+        // syntax(meta, &mut self.failed)?; // You need this if you want that is failable
         // This terminates parsing process with success exit code
         Ok(())
     }
 }
 
-// Here we implement the translator for the syntax module. Here we return valid Bash or sh code.
-impl TranslateModule for Builtin {
+// Here we implement the translator for the syntax module. Here we return valid Bash or sh code. Set the name accordingly.
+impl TranslateModule for Example {
     // Here we define the valid translate function. The String returns the current line.
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         // Here we run the translate function on the syntax module `Expr`
@@ -193,19 +201,19 @@ Now we have to integrate this syntax module with either statement `Stmt` or expr
 
 ```rs
 // Let's import it first
-use crate::modules::builtin::builtin::Builtin;
+use crate::modules::builtin::builtin::Example;
 
 // Let's add it to the statement type enum
 pub enum StatementType {
     // ...
-    Builtin(Builtin)
+    Example(Example)
 }
 
 // Now, let's add it to the list of statement syntax modules, arranged in the order of parsing precedence:
 impl Statement {
     handle_types!(StatementType, [
         // ...
-        Builtin,
+        Example,
         // ...
     }
 
@@ -213,6 +221,8 @@ impl Statement {
 }
 ```
 </details>
+
+Don't forget to add a test in the [https://github.com/amber-lang/amber/tree/master/src/tests/validity](`validity`) folder and to add the new builtin to the list of the [reserved keywords](https://github.com/amber-lang/amber/blob/master/src/modules/variable/mod.rs#L16).
 
 ### 3. Runtime libraries
 #### 3.1. `stdlib`
@@ -226,6 +236,7 @@ We have [`validity tests`](src/tests/validity.rs) to check if the compiler outpu
 
 The majority of `stdlib` tests are Written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). For every test there is a `*.output.txt` file that contains the expected output.
 Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
+The `validity` tests are full in Amber in their folder the folder [`tests/validity`](src/tests/validity).
 
 Some tests require additional setup, such as those for `download` that needs Rust to load a web server. These functions require special tests written in Rust that we can find in [`stdlib tests`](src/tests/stdlib.rs) file. The designated directory where to store the amber files is located in [`tests/stdlib/no_output`](src/tests/stdlib/no_output). These tests do not coexist with `.output.txt` files hence the name of this folder.
 
