@@ -1,0 +1,5 @@
+import * from "std/env"
+
+main {
+    echo printf_escape("Hello \v Amber %T")
+} 
