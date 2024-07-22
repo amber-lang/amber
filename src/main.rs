@@ -28,9 +28,11 @@ pub struct Cli {
     /// Code to evaluate
     #[arg(short, long)]
     eval: Option<String>,
+
     /// Generate docs
     #[arg(long)]
-    docs: bool
+    docs: bool,
+
     /// Don't format the output file
     #[arg(long)]
     disable_format: bool
@@ -42,6 +44,7 @@ impl Default for Cli {
             input: None,
             output: None,
             eval: None,
+            docs: false,
             disable_format: false
         }
     }
@@ -51,8 +54,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if cli.docs {
         handle_docs(cli)?;
-    } else if let Some(code) = cli.eval {
-        handle_eval(code)?;
+    } else if let Some(ref code) = cli.eval {
+        handle_eval(code.to_string(), cli)?;
     } else {
         handle_compile(cli)?;
     }
@@ -119,9 +122,9 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn handle_eval(code: String) -> Result<(), Box<dyn Error>> {
+fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
     let code = format!("import * from \"std\"\n{code}");
-    match AmberCompiler::new(code, None).compile() {
+    match AmberCompiler::new(code, None, cli).compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(|| render_dash());
@@ -136,15 +139,15 @@ fn handle_eval(code: String) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
-    if let Some(input) = cli.input {
+    if let Some(ref input) = cli.input {
         let input = String::from(input.to_string_lossy());
         let output = {
-            let out = cli.output.unwrap_or_else(|| PathBuf::from("docs"));
+            let out = cli.output.clone().unwrap_or_else(|| PathBuf::from("docs"));
             String::from(out.to_string_lossy())
         };
         match fs::read_to_string(&input) {
             Ok(code) => {
-                match AmberCompiler::new(code, Some(input)).generate_docs(output) {
+                match AmberCompiler::new(code, Some(input), cli).generate_docs(output) {
                     Ok(_) => Ok(()),
                     Err(err) => {
                         err.show();

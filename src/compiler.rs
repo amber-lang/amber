@@ -154,7 +154,6 @@ impl AmberCompiler {
             );
         }
       
-        result.push(block.translate(&mut meta));
         let mut res = result.join("\n");
 
         if ! self.cli_opts.disable_format {
