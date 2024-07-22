@@ -74,3 +74,11 @@ pub fun len(value): Num {
             return $echo "\$\{#{nameof value}[@]}"$ as Num
     }
 }
+
+pub fun contains(text: Text, phrase: Text): Bool {
+  let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
+    echo 1
+  fi$
+
+  return result == "1"
+}
