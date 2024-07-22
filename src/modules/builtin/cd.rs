@@ -1,14 +1,12 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::modules::condition::failed::Failed;
 use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Cd {
-    value: Expr,
-    failed: Failed
+    value: Expr
 }
 
 impl SyntaxModule<ParserMetadata> for Cd {
@@ -16,15 +14,13 @@ impl SyntaxModule<ParserMetadata> for Cd {
 
     fn new() -> Self {
         Cd {
-            value: Expr::new(),
-            failed: Failed::new()
+            value: Expr::new()
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
         syntax(meta, &mut self.value)?;
-        syntax(meta, &mut self.failed)?;
         Ok(())
     }
 }
