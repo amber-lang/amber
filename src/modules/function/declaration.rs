@@ -3,6 +3,8 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use crate::docs::module::DocumentationModule;
+use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
@@ -23,7 +25,10 @@ pub struct FunctionDeclaration {
     pub arg_optionals: Vec<Expr>,
     pub returns: Type,
     pub id: usize,
-    pub is_public: bool
+    pub is_public: bool,
+    pub comment: Option<CommentDoc>,
+    /// Function signature prepared for docs generation
+    pub doc_signature: Option<String>
 }
 
 impl FunctionDeclaration {
@@ -46,6 +51,47 @@ impl FunctionDeclaration {
             Some(result.join("\n"))
         } else { None }
     }
+
+    fn get_space(&self, parentheses: usize, before: &str, word: &str) -> String {
+        if parentheses == 0 && word == "("
+            || word == ":"
+            || word == ")"
+            || word == "]"
+            || word == ","
+            || before == "["
+            || before == "("
+        {
+            return String::new()
+        }
+        return " ".to_string();
+    }
+
+    fn render_function_signature(&self, meta: &ParserMetadata, doc_index: usize) -> Result<String, Failure> {
+        let mut result = String::new();
+        let mut index = doc_index;
+        let mut parentheses = 0;
+        let mut before = String::new();
+        loop {
+            let cur_token = meta.context.expr.get(index);
+            let cur_word = cur_token.map_or_else(|| String::new(), |v| v.word.clone());
+            if !result.is_empty() {
+                result.push_str(&self.get_space(parentheses, &before, &cur_word))
+            }
+            before = cur_word.clone();
+            match cur_word.as_str() {
+                "(" => parentheses += 1,
+                ")" => parentheses -= 1,
+                "{" if parentheses == 0 => break,
+                "" => {
+                    return error!(meta, cur_token.cloned(), "Error when parsing function signature. Please report this issue.");
+                }
+                _ => {}
+            }
+            result.push_str(&cur_word);
+            index += 1;
+        }
+        Ok(result)
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
@@ -60,11 +106,19 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             arg_optionals: vec![],
             returns: Type::Generic,
             id: 0,
-            is_public: false
+            is_public: false,
+            comment: None,
+            doc_signature: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Parse the function comment
+        if is_functions_comment_doc(meta) {
+            let mut comment = CommentDoc::new();
+            syntax(meta, &mut comment)?;
+            self.comment = Some(comment);
+        }
         let mut flags = HashSet::new();
         // Get all the user-defined compiler flags
         while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
@@ -72,6 +126,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
         let tok = meta.get_current_token();
+        let doc_index = meta.get_index();
         // Check if this function is public
         if token(meta, "pub").is_ok() {
             self.is_public = true;
@@ -157,6 +212,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             let expr = meta.context.expr[index_begin..index_end].to_vec();
             let ctx = meta.context.clone().function_invocation(expr);
             token(meta, "}")?;
+            self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
             // Add the function to the memory
             self.id = handle_add_function(meta, tok, FunctionInterface {
                 id: None,
@@ -198,6 +254,20 @@ impl TranslateModule for FunctionDeclaration {
         // Restore the function name
         meta.fun_name = prev_fun_name;
         // Return the translation
+        result.join("\n")
+    }
+}
+
+impl DocumentationModule for FunctionDeclaration {
+    fn document(&self, meta: &ParserMetadata) -> String {
+        let mut result = vec![];
+        result.push(format!("## `{}`", self.name));
+        result.push("```ab".to_string());
+        result.push(self.doc_signature.to_owned().unwrap());
+        result.push("```\n".to_string());
+        if let Some(comment) = &self.comment {
+            result.push(comment.document(meta));
+        }
         result.join("\n")
     }
 }

@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
@@ -98,5 +99,11 @@ impl TranslateModule for IfCondition {
         }
         result.push("fi".to_string());
         result.join("\n")
+    }
+}
+
+impl DocumentationModule for IfCondition {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

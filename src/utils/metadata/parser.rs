@@ -27,7 +27,9 @@ pub struct ParserMetadata {
     /// Context of the parser
     pub context: Context,
     /// List of all failure messages
-    pub messages: Vec<Message>
+    pub messages: Vec<Message>,
+    /// Determines if we are generating documentation
+    pub is_docs_gen: bool
 }
 
 impl ParserMetadata {
@@ -167,7 +169,8 @@ impl Metadata for ParserMetadata {
             fun_id: 0,
             var_id: 0,
             context: Context::new(path, tokens),
-            messages: Vec::new()
+            messages: Vec::new(),
+            is_docs_gen: false
         }
     }
 
