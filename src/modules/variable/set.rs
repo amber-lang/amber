@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
@@ -82,5 +83,11 @@ impl TranslateModule for VariableSet {
                 None => format!("{name}{index}={expr}")
             }
         }
+    }
+}
+
+impl DocumentationModule for VariableSet {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

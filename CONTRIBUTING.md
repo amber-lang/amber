@@ -27,7 +27,7 @@ Along the way, you may need help with your code. The best way to ask is in [our 
 Amber consists of the following layers:
 
 1. [CLI Interface](#1-cli-interface)
-2. [Compiler](#2-compiler)  
+2. [Compiler](#2-compiler)
    1. [Parser & tokenizer](#21-parser--tokenizer)
    2. [Translator](#22-translator)
    2. [Built-in](#23-built-in-creation)
@@ -97,7 +97,7 @@ fn translate() -> String {
 
 Basically, the `translate()` method should return a `String` for the compiler to construct a compiled file from all of them. If it translates to nothing, you should output an empty string, like `String::new()`
 
-#### 2.3. Built-in creation 
+#### 2.3. Built-in creation
 
 In this guide we will see how to create a basic built-in function that in Amber syntax presents like:
 ```sh
@@ -125,6 +125,8 @@ use crate::translate::module::TranslateModule;
 // - `ParserMetadata` - it carries the necessary information about the current parsing context such as variables and functions that were declared up to this point, warning messages aggregated up to this point, information whether this syntax is declared in a loop, function, main block, unsafe scope etc.
 // `TranslateMetadata` - it carries the necessary information for translation such as wether we are in a silent scope, in an eval context or what indentation should be used.
 use crate::utils::{ParserMetadata, TranslateMetadata};
+// Documentation module tells compiler what markdown content should it generate for this syntax module. This is irrelevent to our simple module so we will just return empty string.
+use crate::docs::module::DocumentationModule;
 
 // This is a declaration of your built-in. Set the name accordingly.
 #[derive(Debug, Clone)]
@@ -169,6 +171,13 @@ impl TranslateModule for Builtin {
         format!("echo {}", value)
     }
 }
+
+// Here we implement what should documentation generation render (in markdown format) when encounters this syntax module. Since this is just a simple built-in that does not need to be documented, we simply return an empty String.
+impl DocumentationModule for Expr {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        String::new()
+    }
+}
 ```
 
 Now let's import it in the main module for built-ins `src/modules/builtin/mod.rs`
@@ -199,7 +208,7 @@ impl Statement {
         Builtin,
         // ...
     }
-    
+
     // ...
 }
 ```
@@ -213,7 +222,7 @@ impl Statement {
 ### 4. Tests
 Amber uses `cargo test` for tests. `stdlib` and `validity` tests usually work by executing amber code and checking its output.
 
-We have [`validity tests`](src/tests/validity.rs) to check if the compiler outputs a valid bash code, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).  
+We have [`validity tests`](src/tests/validity.rs) to check if the compiler outputs a valid bash code, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).
 
 The majority of `stdlib` tests are Written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). For every test there is a `*.output.txt` file that contains the expected output.
 Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
@@ -240,4 +249,3 @@ To run ALL tests, run `cargo test`.
 If you want to run only tests from a specific file, let's say from [`stdlib.rs`](src/tests/stdlib.rs), you add the file name to the command: `cargo test stdlib`
 
 And if there is a specific function, like `test_function()` in `stdlib.rs`, you should add the full path to it: `cargo test stdlib::test_function`
-
