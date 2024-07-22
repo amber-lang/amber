@@ -1,4 +1,2 @@
-cd "/tmp/" failed {
-    echo "not found"
-}
+cd "/tmp/"
 unsafe $pwd$
