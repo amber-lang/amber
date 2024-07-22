@@ -156,7 +156,7 @@ impl AmberCompiler {
       
         let mut res = result.join("\n");
 
-        if ! self.cli_opts.disable_format {
+        if !self.cli_opts.disable_format {
             if let Some(formatter) = BashFormatter::get_available() {
                 res = formatter.format(res);
             }
