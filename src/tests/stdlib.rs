@@ -5,6 +5,7 @@ use crate::compiler::AmberCompiler;
 use crate::test_amber;
 use crate::tests::compile_code;
 use crate::Cli;
+use std::path::Path;
 use std::fs;
 use std::time::Duration;
 use std::process::{Command, Stdio};
@@ -17,8 +18,11 @@ fn stdlib_test(input: &str) {
     let code = fs::read_to_string(input)
     .expect(&format!("Failed to open {input} test file"));
 
-    let output = fs::read_to_string(input.replace(".ab", ".output.txt"))
-    .expect(&format!("Failed to open {input}.output.txt file"));
+    let output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
+        true => fs::read_to_string(input.replace(".ab", ".output.txt"))
+        .expect(&format!("Failed to open {input}.output.txt file")),
+        _ => "Succeded".to_string()
+    };
 
     test_amber!(code, output);
 }
