@@ -1,5 +1,9 @@
-pub fun test(): Null? {
-    fail 1
+pub fun test(): Num? {
+    if 0 < 5 {
+        fail 1
+    }
+
+    return 42
 }
 
 echo test() failed: echo "Succeded"

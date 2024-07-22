@@ -35,15 +35,25 @@ impl SyntaxModule<ParserMetadata> for Return {
             });
         }
         syntax(meta, &mut self.expr)?;
-        match meta.context.fun_ret_type.as_ref() {
-            Some(ret_type) => if ret_type != &self.expr.get_type() {
-                return error!(meta, tok => {
-                    message: "Return type does not match function return type",
-                    comment: format!("Given type: {}, expected type: {}", self.expr.get_type(), ret_type)
-                });
+        let ret_type = meta.context.fun_ret_type.as_ref();
+        let expr_type = &self.expr.get_type();
+        let (ret_type, expr_type) = match (ret_type, expr_type) {
+                types @ (Some(Type::Failable(_)), Type::Failable(_)) => types,
+                (Some(Type::Failable(ret_type)), expr_type) => (Some(ret_type.as_ref()), expr_type),
+                (Some(ret_type), Type::Failable(expr_type)) => (Some(ret_type), expr_type.as_ref()),
+                types @ _ => types
+        };
+        match ret_type {
+            Some(ret_type) => {
+                if ret_type != expr_type {
+                    return error!(meta, tok => {
+                        message: "Return type does not match function return type",
+                        comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
+                    });
+                }
             },
             None => {
-                meta.context.fun_ret_type = Some(self.expr.get_type());
+                meta.context.fun_ret_type = Some(expr_type.clone());
             }
         }
         Ok(())

@@ -1,5 +1,9 @@
 fun test() {
-    fail 1
+    if 0 < 5 {
+        fail 1
+    }
+
+    return 42
 }
 
 test() failed: echo "Succeded"
