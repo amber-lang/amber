@@ -12,7 +12,7 @@ pub enum BashFormatter {
 }
 
 impl BashFormatter {
-    /// Get all available formatters, ordered by: best ones at the start, worser at the end
+    /// Get all available formatters, ordered: best ones at the start, worst at the end
     pub fn get_all() -> Vec<BashFormatter> {
         vec![
             BashFormatter::shfmt
