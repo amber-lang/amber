@@ -21,8 +21,10 @@ impl BashFormatter {
 
     /// Get available formatter
     pub fn get_available() -> Option<BashFormatter> {
-        let all = Self::get_all();
-        all.iter().find(|x| x.is_available()).map(|x| *x)
+        Self::get_all()
+          .iter()
+          .find(|fmt| fmt.is_available())
+          .map(|fmt| *fmt)
     }
 
     /// Check if current formatter is present in $PATH
