@@ -38,6 +38,6 @@ impl TranslateModule for Cd {
 
 impl DocumentationModule for Cd {
     fn document(&self, _meta: &ParserMetadata) -> String {
-        "Move the current working directory".to_string()
+        "".to_string()
     }
 }
