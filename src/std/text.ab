@@ -60,7 +60,7 @@ pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
 
-/// ?
+/// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
 #[allow_absurd_cast]
 pub fun parse(text: Text): Num {
     $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
