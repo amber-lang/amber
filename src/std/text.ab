@@ -1,62 +1,73 @@
+/// Replace the content just once
 pub fun replace_once(source, pattern, replacement) {
     return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
 }
 
+// Replace the content multiple times
 pub fun replace(source, pattern, replacement) {
     return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
 }
 
+/// Replace with regex using `sed`
 pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
     return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
 }
 
-
+/// Split the string and return an array
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
     unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
     return result
 }
 
+/// Split a string with newlines
 pub fun lines(text: Text): [Text] {
-    let result = [Text]
-    unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
-    return result
+    return split(text, "\n")
 }
 
+/// Split by space separator
 pub fun words(text: Text): [Text] {
   return split(text, " ")
 }
 
+/// Merge a string using the delimeter
 pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
+/// Trim the spaces at top of the string
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
 
+/// Trim the spaces at end of the string
 pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
 }
 
+/// Trim the spaces from the string input
 pub fun trim(text: Text): Text {
     return trim_left(trim_right(text))
 }
 
+/// Lowercase the string input
 pub fun lower(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
 }
 
+/// Lowercase the string input
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
 
+/// ?
 #[allow_absurd_cast]
 pub fun parse(text: Text): Num {
     $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
     return text as Num
 }
 
+/// ?
 pub fun chars(text: Text): [Text] {
     let chars = [Text]
     unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
@@ -65,6 +76,7 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
+/// Get the string length
 #[allow_absurd_cast]
 pub fun len(value): Num {
     unsafe {
@@ -75,6 +87,7 @@ pub fun len(value): Num {
     }
 }
 
+/// Check if string contain the value
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1

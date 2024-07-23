@@ -1,3 +1,4 @@
+/// Get the index of the first value found in the array specified
 pub fun array_first_index(array, value): Num {
     loop index, element in array {
         if value as Text == element as Text {
@@ -7,6 +8,7 @@ pub fun array_first_index(array, value): Num {
     return -1
 }
 
+/// Get the total of the values found in the array
 pub fun array_search(array, value): [Num] {
     let result = [Num]
     loop index, element in array {
@@ -17,11 +19,13 @@ pub fun array_search(array, value): [Num] {
     return result
 }
 
+/// Check if the value is in the array
 pub fun in_array(array, value): Bool {
     let result = array_first_index(array, value)
     return result >= 0
 }
 
+/// Check if the value is in the array
 pub fun includes(arr, value) {
     loop v in arr {
         if v == value {

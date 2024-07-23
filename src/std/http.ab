@@ -1,5 +1,6 @@
 import * from "std/env"
 
+/// It will download the file using (if present) in the order: `curl`, `wget`, `aria2c`
 pub fun download(url: Text, path: Text): Bool {
     if {
         is_command("curl") {
