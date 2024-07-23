@@ -29,7 +29,7 @@ fn stdlib_test(input: &str) {
         }
 
         if _is_output {
-            if ! output.is_empty() {
+            if !output.is_empty() {
                 output.push_str("\n");
             }
             output.push_str(&line.replace("//", "").trim());
