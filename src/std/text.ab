@@ -20,12 +20,12 @@ pub fun split(text: Text, delimiter: Text): [Text] {
     return result
 }
 
-/// Split a string with newlines
+/// Split a string with newlines and return an array
 pub fun lines(text: Text): [Text] {
     return split(text, "\n")
 }
 
-/// Split by space separator
+/// Split by space separator and return an array
 pub fun words(text: Text): [Text] {
   return split(text, " ")
 }

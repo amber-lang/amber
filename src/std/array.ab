@@ -8,7 +8,7 @@ pub fun array_first_index(array, value): Num {
     return -1
 }
 
-/// Get the total of the values found in the array
+/// Search the value in array and return an array with the index of the various items
 pub fun array_search(array, value): [Num] {
     let result = [Num]
     loop index, element in array {
