@@ -1,1 +1,1 @@
-\e[3mHello Amber!\e[0m
+\x1b[3mHello Amber!\x1b[0m
