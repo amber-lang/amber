@@ -67,7 +67,7 @@ pub fun parse(text: Text): Num {
     return text as Num
 }
 
-/// ?
+/// Splits a text into an array of individual characters.
 pub fun chars(text: Text): [Text] {
     let chars = [Text]
     unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
