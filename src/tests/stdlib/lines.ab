@@ -1,4 +1,9 @@
 import { lines } from "std/text"
+
+// Output
+// line: hello
+// line: world
+
 main {
     loop line in lines("hello\nworld") {
         echo "line: " + line
