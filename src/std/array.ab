@@ -1,4 +1,5 @@
-/// Get the index of the first value found in the array specified
+/// Returns index of the first value found in the specified array
+/// If the value is not found, the function returns -1
 pub fun array_first_index(array, value): Num {
     loop index, element in array {
         if value as Text == element as Text {
