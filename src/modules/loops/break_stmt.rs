@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
@@ -26,5 +27,11 @@ impl SyntaxModule<ParserMetadata> for Break {
 impl TranslateModule for Break {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         "break".to_string()
+    }
+}
+
+impl DocumentationModule for Break {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

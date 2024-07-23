@@ -2,6 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::condition::failed::Failed;
 use crate::translate::module::TranslateModule;
+use crate::docs::module::DocumentationModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
@@ -36,5 +37,11 @@ impl TranslateModule for Mv {
         let source = self.source.translate(meta);
         let destination = self.destination.translate(meta);
         format!("mv {} {}", source, destination)
+    }
+}
+
+impl DocumentationModule for Mv {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

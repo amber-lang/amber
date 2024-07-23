@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::modules::types::Type;
@@ -74,5 +75,11 @@ impl TranslateModule for Main {
             );
             format!("{args}\n{}", self.block.translate(meta))
         }
+    }
+}
+
+impl DocumentationModule for Main {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

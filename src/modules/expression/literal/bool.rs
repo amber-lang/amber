@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::types::{Type, Typed}};
+use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
@@ -33,5 +33,11 @@ impl SyntaxModule<ParserMetadata> for Bool {
 impl TranslateModule for Bool {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         format!("{}", if self.value { 1 } else { 0 })
+    }
+}
+
+impl DocumentationModule for Bool {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
     }
 }

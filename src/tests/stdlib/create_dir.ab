@@ -3,6 +3,6 @@ main {
     create_dir("/tmp/amber-test")
     if dir_exist("/tmp/amber-test") {
         unsafe $rm /tmp/amber-test$
-        echo "created"
+        echo "Succeded"
     }
 } 

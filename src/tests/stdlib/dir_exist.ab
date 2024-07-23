@@ -2,7 +2,7 @@ import * from "std/fs"
 main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     if dir_exist(tmpdir) {
-        echo "Found"
+        echo "Succeded"
     } else {
         echo "Not Found"
     }
