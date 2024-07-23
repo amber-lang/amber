@@ -42,7 +42,7 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     return false
 }
 
-/// Create a directory with the full path
+/// Create a directory with all intermediate directories as required
 pub fun create_dir(path: Text): Null {
     if not dir_exist(path) {
         unsafe $mkdir -p "{path}"$
