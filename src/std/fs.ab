@@ -60,7 +60,7 @@ pub fun make_executable(path: Text): Bool {
     return false
 }
 
-/// Change the owner of the file, if the file doesn't exist return a boolean
+/// Change the owner of the file, if the file doesn't exist return false
 pub fun change_owner(user: Text, path: Text): Bool {
     if file_exist(path) or dir_exist(path) {
         unsafe $chown -R "{user}" "{path}"$
