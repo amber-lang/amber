@@ -1,5 +1,12 @@
-unsafe $cd /tmp$
-unsafe $touch a$
-mv "a" "b" failed{}
-unsafe $ls b$
-unsafe $rm b$
+import * from "std/fs"
+main {
+    let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
+    unsafe $touch {tmpdir}/a$
+    mv "{tmpdir}/a" "{tmpdir}/b"?
+    if file_exist("{tmpdir}/b") {
+        echo "Succeded"
+    } else {
+        echo "Not Found"
+    }
+    unsafe $rm -fr {tmpdir}$
+}
