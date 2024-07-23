@@ -17,11 +17,29 @@ fn stdlib_test(input: &str) {
     let code = fs::read_to_string(input)
     .expect(&format!("Failed to open {input} test file"));
 
-    let output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
-        true => fs::read_to_string(input.replace(".ab", ".output.txt"))
-        .expect(&format!("Failed to open {input}.output.txt file")),
-        _ => "Succeded".to_string()
-    };
+    let mut _is_output = false;
+    let mut output = "".to_owned();
+    for line in code.lines() {
+        if line.starts_with("// Output") {
+            _is_output = true;
+            continue;
+        } else if line.is_empty() && _is_output {
+            _is_output = false;
+            break;
+        }
+
+        if _is_output {
+            output.push_str(&line.replace("//", "").trim());
+        }
+    }
+
+    if output.is_empty() {
+        output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
+            true => fs::read_to_string(input.replace(".ab", ".output.txt"))
+            .expect(&format!("Failed to open {input}.output.txt file")),
+            _ => "Succeded".to_string()
+        };
+    }
 
     test_amber!(code, output);
 }
