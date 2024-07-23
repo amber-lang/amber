@@ -3,6 +3,7 @@ extern crate test_generator;
 use test_generator::test_resources;
 use crate::compiler::AmberCompiler;
 use crate::test_amber;
+use crate::Cli;
 use std::fs;
 use std::path::Path;
 

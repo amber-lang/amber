@@ -3,7 +3,8 @@ use chrono::prelude::*;
 use crate::docs::module::DocumentationModule;
 use itertools::Itertools;
 use crate::modules::block::Block;
-use crate::rules;
+use crate::modules::formatter::BashFormatter;
+use crate::{rules, Cli};
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -24,13 +25,15 @@ const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
+    pub cli_opts: Cli
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
         AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
             path,
+            cli_opts
         }
         .load_code(AmberCompiler::strip_off_shebang(code))
     }
@@ -150,7 +153,15 @@ impl AmberCompiler {
                 time.elapsed().as_millis()
             );
         }
-        let res = result.join("\n");
+      
+        let mut res = result.join("\n");
+
+        if !self.cli_opts.disable_format {
+            if let Some(formatter) = BashFormatter::get_available() {
+                res = formatter.format(res);
+            }
+        }
+      
         let header = [
             include_str!("header.sh"),
             &("# version: ".to_owned() + option_env!("CARGO_PKG_VERSION").unwrap().to_string().as_str()),
