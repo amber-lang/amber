@@ -22,17 +22,17 @@ pub fun split(text: Text, delimiter: Text): [Text] {
     return result
 }
 
-/// Split a string with newlines and return an array
+/// Splits a `text` into an array of substrings based on newline characters.
 pub fun lines(text: Text): [Text] {
     return split(text, "\n")
 }
 
-/// Split by space separator and return an array
+/// Splits a `text` into an array of substrings based on space character.
 pub fun words(text: Text): [Text] {
   return split(text, " ")
 }
 
-/// Merge a string using the delimeter
+/// Merge a string using the delimeter specified
 pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
