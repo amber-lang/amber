@@ -35,12 +35,12 @@ pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
-/// Trim the spaces at top of the string
+/// Trim the spaces at top of the string using `sed`
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
 
-/// Trim the spaces at end of the string
+/// Trim the spaces at end of the string using `sed`
 pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
 }
@@ -50,12 +50,12 @@ pub fun trim(text: Text): Text {
     return trim_left(trim_right(text))
 }
 
-/// Lowercase the string input
+/// Lowercase the string input using `tr`
 pub fun lower(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
 }
 
-/// Lowercase the string input
+/// Lowercase the string input using `tr`
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
