@@ -200,7 +200,7 @@ impl AmberCompiler {
             }
             let filename = dep_path.file_stem().unwrap().to_string_lossy();
             let path = format!("{dir_path}/{filename}.md");
-            Message::new_err_msg(format!("File generated at `{path}`."))
+            Message::new_info_msg(format!("File generated at `{path}`."))
                 .show();
             let mut file = File::create(path).unwrap();
             file.write_all(document.as_bytes()).unwrap();
