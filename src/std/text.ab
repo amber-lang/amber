@@ -3,7 +3,7 @@ pub fun replace_once(source, pattern, replacement) {
     return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
 }
 
-// Replace the content multiple times
+/// Replaces all occurences of a pattern in the content with provided replacement text
 pub fun replace(source, pattern, replacement) {
     return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
 }
