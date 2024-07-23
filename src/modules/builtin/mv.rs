@@ -35,6 +35,6 @@ impl TranslateModule for Mv {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let source = self.source.translate(meta);
         let destination = self.destination.translate(meta);
-        format!("mv {} {} || exit", source, destination)
+        format!("mv {} {}", source, destination)
     }
 }
