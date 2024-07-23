@@ -1,4 +1,4 @@
-/// Replace the content just once
+/// Finds the first occurrence of a pettern in the content and replaces it with provided replacement text
 pub fun replace_once(source, pattern, replacement) {
     return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
 }
