@@ -1,0 +1,5 @@
+import * from "std/env"
+
+main {
+    printf("%s,%s!\n", ["Hello", " Amber"])
+} 
