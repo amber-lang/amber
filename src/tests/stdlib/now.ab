@@ -1,0 +1,5 @@
+import * from "std/date"
+
+main {
+	if now() == (unsafe $date +%s$ as Num): echo "Hello, Amber!"
+}
