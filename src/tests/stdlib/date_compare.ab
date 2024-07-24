@@ -1,5 +1,5 @@
 import * from "std/date"
 
 main {
-	if (unsafe date_compare("2000-01-01") == -1 and unsafe date_compare("2100-01-01") == 1) : echo "Hello, Amber!"
+    if (unsafe date_compare("2000-01-01") == -1 and unsafe date_compare("2100-01-01") == 1) : echo "Hello, Amber!"
 }
