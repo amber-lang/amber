@@ -59,10 +59,14 @@
 /// +      pad with zeros, and put '+' before future years with >4 digits
 /// ^      use upper case if possible
 /// #      use opposite case if possible
-pub fun date(format: Text = "", date: Text = ""): Text {
+pub fun date(format: Text = "", date: Text = "", utc: Bool = false): Text {
     if format == "": format = "%FT%T%Z"
     if date == "": date = unsafe $date +"%FT%T%Z"$
-    return $date -d "{date}" +"{format}"$?
+    if (utc) {
+        return $date --utc -d "{date}" +"{format}"$?
+    } else {
+        return $date -d "{date}" +"{format}"$?
+    }    
 }
 
 /// return current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC))
@@ -82,9 +86,9 @@ pub fun now(): Num {
 /// hours
 /// minutes
 /// seconds
-pub fun date_add(add:Text, date:Text = ""): Text {
+pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text {
     if date == "": date = unsafe $date +"%FT%T%Z"$
-    return date("", "{date("%F", date)?} {add} {date("%T", date)?}")?
+    return date("", "{date("%F", date)?} {add} {date("%T", date)?}", utc)?
 }
 
 // compare 2 date
@@ -93,10 +97,10 @@ pub fun date_add(add:Text, date:Text = ""): Text {
 // return -1 if date_b is after date_a
 // if date_b is not provided, current date will be used
 #[allow_absurd_cast]
-pub fun date_compare(date_a: Text, date_b: Text = ""): Num {
-    if date_b == "": date_b = unsafe date()
-    let timestamp_a = date("%s", date_a)? as Num
-    let timestamp_b = date("%s", date_b)? as Num
+pub fun date_compare(date_a: Text, date_b: Text = "", utc: Bool = false): Num {
+    if date_b == "": date_b = unsafe date("", "", utc)
+    let timestamp_a = date("%s", date_a, utc)? as Num
+    let timestamp_b = date("%s", date_b, utc)? as Num
     if timestamp_a > timestamp_b: return 1
     if timestamp_a == timestamp_b: return 0
     if timestamp_a < timestamp_b: return -1

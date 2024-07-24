@@ -1,7 +1,7 @@
 import * from "std/date"
 
 main {
-	echo date_add("+17 Days", "2009-02-14T00:31:30CET") failed {
+	echo date_add("+17 Days", "2009-02-14T00:31:30UTC", true) failed {
 		echo "error"
 	}
 }

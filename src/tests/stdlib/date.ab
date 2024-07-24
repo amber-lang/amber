@@ -1,7 +1,7 @@
 import * from "std/date"
 
 main {
-	echo date("", "@1234567890") failed {
+	echo date("", "@1234567890", true) failed {
 		echo "error"
 	}
 }
