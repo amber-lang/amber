@@ -87,7 +87,7 @@ pub fun now(): Num {
 /// seconds
 pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text {
     if date == "": date = unsafe $date +"%FT%T%Z"$
-    return date("", "{date("%F", date)?} {add} {date("%T", date)?}", utc)?
+    return date("", "{date("%F", date, utc)?} {add} {date("%T", date, utc)?}", utc)?
 }
 
 // Compare 2 date

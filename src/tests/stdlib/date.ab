@@ -1,5 +1,5 @@
 import * from "std/date"
 
 main {
-	if unsafe date("", "@1234567890", true) == "2009-02-13T23:31:30UTC": echo "Succeded"
+	if unsafe date("", "@1234000000", true) == "2009-02-07T09:46:40UTC": echo "Succeded"
 }
