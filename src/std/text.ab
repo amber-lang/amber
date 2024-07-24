@@ -32,32 +32,32 @@ pub fun words(text: Text): [Text] {
   return split(text, " ")
 }
 
-/// Merge a string using the delimeter specified
+/// Merge a text using the delimeter specified
 pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
-/// Trim the spaces at top of the string using `sed`
+/// Trim the spaces at top of the text using `sed`
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
 
-/// Trim the spaces at end of the string using `sed`
+/// Trim the spaces at end of the text using `sed`
 pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
 }
 
-/// Trim the spaces from the string input
+/// Trim the spaces from the text input
 pub fun trim(text: Text): Text {
     return trim_left(trim_right(text))
 }
 
-/// Lowercase the string input using `tr`
+/// Lowercase the text input using `tr`
 pub fun lower(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
 }
 
-/// Lowercase the string input using `tr`
+/// Lowercase the text input using `tr`
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
@@ -78,7 +78,7 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
-/// Get the string length
+/// Get the text length
 #[allow_absurd_cast]
 pub fun len(value): Num {
     unsafe {
@@ -89,7 +89,7 @@ pub fun len(value): Num {
     }
 }
 
-/// Check if string contain the value
+/// Check if text contain the value
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1
