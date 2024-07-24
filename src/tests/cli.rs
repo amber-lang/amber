@@ -23,6 +23,8 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
         "#
     )?;
 
+    cmd.env("LC_ALL", "C");
+    cmd.arg("--disable-format");
     cmd.arg(file.path());
     cmd.assert()
         .failure()
