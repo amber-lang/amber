@@ -1,7 +1,5 @@
 import * from "std/date"
 
 main {
-    echo date_add("+17 Days", "2009-02-14T00:31:30UTC", true) failed {
-        echo "error"
-    }
+    if unsafe date_add("+17 Days", "2009-02-14T00:31:30UTC", true) == "2009-03-03T00:31:30UTC": echo "Succeded"
 }
