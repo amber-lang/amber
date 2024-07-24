@@ -1,8 +1,10 @@
 import { make_executable } from "std/fs"
 main {
+    let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
+    unsafe $touch {tmpdir}/amber-symbolic$
     unsafe $touch /tmp/amber-symbolic$
     if make_executable("/tmp/amber-symbolic") {
         echo "created"
     }
-    unsafe $rm /tmp/amber-symbolic$
+    unsafe $rm {tmpdir}/amber-symbolic$
 } 

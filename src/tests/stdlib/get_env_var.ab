@@ -1,11 +1,11 @@
 import { get_env_var } from "std/env"
 import { file_write } from "std/fs"
 main {
-    let path = unsafe $mktemp -d /tmp/amber-XXXX$
-    unsafe $cd {path}$
+    let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
+    unsafe $cd {tmpdir}$
     unsafe file_write(".env", "TEST=1")
     if get_env_var("TEST") == "1" {
-        echo "yes"
+        echo "Succeded"
     }
-    unsafe $rm -fr {path}$
+    unsafe $rm -fr {tmpdir}$
 } 

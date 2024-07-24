@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
+use crate::docs::module::DocumentationModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
@@ -31,13 +32,13 @@ use crate::modules::function::{
     ret::Return,
     fail::Fail
 };
-use crate::modules::imports::{
-    import::Import
-};
+use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
 use crate::modules::builtin::{
-    echo::Echo
+    echo::Echo,
+    cd::Cd
 };
+use super::comment_doc::CommentDoc;
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -60,8 +61,10 @@ pub enum StatementType {
     Fail(Fail),
     Import(Import),
     Main(Main),
+    Cd(Cd),
     Echo(Echo),
-    CommandModifier(CommandModifier)
+    CommandModifier(CommandModifier),
+    CommentDoc(CommentDoc)
 }
 
 #[derive(Debug, Clone)]
@@ -86,7 +89,9 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo,
+        CommandModifier, Echo, Cd,
+        // Comment doc
+        CommentDoc,
         // Expression
         Expr
     ]);
@@ -122,7 +127,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
         for statement in statements {
             // Handle comments
             if let Some(token) = meta.get_current_token() {
-                if token.word.starts_with("//") {
+                if token.word.starts_with("//") && !token.word.starts_with("///") {
                     meta.increment_index();
                     continue
                 }
@@ -159,5 +164,13 @@ impl TranslateModule for Statement {
         let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st.trim_end_matches(';') + ";\n").join("");
         // Return all the statements
         statements + &indentation + &translated
+    }
+}
+
+impl DocumentationModule for Statement {
+    fn document(&self, meta: &ParserMetadata) -> String {
+        // Document the statement
+        let documented = self.document_match(meta, self.value.as_ref().unwrap());
+        documented
     }
 }

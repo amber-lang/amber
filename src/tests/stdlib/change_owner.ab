@@ -1,11 +1,17 @@
 import { change_owner } from "std/fs"
 // We use `whoami` to get the running user to assign again the same user as permission
 main {
-    unsafe $touch /tmp/amber-symbolic$
-    if change_owner(unsafe $whoami$,"/tmp/amber-symbolic") {
-        echo "done"
-    } else {
-	echo "file not exist"
+
+    let tmpdir = $mktemp -d /tmp/amber-XXXX$ failed {
+        echo "It wasn't possible to create the folder"
     }
-    unsafe $rm /tmp/amber-symbolic$
+    $touch {tmpdir}/amber-symbolic$ failed {
+        echo "It wasn't possible to create {tmpdir}/amber-symbolic"
+    }
+    if change_owner(unsafe $whoami$,"{tmpdir}/amber-symbolic") {
+        echo "Succeded"
+    } else {
+        echo "File {tmpdir}/amber-symbolic not exists"
+    }
+    unsafe $rm {tmpdir}/amber-symbolic$
 } 

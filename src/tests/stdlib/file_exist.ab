@@ -1,10 +1,9 @@
 import * from "std/fs"
 main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
-    unsafe $cd {tmpdir}$
-    unsafe $touch test.txt$
-    if file_exist("./test.txt") {
-        echo "Found"
+    unsafe $touch {tmpdir}/test.txt$
+    if file_exist("{tmpdir}/test.txt") {
+        echo "Succeded"
     } else {
         echo "Not Found"
     }

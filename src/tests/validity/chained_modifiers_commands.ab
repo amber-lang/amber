@@ -1,5 +1,5 @@
 unsafe silent {
-    echo "Hello World"
+    echo "Succeded"
     $non-existent command$
 }
 // Test for expression

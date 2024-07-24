@@ -2,12 +2,14 @@ use std::fs;
 use std::mem::swap;
 use heraclitus_compiler::prelude::*;
 use crate::compiler::AmberCompiler;
+use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
+use crate::Cli;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -96,7 +98,7 @@ impl Import {
     }
 
     fn handle_compile_code(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone())).tokenize() {
+        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone()), Cli::default()).tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();
                 // Save snapshot of current file
@@ -176,6 +178,12 @@ impl SyntaxModule<ParserMetadata> for Import {
 
 impl TranslateModule for Import {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
+        "".to_string()
+    }
+}
+
+impl DocumentationModule for Import {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

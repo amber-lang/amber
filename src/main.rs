@@ -2,6 +2,7 @@ mod compiler;
 mod modules;
 mod rules;
 mod translate;
+mod docs;
 mod utils;
 mod stdlib;
 
@@ -18,9 +19,9 @@ use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
 use std::process::Command;
 
-#[derive(Parser)]
+#[derive(Parser, Clone, Debug)]
 #[command(version, arg_required_else_help(true))]
-struct Cli {
+pub struct Cli {
     #[arg(help = "'-' to read from stdin")]
     input: Option<PathBuf>,
     #[arg(help = "'- to output to stdout, --silent' to discard")]
@@ -29,27 +30,42 @@ struct Cli {
     /// Code to evaluate
     #[arg(short, long)]
     eval: Option<String>,
+
+    /// Generate docs
+    #[arg(long)]
+    docs: bool,
+
+    /// Don't format the output file
+    #[arg(long)]
+    disable_format: bool
+}
+
+impl Default for Cli {
+    fn default() -> Self {
+        Self {
+            input: None,
+            output: None,
+            eval: None,
+            docs: false,
+            disable_format: false
+        }
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
+    if cli.docs {
+        handle_docs(cli)?;
+    } else if let Some(ref code) = cli.eval {
+        handle_eval(code.to_string(), cli)?;
+    } else {
+        handle_compile(cli)?;
+    }
+    Ok(())
+}
 
-    if let Some(code) = cli.eval {
-        let code = format!("import * from \"std\"\n{code}");
-        match AmberCompiler::new(code, None).compile() {
-            Ok((messages, code)) => {
-                messages.iter().for_each(|m| m.show());
-                (!messages.is_empty()).then(|| render_dash());
-                let exit_status = AmberCompiler::execute(code, &vec![])?;
-                std::process::exit(exit_status.code().unwrap_or(1));
-            }
-            Err(err) => {
-                err.show();
-                std::process::exit(1);
-            }
-        }
-    } else if let Some(input) = cli.input {
-        let input = String::from(input.to_string_lossy());
+fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> { 
+  if let Some(input) = cli.input.clone() {
         let code = {
             if input == "-" {
                 let mut buf = String::new();
@@ -64,26 +80,23 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         };
-        match AmberCompiler::new(code, Some(input)).compile() {
+        match AmberCompiler::new(code, Some(input), cli.clone()).compile() {
             Ok((messages, code)) => {
                 messages.iter().for_each(|m| m.show());
                 // Save to the output file
                 if let Some(output) = cli.output {
-                    let outs = String::from(output.to_string_lossy());
-                    if outs == "--silent" {
+                    let output = String::from(output.to_string_lossy());
+                    if output == "--silent" {
                         return Ok(())
                     }
-                    if outs == "-" {
+                    if output == "-" {
                         print!("{code}");
+                        return Ok(())
                     }
-
                     match fs::File::create(&output) {
                         Ok(mut file) => {
                             write!(file, "{}", code).unwrap();
-                            set_file_permission(
-                                &file,
-                                String::from(output.to_string_lossy()),
-                            );
+                            set_file_permission(&file, output);
                         }
                         Err(err) => {
                             Message::new_err_msg(err.to_string()).show();
@@ -105,6 +118,50 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
+    let code = format!("import * from \"std\"\n{code}");
+    match AmberCompiler::new(code, None, cli).compile() {
+        Ok((messages, code)) => {
+            messages.iter().for_each(|m| m.show());
+            (!messages.is_empty()).then(|| render_dash());
+            let exit_status = AmberCompiler::execute(code, &vec![])?;
+            std::process::exit(exit_status.code().unwrap_or(1));
+        }
+        Err(err) => {
+            err.show();
+            std::process::exit(1);
+        }
+    }
+}
+
+fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
+    if let Some(ref input) = cli.input {
+        let input = String::from(input.to_string_lossy());
+        let output = {
+            let out = cli.output.clone().unwrap_or_else(|| PathBuf::from("docs"));
+            String::from(out.to_string_lossy())
+        };
+        match fs::read_to_string(&input) {
+            Ok(code) => {
+                match AmberCompiler::new(code, Some(input), cli).generate_docs(output) {
+                    Ok(_) => Ok(()),
+                    Err(err) => {
+                        err.show();
+                        std::process::exit(1);
+                    }
+                }
+            },
+            Err(err) => {
+                Message::new_err_msg(err.to_string()).show();
+                std::process::exit(1);
+            }
+        }
+    } else {
+        Message::new_err_msg("You need to provide a path to an entry file to generate the documentation").show();
+        std::process::exit(1);
+    }
 }
 
 #[cfg(target_os = "windows")]

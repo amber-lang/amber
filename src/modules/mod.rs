@@ -11,6 +11,7 @@ pub mod types;
 pub mod imports;
 pub mod main;
 pub mod builtin;
+pub mod formatter;
 
 #[macro_export]
 macro_rules! handle_types {
@@ -35,6 +36,14 @@ macro_rules! handle_types {
             match module {
                 $(
                     $enum_name::$item(module) => module.translate(meta)
+                ),*
+            }
+        }
+
+        fn document_match(&self, meta: &ParserMetadata, module: &$enum_name) -> String {
+            match module {
+                $(
+                    $enum_name::$item(module) => module.document(meta)
                 ),*
             }
         }
