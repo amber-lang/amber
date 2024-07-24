@@ -29,7 +29,7 @@ struct Cli {
     #[arg(short, long)]
     eval: Option<String>,
 
-    /// Generate docs
+    /// Amber-script [output folder (optional)]
     #[arg(long)]
     docs: bool
 }
