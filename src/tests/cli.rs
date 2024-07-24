@@ -23,6 +23,7 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
         "#
     )?;
 
+    // Changes locale to default
     cmd.env("LC_ALL", "C");
     cmd.arg("--disable-format");
     cmd.arg(file.path());
