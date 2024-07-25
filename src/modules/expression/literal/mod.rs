@@ -37,7 +37,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         word.starts_with(letter)
         && word.ends_with(letter)
         && word.len() > 1
-        && !is_escaped(&word, letter)
+        && !is_escaped(word, letter)
     }) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         strings.push(stripped);

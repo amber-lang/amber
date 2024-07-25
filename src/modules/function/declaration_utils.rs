@@ -44,7 +44,7 @@ pub fn is_functions_comment_doc(meta: &mut ParserMetadata) -> bool {
         if tok.word.starts_with("///") {
             is_comment_doc = true;
         }
-        if tok.word.starts_with("\n") {
+        if tok.word.starts_with('\n') {
             if is_comment_doc {
                 is_comment_doc = false;
                 last_line = tok.pos.0;

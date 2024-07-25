@@ -1,13 +1,13 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Nameof {
-    name: String
+    name: String,
 }
 
 impl Typed for Nameof {
@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 
     fn new() -> Self {
         Nameof {
-            name: String::new()
+            name: String::new(),
         }
     }
 
@@ -30,12 +30,12 @@ impl SyntaxModule<ParserMetadata> for Nameof {
         let name = variable(meta, variable_name_extensions())?;
         match meta.get_var(&name) {
             Some(var_decl) => {
-                self.name = var_decl.name.clone();
+                self.name.clone_from(&var_decl.name);
                 if let Some(id) = var_decl.global_id {
                     self.name = format!("__{id}_{}", self.name);
                 }
                 Ok(())
-            },
+            }
             None => {
                 let tok = meta.get_current_token();
                 error!(meta, tok, format!("Variable '{name}' not found"))
