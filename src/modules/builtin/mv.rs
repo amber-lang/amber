@@ -34,10 +34,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
             token(meta, "mv")?;
             syntax(meta, &mut self.source)?;
             syntax(meta, &mut self.destination)?;
-            match syntax(meta, &mut self.failed) {
-                Ok(_) => Ok(()),
-                Err(err) => Err(err)
-            }
+            syntax(meta, &mut self.failed)?;
         })
     }
 }
