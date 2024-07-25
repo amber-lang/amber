@@ -24,7 +24,7 @@ use std::process::Command;
 pub struct Cli {
     #[arg(help = "'-' to read from stdin")]
     input: Option<PathBuf>,
-    #[arg(help = "'- to output to stdout, --silent' to discard")]
+    #[arg(help = "'-' to output to stdout, '--silent' to discard")]
     output: Option<PathBuf>,
 
     /// Code to evaluate
