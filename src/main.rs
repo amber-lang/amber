@@ -15,14 +15,16 @@ use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::fs;
-use std::io::prelude::*;
+use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Parser, Clone, Debug)]
 #[command(version, arg_required_else_help(true))]
 pub struct Cli {
+    #[arg(help = "'-' to read from stdin")]
     input: Option<PathBuf>,
+    #[arg(help = "'-' to output to stdout, '--silent' to discard")]
     output: Option<PathBuf>,
 
     /// Code to evaluate
@@ -63,58 +65,55 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> { 
-  if let Some(code) = cli.eval.clone() {
-        let code = format!("import * from \"std\"\n{code}");
-        match AmberCompiler::new(code, None, cli).compile() {
+    if let Some(input) = cli.input.clone() {
+        let input = String::from(input.to_string_lossy().trim());
+        let code = {
+            if input == "-" {
+                let mut buf = String::new();
+                match stdin().read_to_string(&mut buf) {
+                    Ok(_) => buf,
+                    Err(err) => handle_err(err)
+                }
+            } else {
+                match fs::read_to_string(&input) {
+                    Ok(code) => code,
+                    Err(err) => handle_err(err)
+                }
+            }
+        };
+        match AmberCompiler::new(code, Some(input), cli.clone()).compile() {
             Ok((messages, code)) => {
                 messages.iter().for_each(|m| m.show());
-                (!messages.is_empty()).then(|| render_dash());
-                let exit_status = AmberCompiler::execute(code, &vec![])?;
-                std::process::exit(exit_status.code().unwrap_or(1));
-            }
-            Err(err) => {
-                err.show();
-                std::process::exit(1);
-            }
-        }
-    } else if let Some(input) = cli.input.clone() {
-        let input = String::from(input.to_string_lossy());
-        match fs::read_to_string(&input) {
-            Ok(code) => {
-                match AmberCompiler::new(code, Some(input), cli.clone()).compile() {
-                    Ok((messages, code)) => {
-                        messages.iter().for_each(|m| m.show());
-                        // Save to the output file
-                        if let Some(output) = cli.output {
-                            match fs::File::create(&output) {
-                                Ok(mut file) => {
-                                    write!(file, "{}", code).unwrap();
-                                    set_file_permission(
-                                        &file,
-                                        String::from(output.to_string_lossy()),
-                                    );
-                                }
-                                Err(err) => {
-                                    Message::new_err_msg(err.to_string()).show();
-                                    std::process::exit(1);
-                                }
-                            }
+                // Save to the output file
+                if let Some(output) = cli.output {
+                    let output = String::from(output.to_string_lossy());
+                    if output == "--silent" {
+                        return Ok(())
+                    }
+                    if output == "-" {
+                        print!("{code}");
+                        return Ok(())
+                    }
+                    match fs::File::create(&output) {
+                        Ok(mut file) => {
+                            write!(file, "{}", code).unwrap();
+                            set_file_permission(&file, output);
                         }
-                        // Execute the code
-                        else {
-                            (!messages.is_empty()).then(|| render_dash());
-                            let exit_status = AmberCompiler::execute(code, &vec![])?;
-                            std::process::exit(exit_status.code().unwrap_or(1));
+                        Err(err) => {
+                            Message::new_err_msg(err.to_string()).show();
+                            std::process::exit(1);
                         }
                     }
-                    Err(err) => {
-                        err.show();
-                        std::process::exit(1);
-                    }
+                }
+                // Execute the code
+                else {
+                    (!messages.is_empty()).then(|| render_dash());
+                    let exit_status = AmberCompiler::execute(code, &vec![])?;
+                    std::process::exit(exit_status.code().unwrap_or(1));
                 }
             }
             Err(err) => {
-                Message::new_err_msg(err.to_string()).show();
+                err.show();
                 std::process::exit(1);
             }
         }
@@ -177,6 +176,11 @@ fn set_file_permission(file: &std::fs::File, path: String) {
     let mut perm = fs::metadata(path).unwrap().permissions();
     perm.set_mode(0o755);
     file.set_permissions(perm).unwrap();
+}
+
+fn handle_err(err: std::io::Error) -> ! {
+    Message::new_err_msg(err.to_string()).show();
+    std::process::exit(1);
 }
 
 #[inline]
