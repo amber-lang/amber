@@ -41,7 +41,7 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
         return true
     }
 
-    error("The file {origin} doesn't exist!")
+    error("The file {origin} doesn't exist!", 0)
     return false
 }
 
@@ -60,7 +60,7 @@ pub fun make_executable(path: Text): Bool {
         return true
     }
 
-    error("The file {path} doesn't exist!")
+    error("The file {path} doesn't exist!", 0)
     return false
 }
 
