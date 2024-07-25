@@ -66,7 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> { 
     if let Some(input) = cli.input.clone() {
-        let input = String::from(input.to_string_lossy());
+        let input = String::from(input.to_string_lossy().trim());
         let code = {
             if input == "-" {
                 let mut buf = String::new();
