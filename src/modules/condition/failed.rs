@@ -90,15 +90,13 @@ impl TranslateModule for Failed {
                     &clear_return,
                     ret,
                     "fi"].join("\n")
+            } else if &block == ":" {
+                "__AS=$?".into()
             } else {
-                if &block == ":" {
-                    "__AS=$?".into()
-                } else {
-                    ["__AS=$?;",
-                        "if [ $__AS != 0 ]; then",
-                        &block,
-                        "fi"].join("\n")
-                }
+                ["__AS=$?;",
+                    "if [ $__AS != 0 ]; then",
+                    &block,
+                    "fi"].join("\n")
             }
         } else {
             String::new()

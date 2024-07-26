@@ -70,7 +70,7 @@ impl TranslateModule for Main {
             let quote = meta.gen_quote();
             let dollar = meta.gen_dollar();
             let args = self.args.clone().map_or_else(
-                || String::new(),
+                String::new,
                 |name| format!("{name}=({quote}{dollar}@{quote})")
             );
             format!("{args}\n{}", self.block.translate(meta))
