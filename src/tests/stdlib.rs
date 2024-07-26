@@ -40,7 +40,7 @@ fn stdlib_test(input: &str) {
     if output.is_empty() {
         output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
             true => fs::read_to_string(input.replace(".ab", ".output.txt"))
-            .expect(&format!("Failed to open {input}.output.txt file")),
+                .expect(&format!("Failed to open {input}.output.txt file")),
             _ => "Succeded".to_string()
         };
     }
