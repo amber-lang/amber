@@ -206,6 +206,7 @@ impl AmberCompiler {
         }
         let base_dir = base_dir.unwrap();
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
+        let mut paths = vec![];
         for (path, block) in ast_forest {
             let dep_path = {
                 let dep_path = fs::canonicalize(PathBuf::from(path.clone()));
@@ -236,10 +237,14 @@ impl AmberCompiler {
                 std::process::exit(1);
             }
             let filename = dep_path.file_stem().unwrap().to_string_lossy();
-            let path = format!("{dir_path}/{filename}.md");
-            let mut file = File::create(path).unwrap();
+            let path = PathBuf::from(dir_path).join(format!("{filename}.md"));
+            let mut file = File::create(path.clone()).unwrap();
             file.write_all(document.as_bytes()).unwrap();
+            paths.push(String::from(path.to_string_lossy()));
         }
+        let file_text = if paths.len() > 1 { "Files" } else { "File" };
+        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
+            .show();
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
