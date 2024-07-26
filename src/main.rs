@@ -29,7 +29,8 @@ struct Cli {
     #[arg(short, long)]
     eval: Option<String>,
 
-    /// Amber-script [output folder (optional)]
+    /// Generate docs
+    /// (OUTPUT is dir instead, default: `docs/`) 
     #[arg(long)]
     docs: bool
 }
