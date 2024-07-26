@@ -23,8 +23,8 @@ fn all_exist() {
     let fmts = BashFormatter::get_all();
     for fmt in fmts {
         create_fake_binary(fmt);
-        assert_eq!(fmt.is_available(), true);
-        assert_eq!(BashFormatter::get_available().is_some(), true);
+        assert!(fmt.is_available());
+        assert!(BashFormatter::get_available().is_some());
         fs::remove_file(fmt.as_cmd::<String>()).expect("Couldn't remove formatter's fake binary");
     }
 

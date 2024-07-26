@@ -63,7 +63,7 @@ impl FunctionDeclaration {
         {
             return String::new()
         }
-        return " ".to_string();
+        " ".to_string()
     }
 
     fn render_function_signature(&self, meta: &ParserMetadata, doc_index: usize) -> Result<String, Failure> {
@@ -73,11 +73,11 @@ impl FunctionDeclaration {
         let mut before = String::new();
         loop {
             let cur_token = meta.context.expr.get(index);
-            let cur_word = cur_token.map_or_else(|| String::new(), |v| v.word.clone());
+            let cur_word = cur_token.map_or_else(String::new, |v| v.word.clone());
             if !result.is_empty() {
                 result.push_str(&self.get_space(parentheses, &before, &cur_word))
             }
-            before = cur_word.clone();
+            before.clone_from(&cur_word);
             match cur_word.as_str() {
                 "(" => parentheses += 1,
                 ")" => parentheses -= 1,
@@ -181,10 +181,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         optional = true;
                         let mut expr = Expr::new();
                         syntax(meta, &mut expr)?;
-                        if arg_type != Type::Generic {
-                            if arg_type != expr.get_type() {
-                                return error!(meta, name_token, "Optional argument does not match annotated type");
-                            }
+                        if arg_type != Type::Generic && arg_type != expr.get_type() {
+                            return error!(meta, name_token, "Optional argument does not match annotated type");
                         }
                         self.arg_optionals.push(expr);
                     },

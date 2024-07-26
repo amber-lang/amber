@@ -161,7 +161,7 @@ impl TranslateModule for Statement {
         };
         // Get all the required supplemental statements
         let indentation = meta.gen_indent();
-        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st.trim_end_matches(';') + ";\n").join("");
+        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + st.trim_end_matches(';') + ";\n").join("");
         // Return all the statements
         statements + &indentation + &translated
     }

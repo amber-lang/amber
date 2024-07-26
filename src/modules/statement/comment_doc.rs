@@ -27,10 +27,10 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                     meta.increment_index();
                     while let Some(token) = meta.get_current_token() {
                         let is_token_underneeth = token.pos.0 == col + 1;
-                        let last_char = self.value.chars().last().unwrap_or_else(|| '\n');
+                        let last_char = self.value.chars().last().unwrap_or('\n');
                         // If the token is a newline, we add a newline to the comment
-                        if token.word.starts_with("\n") {
-                            self.value.push_str("\n");
+                        if token.word.starts_with('\n') {
+                            self.value.push('\n');
                             meta.increment_index();
                             continue;
                         }
@@ -39,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                             col = token.pos.0;
                             meta.increment_index();
                             // If the comment signifies a paragrah break, we add two newlines
-                            if token.word[3..].trim().len() == 0 {
+                            if token.word[3..].trim().is_empty() {
                                 if last_char == '\n' {
                                     continue;
                                 }
@@ -54,10 +54,10 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                     }
                     Ok(())
                 } else {
-                    return Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
+                    Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
                 }
             }
-            None => return Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
+            None => Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
         }
     }
 }

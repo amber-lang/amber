@@ -13,11 +13,11 @@ use std::path::Path;
 #[test_resources("src/tests/validity/*.ab")]
 fn validity_test(input: &str) {
     let code = fs::read_to_string(input)
-    .expect(&format!("Failed to open {input} test file"));
+    .unwrap_or_else(|_| panic!("Failed to open {input} test file"));
 
     let output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
         true => fs::read_to_string(input.replace(".ab", ".output.txt"))
-        .expect(&format!("Failed to open {input}.output.txt file")),
+        .unwrap_or_else(|_| panic!("Failed to open {input}.output.txt file")),
         _ => "Succeded".to_string()
     };
 

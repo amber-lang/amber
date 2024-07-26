@@ -23,12 +23,11 @@ impl BashFormatter {
     pub fn get_available() -> Option<BashFormatter> {
         Self::get_all()
           .iter()
-          .find(|fmt| fmt.is_available())
-          .map(|fmt| *fmt)
+          .find(|fmt| fmt.is_available()).copied()
     }
 
     /// Check if current formatter is present in $PATH
-    pub fn is_available(self: &Self) -> bool {
+    pub fn is_available(&self) -> bool {
         match self {
             BashFormatter::shfmt =>
                 Command::new("shfmt")
@@ -42,14 +41,14 @@ impl BashFormatter {
     }
 
     #[allow(dead_code)] // used in tests
-    pub fn as_cmd<T: From<&'static str>>(self: &Self) -> T {
+    pub fn as_cmd<T: From<&'static str>>(&self) -> T {
         match self {
             BashFormatter::shfmt => "shfmt".into()
         }
     }
 
     /// Format code using the formatter
-    pub fn format(self: &Self, code: String) -> String {
+    pub fn format(&self, code: String) -> String {
         match self {
             BashFormatter::shfmt => {
                 let mut command = Command::new("shfmt")

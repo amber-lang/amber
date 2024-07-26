@@ -73,7 +73,7 @@ impl Import {
 
     fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
         if self.path.value.starts_with("std/") {
-            match stdlib::resolve(&self.path.value.replace("std/", "")) {
+            match stdlib::resolve(self.path.value.replace("std/", "")) {
                 Some(v) => Ok(v),
                 None => error!(meta, self.token_path.clone(),
                     format!("Standard library module '{}' does not exist", self.path.value))
