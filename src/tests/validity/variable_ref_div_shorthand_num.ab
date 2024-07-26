@@ -1,3 +1,6 @@
+// Output
+// 5
+
 fun foo(ref a) {
     a /= 3
 }

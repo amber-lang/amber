@@ -1,3 +1,6 @@
+// Output
+// inner_c
+
 fun inner_c() {
     echo "inner_c"
     fail

@@ -1,3 +1,6 @@
+// Output
+// 12
+
 fun foo(ref a) {
     a *= 2
 }

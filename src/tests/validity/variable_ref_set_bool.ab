@@ -1,4 +1,7 @@
- fun foo(ref a) {
+// Output
+// 0
+
+fun foo(ref a) {
     a = false
 }
 

@@ -1,3 +1,6 @@
+// Output
+// 24
+
 let a = 24 > 12
     then (12 > 24
         then 42

@@ -1,3 +1,6 @@
+// Output
+// 2
+
 fun foo(ref a) {
     a %= 5
 }

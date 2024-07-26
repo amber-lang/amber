@@ -1,3 +1,6 @@
+// Output
+// 24
+
 let a = 12 > 24
     then 42
     else 24
