@@ -171,6 +171,7 @@ impl AmberCompiler {
         }
         let base_dir = base_dir.unwrap();
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
+        let mut paths = vec![];
         for (path, block) in ast_forest {
             let dep_path = {
                 let dep_path = fs::canonicalize(PathBuf::from(path.clone()));
@@ -206,7 +207,7 @@ impl AmberCompiler {
         }
         let file_text = if paths.len() > 1 { "Files" } else { "File" };
         Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
-                .show();
+            .show();
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
