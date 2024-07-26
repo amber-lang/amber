@@ -24,7 +24,7 @@ fn stdlib_test(input: &str) {
         if line.starts_with("// Output") {
             is_output = true;
             continue;
-        } else if line.is_empty() && _is_output {
+        } else if line.is_empty() && is_output {
             is_output = false;
             break;
         }
