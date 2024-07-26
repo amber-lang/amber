@@ -1,5 +1,8 @@
 import * from "std/array"
 
+// Output
+// Not Found
+
 main {
     let array = ["foo", "bar", "baz"]
     if includes(array, "oo ba") {
