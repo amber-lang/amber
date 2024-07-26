@@ -1,3 +1,7 @@
+// Output
+// one
+// two
+
 fun foo(a) {
     echo a
     fail 1
