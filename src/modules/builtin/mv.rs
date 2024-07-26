@@ -47,6 +47,7 @@ impl TranslateModule for Mv {
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent();
+        swap(&mut is_silent, &mut meta.silenced);
         format!("mv {source} {destination}{silent}\n{failed}").trim_end().to_string()
     }
 }
