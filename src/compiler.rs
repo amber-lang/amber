@@ -199,12 +199,14 @@ impl AmberCompiler {
                 std::process::exit(1);
             }
             let filename = dep_path.file_stem().unwrap().to_string_lossy();
-            let path = format!("{dir_path}/{filename}.md");
-            Message::new_info_msg(format!("File generated at `{path}`."))
-                .show();
-            let mut file = File::create(path).unwrap();
+            let path = PathBuf::from(dir_path).join(format!("{filename}.md"));
+            let mut file = File::create(path.clone()).unwrap();
             file.write_all(document.as_bytes()).unwrap();
+            paths.push(String::from(path.to_string_lossy()));
         }
+        let file_text = if paths.len() > 1 { "Files" } else { "File" };
+        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
+                .show();
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
