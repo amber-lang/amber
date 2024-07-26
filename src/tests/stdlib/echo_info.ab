@@ -1,4 +1,8 @@
 import * from "std/env"
+
+// Output
+// [1;3;97;44m Hello Amber! [0m
+
 main {
     echo_info("Hello Amber!")
 } 

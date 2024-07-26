@@ -1,3 +1,6 @@
+// Output
+// Hello World
+
 fun test(a, b) {
     return "{a} {b}"
 }

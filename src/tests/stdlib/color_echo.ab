@@ -1,4 +1,8 @@
 import * from "std/env"
+
+// Output
+// [33mHello Amber![0m
+
 main {
     color_echo("Hello Amber!", 33)
 } 

@@ -1,3 +1,6 @@
+// Output
+// 64
+
 let x = 16
 x += 48
 echo x

@@ -1,3 +1,6 @@
+// Output
+// Hello World
+
 unsafe silent {
     echo "Hello World"
     $non-existent command$

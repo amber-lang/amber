@@ -1,3 +1,6 @@
+// Output
+// 1
+
 let a = 10
 a %= 3
 echo a

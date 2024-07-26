@@ -1,3 +1,6 @@
+// Output
+// 42
+
 fun foo(ref a) {
     a = 42
 }

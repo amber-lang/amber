@@ -1,4 +1,8 @@
 import { make_executable } from "std/fs"
+
+// Output
+// created
+
 main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $touch {tmpdir}/amber-symbolic$

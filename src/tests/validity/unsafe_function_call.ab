@@ -1,3 +1,6 @@
+// Output
+// 6, 0
+
 fun safe_division(a: Num, b: Num): Num {
     if b == 0:
         fail 1

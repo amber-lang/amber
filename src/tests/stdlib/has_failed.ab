@@ -1,4 +1,8 @@
 import * from "std/env"
+
+// Output
+// Command failed
+
 main {
     if has_failed("ls /nonexistent") {
         echo "Command failed"

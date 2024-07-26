@@ -1,3 +1,6 @@
+// Output
+// one
+
 fun foo(ref a) {
     a = "one"
 }

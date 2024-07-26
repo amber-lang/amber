@@ -234,7 +234,13 @@ Amber uses `cargo test` for tests. `stdlib` and `validity` tests usually work by
 
 We have [`validity tests`](src/tests/validity.rs) to check if the compiler outputs a valid bash code, [`stdlib tests`](src/tests/stdlib.rs) and [`CLI tests`](src/tests/cli.rs).
 
-The majority of `stdlib` tests are Written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). For every test there is a `*.output.txt` file that contains the expected output.
+The majority of `stdlib` tests are written in pure Amber in the folder [`tests/stdlib`](src/tests/stdlib). 
+For every test there are 3 ways to check the result following this order:
+
+* if a `// Output` comment on top that include the output to match
+* if there is a `*.output.txt` file that contains the expected output
+* "Succeded" will used as default value if the previous cases are not satisfied
+
 Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
 The `validity` tests are full in Amber in their folder the folder [`tests/validity`](src/tests/validity).
 
