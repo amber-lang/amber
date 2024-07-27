@@ -1,3 +1,4 @@
+/// EXPERIMENTAL
 /// Format a date with a special format
 /// If no date is specified, the current date is used
 /// If no format is specified, "%FT%T%Z" format is used
@@ -74,6 +75,7 @@ pub fun now(): Num {
     return unsafe $date +%s$ as Num
 }
 
+/// EXPERIMENTAL
 /// Add value to date.
 /// If no date is specified, the current date is used
 /// Ex : date_add("+3 days")
@@ -90,6 +92,7 @@ pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text {
     return date_posix("", "{date_posix("%F", date, utc)?} {add} {date_posix("%T", date, utc)?}", utc)?
 }
 
+/// EXPERIMENTAL
 // Compare 2 date
 // Return 1 if date_a is after date_b
 // Return 0 if date_a and date_b is the same
