@@ -1,4 +1,8 @@
-use std::{env, fs::{self, Permissions}, os::unix::fs::PermissionsExt};
+use std::{
+    env,
+    fs::{self, Permissions},
+    os::unix::fs::PermissionsExt,
+};
 
 use crate::modules::formatter::BashFormatter;
 
@@ -10,9 +14,10 @@ fn create_fake_binary(fmt: BashFormatter) {
     };
 
     let name: String = fmt.as_cmd();
-    
+
     fs::write(&name, body).expect("Couldn't write fake script");
-    fs::set_permissions(&name, Permissions::from_mode(0o755)).expect("Couldn't set perms for fake script");
+    fs::set_permissions(&name, Permissions::from_mode(0o755))
+        .expect("Couldn't set perms for fake script");
 }
 
 #[test]
