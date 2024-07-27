@@ -5,7 +5,7 @@ use crate::test_amber;
 use crate::tests::compile_code;
 use crate::Cli;
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use test_generator::test_resources;
@@ -18,30 +18,31 @@ fn stdlib_test(input: &str) {
     let code =
         fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
 
+    // extract Output
     let mut is_output = false;
-    let mut output = "".to_owned();
+    let mut output = String::new();
     for line in code.lines() {
         if line.starts_with("// Output") {
             is_output = true;
             continue;
         } else if line.is_empty() && is_output {
-            is_output = false;
             break;
         }
 
         if is_output {
-            if ! output.is_empty() {
-                output.push_str("\n");
+            if !output.is_empty() {
+                output.push('\n');
             }
-            output.push_str(&line.replace("//", "").trim());
+            output.push_str(line.replace("//", "").trim());
         }
     }
 
     if output.is_empty() {
-        output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
-            true => fs::read_to_string(input.replace(".ab", ".output.txt"))
-                .expect(&format!("Failed to open {input}.output.txt file")),
-            _ => "Succeded".to_string()
+        let output_path = PathBuf::from(input.replace(".ab", ".output.txt"));
+        output = match output_path.exists() {
+            true => fs::read_to_string(output_path)
+                .unwrap_or_else(|_| panic!("Failed to open {input}.output.txt file")),
+            _ => "Succeded".to_string(),
         };
     }
 
