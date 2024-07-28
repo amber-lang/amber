@@ -35,6 +35,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
             syntax(meta, &mut self.source)?;
             syntax(meta, &mut self.destination)?;
             syntax(meta, &mut self.failed)?;
+            Ok(())
         })
     }
 }
