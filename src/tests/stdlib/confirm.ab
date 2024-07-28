@@ -1,0 +1,11 @@
+import * from "std/env"
+main {
+    unsafe $echo "Y" > /tmp/test_confirm$
+    unsafe $exec 0< /tmp/test_confirm$
+    if confirm("Yes"): echo "Confirm Yes"
+    unsafe $echo "N" > /tmp/test_confirm$
+    if not confirm("No"): echo "Confirm No"
+    unsafe $echo "" > /tmp/test_confirm$
+    if confirm("Default", true): echo "Confirm Default"
+    unsafe $rm /tmp/test_confirm$
+}
