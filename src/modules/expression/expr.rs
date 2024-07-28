@@ -26,20 +26,20 @@ use super::binop::{
     lt::Lt,
     le::Le,
     eq::Eq,
-    neq::Neq
-};
-use super::unop::{
-    not::Not,
-    neg::Neg,
+    neq::Neq,
     cast::Cast,
     is::Is
 };
+use super::unop::{
+    not::Not,
+    neg::Neg
+};
 use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
-use crate::modules::condition::ternary::Ternary;
+use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::nameof::Nameof;
-use crate::handle_types;
+use crate::{document_expression, translate_expression};
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
@@ -75,10 +75,13 @@ pub enum ExprType {
     Is(Is)
 }
 
+/// This means that the expression was already parsed previously so we don't need to parse it again
+pub type AlreadyParsedExpr = Expr;
+
 #[derive(Debug, Clone)]
 pub struct Expr {
     pub value: Option<ExprType>,
-    kind: Type
+    pub kind: Type
 }
 
 impl Typed for Expr {
@@ -99,41 +102,6 @@ impl Expr {
             _ => None
         }
     }
-
-    handle_types!(ExprType, [
-        // Ternary conditional
-        Ternary,
-        // Logical operators
-        And, Or,
-        // Comparison operators
-        Gt, Ge, Lt, Le, Eq, Neq,
-        // Arithmetic operators
-        Add, Sub, Mul, Div, Modulo,
-        // Unary operators
-        Cast, Not, Neg, Nameof, Is,
-        // Literals
-        Range, Parentheses, Bool, Number, Text, Array, Null, Status,
-        // Function invocation
-        FunctionInvocation, Command,
-        // Variable access
-        VariableGet
-    ]);
-
-    // Get result out of the provided module and save it in the internal state
-    fn get<S>(&mut self, meta: &mut ParserMetadata, mut module: S, cb: impl Fn(S) -> ExprType) -> SyntaxResult
-    where
-        S: SyntaxModule<ParserMetadata> + Typed
-    {
-        // Match syntax
-        match syntax(meta, &mut module) {
-            Ok(()) => {
-                self.kind = module.get_type();
-                self.value = Some(cb(module));
-                Ok(())
-            }
-            Err(details) => Err(details)
-        }
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
@@ -147,29 +115,55 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let exprs = self.get_modules();
-        for expr in exprs {
-            match self.parse_match(meta, expr) {
-                Ok(()) => return Ok(()),
-                Err(failure) => {
-                    if let Failure::Loud(err) = failure {
-                        return Err(Failure::Loud(err))
-                    }
-                }
-            }
-        }
-        error!(meta, meta.get_current_token(), "Expected expression")
+        let result = self.parse_expression(meta)?;
+        self.value = result.value;
+        self.kind = result.kind;
+        Ok(())
     }
 }
 
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.translate_match(meta, self.value.as_ref().unwrap())
+        translate_expression!(meta, self.value.as_ref().unwrap(), [
+            // Ternary conditional
+            Ternary,
+            // Logical operators
+            And, Or,
+            // Comparison operators
+            Gt, Ge, Lt, Le, Eq, Neq,
+            // Arithmetic operators
+            Add, Sub, Mul, Div, Modulo,
+            // Unary operators
+            Cast, Not, Neg, Nameof, Is,
+            // Literals
+            Range, Parentheses, Bool, Number, Text, Array, Null, Status,
+            // Function invocation
+            FunctionInvocation, Command,
+            // Variable access
+            VariableGet
+        ])
     }
 }
 
 impl DocumentationModule for Expr {
     fn document(&self, meta: &ParserMetadata) -> String {
-        self.document_match(meta, self.value.as_ref().unwrap())
+        document_expression!(meta, self.value.as_ref().unwrap(), [
+            // Ternary conditional
+            Ternary,
+            // Logical operators
+            And, Or,
+            // Comparison operators
+            Gt, Ge, Lt, Le, Eq, Neq,
+            // Arithmetic operators
+            Add, Sub, Mul, Div, Modulo,
+            // Unary operators
+            Cast, Not, Neg, Nameof, Is,
+            // Literals
+            Range, Parentheses, Bool, Number, Text, Array, Null, Status,
+            // Function invocation
+            FunctionInvocation, Command,
+            // Variable access
+            VariableGet
+        ])
     }
 }

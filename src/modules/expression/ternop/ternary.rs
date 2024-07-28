@@ -8,9 +8,9 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Ternary {
-    cond: Box<Expr>,
-    true_expr: Box<Expr>,
-    false_expr: Box<Expr>
+    pub cond: Box<Expr>,
+    pub true_expr: Box<Expr>,
+    pub false_expr: Box<Expr>
 }
 
 impl Typed for Ternary {

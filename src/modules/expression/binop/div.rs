@@ -6,8 +6,8 @@ use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct Div {
-    left: Box<Expr>,
-    right: Box<Expr>
+    pub left: Box<Expr>,
+    pub right: Box<Expr>
 }
 
 impl Typed for Div {

@@ -4,8 +4,8 @@ use super::super::expr::Expr;
 
 #[derive(Debug, Clone)]
 pub struct Cast {
-    expr: Box<Expr>,
-    kind: Type
+    pub expr: Box<Expr>,
+    pub kind: Type
 }
 
 impl Typed for Cast {

@@ -8,8 +8,8 @@ use crate::modules::types::{Typed, Type, parse_type};
 
 #[derive(Debug, Clone)]
 pub struct Is {
-    expr: Box<Expr>,
-    kind: Type
+    pub expr: Box<Expr>,
+    pub kind: Type
 }
 
 impl Typed for Is {

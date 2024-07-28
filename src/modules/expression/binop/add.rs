@@ -8,9 +8,9 @@ use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Add {
-    left: Box<Expr>,
-    right: Box<Expr>,
-    kind: Type
+    pub left: Box<Expr>,
+    pub right: Box<Expr>,
+    pub kind: Type
 }
 
 impl Typed for Add {

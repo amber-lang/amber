@@ -15,6 +15,8 @@ pub mod lt;
 pub mod le;
 pub mod eq;
 pub mod neq;
+pub mod is;
+pub mod cast;
 
 pub fn expression_arms_of_type(meta: &ParserMetadata, left: &Type, right: &Type, predicate: impl Fn(Type) -> bool, tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
     if left == right && [left, right].iter().all(|kind| predicate((*kind).clone())) {

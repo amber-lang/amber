@@ -9,8 +9,8 @@ use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Eq {
-    left: Box<Expr>,
-    right: Box<Expr>
+    pub left: Box<Expr>,
+    pub right: Box<Expr>
 }
 
 impl Typed for Eq {
