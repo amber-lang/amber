@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-            ./target
+            ./target/deps
             ~/.cargo
         key: rust-${{ hashFiles('Cargo.lock') }}
         restore-keys: rust-${{ hashFiles('Cargo.lock') }}

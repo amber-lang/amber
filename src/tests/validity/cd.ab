@@ -1,2 +1,5 @@
+// Output
+// /tmp
+
 cd "/tmp/"
 unsafe $pwd$

@@ -1,18 +1,19 @@
 extern crate chrono;
-use chrono::prelude::*;
 use crate::docs::module::DocumentationModule;
-use itertools::Itertools;
 use crate::modules::block::Block;
-use crate::rules;
+use crate::modules::formatter::BashFormatter;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use std::fs::File;
-use std::io::Write;
+use crate::{rules, Cli};
+use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use std::env;
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
@@ -24,20 +25,22 @@ const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
+    pub cli_opts: Cli,
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
         AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
             path,
+            cli_opts,
         }
         .load_code(AmberCompiler::strip_off_shebang(code))
     }
 
     fn strip_off_shebang(code: String) -> String {
         if code.starts_with("#!") {
-            code.split("\n").into_iter().skip(1).collect_vec().join("\n")
+            code.split('\n').skip(1).collect_vec().join("\n")
         } else {
             code
         }
@@ -86,7 +89,11 @@ impl AmberCompiler {
         }
     }
 
-    pub fn parse(&self, tokens: Vec<Token>, is_docs_gen: bool) -> Result<(Block, ParserMetadata), Message> {
+    pub fn parse(
+        &self,
+        tokens: Vec<Token>,
+        is_docs_gen: bool,
+    ) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
         meta.is_docs_gen = is_docs_gen;
@@ -116,13 +123,21 @@ impl AmberCompiler {
         }
     }
 
-    pub fn get_sorted_ast_forest(&self, block: Block, meta: &ParserMetadata) -> Vec<(String, Block)> {
+    pub fn get_sorted_ast_forest(
+        &self,
+        block: Block,
+        meta: &ParserMetadata,
+    ) -> Vec<(String, Block)> {
         let imports_sorted = meta.import_cache.topological_sort();
         let imports_blocks = meta
             .import_cache
             .files
             .iter()
-            .map(|file| file.metadata.as_ref().map(|meta| (file.path.clone(), meta.block.clone())))
+            .map(|file| {
+                file.metadata
+                    .as_ref()
+                    .map(|meta| (file.path.clone(), meta.block.clone()))
+            })
             .collect::<Vec<Option<(String, Block)>>>();
         let mut result = vec![];
         for index in imports_sorted.iter() {
@@ -150,19 +165,39 @@ impl AmberCompiler {
                 time.elapsed().as_millis()
             );
         }
-        let res = result.join("\n");
+
+        let mut res = result.join("\n");
+
+        if !self.cli_opts.disable_format {
+            if let Some(formatter) = BashFormatter::get_available() {
+                res = formatter.format(res);
+            }
+        }
+
         let header = [
             include_str!("header.sh"),
-            &("# version: ".to_owned() + option_env!("CARGO_PKG_VERSION").unwrap().to_string().as_str()),
-            &("# date: ".to_owned() + Local::now().format("%Y-%m-%d %H:%M:%S").to_string().as_str())
-        ].join("\n");
+            &("# version: ".to_owned() + env!("CARGO_PKG_VERSION").to_string().as_str()),
+            &("# date: ".to_owned()
+                + Local::now()
+                    .format("%Y-%m-%d %H:%M:%S")
+                    .to_string()
+                    .as_str()),
+        ]
+        .join("\n");
         format!("{}\n{}", header, res)
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
-        let base_path = PathBuf::from(meta.get_path().expect("Input file must exist in docs generation"));
-        let base_dir = fs::canonicalize(base_path)
-            .map(|val| val.parent().expect("Parent dir must exist in docs generation").to_owned().clone());
+        let base_path = PathBuf::from(
+            meta.get_path()
+                .expect("Input file must exist in docs generation"),
+        );
+        let base_dir = fs::canonicalize(base_path).map(|val| {
+            val.parent()
+                .expect("Parent dir must exist in docs generation")
+                .to_owned()
+                .clone()
+        });
         if let Err(err) = base_dir {
             Message::new_err_msg("Couldn't get the absolute path to the provided input file")
                 .comment(err.to_string())
@@ -171,16 +206,17 @@ impl AmberCompiler {
         }
         let base_dir = base_dir.unwrap();
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
+        let mut paths = vec![];
         for (path, block) in ast_forest {
             let dep_path = {
                 let dep_path = fs::canonicalize(PathBuf::from(path.clone()));
                 if dep_path.is_err() {
-                    continue
+                    continue;
                 }
                 let dep_path = dep_path.unwrap();
 
                 if !dep_path.starts_with(&base_dir) {
-                    continue
+                    continue;
                 }
 
                 dep_path
@@ -193,16 +229,22 @@ impl AmberCompiler {
                 format!("{}/{output}/{}", base_dir.to_string_lossy(), parent)
             };
             if let Err(err) = fs::create_dir_all(dir_path.clone()) {
-                Message::new_err_msg(format!("Couldn't create directory `{dir_path}`. Do you have sufficient permissions?"))
-                    .comment(err.to_string())
-                    .show();
+                Message::new_err_msg(format!(
+                    "Couldn't create directory `{dir_path}`. Do you have sufficient permissions?"
+                ))
+                .comment(err.to_string())
+                .show();
                 std::process::exit(1);
             }
             let filename = dep_path.file_stem().unwrap().to_string_lossy();
-            let path = format!("{dir_path}/{filename}.md");
-            let mut file = File::create(path).unwrap();
+            let path = PathBuf::from(dir_path).join(format!("{filename}.md"));
+            let mut file = File::create(path.clone()).unwrap();
             file.write_all(document.as_bytes()).unwrap();
+            paths.push(String::from(path.to_string_lossy()));
         }
+        let file_text = if paths.len() > 1 { "Files" } else { "File" };
+        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
+            .show();
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
@@ -213,16 +255,17 @@ impl AmberCompiler {
 
     pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
         let code = format!("set -- {};\n\n{}", flags.join(" "), code);
-        Ok(Command::new("/usr/bin/env")
+        Command::new("/usr/bin/env")
             .arg("bash")
             .arg("-c")
             .arg(code)
             .spawn()?
-            .wait()?)
+            .wait()
     }
 
     pub fn generate_docs(&self, output: String) -> Result<(), Message> {
-        self.tokenize().and_then(|tokens| self.parse(tokens, true))
+        self.tokenize()
+            .and_then(|tokens| self.parse(tokens, true))
             .map(|(block, meta)| self.document(block, meta, output))
     }
 
@@ -238,5 +281,4 @@ impl AmberCompiler {
             Ok(String::from_utf8_lossy(&child.stdout).to_string())
         })
     }
-
 }

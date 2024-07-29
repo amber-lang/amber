@@ -1,3 +1,6 @@
+// Output
+// 3
+
 fun f(arg: Num): Num {
     return arg
 }

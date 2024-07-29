@@ -1,3 +1,6 @@
+// Output
+// 53
+
 fun test(a: Num, b: Num) {
     return a + b
 }

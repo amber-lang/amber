@@ -1,4 +1,8 @@
 import { sum } from "std/math"
+
+// Output
+// Requirements not met
+
 let requirements = [true, true, true]
 
 main {

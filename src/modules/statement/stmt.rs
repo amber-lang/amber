@@ -36,6 +36,7 @@ use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
 use crate::modules::builtin::{
     echo::Echo,
+    mv::Mv,
     cd::Cd
 };
 use super::comment_doc::CommentDoc;
@@ -63,6 +64,7 @@ pub enum StatementType {
     Main(Main),
     Cd(Cd),
     Echo(Echo),
+    Mv(Mv),
     CommandModifier(CommandModifier),
     CommentDoc(CommentDoc)
 }
@@ -89,7 +91,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo, Cd,
+        CommandModifier, Echo, Mv, Cd,
         // Comment doc
         CommentDoc,
         // Expression
@@ -161,7 +163,7 @@ impl TranslateModule for Statement {
         };
         // Get all the required supplemental statements
         let indentation = meta.gen_indent();
-        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + &st.trim_end_matches(';') + ";\n").join("");
+        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + st.trim_end_matches(';') + ";\n").join("");
         // Return all the statements
         statements + &indentation + &translated
     }

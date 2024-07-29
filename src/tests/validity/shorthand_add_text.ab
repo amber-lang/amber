@@ -1,3 +1,6 @@
+// Output
+// Hello World
+
 let x = "Hello "
 x += "World"
 echo x

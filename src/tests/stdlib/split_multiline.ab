@@ -1,4 +1,9 @@
 import * from "std/text"
+
+// Output
+// apple ban
+// ana cherry
+
 main {
     let array = split("apple,ban\nana,cherry", ",")
     echo array

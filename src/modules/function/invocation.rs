@@ -115,7 +115,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             }
             let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
             let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
-            self.refs = function_unit.arg_refs.clone();
+            self.refs.clone_from(&function_unit.arg_refs);
             (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit, &types, &var_names, tok)?;
             Ok(())
         })

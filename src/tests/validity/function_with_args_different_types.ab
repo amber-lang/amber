@@ -1,3 +1,7 @@
+// Output
+// HelloWorld
+// 53
+
 fun test(a, b) {
     return a + b
 }

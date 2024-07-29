@@ -9,6 +9,7 @@ use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
+use crate::Cli;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -72,7 +73,7 @@ impl Import {
 
     fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
         if self.path.value.starts_with("std/") {
-            match stdlib::resolve(&self.path.value.replace("std/", "")) {
+            match stdlib::resolve(self.path.value.replace("std/", "")) {
                 Some(v) => Ok(v),
                 None => error!(meta, self.token_path.clone(),
                     format!("Standard library module '{}' does not exist", self.path.value))
@@ -97,7 +98,7 @@ impl Import {
     }
 
     fn handle_compile_code(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone())).tokenize() {
+        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone()), Cli::default()).tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();
                 // Save snapshot of current file

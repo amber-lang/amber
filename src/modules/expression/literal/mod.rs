@@ -11,15 +11,33 @@ pub mod array;
 pub mod range;
 pub mod status;
 
+fn is_escaped(word: &str, symbol: char) -> bool {
+    let mut backslash_count = 0;
+
+    if !word.ends_with(symbol) {
+        return false;
+    }
+
+    for letter in word.chars().rev().skip(1) {
+        if letter == '\\' {
+            backslash_count += 1;
+        } else {
+            break;
+        }
+    }
+
+    backslash_count % 2 != 0
+}
+
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
     // Handle full string
     if let Ok(word) = token_by(meta, |word| {
-        let is_escaped =
-            !word.ends_with(format!("\\\\{}", letter).as_str())
-            && word.ends_with(format!("\\{}", letter).as_str());
-        word.starts_with(letter) && word.ends_with(letter) && word.len() > 1 && !is_escaped
+        word.starts_with(letter)
+        && word.ends_with(letter)
+        && word.len() > 1
+        && !is_escaped(word, letter)
     }) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         strings.push(stripped);
@@ -45,10 +63,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                 }
                 else {
                     strings.push(tok.word.clone());
-                    let is_escaped =
-                        !tok.word.ends_with(format!("\\\\{}", letter).as_str())
-                        && tok.word.ends_with(format!("\\{}", letter).as_str());
-                    if tok.word.ends_with(letter) && !is_escaped {
+                    if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
                         meta.increment_index();
                         // Right trim the symbol
                         let trimmed = strings.last().unwrap()

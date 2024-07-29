@@ -1,3 +1,6 @@
+// Output
+// 7
+
 let x = 21
 x /= 3
 echo x

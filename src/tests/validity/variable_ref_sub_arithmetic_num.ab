@@ -1,3 +1,6 @@
+// Output
+// 24
+
 fun foo(ref a, b) {
     a = a - b
 }

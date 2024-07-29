@@ -1,3 +1,6 @@
+// Output
+// "sram"
+
 fun reverse(input: Text): Text {
     return unsafe $echo {input} | rev$
 }
