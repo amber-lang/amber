@@ -1,15 +1,15 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::binop::parse_left_expr;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::modules::types::AlreadyParsedType;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::modules::types::{Typed, Type, parse_type};
+use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Is {
-    pub expr: Box<Expr>,
-    pub kind: Type
+    pub expr: Box<AlreadyParsedExpr>,
+    pub kind: AlreadyParsedType
 }
 
 impl Typed for Is {
@@ -23,15 +23,12 @@ impl SyntaxModule<ParserMetadata> for Is {
 
     fn new() -> Self {
         Is {
-            expr: Box::new(Expr::new()),
-            kind: Type::Null
+            expr: Box::new(AlreadyParsedExpr::new()),
+            kind: AlreadyParsedType::Null
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.expr, "is")?;
-        token(meta, "is")?;
-        self.kind = parse_type(meta)?;
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         Ok(())
     }
 }

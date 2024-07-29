@@ -1,11 +1,14 @@
 #[macro_export]
 macro_rules! parse_operator {
-    ($meta:expr, $name: ident $block:tt) => {{
-        let mut syntax = $name $block;
-        syntax.parse($meta)?;
+    ($meta:expr, $start_index:expr, $name: ident $block:tt) => {{
+        use heraclitus_compiler::prelude::*;
+        let mut module = $name $block;
+        syntax($meta, &mut module)?;
+        let end_index = $meta.get_index();
         Expr {
-            kind: syntax.get_type(),
-            value: Some (ExprType:: $name (syntax)),
+            kind: module.get_type(),
+            value: Some (ExprType:: $name (module)),
+            pos: ($start_index, end_index)
         }
     }}
 }
@@ -13,13 +16,18 @@ macro_rules! parse_operator {
 #[macro_export]
 macro_rules! parse_non_operators {
     ($meta:expr, [$($item:ident),*]) => {(|| {
+        let start_index = $meta.get_index();
         $(
-            let mut syntax = $item::new();
-            match syntax.parse($meta) {
-                Ok(()) => return Ok(Expr {
-                    kind: syntax.get_type(),
-                    value: Some(ExprType::$item(syntax)),
-                }),
+            let mut module = $item::new();
+            match syntax($meta, &mut module) {
+                Ok(()) => {
+                    let end_index = $meta.get_index();
+                    return Ok(Expr {
+                        kind: module.get_type(),
+                        value: Some(ExprType::$item(module)),
+                        pos: (start_index, end_index)
+                    })
+                },
                 Err(failure) => {
                     if let Failure::Loud(err) = failure {
                         return Err(Failure::Loud(err))

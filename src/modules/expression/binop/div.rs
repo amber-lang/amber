@@ -1,13 +1,16 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, translate::compute::{translate_computation, ArithOp}, utils::{metadata::ParserMetadata, TranslateMetadata}};
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
+use crate::{docs::module::DocumentationModule, handle_binop, utils::TranslateMetadata};
+use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::translate::compute::ArithOp;
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::translate_computation;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct Div {
-    pub left: Box<Expr>,
-    pub right: Box<Expr>
+    pub left: Box<AlreadyParsedExpr>,
+    pub right: Box<AlreadyParsedExpr>
 }
 
 impl Typed for Div {
@@ -21,21 +24,19 @@ impl SyntaxModule<ParserMetadata> for Div {
 
     fn new() -> Self {
         Div {
-            left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            left: Box::new(AlreadyParsedExpr::new()),
+            right: Box::new(AlreadyParsedExpr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "/")?;
-        let tok = meta.get_current_token();
-        token(meta, "/")?;
-        syntax(meta, &mut *self.right)?;
-        let error = "Divide operation can only divide numbers";
-        let l_type = self.left.get_type();
-        let r_type = self.right.get_type();
-        let predicate = |kind| matches!(kind, Type::Num);
-        expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, error)?;
+        let message = {
+            let l_type = self.left.get_type();
+            let r_type = self.right.get_type();
+            format!("Cannot divide value of type '{l_type}' with value of type '{r_type}'")
+        };
+        let comment = "You can only divide values of type 'Num'.";
+        handle_binop!(meta, self.left, self.right, message, comment, [Type::Num])?;
         Ok(())
     }
 }

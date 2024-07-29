@@ -1,16 +1,17 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::handle_binop;
+use crate::modules::expression::expr::AlreadyParsedExpr;
 use crate::translate::compute::{ArithOp, translate_computation};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use super::strip_text_quotes;
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_same_type};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Eq {
-    pub left: Box<Expr>,
-    pub right: Box<Expr>
+    pub left: Box<AlreadyParsedExpr>,
+    pub right: Box<AlreadyParsedExpr>
 }
 
 impl Typed for Eq {
@@ -24,20 +25,18 @@ impl SyntaxModule<ParserMetadata> for Eq {
 
     fn new() -> Self {
         Eq {
-            left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            left: Box::new(AlreadyParsedExpr::new()),
+            right: Box::new(AlreadyParsedExpr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "==")?;
-        let tok = meta.get_current_token();
-        token(meta, "==")?;
-        syntax(meta, &mut *self.right)?;
-        let l_type = self.left.get_type();
-        let r_type = self.right.get_type();
-        let message = format!("Cannot compare two values of different types '{l_type}' == '{r_type}'");
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, &message)?;
+        let message = {
+            let l_type = self.left.get_type();
+            let r_type = self.right.get_type();
+            format!("Cannot compare two values of different types '{l_type}' == '{r_type}'")
+        };
+        handle_binop!(meta, self.left, self.right, message)?;
         Ok(())
     }
 }

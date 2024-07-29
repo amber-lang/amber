@@ -1,15 +1,16 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::handle_binop;
+use crate::modules::expression::expr::AlreadyParsedExpr;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Add {
-    pub left: Box<Expr>,
-    pub right: Box<Expr>,
+    pub left: Box<AlreadyParsedExpr>,
+    pub right: Box<AlreadyParsedExpr>,
     pub kind: Type
 }
 
@@ -24,22 +25,24 @@ impl SyntaxModule<ParserMetadata> for Add {
 
     fn new() -> Self {
         Add {
-            left: Box::new(Expr::new()),
-            right: Box::new(Expr::new()),
+            left: Box::new(AlreadyParsedExpr::new()),
+            right: Box::new(AlreadyParsedExpr::new()),
             kind: Type::Null
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "+")?;
-        let tok = meta.get_current_token();
-        token(meta, "+")?;
-        syntax(meta, &mut *self.right)?;
-        let l_type = self.left.get_type();
-        let r_type = self.right.get_type();
-        let message = format!("Cannot add value of type '{l_type}' with value of type '{r_type}'");
-        let predicate = |kind| matches!(kind, Type::Num | Type::Text | Type::Array(_));
-        self.kind = expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, &message)?;
+        let message = {
+            let l_type = self.left.get_type();
+            let r_type = self.right.get_type();
+            format!("Cannot add value of type '{l_type}' with value of type '{r_type}'")
+        };
+        let comment = "You can only add values of type 'Num', 'Text' or 'Array' together.";
+        self.kind = handle_binop!(meta, self.left, self.right, message, comment, [
+            Type::Num,
+            Type::Text,
+            Type::Array(_)
+        ])?;
         Ok(())
     }
 }

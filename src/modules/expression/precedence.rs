@@ -14,7 +14,6 @@ use super::literal::{
     number::Number,
     text::Text,
     array::Array,
-    range::Range,
     null::Null,
     status::Status
 };
@@ -24,6 +23,7 @@ use super::binop::{
     mul::Mul,
     div::Div,
     modulo::Modulo,
+    range::Range,
     and::And,
     or::Or,
     gt::Gt,
@@ -53,7 +53,7 @@ impl Expr {
         parse_non_operators!(meta, [
             Not, Neg, Nameof,
             // Literals
-            Range, Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text, Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -63,13 +63,14 @@ impl Expr {
 
     /// Ternary operator is parsed from right to left as it is right associative
     fn parse_ternary(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-        let mut node = self.parse_or(meta)?;
+        let start_index = meta.get_index();
+        let mut node = self.parse_range(meta)?;
         while token(meta, "then").is_ok() {
             let branch = self.parse_ternary(meta)?;
             if let Err(err) = token(meta, "else") {
                 return error_pos!(meta, err.unwrap_quiet(), "Expected 'else' after 'then'");
             }
-            node = parse_operator!(meta, Ternary {
+            node = parse_operator!(meta, start_index, Ternary {
                 cond: Box::new(node),
                 true_expr: Box::new(branch),
                 false_expr: Box::new(self.parse_ternary(meta)?)
@@ -78,10 +79,25 @@ impl Expr {
         Ok(node)
     }
 
+    fn parse_range(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
+        let mut node = self.parse_or(meta)?;
+        while token(meta, "..").is_ok() {
+            let neq = token(meta, "=").is_err();
+            node = parse_operator!(meta, start_index, Range {
+                from: Box::new(node),
+                to: Box::new(self.parse_or(meta)?),
+                neq
+            });
+        }
+        Ok(node)
+    }
+
     fn parse_or(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_and(meta)?;
         while token(meta, "or").is_ok() {
-            node = parse_operator!(meta, Or {
+            node = parse_operator!(meta, start_index, Or {
                 left: Box::new(node),
                 right: Box::new(self.parse_and(meta)?)
             });
@@ -90,9 +106,10 @@ impl Expr {
     }
 
     fn parse_and(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_equality(meta)?;
         while token(meta, "and").is_ok() {
-            node = parse_operator!(meta, And {
+            node = parse_operator!(meta, start_index, And {
                 left: Box::new(node),
                 right: Box::new(self.parse_equality(meta)?)
             });
@@ -101,19 +118,20 @@ impl Expr {
     }
 
     fn parse_equality(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_relation(meta)?;
         loop {
             match meta.get_current_token().map_or_else(String::new, |tok| tok.word).as_str() {
                 "==" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Eq {
+                    node = parse_operator!(meta, start_index, Eq {
                         left: Box::new(node),
                         right: Box::new(self.parse_relation(meta)?)
                     });
                 },
                 "!=" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Neq {
+                    node = parse_operator!(meta, start_index, Neq {
                         left: Box::new(node),
                         right: Box::new(self.parse_relation(meta)?)
                     });
@@ -125,33 +143,34 @@ impl Expr {
     }
 
     fn parse_relation(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_addition(meta)?;
         loop {
             match meta.get_current_token().map_or_else(String::new, |tok| tok.word).as_str() {
                 ">" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Gt {
+                    node = parse_operator!(meta, start_index, Gt {
                         left: Box::new(node),
                         right: Box::new(self.parse_addition(meta)?)
                     });
                 },
                 ">=" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Ge {
+                    node = parse_operator!(meta, start_index, Ge {
                         left: Box::new(node),
                         right: Box::new(self.parse_addition(meta)?)
                     });
                 },
                 "<" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Lt {
+                    node = parse_operator!(meta, start_index, Lt {
                         left: Box::new(node),
                         right: Box::new(self.parse_addition(meta)?)
                     });
                 },
                 "<=" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Le {
+                    node = parse_operator!(meta, start_index, Le {
                         left: Box::new(node),
                         right: Box::new(self.parse_addition(meta)?)
                     });
@@ -163,12 +182,13 @@ impl Expr {
     }
 
     fn parse_addition(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_multiplication(meta)?;
         loop {
             match meta.get_current_token().map_or_else(String::new, |tok| tok.word).as_str() {
                 "+" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Add {
+                    node = parse_operator!(meta, start_index, Add {
                         kind: node.get_type(),
                         left: Box::new(node),
                         right: Box::new(self.parse_multiplication(meta)?),
@@ -176,7 +196,7 @@ impl Expr {
                 },
                 "-" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Sub {
+                    node = parse_operator!(meta, start_index, Sub {
                         left: Box::new(node),
                         right: Box::new(self.parse_multiplication(meta)?)
                     });
@@ -188,26 +208,27 @@ impl Expr {
     }
 
     fn parse_multiplication(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_advanced(meta)?;
         loop {
             match meta.get_current_token().map_or_else(String::new, |tok| tok.word).as_str() {
                 "*" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Mul {
+                    node = parse_operator!(meta, start_index, Mul {
                         left: Box::new(node),
                         right: Box::new(self.parse_advanced(meta)?)
                     });
                 },
                 "/" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Div {
+                    node = parse_operator!(meta, start_index, Div {
                         left: Box::new(node),
                         right: Box::new(self.parse_advanced(meta)?)
                     });
                 },
                 "%" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Modulo {
+                    node = parse_operator!(meta, start_index, Modulo {
                         left: Box::new(node),
                         right: Box::new(self.parse_advanced(meta)?)
                     });
@@ -219,19 +240,20 @@ impl Expr {
     }
 
     fn parse_advanced(&self, meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        let start_index = meta.get_index();
         let mut node = self.parse_non_operators(meta)?;
         loop {
             match meta.get_current_token().map_or_else(String::new, |tok| tok.word).as_str() {
                 "is" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Is {
+                    node = parse_operator!(meta, start_index, Is {
                         expr: Box::new(node),
                         kind: parse_type(meta)?
                     });
                 },
                 "as" => {
                     meta.increment_index();
-                    node = parse_operator!(meta, Cast {
+                    node = parse_operator!(meta, start_index, Cast {
                         expr: Box::new(node),
                         kind: parse_type(meta)?
                     });

@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{utils::metadata::ParserMetadata, modules::types::{Type, Typed}};
+use crate::utils::metadata::ParserMetadata;
 use super::super::expression::expr::Expr;
 
 pub mod add;
@@ -17,74 +17,39 @@ pub mod eq;
 pub mod neq;
 pub mod is;
 pub mod cast;
+pub mod range;
 
-pub fn expression_arms_of_type(meta: &ParserMetadata, left: &Type, right: &Type, predicate: impl Fn(Type) -> bool, tok_pos: Option<Token>, message: &str) -> Result<Type, Failure> {
-    if left == right && [left, right].iter().all(|kind| predicate((*kind).clone())) {
-        Ok(left.clone())
-    } else {
-        error!(meta, tok_pos, message)
-    }
-}
-
-pub fn expression_arms_of_same_type(meta: &ParserMetadata, left: &Expr, right: &Expr, tok_pos: Option<Token>, message: &str) -> SyntaxResult {
-    if left.get_type() != right.get_type() {
-        error!(meta, tok_pos, message)
-    } else {
-        Ok(())
-    }
-}
-
-pub fn parse_left_expr(meta: &mut ParserMetadata, module: &mut Expr, op: &str) -> Result<usize, Failure> {
-    // Save left border and run binop left cut border check
-    let old_border = meta.binop_border;
-    let new_border = binop_left_cut(meta, op)?;
-    meta.binop_border = Some(new_border);
-    // Parse the left expression
-    if let Err(err) = syntax(meta, module) {
-        // Revert border back to the original
-        meta.binop_border = old_border;
-        return Err(err)
-    }
-    // Revert border back to the original
-    meta.binop_border = old_border;
-    Ok(new_border)
-}
-
-// Check if this binop can actually take place and return a new boundary for the left hand expression
-pub fn binop_left_cut(meta: &mut ParserMetadata, op: &str) -> Result<usize, Failure> {
-    let old_index = meta.get_index();
-    let mut parenthesis = 0;
-    while let Some(token) = meta.get_current_token() {
-        // If we were supposed to parse just a fraction
-        if let Some(border) = meta.binop_border {
-            if border <= meta.get_index() {
-                break
-            }
+#[macro_export]
+macro_rules! handle_binop {
+    ($meta:expr, $left:expr, $right:expr, $msg:expr, $($comment:ident,)? [$($type_match:pat),*]) => {{
+        let left_match = matches!($left.get_type(), $($type_match)|*);
+        let right_match = matches!($right.get_type(), $($type_match)|*);
+        if !left_match || !right_match || $left.get_type() != $right.get_type() {
+            let pos = crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            Err(Failure::Loud(Message::new_err_at_position($meta, pos)
+                .message($msg)
+                $(.comment($comment))?))
+        } else {
+            Ok($left.get_type())
         }
-        match token.word.as_str() {
-            "(" | "{" | "[" => parenthesis += 1,
-            ")" | "}" | "]" => parenthesis -= 1,
-            "\n" => break,
-            _ => {}
-        };
-        if parenthesis == 0 && op == token.word {
-            // Case when the operator is in the beginning of the line
-            if meta.get_index() > old_index {
-                let new_index = meta.get_index();
-                meta.set_index(old_index);
-                return Ok(new_index)
-            }
-            else {
-                let err = PositionInfo::from_metadata(meta);
-                meta.set_index(old_index);
-                return Err(Failure::Quiet(err))
-            }
+    }};
+
+    ($meta:expr, $left:expr, $right:expr, $msg:expr $(,$comment:ident)?) => {{
+        if $left.get_type() != $right.get_type() {
+            let pos = crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            Err(Failure::Loud(Message::new_err_at_position($meta, pos)
+                .message($msg)
+                $(.comment($comment))?))
+        } else {
+            Ok($left.get_type())
         }
-        meta.increment_index();
-    }
-    let err = PositionInfo::from_metadata(meta);
-    meta.set_index(old_index);
-    Err(Failure::Quiet(err))
+    }};
+}
+
+pub fn get_binop_position_info(meta: &ParserMetadata, left: &Expr, right: &Expr) -> PositionInfo {
+    let begin = meta.get_token_at(left.pos.0);
+    let end = meta.get_token_at(right.pos.1);
+    PositionInfo::from_between_tokens(meta, begin, end)
 }
 
 pub fn strip_text_quotes(text: &mut String) {

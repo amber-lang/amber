@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::{expr::Expr, binop::expression_arms_of_type};
+use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
 use crate::translate::compute::translate_computation_eval;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -32,16 +32,17 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let var_tok = meta.get_current_token();
         self.var = variable(meta, variable_name_extensions())?;
-        let tok = meta.get_current_token();
         token(meta, "+=")?;
         let variable = handle_variable_reference(meta, var_tok, &self.var)?;
         self.kind = variable.kind;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
-        self.expr.parse(meta)?;
-        let message = format!("Cannot add value of type '{}' with value of type '{}'", self.kind, self.expr.get_type());
-        let predicate = |kind| matches!(kind, Type::Num | Type::Text | Type::Array(_));
-        expression_arms_of_type(meta, &self.kind, &self.expr.get_type(), predicate, tok, &message)?;
+        syntax(meta, &mut *self.expr)?;
+        if self.kind != self.expr.get_type() || !matches!(self.kind, Type::Num | Type::Text | Type::Array(_)) {
+            let message = format!("Cannot add expression of type '{}' to a variable of type '{}'", self.expr.get_type(), self.kind);
+            let err = self.expr.get_error_message(meta).message(message);
+            return Err(Failure::Loud(err));
+        }
         Ok(())
     }
 }

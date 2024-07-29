@@ -1,13 +1,16 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{expression::{binop::{expression_arms_of_type, parse_left_expr}, expr::Expr}, types::{Type, Typed}}, translate::compute::{translate_computation, ArithOp}, utils::metadata::ParserMetadata};
+use crate::docs::module::DocumentationModule;
+use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
 #[derive(Debug, Clone)]
 pub struct Range {
-    from: Box<Expr>,
-    to: Box<Expr>,
-    neq: bool
+    pub from: Box<Expr>,
+    pub to: Box<Expr>,
+    pub neq: bool
 }
 
 impl Typed for Range {
@@ -28,16 +31,18 @@ impl SyntaxModule<ParserMetadata> for Range {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, self.from.as_mut(), "..")?;
-        let tok = meta.get_current_token();
-        token(meta, "..")?;
-        token(meta, "=").is_err().then(|| self.neq = true);
-        syntax(meta, self.to.as_mut())?;
-        let l_type = self.from.get_type();
-        let r_type = self.to.get_type();
-        let message = format!("Cannot create a range starting from value of type '{l_type}' up until value of type '{r_type}'");
-        let predicate = |kind| matches!(kind, Type::Num);
-        expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, &message)?;
+        if self.from.get_type() != Type::Num {
+            let l_type = self.from.get_type();
+            let err = self.from.get_error_message(meta)
+                .message(format!("Range can only work on type 'Num', but '{l_type}' was provided"));
+            return Err(Failure::Loud(err));
+        }
+        if self.to.get_type() != Type::Num {
+            let r_type = self.to.get_type();
+            let err = self.to.get_error_message(meta)
+                .message(format!("Range can only work on type 'Num', but '{r_type}' was provided"));
+            return Err(Failure::Loud(err));
+        }
         Ok(())
     }
 }

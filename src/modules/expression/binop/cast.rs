@@ -1,11 +1,15 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{expression::binop::parse_left_expr, types::{parse_type, Type, Typed}}, translate::module::TranslateModule, utils::{cc_flags::{get_ccflag_name, CCFlags}, metadata::ParserMetadata, TranslateMetadata}};
-use super::super::expr::Expr;
+use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::{docs::module::DocumentationModule, translate::module::TranslateModule};
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use crate::utils::metadata::ParserMetadata;
+use crate::utils::TranslateMetadata;
+use crate::modules::types::{AlreadyParsedType, Type, Typed};
 
 #[derive(Debug, Clone)]
 pub struct Cast {
-    pub expr: Box<Expr>,
-    pub kind: Type
+    pub expr: Box<AlreadyParsedExpr>,
+    pub kind: AlreadyParsedType
 }
 
 impl Typed for Cast {
@@ -19,21 +23,20 @@ impl SyntaxModule<ParserMetadata> for Cast {
 
     fn new() -> Self {
         Cast {
-            expr: Box::new(Expr::new()),
-            kind: Type::Generic
+            expr: Box::new(AlreadyParsedExpr::new()),
+            kind: AlreadyParsedType::Generic
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.expr, "as")?;
-        let tok = meta.get_current_token();
-        token(meta, "as")?;
-        self.kind = parse_type(meta)?;
+        let begin = meta.get_token_at(self.expr.pos.0);
+        let end = meta.get_current_token();
+        let pos = PositionInfo::from_between_tokens(meta, begin, end);
         if !meta.context.cc_flags.contains(&CCFlags::AllowAbsurdCast) {
             let flag_name = get_ccflag_name(CCFlags::AllowAbsurdCast);
             let l_type = self.expr.get_type();
             let r_type = self.kind.clone();
-            let message = Message::new_warn_at_token(meta, tok)
+            let message = Message::new_warn_at_position(meta, pos)
                 .message(format!("Casting a value of type '{l_type}' value to a '{r_type}' is not recommended"))
                 .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
             match (l_type, r_type) {

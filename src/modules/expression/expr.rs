@@ -9,7 +9,6 @@ use super::literal::{
     number::Number,
     text::Text,
     array::Array,
-    range::Range,
     null::Null,
     status::Status
 };
@@ -19,6 +18,7 @@ use super::binop::{
     mul::Mul,
     div::Div,
     modulo::Modulo,
+    range::Range,
     and::And,
     or::Or,
     gt::Gt,
@@ -81,7 +81,9 @@ pub type AlreadyParsedExpr = Expr;
 #[derive(Debug, Clone)]
 pub struct Expr {
     pub value: Option<ExprType>,
-    pub kind: Type
+    pub kind: Type,
+    /// Positions of the tokens enclosing the expression
+    pub pos: (usize, usize)
 }
 
 impl Typed for Expr {
@@ -91,6 +93,13 @@ impl Typed for Expr {
 }
 
 impl Expr {
+    pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
+        let begin = meta.get_token_at(self.pos.0);
+        let end = meta.get_token_at(self.pos.1);
+        let pos = PositionInfo::from_between_tokens(meta, begin, end);
+        Message::new_err_at_position(meta, pos)
+    }
+
     pub fn is_var(&self) -> bool {
         matches!(self.value, Some(ExprType::VariableGet(_)))
     }
@@ -110,7 +119,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
     fn new() -> Self {
         Expr {
             value: None,
-            kind: Type::Null
+            kind: Type::Null,
+            pos: (0, 0)
         }
     }
 
@@ -118,6 +128,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
         let result = self.parse_expression(meta)?;
         self.value = result.value;
         self.kind = result.kind;
+        self.pos = result.pos;
         Ok(())
     }
 }

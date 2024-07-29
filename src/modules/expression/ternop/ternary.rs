@@ -1,16 +1,16 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::expression::binop::get_binop_position_info;
 use crate::modules::types::{Type, Typed};
-use crate::modules::expression::binop::{parse_left_expr, expression_arms_of_same_type};
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::AlreadyParsedExpr;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Ternary {
-    pub cond: Box<Expr>,
-    pub true_expr: Box<Expr>,
-    pub false_expr: Box<Expr>
+    pub cond: Box<AlreadyParsedExpr>,
+    pub true_expr: Box<AlreadyParsedExpr>,
+    pub false_expr: Box<AlreadyParsedExpr>
 }
 
 impl Typed for Ternary {
@@ -24,28 +24,28 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 
     fn new() -> Self {
         Ternary {
-            cond: Box::new(Expr::new()),
-            true_expr: Box::new(Expr::new()),
-            false_expr: Box::new(Expr::new())
+            cond: Box::new(AlreadyParsedExpr::new()),
+            true_expr: Box::new(AlreadyParsedExpr::new()),
+            false_expr: Box::new(AlreadyParsedExpr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.cond, "then")?;
-        let tok = meta.get_current_token();
-        token(meta, "then")?;
-        match parse_left_expr(meta, &mut self.true_expr, "else") {
-            Ok(_) => {
-                token(meta, "else")?;
-                syntax(meta, &mut *self.false_expr)?;
-                // Return an error if the arms are not of the same type
-                let error = "Ternary operation can only be used on arguments of the same type";
-                expression_arms_of_same_type(meta, &self.true_expr, &self.false_expr, tok, error)
-            }
-            Err(_) => {
-                error!(meta, tok, "Expected 'else' after 'then' in ternary expression")
-            }
+        if self.cond.get_type() != Type::Bool {
+            let msg = self.cond.get_error_message(meta)
+                .message("Expected boolean expression in ternary condition");
+            return Err(Failure::Loud(msg));
         }
+        if self.true_expr.get_type() != self.false_expr.get_type() {
+            let pos = get_binop_position_info(meta, &self.true_expr, &self.false_expr);
+            let msg = Message::new_err_at_position(meta, pos)
+                .message("Ternary operation can only be used on arguments of the same type")
+                .comment(format!("Provided branches of type '{}' and '{}'.",
+                    self.true_expr.get_type(),
+                    self.false_expr.get_type()));
+            return Err(Failure::Loud(msg));
+        }
+        Ok(())
     }
 }
 

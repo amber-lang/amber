@@ -1,15 +1,16 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::handle_binop;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::expression::expr::AlreadyParsedExpr;
 use crate::translate::module::TranslateModule;
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_same_type};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Or {
-    pub left: Box<Expr>,
-    pub right: Box<Expr>
+    pub left: Box<AlreadyParsedExpr>,
+    pub right: Box<AlreadyParsedExpr>
 }
 
 impl Typed for Or {
@@ -23,18 +24,14 @@ impl SyntaxModule<ParserMetadata> for Or {
 
     fn new() -> Self {
         Or {
-            left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            left: Box::new(AlreadyParsedExpr::new()),
+            right: Box::new(AlreadyParsedExpr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "or")?;
-        let tok = meta.get_current_token();
-        token(meta, "or")?;
-        syntax(meta, &mut *self.right)?;
-        let error = "Logical or operation can only be used on arguments of the same type";
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error)?;
+        let error = "Logical 'or' operation can only be used on arguments of the same type";
+        handle_binop!(meta, self.left, self.right, error)?;
         Ok(())
     }
 }
