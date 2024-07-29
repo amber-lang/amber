@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::command::command::Command;
+use crate::modules::command::cmd::Command;
 use crate::modules::types::{parse_type, Typed};
 use crate::utils::ParserMetadata;
 use super::expr::{Expr, ExprType};
