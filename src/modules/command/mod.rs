@@ -1,2 +1,2 @@
-pub mod command;
+pub mod cmd;
 pub mod modifier;

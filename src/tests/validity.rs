@@ -1,11 +1,11 @@
 #![cfg(test)]
 extern crate test_generator;
-use test_generator::test_resources;
 use crate::compiler::AmberCompiler;
 use crate::test_amber;
 use crate::Cli;
 use std::fs;
 use std::path::Path;
+use test_generator::test_resources;
 
 /*
  * Autoload the Amber test files for validity and match the output with the output.txt file
@@ -22,23 +22,22 @@ fn validity_test(input: &str) {
             is_output = true;
             continue;
         } else if line.is_empty() && is_output {
-            is_output = false;
             break;
         }
 
         if is_output {
-            if ! output.is_empty() {
-                output.push_str("\n");
+            if !output.is_empty() {
+                output.push('\n');
             }
-            output.push_str(&line.replace("//", "").trim());
+            output.push_str(line.replace("//", "").trim());
         }
     }
 
     if output.is_empty() {
         output = match Path::new(&input.replace(".ab", ".output.txt")).exists() {
             true => fs::read_to_string(input.replace(".ab", ".output.txt"))
-                .expect(&format!("Failed to open {input}.output.txt file")),
-            _ => "Succeded".to_string()
+                .unwrap_or_else(|_| panic!("Failed to open {input}.output.txt file")),
+            _ => "Succeded".to_string(),
         };
     }
 
