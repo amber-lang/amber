@@ -89,7 +89,7 @@ pub fun reverse(text: Text): Text {
 }
 
 /// Check if text starts with a value
-pub fun is_prefix(text: Text, prefix: Text): Bool {
+pub fun starts_with(text: Text, prefix: Text): Bool {
   let result = unsafe $if [[ "{text}" == "{prefix}"* ]]; then
     echo 1
   fi$
@@ -98,7 +98,7 @@ pub fun is_prefix(text: Text, prefix: Text): Bool {
 }
 
 /// Check if text ends with a value
-pub fun is_suffix(text: Text, suffix: Text): Bool {
+pub fun ends_with(text: Text, suffix: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{suffix}" ]]; then
     echo 1
   fi$

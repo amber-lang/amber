@@ -1,7 +1,7 @@
 import * from "std/text"
 
 main {
-    if is_suffix("hello world", "world") {
+    if starts_with("hello world", "hello") {
         echo "Succeded"
     } 
 } 
