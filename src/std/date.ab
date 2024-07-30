@@ -59,7 +59,7 @@
 /// +      pad with zeros, and put '+' before future years with >4 digits
 /// ^      use upper case if possible
 /// #      use opposite case if possible
-pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text {
+pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text? {
     if format == "": format = "%FT%T%Z"
     if date == "": date = unsafe $date +"%FT%T%Z"$
     if (utc) {
@@ -87,7 +87,7 @@ pub fun now(): Num {
 /// hours
 /// minutes
 /// seconds
-pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text {
+pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text? {
     if date == "": date = unsafe $date +"%FT%T%Z"$
     return date_posix("", "{date_posix("%F", date, utc)?} {add} {date_posix("%T", date, utc)?}", utc)?
 }
@@ -99,7 +99,7 @@ pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text {
 // Return -1 if date_b is after date_a
 // If date_b is not provided, current date will be used
 #[allow_absurd_cast]
-pub fun date_compare(date_a: Text, date_b: Text = "", utc: Bool = false): Num {
+pub fun date_compare(date_a: Text, date_b: Text = "", utc: Bool = false): Num? {
     if date_b == "": date_b = unsafe date_posix("", "", utc)
     let timestamp_a = date_posix("%s", date_a, utc)? as Num
     let timestamp_b = date_posix("%s", date_b, utc)? as Num
