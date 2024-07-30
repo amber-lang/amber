@@ -1,0 +1,7 @@
+import * from "std/text"
+
+main {
+    if is_prefix("hello world", "hello") {
+        echo "Succeded"
+    } 
+} 

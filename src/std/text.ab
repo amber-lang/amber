@@ -82,3 +82,26 @@ pub fun contains(text: Text, phrase: Text): Bool {
 
   return result == "1"
 }
+
+/// Reverse a text using `rev`
+pub fun reverse(text: Text): Text {
+    return unsafe $echo "{text}" | rev$
+}
+
+/// Check if text starts with a value
+pub fun is_prefix(text: Text, prefix: Text): Bool {
+  let result = unsafe $if [[ "{text}" == "{prefix}"* ]]; then
+    echo 1
+  fi$
+
+  return result == "1"
+}
+
+/// Check if text ends with a value
+pub fun is_suffix(text: Text, suffix: Text): Bool {
+  let result = unsafe $if [[ "{text}" == *"{suffix}" ]]; then
+    echo 1
+  fi$
+
+  return result == "1"
+}
