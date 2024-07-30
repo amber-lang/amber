@@ -91,7 +91,11 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
 impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
-        result.push(format!("if [ \"{}\" != 0 ]; then", self.expr.translate(meta)));
+        if self.expr.translate(meta).starts_with("\"") {
+            result.push(format!("if [ {} != 0 ]; then", self.expr.translate(meta)));
+        } else {
+            result.push(format!("if [ \"{}\" != 0 ]; then", self.expr.translate(meta)));
+        }
         result.push(self.true_block.translate(meta));
         if let Some(false_block) = &self.false_block {
             result.push("else".to_string());
