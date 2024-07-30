@@ -148,9 +148,13 @@ impl TranslateModule for FunctionInvocation {
             } else {
                 let translation = arg.translate_eval(meta, false);
                 // If the argument is an array, we have to get just the "name[@]" part
-                (translation.starts_with("\"${") && translation.ends_with("[@]}\""))
-                    .then(|| translation.get(3..translation.len() - 2).unwrap().to_string())
-                    .unwrap_or(translation)
+                if translation.starts_with("\"${") && translation.ends_with("[@]}\"") {
+                    translation.get(3..translation.len() - 2).unwrap().to_string()
+                } else if translation.starts_with("${") && translation.ends_with("}") {
+                    format!("\"{}\"", translation)
+                } else {
+                    translation
+                }
             }
         }).collect::<Vec<String>>().join(" ");
 
