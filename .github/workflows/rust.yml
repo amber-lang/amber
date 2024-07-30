@@ -11,6 +11,13 @@ on:
       - Cargo.lock
       - rust-toolchain.toml
   pull_request:
+    paths:
+      - src/**
+      - test_files/**
+      - .cargo/**
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
 
 env:
   CARGO_TERM_COLOR: always
