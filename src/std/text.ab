@@ -1,9 +1,9 @@
 pub fun replace_once(source, pattern, replacement) {
-    return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
+    return "\$\{source/{pattern}/{replacement}}"
 }
 
 pub fun replace(source, pattern, replacement) {
-    return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
+    return "\$\{source//{pattern}/{replacement}}"
 }
 
 pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
