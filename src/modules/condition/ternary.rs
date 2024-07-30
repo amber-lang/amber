@@ -54,7 +54,7 @@ impl TranslateModule for Ternary {
         let cond = self.cond.translate(meta);
         let true_expr = self.true_expr.translate(meta);
         let false_expr = self.false_expr.translate(meta);
-        meta.gen_subprocess(&format!("if [ {} != 0 ]; then echo {}; else echo {}; fi", cond, true_expr, false_expr))
+        meta.gen_subprocess(&format!("if [ \"{}\" != 0 ]; then echo {}; else echo {}; fi", cond, true_expr, false_expr))
     }
 }
 

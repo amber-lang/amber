@@ -82,11 +82,11 @@ impl TranslateModule for IfChain {
         let mut is_first = true;
         for (cond, block) in self.cond_blocks.iter() {
             if is_first {
-                result.push(format!("if [ {} != 0 ]; then", cond.translate(meta)));
+                result.push(format!("if [ \"{}\" != 0 ]; then", cond.translate(meta)));
                 result.push(block.translate(meta));
                 is_first = false;
             } else {
-                result.push(format!("elif [ {} != 0 ]; then", cond.translate(meta)));
+                result.push(format!("elif [ \"{}\" != 0 ]; then", cond.translate(meta)));
                 result.push(block.translate(meta));
             }
         }
