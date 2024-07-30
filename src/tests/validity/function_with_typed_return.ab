@@ -1,0 +1,5 @@
+pub fun test(): Text {
+    return "Succeded"
+}
+
+echo test()

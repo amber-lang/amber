@@ -3,6 +3,7 @@ use crate::Cli;
 
 pub mod cli;
 pub mod formatter;
+pub mod errors;
 pub mod stdlib;
 pub mod validity;
 
