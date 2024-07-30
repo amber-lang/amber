@@ -3,6 +3,13 @@ name: Cargo & Clippy Test
 on:
   push:
     branches: [master]
+    paths:
+      - src/**
+      - test_files/**
+      - .cargo/**
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
   pull_request:
 
 env:
