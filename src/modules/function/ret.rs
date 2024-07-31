@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Return {
                 types @ (Some(Type::Failable(_)), Type::Failable(_)) => types,
                 (Some(Type::Failable(ret_type)), expr_type) => (Some(ret_type.as_ref()), expr_type),
                 (Some(ret_type), Type::Failable(expr_type)) => (Some(ret_type), expr_type.as_ref()),
-                types @ _ => types
+                types => types
         };
         match ret_type {
             Some(ret_type) => {
