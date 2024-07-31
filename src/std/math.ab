@@ -6,13 +6,13 @@ pub fun sum(list: [Num]): Num {
 /// Returns the number rounded to the nearest integer
 #[allow_absurd_cast]
 pub fun round(number: Num): Num {
-    return unsafe $printf "%0.f" {number}$ as Num
+    return unsafe $printf "%0.f" "{number}"$ as Num
 }
 
 /// Returns the largest integer less than or equal to the number
 #[allow_absurd_cast]
 pub fun floor(number: Num): Num {
-    return unsafe $echo {number} | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}'$ as Num
+    return unsafe $echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}'$ as Num
 }
 
 /// Returns the smallest integer greater than or equal to the number
