@@ -126,6 +126,10 @@ impl PostProcessor {
         shfmt.cmd().arg("-i").arg("4");
         shfmt.cmd().arg("-ln").arg("bash");
         postprocessors.insert("shfmt", shfmt);
+        
+        let bshchk = PostProcessor::new_stdin_stdout("bshchk", "/usr/bin/bshchk");
+        bshchk.cmd().arg("--ignore-shebang");
+        postprocessors.insert("bshchk", bshchk);
 
         for postprocessor in cli.disable_postprocessors.iter() {
             postprocessors.remove(postprocessor.as_str());

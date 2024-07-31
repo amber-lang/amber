@@ -38,7 +38,7 @@ pub struct Cli {
     docs: bool,
 
     /// Disabled postprocessors
-    #[arg(help = "Disable postprocessor(s)\nPossible values: shfmt\nPass values separated by comma", long)]
+    #[arg(help = "Disable postprocessor(s)\nPossible values: shfmt, bshchk\nPass values separated by comma", long)]
     disable_postprocessors: Vec<String>,
 }
 
