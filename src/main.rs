@@ -37,9 +37,9 @@ pub struct Cli {
     #[arg(long)]
     docs: bool,
 
-    /// Don't format the output file
-    #[arg(long)]
-    disable_format: bool,
+    /// Disabled postprocessors
+    #[arg(help = "Disable postprocessor(s)\nPossible values: shfmt\nPass values separated by comma", long)]
+    disable_postprocessors: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

@@ -1,11 +1,11 @@
 extern crate chrono;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
-use crate::modules::formatter::BashFormatter;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
+use postprocess::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
@@ -17,6 +17,8 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
+
+pub mod postprocess;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
@@ -168,22 +170,19 @@ impl AmberCompiler {
 
         let mut res = result.join("\n");
 
-        if !self.cli_opts.disable_format {
-            if let Some(formatter) = BashFormatter::get_available() {
-                res = formatter.format(res);
-            }
+        let postprocessors = PostProcessor::get_default(self.cli_opts.clone());
+
+        for postprocessor in postprocessors {
+            res = postprocessor.clone().execute(res);
         }
 
-        let header = [
-            include_str!("header.sh"),
-            &("# version: ".to_owned() + env!("CARGO_PKG_VERSION").to_string().as_str()),
-            &("# date: ".to_owned()
-                + Local::now()
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-                    .as_str()),
-        ]
-        .join("\n");
+        let header = include_str!("header.sh")
+            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+            .replace("{{ date }}", Local::now()
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string()
+                .as_str()
+            );
         format!("{}\n{}", header, res)
     }
 
