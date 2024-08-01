@@ -1,0 +1,10 @@
+import * from "std/text"
+
+// Output
+// bba 
+// aaa
+
+main {
+    echo lpad("a", "b", 3); 
+    echo lpad("aaa", "b", 3); 
+}
