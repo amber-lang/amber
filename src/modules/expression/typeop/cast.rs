@@ -6,6 +6,8 @@ use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
 use crate::modules::types::{Type, Typed};
 
+use super::TypeOp;
+
 #[derive(Debug, Clone)]
 pub struct Cast {
     pub expr: Box<Expr>,
@@ -15,6 +17,21 @@ pub struct Cast {
 impl Typed for Cast {
     fn get_type(&self) -> Type {
         self.kind.clone()
+    }
+}
+
+impl TypeOp for Cast {
+    fn set_left(&mut self, left: Expr) {
+        self.expr = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Type) {
+        self.kind = right;
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "as")?;
+        Ok(())
     }
 }
 

@@ -5,6 +5,8 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
+use super::TypeOp;
+
 #[derive(Debug, Clone)]
 pub struct Is {
     pub expr: Box<Expr>,
@@ -14,6 +16,21 @@ pub struct Is {
 impl Typed for Is {
     fn get_type(&self) -> Type {
         Type::Bool
+    }
+}
+
+impl TypeOp for Is {
+    fn set_left(&mut self, left: Expr) {
+        self.expr = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Type) {
+        self.kind = right;
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "is")?;
+        Ok(())
     }
 }
 

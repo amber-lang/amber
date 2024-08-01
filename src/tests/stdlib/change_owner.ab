@@ -13,6 +13,5 @@ main {
     } else {
         echo "File {tmpdir}/amber-symbolic not exists"
     }
-    echo tmpdir
-    // unsafe $rm {tmpdir}/amber-symbolic$
+    unsafe $rm {tmpdir}/amber-symbolic$
 }

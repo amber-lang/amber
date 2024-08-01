@@ -30,7 +30,7 @@ impl BinOp for Eq {
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "=")?;
+        token(meta, "==")?;
         Ok(())
     }
 }

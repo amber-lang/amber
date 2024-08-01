@@ -5,6 +5,10 @@ use crate::modules::expression::binop::BinOp;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::expression::typeop::TypeOp;
+use crate::modules::expression::ternop::TernOp;
+use crate::modules::expression::unop::UnOp;
+use crate::modules::types::parse_type;
 use super::literal::{
     bool::Bool,
     number::Number,
@@ -126,9 +130,25 @@ impl SyntaxModule<ParserMetadata> for Expr {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let result = parse_expr!(meta, [
+            ternary @ TernOp => [ Ternary ],
+            range @ BinOp => [ Range ],
+            or @ BinOp => [ Or ],
+            and @ BinOp => [ And ],
+            equality @ BinOp => [ Eq, Neq ],
+            relation @ BinOp => [ Gt, Ge, Lt, Le ],
             addition @ BinOp => [ Add, Sub ],
-            multiplication @ BinOp => [ Mul, Div ],
-            literals @ Literal => [ Number, Text ]
+            multiplication @ BinOp => [ Mul, Div, Modulo ],
+            types @ TypeOp => [ Is, Cast ],
+            unops @ UnOp => [ Neg, Not ],
+            literals @ Literal => [
+                // Literals
+                Parentheses, Bool, Number, Text,
+                Array, Null, Nameof, Status,
+                // Function invocation
+                FunctionInvocation, Command,
+                // Variable access
+                VariableGet
+            ]
         ]);
         *self = result;
         Ok(())
@@ -146,10 +166,12 @@ impl TranslateModule for Expr {
             Gt, Ge, Lt, Le, Eq, Neq,
             // Arithmetic operators
             Add, Sub, Mul, Div, Modulo,
+            // Binary operators
+            Range, Cast, Is,
             // Unary operators
-            Cast, Not, Neg, Nameof, Is,
+            Not, Neg, Nameof,
             // Literals
-            Range, Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text, Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -169,10 +191,12 @@ impl DocumentationModule for Expr {
             Gt, Ge, Lt, Le, Eq, Neq,
             // Arithmetic operators
             Add, Sub, Mul, Div, Modulo,
+            // Binary operators
+            Range, Cast, Is,
             // Unary operators
-            Cast, Not, Neg, Nameof, Is,
+            Not, Neg, Nameof,
             // Literals
-            Range, Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text, Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access

@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
-use super::super::expr::Expr;
+use super::{super::expr::Expr, UnOp};
 use crate::docs::module::DocumentationModule;
 
 #[derive(Debug, Clone)]
@@ -14,6 +14,17 @@ impl Typed for Neg {
     }
 }
 
+impl UnOp for Neg {
+    fn set_expr(&mut self, expr: Expr) {
+        self.expr = Box::new(expr);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "-")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Neg {
     syntax_name!("Neg");
 
@@ -24,11 +35,10 @@ impl SyntaxModule<ParserMetadata> for Neg {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "-")?;
-        let tok = meta.get_current_token();
-        syntax(meta, &mut *self.expr)?;
-        if ! matches!(self.expr.get_type(), Type::Num) {
-            return error!(meta, tok, "Only numbers can be negated");
+        if !matches!(self.expr.get_type(), Type::Num) {
+            let msg = self.expr.get_error_message(meta)
+                .message("Only numbers can be negated");
+            return Err(Failure::Loud(msg));
         }
         Ok(())
     }

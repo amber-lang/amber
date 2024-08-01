@@ -53,7 +53,7 @@ macro_rules! parse_expr_group {
                 match module.parse_operator($meta) {
                     Ok(()) => {
                         module.set_left(node);
-                        module.set_right(parse_type(meta)?);
+                        module.set_right(parse_type($meta)?);
                         syntax($meta, &mut module)?;
                         let end_index = $meta.get_index();
                         node = Expr {
@@ -81,7 +81,7 @@ macro_rules! parse_expr_group {
                 match module.parse_operator_left($meta) {
                     Ok(()) => {
                         module.set_left(node);
-                        let mut middle = $cur($meta)?;
+                        let middle = $cur($meta)?;
                         module.parse_operator_right($meta)?;
                         module.set_middle(middle);
                         module.set_right($cur($meta)?);
@@ -100,6 +100,28 @@ macro_rules! parse_expr_group {
             break
         }
         Ok(node)
+    }};
+
+    // Group type that handles Literals. Use this group as the last one in the precedence order
+    (@internal ({$cur:ident, $prev:ident}, $meta:expr, UnOp => [$($cur_modules:ident),+])) => {{
+        let start_index = $meta.get_index();
+        $({
+            let mut module = $cur_modules::new();
+            match module.parse_operator($meta) {
+                Ok(()) => {
+                    module.set_expr($cur($meta)?);
+                    syntax($meta, &mut module)?;
+                    return Ok(Expr {
+                        kind: module.get_type(),
+                        value: Some(ExprType::$cur_modules(module)),
+                        pos: (start_index, $meta.get_index())
+                    })
+                },
+                Err(Failure::Quiet(_)) => {},
+                Err(Failure::Loud(err)) => return Err(Failure::Loud(err))
+            }
+        })*
+        $prev($meta)
     }};
 
     // Group type that handles Literals. Use this group as the last one in the precedence order
@@ -128,23 +150,23 @@ macro_rules! parse_expr {
         $cur_name:ident @ $cur_type:ident => [$($cur_modules:ident),*],
         $prev_name:ident @ $prev_type:ident => [$($prev_modules:ident),*]
     )) => {
-        let _terminal = |_meta: &mut ParserMetadata| -> Result<Expr, Failure> {
+        fn _terminal(_meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             panic!("Please create a group that ends precedence recurrence");
-        };
+        }
 
-        let $prev_name = |meta: &mut ParserMetadata| -> Result<Expr, Failure> {
+        fn $prev_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             parse_expr_group!(@internal (
                 {$prev_name, _terminal},
                 meta, $prev_type => [$($prev_modules),*]
             ))
-        };
+        }
 
-        let $cur_name = |meta: &mut ParserMetadata| -> Result<Expr, Failure> {
+        fn $cur_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             parse_expr_group!(@internal (
                 {$cur_name, $prev_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
-        };
+        }
     };
 
     // Recursive step: Current, previous and the rest
@@ -158,12 +180,12 @@ macro_rules! parse_expr {
             $($rest_name @ $rest_type => [$($rest_modules),*]),*)
         );
 
-        let $cur_name = |meta: &mut ParserMetadata| -> Result<Expr, Failure> {
+        fn $cur_name (meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             parse_expr_group!(@internal (
                 {$cur_name, $prev_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
-        };
+        }
     };
 
     // Public interface:

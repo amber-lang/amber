@@ -4,6 +4,7 @@ use crate::translate::{compute::{translate_computation, ArithOp}, module::Transl
 use crate::modules::types::{Type, Typed};
 use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
+use super::UnOp;
 
 #[derive(Debug, Clone)]
 pub struct Not {
@@ -16,6 +17,17 @@ impl Typed for Not {
     }
 }
 
+impl UnOp for Not {
+    fn set_expr(&mut self, expr: Expr) {
+        self.expr = Box::new(expr);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "not")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Not {
     syntax_name!("Not");
 
@@ -25,9 +37,7 @@ impl SyntaxModule<ParserMetadata> for Not {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "not")?;
-        syntax(meta, &mut *self.expr)?;
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         Ok(())
     }
 }
