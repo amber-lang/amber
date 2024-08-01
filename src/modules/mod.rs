@@ -1,17 +1,17 @@
+pub mod statement;
+pub mod expression;
 pub mod block;
-pub mod builtin;
+pub mod variable;
 pub mod command;
 pub mod condition;
-pub mod expression;
-pub mod formatter;
-pub mod function;
-pub mod imports;
-pub mod loops;
-pub mod main;
 pub mod shorthand;
-pub mod statement;
+pub mod loops;
+pub mod function;
 pub mod types;
-pub mod variable;
+pub mod imports;
+pub mod main;
+pub mod builtin;
+pub mod formatter;
 
 #[macro_export]
 macro_rules! handle_types {

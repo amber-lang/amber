@@ -1,6 +1,8 @@
-use super::{context::FunctionDecl, function_cache::FunctionInstance};
+use crate::modules::{types::Type, block::Block};
 use crate::modules::expression::expr::Expr;
-use crate::modules::{block::Block, types::Type};
+use super::{context::FunctionDecl, function_cache::FunctionInstance};
+
+
 
 #[derive(Clone, Debug)]
 pub struct FunctionInterface {
@@ -9,7 +11,7 @@ pub struct FunctionInterface {
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
     pub arg_refs: Vec<bool>,
-    pub arg_optionals: Vec<Expr>,
+    pub arg_optionals : Vec<Expr>,
     pub returns: Type,
     pub is_public: bool,
     pub is_failable: bool,
@@ -28,7 +30,7 @@ impl FunctionInterface {
             is_args_typed,
             is_public: self.is_public,
             is_failable: self.is_failable,
-            id,
+            id
         }
     }
 
@@ -37,7 +39,7 @@ impl FunctionInterface {
             variant_id: 0,
             args: self.arg_types,
             returns: self.returns,
-            block,
+            block
         }
     }
 }

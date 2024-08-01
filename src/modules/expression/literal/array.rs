@@ -1,19 +1,12 @@
+use heraclitus_compiler::prelude::*;
+use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{try_parse_type, Type, Typed}}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
-use crate::{
-    docs::module::DocumentationModule,
-    modules::{
-        expression::expr::Expr,
-        types::{try_parse_type, Type, Typed},
-    },
-    utils::metadata::ParserMetadata,
-};
-use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Array {
     exprs: Vec<Expr>,
-    kind: Type,
+    kind: Type
 }
 
 impl Typed for Array {
@@ -28,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Array {
     fn new() -> Self {
         Array {
             exprs: vec![],
-            kind: Type::Null,
+            kind: Type::Null
         }
     }
 
@@ -36,35 +29,26 @@ impl SyntaxModule<ParserMetadata> for Array {
         token(meta, "[")?;
         let tok = meta.get_current_token();
         if token(meta, "]").is_ok() {
-            return error!(
-                meta,
-                tok,
-                "Expected array type or value before ']'",
-                "Eg. insert 'Num' for empty array or '1, 2, 3' for array with values"
-            );
+            return error!(meta, tok, "Expected array type or value before ']'", "Eg. insert 'Num' for empty array or '1, 2, 3' for array with values")
         }
         // Try to parse array type
         match try_parse_type(meta) {
             Ok(kind) => {
                 if matches!(kind, Type::Array(_)) {
-                    return error!(
-                        meta,
-                        tok, "Arrays cannot be nested due to the Bash limitations"
-                    );
+                    return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
                 }
                 self.kind = Type::Array(Box::new(kind));
                 token(meta, "]")?;
-            }
-            Err(Failure::Loud(err)) => return Err(Failure::Loud(err)),
+            },
+            Err(Failure::Loud(err)) => {
+                return Err(Failure::Loud(err))
+            },
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
                     let tok = meta.get_current_token();
                     if token(meta, "[").is_ok() {
-                        return error!(
-                            meta,
-                            tok, "Arrays cannot be nested due to the Bash limitations"
-                        );
+                        return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
                     }
                     if token(meta, "]").is_ok() {
                         break;
@@ -76,14 +60,10 @@ impl SyntaxModule<ParserMetadata> for Array {
                         Type::Null => self.kind = Type::Array(Box::new(value.get_type())),
                         Type::Array(ref mut kind) => {
                             if value.get_type() != **kind {
-                                return error!(
-                                    meta,
-                                    tok,
-                                    format!("Expected array value of type '{kind}'")
-                                );
+                                return error!(meta, tok, format!("Expected array value of type '{kind}'"))
                             }
-                        }
-                        _ => (),
+                        },
+                        _ => ()
                     }
                     let tok = meta.get_current_token();
                     if token(meta, "]").is_ok() {
@@ -105,12 +85,7 @@ impl SyntaxModule<ParserMetadata> for Array {
 impl TranslateModule for Array {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = format!("__AMBER_ARRAY_{}", meta.gen_array_id());
-        let args = self
-            .exprs
-            .iter()
-            .map(|expr| expr.translate_eval(meta, false))
-            .collect::<Vec<String>>()
-            .join(" ");
+        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<String>>().join(" ");
         let quote = meta.gen_quote();
         let dollar = meta.gen_dollar();
         meta.stmt_queue.push_back(format!("{name}=({args})"));

@@ -1,8 +1,8 @@
-pub mod binop;
-pub mod expr;
 pub mod literal;
-pub mod macros;
+pub mod expr;
 pub mod parentheses;
 pub mod ternop;
-pub mod typeop;
+pub mod binop;
 pub mod unop;
+pub mod typeop;
+pub mod macros;

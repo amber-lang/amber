@@ -1,11 +1,11 @@
+use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
 use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use heraclitus_compiler::prelude::*;
+use crate::translate::module::TranslateModule;
+use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
 
@@ -13,7 +13,7 @@ use super::BinOp;
 pub struct Add {
     pub left: Box<Expr>,
     pub right: Box<Expr>,
-    pub kind: Type,
+    pub kind: Type
 }
 
 impl Typed for Add {
@@ -44,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Add {
         Add {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
-            kind: Type::default(),
+            kind: Type::default()
         }
     }
 
@@ -55,14 +55,11 @@ impl SyntaxModule<ParserMetadata> for Add {
             format!("Cannot add value of type '{l_type}' with value of type '{r_type}'")
         };
         let comment = "You can only add values of type 'Num', 'Text' or 'Array' together.";
-        self.kind = handle_binop!(
-            meta,
-            self.left,
-            self.right,
-            message,
-            comment,
-            [Type::Num, Type::Text, Type::Array(_)]
-        )?;
+        self.kind = handle_binop!(meta, self.left, self.right, message, comment, [
+            Type::Num,
+            Type::Text,
+            Type::Array(_)
+        ])?;
         Ok(())
     }
 }
@@ -75,12 +72,11 @@ impl TranslateModule for Add {
         match self.kind {
             Type::Array(_) => {
                 let id = meta.gen_array_id();
-                meta.stmt_queue
-                    .push_back(format!("__AMBER_ARRAY_ADD_{id}=({left} {right})"));
+                meta.stmt_queue.push_back(format!("__AMBER_ARRAY_ADD_{id}=({left} {right})"));
                 format!("{quote}${{__AMBER_ARRAY_ADD_{id}[@]}}{quote}")
-            }
+            },
             Type::Text => format!("{}{}", left, right),
-            _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right)),
+            _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
         }
     }
 }

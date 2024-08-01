@@ -1,18 +1,18 @@
-use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Type, Typed};
-use crate::translate::compute::translate_computation;
-use crate::translate::compute::ArithOp;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::ParserMetadata;
-use crate::{docs::module::DocumentationModule, handle_binop, utils::TranslateMetadata};
 use heraclitus_compiler::prelude::*;
+use crate::{docs::module::DocumentationModule, handle_binop, utils::TranslateMetadata};
+use crate::modules::expression::expr::Expr;
+use crate::translate::compute::ArithOp;
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::translate_computation;
+use crate::modules::types::{Typed, Type};
+use crate::translate::module::TranslateModule;
 
 use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Div {
     pub left: Box<Expr>,
-    pub right: Box<Expr>,
+    pub right: Box<Expr>
 }
 
 impl Typed for Div {
@@ -38,11 +38,11 @@ impl BinOp for Div {
 
 impl SyntaxModule<ParserMetadata> for Div {
     syntax_name!("Div");
-
+    
     fn new() -> Self {
         Div {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new()),
+            right: Box::new(Expr::new())
         }
     }
 

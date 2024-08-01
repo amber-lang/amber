@@ -33,7 +33,7 @@ pub struct Cli {
     eval: Option<String>,
 
     /// Generate docs
-    /// (OUTPUT is dir instead, default: `docs/`)
+    /// (OUTPUT is dir instead, default: `docs/`) 
     #[arg(long)]
     docs: bool,
 

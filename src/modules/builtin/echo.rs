@@ -1,12 +1,12 @@
+use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Echo {
-    value: Box<Expr>,
+    value: Box<Expr>
 }
 
 impl SyntaxModule<ParserMetadata> for Echo {
@@ -14,7 +14,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
 
     fn new() -> Self {
         Echo {
-            value: Box::new(Expr::new()),
+            value: Box::new(Expr::new())
         }
     }
 

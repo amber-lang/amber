@@ -1,9 +1,9 @@
-use super::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
-use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Type, Typed};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
+use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
+use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct VariableSet {
@@ -11,7 +11,7 @@ pub struct VariableSet {
     value: Box<Expr>,
     global_id: Option<usize>,
     index: Option<Expr>,
-    is_ref: bool,
+    is_ref: bool
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -23,7 +23,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
             value: Box::new(Expr::new()),
             global_id: None,
             index: None,
-            is_ref: false,
+            is_ref: false
         }
     }
 
@@ -49,13 +49,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
             if let Type::Array(kind) = variable.kind.clone() {
                 if *kind != self.value.get_type() {
                     let right_type = self.value.get_type();
-                    return error!(
-                        meta,
-                        tok,
-                        format!(
-                            "Cannot assign value of type '{right_type}' to an array of '{kind}'"
-                        )
-                    );
+                    return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
             }
         }
@@ -70,20 +64,12 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.name.clone();
-        let index = self
-            .index
-            .as_ref()
-            .map(|index| {
-                format!(
-                    "[{}]",
-                    self.is_ref
-                        .then(|| index.translate_eval(meta, true))
-                        .unwrap_or_else(|| index.translate(meta))
-                )
-            })
+        let index = self.index.as_ref()
+            .map(|index| format!("[{}]", self.is_ref
+                .then(|| index.translate_eval(meta, true))
+                .unwrap_or_else(|| index.translate(meta))))
             .unwrap_or_default();
-        let mut expr = self
-            .is_ref
+        let mut expr = self.is_ref
             .then(|| self.value.translate_eval(meta, true))
             .unwrap_or_else(|| self.value.translate(meta));
         if let Type::Array(_) = self.value.get_type() {
@@ -94,7 +80,7 @@ impl TranslateModule for VariableSet {
         } else {
             match self.global_id {
                 Some(id) => format!("__{id}_{name}{index}={expr}"),
-                None => format!("{name}{index}={expr}"),
+                None => format!("{name}{index}={expr}")
             }
         }
     }

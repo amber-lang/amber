@@ -1,9 +1,9 @@
-use super::expr::Expr;
-use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
+use crate::utils::ParserMetadata;
+use super::expr::Expr;
 
-pub mod neg;
 pub mod not;
+pub mod neg;
 
 pub trait UnOp: SyntaxModule<ParserMetadata> {
     fn set_expr(&mut self, expr: Expr);

@@ -1,18 +1,11 @@
+use heraclitus_compiler::prelude::*;
+use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
 use super::{super::expr::Expr, UnOp};
 use crate::docs::module::DocumentationModule;
-use crate::{
-    modules::types::{Type, Typed},
-    translate::{
-        compute::{translate_computation, ArithOp},
-        module::TranslateModule,
-    },
-    utils::{metadata::ParserMetadata, TranslateMetadata},
-};
-use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Neg {
-    expr: Box<Expr>,
+    expr: Box<Expr>
 }
 
 impl Typed for Neg {
@@ -37,15 +30,13 @@ impl SyntaxModule<ParserMetadata> for Neg {
 
     fn new() -> Self {
         Neg {
-            expr: Box::new(Expr::new()),
+            expr: Box::new(Expr::new())
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if !matches!(self.expr.get_type(), Type::Num) {
-            let msg = self
-                .expr
-                .get_error_message(meta)
+            let msg = self.expr.get_error_message(meta)
                 .message("Only numbers can be negated");
             return Err(Failure::Loud(msg));
         }

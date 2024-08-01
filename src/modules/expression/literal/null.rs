@@ -1,10 +1,6 @@
-use crate::translate::module::TranslateModule;
-use crate::{
-    docs::module::DocumentationModule,
-    modules::types::{Type, Typed},
-    utils::{ParserMetadata, TranslateMetadata},
-};
 use heraclitus_compiler::prelude::*;
+use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct Null {}

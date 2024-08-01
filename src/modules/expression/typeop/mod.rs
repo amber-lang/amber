@@ -1,9 +1,10 @@
-use super::expr::Expr;
-use crate::{modules::types::Type, utils::ParserMetadata};
 use heraclitus_compiler::prelude::*;
+use crate::{modules::types::Type, utils::ParserMetadata};
+use super::expr::Expr;
 
-pub mod cast;
 pub mod is;
+pub mod cast;
+
 
 pub trait TypeOp: SyntaxModule<ParserMetadata> {
     fn set_left(&mut self, left: Expr);

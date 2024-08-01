@@ -2,8 +2,9 @@ use heraclitus_compiler::prelude::*;
 
 pub fn get_rules() -> Rules {
     let symbols = vec![
-        '+', '-', '*', '/', '%', '\n', ';', ':', '(', ')', '[', ']', '{', '}', ',', '.', '<', '>',
-        '=', '!',
+        '+', '-', '*', '/', '%', '\n', ';', ':',
+        '(', ')', '[', ']', '{', '}', ',', '.',
+        '<', '>', '=', '!'
     ];
     let compounds = vec![
         ('<', '='),
@@ -16,7 +17,7 @@ pub fn get_rules() -> Rules {
         ('/', '='),
         ('%', '='),
         ('.', '.'),
-        ('/', '/'),
+        ('/', '/')
     ];
     let region = reg![
         reg!(string as "string literal" => {

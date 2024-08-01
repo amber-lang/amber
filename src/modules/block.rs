@@ -1,14 +1,14 @@
 use std::collections::VecDeque;
 
-use super::statement::stmt::Statement;
-use crate::docs::module::DocumentationModule;
-use crate::translate::module::TranslateModule;
-use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
+use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
+use crate::translate::module::TranslateModule;
+use super::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
-    pub statements: Vec<Statement>,
+    pub statements: Vec<Statement>
 }
 
 impl Block {
@@ -27,7 +27,9 @@ impl SyntaxModule<ParserMetadata> for Block {
     syntax_name!("Block");
 
     fn new() -> Self {
-        Block { statements: vec![] }
+        Block {
+            statements: vec![]
+        }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -41,7 +43,7 @@ impl SyntaxModule<ParserMetadata> for Block {
             // Handle comments
             if token.word.starts_with("//") && !token.word.starts_with("///") {
                 meta.increment_index();
-                continue;
+                continue
             }
             // Handle block end
             else if token.word == "}" {
@@ -51,8 +53,8 @@ impl SyntaxModule<ParserMetadata> for Block {
             if let Err(failure) = statemant.parse(meta) {
                 return match failure {
                     Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
-                    Failure::Loud(err) => return Err(Failure::Loud(err)),
-                };
+                    Failure::Loud(err) => return Err(Failure::Loud(err))
+                }
             }
             self.statements.push(statemant);
         }
@@ -69,13 +71,12 @@ impl TranslateModule for Block {
         meta.increase_indent();
         let result = if self.is_empty() {
             ":".to_string()
-        } else {
-            self.statements
-                .iter()
+        }
+        else {
+            self.statements.iter()
                 .map(|statement| statement.translate(meta))
                 .filter(|translation| !translation.trim().is_empty())
-                .collect::<Vec<_>>()
-                .join("\n")
+                .collect::<Vec<_>>().join("\n")
         };
         meta.decrease_indent();
         // Restore the old statement queue
@@ -86,10 +87,8 @@ impl TranslateModule for Block {
 
 impl DocumentationModule for Block {
     fn document(&self, meta: &ParserMetadata) -> String {
-        self.statements
-            .iter()
+        self.statements.iter()
             .map(|statement| statement.document(meta))
-            .collect::<Vec<_>>()
-            .join("")
+            .collect::<Vec<_>>().join("")
     }
 }

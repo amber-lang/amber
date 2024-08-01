@@ -1,21 +1,21 @@
-use super::super::expression::expr::Expr;
-use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
+use crate::utils::metadata::ParserMetadata;
+use super::super::expression::expr::Expr;
 
 pub mod add;
-pub mod and;
-pub mod div;
-pub mod eq;
-pub mod ge;
-pub mod gt;
-pub mod le;
-pub mod lt;
-pub mod modulo;
-pub mod mul;
-pub mod neq;
-pub mod or;
-pub mod range;
 pub mod sub;
+pub mod mul;
+pub mod div;
+pub mod modulo;
+pub mod and;
+pub mod or;
+pub mod gt;
+pub mod ge;
+pub mod lt;
+pub mod le;
+pub mod eq;
+pub mod neq;
+pub mod range;
 
 pub trait BinOp: SyntaxModule<ParserMetadata> {
     fn set_left(&mut self, left: Expr);
@@ -29,7 +29,7 @@ macro_rules! handle_binop {
         let left_match = matches!($left.get_type(), $($type_match)|*);
         let right_match = matches!($right.get_type(), $($type_match)|*);
         if !left_match || !right_match || $left.get_type() != $right.get_type() {
-            let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            let pos = crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
             Err(Failure::Loud(Message::new_err_at_position($meta, pos)
                 .message($msg)
                 $(.comment($comment))?))
@@ -40,7 +40,7 @@ macro_rules! handle_binop {
 
     ($meta:expr, $left:expr, $right:expr, $msg:expr $(,$comment:ident)?) => {{
         if $left.get_type() != $right.get_type() {
-            let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            let pos = crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
             Err(Failure::Loud(Message::new_err_at_position($meta, pos)
                 .message($msg)
                 $(.comment($comment))?))

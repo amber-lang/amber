@@ -1,14 +1,7 @@
-use super::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
-use crate::translate::module::TranslateModule;
-use crate::{
-    docs::module::DocumentationModule,
-    modules::{
-        expression::expr::Expr,
-        types::{Type, Typed},
-    },
-    utils::{ParserMetadata, TranslateMetadata},
-};
 use heraclitus_compiler::prelude::*;
+use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::translate::module::TranslateModule;
+use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
 
 #[derive(Debug, Clone)]
 pub struct VariableGet {
@@ -16,14 +9,14 @@ pub struct VariableGet {
     kind: Type,
     global_id: Option<usize>,
     index: Box<Option<Expr>>,
-    is_ref: bool,
+    is_ref: bool
 }
 
 impl VariableGet {
     pub fn get_translated_name(&self) -> String {
         match self.global_id {
             Some(id) => format!("__{id}_{}", self.name),
-            None => self.name.to_string(),
+            None => self.name.to_string()
         }
     }
 }
@@ -33,7 +26,7 @@ impl Typed for VariableGet {
         match (&*self.index, self.kind.clone()) {
             // Return the type of the array element if indexed
             (Some(_), Type::Array(kind)) => *kind,
-            _ => self.kind.clone(),
+            _ => self.kind.clone()
         }
     }
 }
@@ -47,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
             kind: Type::Null,
             global_id: None,
             index: Box::new(None),
-            is_ref: false,
+            is_ref: false
         }
     }
 
@@ -61,11 +54,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
         self.index = Box::new(handle_index_accessor(meta)?);
         // Check if the variable can be indexed
         if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            return error!(
-                meta,
-                tok,
-                format!("Cannot index a non-array variable of type '{}'", self.kind)
-            );
+            return error!(meta, tok, format!("Cannot index a non-array variable of type '{}'", self.kind));
         }
         Ok(())
     }
@@ -82,7 +71,7 @@ impl TranslateModule for VariableGet {
         match (self.is_ref, &self.kind) {
             (false, Type::Array(_)) => match *self.index {
                 Some(ref expr) => format!("{quote}${{{name}[{}]}}{quote}", expr.translate(meta)),
-                None => format!("{quote}${{{name}[@]}}{quote}"),
+                None => format!("{quote}${{{name}[@]}}{quote}")
             },
             (true, Type::Array(_)) => match *self.index {
                 Some(ref expr) => {
@@ -90,11 +79,11 @@ impl TranslateModule for VariableGet {
                     let expr = expr.translate_eval(meta, true);
                     meta.stmt_queue.push_back(format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{${name}[{expr}]}}\\\"\""));
                     format!("$__AMBER_ARRAY_GET_{id}_{name}") // echo $__ARRAY_GET
-                }
-                None => format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}"),
+                },
+                None => format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
             },
             (_, Type::Text) => format!("{quote}{res}{quote}"),
-            _ => res,
+            _ => res
         }
     }
 }

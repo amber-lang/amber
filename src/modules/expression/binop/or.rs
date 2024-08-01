@@ -1,18 +1,18 @@
+use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
-use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use heraclitus_compiler::prelude::*;
+use crate::modules::expression::expr::Expr;
+use crate::translate::module::TranslateModule;
+use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Or {
     pub left: Box<Expr>,
-    pub right: Box<Expr>,
+    pub right: Box<Expr>
 }
 
 impl Typed for Or {
@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Or {
     fn new() -> Self {
         Or {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new()),
+            right: Box::new(Expr::new())
         }
     }
 

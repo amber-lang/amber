@@ -1,6 +1,6 @@
-use super::expr::Expr;
-use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
+use crate::utils::ParserMetadata;
+use super::expr::Expr;
 
 pub mod ternary;
 

@@ -1,20 +1,17 @@
-use super::BinOp;
+use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::{
-    expression::expr::Expr,
-    types::{Type, Typed},
-};
+use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
+use crate::utils::metadata::ParserMetadata;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
-use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
-use heraclitus_compiler::prelude::*;
+use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Range {
     pub from: Box<Expr>,
     pub to: Box<Expr>,
-    pub neq: bool,
+    pub neq: bool
 }
 
 impl Typed for Range {
@@ -46,23 +43,21 @@ impl SyntaxModule<ParserMetadata> for Range {
         Range {
             from: Box::new(Expr::new()),
             to: Box::new(Expr::new()),
-            neq: false,
+            neq: false
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if self.from.get_type() != Type::Num {
             let l_type = self.from.get_type();
-            let err = self.from.get_error_message(meta).message(format!(
-                "Range can only work on type 'Num', but '{l_type}' was provided"
-            ));
+            let err = self.from.get_error_message(meta)
+                .message(format!("Range can only work on type 'Num', but '{l_type}' was provided"));
             return Err(Failure::Loud(err));
         }
         if self.to.get_type() != Type::Num {
             let r_type = self.to.get_type();
-            let err = self.to.get_error_message(meta).message(format!(
-                "Range can only work on type 'Num', but '{r_type}' was provided"
-            ));
+            let err = self.to.get_error_message(meta)
+                .message(format!("Range can only work on type 'Num', but '{r_type}' was provided"));
             return Err(Failure::Loud(err));
         }
         Ok(())

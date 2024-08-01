@@ -1,17 +1,17 @@
 use std::mem::swap;
 
+use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct CommandModifier {
     pub block: Box<Block>,
     pub is_block: bool,
     pub is_unsafe: bool,
-    pub is_silent: bool,
+    pub is_silent: bool
 }
 
 impl CommandModifier {
@@ -20,10 +20,9 @@ impl CommandModifier {
         self
     }
 
-    pub fn use_modifiers<F>(&mut self, meta: &mut ParserMetadata, context: F) -> SyntaxResult
-    where
-        F: FnOnce(&mut Self, &mut ParserMetadata) -> SyntaxResult,
-    {
+    pub fn use_modifiers<F>(
+        &mut self, meta: &mut ParserMetadata, context: F
+    ) -> SyntaxResult where F: FnOnce(&mut Self, &mut ParserMetadata) -> SyntaxResult {
         let mut is_unsafe_holder = self.is_unsafe;
         if self.is_unsafe {
             swap(&mut is_unsafe_holder, &mut meta.context.is_unsafe_ctx);
@@ -39,32 +38,26 @@ impl CommandModifier {
     fn parse_modifier_sequence(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         loop {
             match meta.get_current_token() {
-                Some(tok) => match tok.word.as_str() {
-                    "unsafe" => {
-                        if self.is_unsafe {
-                            return error!(
-                                meta,
-                                Some(tok.clone()),
-                                "You already declared `unsafe` modifier before"
-                            );
-                        }
-                        self.is_unsafe = true;
-                        meta.increment_index();
+                Some(tok) => {
+                    match tok.word.as_str() {
+                        "unsafe" => {
+                            if self.is_unsafe {
+                                return error!(meta, Some(tok.clone()), "You already declared `unsafe` modifier before");
+                            }
+                            self.is_unsafe = true;
+                            meta.increment_index();
+                        },
+                        "silent" => {
+                            if self.is_silent {
+                                return error!(meta, Some(tok.clone()), "You already declared `silent` modifier before");
+                            }
+                            self.is_silent = true;
+                            meta.increment_index();
+                        },
+                        _ => break
                     }
-                    "silent" => {
-                        if self.is_silent {
-                            return error!(
-                                meta,
-                                Some(tok.clone()),
-                                "You already declared `silent` modifier before"
-                            );
-                        }
-                        self.is_silent = true;
-                        meta.increment_index();
-                    }
-                    _ => break,
                 },
-                None => return Err(Failure::Quiet(PositionInfo::from_metadata(meta))),
+                None => return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
             }
         }
         Ok(())
@@ -79,7 +72,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             block: Box::new(Block::new()),
             is_block: true,
             is_unsafe: false,
-            is_silent: false,
+            is_silent: false
         }
     }
 
@@ -91,7 +84,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
                 syntax(meta, &mut *this.block)?;
                 token(meta, "}")?;
                 Ok(())
-            });
+            })
         }
         Ok(())
     }

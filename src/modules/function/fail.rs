@@ -1,15 +1,15 @@
+use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
-use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use heraclitus_compiler::prelude::*;
+use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct Fail {
     pub expr: Expr,
     pub code: String,
-    pub is_main: bool,
+    pub is_main: bool
 }
 
 impl Typed for Fail {
@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for Fail {
         Fail {
             expr: Expr::new(),
             code: String::new(),
-            is_main: false,
+            is_main: false
         }
     }
 
@@ -48,20 +48,22 @@ impl SyntaxModule<ParserMetadata> for Fail {
                     });
                 }
                 self.code = value;
-            }
-            Err(_) => match syntax(meta, &mut self.expr) {
-                Ok(_) => {
-                    if self.expr.get_type() != Type::Num {
-                        return error!(meta, tok => {
-                            message: "Invalid exit code",
-                            comment: "Fail status must be a non-zero integer"
-                        });
+            },
+            Err(_) => {
+                match syntax(meta, &mut self.expr) {
+                    Ok(_) => {
+                        if self.expr.get_type() != Type::Num {
+                            return error!(meta, tok => {
+                                message: "Invalid exit code",
+                                comment: "Fail status must be a non-zero integer"
+                            });
+                        }
+                    },
+                    Err(_) => {
+                        self.code = "1".to_string();
                     }
                 }
-                Err(_) => {
-                    self.code = "1".to_string();
-                }
-            },
+            }
         }
         Ok(())
     }
@@ -69,9 +71,7 @@ impl SyntaxModule<ParserMetadata> for Fail {
 
 impl TranslateModule for Fail {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let translate = self
-            .code
-            .is_empty()
+        let translate = self.code.is_empty()
             .then(|| self.expr.translate(meta))
             .unwrap_or_else(|| self.code.clone());
         if self.is_main {
@@ -79,8 +79,7 @@ impl TranslateModule for Fail {
         } else {
             // Clean the return value if the function fails
             let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
-            meta.stmt_queue
-                .push_back(format!("__AF_{name}{id}_v{variant}=''"));
+            meta.stmt_queue.push_back(format!("__AF_{name}{id}_v{variant}=''"));
             format!("return {translate}")
         }
     }

@@ -1,7 +1,7 @@
 use crate::utils::TranslateMetadata;
 
 pub enum ArithType {
-    BcSed,
+    BcSed
 }
 
 pub enum ArithOp {
@@ -19,15 +19,10 @@ pub enum ArithOp {
     Neq,
     Not,
     And,
-    Or,
+    Or
 }
 
-pub fn translate_computation(
-    meta: &TranslateMetadata,
-    operation: ArithOp,
-    left: Option<String>,
-    right: Option<String>,
-) -> String {
+pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
@@ -42,7 +37,7 @@ pub fn translate_computation(
                 ArithOp::Modulo => {
                     math_lib_flag = false;
                     "%"
-                }
+                },
                 ArithOp::Neg => "-",
                 ArithOp::Gt => ">",
                 ArithOp::Ge => ">=",
@@ -52,22 +47,15 @@ pub fn translate_computation(
                 ArithOp::Neq => "!=",
                 ArithOp::Not => "!",
                 ArithOp::And => "&&",
-                ArithOp::Or => "||",
+                ArithOp::Or => "||"
             };
             let math_lib_flag = if math_lib_flag { "-l" } else { "" };
-            meta.gen_subprocess(&format!(
-                "echo {left} '{op}' {right} | bc {math_lib_flag} | sed '{sed_regex}'"
-            ))
+            meta.gen_subprocess(&format!("echo {left} '{op}' {right} | bc {math_lib_flag} | sed '{sed_regex}'"))
         }
     }
 }
 
-pub fn translate_computation_eval(
-    meta: &mut TranslateMetadata,
-    operation: ArithOp,
-    left: Option<String>,
-    right: Option<String>,
-) -> String {
+pub fn translate_computation_eval(meta: &mut TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     let old_eval = meta.eval_ctx;
     meta.eval_ctx = true;
     let result = translate_computation(meta, operation, left, right);
