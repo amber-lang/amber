@@ -2,15 +2,16 @@ use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::binop::get_binop_position_info;
 use crate::modules::types::{Type, Typed};
-use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use super::TernOp;
 
 #[derive(Debug, Clone)]
 pub struct Ternary {
-    pub cond: Box<AlreadyParsedExpr>,
-    pub true_expr: Box<AlreadyParsedExpr>,
-    pub false_expr: Box<AlreadyParsedExpr>
+    pub cond: Box<Expr>,
+    pub true_expr: Box<Expr>,
+    pub false_expr: Box<Expr>
 }
 
 impl Typed for Ternary {
@@ -19,14 +20,38 @@ impl Typed for Ternary {
     }
 }
 
+impl TernOp for Ternary {
+    fn set_left(&mut self, left: Expr) {
+        self.cond = Box::new(left);
+    }
+
+    fn set_middle(&mut self, middle: Expr) {
+        self.true_expr = Box::new(middle);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.false_expr = Box::new(right);
+    }
+
+    fn parse_operator_left(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "then")?;
+        Ok(())
+    }
+
+    fn parse_operator_right(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "else")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Ternary {
     syntax_name!("Ternary Expression");
 
     fn new() -> Self {
         Ternary {
-            cond: Box::new(AlreadyParsedExpr::new()),
-            true_expr: Box::new(AlreadyParsedExpr::new()),
-            false_expr: Box::new(AlreadyParsedExpr::new())
+            cond: Box::new(Expr::new()),
+            true_expr: Box::new(Expr::new()),
+            false_expr: Box::new(Expr::new())
         }
     }
 

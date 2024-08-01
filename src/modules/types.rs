@@ -3,9 +3,6 @@ use std::fmt::Display;
 use heraclitus_compiler::prelude::*;
 use crate::utils::ParserMetadata;
 
-/// This means that the type was already parsed previously so we don't need to parse it again
-pub type AlreadyParsedType = Type;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
     Text,
@@ -14,6 +11,12 @@ pub enum Type {
     Null,
     Array(Box<Type>),
     Generic
+}
+
+impl Default for Type {
+    fn default() -> Self {
+        Type::Null
+    }
 }
 
 impl Display for Type {

@@ -2,16 +2,16 @@ use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::modules::expression::expr::Expr;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use super::strip_text_quotes;
+use super::{strip_text_quotes, BinOp};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
 pub struct Neq {
-    pub left: Box<AlreadyParsedExpr>,
-    pub right: Box<AlreadyParsedExpr>
+    pub left: Box<Expr>,
+    pub right: Box<Expr>
 }
 
 impl Typed for Neq {
@@ -20,13 +20,28 @@ impl Typed for Neq {
     }
 }
 
+impl BinOp for Neq {
+    fn set_left(&mut self, left: Expr) {
+        self.left = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.right = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "!=")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Neq {
     syntax_name!("Neq");
 
     fn new() -> Self {
         Neq {
-            left: Box::new(AlreadyParsedExpr::new()),
-            right: Box::new(AlreadyParsedExpr::new())
+            left: Box::new(Expr::new()),
+            right: Box::new(Expr::new())
         }
     }
 

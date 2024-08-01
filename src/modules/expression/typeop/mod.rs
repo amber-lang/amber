@@ -1,12 +1,13 @@
 use heraclitus_compiler::prelude::*;
-use crate::utils::ParserMetadata;
+use crate::{modules::types::Type, utils::ParserMetadata};
 use super::expr::Expr;
 
-pub mod not;
-pub mod neg;
+pub mod is;
+pub mod cast;
 
-pub trait UnOp: SyntaxModule<ParserMetadata> {
+
+pub trait TypeOp: SyntaxModule<ParserMetadata> {
     fn set_left(&mut self, left: Expr);
-    fn set_right(&mut self, right: Expr);
+    fn set_right(&mut self, right: Type);
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult;
 }

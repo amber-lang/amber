@@ -15,9 +15,13 @@ pub mod lt;
 pub mod le;
 pub mod eq;
 pub mod neq;
-pub mod is;
-pub mod cast;
 pub mod range;
+
+pub trait BinOp: SyntaxModule<ParserMetadata> {
+    fn set_left(&mut self, left: Expr);
+    fn set_right(&mut self, right: Expr);
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult;
+}
 
 #[macro_export]
 macro_rules! handle_binop {

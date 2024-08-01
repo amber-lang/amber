@@ -3,14 +3,16 @@ use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
+use super::BinOp;
+
 #[derive(Debug, Clone)]
 pub struct Or {
-    pub left: Box<AlreadyParsedExpr>,
-    pub right: Box<AlreadyParsedExpr>
+    pub left: Box<Expr>,
+    pub right: Box<Expr>
 }
 
 impl Typed for Or {
@@ -19,13 +21,28 @@ impl Typed for Or {
     }
 }
 
+impl BinOp for Or {
+    fn set_left(&mut self, left: Expr) {
+        self.left = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.right = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "or")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Or {
     syntax_name!("Or");
 
     fn new() -> Self {
         Or {
-            left: Box::new(AlreadyParsedExpr::new()),
-            right: Box::new(AlreadyParsedExpr::new())
+            left: Box::new(Expr::new()),
+            right: Box::new(Expr::new())
         }
     }
 

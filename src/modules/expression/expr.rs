@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::command::cmd::Command;
+use crate::modules::expression::binop::BinOp;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -27,19 +28,21 @@ use super::binop::{
     le::Le,
     eq::Eq,
     neq::Neq,
-    cast::Cast,
-    is::Is
 };
 use super::unop::{
     not::Not,
     neg::Neg
+};
+use super::typeop::{
+    cast::Cast,
+    is::Is
 };
 use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::nameof::Nameof;
-use crate::{document_expression, translate_expression};
+use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
@@ -75,10 +78,7 @@ pub enum ExprType {
     Is(Is)
 }
 
-/// This means that the expression was already parsed previously so we don't need to parse it again
-pub type AlreadyParsedExpr = Expr;
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Expr {
     pub value: Option<ExprType>,
     pub kind: Type,
@@ -125,10 +125,12 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let result = self.parse_expression(meta)?;
-        self.value = result.value;
-        self.kind = result.kind;
-        self.pos = result.pos;
+        let result = parse_expr!(meta, [
+            addition @ BinOp => [ Add, Sub ],
+            multiplication @ BinOp => [ Mul, Div ],
+            literals @ Literal => [ Number, Text ]
+        ]);
+        *self = result;
         Ok(())
     }
 }

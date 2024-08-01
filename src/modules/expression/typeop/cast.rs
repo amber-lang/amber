@@ -1,15 +1,15 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::modules::expression::expr::Expr;
 use crate::{docs::module::DocumentationModule, translate::module::TranslateModule};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
-use crate::modules::types::{AlreadyParsedType, Type, Typed};
+use crate::modules::types::{Type, Typed};
 
 #[derive(Debug, Clone)]
 pub struct Cast {
-    pub expr: Box<AlreadyParsedExpr>,
-    pub kind: AlreadyParsedType
+    pub expr: Box<Expr>,
+    pub kind: Type
 }
 
 impl Typed for Cast {
@@ -23,8 +23,8 @@ impl SyntaxModule<ParserMetadata> for Cast {
 
     fn new() -> Self {
         Cast {
-            expr: Box::new(AlreadyParsedExpr::new()),
-            kind: AlreadyParsedType::Generic
+            expr: Box::new(Expr::new()),
+            kind: Type::default()
         }
     }
 

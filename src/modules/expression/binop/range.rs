@@ -5,6 +5,7 @@ use crate::utils::metadata::ParserMetadata;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Range {
@@ -16,6 +17,22 @@ pub struct Range {
 impl Typed for Range {
     fn get_type(&self) -> Type {
         Type::Array(Box::new(Type::Num))
+    }
+}
+
+impl BinOp for Range {
+    fn set_left(&mut self, left: Expr) {
+        self.from = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.to = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "..")?;
+        self.neq = token(meta, "=").is_err();
+        Ok(())
     }
 }
 

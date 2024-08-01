@@ -1,16 +1,18 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
-use crate::modules::expression::expr::AlreadyParsedExpr;
+use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
+use super::BinOp;
+
 #[derive(Debug, Clone)]
 pub struct Add {
-    pub left: Box<AlreadyParsedExpr>,
-    pub right: Box<AlreadyParsedExpr>,
+    pub left: Box<Expr>,
+    pub right: Box<Expr>,
     pub kind: Type
 }
 
@@ -20,14 +22,29 @@ impl Typed for Add {
     }
 }
 
+impl BinOp for Add {
+    fn set_left(&mut self, left: Expr) {
+        self.left = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.right = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "+")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Add {
     syntax_name!("Add");
 
     fn new() -> Self {
         Add {
-            left: Box::new(AlreadyParsedExpr::new()),
-            right: Box::new(AlreadyParsedExpr::new()),
-            kind: Type::Null
+            left: Box::new(Expr::new()),
+            right: Box::new(Expr::new()),
+            kind: Type::default()
         }
     }
 
