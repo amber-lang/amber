@@ -36,7 +36,7 @@ pub fn extract_output(code: impl Into<String>) -> String {
         .lines()
         .skip_while(|line| !line.starts_with("// Output"))
         .skip(1) // skip "// Output" itself
-        .take_while(|line| !line.is_empty())
+        .take_while(|line| !line.is_empty() && line.starts_with("//"))
         .map(|line| line.trim_start_matches("//").trim())
         .join("\n")
 }
