@@ -29,7 +29,7 @@ macro_rules! handle_binop {
         let left_match = matches!($left.get_type(), $($type_match)|*);
         let right_match = matches!($right.get_type(), $($type_match)|*);
         if !left_match || !right_match || $left.get_type() != $right.get_type() {
-            let pos = crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
             Err(Failure::Loud(Message::new_err_at_position($meta, pos)
                 .message($msg)
                 $(.comment($comment))?))
@@ -40,7 +40,7 @@ macro_rules! handle_binop {
 
     ($meta:expr, $left:expr, $right:expr, $msg:expr $(,$comment:ident)?) => {{
         if $left.get_type() != $right.get_type() {
-            let pos = crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
             Err(Failure::Loud(Message::new_err_at_position($meta, pos)
                 .message($msg)
                 $(.comment($comment))?))

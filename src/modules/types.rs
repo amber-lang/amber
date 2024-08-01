@@ -3,21 +3,15 @@ use std::fmt::Display;
 use heraclitus_compiler::prelude::*;
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum Type {
+    #[default] Null,
     Text,
     Bool,
     Num,
-    Null,
     Array(Box<Type>),
     Failable(Box<Type>),
     Generic
-}
-
-impl Default for Type {
-    fn default() -> Self {
-        Type::Null
-    }
 }
 
 impl Display for Type {
