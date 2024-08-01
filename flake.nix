@@ -1,7 +1,11 @@
 {
   inputs = {
-    naersk.url = "github:nix-community/naersk/master";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixpkgs-unstable";
+
+    naersk = {
+        url = "github:nix-community/naersk?ref=master";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
     utils.url = "github:numtide/flake-utils";
     nixpkgs-mozilla = {
       url = "github:mozilla/nixpkgs-mozilla";
