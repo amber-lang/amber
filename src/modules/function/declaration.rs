@@ -1,20 +1,20 @@
 use std::collections::HashSet;
 use std::mem::swap;
 
-use heraclitus_compiler::prelude::*;
-use itertools::izip;
+use super::declaration_utils::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::expression::expr::Expr;
+use crate::modules::statement::comment_doc::CommentDoc;
+use crate::modules::types::parse_type;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
+use crate::translate::module::TranslateModule;
 use crate::utils::cc_flags::get_ccflag_by_name;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use crate::modules::types::parse_type;
-use super::declaration_utils::*;
+use heraclitus_compiler::prelude::*;
+use itertools::izip;
 
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
@@ -28,28 +28,42 @@ pub struct FunctionDeclaration {
     pub is_public: bool,
     pub comment: Option<CommentDoc>,
     /// Function signature prepared for docs generation
-    pub doc_signature: Option<String>
+    pub doc_signature: Option<String>,
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<String> {
+    fn set_args_as_variables(
+        &self,
+        meta: &mut TranslateMetadata,
+        function: &FunctionInstance,
+        arg_refs: &[bool],
+    ) -> Option<String> {
         if !self.arg_names.is_empty() {
             meta.increase_indent();
             let mut result = vec![];
-            for (index, (name, kind, is_ref)) in izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate() {
+            for (index, (name, kind, is_ref)) in
+                izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate()
+            {
                 let indent = meta.gen_indent();
                 match (is_ref, kind) {
-                    (false, Type::Array(_)) => result.push(format!("{indent}local {name}=(\"${{!{}}}\")", index + 1)),
+                    (false, Type::Array(_)) => {
+                        result.push(format!("{indent}local {name}=(\"${{!{}}}\")", index + 1))
+                    }
                     (true, Type::Array(_)) => {
-                        result.push(format!("{indent}local __AMBER_ARRAY_{name}=\"${}[@]\"", index + 1));
+                        result.push(format!(
+                            "{indent}local __AMBER_ARRAY_{name}=\"${}[@]\"",
+                            index + 1
+                        ));
                         result.push(format!("{indent}local {name}=${}", index + 1))
-                    },
-                    _ => result.push(format!("{indent}local {name}=${}", index + 1))
+                    }
+                    _ => result.push(format!("{indent}local {name}=${}", index + 1)),
                 }
             }
             meta.decrease_indent();
             Some(result.join("\n"))
-        } else { None }
+        } else {
+            None
+        }
     }
 
     fn get_space(&self, parentheses: usize, before: &str, word: &str) -> String {
@@ -61,12 +75,16 @@ impl FunctionDeclaration {
             || before == "["
             || before == "("
         {
-            return String::new()
+            return String::new();
         }
         " ".to_string()
     }
 
-    fn render_function_signature(&self, meta: &ParserMetadata, doc_index: usize) -> Result<String, Failure> {
+    fn render_function_signature(
+        &self,
+        meta: &ParserMetadata,
+        doc_index: usize,
+    ) -> Result<String, Failure> {
         let mut result = String::new();
         let mut index = doc_index;
         let mut parentheses = 0;
@@ -83,7 +101,11 @@ impl FunctionDeclaration {
                 ")" => parentheses -= 1,
                 "{" if parentheses == 0 => break,
                 "" => {
-                    return error!(meta, cur_token.cloned(), "Error when parsing function signature. Please report this issue.");
+                    return error!(
+                        meta,
+                        cur_token.cloned(),
+                        "Error when parsing function signature. Please report this issue."
+                    );
                 }
                 _ => {}
             }
@@ -133,102 +155,123 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         }
         if let Err(err) = token(meta, "fun") {
             if !flags.is_empty() {
-                return error!(meta, tok, "Compiler flags can only be used in function declarations")
+                return error!(
+                    meta,
+                    tok, "Compiler flags can only be used in function declarations"
+                );
             }
-            return Err(err)
+            return Err(err);
         }
         // Check if we are in the global scope
         if !meta.is_global_scope() {
-            return error!(meta, tok, "Functions can only be declared in the global scope")
+            return error!(
+                meta,
+                tok, "Functions can only be declared in the global scope"
+            );
         }
         // Get the function name
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         handle_existing_function(meta, tok.clone())?;
         let mut optional = false;
-        context!({
-            // Set the compiler flags
-            swap(&mut meta.context.cc_flags, &mut flags);
-            // Get the arguments
-            token(meta, "(")?;
-            loop {
-                if token(meta, ")").is_ok() {
-                    break
-                }
-                let is_ref = token(meta, "ref").is_ok();
-                let name_token = meta.get_current_token();
-                let name = variable(meta, variable_name_extensions())?;
-                // Optionally parse the argument type
-                let mut arg_type = Type::Generic;
-                match token(meta, ":") {
-                    Ok(_) => {
-                        self.arg_refs.push(is_ref);
-                        self.arg_names.push(name.clone());
-                        arg_type = parse_type(meta)?;
-                        self.arg_types.push(arg_type.clone());
-                    },
-                    Err(_) => {
-                        self.arg_refs.push(is_ref);
-                        self.arg_names.push(name.clone());
-                        self.arg_types.push(Type::Generic);
+        context!(
+            {
+                // Set the compiler flags
+                swap(&mut meta.context.cc_flags, &mut flags);
+                // Get the arguments
+                token(meta, "(")?;
+                loop {
+                    if token(meta, ")").is_ok() {
+                        break;
                     }
-                }
-                match token(meta,"=") {
-                    Ok(_) => {
-                        if is_ref {
-                            return error!(meta, name_token, "A ref cannot be optional");
+                    let is_ref = token(meta, "ref").is_ok();
+                    let name_token = meta.get_current_token();
+                    let name = variable(meta, variable_name_extensions())?;
+                    // Optionally parse the argument type
+                    let mut arg_type = Type::Generic;
+                    match token(meta, ":") {
+                        Ok(_) => {
+                            self.arg_refs.push(is_ref);
+                            self.arg_names.push(name.clone());
+                            arg_type = parse_type(meta)?;
+                            self.arg_types.push(arg_type.clone());
                         }
-                        optional = true;
-                        let mut expr = Expr::new();
-                        syntax(meta, &mut expr)?;
-                        if arg_type != Type::Generic && arg_type != expr.get_type() {
-                            return error!(meta, name_token, "Optional argument does not match annotated type");
+                        Err(_) => {
+                            self.arg_refs.push(is_ref);
+                            self.arg_names.push(name.clone());
+                            self.arg_types.push(Type::Generic);
                         }
-                        self.arg_optionals.push(expr);
-                    },
-                    Err(_) => {
-                        if optional {
-                           return error!(meta, name_token, "All arguments following an optional argument must also be optional");
+                    }
+                    match token(meta, "=") {
+                        Ok(_) => {
+                            if is_ref {
+                                return error!(meta, name_token, "A ref cannot be optional");
+                            }
+                            optional = true;
+                            let mut expr = Expr::new();
+                            syntax(meta, &mut expr)?;
+                            if arg_type != Type::Generic && arg_type != expr.get_type() {
+                                return error!(
+                                    meta,
+                                    name_token, "Optional argument does not match annotated type"
+                                );
+                            }
+                            self.arg_optionals.push(expr);
                         }
-                    },
-                }
+                        Err(_) => {
+                            if optional {
+                                return error!(meta, name_token, "All arguments following an optional argument must also be optional");
+                            }
+                        }
+                    }
 
-                match token(meta, ")") {
-                    Ok(_) => break,
-                    Err(_) => token(meta, ",")?
-                };
+                    match token(meta, ")") {
+                        Ok(_) => break,
+                        Err(_) => token(meta, ",")?,
+                    };
+                }
+                // Optionally parse the return type
+                match token(meta, ":") {
+                    Ok(_) => self.returns = parse_type(meta)?,
+                    Err(_) => self.returns = Type::Generic,
+                }
+                // Parse the body
+                token(meta, "{")?;
+                let (index_begin, index_end, is_failable) = skip_function_body(meta);
+                // Create a new context with the function body
+                let expr = meta.context.expr[index_begin..index_end].to_vec();
+                let ctx = meta.context.clone().function_invocation(expr);
+                token(meta, "}")?;
+                self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
+                // Add the function to the memory
+                self.id = handle_add_function(
+                    meta,
+                    tok,
+                    FunctionInterface {
+                        id: None,
+                        name: self.name.clone(),
+                        arg_names: self.arg_names.clone(),
+                        arg_types: self.arg_types.clone(),
+                        arg_refs: self.arg_refs.clone(),
+                        returns: self.returns.clone(),
+                        arg_optionals: self.arg_optionals.clone(),
+                        is_public: self.is_public,
+                        is_failable,
+                    },
+                    ctx,
+                )?;
+                // Restore the compiler flags
+                swap(&mut meta.context.cc_flags, &mut flags);
+                Ok(())
+            },
+            |pos| {
+                error_pos!(
+                    meta,
+                    pos,
+                    format!("Failed to parse function declaration '{}'", self.name)
+                )
             }
-            // Optionally parse the return type
-            match token(meta, ":") {
-                Ok(_) => self.returns = parse_type(meta)?,
-                Err(_) => self.returns = Type::Generic
-            }
-            // Parse the body
-            token(meta, "{")?;
-            let (index_begin, index_end, is_failable) = skip_function_body(meta);
-            // Create a new context with the function body
-            let expr = meta.context.expr[index_begin..index_end].to_vec();
-            let ctx = meta.context.clone().function_invocation(expr);
-            token(meta, "}")?;
-            self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
-            // Add the function to the memory
-            self.id = handle_add_function(meta, tok, FunctionInterface {
-                id: None,
-                name: self.name.clone(),
-                arg_names: self.arg_names.clone(),
-                arg_types: self.arg_types.clone(),
-                arg_refs: self.arg_refs.clone(),
-                returns: self.returns.clone(),
-                arg_optionals: self.arg_optionals.clone(),
-                is_public: self.is_public,
-                is_failable
-            }, ctx)?;
-            // Restore the compiler flags
-            swap(&mut meta.context.cc_flags, &mut flags);
-            Ok(())
-        }, |pos| {
-            error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
-        })
+        )
     }
 }
 

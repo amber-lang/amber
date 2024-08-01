@@ -1,21 +1,19 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::Expr;
 use crate::docs::module::DocumentationModule;
+use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Cd {
-    value: Expr
+    value: Expr,
 }
 
 impl SyntaxModule<ParserMetadata> for Cd {
     syntax_name!("ChangeDirectory");
 
     fn new() -> Self {
-        Cd {
-            value: Expr::new()
-        }
+        Cd { value: Expr::new() }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {

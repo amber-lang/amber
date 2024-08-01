@@ -17,5 +17,8 @@ macro_rules! test_amber {
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
-    AmberCompiler::new(code.into(), None, Cli::default()).compile().unwrap().1
+    AmberCompiler::new(code.into(), None, Cli::default())
+        .compile()
+        .unwrap()
+        .1
 }

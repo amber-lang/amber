@@ -1,19 +1,18 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
 use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::modules::types::{Typed, Type};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
-
 
 #[derive(Debug, Clone)]
 pub struct And {
     pub left: Box<Expr>,
-    pub right: Box<Expr>
+    pub right: Box<Expr>,
 }
 
 impl Typed for And {
@@ -28,7 +27,7 @@ impl BinOp for And {
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);   
+        self.right = Box::new(right);
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -43,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for And {
     fn new() -> Self {
         And {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 

@@ -1,17 +1,17 @@
-use heraclitus_compiler::prelude::*;
+use super::TernOp;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::binop::get_binop_position_info;
-use crate::modules::types::{Type, Typed};
 use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use super::TernOp;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Ternary {
     pub cond: Box<Expr>,
     pub true_expr: Box<Expr>,
-    pub false_expr: Box<Expr>
+    pub false_expr: Box<Expr>,
 }
 
 impl Typed for Ternary {
@@ -51,13 +51,15 @@ impl SyntaxModule<ParserMetadata> for Ternary {
         Ternary {
             cond: Box::new(Expr::new()),
             true_expr: Box::new(Expr::new()),
-            false_expr: Box::new(Expr::new())
+            false_expr: Box::new(Expr::new()),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if self.cond.get_type() != Type::Bool {
-            let msg = self.cond.get_error_message(meta)
+            let msg = self
+                .cond
+                .get_error_message(meta)
                 .message("Expected boolean expression in ternary condition");
             return Err(Failure::Loud(msg));
         }
@@ -65,9 +67,11 @@ impl SyntaxModule<ParserMetadata> for Ternary {
             let pos = get_binop_position_info(meta, &self.true_expr, &self.false_expr);
             let msg = Message::new_err_at_position(meta, pos)
                 .message("Ternary operation can only be used on arguments of the same type")
-                .comment(format!("Provided branches of type '{}' and '{}'.",
+                .comment(format!(
+                    "Provided branches of type '{}' and '{}'.",
                     self.true_expr.get_type(),
-                    self.false_expr.get_type()));
+                    self.false_expr.get_type()
+                ));
             return Err(Failure::Loud(msg));
         }
         Ok(())
@@ -79,7 +83,10 @@ impl TranslateModule for Ternary {
         let cond = self.cond.translate(meta);
         let true_expr = self.true_expr.translate(meta);
         let false_expr = self.false_expr.translate(meta);
-        meta.gen_subprocess(&format!("if [ {} != 0 ]; then echo {}; else echo {}; fi", cond, true_expr, false_expr))
+        meta.gen_subprocess(&format!(
+            "if [ {} != 0 ]; then echo {}; else echo {}; fi",
+            cond, true_expr, false_expr
+        ))
     }
 }
 

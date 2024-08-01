@@ -1,7 +1,7 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Break;
@@ -18,7 +18,7 @@ impl SyntaxModule<ParserMetadata> for Break {
         token(meta, "break")?;
         // Detect if the break statement is inside a loop
         if !meta.context.is_loop_ctx {
-            return error!(meta, tok, "Break statement can only be used inside a loop")
+            return error!(meta, tok, "Break statement can only be used inside a loop");
         }
         Ok(())
     }

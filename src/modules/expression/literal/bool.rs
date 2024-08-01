@@ -1,11 +1,15 @@
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use crate::{
+    docs::module::DocumentationModule,
+    modules::types::{Type, Typed},
+    utils::metadata::ParserMetadata,
+};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Bool {
-    value: bool
+    value: bool,
 }
 
 impl Typed for Bool {
@@ -18,9 +22,7 @@ impl SyntaxModule<ParserMetadata> for Bool {
     syntax_name!("Bool");
 
     fn new() -> Self {
-        Bool {
-            value: false
-        }
+        Bool { value: false }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {

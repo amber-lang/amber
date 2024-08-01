@@ -1,7 +1,11 @@
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use crate::{
+    docs::module::DocumentationModule,
+    modules::types::{Type, Typed},
+    utils::metadata::ParserMetadata,
+};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Status;

@@ -1,12 +1,12 @@
+use crate::docs::module::DocumentationModule;
+use crate::translate::module::TranslateModule;
+use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use crate::docs::module::DocumentationModule;
-use crate::utils::metadata::ParserMetadata;
-use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct CommentDoc {
-    pub value: String
+    pub value: String,
 }
 
 impl SyntaxModule<ParserMetadata> for CommentDoc {
@@ -14,7 +14,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
 
     fn new() -> Self {
         CommentDoc {
-            value: String::new()
+            value: String::new(),
         }
     }
 
@@ -47,17 +47,27 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                                 continue;
                             }
                             let delimiter = if last_char == '\n' { "" } else { " " };
-                            self.value.push_str(&format!("{}{}", delimiter, token.word[3..].trim()));
+                            self.value.push_str(&format!(
+                                "{}{}",
+                                delimiter,
+                                token.word[3..].trim()
+                            ));
                         } else {
                             break;
                         }
                     }
                     Ok(())
                 } else {
-                    Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
+                    Err(Failure::Quiet(PositionInfo::from_token(
+                        meta,
+                        meta.get_current_token(),
+                    )))
                 }
             }
-            None => Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
+            None => Err(Failure::Quiet(PositionInfo::from_token(
+                meta,
+                meta.get_current_token(),
+            ))),
         }
     }
 }

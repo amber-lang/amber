@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::modules::{types::Type, block::Block};
 use super::context::Context;
+use crate::modules::{block::Block, types::Type};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 /// This is a compiled function instance
@@ -8,14 +8,14 @@ pub struct FunctionInstance {
     pub variant_id: usize,
     pub args: Vec<Type>,
     pub returns: Type,
-    pub block: Block
+    pub block: Block,
 }
 
 #[derive(Debug)]
 /// This is a cached data representing a function
 pub struct FunctionCacheEntry {
     pub instances: Vec<FunctionInstance>,
-    pub context: Context
+    pub context: Context,
 }
 
 #[derive(Debug)]
@@ -33,10 +33,13 @@ impl FunctionCache {
 
     /// Adds a new function declaration to the cache
     pub fn add_declaration(&mut self, id: usize, context: Context) {
-        self.funs.insert(id, FunctionCacheEntry {
-            instances: Vec::new(),
-            context
-        });
+        self.funs.insert(
+            id,
+            FunctionCacheEntry {
+                instances: Vec::new(),
+                context,
+            },
+        );
     }
 
     /// Adds a new function instance to the cache

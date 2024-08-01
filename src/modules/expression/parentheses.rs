@@ -1,12 +1,16 @@
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::ParserMetadata};
-use crate::translate::module::TranslateModule;
 use super::expr::Expr;
+use crate::translate::module::TranslateModule;
+use crate::{
+    docs::module::DocumentationModule,
+    modules::types::{Type, Typed},
+    utils::metadata::ParserMetadata,
+};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Parentheses {
     value: Box<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Parentheses {
@@ -21,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for Parentheses {
     fn new() -> Self {
         Parentheses {
             value: Box::new(Expr::new()),
-            kind: Type::Null
+            kind: Type::Null,
         }
     }
 

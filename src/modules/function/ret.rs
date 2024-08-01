@@ -1,13 +1,13 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
+use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Return {
-    pub expr: Expr
+    pub expr: Expr,
 }
 
 impl Typed for Return {
@@ -20,9 +20,7 @@ impl SyntaxModule<ParserMetadata> for Return {
     syntax_name!("Return");
 
     fn new() -> Self {
-        Return {
-            expr: Expr::new()
-        }
+        Return { expr: Expr::new() }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -36,12 +34,14 @@ impl SyntaxModule<ParserMetadata> for Return {
         }
         syntax(meta, &mut self.expr)?;
         match meta.context.fun_ret_type.as_ref() {
-            Some(ret_type) => if ret_type != &self.expr.get_type() {
-                return error!(meta, tok => {
-                    message: "Return type does not match function return type",
-                    comment: format!("Given type: {}, expected type: {}", self.expr.get_type(), ret_type)
-                });
-            },
+            Some(ret_type) => {
+                if ret_type != &self.expr.get_type() {
+                    return error!(meta, tok => {
+                        message: "Return type does not match function return type",
+                        comment: format!("Given type: {}, expected type: {}", self.expr.get_type(), ret_type)
+                    });
+                }
+            }
             None => {
                 meta.context.fun_ret_type = Some(self.expr.get_type());
             }
@@ -57,7 +57,8 @@ impl TranslateModule for Return {
         let result = matches!(self.expr.get_type(), Type::Array(_))
             .then(|| format!("({result})"))
             .unwrap_or(result);
-        meta.stmt_queue.push_back(format!("__AF_{name}{id}_v{variant}={result}"));
+        meta.stmt_queue
+            .push_back(format!("__AF_{name}{id}_v{variant}={result}"));
         "return 0".to_string()
     }
 }

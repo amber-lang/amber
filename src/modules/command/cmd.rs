@@ -1,18 +1,28 @@
 use std::mem::swap;
 
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
-use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
 use super::modifier::CommandModifier;
+use crate::modules::expression::expr::Expr;
+use crate::modules::expression::literal::{
+    parse_interpolated_region, translate_interpolated_region,
+};
+use crate::translate::module::TranslateModule;
+use crate::{
+    docs::module::DocumentationModule,
+    modules::{
+        condition::failed::Failed,
+        expression::literal::bool,
+        types::{Type, Typed},
+    },
+    utils::{ParserMetadata, TranslateMetadata},
+};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Command {
     strings: Vec<String>,
     interps: Vec<Expr>,
     modifier: CommandModifier,
-    failed: Failed
+    failed: Failed,
 }
 
 impl Typed for Command {
@@ -29,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for Command {
             strings: vec![],
             interps: vec![],
             modifier: CommandModifier::new().parse_expr(),
-            failed: Failed::new()
+            failed: Failed::new(),
         }
     }
 
@@ -44,7 +54,7 @@ impl SyntaxModule<ParserMetadata> for Command {
                     message: "Every command statement must handle failed execution",
                     comment: "You can use '?' in the end to propagate the failure"
                 }),
-                Err(err) => Err(err)
+                Err(err) => Err(err),
             }
         })
     }
@@ -53,7 +63,9 @@ impl SyntaxModule<ParserMetadata> for Command {
 impl Command {
     fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> String {
         // Translate all interpolations
-        let interps = self.interps.iter()
+        let interps = self
+            .interps
+            .iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
         let failed = self.failed.translate(meta);
@@ -64,10 +76,12 @@ impl Command {
         swap(&mut is_silent, &mut meta.silenced);
         let translation = format!("{translation}{silent}");
         if is_statement {
-            return if failed.is_empty() { translation } else {
+            return if failed.is_empty() {
+                translation
+            } else {
                 meta.stmt_queue.push_back(translation);
                 failed
-            }
+            };
         }
         if failed.is_empty() {
             meta.gen_subprocess(&translation)
@@ -75,7 +89,8 @@ impl Command {
             let id = meta.gen_value_id();
             let quote = meta.gen_quote();
             let dollar = meta.gen_dollar();
-            meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation})"));
+            meta.stmt_queue
+                .push_back(format!("__AMBER_VAL_{id}=$({translation})"));
             meta.stmt_queue.push_back(failed);
             format!("{quote}{dollar}{{__AMBER_VAL_{id}}}{quote}")
         }

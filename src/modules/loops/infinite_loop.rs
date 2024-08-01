@@ -1,10 +1,10 @@
 use std::mem::swap;
 
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::block::Block;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::block::Block;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct InfiniteLoop {
@@ -37,10 +37,13 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 
 impl TranslateModule for InfiniteLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        ["while :".to_string(),
+        [
+            "while :".to_string(),
             "do".to_string(),
             self.block.translate(meta),
-            "done".to_string()].join("\n")
+            "done".to_string(),
+        ]
+        .join("\n")
     }
 }
 

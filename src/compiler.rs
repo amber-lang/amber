@@ -243,8 +243,7 @@ impl AmberCompiler {
             paths.push(String::from(path.to_string_lossy()));
         }
         let file_text = if paths.len() > 1 { "Files" } else { "File" };
-        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
-            .show();
+        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n"))).show();
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {

@@ -1,17 +1,17 @@
-use heraclitus_compiler::prelude::*;
+use super::BinOp;
 use crate::docs::module::DocumentationModule;
 use crate::handle_binop;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{ArithOp, translate_computation};
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::types::{Type, Typed};
+use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
-use crate::modules::types::{Typed, Type};
-use super::BinOp;
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Le {
     pub left: Box<Expr>,
-    pub right: Box<Expr>
+    pub right: Box<Expr>,
 }
 
 impl Typed for Le {
@@ -41,7 +41,7 @@ impl SyntaxModule<ParserMetadata> for Le {
     fn new() -> Self {
         Le {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 

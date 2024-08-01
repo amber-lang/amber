@@ -1,10 +1,14 @@
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
+use crate::{
+    docs::module::DocumentationModule,
+    modules::types::{Type, Typed},
+    utils::metadata::{ParserMetadata, TranslateMetadata},
+};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Number {
-    value: String
+    value: String,
 }
 
 impl Typed for Number {
@@ -18,7 +22,7 @@ impl SyntaxModule<ParserMetadata> for Number {
 
     fn new() -> Self {
         Number {
-            value: String::new()
+            value: String::new(),
         }
     }
 
@@ -34,7 +38,7 @@ impl SyntaxModule<ParserMetadata> for Number {
             self.value.push_str(&integer(meta, vec![])?);
         }
         if self.value.is_empty() {
-            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
+            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)));
         }
         Ok(())
     }

@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
-use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
 use super::ParserMetadata;
+use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
 
 pub struct TranslateMetadata {
     /// The arithmetic module that is used to evaluate math.
@@ -22,7 +22,7 @@ pub struct TranslateMetadata {
     /// Determines whether the current context should be silenced.
     pub silenced: bool,
     /// The current indentation level.
-    pub indent: i64
+    pub indent: i64,
 }
 
 impl TranslateMetadata {
@@ -36,7 +36,7 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
-            indent: -1
+            indent: -1,
         }
     }
 
@@ -65,13 +65,21 @@ impl TranslateMetadata {
     }
 
     pub fn gen_silent(&self) -> &'static str {
-        if self.silenced { " > /dev/null 2>&1" } else { "" }
+        if self.silenced {
+            " > /dev/null 2>&1"
+        } else {
+            ""
+        }
     }
 
     // Returns the appropriate amount of quotes with escape symbols.
     // This helps to avoid problems with `eval` expressions.
     pub fn gen_quote(&self) -> &'static str {
-        if self.eval_ctx { "\\\"" } else { "\"" }
+        if self.eval_ctx {
+            "\\\""
+        } else {
+            "\""
+        }
     }
 
     pub fn gen_subprocess(&self, stmt: &str) -> String {
@@ -81,6 +89,10 @@ impl TranslateMetadata {
     }
 
     pub fn gen_dollar(&self) -> &'static str {
-        if self.eval_ctx { "\\$" } else { "$" }
+        if self.eval_ctx {
+            "\\$"
+        } else {
+            "$"
+        }
     }
 }

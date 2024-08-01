@@ -1,15 +1,15 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::block::Block;
 use crate::modules::expression::expr::Expr;
+use crate::modules::statement::stmt::Statement;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::block::Block;
-use crate::modules::statement::stmt::Statement;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
     cond_blocks: Vec<(Expr, Block)>,
-    false_block: Option<Box<Block>>
+    false_block: Option<Box<Block>>,
 }
 
 impl SyntaxModule<ParserMetadata> for IfChain {
@@ -18,7 +18,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
     fn new() -> Self {
         IfChain {
             cond_blocks: vec![],
-            false_block: None
+            false_block: None,
         }
     }
 
@@ -30,8 +30,12 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             let mut cond = Expr::new();
             let mut block = Block::new();
             // Handle comments and empty lines
-            if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
-                continue
+            if token_by(meta, |token| {
+                token.starts_with("//") || token.starts_with('\n')
+            })
+            .is_ok()
+            {
+                continue;
             }
             // Handle else keyword
             if token(meta, "else").is_ok() {
@@ -51,10 +55,10 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                     }
                 }
                 token(meta, "}")?;
-                return Ok(())
+                return Ok(());
             }
             if token(meta, "}").is_ok() {
-                return Ok(())
+                return Ok(());
             }
             // Handle end of the if chain
             syntax(meta, &mut cond)?;

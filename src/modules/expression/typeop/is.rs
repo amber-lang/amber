@@ -1,16 +1,16 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
-use crate::modules::types::{Typed, Type};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 use super::TypeOp;
 
 #[derive(Debug, Clone)]
 pub struct Is {
     pub expr: Box<Expr>,
-    pub kind: Type
+    pub kind: Type,
 }
 
 impl Typed for Is {
@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Is {
     fn new() -> Self {
         Is {
             expr: Box::new(Expr::new()),
-            kind: Type::default()
+            kind: Type::default(),
         }
     }
 

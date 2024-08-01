@@ -1,11 +1,11 @@
-use std::mem::swap;
-use itertools::izip;
-use heraclitus_compiler::prelude::*;
-use similar_string::find_best_similarity;
-use crate::modules::types::Type;
-use crate::utils::ParserMetadata;
 use crate::modules::block::Block;
+use crate::modules::types::Type;
 use crate::utils::context::FunctionDecl;
+use crate::utils::ParserMetadata;
+use heraclitus_compiler::prelude::*;
+use itertools::izip;
+use similar_string::find_best_similarity;
+use std::mem::swap;
 
 // Convert a number to an ordinal number
 // Eg. 1 -> 1st, 2 -> 2nd, 3 -> 3rd, 4 -> 4th
@@ -25,25 +25,53 @@ fn ordinal_number(index: usize) -> String {
     result
 }
 
-fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args: &[Type], tok: Option<Token>) -> Result<(Type, usize), Failure> {
+fn run_function_with_args(
+    meta: &mut ParserMetadata,
+    mut fun: FunctionDecl,
+    args: &[Type],
+    tok: Option<Token>,
+) -> Result<(Type, usize), Failure> {
     // Check if there are the correct amount of arguments
     if fun.arg_names.len() != args.len() {
         let max_args = fun.arg_names.len();
         let min_args = fun.arg_names.len() - fun.arg_optionals.len();
-        let opt_argument = if max_args > min_args {&format!(" ({} optional)",max_args)} else {""};
+        let opt_argument = if max_args > min_args {
+            &format!(" ({} optional)", max_args)
+        } else {
+            ""
+        };
         // Determine the correct grammar
-        let txt_arguments = if min_args == 1 { "argument" } else { "arguments" };
-        let txt_given = if args.len() == 1 { "was given" } else { "were given" };
+        let txt_arguments = if min_args == 1 {
+            "argument"
+        } else {
+            "arguments"
+        };
+        let txt_given = if args.len() == 1 {
+            "was given"
+        } else {
+            "were given"
+        };
         // Return an error
-        return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}{opt_argument}, but {} {txt_given}", fun.name, min_args, args.len()))
+        return error!(
+            meta,
+            tok,
+            format!(
+                "Function '{}' expects {} {txt_arguments}{opt_argument}, but {} {txt_given}",
+                fun.name,
+                min_args,
+                args.len()
+            )
+        );
     }
     // Check if the function argument types match
     if fun.is_args_typed {
-        for (index, (arg_name, arg_type, given_type)) in izip!(fun.arg_names.iter(), fun.arg_types.iter(), args.iter()).enumerate() {
+        for (index, (arg_name, arg_type, given_type)) in
+            izip!(fun.arg_names.iter(), fun.arg_types.iter(), args.iter()).enumerate()
+        {
             if arg_type != given_type {
                 let fun_name = &fun.name;
                 let ordinal = ordinal_number(index);
-                return error!(meta, tok, format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given_type}' was given"))
+                return error!(meta, tok, format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given_type}' was given"));
             }
         }
     }
@@ -78,10 +106,17 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Set the new argument types
     fun.arg_types = args.to_vec();
     // Persist the new function instance
-    Ok((fun.returns.clone(), meta.add_fun_instance(fun.into_interface(), block)))
+    Ok((
+        fun.returns.clone(),
+        meta.add_fun_instance(fun.into_interface(), block),
+    ))
 }
 
-pub fn handle_function_reference(meta: &ParserMetadata, tok: Option<Token>, name: &str) -> Result<usize, Failure> {
+pub fn handle_function_reference(
+    meta: &ParserMetadata,
+    tok: Option<Token>,
+    name: &str,
+) -> Result<usize, Failure> {
     match meta.get_fun_declaration(name) {
         Some(fun_decl) => Ok(fun_decl.id),
         None => {
@@ -96,24 +131,40 @@ pub fn handle_function_reference(meta: &ParserMetadata, tok: Option<Token>, name
     }
 }
 
-pub fn handle_function_parameters(meta: &mut ParserMetadata, id: usize, fun: FunctionDecl, args: &[Type], vars: &[bool], tok: Option<Token>) -> Result<(Type, usize), Failure> {
+pub fn handle_function_parameters(
+    meta: &mut ParserMetadata,
+    id: usize,
+    fun: FunctionDecl,
+    args: &[Type],
+    vars: &[bool],
+    tok: Option<Token>,
+) -> Result<(Type, usize), Failure> {
     // Check if the function arguments that are references are passed as variables and not as values
-    for (index, (is_ref, arg_name, var)) in izip!(fun.arg_refs.iter(), fun.arg_names.iter(), vars.iter()).enumerate() {
+    for (index, (is_ref, arg_name, var)) in
+        izip!(fun.arg_refs.iter(), fun.arg_names.iter(), vars.iter()).enumerate()
+    {
         if *is_ref && !var {
             let fun_name = &fun.name;
             let ordinal = ordinal_number(index);
-            return error!(meta, tok, format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable"))
+            return error!(meta, tok, format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable"));
         }
     }
     // If the function was previously called with the same arguments, return the cached variant
-    match meta.fun_cache.get_instances(id).unwrap().iter().find(|fun| fun.args == args) {
+    match meta
+        .fun_cache
+        .get_instances(id)
+        .unwrap()
+        .iter()
+        .find(|fun| fun.args == args)
+    {
         Some(fun) => Ok((fun.returns.clone(), fun.variant_id)),
-        None => Ok(run_function_with_args(meta, fun, args, tok)?)
+        None => Ok(run_function_with_args(meta, fun, args, tok)?),
     }
 }
 
 fn handle_similar_function(meta: &ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_fun_names());
-    find_best_similarity(name, &vars)
-        .and_then(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
+    find_best_similarity(name, &vars).and_then(|(match_name, score)| {
+        (score >= 0.75).then(|| format!("Did you mean '{match_name}'?"))
+    })
 }

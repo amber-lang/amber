@@ -1,14 +1,14 @@
-use std::collections::VecDeque;
-use heraclitus_compiler::prelude::*;
-use crate::utils::metadata::ParserMetadata;
 use crate::modules::expression::expr::Expr;
+use crate::utils::metadata::ParserMetadata;
+use heraclitus_compiler::prelude::*;
+use std::collections::VecDeque;
 
-pub mod bool;
-pub mod number;
-pub mod text;
-pub mod null;
 pub mod array;
+pub mod bool;
+pub mod null;
+pub mod number;
 pub mod status;
+pub mod text;
 
 fn is_escaped(word: &str, symbol: char) -> bool {
     let mut backslash_count = 0;
@@ -28,21 +28,27 @@ fn is_escaped(word: &str, symbol: char) -> bool {
     backslash_count % 2 != 0
 }
 
-pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
+pub fn parse_interpolated_region(
+    meta: &mut ParserMetadata,
+    letter: char,
+) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
     // Handle full string
     if let Ok(word) = token_by(meta, |word| {
         word.starts_with(letter)
-        && word.ends_with(letter)
-        && word.len() > 1
-        && !is_escaped(word, letter)
+            && word.ends_with(letter)
+            && word.len() > 1
+            && !is_escaped(word, letter)
     }) {
-        let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
+        let stripped = word
+            .chars()
+            .take(word.chars().count() - 1)
+            .skip(1)
+            .collect::<String>();
         strings.push(stripped);
         Ok((strings, interps))
-    }
-    else {
+    } else {
         let mut is_interp = false;
         // Initialize string
         let start = token_by(meta, |word| word.starts_with(letter))?;
@@ -54,22 +60,27 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                 "{" => is_interp = true,
                 "}" => is_interp = false,
                 // Manage inserting strings and intrpolations
-                _ => if is_interp {
-                    let mut expr = Expr::new();
-                    syntax(meta, &mut expr)?;
-                    interps.push(expr);
-                    meta.offset_index(-1);
-                }
-                else {
-                    strings.push(tok.word.clone());
-                    if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
-                        meta.increment_index();
-                        // Right trim the symbol
-                        let trimmed = strings.last().unwrap()
-                            .chars().take(tok.word.chars().count() - 1).collect::<String>();
-                        // replace the last string
-                        *strings.last_mut().unwrap() = trimmed;
-                        return Ok((strings, interps))
+                _ => {
+                    if is_interp {
+                        let mut expr = Expr::new();
+                        syntax(meta, &mut expr)?;
+                        interps.push(expr);
+                        meta.offset_index(-1);
+                    } else {
+                        strings.push(tok.word.clone());
+                        if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
+                            meta.increment_index();
+                            // Right trim the symbol
+                            let trimmed = strings
+                                .last()
+                                .unwrap()
+                                .chars()
+                                .take(tok.word.chars().count() - 1)
+                                .collect::<String>();
+                            // replace the last string
+                            *strings.last_mut().unwrap() = trimmed;
+                            return Ok((strings, interps));
+                        }
                     }
                 }
             }
@@ -89,17 +100,16 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                 if is_str {
                     result.push('\\');
                     result.push('\"');
-                }
-                else {
+                } else {
                     result.push('"');
                 }
-            },
+            }
             symbol @ ('$' | '`') => {
                 if is_str {
                     result.push('\\');
                 }
                 result.push(symbol);
-            },
+            }
             '!' => {
                 if is_str {
                     result += "\"'!'\"";
@@ -119,19 +129,19 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                     Some('n') => {
                         result.push('\n');
                         chars.next();
-                    },
+                    }
                     Some('t') => {
                         result.push('\t');
                         chars.next();
-                    },
+                    }
                     Some('r') => {
                         result.push('\r');
                         chars.next();
-                    },
+                    }
                     Some('0') => {
                         result.push('\0');
                         chars.next();
-                    },
+                    }
                     Some('\'') => {
                         if is_str {
                             result.push('\'');
@@ -140,7 +150,7 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                             result.push('\'');
                         }
                         chars.next();
-                    },
+                    }
                     Some('\"') => {
                         if is_str {
                             result.push('\\');
@@ -149,38 +159,46 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                             result.push('\"');
                         }
                         chars.next();
-                    },
+                    }
                     Some('\\') => {
                         if is_str {
                             result.push('\\');
                         }
                         result.push('\\');
                         chars.next();
-                    },
+                    }
                     Some('{') => {
                         result.push('{');
                         chars.next();
-                    },
+                    }
                     Some('$') => {
                         result.push('$');
                         chars.next();
-                    },
-                    _ => result.push(c)
+                    }
+                    _ => result.push(c),
                 }
-            },
-            _ => result.push(c)
+            }
+            _ => result.push(c),
         }
     }
     result
 }
 
-pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>, is_str: bool) -> String {
+pub fn translate_interpolated_region(
+    strings: Vec<String>,
+    interps: Vec<String>,
+    is_str: bool,
+) -> String {
     let mut result = vec![];
     let mut interps = VecDeque::from_iter(interps);
     let mut strings = VecDeque::from_iter(strings);
     let mut is_even = false;
     loop {
-        let value = if is_even { interps.pop_front() } else { strings.pop_front() };
+        let value = if is_even {
+            interps.pop_front()
+        } else {
+            strings.pop_front()
+        };
         match value {
             Some(translated) => {
                 if is_even {
@@ -192,8 +210,8 @@ pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>,
                 } else {
                     result.push(translate_escaped_string(translated, is_str));
                 }
-            },
-            None => break
+            }
+            None => break,
         }
         is_even = !is_even;
     }

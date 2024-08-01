@@ -1,12 +1,12 @@
 use std::mem::swap;
 
-use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::Expr;
-use crate::modules::condition::failed::Failed;
-use crate::translate::module::TranslateModule;
 use crate::docs::module::DocumentationModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::modules::command::modifier::CommandModifier;
+use crate::modules::condition::failed::Failed;
+use crate::modules::expression::expr::Expr;
+use crate::translate::module::TranslateModule;
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Mv {
@@ -49,7 +49,9 @@ impl TranslateModule for Mv {
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent();
         swap(&mut is_silent, &mut meta.silenced);
-        format!("mv {source} {destination}{silent}\n{failed}").trim_end().to_string()
+        format!("mv {source} {destination}{silent}\n{failed}")
+            .trim_end()
+            .to_string()
     }
 }
 
