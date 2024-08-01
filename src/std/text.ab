@@ -1,9 +1,9 @@
 pub fun replace_once(source, pattern, replacement) {
-    return unsafe $echo "\$\{source/{pattern}/{replacement}}"$
+    return "\$\{source/{pattern}/{replacement}}"
 }
 
 pub fun replace(source, pattern, replacement) {
-    return unsafe $echo "\$\{source//{pattern}/{replacement}}"$
+    return "\$\{source//{pattern}/{replacement}}"
 }
 
 pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
@@ -52,7 +52,7 @@ pub fun upper(text: Text): Text {
 }
 
 #[allow_absurd_cast]
-pub fun parse(text: Text): Num {
+pub fun parse(text: Text): Num? {
     $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
     return text as Num
 }
@@ -77,6 +77,29 @@ pub fun len(value): Num {
 
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
+    echo 1
+  fi$
+
+  return result == "1"
+}
+
+/// Reverse a text using `rev`
+pub fun reverse(text: Text): Text {
+    return unsafe $echo "{text}" | rev$
+}
+
+/// Check if text starts with a value
+pub fun starts_with(text: Text, prefix: Text): Bool {
+  let result = unsafe $if [[ "{text}" == "{prefix}"* ]]; then
+    echo 1
+  fi$
+
+  return result == "1"
+}
+
+/// Check if text ends with a value
+pub fun ends_with(text: Text, suffix: Text): Bool {
+  let result = unsafe $if [[ "{text}" == *"{suffix}" ]]; then
     echo 1
   fi$
 

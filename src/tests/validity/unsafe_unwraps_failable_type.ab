@@ -1,0 +1,9 @@
+fun test(): Num? {
+    if 0 < 5 {
+        fail 1
+    }
+
+    return 42
+}
+
+if unsafe test() is Num: echo "Succeded"

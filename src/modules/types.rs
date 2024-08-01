@@ -10,6 +10,7 @@ pub enum Type {
     Num,
     Null,
     Array(Box<Type>),
+    Failable(Box<Type>),
     Generic
 }
 
@@ -27,6 +28,7 @@ impl Display for Type {
             Type::Num => write!(f, "Num"),
             Type::Null => write!(f, "Null"),
             Type::Array(t) => write!(f, "[{}]", t),
+            Type::Failable(t) => write!(f, "{}?", t),
             Type::Generic => write!(f, "Generic")
         }
     }
@@ -46,7 +48,7 @@ pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
 // Tries to parse the type - if it fails, it fails quietly
 pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
-    match tok.clone() {
+    let res = match tok.clone() {
         Some(matched_token) => {
             match matched_token.word.as_ref() {
                 "Text" => {
@@ -103,5 +105,11 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
         None => {
             Err(Failure::Quiet(PositionInfo::at_eof(meta)))
         }
+    };
+
+    if token(meta, "?").is_ok() {
+        return res.map(|t| Type::Failable(Box::new(t)))
     }
+
+    res
 }
