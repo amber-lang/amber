@@ -1,6 +1,4 @@
-use crate::compiler::AmberCompiler;
-use crate::Cli;
-use crate::test_amber;
+use super::test_amber;
 
 #[test]
 #[should_panic(expected = "ERROR: Return type does not match function return type")]
@@ -12,7 +10,7 @@ fn function_with_wrong_typed_return() {
         echo test()
     "#;
 
-    test_amber!(code, "Hello, World!");
+    test_amber(code, "Hello, World!");
 }
 
 #[test]
@@ -25,7 +23,7 @@ fn function_failable_with_typed_nonfailable_return() {
         echo test() failed: echo "Failed"
     "#;
 
-    test_amber!(code, "Failed");
+    test_amber(code, "Failed");
 }
 
 #[test]
@@ -38,7 +36,7 @@ fn function_nonfailable_with_typed_failable_return() {
         echo test() failed: echo "Failed"
     "#;
 
-    test_amber!(code, "Hello, World!");
+    test_amber(code, "Hello, World!");
 }
 
 #[test]
@@ -51,5 +49,5 @@ fn function_with_failable_typed_arg() {
         test("Hello, World!")
     "#;
 
-    test_amber!(code, "Hello, World!");
+    test_amber(code, "Hello, World!");
 }
