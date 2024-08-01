@@ -3,42 +3,39 @@
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixpkgs-unstable";
 
     naersk = {
-        url = "github:nix-community/naersk?ref=master";
-        inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/naersk?ref=master";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     utils.url = "github:numtide/flake-utils";
-    nixpkgs-mozilla = {
-      url = "github:mozilla/nixpkgs-mozilla";
-      flake = false;
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      utils,
-      naersk,
-      nixpkgs-mozilla,
+    { self
+    , nixpkgs
+    , utils
+    , naersk
+    , rust-overlay
+    ,
     }:
     utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ (import nixpkgs-mozilla) ];
+          overlays = [ (import rust-overlay) ];
         };
-        toolchain =
-          (pkgs.rustChannelOf {
-            rustToolchain = ./rust-toolchain.toml;
-            sha256 = "sha256-Ngiz76YP4HTY75GGdH2P+APE/DEIx2R/Dn+BwwOyzZU=";
-          }).rust;
+        toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         naersk-lib = pkgs.callPackage naersk {
           cargo = toolchain;
           rustc = toolchain;
         };
       in
       {
+        formatter = pkgs.nixpkgs-fmt;
         packages.default = naersk-lib.buildPackage {
           src = ./.;
           nativeBuildInputs = [ pkgs.makeWrapper ];
@@ -47,18 +44,12 @@
           '';
         };
         devShells.default =
-          with pkgs;
-          mkShell {
-            buildInputs = [
+          pkgs.mkShell {
+            packages = with pkgs; [
               bc
-              cargo
-              rustc
-              rustfmt
               pre-commit
-              rustPackages.clippy
-            ];
-            nativeBuildInputs = [ toolchain ];
-            RUST_SRC_PATH = rustPlatform.rustLibSrc;
+            ] ++ [ toolchain ];
+            RUST_SRC_PATH = toolchain.availableComponents.rust-src;
           };
       }
     );
