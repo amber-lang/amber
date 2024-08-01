@@ -10,6 +10,8 @@ on:
       - Cargo.toml
       - Cargo.lock
       - rust-toolchain.toml
+      - flake.nix
+      - flake.lock
   pull_request:
     paths:
       - src/**
@@ -18,6 +20,8 @@ on:
       - Cargo.toml
       - Cargo.lock
       - rust-toolchain.toml
+      - flake.nix
+      - flake.lock
 
 env:
   CARGO_TERM_COLOR: always
@@ -44,3 +48,18 @@ jobs:
         run: cargo test --all-targets --all-features
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
+  nix_build:
+    name: Nix build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+      - name: Check Nix flake
+        run: nix flake check --all-systems
+      - name: Build in Nix shell
+        run: nix develop --command cargo build --release
+      - name: Build with Nix
+        run: |
+          nix build
+          ./result/bin/amber --version
+
