@@ -61,5 +61,9 @@ jobs:
       - name: Build with Nix
         run: |
           nix build
+          
+          # Ensure that the `amber` binary runs
           ./result/bin/amber --version
-
+          
+          # Ensure that the `bc` command is correctly provided
+          echo "\$which bc; bc --version\$ failed { echo \"Failed to run basic calculator\" }" | ./result/bin/amber -

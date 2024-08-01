@@ -40,7 +40,7 @@
           src = ./.;
           nativeBuildInputs = [ pkgs.makeWrapper ];
           postInstall = ''
-            wrapProgram "$out/bin/amber" --set PATH ${nixpkgs.lib.makeBinPath [ pkgs.bc ]}
+            wrapProgram "$out/bin/amber" --prefix PATH : ${nixpkgs.lib.makeBinPath [ pkgs.bc ]}
           '';
         };
         devShells.default =
