@@ -189,7 +189,7 @@ macro_rules! parse_expr {
     };
 
     // Public interface:
-    // parse_expr!([
+    // parse_expr!(meta, [
     //     name @ TernOp => [Ternary],
     //     name @ BinOp => [Add, Sub],
     //     name @ BinOp => [Mul, Div],
