@@ -105,3 +105,45 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 
   return result == "1"
 }
+
+/// Returns a substring from `text` starting at the given `index` (0-based).
+/// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
+/// If `length` is provided, the substring will include `length` characters; otherwise, it slices to the end of `text`.
+/// If `length` is negative, an empty string is returned.
+pub fun slice(text: Text, index: Num, length: Num = 0): Text {
+    if length == 0: length = len(text) - index
+    if length <= 0: return ""
+    return unsafe $printf "%.{length}s" "\$\{text:{index}}"$
+}
+
+/// Returns the character from `text` at the specified `index` (0-based).
+/// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
+pub fun char_at(text: Text, index: Num): Text {
+    return unsafe $printf "%.1s" "\$\{text:{index}}"$
+}
+
+/// Capitalize the first letter of the given `text`
+pub fun capitalize(text: Text): Text {
+    return unsafe $echo "{text}" | sed "s/^\(.\)/\U\1/"$
+}
+
+/// Pads `text` with the specified `pad` character on left until it reaches the desired `length`.
+pub fun lpad(text: Text, pad: Text, length: Num): Text {
+    if length <= len(text): return text
+    length = len(text) - length
+    pad = unsafe $printf "%{length}s" "" | tr " " "{pad}"$
+    return pad + text
+}
+
+/// Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
+pub fun rpad(text: Text, pad: Text, length: Num): Text {
+    if length <= len(text): return text
+    length = len(text) - length
+    pad = unsafe $printf "%{length}s" "" | tr " " "{pad}"$
+    return text + pad
+}
+
+/// Pads `text` with zeros on the left until it reaches the desired `length`.
+pub fun zfill(text: Text, length: Num): Text {
+    return lpad(text, "0", length)
+}
