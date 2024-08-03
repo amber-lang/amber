@@ -47,13 +47,7 @@ impl SyntaxModule<ParserMetadata> for Div {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let message = {
-            let l_type = self.left.get_type();
-            let r_type = self.right.get_type();
-            format!("Cannot divide value of type '{l_type}' with value of type '{r_type}'")
-        };
-        let comment = "You can only divide values of type 'Num'.";
-        handle_binop!(meta, self.left, self.right, message, comment, [Type::Num])?;
+        handle_binop!(meta, "divide", self.left, self.right, [Num])?;
         Ok(())
     }
 }

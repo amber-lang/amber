@@ -25,25 +25,39 @@ pub trait BinOp: SyntaxModule<ParserMetadata> {
 
 #[macro_export]
 macro_rules! handle_binop {
-    ($meta:expr, $left:expr, $right:expr, $msg:expr, $($comment:ident,)? [$($type_match:pat),*]) => {{
-        let left_match = matches!($left.get_type(), $($type_match)|*);
-        let right_match = matches!($right.get_type(), $($type_match)|*);
+    (@internal type: Array) => {
+        Type::Array(_)
+    };
+
+    (@internal type: $type:ident) => {
+        Type::$type
+    };
+
+    ($meta:expr, $op_name:expr, $left:expr, $right:expr, [$($type_match:ident),+]) => {{
+        let left_match = matches!($left.get_type(), $(handle_binop!(@internal type: $type_match))|*);
+        let right_match = matches!($right.get_type(), $(handle_binop!(@internal type: $type_match))|*);
         if !left_match || !right_match || $left.get_type() != $right.get_type() {
             let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
+            let msg = format!("Cannot {} value of type '{}' with value of type '{}'", $op_name, $left.get_type(), $right.get_type());
+            let all = vec![$(format!("'{}'", stringify!($type_match))),+];
+            let types = if all.len() > 1 { [
+                all.iter().take(all.len() - 1).cloned().collect::<Vec<_>>().join(", "),
+                all.last().unwrap().to_string()
+            ].join(" or ") } else { all.join("") };
+            let comment = format!("You can only {} values of type {types} together.", $op_name);
             Err(Failure::Loud(Message::new_err_at_position($meta, pos)
-                .message($msg)
-                $(.comment($comment))?))
+                .message(msg)
+                .comment(comment)))
         } else {
             Ok($left.get_type())
         }
     }};
 
-    ($meta:expr, $left:expr, $right:expr, $msg:expr $(,$comment:ident)?) => {{
+    ($meta:expr, $op_name:expr, $left:expr, $right:expr) => {{
         if $left.get_type() != $right.get_type() {
             let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
-            Err(Failure::Loud(Message::new_err_at_position($meta, pos)
-                .message($msg)
-                $(.comment($comment))?))
+            let msg = format!("Operation '{}' can only be used on arguments of the same type", $op_name);
+            Err(Failure::Loud(Message::new_err_at_position($meta, pos).message(msg)))
         } else {
             Ok($left.get_type())
         }

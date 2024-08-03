@@ -49,16 +49,10 @@ impl SyntaxModule<ParserMetadata> for Add {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let message = {
-            let l_type = self.left.get_type();
-            let r_type = self.right.get_type();
-            format!("Cannot add value of type '{l_type}' with value of type '{r_type}'")
-        };
-        let comment = "You can only add values of type 'Num', 'Text' or 'Array' together.";
-        self.kind = handle_binop!(meta, self.left, self.right, message, comment, [
-            Type::Num,
-            Type::Text,
-            Type::Array(_)
+        self.kind = handle_binop!(meta, "add", self.left, self.right, [
+            Num,
+            Text,
+            Array
         ])?;
         Ok(())
     }

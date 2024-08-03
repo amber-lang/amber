@@ -46,13 +46,7 @@ impl SyntaxModule<ParserMetadata> for Lt {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let message = {
-            let l_type = self.left.get_type();
-            let r_type = self.right.get_type();
-            format!("Cannot compare two values of different types '{l_type}' < '{r_type}'")
-        };
-        let comment = "You can only compare values of type 'Num'.";
-        handle_binop!(meta, self.left, self.right, message, comment, [Type::Num])?;
+        handle_binop!(meta, "compare", self.left, self.right, [Num])?;
         Ok(())
     }
 }

@@ -48,8 +48,7 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let error = "Logical 'and' operation can only be used on arguments of the same type";
-        handle_binop!(meta, self.left, self.right, error)?;
+        handle_binop!(meta, "and", self.left, self.right)?;
         Ok(())
     }
 }

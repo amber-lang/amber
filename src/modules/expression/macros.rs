@@ -1,19 +1,4 @@
 #[macro_export]
-macro_rules! parse_operator {
-    ($meta:expr, $start_index:expr, $name: ident $block:tt) => {{
-        use heraclitus_compiler::prelude::*;
-        let mut module = $name $block;
-        syntax($meta, &mut module)?;
-        let end_index = $meta.get_index();
-        Expr {
-            kind: module.get_type(),
-            value: Some (ExprType:: $name (module)),
-            pos: ($start_index, end_index)
-        }
-    }}
-}
-
-#[macro_export]
 macro_rules! parse_expr_group {
     // Group type that handles Binary Operators
     (@internal ({$cur:ident, $prev:ident}, $meta:expr, BinOp => [$($cur_modules:ident),+])) => {{
