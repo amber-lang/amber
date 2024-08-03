@@ -24,8 +24,8 @@ macro_rules! parse_expr_group {
                 let mut module = $cur_modules::new();
                 match module.parse_operator($meta) {
                     Ok(()) => {
-                        module.set_left(node);
                         module.set_right($prev($meta)?);
+                        module.set_left(node);
                         syntax($meta, &mut module)?;
                         let end_index = $meta.get_index();
                         node = Expr {
@@ -33,6 +33,7 @@ macro_rules! parse_expr_group {
                             value: Some(ExprType::$cur_modules(module)),
                             pos: (start_index, end_index)
                         };
+                        continue
                     }
                     Err(Failure::Quiet(_)) => {}
                     Err(Failure::Loud(err)) => return Err(Failure::Loud(err))
@@ -61,6 +62,7 @@ macro_rules! parse_expr_group {
                             value: Some(ExprType::$cur_modules(module)),
                             pos: (start_index, end_index)
                         };
+                        continue
                     }
                     Err(Failure::Quiet(_)) => {}
                     Err(Failure::Loud(err)) => return Err(Failure::Loud(err))
