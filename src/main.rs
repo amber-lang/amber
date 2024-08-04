@@ -38,8 +38,8 @@ pub struct Cli {
     docs: bool,
 
     /// Disabled postprocessors
-    #[arg(help = "Disable postprocessor(s)\nPossible values: shfmt, bshchk\nPass values separated by comma", long)]
-    disable_postprocessors: Vec<String>,
+    #[arg(help = "Disable a postprocessor\nPossible values: shfmt, bshchk\nTo select multiple, pass this argument multiple times with different values", long)]
+    disable_postprocessor: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

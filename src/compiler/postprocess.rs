@@ -131,7 +131,7 @@ impl PostProcessor {
         bshchk.cmd().arg("--ignore-shebang");
         postprocessors.insert("bshchk", bshchk);
 
-        for postprocessor in cli.disable_postprocessors.iter() {
+        for postprocessor in cli.disable_postprocessor.iter() {
             postprocessors.remove(postprocessor.as_str());
         }
 
