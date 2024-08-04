@@ -1,0 +1,10 @@
+import * from "std/text"
+
+// Output
+// abb 
+// aaa
+
+main {
+    echo rpad("a", "b", 3); 
+    echo rpad("aaa", "b", 3); 
+}
