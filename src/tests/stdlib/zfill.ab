@@ -1,0 +1,10 @@
+import * from "std/text"
+
+// Output
+// 001 
+// 123
+
+main {
+    echo zfill("1", 3); 
+    echo zfill("123", 3); 
+}
