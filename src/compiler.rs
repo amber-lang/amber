@@ -171,6 +171,7 @@ impl AmberCompiler {
         let mut res = result.join("\n");
 
         let postprocessors = PostProcessor::get_default(self.cli_opts.clone());
+        let postprocessors = postprocessors.iter().filter(|x| self.cli_opts.disable_postprocessors.contains(&x.name.to_string()));
 
         for postprocessor in postprocessors {
             res = postprocessor.clone().execute(res);
