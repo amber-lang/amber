@@ -1,0 +1,10 @@
+import * from "std/math"
+
+// Output 
+// 1
+// 1
+
+main {
+    echo abs(1);
+    echo abs(-1);
+}
