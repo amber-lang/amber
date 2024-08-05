@@ -11,9 +11,9 @@ use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Add {
-    pub left: Box<Expr>,
-    pub right: Box<Expr>,
-    pub kind: Type
+    left: Box<Expr>,
+    right: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Add {

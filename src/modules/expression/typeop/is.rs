@@ -9,8 +9,8 @@ use super::TypeOp;
 
 #[derive(Debug, Clone)]
 pub struct Is {
-    pub expr: Box<Expr>,
-    pub kind: Type
+    expr: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Is {

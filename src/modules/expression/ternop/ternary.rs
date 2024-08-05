@@ -9,9 +9,9 @@ use super::TernOp;
 
 #[derive(Debug, Clone)]
 pub struct Ternary {
-    pub cond: Box<Expr>,
-    pub true_expr: Box<Expr>,
-    pub false_expr: Box<Expr>
+    cond: Box<Expr>,
+    true_expr: Box<Expr>,
+    false_expr: Box<Expr>
 }
 
 impl Typed for Ternary {

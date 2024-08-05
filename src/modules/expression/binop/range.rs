@@ -9,9 +9,9 @@ use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Range {
-    pub from: Box<Expr>,
-    pub to: Box<Expr>,
-    pub neq: bool
+    from: Box<Expr>,
+    to: Box<Expr>,
+    neq: bool
 }
 
 impl Typed for Range {
