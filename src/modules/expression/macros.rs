@@ -135,22 +135,22 @@ macro_rules! parse_expr {
     // Base Case: Current and previous precedence groups remaining
     (@internal (
         $cur_name:ident @ $cur_type:ident => [$($cur_modules:ident),*],
-        $prev_name:ident @ $prev_type:ident => [$($prev_modules:ident),*]
+        $next_name:ident @ $next_type:ident => [$($next_modules:ident),*]
     )) => {
         fn _terminal(_meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             panic!("Please create a group that ends precedence recurrence");
         }
 
-        fn $prev_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+        fn $next_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             parse_expr_group!(@internal (
-                {$prev_name, _terminal},
-                meta, $prev_type => [$($prev_modules),*]
+                {$next_name, _terminal},
+                meta, $next_type => [$($next_modules),*]
             ))
         }
 
         fn $cur_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             parse_expr_group!(@internal (
-                {$cur_name, $prev_name},
+                {$cur_name, $next_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
         }
@@ -159,17 +159,17 @@ macro_rules! parse_expr {
     // Recursive step: Current, previous and the rest
     (@internal (
         $cur_name:ident @ $cur_type:ident => [$($cur_modules:ident),*],
-        $prev_name:ident @ $prev_type:ident => [$($prev_modules:ident),*],
+        $next_name:ident @ $next_type:ident => [$($next_modules:ident),*],
         $($rest_name:ident @ $rest_type:ident => [$($rest_modules:ident),*]),+
     )) => {
         parse_expr!(@internal (
-            $prev_name @ $prev_type => [$($prev_modules),*],
+            $next_name @ $next_type => [$($next_modules),*],
             $($rest_name @ $rest_type => [$($rest_modules),*]),*)
         );
 
         fn $cur_name (meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             parse_expr_group!(@internal (
-                {$cur_name, $prev_name},
+                {$cur_name, $next_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
         }
