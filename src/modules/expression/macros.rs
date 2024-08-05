@@ -194,7 +194,28 @@ macro_rules! parse_expr {
         ));
 
         $name($meta)?
-    }}
+    }};
+
+    // Edge case: Single group provided
+    // parse_expr!(meta, [
+    //     name @ Literal => [Num, Text],
+    // ]);
+    ($meta:expr, [
+        $name:ident @ $type:ident => [$($modules:ident),*]
+    ]) => {{
+        fn _terminal(_meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+            panic!("Please create a group that ends precedence recurrence");
+        }
+    
+        fn $name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
+            parse_expr_group!(@internal (
+                {$name, _terminal},
+                meta, $type => [$($modules),*]
+            ))
+        }
+
+        $name($meta)?
+    }};
 }
 
 #[macro_export]
