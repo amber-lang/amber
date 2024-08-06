@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Or {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "or", self.left, self.right)?;
+        handle_binop!(meta, "disjoin", self.left, self.right)?;
         Ok(())
     }
 }
