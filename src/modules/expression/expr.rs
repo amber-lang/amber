@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::command::command::Command;
+use crate::modules::command::cmd::Command;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};

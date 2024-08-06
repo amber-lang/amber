@@ -1,28 +1,46 @@
-name: Cargo Build & Test
+name: Cargo & Clippy Test
 
 on:
   push:
+    branches: [master]
+    paths:
+      - src/**
+      - test_files/**
+      - .cargo/**
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
   pull_request:
+    paths:
+      - src/**
+      - test_files/**
+      - .cargo/**
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build_and_test:
-    name: Rust build and tests
+    name: Rust and clippy tests
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Cache dependencies installed with cargo
-      uses: actions/cache@v3
-      with:
-        path: |
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@v4
+        with:
+          path: |
             ./target/deps
             ~/.cargo
-        key: rust-${{ hashFiles('Cargo.lock') }}
-        restore-keys: rust-${{ hashFiles('Cargo.lock') }}
-    - name: Run all tests
-      run: cargo test --verbose
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Build binary
+        # the binary will be used by the next cargo test step
+        run: cargo build
+      - name: Run cargo tests
+        run: cargo test --all-targets --all-features
+      - name: Run clippy check
+        run: cargo clippy --all-targets --all-features -- -D warnings

@@ -21,7 +21,7 @@ pub struct CommandExpr {
 
 impl Typed for CommandExpr {
     fn get_type(&self) -> Type {
-        Type::Text
+        Type::Failable(Box::new(<Type::Text>));
     }
 }
 
