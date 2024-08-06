@@ -48,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "and", self.left, self.right)?;
+        handle_binop!(meta, "conjoin", self.left, self.right)?;
         Ok(())
     }
 }
