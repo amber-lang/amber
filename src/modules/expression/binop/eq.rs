@@ -46,7 +46,7 @@ impl SyntaxModule<ParserMetadata> for Eq {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "==", self.left, self.right)?;
+        handle_binop!(meta, "equate", self.left, self.right)?;
         Ok(())
     }
 }
