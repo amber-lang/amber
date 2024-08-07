@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::{handle_binop, error_type_match};
 use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
 use crate::utils::metadata::ParserMetadata;
 use crate::translate::compute::{translate_computation, ArithOp};
@@ -48,18 +49,7 @@ impl SyntaxModule<ParserMetadata> for Range {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if self.from.get_type() != Type::Num {
-            let l_type = self.from.get_type();
-            let err = self.from.get_error_message(meta)
-                .message(format!("Range can only work on type 'Num', but '{l_type}' was provided"));
-            return Err(Failure::Loud(err));
-        }
-        if self.to.get_type() != Type::Num {
-            let r_type = self.to.get_type();
-            let err = self.to.get_error_message(meta)
-                .message(format!("Range can only work on type 'Num', but '{r_type}' was provided"));
-            return Err(Failure::Loud(err));
-        }
+        handle_binop!(meta, "apply range operator for", self.from, self.to, [Num])?;
         Ok(())
     }
 }
