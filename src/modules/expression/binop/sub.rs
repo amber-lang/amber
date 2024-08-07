@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Sub {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "substract", self.left, self.right, [Num])?;
+        handle_binop!(meta, "subtract", self.left, self.right, [Num])?;
         Ok(())
     }
 }
