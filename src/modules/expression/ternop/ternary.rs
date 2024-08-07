@@ -58,7 +58,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if self.cond.get_type() != Type::Bool {
             let msg = self.cond.get_error_message(meta)
-                .message("Expected boolean expression in ternary condition");
+                .message("Expected expression that evaluates to 'Bool' in ternary condition");
             return Err(Failure::Loud(msg));
         }
         if self.true_expr.get_type() != self.false_expr.get_type() {
