@@ -219,29 +219,34 @@ macro_rules! parse_expr {
 }
 
 #[macro_export]
-macro_rules! parse_non_operators {
-    ($meta:expr, [$($item:ident),*]) => {(|| {
-        let start_index = $meta.get_index();
-        $(
-            let mut module = $item::new();
-            match syntax($meta, &mut module) {
-                Ok(()) => {
-                    let end_index = $meta.get_index();
-                    return Ok(Expr {
-                        kind: module.get_type(),
-                        value: Some(ExprType::$item(module)),
-                        pos: (start_index, end_index)
-                    })
-                },
-                Err(failure) => {
-                    if let Failure::Loud(err) = failure {
-                        return Err(Failure::Loud(err))
-                    }
-                }
-            }
-        )*
-        error!($meta, $meta.get_current_token(), "Expected expression")
-    })()}
+macro_rules! error_type_match {
+    ($meta:expr, $message:expr, $op_name:expr, $left:expr, $right:expr, [$($type_match:ident),+]) => {{
+        let msg = format!("Cannot {} value of type '{}' with value of type '{}'", $op_name, $left.get_type(), $right.get_type());
+        error_type_match!(@internal ($meta, $message, $op_name, msg, [$($type_match),+]))
+    }};
+
+    ($meta:expr, $message:expr, $op_name:expr, $left:expr, [$($type_match:ident),+]) => {{
+        let msg = format!("Cannot {} value of type '{}'", $op_name, $left.get_type());
+        error_type_match!(@internal ($meta, $message, $op_name, msg, [$($type_match),+]))
+    }};
+
+    ($meta:expr, $message:expr, $op_name:expr, $left:expr, $right:expr) => {{
+        let msg = format!("Cannot {} value of type '{}' with value of type '{}'", $op_name, $left.get_type(), $right.get_type());
+        let comment = format!("You can only {} values of the same types.", $op_name);
+        Err(Failure::Loud(($message).message(msg).comment(comment)))
+    }};
+
+    (@internal ($meta:expr, $message:expr, $op_name:expr, $msg:expr, [$($type_match:ident),+])) => {{
+        let all_types = vec![$(format!("'{}'", stringify!($type_match))),+];
+        let comma_separated = all_types.iter().take(all_types.len() - 1).cloned().collect::<Vec<_>>().join(", ");
+        let types = if all_types.len() > 1 {
+            [ comma_separated, all_types.last().unwrap().to_string() ].join(" or ")
+        } else {
+            all_types.join("")
+        };
+        let comment = format!("You can only {} values of type {types} together.", $op_name);
+        Err(Failure::Loud(($message).message($msg).comment(comment)))
+    }};
 }
 
 #[macro_export]

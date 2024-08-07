@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
 use crate::translate::compute::translate_computation_eval;
@@ -39,9 +40,8 @@ impl SyntaxModule<ParserMetadata> for ShorthandMul {
         self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
         if self.kind != self.expr.get_type() || !matches!(self.kind, Type::Num) {
-            let message = format!("Cannot multiply an expression of type '{}' with a variable of type '{}'", self.expr.get_type(), self.kind);
-            let err = self.expr.get_error_message(meta).message(message);
-            return Err(Failure::Loud(err));
+            let msg = self.expr.get_error_message(meta);
+            return error_type_match!(meta, msg, "multiply", self.expr, [Num, Text, Array]);
         }
         Ok(())
     }

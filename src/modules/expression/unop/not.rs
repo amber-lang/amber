@@ -4,6 +4,7 @@ use crate::translate::{compute::{translate_computation, ArithOp}, module::Transl
 use crate::modules::types::{Type, Typed};
 use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
+use crate::error_type_match;
 use super::UnOp;
 
 #[derive(Debug, Clone)]
@@ -37,7 +38,11 @@ impl SyntaxModule<ParserMetadata> for Not {
         }
     }
 
-    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if !matches!(self.expr.get_type(), Type::Bool) {
+            let msg = self.expr.get_error_message(meta);
+            return error_type_match!(meta, msg, "logically negate", (self.expr), [Bool])
+        }
         Ok(())
     }
 }

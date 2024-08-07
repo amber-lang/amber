@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::handle_binop;
+use crate::{handle_binop, error_type_match};
 use crate::translate::compute::{ArithOp, translate_computation};
 use crate::modules::expression::expr::Expr;
 use crate::utils::{ParserMetadata, TranslateMetadata};
