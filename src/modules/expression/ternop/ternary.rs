@@ -64,7 +64,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
         if self.true_expr.get_type() != self.false_expr.get_type() {
             let pos = get_binop_position_info(meta, &self.true_expr, &self.false_expr);
             let msg = Message::new_err_at_position(meta, pos)
-                .message("Ternary operation can only be used on arguments of the same type")
+                .message("Ternary operation can only evaluate to value of one type.")
                 .comment(format!("Provided branches of type '{}' and '{}'.",
                     self.true_expr.get_type(),
                     self.false_expr.get_type()));
