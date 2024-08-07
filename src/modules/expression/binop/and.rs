@@ -1,6 +1,5 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-// use crate::handle_binop;
 use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
@@ -29,7 +28,7 @@ impl BinOp for And {
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);   
+        self.right = Box::new(right);
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
