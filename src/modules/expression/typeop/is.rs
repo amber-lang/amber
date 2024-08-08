@@ -1,10 +1,11 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::binop::parse_left_expr;
 use crate::modules::expression::expr::Expr;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::modules::types::{Typed, Type, parse_type};
+use crate::modules::types::{Typed, Type};
+
+use super::TypeOp;
 
 #[derive(Debug, Clone)]
 pub struct Is {
@@ -18,20 +19,32 @@ impl Typed for Is {
     }
 }
 
+impl TypeOp for Is {
+    fn set_left(&mut self, left: Expr) {
+        self.expr = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Type) {
+        self.kind = right;
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "is")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Is {
     syntax_name!("Add");
 
     fn new() -> Self {
         Is {
             expr: Box::new(Expr::new()),
-            kind: Type::Null
+            kind: Type::default()
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.expr, "is")?;
-        token(meta, "is")?;
-        self.kind = parse_type(meta)?;
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         Ok(())
     }
 }

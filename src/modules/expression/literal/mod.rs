@@ -8,7 +8,6 @@ pub mod number;
 pub mod text;
 pub mod null;
 pub mod array;
-pub mod range;
 pub mod status;
 
 fn is_escaped(word: &str, symbol: char) -> bool {

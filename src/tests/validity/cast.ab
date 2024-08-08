@@ -1,0 +1,8 @@
+#[allow_absurd_cast]
+fun foo(input: Text): Bool {
+    return input as Num as Bool
+}
+
+if foo("15") {
+    echo "Succeded"
+}

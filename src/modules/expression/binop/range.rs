@@ -1,7 +1,12 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{expression::{binop::{expression_arms_of_type, parse_left_expr}, expr::Expr}, types::{Type, Typed}}, translate::compute::{translate_computation, ArithOp}, utils::metadata::ParserMetadata};
+use crate::docs::module::DocumentationModule;
+use crate::{handle_binop, error_type_match};
+use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Range {
@@ -13,6 +18,22 @@ pub struct Range {
 impl Typed for Range {
     fn get_type(&self) -> Type {
         Type::Array(Box::new(Type::Num))
+    }
+}
+
+impl BinOp for Range {
+    fn set_left(&mut self, left: Expr) {
+        self.from = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.to = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "..")?;
+        self.neq = token(meta, "=").is_err();
+        Ok(())
     }
 }
 
@@ -28,16 +49,7 @@ impl SyntaxModule<ParserMetadata> for Range {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, self.from.as_mut(), "..")?;
-        let tok = meta.get_current_token();
-        token(meta, "..")?;
-        token(meta, "=").is_err().then(|| self.neq = true);
-        syntax(meta, self.to.as_mut())?;
-        let l_type = self.from.get_type();
-        let r_type = self.to.get_type();
-        let message = format!("Cannot create a range starting from value of type '{l_type}' up until value of type '{r_type}'");
-        let predicate = |kind| matches!(kind, Type::Num);
-        expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, &message)?;
+        handle_binop!(meta, "apply range operator for", self.from, self.to, [Num])?;
         Ok(())
     }
 }

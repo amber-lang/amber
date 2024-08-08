@@ -1,8 +1,14 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, translate::compute::{translate_computation, ArithOp}, utils::{metadata::ParserMetadata, TranslateMetadata}};
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
+use crate::{docs::module::DocumentationModule, utils::TranslateMetadata};
+use crate::{handle_binop, error_type_match};
+use crate::modules::expression::expr::Expr;
+use crate::translate::compute::ArithOp;
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::compute::translate_computation;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
+
+use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Div {
@@ -16,9 +22,24 @@ impl Typed for Div {
     }
 }
 
+impl BinOp for Div {
+    fn set_left(&mut self, left: Expr) {
+        self.left = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.right = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "/")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Div {
     syntax_name!("Div");
-
+    
     fn new() -> Self {
         Div {
             left: Box::new(Expr::new()),
@@ -27,15 +48,7 @@ impl SyntaxModule<ParserMetadata> for Div {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "/")?;
-        let tok = meta.get_current_token();
-        token(meta, "/")?;
-        syntax(meta, &mut *self.right)?;
-        let error = "Divide operation can only divide numbers";
-        let l_type = self.left.get_type();
-        let r_type = self.right.get_type();
-        let predicate = |kind| matches!(kind, Type::Num);
-        expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, error)?;
+        handle_binop!(meta, "divide", self.left, self.right, [Num])?;
         Ok(())
     }
 }
