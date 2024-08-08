@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: bc
+          version: 1.0
       - uses: cachix/install-nix-action@v27
       - name: Check Nix flake
         run: nix flake check --all-systems
