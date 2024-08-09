@@ -156,14 +156,14 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
         String::from(out.to_string_lossy())
     };
 
-    let valid_code: String;
-    match fs::read_to_string(&valid_input) {
-        Ok(code) => valid_code = code,
+    
+    let valid_code: String = match fs::read_to_string(&valid_input) {
+        Ok(code) => code,
         Err(err) => {
             Message::new_err_msg(err.to_string()).show();
             std::process::exit(1);
         }
-    }
+    };
 
     match AmberCompiler::new(valid_code, Some(valid_input), cli).generate_docs(output) {
         Ok(_) => Ok(()),
