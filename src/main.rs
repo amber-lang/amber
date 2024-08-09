@@ -125,7 +125,6 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
-    let code = format!("import * from \"std\"\n{code}");
     match AmberCompiler::new(code, None, cli).compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());

@@ -1,0 +1,34 @@
+name: Build verify Amber Nix
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  nix_build:
+    name: Nix build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: bc
+          version: 1.0
+      - uses: cachix/install-nix-action@v27
+      - name: Check Nix flake
+        run: nix flake check --all-systems
+      - name: Build in Nix shell
+        run: nix develop --command cargo build --release
+      - name: Build with Nix
+        run: |
+          nix build
+
+          # Ensure that the `amber` binary runs
+          ./result/bin/amber --version
+
+          # Ensure that the `bc` command is correctly provided
+          echo "import { exit } from \"std/env\"\n\$which bc && bc --version\$ failed { echo \"Failed to run basic calculator\"\nexit(1) }" | ./result/bin/amber -
