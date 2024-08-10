@@ -254,7 +254,7 @@ impl TranslateModule for FunctionDeclaration {
             let name = format!("{}__{}_v{}", self.name, self.id, index);
             meta.fun_name = Some((self.name.clone(), self.id, index));
             // Parse the function body
-            result.push(format!("function {name} {{"));
+            result.push(format!("{name}() {{"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);
             }

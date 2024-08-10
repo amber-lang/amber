@@ -31,4 +31,4 @@ jobs:
           ./result/bin/amber --version
 
           # Ensure that the `bc` command is correctly provided
-          echo "import { exit } from \"std/env\"\n\$which bc && bc --version\$ failed { echo \"Failed to run basic calculator\"\nexit(1) }" | ./result/bin/amber -
+          echo "import { exit } from \"std/env\" \$which bc && bc --version\$ failed { echo \"Failed to run basic calculator\" exit(1) }" | ./result/bin/amber -
