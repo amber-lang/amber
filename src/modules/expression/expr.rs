@@ -97,10 +97,14 @@ impl Typed for Expr {
 }
 
 impl Expr {
-    pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
+    pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
         let begin = meta.get_token_at(self.pos.0);
         let end = meta.get_token_at(self.pos.1);
-        let pos = PositionInfo::from_between_tokens(meta, begin, end);
+        PositionInfo::from_between_tokens(meta, begin, end)
+    }
+
+    pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
+        let pos = self.get_position(meta);
         Message::new_err_at_position(meta, pos)
     }
 
