@@ -59,29 +59,29 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
         String::from(input.to_string_lossy().trim())
     } else {
         return Ok(());
-    }
+    };
 
     let code = if valid_input == "-" {
-            let mut buf = String::new();
-            match stdin().read_to_string(&mut buf) {
-                Ok(_) => buf,
-                Err(err) => handle_err(err),
-            }
-        } else {
-            match fs::read_to_string(&valid_input) {
-                Ok(code) => code,
-                Err(err) => handle_err(err),
-            }
+        let mut buf = String::new();
+        match stdin().read_to_string(&mut buf) {
+            Ok(_) => buf,
+            Err(err) => handle_err(err),
+        }
+    } else {
+        match fs::read_to_string(&valid_input) {
+            Ok(code) => code,
+            Err(err) => handle_err(err),
         }
     };
 
-    let (valid_messages, valid_code) = match AmberCompiler::new(code, Some(valid_input), cli.clone()).compile() {
-        Ok(result) => result
-        Err(err) => {
-            err.show();
-            std::process::exit(1);
-        }
-    }
+    let (valid_messages, valid_code) =
+        match AmberCompiler::new(code, Some(valid_input), cli.clone()).compile() {
+            Ok(result) => result,
+            Err(err) => {
+                err.show();
+                std::process::exit(1);
+            }
+        };
     valid_messages.iter().for_each(|m| m.show());
     // Save to the output file
     let valid_output = if let Some(output) = cli.output {
@@ -91,7 +91,7 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
         (!valid_messages.is_empty()).then(render_dash);
         let exit_status = AmberCompiler::execute(valid_code, &[])?;
         std::process::exit(exit_status.code().unwrap_or(1));
-    }
+    };
 
     if valid_output == "--silent" {
         return Ok(());
@@ -140,14 +140,13 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
         )
         .show();
         std::process::exit(1);
-    }
+    };
 
     let output = {
         let out = cli.output.clone().unwrap_or_else(|| PathBuf::from("docs"));
         String::from(out.to_string_lossy())
     };
 
-    
     let valid_code: String = match fs::read_to_string(&valid_input) {
         Ok(code) => code,
         Err(err) => {
@@ -165,10 +164,12 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
     }
 }
 
+/*
 #[cfg(target_os = "windows")]
 fn set_file_permission(_file: &fs::File, _output: String) {
     // We don't need to set permission on Windows
 }
+*/
 
 #[cfg(not(target_os = "windows"))]
 fn set_file_permission(file: &std::fs::File, path: String) {
