@@ -55,57 +55,56 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
-    let valid_input = if let Some(input) = cli.input.clone() {
+    let input = if let Some(input) = cli.input.clone() {
         String::from(input.to_string_lossy().trim())
     } else {
         return Ok(());
     };
 
-    let code = if valid_input == "-" {
+    let code = if input == "-" {
         let mut buf = String::new();
         match stdin().read_to_string(&mut buf) {
             Ok(_) => buf,
             Err(err) => handle_err(err),
         }
     } else {
-        match fs::read_to_string(&valid_input) {
+        match fs::read_to_string(&input) {
             Ok(code) => code,
             Err(err) => handle_err(err),
         }
     };
 
-    let (valid_messages, valid_code) =
-        match AmberCompiler::new(code, Some(valid_input), cli.clone()).compile() {
-            Ok(result) => result,
-            Err(err) => {
-                err.show();
-                std::process::exit(1);
-            }
-        };
-    valid_messages.iter().for_each(|m| m.show());
+    let (messages, code) = match AmberCompiler::new(code, Some(input), cli.clone()).compile() {
+        Ok(result) => result,
+        Err(err) => {
+            err.show();
+            std::process::exit(1);
+        }
+    };
+    messages.iter().for_each(|m| m.show());
     // Save to the output file
-    let valid_output = if let Some(output) = cli.output {
+    let output = if let Some(output) = cli.output {
         String::from(output.to_string_lossy())
     } else {
         // Execute the code
-        (!valid_messages.is_empty()).then(render_dash);
-        let exit_status = AmberCompiler::execute(valid_code, &[])?;
+        (!messages.is_empty()).then(render_dash);
+        let exit_status = AmberCompiler::execute(code, &[])?;
         std::process::exit(exit_status.code().unwrap_or(1));
     };
 
-    if valid_output == "--silent" {
+    if output == "--silent" {
         return Ok(());
     }
 
-    if valid_output == "-" {
-        print!("{valid_code}");
+    if output == "-" {
+        print!("{code}");
         return Ok(());
     }
 
-    match fs::File::create(&valid_output) {
+    match fs::File::create(&output) {
         Ok(mut file) => {
-            write!(file, "{}", valid_code).unwrap();
-            set_file_permission(&file, valid_output);
+            write!(file, "{}", code).unwrap();
+            set_file_permission(&file, output);
         }
         Err(err) => {
             Message::new_err_msg(err.to_string()).show();
@@ -132,7 +131,7 @@ fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
-    let valid_input = if let Some(ref input) = cli.input {
+    let input = if let Some(ref input) = cli.input {
         String::from(input.to_string_lossy())
     } else {
         Message::new_err_msg(
@@ -147,7 +146,7 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
         String::from(out.to_string_lossy())
     };
 
-    let valid_code: String = match fs::read_to_string(&valid_input) {
+    let code: String = match fs::read_to_string(&input) {
         Ok(code) => code,
         Err(err) => {
             Message::new_err_msg(err.to_string()).show();
@@ -155,7 +154,7 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    match AmberCompiler::new(valid_code, Some(valid_input), cli).generate_docs(output) {
+    match AmberCompiler::new(code, Some(input), cli).generate_docs(output) {
         Ok(_) => Ok(()),
         Err(err) => {
             err.show();
