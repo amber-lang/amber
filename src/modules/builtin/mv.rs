@@ -5,6 +5,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::condition::failed::Failed;
 use crate::translate::module::TranslateModule;
 use crate::docs::module::DocumentationModule;
+use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::modules::command::modifier::CommandModifier;
 
@@ -32,8 +33,24 @@ impl SyntaxModule<ParserMetadata> for Mv {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
             token(meta, "mv")?;
+            let mut tok = meta.get_current_token();
             syntax(meta, &mut self.source)?;
+            let mut path_type = self.source.get_type();
+            if path_type != Type::Text {
+                return error!(meta, tok => {
+                    message: "Builtin function `mv` can only be used with values of type Text",
+                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+                });
+            }
+            tok = meta.get_current_token();
             syntax(meta, &mut self.destination)?;
+            path_type = self.destination.get_type();
+            if path_type != Type::Text {
+                return error!(meta, tok => {
+                    message: "Builtin function `mv` can only be used with values of type Text",
+                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+                });
+            }
             syntax(meta, &mut self.failed)?;
             Ok(())
         })

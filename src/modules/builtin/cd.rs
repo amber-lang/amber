@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::docs::module::DocumentationModule;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 
@@ -20,7 +21,15 @@ impl SyntaxModule<ParserMetadata> for Cd {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
+        let tok = meta.get_current_token();
         syntax(meta, &mut self.value)?;
+        let path_type = self.value.get_type();
+        if path_type != Type::Text {
+            return error!(meta, tok => {
+                message: "Builtin function `cd` can only be used with values of type Text",
+                comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+            });
+        }
         Ok(())
     }
 }
