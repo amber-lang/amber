@@ -55,15 +55,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
-    let valid_input: String;
-    if let Some(input) = cli.input.clone() {
-        valid_input = String::from(input.to_string_lossy().trim());
+    let valid_input = if let Some(input) = cli.input.clone() {
+        String::from(input.to_string_lossy().trim())
     } else {
         return Ok(());
     }
 
-    let code = {
-        if valid_input == "-" {
+    let code = if valid_input == "-" {
             let mut buf = String::new();
             match stdin().read_to_string(&mut buf) {
                 Ok(_) => buf,
@@ -77,13 +75,8 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let valid_messages;
-    let valid_code: String;
-    match AmberCompiler::new(code, Some(valid_input), cli.clone()).compile() {
-        Ok((messages, code)) => {
-            valid_messages = messages;
-            valid_code = code;
-        }
+    let (valid_messages, valid_code) = match AmberCompiler::new(code, Some(valid_input), cli.clone()).compile() {
+        Ok(result) => result
         Err(err) => {
             err.show();
             std::process::exit(1);
@@ -91,9 +84,8 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
     }
     valid_messages.iter().for_each(|m| m.show());
     // Save to the output file
-    let valid_output: String;
-    if let Some(output) = cli.output {
-        valid_output = String::from(output.to_string_lossy());
+    let valid_output = if let Some(output) = cli.output {
+        String::from(output.to_string_lossy())
     } else {
         // Execute the code
         (!valid_messages.is_empty()).then(render_dash);
@@ -140,9 +132,8 @@ fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
-    let valid_input: String;
-    if let Some(ref input) = cli.input {
-        valid_input = String::from(input.to_string_lossy());
+    let valid_input = if let Some(ref input) = cli.input {
+        String::from(input.to_string_lossy())
     } else {
         Message::new_err_msg(
             "You need to provide a path to an entry file to generate the documentation",
