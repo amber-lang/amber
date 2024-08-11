@@ -1,10 +1,13 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::{handle_binop, error_type_match};
 use crate::translate::compute::{translate_computation, ArithOp};
+use crate::modules::expression::expr::Expr;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_type};
 use crate::modules::types::{Typed, Type};
+
+use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Mul {
@@ -15,6 +18,21 @@ pub struct Mul {
 impl Typed for Mul {
     fn get_type(&self) -> Type {
         Type::Num
+    }
+}
+
+impl BinOp for Mul {
+    fn set_left(&mut self, left: Expr) {
+        self.left = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.right = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "*")?;
+        Ok(())
     }
 }
 
@@ -29,15 +47,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "*")?;
-        let tok = meta.get_current_token();
-        token(meta, "*")?;
-        syntax(meta, &mut *self.right)?;
-        let error = "Multiply operation can only multiply numbers";
-        let l_type = self.left.get_type();
-        let r_type = self.right.get_type();
-        let predicate = |kind| matches!(kind, Type::Num);
-        expression_arms_of_type(meta, &l_type, &r_type, predicate, tok, error)?;
+        handle_binop!(meta, "multiply", self.left, self.right, [Num])?;
         Ok(())
     }
 }

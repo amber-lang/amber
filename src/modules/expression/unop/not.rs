@@ -4,6 +4,8 @@ use crate::translate::{compute::{translate_computation, ArithOp}, module::Transl
 use crate::modules::types::{Type, Typed};
 use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
+use crate::error_type_match;
+use super::UnOp;
 
 #[derive(Debug, Clone)]
 pub struct Not {
@@ -13,6 +15,17 @@ pub struct Not {
 impl Typed for Not {
     fn get_type(&self) -> Type {
         Type::Bool
+    }
+}
+
+impl UnOp for Not {
+    fn set_expr(&mut self, expr: Expr) {
+        self.expr = Box::new(expr);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "not")?;
+        Ok(())
     }
 }
 
@@ -26,8 +39,10 @@ impl SyntaxModule<ParserMetadata> for Not {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "not")?;
-        syntax(meta, &mut *self.expr)?;
+        if !matches!(self.expr.get_type(), Type::Bool) {
+            let msg = self.expr.get_error_message(meta);
+            return error_type_match!(meta, msg, "logically negate", (self.expr), [Bool])
+        }
         Ok(())
     }
 }

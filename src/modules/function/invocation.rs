@@ -94,10 +94,17 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 }
             }
 
+            let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
+            let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
+            self.refs.clone_from(&function_unit.arg_refs);
+            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_names, tok.clone())?;
+
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
                 match syntax(meta, &mut self.failed) {
-                    Ok(_) => {},
+                    Ok(_) => if let Type::Failable(t) = &self.kind {
+                        self.kind = *t.clone();
+                    },
                     Err(Failure::Quiet(_)) => return error!(meta, tok => {
                         message: "This function can fail. Please handle the failure",
                         comment: "You can use '?' in the end to propagate the failure"
@@ -113,10 +120,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                     meta.add_message(message);
                 }
             }
-            let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-            let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
-            self.refs.clone_from(&function_unit.arg_refs);
-            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit, &types, &var_names, tok)?;
+
             Ok(())
         })
     }
