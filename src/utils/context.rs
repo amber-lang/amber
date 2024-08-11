@@ -1,9 +1,9 @@
-use heraclitus_compiler::prelude::*;
-use std::collections::{HashMap, HashSet};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
+use heraclitus_compiler::prelude::*;
+use std::collections::{HashMap, HashSet};
 
-use super::{function_interface::FunctionInterface, cc_flags::CCFlags};
+use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -11,12 +11,12 @@ pub struct FunctionDecl {
     pub arg_names: Vec<String>,
     pub arg_types: Vec<Type>,
     pub arg_refs: Vec<bool>,
-    pub arg_optionals : Vec<Expr>,
+    pub arg_optionals: Vec<Expr>,
     pub returns: Type,
     pub is_args_typed: bool,
     pub is_public: bool,
     pub is_failable: bool,
-    pub id: usize
+    pub id: usize,
 }
 
 impl FunctionDecl {
@@ -30,7 +30,7 @@ impl FunctionDecl {
             arg_optionals: self.arg_optionals,
             returns: self.returns,
             is_public: self.is_public,
-            is_failable: self.is_failable
+            is_failable: self.is_failable,
         }
     }
 }
@@ -40,13 +40,13 @@ pub struct VariableDecl {
     pub name: String,
     pub kind: Type,
     pub global_id: Option<usize>,
-    pub is_ref: bool
+    pub is_ref: bool,
 }
 
 #[derive(Clone, Debug)]
 pub struct ScopeUnit {
     pub vars: HashMap<String, VariableDecl>,
-    pub funs: HashMap<String, FunctionDecl>
+    pub funs: HashMap<String, FunctionDecl>,
 }
 
 /// Perform methods just on the scope
@@ -54,7 +54,7 @@ impl ScopeUnit {
     pub fn new() -> ScopeUnit {
         ScopeUnit {
             vars: HashMap::new(),
-            funs: HashMap::new()
+            funs: HashMap::new(),
         }
     }
 
@@ -119,7 +119,7 @@ pub struct Context {
     /// The return type of the currently parsed function
     pub fun_ret_type: Option<Type>,
     /// List of compiler flags
-    pub cc_flags: HashSet<CCFlags>
+    pub cc_flags: HashSet<CCFlags>,
 }
 
 // FIXME: Move the scope related structures to the separate file
@@ -137,7 +137,7 @@ impl Context {
             is_unsafe_ctx: false,
             pub_funs: vec![],
             fun_ret_type: None,
-            cc_flags: HashSet::new()
+            cc_flags: HashSet::new(),
         }
     }
 
