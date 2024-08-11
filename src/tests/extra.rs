@@ -18,8 +18,8 @@ fn http_server() {
 
 #[test]
 fn exit() {
-    let code = fs::read_to_string("src/tests/stdlib/no_output/exit.ab")
-        .expect("Failed to open stdlib/no_output/exit.ab test file");
+    let code = fs::read_to_string("src/tests/validity/no_output/exit.ab")
+        .expect("Failed to open validity/no_output/exit.ab test file");
 
     let code = compile_code(code);
     let mut cmd = Command::new("bash")
