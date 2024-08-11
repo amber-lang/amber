@@ -30,13 +30,13 @@ impl SyntaxModule<ParserMetadata> for Rm {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
-            let tok = meta.get_current_token();
             token(meta, "rm")?;
             syntax(meta, &mut self.path)?;
             let path_type = self.path.get_type();
             if path_type != Type::Text {
-                return error!(meta, tok => {
-                    message: "'rm' can only be used with values of type Text",
+                let position = self.path.get_position(meta);
+                return error_pos!(meta, position => {
+                    message: "Builtin function `rm` can only be used with values of type Text",
                     comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
                 });
             }
