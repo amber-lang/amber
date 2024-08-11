@@ -2,11 +2,14 @@ import * from "std/fs"
 main {
     let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
     unsafe $touch {tmpdir}/a$
+    if not file_exist("{tmpdir}/a") {
+        echo "Not Found"
+    }
     unsafe rm "{tmpdir}/a" 
     if not file_exist("{tmpdir}/a") {
         echo "Succeded"
     } else {
         echo "Found"
-        unsafe $rm -fr {tmpdir}$
     }
+    unsafe $rm -fr {tmpdir}$
 }
