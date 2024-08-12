@@ -151,7 +151,7 @@ impl AmberCompiler {
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
-        let mut meta_translate = TranslateMetadata::new(meta);
+        let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
         let time = Instant::now();
         let mut result = vec![];
         for (_path, block) in ast_forest {
@@ -182,8 +182,7 @@ impl AmberCompiler {
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
                     .as_str()),
-        ]
-        .join("\n");
+        ].join("\n");
         format!("{}\n{}", header, res)
     }
 

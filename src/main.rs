@@ -40,6 +40,10 @@ pub struct Cli {
     /// Don't format the output file
     #[arg(long)]
     disable_format: bool,
+
+    /// Optimize the code for release (for now it just removes comments)
+    #[arg(long)]
+    release: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

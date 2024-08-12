@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
+use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache, Cli};
 use super::ParserMetadata;
 
 pub struct TranslateMetadata {
@@ -22,11 +22,13 @@ pub struct TranslateMetadata {
     /// Determines whether the current context should be silenced.
     pub silenced: bool,
     /// The current indentation level.
-    pub indent: i64
+    pub indent: i64,
+    /// Determines if release flag was set.
+    pub release: bool
 }
 
 impl TranslateMetadata {
-    pub fn new(meta: ParserMetadata) -> Self {
+    pub fn new(meta: ParserMetadata, cli: &Cli) -> Self {
         TranslateMetadata {
             arith_module: ArithType::BcSed,
             fun_cache: meta.fun_cache,
@@ -36,7 +38,8 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
-            indent: -1
+            indent: -1,
+            release: cli.release
         }
     }
 
