@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for Comment {
 impl TranslateModule for Comment {
     fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
         if meta.release {
-            return "".to_string();
+            String::new()
         } else {
             format!("# {}", self.value)
         }
