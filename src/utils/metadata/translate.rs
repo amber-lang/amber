@@ -23,8 +23,8 @@ pub struct TranslateMetadata {
     pub silenced: bool,
     /// The current indentation level.
     pub indent: i64,
-    /// Determines if release flag was set.
-    pub release: bool
+    /// Determines if minify flag was set.
+    pub minify: bool
 }
 
 impl TranslateMetadata {
@@ -39,7 +39,7 @@ impl TranslateMetadata {
             eval_ctx: false,
             silenced: false,
             indent: -1,
-            release: cli.release
+            minify: cli.minify
         }
     }
 

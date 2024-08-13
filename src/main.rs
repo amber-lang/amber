@@ -41,9 +41,9 @@ pub struct Cli {
     #[arg(long)]
     disable_format: bool,
 
-    /// Optimize the code for release (for now it just removes comments)
+    /// Minify the resulting code
     #[arg(long)]
-    release: bool,
+    minify: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
