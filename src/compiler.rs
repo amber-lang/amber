@@ -10,12 +10,13 @@ use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
+use wildmatch::WildMatchPattern;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+use std::process::{exit, Command, ExitStatus};
 use std::time::Instant;
 
 pub mod postprocess;
@@ -170,7 +171,13 @@ impl AmberCompiler {
 
         let mut res = result.join("\n");
 
+        let filters = self.cli_opts.disable_postprocessor.iter()
+            .map(|x| WildMatchPattern::new(x)).collect();
+
         let postprocessors = PostProcessor::get_default(self.cli_opts.clone());
+        let postprocessors = PostProcessor::filter_default(postprocessors, filters);
+        println!("{postprocessors:#?}");
+        exit(1);
 
         for postprocessor in postprocessors {
             res = postprocessor.clone().execute(res);

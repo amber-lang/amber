@@ -1,6 +1,7 @@
 use std::{collections::HashMap, io::{BufWriter, Write}, path::PathBuf, process::{Command, Stdio}, sync::{Arc, Mutex, MutexGuard}};
 
 use itertools::Itertools;
+use wildmatch::WildMatchPattern;
 
 use crate::Cli;
 
@@ -136,5 +137,20 @@ impl PostProcessor {
         }
 
         postprocessors.values().map(|x| x.clone()).collect_vec()
+    }
+
+    pub fn filter_default(default: Vec<Self>, filters: Vec<WildMatchPattern<'*', '?'>>) -> Vec<Self> {
+        if filters.len() == 0 {
+            return default
+        }
+
+        default
+            .iter()
+            .filter(|x| {
+                filters.iter()  
+                    .any(|xx| !xx.matches(&x.name))
+            })
+            .cloned()
+            .collect_vec()
     }
 }
