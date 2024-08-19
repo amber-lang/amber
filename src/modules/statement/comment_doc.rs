@@ -10,7 +10,7 @@ pub struct CommentDoc {
 }
 
 impl SyntaxModule<ParserMetadata> for CommentDoc {
-    syntax_name!("Parenthesis");
+    syntax_name!("Comment Doc");
 
     fn new() -> Self {
         CommentDoc {

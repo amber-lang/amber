@@ -40,6 +40,7 @@ use crate::modules::builtin::{
     cd::Cd
 };
 use super::comment_doc::CommentDoc;
+use super::comment::Comment;
 
 #[derive(Debug, Clone)]
 pub enum StatementType {
@@ -66,6 +67,7 @@ pub enum StatementType {
     Echo(Echo),
     Mv(Mv),
     CommandModifier(CommandModifier),
+    Comment(Comment),
     CommentDoc(CommentDoc)
 }
 
@@ -93,7 +95,7 @@ impl Statement {
         // Command
         CommandModifier, Echo, Mv, Cd,
         // Comment doc
-        CommentDoc,
+        CommentDoc, Comment,
         // Expression
         Expr
     ]);
@@ -127,13 +129,6 @@ impl SyntaxModule<ParserMetadata> for Statement {
         let mut error = None;
         let statements = self.get_modules();
         for statement in statements {
-            // Handle comments
-            if let Some(token) = meta.get_current_token() {
-                if token.word.starts_with("//") && !token.word.starts_with("///") {
-                    meta.increment_index();
-                    continue
-                }
-            }
             // Try to parse the statement
             match self.parse_match(meta, statement) {
                 Ok(()) => return Ok(()),
