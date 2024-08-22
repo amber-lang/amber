@@ -37,6 +37,19 @@ curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/in
 ```
 
 #### Via a package manager
+
+### Snap
+You can install the snap package in any distro via
+the store:
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/amber-bash)
+
+or from the terminal:
+```bash
+sudo snap install amber-bash --classic
+```
+
+[Don't have snapd installed?](https://snapcraft.io/docs/core/install)
+
 Amber is packaged in the following distros:
 
 Arch (AUR) - `amber-bash-bin`
