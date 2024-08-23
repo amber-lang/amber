@@ -12,7 +12,7 @@ source-code: https://github.com/Ph0enixKM/Amber
 issues: https://github.com/Ph0enixKM/Amber/issues
 website: https://amber-lang.com/
 grade: stable
-confinement: strict
+confinement: classic
 compression: lzo
 
 parts:
