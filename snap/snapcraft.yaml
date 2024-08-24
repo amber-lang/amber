@@ -21,6 +21,8 @@ parts:
     source: .
     build-packages:
       - yq
+    build-attributes:
+      - enable-patchelf
     override-pull: |
       craftctl default
       craftctl set version=$(cat $CRAFT_PART_SRC/Cargo.toml | tomlq -rc '.package.version')
@@ -31,6 +33,8 @@ parts:
       - bc
     prime:
       - bin/bc
+    build-attributes:
+      - enable-patchelf
     organize:
       usr/bin: bin
 
@@ -38,6 +42,3 @@ parts:
 apps:
   amber-bash:
     command: bin/amber
-    plugs:
-      - home
-      - removable-media
