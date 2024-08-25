@@ -1,0 +1,10 @@
+// Output
+// 1
+// 42
+
+main(args) {
+    const x = 42
+    unsafe $ x=123 $
+    echo status // will output 1 if reassignment didnt succeed
+    echo x
+}
