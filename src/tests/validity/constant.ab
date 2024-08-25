@@ -1,10 +1,15 @@
 // Output
 // 1
 // 42
+// 1
+// 42
 
-main(args) {
+main {
     const x = 42
     unsafe $ x=123 $
     echo status // will output 1 if reassignment didnt succeed
+    echo x
+    unsafe $ unset x $
+    echo status // will output 1 if unsetting did not succeed
     echo x
 }
