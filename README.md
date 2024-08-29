@@ -37,13 +37,7 @@ curl -s "https://raw.githubusercontent.com/Ph0enixKM/AmberNative/master/setup/in
 ```
 
 #### Via a package manager
-Amber is packaged in the following distros:
-
-Arch (AUR) - `amber-bash-bin`
-
-#### Nix
-
-See [NIX.md](./NIX.md)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/amber-lang.svg)](https://repology.org/project/amber-lang/versions)
 
 ### Windows support
 As windows does not come with bash installed it makes no sense to support it. Please install WSL 2 on your windows machine and install Linux version of Amber compiler inside.
