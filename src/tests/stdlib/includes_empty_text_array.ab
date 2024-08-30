@@ -4,8 +4,8 @@ import * from "std/array"
 // Not Found
 
 main {
-    let array = [Text]
-    if includes(array, " ") {
+    let _array = [Text]
+    if includes(_array, " ") {
         echo "Found"
     } else {
         echo "Not Found"
