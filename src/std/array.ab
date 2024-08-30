@@ -21,7 +21,7 @@ pub fun array_search(array, value): [Num] {
 }
 
 /// Check if the value is in the array
-pub fun includes(arr, value) {
+pub fun includes(array, value) {
     let result = array_first_index(array, value)
     return result >= 0
 }
