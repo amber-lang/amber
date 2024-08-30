@@ -1,5 +1,3 @@
-import * from "std/env"
-
 /// Check if directory exists
 pub fun dir_exist(path) {
     $[ -d "{path}" ]$ failed {
@@ -41,7 +39,7 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
         return true
     }
 
-    error("The file {origin} doesn't exist!", 0)
+    echo "The file {origin} doesn't exist!"
     return false
 }
 
@@ -60,7 +58,7 @@ pub fun make_executable(path: Text): Bool {
         return true
     }
 
-    error("The file {path} doesn't exist!", 0)
+    echo "The file {path} doesn't exist!"
     return false
 }
 
