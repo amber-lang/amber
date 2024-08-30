@@ -1,8 +1,8 @@
 import * from "std/array"
 
 main {
-    let _array = ["apple", "banana", "cherry"]
-    if includes(_array, "banana") {
+    let array = ["apple", "banana", "cherry"]
+    if includes(array, "banana") {
         echo "Succeded"
     } else {
         echo "Not Found"
