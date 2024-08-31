@@ -1,0 +1,6 @@
+// Output
+// 123
+
+let num: Num
+num = 123
+echo num

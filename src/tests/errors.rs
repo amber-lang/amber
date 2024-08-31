@@ -72,3 +72,15 @@ fn declared_accessed_before_assigned() {
 
     test_amber(code, "");
 }
+
+
+#[test]
+#[should_panic(expected = "ERROR: Cannot assign value of type 'Num' to a variable of type 'Text'!")]
+fn declared_assigned_invalid_type() {
+    let code = r#"
+        let invalid_type_var: Text
+        invalid_type_var = 123
+    "#;
+
+    test_amber(code, "");
+}
