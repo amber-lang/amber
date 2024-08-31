@@ -68,7 +68,10 @@ impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.name.clone();
         if self.is_declare {
-            return format!("declare {name}");
+            return match self.global_id {
+                Some(id) => format!("declare __{id}_{name}"),
+                None => format!("declare {name}")
+            }
         }
         let mut expr = self.expr.translate(meta);
         if let Type::Array(_) = self.expr.get_type() {
