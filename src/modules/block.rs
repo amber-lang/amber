@@ -21,11 +21,6 @@ impl Block {
     pub fn push_statement(&mut self, statement: Statement) {
         self.statements.push(statement);
     }
-
-    // Check for compile time issues 
-    pub fn check(&self) {
-
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Block {
