@@ -1,7 +1,8 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
 use heraclitus_compiler::prelude::*;
-use std::collections::{HashMap, HashSet};
+use itertools::Itertools;
+use std::{collections::{HashMap, HashSet}, sync::{Arc, Mutex, MutexGuard, PoisonError}};
 
 use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 
@@ -41,6 +42,22 @@ pub struct VariableDecl {
     pub kind: Type,
     pub global_id: Option<usize>,
     pub is_ref: bool,
+    pub is_empty: Arc<Mutex<bool>>,
+    pub declared_at: PositionInfo,
+}
+
+impl VariableDecl {
+    pub fn set_is_empty(&self, is_empty: bool) -> Result<(), ()> {
+        if let Ok(mut lock) = self.is_empty.lock() {
+            *lock = is_empty;
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+    pub fn is_empty<'a>(&'a self) -> Result<bool, PoisonError<MutexGuard<'a, bool>>> {
+        Ok(*(self.is_empty.lock()?))
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -73,6 +90,10 @@ impl ScopeUnit {
     /// Gets all the variable names in the scope
     pub fn get_var_names(&self) -> Vec<&String> {
         self.vars.keys().collect()
+    }
+
+    pub fn get_all_vars(&self) -> Vec<&VariableDecl> {
+        self.vars.values().collect_vec()
     }
 
     /* Functions */

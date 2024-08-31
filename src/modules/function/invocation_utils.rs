@@ -57,7 +57,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Create a sub context for new variables
     meta.push_scope();
     for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
-        meta.add_param(name, kind.clone(), *is_ref);
+        meta.add_param(name, kind.clone(), *is_ref, tok.clone());
     }
     // Set the expected return type if specified
     if fun.returns != Type::Generic {
