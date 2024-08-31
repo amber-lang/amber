@@ -60,7 +60,7 @@ impl SyntaxModule<ParserMetadata> for Block {
         }
         for var in meta.get_all_vars() {
             if var.is_empty().unwrap() {
-                return error_pos!(meta, var.declared_at.clone(), "Variable declared but not assigned!");
+                return error_pos!(meta, var.declared_at.clone(), "Variable declared but never assigned!");
             }
         }
         meta.pop_scope();
