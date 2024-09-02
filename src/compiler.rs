@@ -9,7 +9,6 @@ use crate::{rules, Cli};
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -35,12 +34,12 @@ impl AmberCompiler {
             path,
             cli_opts,
         }
-        .load_code(AmberCompiler::strip_off_shebang(code))
+        .load_code(AmberCompiler::comment_shebang(code))
     }
 
-    fn strip_off_shebang(code: String) -> String {
+    fn comment_shebang(code: String) -> String {
         if code.starts_with("#!") {
-            code.split('\n').skip(1).collect_vec().join("\n")
+            String::from("// ") + &code
         } else {
             code
         }
