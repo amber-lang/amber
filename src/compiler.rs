@@ -166,7 +166,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut res = result.join("\n");
+        let mut res = result.join("\n") + "\n";
 
         if !self.cli_opts.disable_format {
             if let Some(formatter) = BashFormatter::get_available() {
