@@ -78,7 +78,7 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
-/// Get the text length
+/// Get the text or array length
 #[allow_absurd_cast]
 pub fun len(value): Num {
     unsafe {
