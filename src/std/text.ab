@@ -18,11 +18,8 @@ pub fun replace_regex(source: Text, pattern: Text, replacement: Text, extended: 
             // but only via the "-r" option; use that if the version information
             // contains "GNU sed".
             unsafe $re='\bGNU sed\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]]$
-            if status == 0 {
-                return $echo "{source}" | sed -r -e "s/{pattern}/{replacement}/g"$
-            } else {
-                return $echo "{source}" | sed -E -e "s/{pattern}/{replacement}/g"$
-            }
+            let flag = status == 0 then "-r" else "-E"
+            return $echo "{source}" | sed {flag} -e "s/{pattern}/{replacement}/g"$
         } else {
             return $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
         }
