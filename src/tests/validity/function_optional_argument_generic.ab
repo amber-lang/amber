@@ -1,0 +1,7 @@
+// Output
+// hello
+
+fun echo_var(a = 100){
+    echo a
+}
+echo_var("hello")
