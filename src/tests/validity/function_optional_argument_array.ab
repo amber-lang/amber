@@ -1,5 +1,5 @@
 // Output
-// 1000
+// 1100
 
 fun sum_array(a : [Num] = [Num]): Num {
     let sum = 0
