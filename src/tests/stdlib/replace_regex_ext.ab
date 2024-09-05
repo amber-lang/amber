@@ -4,5 +4,7 @@ import * from "std/text"
 // abc[123]def
 
 main {
+    // This will fail on any system where sed does not support extended
+    // regex syntax, via "-r" on GNU sed and "-E" on all other versions.
     echo replace_regex("abc123def", "([0-9]+)", "[\1]", true)
 }
