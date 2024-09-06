@@ -9,4 +9,4 @@ fun sum_array(a : [Num] = [100,200,300,400]): Num {
     return sum;
 }
 let result = sum_array();
-echo "{1000}"
+echo "1000"
