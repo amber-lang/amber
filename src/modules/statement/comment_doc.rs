@@ -37,6 +37,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                         if token.word.starts_with("///") && is_token_underneeth {
                             // Update the column of the last comment
                             col = token.pos.0;
+                            println!("{}", token.word);
                             meta.increment_index();
                             // If the comment signifies a paragrah break, we add two newlines
                             if token.word[3..].trim().is_empty() {
@@ -47,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                                 continue;
                             }
                             let delimiter = if last_char == '\n' { "" } else { " " };
-                            self.value.push_str(&format!("{}{}", delimiter, token.word[3..].trim()));
+                            self.value.push_str(&format!("{}{}  ", delimiter, token.word[3..].trim()));
                         } else {
                             break;
                         }
