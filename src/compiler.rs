@@ -224,7 +224,7 @@ impl AmberCompiler {
             let dir_path = {
                 let file_dir = dep_path.strip_prefix(&base_dir).unwrap();
                 let parent = file_dir.parent().unwrap().display();
-                if output != "" {
+                if !output.is_empty() {
                     output.clone()
                 } else {
                     format!("{}/{output}/{}", base_dir.to_string_lossy(), parent)
