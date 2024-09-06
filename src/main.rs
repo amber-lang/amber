@@ -17,6 +17,7 @@ use std::error::Error;
 use std::fs;
 use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 
 #[derive(Parser, Clone, Debug)]
@@ -136,6 +137,14 @@ fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
 
 fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
     let input = if let Some(ref input) = cli.input {
+        let path = Path::new(input);
+        if !path.exists() {
+            Message::new_err_msg(format!(
+                "Amber file doesn't exist: `{}`.", input.to_string_lossy()
+            ))
+            .show();
+            std::process::exit(1);
+        }
         String::from(input.to_string_lossy())
     } else {
         Message::new_err_msg(
