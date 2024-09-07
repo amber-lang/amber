@@ -21,11 +21,11 @@ pub enum PostProcessorOutput {
 
 pub trait PostProcessorCommandModifier {
     /// Apply the command modifier to a command
-    fn apply(self: &Self, cmd: &mut MutexGuard<Command>);
+    fn apply(&self, cmd: &mut MutexGuard<Command>);
 }
 
 impl PostProcessorCommandModifier for PostProcessorInput {
-    fn apply(self: &Self, cmd: &mut MutexGuard<Command>) {
+    fn apply(&self, cmd: &mut MutexGuard<Command>) {
         match self {
             Self::Stdin => cmd.stdin(Stdio::piped())
         };
@@ -33,7 +33,7 @@ impl PostProcessorCommandModifier for PostProcessorInput {
 }
 
 impl PostProcessorCommandModifier for PostProcessorOutput {
-    fn apply(self: &Self, cmd: &mut MutexGuard<Command>) {
+    fn apply(&self, cmd: &mut MutexGuard<Command>) {
         match self {
             Self::Stdout => cmd.stdout(Stdio::piped())
         };
@@ -77,17 +77,17 @@ impl PostProcessor {
         Self::new(name, bin, PostProcessorInput::default(), PostProcessorOutput::default())
     }
 
-    pub fn cmd(self: &Self) -> MutexGuard<Command> {
+    pub fn cmd(&self) -> MutexGuard<Command> {
         self.command.lock().expect("Couldn't lock on command (arc)")
     }
 
-    fn build_cmd(self: &Self) {
+    fn build_cmd(&self) {
         let mut command = self.cmd();
         self.input.apply(&mut command);
         self.output.apply(&mut command);
     }
 
-    pub fn is_available(self: &Self) -> bool {
+    pub fn is_available(&self) -> bool {
         match Command::new(self.bin.clone()).spawn() {
             Ok(mut v) => {
                 let _ = v.kill();
@@ -97,25 +97,25 @@ impl PostProcessor {
         }
     }
 
-    pub fn execute(self: &Self, code: String) -> String {
+    pub fn execute(&self, code: String) -> String {
 
         if !self.is_available() { return code }
 
-        let mut spawned = self.cmd().spawn().expect(format!("Couldn't spawn {}", self.name).as_str());
+        let mut spawned = self.cmd().spawn().unwrap_or_else(|_| panic!("Couldn't spawn {}", self.name));
         
         match self.input {
             PostProcessorInput::Stdin => {
-                let stdin = spawned.stdin.as_mut().expect(format!("Couldn't get {}'s stdin", self.name).as_str());
+                let stdin = spawned.stdin.as_mut().unwrap_or_else(|| panic!("Couldn't get {}'s stdin", self.name));
                 let mut writer = BufWriter::new(stdin);
-                writer.write_all(code.as_bytes()).expect(format!("Couldn't write to {}'s stdin", self.name).as_str());
-                writer.flush().expect(format!("Couldn't flush {} stdin", self.name).as_str());
+                writer.write_all(code.as_bytes()).unwrap_or_else(|_| panic!("Couldn't write to {}'s stdin", self.name));
+                writer.flush().unwrap_or_else(|_| panic!("Couldn't flush {} stdin", self.name));
             }
         };
 
         match self.output {
             PostProcessorOutput::Stdout => {
-                let res = spawned.wait_with_output().expect(format!("Couldn't wait for {} to finish", self.name).as_str());
-                String::from_utf8(res.stdout).expect(format!("{} returned a non-utf8 code in stdout", self.name).as_str())
+                let res = spawned.wait_with_output().unwrap_or_else(|_| panic!("Couldn't wait for {} to finish", self.name));
+                String::from_utf8(res.stdout).unwrap_or_else(|_| panic!("{} returned a non-utf8 code in stdout", self.name))
             }
         }
     }
@@ -136,11 +136,11 @@ impl PostProcessor {
             postprocessors.remove(postprocessor.as_str());
         }
 
-        postprocessors.values().map(|x| x.clone()).collect_vec()
+        postprocessors.values().cloned().collect_vec()
     }
 
     pub fn filter_default(default: Vec<Self>, filters: Vec<WildMatchPattern<'*', '?'>>) -> Vec<Self> {
-        if filters.len() == 0 {
+        if filters.is_empty() {
             return default
         }
 
