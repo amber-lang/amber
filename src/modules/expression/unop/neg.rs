@@ -1,7 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
-use super::super::expr::Expr;
+use super::{super::expr::Expr, UnOp};
 use crate::docs::module::DocumentationModule;
+use crate::error_type_match;
 
 #[derive(Debug, Clone)]
 pub struct Neg {
@@ -11,6 +12,17 @@ pub struct Neg {
 impl Typed for Neg {
     fn get_type(&self) -> Type {
         Type::Num
+    }
+}
+
+impl UnOp for Neg {
+    fn set_expr(&mut self, expr: Expr) {
+        self.expr = Box::new(expr);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "-")?;
+        Ok(())
     }
 }
 
@@ -24,11 +36,9 @@ impl SyntaxModule<ParserMetadata> for Neg {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "-")?;
-        let tok = meta.get_current_token();
-        syntax(meta, &mut *self.expr)?;
-        if ! matches!(self.expr.get_type(), Type::Num) {
-            return error!(meta, tok, "Only numbers can be negated");
+        if !matches!(self.expr.get_type(), Type::Num) {
+            let msg = self.expr.get_error_message(meta);
+            return error_type_match!(meta, msg, "arithmetically negate", (self.expr), [Num])
         }
         Ok(())
     }

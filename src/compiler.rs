@@ -38,12 +38,12 @@ impl AmberCompiler {
             path,
             cli_opts,
         }
-        .load_code(AmberCompiler::strip_off_shebang(code))
+        .load_code(AmberCompiler::comment_shebang(code))
     }
 
-    fn strip_off_shebang(code: String) -> String {
+    fn comment_shebang(code: String) -> String {
         if code.starts_with("#!") {
-            code.split('\n').skip(1).collect_vec().join("\n")
+            String::from("// ") + &code
         } else {
             code
         }
@@ -154,7 +154,7 @@ impl AmberCompiler {
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
-        let mut meta_translate = TranslateMetadata::new(meta);
+        let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
         let time = Instant::now();
         let mut result = vec![];
         for (_path, block) in ast_forest {
@@ -169,7 +169,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut res = result.join("\n");
+        let mut res = result.join("\n") + "\n";
 
         let filters = self.cli_opts.disable_postprocessor.iter()
             .map(|x| WildMatchPattern::new(x)).collect();

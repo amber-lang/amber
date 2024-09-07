@@ -1,9 +1,0 @@
-import * from "std/array"
-
-// Output
-// 1
-
-main {
-    let result = in_array([1, 2, 3, 4, 3], 3)
-    echo result
-} 

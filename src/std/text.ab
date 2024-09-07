@@ -1,62 +1,75 @@
+/// Finds the first occurrence of a pettern in the content and replaces it with provided replacement text
 pub fun replace_once(source, pattern, replacement) {
     return "\$\{source/{pattern}/{replacement}}"
 }
 
+/// Replaces all occurences of a pattern in the content with provided replacement text
 pub fun replace(source, pattern, replacement) {
     return "\$\{source//{pattern}/{replacement}}"
 }
 
+/// Replaces all occurences of a regex pattern in the content with provided replacement text
+///
+/// Function uses `sed`
 pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
     return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
 }
 
-
+/// This function splits the input `text` into an array of substrings using the specified `delimiter`. 
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
     unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
     return result
 }
 
+/// Splits a `text` into an array of substrings based on newline characters.
 pub fun lines(text: Text): [Text] {
-    let result = [Text]
-    unsafe $IFS=\$'\n' read -rd '' -a {nameof result} <<<"\${nameof text}"$
-    return result
+    return split(text, "\n")
 }
 
+/// Splits a `text` into an array of substrings based on space character.
 pub fun words(text: Text): [Text] {
   return split(text, " ")
 }
 
+/// Merge a text using the delimeter specified
 pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
+/// Trim the spaces at top of the text using `sed`
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
 
+/// Trim the spaces at end of the text using `sed`
 pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
 }
 
+/// Trim the spaces from the text input
 pub fun trim(text: Text): Text {
     return trim_left(trim_right(text))
 }
 
+/// Lowercase the text input using `tr`
 pub fun lower(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
 }
 
+/// Lowercase the text input using `tr`
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
 
+/// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
 #[allow_absurd_cast]
 pub fun parse(text: Text): Num? {
     $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
     return text as Num
 }
 
+/// Splits a text into an array of individual characters.
 pub fun chars(text: Text): [Text] {
     let chars = [Text]
     unsafe $for ((i=0; i<\$\{#{nameof text}}; i++)); do
@@ -65,6 +78,7 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
+/// Get the text or array length
 #[allow_absurd_cast]
 pub fun len(value): Num {
     unsafe {
@@ -75,6 +89,7 @@ pub fun len(value): Num {
     }
 }
 
+/// Check if text contain the value
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1

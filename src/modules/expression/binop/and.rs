@@ -1,10 +1,13 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::{handle_binop, error_type_match};
+use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use super::{super::expr::Expr, parse_left_expr, expression_arms_of_same_type};
 use crate::modules::types::{Typed, Type};
+
+use super::BinOp;
 
 
 #[derive(Debug, Clone)]
@@ -19,6 +22,21 @@ impl Typed for And {
     }
 }
 
+impl BinOp for And {
+    fn set_left(&mut self, left: Expr) {
+        self.left = Box::new(left);
+    }
+
+    fn set_right(&mut self, right: Expr) {
+        self.right = Box::new(right);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "and")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for And {
     syntax_name!("And");
 
@@ -30,15 +48,11 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        parse_left_expr(meta, &mut self.left, "and")?;
-        let tok = meta.get_current_token();
-        token(meta, "and")?;
-        syntax(meta, &mut *self.right)?;
-        let error = "Logical and operation can only be used on arguments of the same type";
-        expression_arms_of_same_type(meta, &self.left, &self.right, tok, error)?;
+        handle_binop!(meta, "conjoin", self.left, self.right)?;
         Ok(())
     }
 }
+
 impl TranslateModule for And {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let left = self.left.translate(meta);
