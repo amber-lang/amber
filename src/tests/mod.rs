@@ -8,7 +8,7 @@ use std::path::PathBuf;
 pub mod cli;
 pub mod errors;
 pub mod extra;
-pub mod formatter;
+pub mod postprocessor;
 mod stdlib;
 mod validity;
 
