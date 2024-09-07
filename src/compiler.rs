@@ -274,6 +274,7 @@ impl AmberCompiler {
 
     #[allow(dead_code)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
+        self.cli_opts.disable_postprocessor = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
             let child = Command::new("/usr/bin/env")
                 .arg("bash")
