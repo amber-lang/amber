@@ -25,7 +25,7 @@ impl Type {
     }
 
     fn eq_union_normal(one: &Vec<Box<Type>>, other: &Type) -> bool {
-        one.iter().find(|x| (**x).to_string() == other.to_string()).is_some()
+        one.iter().any(|x| (**x).to_string() == other.to_string())
     }
 
     fn eq_unions(one: &Vec<Box<Type>>, other: &Vec<Box<Type>>) -> bool {
