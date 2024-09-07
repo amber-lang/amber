@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::expression::expr::ExprType;
 use crate::{handle_binop, error_type_match};
 use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
 use crate::utils::metadata::ParserMetadata;
@@ -59,7 +60,11 @@ impl TranslateModule for Range {
         let from = self.from.translate(meta);
         let to = self.to.translate(meta);
         if self.neq {
-            let to_neq = translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string()));
+            let to_neq = match &self.to.value.as_ref().unwrap() {
+                ExprType::Number(_) => (to.parse::<i64>().unwrap() - 1_i64).to_string(),
+                ExprType::VariableGet(_) => translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string())),
+                _ => unreachable!("range to must be either Number or VariableGet"),
+            };
             meta.gen_subprocess(&format!("seq {} {}", from, to_neq))
         } else {
             meta.gen_subprocess(&format!("seq {} {}", from, to))
