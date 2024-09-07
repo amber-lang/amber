@@ -1,17 +1,56 @@
 use std::fmt::Display;
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Eq, Default)]
 pub enum Type {
     #[default] Null,
     Text,
     Bool,
     Num,
+    Union(Vec<Box<Type>>),
     Array(Box<Type>),
     Failable(Box<Type>),
     Generic
+}
+
+impl Type {
+    pub fn is_union(&self) -> bool {
+        match self {
+            Type::Union(_) => true,
+            _ => false
+        }
+    }
+
+    fn eq_union_normal(one: &Vec<Box<Type>>, other: &Type) -> bool {
+        one.iter().find(|x| (***x).to_string() == other.to_string()).is_some()
+    }
+
+    fn eq_unions(one: &Vec<Box<Type>>, other: &Vec<Box<Type>>) -> bool {
+        one.iter().find(|x| {
+            Self::eq_union_normal(other, x)
+        }).is_some()
+    }
+}
+
+impl PartialEq for Type {
+    fn eq(&self, other: &Self) -> bool {
+        if let Type::Union(union) = self {
+            if let Type::Union(other) = other {
+                return Type::eq_unions(union, other);
+            } else {
+                return Type::eq_union_normal(union, other);
+            }
+        }
+        
+        if let Type::Union(other) = other {
+            Type::eq_union_normal(other, self)
+        } else {
+            self.to_string() == other.to_string()
+        }
+    }
 }
 
 impl Display for Type {
@@ -21,6 +60,7 @@ impl Display for Type {
             Type::Bool => write!(f, "Bool"),
             Type::Num => write!(f, "Num"),
             Type::Null => write!(f, "Null"),
+            Type::Union(types) => write!(f, "{}", types.iter().map(|x| format!("{x}")).join(" | ")),
             Type::Array(t) => write!(f, "[{}]", t),
             Type::Failable(t) => write!(f, "{}?", t),
             Type::Generic => write!(f, "Generic")
@@ -39,10 +79,8 @@ pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
         .map_err(|_| Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type")))
 }
 
-// Tries to parse the type - if it fails, it fails quietly
-pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
-    let tok = meta.get_current_token();
-    let res = match tok.clone() {
+fn parse_type_tok(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<Type, Failure> {
+    match tok.clone() {
         Some(matched_token) => {
             match matched_token.word.as_ref() {
                 "Text" => {
@@ -99,10 +137,35 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
         None => {
             Err(Failure::Quiet(PositionInfo::at_eof(meta)))
         }
-    };
+    }
+}
 
+fn parse_one_type(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<Type, Failure> {
+    let res = parse_type_tok(meta, tok)?;
     if token(meta, "?").is_ok() {
-        return res.map(|t| Type::Failable(Box::new(t)))
+        return Ok(Type::Failable(Box::new(res)))
+    }
+    Ok(res)
+}
+
+// Tries to parse the type - if it fails, it fails quietly
+pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
+    let tok = meta.get_current_token();
+    let res = parse_one_type(meta, tok);
+
+    if token(meta, "|").is_ok() {
+        // is union type
+        let mut unioned = vec![ Box::new(res?) ];
+        loop {
+            match parse_one_type(meta, meta.get_current_token()) {
+                Err(err) => return Err(err),
+                Ok(t) => unioned.push(Box::new(t))
+            };
+            if token(meta, "|").is_err() {
+                break;
+            }
+        }
+        return Ok(Type::Union(unioned))
     }
 
     res
