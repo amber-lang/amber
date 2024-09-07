@@ -1,21 +1,21 @@
-/// Finds the first occurrence of a pettern in the content and replaces it with provided replacement text
+/// Finds the first occurrence of a pettern in the content and replaces it with the provided replacement text.
 pub fun replace_once(source, pattern, replacement) {
     return "\$\{source/{pattern}/{replacement}}"
 }
 
-/// Replaces all occurences of a pattern in the content with provided replacement text
+/// Replaces all occurences of a pattern in the content with the provided replacement text.
 pub fun replace(source, pattern, replacement) {
     return "\$\{source//{pattern}/{replacement}}"
 }
 
-/// Replaces all occurences of a regex pattern in the content with provided replacement text
+/// Replaces all occurences of a regex pattern in the content with the provided replacement text.
 ///
 /// Function uses `sed`
 pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
     return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
 }
 
-/// This function splits the input `text` into an array of substrings using the specified `delimiter`. 
+/// Splits the input `text` into an array of substrings using the specified `delimiter`. 
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
     unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
@@ -32,32 +32,32 @@ pub fun words(text: Text): [Text] {
   return split(text, " ")
 }
 
-/// Merge a text using the delimeter specified
+/// Merges text using the delimeter specified.
 pub fun join(list: [Text], delimiter: Text): Text {
     return unsafe $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
 }
 
-/// Trim the spaces at top of the text using `sed`
+/// Trims the spaces at top of the text using `sed`.
 pub fun trim_left(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/^[[:space:]]*//'$
 }
 
-/// Trim the spaces at end of the text using `sed`
+/// Trims the spaces at end of the text using `sed`.
 pub fun trim_right(text: Text): Text {
     return unsafe $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
 }
 
-/// Trim the spaces from the text input
+/// Trims the spaces from the text input.
 pub fun trim(text: Text): Text {
     return trim_left(trim_right(text))
 }
 
-/// Lowercase the text input using `tr`
+/// Makes the text input lowercase using `tr`.
 pub fun lower(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:upper:]' '[:lower:]'$
 }
 
-/// Lowercase the text input using `tr`
+/// Makes the text input uppercase using `tr`.
 pub fun upper(text: Text): Text {
     return unsafe $echo "{text}" | tr '[:lower:]' '[:upper:]'$
 }
@@ -78,7 +78,7 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
-/// Get the text or array length
+/// Gets the length of provided text or array.
 #[allow_absurd_cast]
 pub fun len(value): Num {
     unsafe {
@@ -89,7 +89,7 @@ pub fun len(value): Num {
     }
 }
 
-/// Check if text contain the value
+/// Checks if some text contains a value/
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1
@@ -98,12 +98,12 @@ pub fun contains(text: Text, phrase: Text): Bool {
   return result == "1"
 }
 
-/// Reverse a text using `rev`
+/// Reverses text using `rev`.
 pub fun reverse(text: Text): Text {
     return unsafe $echo "{text}" | rev$
 }
 
-/// Check if text starts with a value
+/// Checks if text starts with a value.
 pub fun starts_with(text: Text, prefix: Text): Bool {
   let result = unsafe $if [[ "{text}" == "{prefix}"* ]]; then
     echo 1
@@ -112,7 +112,7 @@ pub fun starts_with(text: Text, prefix: Text): Bool {
   return result == "1"
 }
 
-/// Check if text ends with a value
+/// Checks if text ends with a value.
 pub fun ends_with(text: Text, suffix: Text): Bool {
   let result = unsafe $if [[ "{text}" == *"{suffix}" ]]; then
     echo 1
@@ -122,6 +122,7 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 }
 
 /// Returns a substring from `text` starting at the given `index` (0-based).
+/// 
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 /// If `length` is provided, the substring will include `length` characters; otherwise, it slices to the end of `text`.
 /// If `length` is negative, an empty string is returned.
@@ -137,7 +138,7 @@ pub fun char_at(text: Text, index: Num): Text {
     return unsafe $printf "%.1s" "\$\{text:{index}}"$
 }
 
-/// Capitalize the first letter of the given `text`
+/// Capitalize the first letter of the given `text`.
 pub fun capitalize(text: Text): Text {
     return unsafe $echo "{text}" | sed "s/^\(.\)/\U\1/"$
 }
