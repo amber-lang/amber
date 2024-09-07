@@ -10,7 +10,7 @@ pub enum Type {
     Text,
     Bool,
     Num,
-    Union(Vec<Box<Type>>),
+    Union(Vec<Type>),
     Array(Box<Type>),
     Failable(Box<Type>),
     Generic
@@ -18,20 +18,17 @@ pub enum Type {
 
 impl Type {
     pub fn is_union(&self) -> bool {
-        match self {
-            Type::Union(_) => true,
-            _ => false
-        }
+        matches!(self, Type::Union(_))
     }
 
-    fn eq_union_normal(one: &Vec<Box<Type>>, other: &Type) -> bool {
-        one.iter().any(|x| (**x).to_string() == other.to_string())
+    fn eq_union_normal(one: &[Type], other: &Type) -> bool {
+        one.iter().any(|x| (*x).to_string() == other.to_string())
     }
 
-    fn eq_unions(one: &Vec<Box<Type>>, other: &Vec<Box<Type>>) -> bool {
-        one.iter().find(|x| {
+    fn eq_unions(one: &[Type], other: &[Type]) -> bool {
+        one.iter().any(|x| {
             Self::eq_union_normal(other, x)
-        }).is_some()
+        })
     }
 }
 
@@ -155,11 +152,11 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
 
     if token(meta, "|").is_ok() {
         // is union type
-        let mut unioned = vec![ Box::new(res?) ];
+        let mut unioned = vec![ res? ];
         loop {
             match parse_one_type(meta, meta.get_current_token()) {
                 Err(err) => return Err(err),
-                Ok(t) => unioned.push(Box::new(t))
+                Ok(t) => unioned.push(t)
             };
             if token(meta, "|").is_err() {
                 break;
