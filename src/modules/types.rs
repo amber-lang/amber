@@ -17,10 +17,6 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn is_union(&self) -> bool {
-        matches!(self, Type::Union(_))
-    }
-
     fn eq_union_normal(one: &[Type], other: &Type) -> bool {
         one.iter().any(|x| (*x).to_string() == other.to_string())
     }
