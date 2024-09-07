@@ -1,0 +1,19 @@
+// Output
+// is text
+// abc
+// is num
+// 123
+
+fun check(thing: Text | Num): Null {
+    if thing is Text {
+        echo "is text"
+        echo thing
+    }
+    if thing is Num {
+        echo "is num"
+        echo thing
+    }
+}
+
+check("abc")
+check(123)

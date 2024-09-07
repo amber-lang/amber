@@ -1,0 +1,7 @@
+// Output
+// 123
+
+let thingy = "abc" as Text | Num;
+thingy = 123;
+
+echo thingy;
