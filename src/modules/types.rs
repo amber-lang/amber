@@ -26,8 +26,7 @@ impl Type {
         let smaller = if one.len() < other.len() { bigger = other; one } else { bigger = one; other };
 
         smaller.iter().all(|x| {
-            let ok = Self::eq_union_normal(bigger, x);
-            ok
+            Self::eq_union_normal(bigger, x)
         })
     }
 
@@ -91,7 +90,6 @@ impl PartialEq for Type {
         if let Type::Union(other) = other {
             Type::eq_union_normal(other, self)
         } else {
-            println!("{:#03x}, {:#03x}", self.type_hash(), other.type_hash());
             self.type_hash() == other.type_hash()
         }
     }
