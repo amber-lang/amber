@@ -56,3 +56,6 @@ targets = [
 pr-run-mode = "skip"
 # Allow modifying release.yml
 allow-dirty = ["ci"]
+
+[build-dependencies]
+build-helper = "0.1.1"
