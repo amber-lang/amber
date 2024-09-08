@@ -27,3 +27,8 @@ fn array_and_normal_type() {
 fn array_and_array_of_failables() {
     assert_ne!(Type::Array(Box::new(Type::Bool)), Type::Array(Box::new(Type::Failable(Box::new(Type::Bool)))));
 }
+
+#[test]
+fn nested_array_normal_array_with_failable() {
+    assert_ne!(Type::Array(Box::new(Type::Array(Box::new(Type::Bool)))), Type::Failable(Box::new(Type::Bool)));
+}

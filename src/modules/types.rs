@@ -31,18 +31,46 @@ impl Type {
         })
     }
 
+    /**
+        Hash is calculated in a hex number with 8 digits. Each digit has its own meaning.
+
+        Last two digits are reserved for "singular" types, like text and/or bool.
+
+        # Important
+        This hash is not supposed to be readed.  
+        It is generated in a way that it can't collide, but it is not supposed to be used for representing a type.
+
+        ```
+        0x00 00 00 00
+          ^^ ^^ ^^ ^^ -- singular type indicator
+                || -- -- number of nested arrays, such as [Num] will be 1, and [[[Num]]] will be 3.
+             || --    -- modifier
+          || --       -- reserved for future use
+        ```
+
+        ## Modifiers
+        These modifiers are valid:
+
+        `00` - no modifier
+        `01` - failable type
+     */
     fn type_hash(&self) -> u32 {
         match self {
             // normal types
-            Type::Null    => 0x001,
-            Type::Text    => 0x002,
-            Type::Bool    => 0x003,
-            Type::Num     => 0x004,
-            Type::Generic => 0x005,
+            Type::Null    => 0x00000001,
+            Type::Text    => 0x00000002,
+            Type::Bool    => 0x00000003,
+            Type::Num     => 0x00000004,
+            Type::Generic => 0x00000005,
 
             // special types
-            Type::Array(t) => t.type_hash() + 0x100,
-            Type::Failable(t) => t.type_hash() + 0x200,
+            Type::Array(t) => t.type_hash() + 0x00000100,
+            Type::Failable(t) => {
+                if let Type::Failable(_) = **t {
+                    panic!("Failable types can't be nested!");
+                }
+                t.type_hash() + 0x00010000
+            },
 
             Type::Union(_) => unreachable!("Type hash is not available for union types! Use the PartialEq trait instead"),
         }
@@ -62,6 +90,7 @@ impl PartialEq for Type {
         if let Type::Union(other) = other {
             Type::eq_union_normal(other, self)
         } else {
+            println!("{:#03x}, {:#03x}", self.type_hash(), other.type_hash());
             self.type_hash() == other.type_hash()
         }
     }
