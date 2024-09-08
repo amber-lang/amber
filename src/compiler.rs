@@ -214,15 +214,16 @@ impl AmberCompiler {
                 dep_path
             };
             let document = block.document(&meta);
-            // Save to file
+            // Save to file; replace the base directory if the output
+            // path is absolute, otherwise append the output path.
             let dir_path = {
-                let file_dir = dep_path.strip_prefix(&base_dir).unwrap();
-                let parent = file_dir.parent().unwrap().display();
-                format!("{}/{output}/{}", base_dir.to_string_lossy(), parent)
+                let file_path = dep_path.strip_prefix(&base_dir).unwrap();
+                let file_dir = file_path.parent().unwrap();
+                base_dir.join(&output).join(file_dir)
             };
             if let Err(err) = fs::create_dir_all(dir_path.clone()) {
                 Message::new_err_msg(format!(
-                    "Couldn't create directory `{dir_path}`. Do you have sufficient permissions?"
+                    "Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display()
                 ))
                 .comment(err.to_string())
                 .show();
