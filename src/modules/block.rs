@@ -1,6 +1,8 @@
 use std::collections::VecDeque;
+use std::ops::Index;
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::docs::module::DocumentationModule;
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -82,8 +84,16 @@ impl TranslateModule for Block {
 
 impl DocumentationModule for Block {
     fn document(&self, meta: &ParserMetadata) -> String {
-        self.statements.iter()
+        let indices = self.statements.iter()
+            .enumerate()
+            .map(|(index, statement)| (index, statement.name()))
+            .filter_map(|(index, name)| name.map(|n| (n, index)))
+            .sorted()
+            .collect::<Vec<_>>();
+        indices.iter()
+            .map(|(_, index)| self.statements.index(*index))
             .map(|statement| statement.document(meta))
-            .collect::<Vec<_>>().join("")
+            .collect::<Vec<_>>()
+            .join("")
     }
 }

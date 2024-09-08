@@ -71,6 +71,15 @@ pub enum StatementType {
     CommentDoc(CommentDoc)
 }
 
+impl StatementType {
+    pub fn name(&self) -> Option<String> {
+        match self {
+            StatementType::FunctionDeclaration(inner) => Some(inner.name.clone()),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Statement {
     pub value: Option<StatementType>
@@ -112,6 +121,14 @@ impl Statement {
                 Ok(())
             }
             Err(details) => Err(details)
+        }
+    }
+
+    pub fn name(&self) -> Option<String> {
+        if let Some(value) = &self.value {
+            value.name()
+        } else {
+            None
         }
     }
 }
