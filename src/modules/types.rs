@@ -30,6 +30,23 @@ impl Type {
             ok
         })
     }
+
+    fn type_hash(&self) -> u32 {
+        match self {
+            // normal types
+            Type::Null    => 0x001,
+            Type::Text    => 0x002,
+            Type::Bool    => 0x003,
+            Type::Num     => 0x004,
+            Type::Generic => 0x005,
+
+            // special types
+            Type::Array(t) => t.type_hash() + 0x100,
+            Type::Failable(t) => t.type_hash() + 0x200,
+
+            Type::Union(_) => unreachable!("Type hash is not available for union types! Use the PartialEq trait instead"),
+        }
+    }
 }
 
 impl PartialEq for Type {
@@ -45,7 +62,7 @@ impl PartialEq for Type {
         if let Type::Union(other) = other {
             Type::eq_union_normal(other, self)
         } else {
-            self.to_string() == other.to_string()
+            self.type_hash() == other.type_hash()
         }
     }
 }
