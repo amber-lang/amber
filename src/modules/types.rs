@@ -29,68 +29,24 @@ impl Type {
             Self::eq_union_normal(bigger, x)
         })
     }
-
-    /**
-        Hash is calculated in a hex number with 8 digits. Each digit has its own meaning.
-
-        Last two digits are reserved for "singular" types, like text and/or bool.
-
-        # Important
-        This hash is not supposed to be readed.  
-        It is generated in a way that it can't collide, but it is not supposed to be used for representing a type.
-
-        ```
-        0x00 00 00 00
-          ^^ ^^ ^^ ^^ -- singular type indicator
-                || -- -- number of nested arrays, such as [Num] will be 1, and [[[Num]]] will be 3.
-             || --    -- modifier
-          || --       -- reserved for future use
-        ```
-
-        ## Modifiers
-        These modifiers are valid:
-
-        | code | desc          |
-        | ---- | ------------- |
-        | `00` | no modifier   |
-        | `01` | failable type |
-     */
-    fn type_hash(&self) -> u32 {
-        match self {
-            Type::Null    => 0x00000001,
-            Type::Text    => 0x00000002,
-            Type::Bool    => 0x00000003,
-            Type::Num     => 0x00000004,
-            Type::Generic => 0x00000005,
-
-            Type::Array(t) => t.type_hash() + 0x00000100,
-
-            Type::Failable(t) => {
-                if let Type::Failable(_) = **t {
-                    panic!("Failable types can't be nested!");
-                }
-                t.type_hash() + 0x00010000
-            },
-
-            Type::Union(_) => unreachable!("Type hash is not available for union types! Use the PartialEq trait instead"),
-        }
-    }
 }
 
 impl PartialEq for Type {
     fn eq(&self, other: &Self) -> bool {
-        if let Type::Union(union) = self {
-            if let Type::Union(other) = other {
-                return Type::eq_unions(union, other);
-            } else {
-                return Type::eq_union_normal(union, other);
-            }
-        }
-        
-        if let Type::Union(other) = other {
-            Type::eq_union_normal(other, self)
-        } else {
-            self.type_hash() == other.type_hash()
+        match (self, other) {
+            (Type::Null, Type::Null) => true,
+            (Type::Text, Type::Text) => true,
+            (Type::Bool, Type::Bool) => true,
+            (Type::Num, Type::Num) => true,
+            (Type::Generic, Type::Generic) => true,
+
+            (Type::Array(ref a), Type::Array(ref b)) => a == b,
+            (Type::Failable(ref a), Type::Failable(ref b)) => a == b,
+            
+            (Type::Union(one), Type::Union(other)) => Type::eq_unions(one, other),
+            (Type::Union(one), other) => Type::eq_union_normal(one, other),
+            (other, Type::Union(one)) => Type::eq_union_normal(one, other),
+            (_, _) => false
         }
     }
 }
