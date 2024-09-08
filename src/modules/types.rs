@@ -51,20 +51,21 @@ impl Type {
         ## Modifiers
         These modifiers are valid:
 
-        `00` - no modifier
-        `01` - failable type
+        | code | desc          |
+        | ---- | ------------- |
+        | `00` | no modifier   |
+        | `01` | failable type |
      */
     fn type_hash(&self) -> u32 {
         match self {
-            // normal types
             Type::Null    => 0x00000001,
             Type::Text    => 0x00000002,
             Type::Bool    => 0x00000003,
             Type::Num     => 0x00000004,
             Type::Generic => 0x00000005,
 
-            // special types
             Type::Array(t) => t.type_hash() + 0x00000100,
+
             Type::Failable(t) => {
                 if let Type::Failable(_) = **t {
                     panic!("Failable types can't be nested!");
