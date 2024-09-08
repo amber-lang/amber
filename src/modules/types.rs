@@ -22,8 +22,12 @@ impl Type {
     }
 
     fn eq_unions(one: &[Type], other: &[Type]) -> bool {
-        one.iter().any(|x| {
-            Self::eq_union_normal(other, x)
+        let bigger;
+        let smaller = if one.len() < other.len() { bigger = other; one } else { bigger = one; other };
+
+        smaller.iter().all(|x| {
+            let ok = Self::eq_union_normal(bigger, x);
+            ok
         })
     }
 }
