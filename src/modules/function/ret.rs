@@ -46,7 +46,7 @@ impl SyntaxModule<ParserMetadata> for Return {
         };
         match ret_type {
             Some(ret_type) => {
-                if ret_type != expr_type {
+                if !expr_type.is_allowed_in(ret_type) {
                     return error!(meta, tok => {
                         message: "Return type does not match function return type",
                         comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
