@@ -20,6 +20,9 @@ impl Type {
             (Type::Array(current), Type::Array(other)) => {
                 **current != Type::Generic && **other == Type::Generic
             }
+            (current, Type::Failable(other)) if !matches!(current, Type::Failable(_)) => {
+                current.is_allowed_in(other)
+            },
             _ => false
         }
     }
@@ -161,6 +164,29 @@ mod tests {
     #[test]
     fn generic_array_is_not_a_subset_of_itself() {
         let a = Type::Array(Box::new(Type::Generic));
+
+        assert!(!a.is_subset_of(&a));
+    }
+
+    #[test]
+    fn non_failable_is_a_subset_of_failable() {
+        let a = Type::Text;
+        let b = Type::Failable(Box::new(Type::Text));
+
+        assert!(a.is_subset_of(&b));
+    }
+
+    #[test]
+    fn failable_is_not_a_subset_of_non_failable() {
+        let a = Type::Text;
+        let b = Type::Failable(Box::new(Type::Text));
+
+        assert!(!b.is_subset_of(&a));
+    }
+
+    #[test]
+    fn failable_is_not_a_subset_of_itself() {
+        let a = Type::Failable(Box::new(Type::Text));
 
         assert!(!a.is_subset_of(&a));
     }
