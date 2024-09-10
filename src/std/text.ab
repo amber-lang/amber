@@ -17,7 +17,7 @@ pub fun replace_regex(source: Text, pattern: Text, replacement: Text, extended: 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option; use that if the version information
             // contains "GNU sed".
-            unsafe $re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]]$
+            $re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]]$
             let flag = status == 0 then "-r" else "-E"
             return $echo "{source}" | sed {flag} -e "s/{pattern}/{replacement}/g"$
         } else {
