@@ -11,11 +11,22 @@ pub fun replace(source, pattern, replacement) {
 /// Replaces all occurences of a regex pattern in the content with the provided replacement text.
 ///
 /// Function uses `sed`
-pub fun replace_regex(source: Text, pattern: Text, replacement: Text): Text {
-    return unsafe $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+pub fun replace_regex(source: Text, pattern: Text, replacement: Text, extended: Bool = false): Text {
+    unsafe {
+        if extended {
+            // GNU sed versions 4.0 through 4.2 support extended regex syntax,
+            // but only via the "-r" option; use that if the version information
+            // contains "GNU sed".
+            $re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]]$
+            let flag = status == 0 then "-r" else "-E"
+            return $echo "{source}" | sed {flag} -e "s/{pattern}/{replacement}/g"$
+        } else {
+            return $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+        }
+    }
 }
 
-/// Splits the input `text` into an array of substrings using the specified `delimiter`. 
+/// Splits the input `text` into an array of substrings using the specified `delimiter`.
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
     unsafe $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
@@ -29,7 +40,7 @@ pub fun lines(text: Text): [Text] {
 
 /// Splits a `text` into an array of substrings based on space character.
 pub fun words(text: Text): [Text] {
-  return split(text, " ")
+    return split(text, " ")
 }
 
 /// Merges text using the delimeter specified.
