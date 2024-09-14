@@ -22,8 +22,11 @@ impl Type {
     }
 
     fn eq_unions(one: &[Type], other: &[Type]) -> bool {
-        let bigger;
-        let smaller = if one.len() < other.len() { bigger = other; one } else { bigger = one; other };
+        let (smaller, bigger) = if one.len() < other.len() {
+            (one, other)
+        } else {
+            (other, one)
+        };
 
         smaller.iter().all(|x| {
             Self::eq_union_normal(bigger, x)
