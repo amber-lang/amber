@@ -2,56 +2,21 @@ use std::fmt::Display;
 
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
+use union::UnionType;
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, Eq, Default)]
+mod union;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum Type {
     #[default] Null,
     Text,
     Bool,
     Num,
-    Union(Vec<Type>),
+    Union(UnionType),
     Array(Box<Type>),
     Failable(Box<Type>),
     Generic
-}
-
-impl Type {
-    fn eq_union_normal(one: &[Type], other: &Type) -> bool {
-        one.iter().any(|x| (*x).to_string() == other.to_string())
-    }
-
-    fn eq_unions(one: &[Type], other: &[Type]) -> bool {
-        let (smaller, bigger) = if one.len() < other.len() {
-            (one, other)
-        } else {
-            (other, one)
-        };
-
-        smaller.iter().all(|x| {
-            Self::eq_union_normal(bigger, x)
-        })
-    }
-}
-
-impl PartialEq for Type {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Type::Null, Type::Null) => true,
-            (Type::Text, Type::Text) => true,
-            (Type::Bool, Type::Bool) => true,
-            (Type::Num, Type::Num) => true,
-            (Type::Generic, Type::Generic) => true,
-
-            (Type::Array(ref a), Type::Array(ref b)) => a == b,
-            (Type::Failable(ref a), Type::Failable(ref b)) => a == b,
-            
-            (Type::Union(one), Type::Union(other)) => Type::eq_unions(one, other),
-            (Type::Union(one), other) => Type::eq_union_normal(one, other),
-            (other, Type::Union(one)) => Type::eq_union_normal(one, other),
-            (_, _) => false
-        }
-    }
 }
 
 impl Display for Type {
@@ -61,10 +26,14 @@ impl Display for Type {
             Type::Bool => write!(f, "Bool"),
             Type::Num => write!(f, "Num"),
             Type::Null => write!(f, "Null"),
-            Type::Union(types) => write!(f, "{}", types.iter().map(|x| format!("{x}")).join(" | ")),
             Type::Array(t) => write!(f, "[{}]", t),
             Type::Failable(t) => write!(f, "{}?", t),
-            Type::Generic => write!(f, "Generic")
+            Type::Generic => write!(f, "Generic"),
+
+            Type::Union(types) => {
+                let types: &Vec<Type> = types.into();
+                write!(f, "{}", types.iter().map(|x| format!("{x}")).join(" | "))
+            }
         }
     }
 }
@@ -166,7 +135,7 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                 break;
             }
         }
-        return Ok(Type::Union(unioned))
+        return Ok(Type::Union(unioned.into()))
     }
 
     res
