@@ -1,0 +1,32 @@
+import * from "std/fs"
+import * from "std/text"
+
+// Output
+// [file1.txt]
+// [file2.txt]
+// [file99.txt]
+// [file.txt]
+// [other.csv]
+
+main {
+    let tmpdir = trust $ mktemp -d $
+    trust {
+        $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/file.txt $
+        $ touch {tmpdir}/file1.txt $
+        $ touch {tmpdir}/file2.txt $
+        $ touch {tmpdir}/file99.txt $
+        $ touch {tmpdir}/other.csv $
+    }
+    cd tmpdir
+
+    let files = glob_multiple(["missing*", "file*.txt", "other*.csv"]) failed {
+        echo "*glob failed*"
+    }
+    loop file in files {
+        echo "[{file}]"
+    }
+
+    trust $ rm -rf {tmpdir} $
+}
