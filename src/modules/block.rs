@@ -86,7 +86,7 @@ impl DocumentationModule for Block {
     fn document(&self, meta: &ParserMetadata) -> String {
         let indices = self.statements.iter()
             .enumerate()
-            .map(|(index, statement)| (index, statement.name()))
+            .map(|(index, statement)| (index, statement.get_docs_item_name()))
             .filter_map(|(index, name)| name.map(|n| (n, index)))
             .sorted()
             .collect::<Vec<_>>();
