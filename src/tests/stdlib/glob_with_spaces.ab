@@ -1,0 +1,23 @@
+import * from "std/fs"
+import * from "std/text"
+
+// Output
+// [tmpdir]/first file with spaces
+// [tmpdir]/second file with spaces
+
+main {
+    let tmpdir = unsafe $ mktemp -d $
+    unsafe {
+        $ touch {tmpdir}/file1 $
+        $ touch {tmpdir}/file2 $
+        $ touch {tmpdir}/first\ file\ with\ spaces $
+        $ touch {tmpdir}/second\ file\ with\ spaces $
+    }
+
+    let files = glob("{tmpdir}/*with\ spaces*") failed { echo "glob failed" }
+    loop file in files {
+        echo replace_regex(file, "^.+\/", "[tmpdir]\/", true)
+    }
+
+    unsafe $ rm -rf {tmpdir} $
+}
