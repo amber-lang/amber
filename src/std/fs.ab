@@ -80,7 +80,7 @@ pub fun change_owner(user: Text, path: Text): Bool {
 }
 
 /// Finds all files or directories matching a file glob.
-pub fun glob(path: Text): [Text] {
-    let files = unsafe $eval "for file in {path}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$
+pub fun glob(path: Text): [Text]? {
+    let files = $eval "for file in {path}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$?
     return split(files, "\n")
 }
