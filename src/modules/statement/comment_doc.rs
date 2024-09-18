@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                                 continue;
                             }
                             let delimiter = if last_char == '\n' { "" } else { " " };
-                            self.value.push_str(&format!("{}{}  ", delimiter, token.word[3..].trim()));
+                            self.value.push_str(&format!("{}{}", delimiter, token.word[3..].trim()));
                         } else {
                             break;
                         }
