@@ -50,7 +50,6 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            let math_lib_flag = if math_lib_flag { "-l" } else { "" };
             meta.gen_subprocess(&format!("echo \"{scale}{left}{op}{right}\" | bc -l"))
         }
     }
