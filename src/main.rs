@@ -16,8 +16,7 @@ use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::fs;
 use std::io::{prelude::*, stdin};
-use std::path::PathBuf;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Parser, Clone, Debug)]
