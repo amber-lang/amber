@@ -1,27 +1,29 @@
-/// Finds the first occurrence of a pettern in the content and replaces it with the provided replacement text.
-pub fun replace_once(source, pattern, replacement) {
-    return "\$\{source/{pattern}/{replacement}}"
+/// Replaces all occurences of a pattern in the content with the provided replace text.
+pub fun replace(source, search, replace) {
+    return "\$\{source//{search}/{replace}}"
 }
 
-/// Replaces all occurences of a pattern in the content with the provided replacement text.
-pub fun replace(source, pattern, replacement) {
-    return "\$\{source//{pattern}/{replacement}}"
+/// Replaces the first occurence of a pattern in the content with the provided replace text.
+pub fun replace_once(source, search, replace) {
+    return "\$\{source/{search}/{replace}}"
 }
 
-/// Replaces all occurences of a regex pattern in the content with the provided replacement text.
+/// Replaces all occurences of a regex pattern in the content with the provided replace text.
 ///
 /// Function uses `sed`
-pub fun replace_regex(source: Text, pattern: Text, replacement: Text, extended: Bool = false): Text {
+pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
     unsafe {
+        search = replace(search, "/", "\/")
+        replace = replace(replace, "/", "\/")
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option; use that if the version information
             // contains "GNU sed".
             $re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]]$
             let flag = status == 0 then "-r" else "-E"
-            return $echo "{source}" | sed {flag} -e "s/{pattern}/{replacement}/g"$
+            return $echo "{source}" | sed {flag} -e "s/{search}/{replace}/g"$
         } else {
-            return $echo "{source}" | sed -e "s/{pattern}/{replacement}/g"$
+            return $echo "{source}" | sed -e "s/{search}/{replace}/g"$
         }
     }
 }
@@ -133,7 +135,7 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 }
 
 /// Returns a substring from `text` starting at the given `index` (0-based).
-/// 
+///
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 /// If `length` is provided, the substring will include `length` characters; otherwise, it slices to the end of `text`.
 /// If `length` is negative, an empty string is returned.
@@ -144,6 +146,7 @@ pub fun slice(text: Text, index: Num, length: Num = 0): Text {
 }
 
 /// Returns the character from `text` at the specified `index` (0-based).
+///
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 pub fun char_at(text: Text, index: Num): Text {
     return unsafe $printf "%.1s" "\$\{text:{index}}"$
