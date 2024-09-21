@@ -17,9 +17,9 @@ fn http_server() {
 }
 
 #[test]
-fn exit() {
-    let code = fs::read_to_string("src/tests/validity/no_output/exit.ab")
-        .expect("Failed to open validity/no_output/exit.ab test file");
+fn exit_with_code() {
+    let code = fs::read_to_string("src/tests/validity/no_output/exit_with_code.ab")
+        .expect("Failed to open validity/no_output/exit_with_code.ab test file");
 
     let code = compile_code(code);
     let mut cmd = Command::new("bash")
@@ -35,6 +35,28 @@ fn exit() {
             .expect("Couldn't wait for bash to execute")
             .code(),
         Some(37)
+    );
+}
+
+#[test]
+fn exit_with_no_code() {
+    let code = fs::read_to_string("src/tests/validity/no_output/exit_with_no_code.ab")
+        .expect("Failed to open validity/no_output/exit_with_no_code.ab test file");
+
+    let code = compile_code(code);
+    let mut cmd = Command::new("bash")
+        .arg("-c")
+        .arg(code)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("Couldn't spawn bash");
+
+    assert_eq!(
+        cmd.wait()
+            .expect("Couldn't wait for bash to execute")
+            .code(),
+        Some(0)
     );
 }
 

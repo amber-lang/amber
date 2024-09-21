@@ -7,7 +7,7 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Exit {
-    code: Expr
+    code: Option<Expr>
 }
 
 impl SyntaxModule<ParserMetadata> for Exit {
@@ -15,28 +15,38 @@ impl SyntaxModule<ParserMetadata> for Exit {
 
     fn new() -> Self {
         Exit {
-            code: Expr::new()
+            code: None
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "exit")?;
-        syntax(meta, &mut self.code)?;
-        let code_type = self.code.get_type();
-        if code_type != Type::Num {
-            let position = self.code.get_position(meta);
-            return error_pos!(meta, position => {
-                message: "Builtin function `exit` can only be used with values of type Num",
-                comment: format!("Given type: {}, expected type: {}", code_type, Type::Num)
-            });
+
+        let mut code_expr = Expr::new();
+        if let Ok(_) = syntax(meta, &mut code_expr) {
+            self.code = Some(code_expr);
         }
+
+        if let Some(ref code_expr) = self.code {
+            let code_type = code_expr.get_type();
+            if code_type != Type::Num {
+                let position = code_expr.get_position(meta);
+                return error_pos!(meta, position => {
+                    message: "Builtin function `exit` can only be used with values of type Num",
+                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Num)
+                });
+            }
+        }
+
         Ok(())
     }
 }
 
 impl TranslateModule for Exit {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let code = self.code.translate(meta);
+        let code = self.code.as_ref()
+            .map(|expr| expr.translate(meta))
+            .unwrap_or_else(|| "0".to_string());
         format!("exit {}", code)
     }
 }
