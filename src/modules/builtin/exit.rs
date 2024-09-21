@@ -23,7 +23,7 @@ impl SyntaxModule<ParserMetadata> for Exit {
         token(meta, "exit")?;
 
         let mut code_expr = Expr::new();
-        if let Ok(_) = syntax(meta, &mut code_expr) {
+        if syntax(meta, &mut code_expr).is_ok() {
             self.code = Some(code_expr);
         }
 
