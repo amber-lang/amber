@@ -55,6 +55,10 @@ impl TranslateModule for GlobInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         self.args.iter().map(|arg| arg.translate(meta)).join(" ")
     }
+
+    fn conditional(&self, name: &str) -> Option<String> {
+        Some(format!("[ -e \"${{{}}}\" ]", name))
+    }
 }
 
 impl DocumentationModule for GlobInvocation {

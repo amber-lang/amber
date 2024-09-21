@@ -2,17 +2,15 @@ import * from "std/text"
 
 // Output
 // ===
-// /tmp/tmpdir/missing*
 // /tmp/tmpdir/file1.txt
 // /tmp/tmpdir/file2.txt
 // /tmp/tmpdir/other1.csv
 // /tmp/tmpdir/other2.csv
 // ===
-// 0: /tmp/tmpdir/missing*
-// 1: /tmp/tmpdir/file1.txt
-// 2: /tmp/tmpdir/file2.txt
-// 3: /tmp/tmpdir/other1.csv
-// 4: /tmp/tmpdir/other2.csv
+// 0: /tmp/tmpdir/file1.txt
+// 1: /tmp/tmpdir/file2.txt
+// 2: /tmp/tmpdir/other1.csv
+// 3: /tmp/tmpdir/other2.csv
 // ===
 
 main {

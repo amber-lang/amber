@@ -80,22 +80,48 @@ impl TranslateModule for IterLoop {
                 meta.increase_indent();
                 let indent = meta.gen_indent();
                 meta.decrease_indent();
-                [
-                    format!("{index}=0;"),
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
-                    self.block.translate(meta),
-                    format!("{indent}(( {index}++ )) || true"),
-                    "done".to_string(),
-                ].join("\n")
+                if let Some(conditional) = self.iter_expr.conditional(name) {
+                    [
+                        format!("{index}=0;"),
+                        format!("for {name} in {expr}"),
+                        "do".to_string(),
+                        format!("if {conditional}"),
+                        "then".to_string(),
+                        self.block.translate(meta),
+                        format!("{indent}(( {index}++ )) || true"),
+                        "fi".to_string(),
+                        "done".to_string(),
+                    ].join("\n")
+                } else {
+                    [
+                        format!("{index}=0;"),
+                        format!("for {name} in {expr}"),
+                        "do".to_string(),
+                        self.block.translate(meta),
+                        format!("{indent}(( {index}++ )) || true"),
+                        "done".to_string(),
+                    ].join("\n")
+                }
             },
             None => {
-                [
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
-                    self.block.translate(meta),
-                    "done".to_string(),
-                ].join("\n")
+                if let Some(conditional) = self.iter_expr.conditional(name) {
+                    [
+                        format!("for {name} in {expr}"),
+                        "do".to_string(),
+                        format!("if {conditional}"),
+                        "then".to_string(),
+                        self.block.translate(meta),
+                        "fi".to_string(),
+                        "done".to_string(),
+                    ].join("\n")
+                } else {
+                    [
+                        format!("for {name} in {expr}"),
+                        "do".to_string(),
+                        self.block.translate(meta),
+                        "done".to_string(),
+                    ].join("\n")
+                }
             },
         }
     }

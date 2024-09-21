@@ -2,17 +2,15 @@ import * from "std/text"
 
 // Output
 // ===
-// missing*
 // file1.txt
 // file2.txt
 // other1.csv
 // other2.csv
 // ===
-// 0: missing*
-// 1: file1.txt
-// 2: file2.txt
-// 3: other1.csv
-// 4: other2.csv
+// 0: file1.txt
+// 1: file2.txt
+// 2: other1.csv
+// 3: other2.csv
 // ===
 
 main {

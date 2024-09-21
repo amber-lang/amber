@@ -2,9 +2,7 @@ import * from "std/text"
 
 // Output
 // ===
-// /tmp/tmpdir/missing*
 // ===
-// 0: /tmp/tmpdir/missing*
 // ===
 
 main {

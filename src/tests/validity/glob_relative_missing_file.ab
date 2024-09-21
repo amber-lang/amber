@@ -2,9 +2,7 @@ import * from "std/text"
 
 // Output
 // ===
-// missing*
 // ===
-// 0: missing*
 // ===
 
 main {

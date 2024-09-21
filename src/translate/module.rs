@@ -10,4 +10,8 @@ pub trait TranslateModule {
         meta.eval_ctx = prev;
         expr
     }
+
+    fn conditional(&self, _name: &str) -> Option<String> {
+        None
+    }
 }

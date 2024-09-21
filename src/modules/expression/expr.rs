@@ -188,6 +188,13 @@ impl TranslateModule for Expr {
             VariableGet
         ])
     }
+
+    fn conditional(&self, name: &str) -> Option<String> {
+        match &self.value {
+            Some(ExprType::GlobInvocation(value)) => value.conditional(name),
+            _ => None,
+        }
+    }
 }
 
 impl DocumentationModule for Expr {
