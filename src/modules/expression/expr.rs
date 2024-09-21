@@ -44,6 +44,7 @@ use super::typeop::{
 use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
+use crate::modules::function::glob::GlobInvocation;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::nameof::Nameof;
 use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
@@ -71,6 +72,7 @@ pub enum ExprType {
     Neq(Neq),
     Not(Not),
     Ternary(Ternary),
+    GlobInvocation(GlobInvocation),
     FunctionInvocation(FunctionInvocation),
     Command(Command),
     Array(Array),
@@ -148,6 +150,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 // Literals
                 Parentheses, Bool, Number, Text,
                 Array, Null, Nameof, Status,
+                // Builtin invocation
+                GlobInvocation,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -176,6 +180,8 @@ impl TranslateModule for Expr {
             Not, Neg, Nameof,
             // Literals
             Parentheses, Bool, Number, Text, Array, Null, Status,
+            // Builtin invocation
+            GlobInvocation,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -201,6 +207,8 @@ impl DocumentationModule for Expr {
             Not, Neg, Nameof,
             // Literals
             Parentheses, Bool, Number, Text, Array, Null, Status,
+            // Builtin invocation
+            GlobInvocation,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
