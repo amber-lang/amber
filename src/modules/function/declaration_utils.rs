@@ -53,6 +53,9 @@ pub fn is_functions_comment_doc(meta: &mut ParserMetadata) -> bool {
                 return false;
             }
         }
+        if tok.word.starts_with("#[") {
+            is_comment_doc = true;
+        }
         if tok.word.starts_with("fun") {
             meta.set_index(index);
             return true;

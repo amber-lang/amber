@@ -1,27 +1,32 @@
+/// Sums an array's contents
 #[allow_absurd_cast]
 pub fun sum(list: [Num]): Num {
     return unsafe $echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}'$ as Num
 }
 
-/// Returns the number rounded to the nearest integer
+/// Returns a number, rounded to the nearest integer
 #[allow_absurd_cast]
 pub fun round(number: Num): Num {
-    return unsafe $LC_ALL=C printf "%0.f" "{number}"$ as Num
+    if number > 0 {
+        return unsafe $echo "({number}+0.5)/1" | bc$ as Num
+    }
+
+    return unsafe $echo "({number}-0.5)/1" | bc$ as Num
 }
 
-/// Returns the largest integer less than or equal to the number
+/// Returns the largest integer less than or equal to a number
 #[allow_absurd_cast]
 pub fun floor(number: Num): Num {
     return unsafe $echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}'$ as Num
 }
 
-/// Returns the smallest integer greater than or equal to the number
+/// Returns the smallest integer greater than or equal to a number
 #[allow_absurd_cast]
 pub fun ceil(number: Num): Num {
     return floor(number) + 1
 }
 
-/// Returns the absolute value of the number
+/// Returns the absolute value of a number
 #[allow_absurd_cast]
 pub fun abs(number: Num): Num {
     if number < 0: return -number

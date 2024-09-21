@@ -1,8 +1,0 @@
-import * from "std/text"
-
-// Output
-// abc456def
-
-main {
-    echo replace_regex("abc123def", "[0-9][0-9]*", "456")
-}

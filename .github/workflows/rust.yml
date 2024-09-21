@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: bc
+          packages: bc shfmt
           version: 1.0
       - uses: dtolnay/rust-toolchain@stable
       - name: Cache dependencies installed with cargo

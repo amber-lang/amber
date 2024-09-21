@@ -9,7 +9,6 @@ use crate::{rules, Cli};
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -35,12 +34,12 @@ impl AmberCompiler {
             path,
             cli_opts,
         }
-        .load_code(AmberCompiler::strip_off_shebang(code))
+        .load_code(AmberCompiler::comment_shebang(code))
     }
 
-    fn strip_off_shebang(code: String) -> String {
+    fn comment_shebang(code: String) -> String {
         if code.starts_with("#!") {
-            code.split('\n').skip(1).collect_vec().join("\n")
+            String::from("// ") + &code
         } else {
             code
         }
@@ -151,7 +150,7 @@ impl AmberCompiler {
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
-        let mut meta_translate = TranslateMetadata::new(meta);
+        let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
         let time = Instant::now();
         let mut result = vec![];
         for (_path, block) in ast_forest {
@@ -166,7 +165,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut res = result.join("\n");
+        let mut res = result.join("\n") + "\n";
 
         if !self.cli_opts.disable_format {
             if let Some(formatter) = BashFormatter::get_available() {
@@ -182,8 +181,7 @@ impl AmberCompiler {
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
                     .as_str()),
-        ]
-        .join("\n");
+        ].join("\n");
         format!("{}\n{}", header, res)
     }
 

@@ -16,7 +16,7 @@ use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::fs;
 use std::io::{prelude::*, stdin};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Parser, Clone, Debug)]
@@ -33,13 +33,17 @@ pub struct Cli {
     eval: Option<String>,
 
     /// Generate docs
-    /// (OUTPUT is dir instead, default: `docs/`)
+    /// (OUTPUT is dir instead, default: `docs/` if missing it will generate the folder)
     #[arg(long)]
     docs: bool,
 
     /// Don't format the output file
     #[arg(long)]
     disable_format: bool,
+
+    /// Minify the resulting code
+    #[arg(long)]
+    minify: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -132,6 +136,14 @@ fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
 
 fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
     let input = if let Some(ref input) = cli.input {
+        let path = Path::new(input);
+        if !path.exists() {
+            Message::new_err_msg(format!(
+                "Amber file doesn't exist: `{}`.", input.to_string_lossy()
+            ))
+            .show();
+            std::process::exit(1);
+        }
         String::from(input.to_string_lossy())
     } else {
         Message::new_err_msg(

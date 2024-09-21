@@ -1,6 +1,6 @@
 [package]
 name = "amber"
-version = "0.3.4-alpha"
+version = "0.3.5-alpha"
 edition = "2021"
 repository = "https://github.com/Ph0enixKM/Amber"
 rust-version = "1.79"
@@ -8,7 +8,7 @@ rust-version = "1.79"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-heraclitus-compiler = "1.7.8"
+heraclitus-compiler = "1.8.0"
 similar-string = "1.4.2"
 colored = "2.0.0"
 itertools = "0.13.0"
@@ -56,3 +56,6 @@ targets = [
 pr-run-mode = "skip"
 # Allow modifying release.yml
 allow-dirty = ["ci"]
+
+[build-dependencies]
+build-helper = "0.1.1"

@@ -1,3 +1,4 @@
+/// Checks if a directory exists.
 pub fun dir_exist(path) {
     $[ -d "{path}" ]$ failed {
         return false
@@ -5,6 +6,7 @@ pub fun dir_exist(path) {
     return true
 }
 
+/// Checks if a file exists.
 pub fun file_exist(path) {
     $[ -f "{path}" ]$ failed {
         return false
@@ -12,18 +14,27 @@ pub fun file_exist(path) {
     return true
 }
 
+/// Gets file contents from a path.
 pub fun file_read(path) {
     return $< "{path}"$?
 }
 
+/// Writes content to a file.
+/// Doesn't check if the file exist
 pub fun file_write(path, content) {
     return $echo "{content}" > "{path}"$?
 }
 
+/// Appends content to a file.
+///
+/// Doesn't check if the file exists.
 pub fun file_append(path, content) {
     return $echo "{content}" >> "{path}"$?
 }
 
+/// Creates a symbolic link.
+///
+/// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
         unsafe $ln -s "{origin}" "{destination}"$
@@ -34,12 +45,16 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     return false
 }
 
+/// Creates a directory with all parent directories as required.
 pub fun create_dir(path: Text): Null {
     if not dir_exist(path) {
         unsafe $mkdir -p "{path}"$
     }
 }
 
+/// Sets a file as executable.
+///
+/// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun make_executable(path: Text): Bool {
     if file_exist(path) {
         unsafe $chmod +x "{path}"$
@@ -50,6 +65,9 @@ pub fun make_executable(path: Text): Bool {
     return false
 }
 
+/// Changes the owner of a file.
+///
+/// If the file doesn't exist, it returns `false`
 pub fun change_owner(user: Text, path: Text): Bool {
     if file_exist(path) or dir_exist(path) {
         unsafe $chown -R "{user}" "{path}"$

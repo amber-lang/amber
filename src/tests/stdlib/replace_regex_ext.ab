@@ -1,0 +1,14 @@
+import * from "std/text"
+
+// Output
+// abc[123]def
+// aeon aeons ### eons
+// #path#to#file.txt
+
+main {
+    // This will fail on any system where sed does not support extended
+    // regex syntax, via "-r" on GNU sed and "-E" on all other versions.
+    echo replace_regex("abc123def", "([0-9]+)", "[\1]", true)
+    echo replace_regex("aeon aeons eon eons", "\beon\b", "###", true)
+    echo replace_regex("/path/to/file.txt", "/", "#", true)
+}
