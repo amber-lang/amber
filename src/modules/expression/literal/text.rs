@@ -9,6 +9,7 @@ use super::{parse_interpolated_region, translate_interpolated_region};
 pub struct Text {
     strings: Vec<String>,
     interps: Vec<Expr>,
+    escaped: bool,
 }
 
 impl Typed for Text {
@@ -24,11 +25,13 @@ impl SyntaxModule<ParserMetadata> for Text {
         Text {
             strings: vec![],
             interps: vec![],
+            escaped: false,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         (self.strings, self.interps) = parse_interpolated_region(meta, '"')?;
+        self.escaped = meta.context.is_escaped_ctx;
         Ok(())
     }
 }
@@ -39,8 +42,13 @@ impl TranslateModule for Text {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
             .collect::<Vec<String>>();
-        let quote = meta.gen_quote();
-        format!("{quote}{}{quote}", translate_interpolated_region(self.strings.clone(), interps, true))
+        let strings = translate_interpolated_region(self.strings.clone(), interps, true);
+        if self.escaped {
+            strings.replace(" ", "\\ ").replace(";", "\\;")
+        } else {
+            let quote = meta.gen_quote();
+            format!("{quote}{strings}{quote}")
+        }
     }
 }
 

@@ -114,6 +114,8 @@ pub struct Context {
     pub is_main_ctx: bool,
     /// Determines if the context is in an unsafe block
     pub is_unsafe_ctx: bool,
+    /// Determines if text should be escaped e.g. for file globs
+    pub is_escaped_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
     /// The return type of the currently parsed function
@@ -135,6 +137,7 @@ impl Context {
             is_loop_ctx: false,
             is_main_ctx: false,
             is_unsafe_ctx: false,
+            is_escaped_ctx: false,
             pub_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new(),

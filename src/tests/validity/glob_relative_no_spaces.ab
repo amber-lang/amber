@@ -1,0 +1,35 @@
+import * from "std/text"
+
+// Output
+// ===
+// file1.txt
+// file2.txt
+// ===
+// 0: file1.txt
+// 1: file2.txt
+// ===
+
+main {
+    let tmpdir = unsafe $ mktemp -d $
+    unsafe {
+        $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/file1.txt $
+        $ touch {tmpdir}/file2.txt $
+        $ touch {tmpdir}/other1.csv $
+        $ touch {tmpdir}/other2.csv $
+    }
+    cd tmpdir
+
+    echo "==="
+    loop file in glob("file*") {
+        echo file
+    }
+    echo "==="
+    loop index, file in glob("file*") {
+        echo "{index}: {file}"
+    }
+    echo "==="
+
+    unsafe $ rm -rf {tmpdir} $
+}

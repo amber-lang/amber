@@ -1,0 +1,34 @@
+import * from "std/text"
+
+// Output
+// ===
+// /tmp/tmpdir/missing*
+// ===
+// 0: /tmp/tmpdir/missing*
+// ===
+
+main {
+    let tmpdir = unsafe $ mktemp -d $
+    unsafe {
+        $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/file1.txt $
+        $ touch {tmpdir}/file2.txt $
+        $ touch {tmpdir}/other1.csv $
+        $ touch {tmpdir}/other2.csv $
+    }
+
+    echo "==="
+    loop file in glob("{tmpdir}/missing*") {
+        file = replace_regex(file, tmpdir, "/tmp/tmpdir", true)
+        echo file
+    }
+    echo "==="
+    loop index, file in glob("{tmpdir}/missing*") {
+        file = replace_regex(file, tmpdir, "/tmp/tmpdir", true)
+        echo "{index}: {file}"
+    }
+    echo "==="
+
+    unsafe $ rm -rf {tmpdir} $
+}

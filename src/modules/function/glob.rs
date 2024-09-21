@@ -1,4 +1,7 @@
+use std::mem::swap;
+
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
@@ -28,6 +31,8 @@ impl SyntaxModule<ParserMetadata> for GlobInvocation {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "glob")?;
         token(meta, "(")?;
+        let mut new_is_escaped_ctx = true;
+        swap(&mut new_is_escaped_ctx, &mut meta.context.is_escaped_ctx);
         loop {
             let tok = meta.get_current_token();
             let mut arg = Expr::new();
@@ -41,13 +46,14 @@ impl SyntaxModule<ParserMetadata> for GlobInvocation {
                 Err(_) => token(meta, ",")?,
             };
         }
+        swap(&mut new_is_escaped_ctx, &mut meta.context.is_escaped_ctx);
         Ok(())
     }
 }
 
 impl TranslateModule for GlobInvocation {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        todo!()
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        self.args.iter().map(|arg| arg.translate(meta)).join(" ")
     }
 }
 

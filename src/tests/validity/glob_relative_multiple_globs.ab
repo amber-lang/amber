@@ -1,0 +1,41 @@
+import * from "std/text"
+
+// Output
+// ===
+// missing*
+// file1.txt
+// file2.txt
+// other1.csv
+// other2.csv
+// ===
+// 0: missing*
+// 1: file1.txt
+// 2: file2.txt
+// 3: other1.csv
+// 4: other2.csv
+// ===
+
+main {
+    let tmpdir = unsafe $ mktemp -d $
+    unsafe {
+        $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/file1.txt $
+        $ touch {tmpdir}/file2.txt $
+        $ touch {tmpdir}/other1.csv $
+        $ touch {tmpdir}/other2.csv $
+    }
+    cd tmpdir
+
+    echo "==="
+    loop file in glob("missing*", "file*", "*.csv") {
+        echo file
+    }
+    echo "==="
+    loop index, file in glob("missing*", "file*", "*.csv") {
+        echo "{index}: {file}"
+    }
+    echo "==="
+
+    unsafe $ rm -rf {tmpdir} $
+}
