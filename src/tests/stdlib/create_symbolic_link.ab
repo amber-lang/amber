@@ -7,6 +7,5 @@ main {
     } else {
         echo "failed"
     }
-    unsafe $rm {tmpdir}/amber-symbolic$
-    unsafe $rm {tmpdir}/amber-symbolic-link$
+    unsafe $rm -fr {tmpdir}$
 } 
