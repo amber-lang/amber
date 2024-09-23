@@ -114,6 +114,13 @@ impl Statement {
             Err(details) => Err(details)
         }
     }
+
+    pub fn get_docs_item_name(&self) -> Option<String> {
+        match &self.value {
+            Some(StatementType::FunctionDeclaration(inner)) => Some(inner.name.clone()),
+            _ => None,
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Statement {
