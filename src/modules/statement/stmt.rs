@@ -37,7 +37,8 @@ use crate::modules::main::Main;
 use crate::modules::builtin::{
     echo::Echo,
     mv::Mv,
-    cd::Cd
+    cd::Cd,
+    exit::Exit
 };
 use super::comment_doc::CommentDoc;
 use super::comment::Comment;
@@ -66,6 +67,7 @@ pub enum StatementType {
     Cd(Cd),
     Echo(Echo),
     Mv(Mv),
+    Exit(Exit),
     CommandModifier(CommandModifier),
     Comment(Comment),
     CommentDoc(CommentDoc)
@@ -93,7 +95,7 @@ impl Statement {
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo, Mv, Cd,
+        CommandModifier, Echo, Mv, Cd, Exit,
         // Comment doc
         CommentDoc, Comment,
         // Expression
