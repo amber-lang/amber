@@ -12,7 +12,7 @@ use heraclitus_compiler::prelude::*;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::Write;
+use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
@@ -247,13 +247,13 @@ impl AmberCompiler {
     }
 
     pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
-        let code = format!("set -- {};\n\n{}", flags.join(" "), code);
-        Command::new("/usr/bin/env")
-            .arg("bash")
-            .arg("-c")
-            .arg(code)
-            .spawn()?
-            .wait()
+        if let Some(mut command) = Self::find_bash() {
+            let code = format!("set -- {};\n{}", flags.join(" "), code);
+            command.arg("-c").arg(code).spawn()?.wait()
+        } else {
+            let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find Bash");
+            Err(error)
+        }
     }
 
     pub fn generate_docs(&self, output: String) -> Result<(), Message> {
@@ -262,16 +262,38 @@ impl AmberCompiler {
             .map(|(block, meta)| self.document(block, meta, output))
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
         self.compile().map_or_else(Err, |(_, code)| {
-            let child = Command::new("/usr/bin/env")
-                .arg("bash")
-                .arg("-c")
-                .arg::<&str>(code.as_ref())
-                .output()
-                .unwrap();
-            Ok(String::from_utf8_lossy(&child.stdout).to_string())
+            if let Some(mut command) = Self::find_bash() {
+                let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
+                let output = String::from_utf8_lossy(&child.stdout).to_string();
+                Ok(output)
+            } else {
+                let message = Message::new_err_msg("Failed to find Bash");
+                Err(message)
+            }
         })
+    }
+
+    #[cfg(windows)]
+    fn find_bash() -> Option<Command> {
+        if let Some(paths) = env::var_os("PATH") {
+            for path in env::split_paths(&paths) {
+                let path = path.join("bash.exe");
+                if path.exists() {
+                    let command = Command::new(path);
+                    return Some(command);
+                }
+            }
+        }
+        return None;
+    }
+
+    #[cfg(not(windows))]
+    fn find_bash() -> Option<Command> {
+        let mut command = Command::new("/usr/bin/env");
+        command.arg("bash");
+        Some(command)
     }
 }
