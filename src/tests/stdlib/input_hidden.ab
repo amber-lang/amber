@@ -1,8 +1,7 @@
 import * from "std/env"
 
 // Output
-// Please enter your name:
-//Hello, Amber
+// Hello, Amber
 
 main {
     unsafe $echo "Amber" >> /tmp/test_input$
