@@ -58,8 +58,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             // Get the function name
             let tok = meta.get_current_token();
             if let Some(ref tok) = tok {
-                self.line = tok.pos.0;
-                self.col = tok.pos.1;
+                (self.line, self.col) = tok.pos;
             }
             self.name = variable(meta, variable_name_extensions())?;
             // Get the arguments
@@ -69,12 +68,12 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 if token(meta, ")").is_ok() {
                     break
                 }
-                let mut expr = Expr::new();
-                syntax(meta, &mut expr)?;
-                self.args.push(expr);
+                let mut arg = Expr::new();
+                syntax(meta, &mut arg)?;
+                self.args.push(arg);
                 match token(meta, ")") {
                     Ok(_) => break,
-                    Err(_) => token(meta, ",")?
+                    Err(_) => token(meta, ",")?,
                 };
             }
             let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();

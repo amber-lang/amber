@@ -162,11 +162,11 @@ impl AmberCompiler {
             );
         }
 
-        let mut res = result.join("\n") + "\n";
+        let mut result = result.join("\n") + "\n";
 
         if !self.cli_opts.disable_format {
             if let Some(formatter) = BashFormatter::get_available() {
-                res = formatter.format(res);
+                result = formatter.format(result);
             }
         }
 
@@ -179,7 +179,7 @@ impl AmberCompiler {
                     .to_string()
                     .as_str()),
         ].join("\n");
-        format!("{}\n{}", header, res)
+        format!("{}\n{}", header, result)
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
