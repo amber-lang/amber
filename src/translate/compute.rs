@@ -27,12 +27,14 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
         ArithType::BcSed => {
             let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
             let mut scale = "";
+            let mut after_bc = "";
+            let sed_regex = "| sed \"/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//\"";
             let op = match operation {
                 ArithOp::Add => "+",
                 ArithOp::Sub => "-",
                 ArithOp::Mul => "*",
                 ArithOp::Div => {
-                    scale = "scale=0;";
+                    after_bc = sed_regex;
                     "/"
                 },
                 ArithOp::Modulo => {
@@ -50,7 +52,7 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            meta.gen_subprocess(&format!("echo \"{scale}{left}{op}{right}\" | bc -l"))
+            meta.gen_subprocess(&format!("echo \"{scale}{left}{op}{right}\" | bc -l{after_bc}"))
         }
     }
 }
