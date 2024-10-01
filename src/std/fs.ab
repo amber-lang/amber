@@ -37,7 +37,7 @@ pub fun file_append(path, content) {
 /// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
-        unsafe $ln -s "{origin}" "{destination}"$
+        trust $ln -s "{origin}" "{destination}"$
         return true
     }
 
@@ -48,7 +48,7 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
 /// Creates a directory with all parent directories as required.
 pub fun create_dir(path: Text): Null {
     if not dir_exist(path) {
-        unsafe $mkdir -p "{path}"$
+        trust $mkdir -p "{path}"$
     }
 }
 
@@ -57,7 +57,7 @@ pub fun create_dir(path: Text): Null {
 /// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun make_executable(path: Text): Bool {
     if file_exist(path) {
-        unsafe $chmod +x "{path}"$
+        trust $chmod +x "{path}"$
         return true
     }
 
@@ -70,7 +70,7 @@ pub fun make_executable(path: Text): Bool {
 /// If the file doesn't exist, it returns `false`
 pub fun change_owner(user: Text, path: Text): Bool {
     if file_exist(path) or dir_exist(path) {
-        unsafe $chown -R "{user}" "{path}"$
+        trust $chown -R "{user}" "{path}"$
         return true
     }
 

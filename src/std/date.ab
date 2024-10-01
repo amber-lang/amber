@@ -70,7 +70,7 @@
 /// ```
 pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text? {
     if format == "": format = "%FT%T%Z"
-    if date == "": date = unsafe $date +"%FT%T%Z"$
+    if date == "": date = trust $date +"%FT%T%Z"$
     if (utc) {
         return $date --utc -d "{date}" +"{format}"$?
     } else {
@@ -81,7 +81,7 @@ pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text?
 /// Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
 #[allow_absurd_cast]
 pub fun now(): Num {
-    return unsafe $date +%s$ as Num
+    return trust $date +%s$ as Num
 }
 
 /// ### EXPERIMENTAL
@@ -101,7 +101,7 @@ pub fun now(): Num {
 /// - minutes
 /// - seconds
 pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text? {
-    if date == "": date = unsafe $date +"%FT%T%Z"$
+    if date == "": date = trust $date +"%FT%T%Z"$
     return date_posix("", "{date_posix("%F", date, utc)?} {add} {date_posix("%T", date, utc)?}", utc)?
 }
 
@@ -117,7 +117,7 @@ pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text? {
 /// If date_b is not provided, current date will be used.
 #[allow_absurd_cast]
 pub fun date_compare(date_a: Text, date_b: Text = "", utc: Bool = false): Num? {
-    if date_b == "": date_b = unsafe date_posix("", "", utc)
+    if date_b == "": date_b = trust date_posix("", "", utc)
     let timestamp_a = date_posix("%s", date_a, utc)? as Num
     let timestamp_b = date_posix("%s", date_b, utc)? as Num
     if timestamp_a > timestamp_b: return 1
