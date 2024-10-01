@@ -7,6 +7,5 @@ main {
     } else {
         echo "failed"
     }
-    trust $rm {tmpdir}/amber-symbolic$
-    trust $rm {tmpdir}/amber-symbolic-link$
+    trust $rm {tmpdir}$
 } 

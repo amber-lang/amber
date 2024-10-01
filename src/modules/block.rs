@@ -46,14 +46,14 @@ impl SyntaxModule<ParserMetadata> for Block {
             else if token.word == "}" {
                 break;
             }
-            let mut statemant = Statement::new();
-            if let Err(failure) = statemant.parse(meta) {
+            let mut statement = Statement::new();
+            if let Err(failure) = statement.parse(meta) {
                 return match failure {
                     Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
                     Failure::Loud(err) => return Err(Failure::Loud(err))
                 }
             }
-            self.statements.push(statemant);
+            self.statements.push(statement);
         }
         meta.pop_scope();
         Ok(())
@@ -68,8 +68,7 @@ impl TranslateModule for Block {
         meta.increase_indent();
         let result = if self.is_empty() {
             ":".to_string()
-        }
-        else {
+        } else {
             self.statements.iter()
                 .map(|statement| statement.translate(meta))
                 .filter(|translation| !translation.trim().is_empty())

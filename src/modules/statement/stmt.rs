@@ -6,31 +6,31 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
-    set::VariableSet
+    set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
 use crate::handle_types;
 use crate::modules::condition::{
     ifchain::IfChain,
-    ifcond::IfCondition
+    ifcond::IfCondition,
 };
 use crate::modules::shorthand::{
     add::ShorthandAdd,
     sub::ShorthandSub,
     mul::ShorthandMul,
     div::ShorthandDiv,
-    modulo::ShorthandModulo
+    modulo::ShorthandModulo,
 };
 use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
     iter_loop::IterLoop,
     break_stmt::Break,
-    continue_stmt::Continue
+    continue_stmt::Continue,
 };
 use crate::modules::function::{
     declaration::FunctionDeclaration,
     ret::Return,
-    fail::Fail
+    fail::Fail,
 };
 use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
@@ -38,7 +38,7 @@ use crate::modules::builtin::{
     echo::Echo,
     mv::Mv,
     cd::Cd,
-    exit::Exit
+    exit::Exit,
 };
 use super::comment_doc::CommentDoc;
 use super::comment::Comment;
@@ -70,7 +70,7 @@ pub enum StatementType {
     Exit(Exit),
     CommandModifier(CommandModifier),
     Comment(Comment),
-    CommentDoc(CommentDoc)
+    CommentDoc(CommentDoc),
 }
 
 #[derive(Debug, Clone)]

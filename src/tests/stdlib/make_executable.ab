@@ -6,9 +6,8 @@ import { make_executable } from "std/fs"
 main {
     let tmpdir = trust $mktemp -d /tmp/amber-XXXX$
     trust $touch {tmpdir}/amber-symbolic$
-    trust $touch /tmp/amber-symbolic$
-    if make_executable("/tmp/amber-symbolic") {
+    if make_executable("{tmpdir}/amber-symbolic") {
         echo "created"
     }
-    trust $rm {tmpdir}/amber-symbolic$
+    trust $rm -rf {tmpdir}$
 } 
