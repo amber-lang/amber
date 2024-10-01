@@ -8,7 +8,7 @@ use super::{parse_interpolated_region, translate_interpolated_region};
 #[derive(Debug, Clone)]
 pub struct Text {
     strings: Vec<String>,
-    interps: Vec<Expr>
+    interps: Vec<Expr>,
 }
 
 impl Typed for Text {
@@ -23,7 +23,7 @@ impl SyntaxModule<ParserMetadata> for Text {
     fn new() -> Self {
         Text {
             strings: vec![],
-            interps: vec![]
+            interps: vec![],
         }
     }
 

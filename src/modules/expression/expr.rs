@@ -15,7 +15,7 @@ use super::literal::{
     text::Text,
     array::Array,
     null::Null,
-    status::Status
+    status::Status,
 };
 use super::binop::{
     add::Add,
@@ -35,11 +35,11 @@ use super::binop::{
 };
 use super::unop::{
     not::Not,
-    neg::Neg
+    neg::Neg,
 };
 use super::typeop::{
     cast::Cast,
-    is::Is
+    is::Is,
 };
 use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
@@ -79,7 +79,7 @@ pub enum ExprType {
     Cast(Cast),
     Status(Status),
     Nameof(Nameof),
-    Is(Is)
+    Is(Is),
 }
 
 #[derive(Debug, Clone, Default)]
