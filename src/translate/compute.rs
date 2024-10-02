@@ -25,10 +25,11 @@ pub enum ArithOp {
 pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
         ArithType::BcSed => {
-            let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
+            let left = left.unwrap_or_default();
+            let right = right.unwrap_or_default();
             let mut scale = "";
             let mut after_bc = "";
-            let sed_regex = "| sed \"/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//\"";
+            let sed_regex = " | sed \"s/\\(\\.\\(0\\|[0-9]*[1-9]\\)\\)00*$/\\1/\"";
             let op = match operation {
                 ArithOp::Add => "+",
                 ArithOp::Sub => "-",
