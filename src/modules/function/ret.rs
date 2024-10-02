@@ -37,16 +37,9 @@ impl SyntaxModule<ParserMetadata> for Return {
         syntax(meta, &mut self.expr)?;
         let ret_type = meta.context.fun_ret_type.as_ref();
         let expr_type = &self.expr.get_type();
-        // Unpacking Failable types
-        let (ret_type, expr_type) = match (ret_type, expr_type) {
-                types @ (Some(Type::Failable(_)), Type::Failable(_)) => types,
-                (Some(Type::Failable(ret_type)), expr_type) => (Some(ret_type.as_ref()), expr_type),
-                (Some(ret_type), Type::Failable(expr_type)) => (Some(ret_type), expr_type.as_ref()),
-                types => types
-        };
         match ret_type {
             Some(ret_type) => {
-                if ret_type != expr_type {
+                if !expr_type.is_allowed_in(ret_type) {
                     return error!(meta, tok => {
                         message: "Return type does not match function return type",
                         comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
