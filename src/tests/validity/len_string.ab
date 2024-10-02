@@ -1,0 +1,6 @@
+// Output
+// 5
+
+main {
+    echo len "hello"
+} 

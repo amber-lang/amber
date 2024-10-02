@@ -94,6 +94,7 @@ pub fun chars(text: Text): [Text] {
 /// Gets the length of provided text or array.
 #[allow_absurd_cast]
 pub fun len(value): Num {
+    echo "The len stdlib is deprecated, use the builtin!"
     unsafe {
         if value is Text:
             return $echo "\$\{#{nameof value}}"$ as Num
@@ -140,7 +141,7 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 /// If `length` is provided, the substring will include `length` characters; otherwise, it slices to the end of `text`.
 /// If `length` is negative, an empty string is returned.
 pub fun slice(text: Text, index: Num, length: Num = 0): Text {
-    if length == 0: length = len(text) - index
+    if length == 0: length = len text - index
     if length <= 0: return ""
     return unsafe $printf "%.{length}s" "\$\{text:{index}}"$
 }
@@ -159,8 +160,9 @@ pub fun capitalize(text: Text): Text {
 
 /// Pads `text` with the specified `pad` character on left until it reaches the desired `length`.
 pub fun lpad(text: Text, pad: Text, length: Num): Text {
-    if length <= len(text): return text
-    length = len(text) - length
+    if length <= len text: return text
+    length = len text
+    length -= length
     pad = unsafe $printf "%{length}s" "" | tr " " "{pad}"$
     return pad + text
 }
@@ -168,7 +170,8 @@ pub fun lpad(text: Text, pad: Text, length: Num): Text {
 /// Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
 pub fun rpad(text: Text, pad: Text, length: Num): Text {
     if length <= len(text): return text
-    length = len(text) - length
+    length = len text
+    length -= length
     pad = unsafe $printf "%{length}s" "" | tr " " "{pad}"$
     return text + pad
 }
