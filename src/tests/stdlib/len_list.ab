@@ -1,8 +1,0 @@
-import * from "std/text"
-
-// Output
-// 4
-
-main {
-    echo len([1, 2, 3, 4])
-} 
