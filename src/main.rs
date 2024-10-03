@@ -175,15 +175,13 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
     }
 }
 
-/*
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 fn set_file_permission(_file: &fs::File, _output: String) {
     // We don't need to set permission on Windows
 }
-*/
 
-#[cfg(not(target_os = "windows"))]
-fn set_file_permission(file: &std::fs::File, path: String) {
+#[cfg(not(windows))]
+fn set_file_permission(file: &fs::File, path: String) {
     use std::os::unix::prelude::PermissionsExt;
     let mut perm = fs::metadata(path).unwrap().permissions();
     perm.set_mode(0o755);
