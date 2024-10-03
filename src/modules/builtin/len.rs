@@ -31,7 +31,7 @@ impl TranslateModule for Len {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let path_type = self.value.get_type();
         let value = self.value.translate(meta);
-        if path_type != Type::Text {
+        if path_type == Type::Text {
             format!("echo \"${{#{}}}\"", value).trim_end().to_string()
         } else {
             format!("echo \"${{#{}[@]}}\"", value).trim_end().to_string()
