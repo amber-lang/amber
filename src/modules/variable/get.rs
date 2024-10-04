@@ -48,6 +48,9 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         let variable = handle_variable_reference(meta, tok.clone(), &self.name)?;
+        if variable.is_empty().unwrap() {
+            return error!(meta, tok, format!("Variable {} accessed before it is assigned a value!", variable.name))
+        }
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         self.kind = variable.kind.clone();

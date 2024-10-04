@@ -57,6 +57,9 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         else if variable.kind != self.value.get_type() {
             return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{left_type}'"));
         }
+
+        variable.set_is_empty(false).unwrap();
+        
         Ok(())
     }
 }

@@ -1,6 +1,8 @@
 use std::collections::BTreeSet;
+use std::sync::{Arc, Mutex};
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
@@ -67,27 +69,33 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type) -> Option<usize> {
+    pub fn add_var(&mut self, name: &str, kind: Type, is_empty: bool, tok: Option<Token>) -> Option<usize> {
+        let declared_at = PositionInfo::from_token(self, tok);
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
             name: name.to_string(),
             kind,
             global_id,
-            is_ref: false
+            is_ref: false,
+            is_empty: Arc::new(Mutex::new(is_empty)),
+            declared_at
         });
         global_id
     }
 
     /// Adds a parameter as variable to the current scope
-    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
+    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool, tok: Option<Token>) -> Option<usize> {
+        let declared_at = PositionInfo::from_token(self, tok);
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
             name: name.to_string(),
             kind,
             global_id,
-            is_ref
+            is_ref,
+            is_empty: Arc::new(Mutex::new(false)),
+            declared_at
         });
         global_id
     }
@@ -100,6 +108,10 @@ impl ParserMetadata {
     /// Gets variable names
     pub fn get_var_names(&self) -> BTreeSet<&String> {
         self.context.scopes.iter().rev().flat_map(|scope| scope.get_var_names()).collect()
+    }
+
+    pub fn get_all_vars(&self) -> Vec<&VariableDecl> {
+        self.context.scopes.iter().rev().flat_map(|scope| scope.get_all_vars()).collect_vec()
     }
 
     /* Functions */

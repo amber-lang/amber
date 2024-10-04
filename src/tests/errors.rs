@@ -51,3 +51,36 @@ fn function_with_failable_typed_arg() {
 
     test_amber(code, "Hello, World!");
 }
+
+#[test]
+#[should_panic(expected = "ERROR: Variable declared but never assigned!")]
+fn declared_but_not_assigned_var() {
+    let code = r#"
+        let declared_not_assigned: Text
+    "#;
+
+    test_amber(code, "");
+}
+
+#[test]
+#[should_panic(expected = "Variable non_assigned_var accessed before it is assigned a value!")]
+fn declared_accessed_before_assigned() {
+    let code = r#"
+        let non_assigned_var: Text
+        echo non_assigned_var
+    "#;
+
+    test_amber(code, "");
+}
+
+
+#[test]
+#[should_panic(expected = "ERROR: Cannot assign value of type 'Num' to a variable of type 'Text'")]
+fn declared_assigned_invalid_type() {
+    let code = r#"
+        let invalid_type_var: Text
+        invalid_type_var = 123
+    "#;
+
+    test_amber(code, "");
+}
