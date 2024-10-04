@@ -3,5 +3,5 @@ fun foo(ref a) {
 }
 
 let a = ""
-unsafe foo(a)
+trust foo(a)
 echo a
