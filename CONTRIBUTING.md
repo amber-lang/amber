@@ -126,7 +126,7 @@ use crate::modules::expression::expr::Expr;
 // Translate module is not included in Heraclitus prelude as it's leaving the backend up to developer
 use crate::translate::module::TranslateModule;
 // Metadata is the object that is carried when iterating over syntax tree.
-// - `ParserMetadata` - it carries the necessary information about the current parsing context such as variables and functions that were declared up to this point, warning messages aggregated up to this point, information whether this syntax is declared in a loop, function, main block, unsafe scope etc.
+// - `ParserMetadata` - it carries the necessary information about the current parsing context such as variables and functions that were declared up to this point, warning messages aggregated up to this point, information whether this syntax is declared in a loop, function, main block, trust scope etc.
 // `TranslateMetadata` - it carries the necessary information for translation such as wether we are in a silent scope, in an eval context or what indentation should be used.
 use crate::utils::{ParserMetadata, TranslateMetadata};
 // Documentation module tells compiler what markdown content should it generate for this syntax module. This is irrelevent to our simple module so we will just return empty string.

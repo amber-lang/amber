@@ -1,5 +1,5 @@
 import * from "std/date"
 
 main {
-    if unsafe date_add("+17 Days", "2009-02-07T09:46:40UTC", true) == "2009-02-24T09:46:40UTC": echo "Succeded"
+    if trust date_add("+17 Days", "2009-02-07T09:46:40UTC", true) == "2009-02-24T09:46:40UTC": echo "Succeded"
 }
