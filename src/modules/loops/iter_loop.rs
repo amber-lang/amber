@@ -1,11 +1,10 @@
-use std::mem::swap;
-
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
+use crate::utils::context::Context;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 
@@ -55,13 +54,12 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
                 meta.add_var(index, Type::Num);
             }
             // Save loop context state and set it to true
-            let mut new_is_loop_ctx = true;
-            swap(&mut new_is_loop_ctx, &mut meta.context.is_loop_ctx);
-            // Parse loop
-            syntax(meta, &mut self.block)?;
-            token(meta, "}")?;
-            // Restore loop context state
-            swap(&mut new_is_loop_ctx, &mut meta.context.is_loop_ctx);
+            meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+                // Parse loop
+                syntax(meta, &mut self.block)?;
+                token(meta, "}")?;
+                Ok(())
+            })?;
             meta.pop_scope();
             Ok(())
         }, |pos| {
