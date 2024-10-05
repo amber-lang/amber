@@ -1,90 +1,37 @@
-use std::{collections::HashMap, io::{BufWriter, Write}, path::PathBuf, process::{Command, Stdio}, sync::{Arc, Mutex, MutexGuard}};
+use std::{collections::HashMap, io::{BufWriter, Write}, path::PathBuf, process::Command, sync::{Arc, Mutex, MutexGuard}};
 
 use itertools::Itertools;
 use wildmatch::WildMatchPattern;
 
 use crate::Cli;
 
-/// How it will pass bash code to the postprocessor
-#[derive(Debug, Clone)]
-pub enum PostProcessorInput {
-    /// Passes the data to the postprocessor's stdin
-    Stdin
-}
-
-/// How it will get the processed code from the postprocessor
-#[derive(Debug, Clone)]
-pub enum PostProcessorOutput {
-    /// Reads postprocessor's stdout
-    Stdout
-}
-
-pub trait PostProcessorCommandModifier {
-    /// Apply the command modifier to a command
-    fn apply(&self, cmd: &mut MutexGuard<Command>);
-}
-
-impl PostProcessorCommandModifier for PostProcessorInput {
-    fn apply(&self, cmd: &mut MutexGuard<Command>) {
-        match self {
-            Self::Stdin => cmd.stdin(Stdio::piped())
-        };
-    }
-}
-
-impl PostProcessorCommandModifier for PostProcessorOutput {
-    fn apply(&self, cmd: &mut MutexGuard<Command>) {
-        match self {
-            Self::Stdout => cmd.stdout(Stdio::piped())
-        };
-    }
-}
-
-impl Default for PostProcessorInput {
-    fn default() -> Self {
-        Self::Stdin
-    }
-}
-
-impl Default for PostProcessorOutput {
-    fn default() -> Self {
-        Self::Stdout
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct PostProcessor {
     pub name: String,
     pub bin: PathBuf,
-    pub input: PostProcessorInput,
-    pub output: PostProcessorOutput,
 
     command: Arc<Mutex<Command>>
 }
 
 impl PostProcessor {
-    pub fn new<N: Into<String>, B: Into<PathBuf>>(name: N, bin: B, input: PostProcessorInput, output: PostProcessorOutput) -> Self {
+    pub fn new<N: Into<String>, B: Into<PathBuf>>(name: N, bin: B) -> Self {
         let name: String = name.into();
         let bin: PathBuf = bin.into();
         let command = Command::new(bin.clone());
         let command = Arc::new(Mutex::new(command));
-        let thiss = Self { name, bin, input, output, command };
-        thiss.build_cmd();
-        thiss
+        Self {
+            name,
+            bin,
+            command
+        }
     }
 
     pub fn new_stdin_stdout<N: Into<String>, B: Into<PathBuf>>(name: N, bin: B) -> Self {
-        Self::new(name, bin, PostProcessorInput::default(), PostProcessorOutput::default())
+        Self::new(name, bin)
     }
 
     pub fn cmd(&self) -> MutexGuard<Command> {
         self.command.lock().expect("Couldn't lock on command (arc)")
-    }
-
-    fn build_cmd(&self) {
-        let mut command = self.cmd();
-        self.input.apply(&mut command);
-        self.output.apply(&mut command);
     }
 
     pub fn is_available(&self) -> bool {
@@ -103,20 +50,18 @@ impl PostProcessor {
 
         let mut spawned = self.cmd().spawn().unwrap_or_else(|_| panic!("Couldn't spawn {}", self.name));
         
-        match self.input {
-            PostProcessorInput::Stdin => {
-                let stdin = spawned.stdin.as_mut().unwrap_or_else(|| panic!("Couldn't get {}'s stdin", self.name));
-                let mut writer = BufWriter::new(stdin);
-                writer.write_all(code.as_bytes()).unwrap_or_else(|_| panic!("Couldn't write to {}'s stdin", self.name));
-                writer.flush().unwrap_or_else(|_| panic!("Couldn't flush {} stdin", self.name));
-            }
-        };
+        // send to stdin
+        {
+            let stdin = spawned.stdin.as_mut().unwrap_or_else(|| panic!("Couldn't get {}'s stdin", self.name));
+            let mut writer = BufWriter::new(stdin);
+            writer.write_all(code.as_bytes()).unwrap_or_else(|_| panic!("Couldn't write to {}'s stdin", self.name));
+            writer.flush().unwrap_or_else(|_| panic!("Couldn't flush {} stdin", self.name));
+        }
 
-        match self.output {
-            PostProcessorOutput::Stdout => {
-                let res = spawned.wait_with_output().unwrap_or_else(|_| panic!("Couldn't wait for {} to finish", self.name));
-                String::from_utf8(res.stdout).unwrap_or_else(|_| panic!("{} returned a non-utf8 code in stdout", self.name))
-            }
+        // read from stdout
+        {
+            let res = spawned.wait_with_output().unwrap_or_else(|_| panic!("Couldn't wait for {} to finish", self.name));
+            String::from_utf8(res.stdout).unwrap_or_else(|_| panic!("{} returned a non-utf8 code in stdout", self.name))
         }
     }
 
