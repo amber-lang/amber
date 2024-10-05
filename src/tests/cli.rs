@@ -25,7 +25,10 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
 
     // Changes locale to default to prevent locale-specific error messages.
     cmd.env("LC_ALL", "C")
-        .arg("--disable-format")
+        .arg("--disable-postprocessor")
+        .arg("shfmt")
+        .arg("--disable-postprocessor")
+        .arg("bshchk")
         .arg(file.path());
 
     cmd.assert()
