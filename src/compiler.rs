@@ -165,7 +165,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut result = result.join("\n") + "\n";
+        let mut res = result.join("\n") + "\n";
 
         let filters = self.cli_opts.disable_postprocessor.iter()
             .map(|x| WildMatchPattern::new(x)).collect();
