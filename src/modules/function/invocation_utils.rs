@@ -51,18 +51,18 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Swap the contexts to use the function context
     meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
-        meta.push_scope();
-        for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
-            meta.add_param(name, kind.clone(), *is_ref);
-        }
-        // Set the expected return type if specified
-        if fun.returns != Type::Generic {
-            meta.context.fun_ret_type = Some(fun.returns.clone());
-        }
-        // Parse the function body
-        syntax(meta, &mut block)?;
-        // Pop function body
-        meta.pop_scope();
+        meta.push_scope(|meta| {
+            for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
+                meta.add_param(name, kind.clone(), *is_ref);
+            }
+            // Set the expected return type if specified
+            if fun.returns != Type::Generic {
+                meta.context.fun_ret_type = Some(fun.returns.clone());
+            }
+            // Parse the function body
+            syntax(meta, &mut block)?;
+            Ok(())
+        })?;
         Ok(())
     })?;
     // Set the new return type or null if nothing was returned

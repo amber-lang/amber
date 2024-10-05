@@ -48,19 +48,20 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             };
             token(meta, "{")?;
             // Create iterator variable
-            meta.push_scope();
-            meta.add_var(&self.iter_name, self.iter_type.clone());
-            if let Some(index) = self.iter_index.as_ref() {
-                meta.add_var(index, Type::Num);
-            }
-            // Save loop context state and set it to true
-            meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-                // Parse loop
-                syntax(meta, &mut self.block)?;
-                token(meta, "}")?;
+            meta.push_scope(|meta| {
+                meta.add_var(&self.iter_name, self.iter_type.clone());
+                if let Some(index) = self.iter_index.as_ref() {
+                    meta.add_var(index, Type::Num);
+                }
+                // Save loop context state and set it to true
+                meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+                    // Parse loop
+                    syntax(meta, &mut self.block)?;
+                    token(meta, "}")?;
+                    Ok(())
+                })?;
                 Ok(())
             })?;
-            meta.pop_scope();
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, "Syntax error in loop")

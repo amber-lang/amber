@@ -48,13 +48,14 @@ impl ParserMetadata {
     }
 
     /// Pushes a new scope to the stack
-    pub fn push_scope(&mut self) {
-        self.context.scopes.push(ScopeUnit::new())
-    }
-
-    /// Pops the last scope from the stack
-    pub fn pop_scope(&mut self) -> Option<ScopeUnit> {
-        self.context.scopes.pop()
+    pub fn push_scope<B>(&mut self, mut body: B) -> SyntaxResult
+    where
+        B: FnMut(&mut Self) -> SyntaxResult
+    {
+        self.context.scopes.push(ScopeUnit::new());
+        let result = body(self);
+        self.context.scopes.pop();
+        result
     }
 
     /* Variables */
