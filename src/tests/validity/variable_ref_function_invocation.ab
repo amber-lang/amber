@@ -2,7 +2,7 @@
 // "sram"
 
 fun reverse(input: Text): Text {
-    return unsafe $echo {input} | rev$
+    return trust $echo {input} | rev$
 }
 
 fun foo(ref a) {
@@ -10,5 +10,5 @@ fun foo(ref a) {
 }
 
 let a = ""
-unsafe foo(a)
+trust foo(a)
 echo a

@@ -1,6 +1,8 @@
 use std::collections::VecDeque;
+use std::ops::Index;
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::docs::module::DocumentationModule;
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -44,14 +46,14 @@ impl SyntaxModule<ParserMetadata> for Block {
             else if token.word == "}" {
                 break;
             }
-            let mut statemant = Statement::new();
-            if let Err(failure) = statemant.parse(meta) {
+            let mut statement = Statement::new();
+            if let Err(failure) = statement.parse(meta) {
                 return match failure {
                     Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
                     Failure::Loud(err) => return Err(Failure::Loud(err))
                 }
             }
-            self.statements.push(statemant);
+            self.statements.push(statement);
         }
         meta.pop_scope();
         Ok(())
@@ -66,8 +68,7 @@ impl TranslateModule for Block {
         meta.increase_indent();
         let result = if self.is_empty() {
             ":".to_string()
-        }
-        else {
+        } else {
             self.statements.iter()
                 .map(|statement| statement.translate(meta))
                 .filter(|translation| !translation.trim().is_empty())
@@ -82,8 +83,16 @@ impl TranslateModule for Block {
 
 impl DocumentationModule for Block {
     fn document(&self, meta: &ParserMetadata) -> String {
-        self.statements.iter()
+        let indices = self.statements.iter()
+            .enumerate()
+            .map(|(index, statement)| (index, statement.get_docs_item_name()))
+            .filter_map(|(index, name)| name.map(|n| (n, index)))
+            .sorted()
+            .collect::<Vec<_>>();
+        indices.iter()
+            .map(|(_, index)| self.statements.index(*index))
             .map(|statement| statement.document(meta))
-            .collect::<Vec<_>>().join("")
+            .collect::<Vec<_>>()
+            .join("")
     }
 }

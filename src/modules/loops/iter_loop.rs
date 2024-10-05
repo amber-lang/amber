@@ -12,7 +12,7 @@ use crate::modules::block::Block;
 #[derive(Debug, Clone)]
 pub struct IterLoop {
     block: Block,
-    iterable: Expr,
+    iter_expr: Expr,
     iter_index: Option<String>,
     iter_name: String,
     iter_type: Type
@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
     fn new() -> Self {
         IterLoop {
             block: Block::new(),
-            iterable: Expr::new(),
+            iter_expr: Expr::new(),
             iter_index: None,
             iter_name: String::new(),
             iter_type: Type::Generic
@@ -42,11 +42,11 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
         context!({
             // Parse iterable
             let tok = meta.get_current_token();
-            syntax(meta, &mut self.iterable)?;
-            match self.iterable.get_type() {
-                Type::Array(kind) => self.iter_type = *kind,
-                _ => return error!(meta, tok, "Expected iterable")
-            }
+            syntax(meta, &mut self.iter_expr)?;
+            self.iter_type = match self.iter_expr.get_type() {
+                Type::Array(kind) => *kind,
+                _ => return error!(meta, tok, "Expected iterable"),
+            };
             token(meta, "{")?;
             // Create iterator variable
             meta.push_scope();
@@ -73,26 +73,30 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = &self.iter_name;
-        let iterable = self.iterable.translate(meta);
+        let expr = self.iter_expr.translate(meta);
         match self.iter_index.as_ref() {
             Some(index) => {
                 // Create an indentation for the index increment
                 meta.increase_indent();
                 let indent = meta.gen_indent();
                 meta.decrease_indent();
-                [format!("{index}=0;"),
-                    format!("for {name} in {iterable}"),
+                [
+                    format!("{index}=0;"),
+                    format!("for {name} in {expr}"),
                     "do".to_string(),
                     self.block.translate(meta),
                     format!("{indent}(( {index}++ )) || true"),
-                    "done".to_string()].join("\n")
+                    "done".to_string(),
+                ].join("\n")
             },
             None => {
-                [format!("for {name} in {iterable}"),
+                [
+                    format!("for {name} in {expr}"),
                     "do".to_string(),
                     self.block.translate(meta),
-                    "done".to_string()].join("\n")
-            }
+                    "done".to_string(),
+                ].join("\n")
+            },
         }
     }
 }

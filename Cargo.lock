@@ -16,6 +16,7 @@ name = "amber"
 version = "0.3.5-alpha"
 dependencies = [
  "assert_cmd",
+ "build-helper",
  "chrono",
  "clap",
  "colored",
@@ -136,6 +137,15 @@ dependencies = [
  "memchr",
  "regex-automata",
  "serde",
+]
+
+[[package]]
+name = "build-helper"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdce191bf3fa4995ce948c8c83b4640a1745457a149e73c6db75b4ffe36aad5f"
+dependencies = [
+ "semver",
 ]
 
 [[package]]
@@ -301,9 +311,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "heraclitus-compiler"
-version = "1.7.8"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "790c340f08312008538c86d76b833d17f64fc16d7cf2ac7cce3f61f7d438205c"
+checksum = "b6b44f6c9fa2cd2c68945ef5247b8cdfd6b84de10a8c5a9a5ad0b7f1991891b1"
 dependencies = [
  "capitalize",
  "colored",
@@ -549,6 +559,21 @@ dependencies = [
  "linux-raw-sys",
  "windows-sys 0.52.0",
 ]
+
+[[package]]
+name = "semver"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a3186ec9e65071a2095434b1f5bb24838d4e8e130f584c790f6033c79943537"
+dependencies = [
+ "semver-parser",
+]
+
+[[package]]
+name = "semver-parser"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"

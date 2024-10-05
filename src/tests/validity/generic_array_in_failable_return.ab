@@ -1,0 +1,9 @@
+// Output
+// 1 2 3
+
+fun test(arr: [Num]): []? {
+        if false { fail 1 }
+        return arr
+}
+
+echo unsafe test([1, 2, 3])

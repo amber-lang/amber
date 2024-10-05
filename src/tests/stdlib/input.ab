@@ -1,12 +1,12 @@
 import * from "std/env"
 
 // Output
-// Please enter your name:Hello, Amber
+// Hello, Amber
 
 main {
-    unsafe $echo "Amber" >> /tmp/test_input$
-    unsafe $exec 0< /tmp/test_input$
+    trust $echo "Amber" >> /tmp/test_input$
+    trust $exec 0< /tmp/test_input$
     let name = input("Please enter your name:")
     echo "Hello, " + name
-    unsafe $rm /tmp/test_input$
+    trust $rm /tmp/test_input$
 }

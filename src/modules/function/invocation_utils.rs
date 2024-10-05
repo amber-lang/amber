@@ -40,7 +40,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Check if the function argument types match
     if fun.is_args_typed {
         for (index, (arg_name, arg_type, given_type)) in izip!(fun.arg_names.iter(), fun.arg_types.iter(), args.iter()).enumerate() {
-            if arg_type != given_type {
+            if !given_type.is_allowed_in(arg_type) {
                 let fun_name = &fun.name;
                 let ordinal = ordinal_number(index);
                 return error!(meta, tok, format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given_type}' was given"))

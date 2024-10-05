@@ -10,7 +10,7 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 pub struct CommandModifier {
     pub block: Box<Block>,
     pub is_block: bool,
-    pub is_unsafe: bool,
+    pub is_trust: bool,
     pub is_silent: bool
 }
 
@@ -23,14 +23,14 @@ impl CommandModifier {
     pub fn use_modifiers<F>(
         &mut self, meta: &mut ParserMetadata, context: F
     ) -> SyntaxResult where F: FnOnce(&mut Self, &mut ParserMetadata) -> SyntaxResult {
-        let mut is_unsafe_holder = self.is_unsafe;
-        if self.is_unsafe {
-            swap(&mut is_unsafe_holder, &mut meta.context.is_unsafe_ctx);
+        let mut is_trust_holder = self.is_trust;
+        if self.is_trust {
+            swap(&mut is_trust_holder, &mut meta.context.is_trust_ctx);
         }
         let result = context(self, meta);
         // Swap back the value
-        if self.is_unsafe {
-            swap(&mut is_unsafe_holder, &mut meta.context.is_unsafe_ctx);
+        if self.is_trust {
+            swap(&mut is_trust_holder, &mut meta.context.is_trust_ctx);
         }
         result
     }
@@ -40,11 +40,17 @@ impl CommandModifier {
             match meta.get_current_token() {
                 Some(tok) => {
                     match tok.word.as_str() {
-                        "unsafe" => {
-                            if self.is_unsafe {
-                                return error!(meta, Some(tok.clone()), "You already declared `unsafe` modifier before");
+                        trust @ ("trust" | "unsafe") => {
+                            if trust == "unsafe" {
+                                let message = Message::new_warn_at_token(meta, Some(tok.clone()))
+                                .message("The keyword `unsafe` has been deprecated in favor of `trust`.")
+                                .comment("Learn more about this change: https://docs.amber-lang.com/basic_syntax/commands#command-modifiers");
+                                meta.add_message(message);
                             }
-                            self.is_unsafe = true;
+                            if self.is_trust {
+                                return error!(meta, Some(tok.clone()), "You already declared `trust` modifier before");
+                            }
+                            self.is_trust = true;
                             meta.increment_index();
                         },
                         "silent" => {
@@ -71,7 +77,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
         CommandModifier {
             block: Box::new(Block::new()),
             is_block: true,
-            is_unsafe: false,
+            is_trust: false,
             is_silent: false
         }
     }
