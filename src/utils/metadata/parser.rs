@@ -174,8 +174,8 @@ impl Metadata for ParserMetadata {
         }
     }
 
-    fn get_trace(&self) -> Vec<PositionInfo> {
-        self.context.trace.clone()
+    fn get_token_at(&self, index: usize) -> Option<Token> {
+        self.context.expr.get(index).cloned()
     }
 
     fn get_index(&self) -> usize {
@@ -186,10 +186,6 @@ impl Metadata for ParserMetadata {
         self.context.index = index
     }
 
-    fn get_token_at(&self, index: usize) -> Option<Token> {
-        self.context.expr.get(index).cloned()
-    }
-
     fn get_debug(&mut self) -> Option<usize> {
         self.debug
     }
@@ -198,11 +194,15 @@ impl Metadata for ParserMetadata {
         self.debug = Some(indent)
     }
 
+    fn get_path(&self) -> Option<String> {
+        self.context.path.clone()
+    }
+
     fn get_code(&self) -> Option<&String> {
         self.eval_code.as_ref()
     }
 
-    fn get_path(&self) -> Option<String> {
-        self.context.path.clone()
+    fn get_trace(&self) -> Vec<PositionInfo> {
+        self.context.trace.clone()
     }
 }
