@@ -7,5 +7,5 @@ main {
     } else {
         echo "failed"
     }
-    trust $rm {tmpdir}$
+    trust $rm -fr {tmpdir}$
 } 
