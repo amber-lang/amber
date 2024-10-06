@@ -12,8 +12,6 @@ use crate::utils::function_cache::FunctionCache;
 pub struct ParserMetadata {
     /// Code if the parser is in eval mode
     pub eval_code: Option<String>,
-    /// Determines where the binary operator should end
-    pub binop_border: Option<usize>,
     /// Used for debugging by Heraclitus
     pub debug: Option<usize>,
     /// Cache of already imported modules
@@ -162,7 +160,6 @@ impl Metadata for ParserMetadata {
     fn new(tokens: Vec<Token>, path: Option<String>, code: Option<String>) -> Self {
         ParserMetadata {
             eval_code: code,
-            binop_border: None,
             debug: None,
             import_cache: ImportCache::new(path.clone()),
             fun_cache: FunctionCache::new(),
