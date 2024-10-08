@@ -65,6 +65,11 @@ impl ManagerVisitor {
             /// Sets the field value on the encapsulated struct using
             /// its member function, and restores the previous value
             /// after the body function has returned.
+            ///
+            /// Additionally, to add setter functions designed to work
+            /// with `with_foo_fn()`, annotate the encapsulated struct
+            /// with `#[derive(ContextHelper)`, and required fields with
+            /// `#[context]`.
             pub fn #concat<V, S, B>(&mut self, mut setter: S, value: V, mut body: B) -> SyntaxResult
             where
                 S: FnMut(&mut #segment, V) -> V,
