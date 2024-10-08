@@ -35,7 +35,7 @@ impl SyntaxModule<ParserMetadata> for Block {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        meta.push_scope(|meta| {
+        meta.with_push_scope(|meta| {
             while let Some(token) = meta.get_current_token() {
                 // Handle the end of line or command
                 if ["\n", ";"].contains(&token.word.as_str()) {

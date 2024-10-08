@@ -48,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             };
             token(meta, "{")?;
             // Create iterator variable
-            meta.push_scope(|meta| {
+            meta.with_push_scope(|meta| {
                 meta.add_var(&self.iter_name, self.iter_type.clone());
                 if let Some(index) = self.iter_index.as_ref() {
                     meta.add_var(index, Type::Num);

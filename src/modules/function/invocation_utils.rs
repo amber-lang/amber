@@ -51,7 +51,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Swap the contexts to use the function context
     meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
-        meta.push_scope(|meta| {
+        meta.with_push_scope(|meta| {
             for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
                 meta.add_param(name, kind.clone(), *is_ref);
             }

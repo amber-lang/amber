@@ -48,7 +48,7 @@ impl ParserMetadata {
     }
 
     /// Pushes a new scope to the stack
-    pub fn push_scope<B>(&mut self, mut body: B) -> SyntaxResult
+    pub fn with_push_scope<B>(&mut self, mut body: B) -> SyntaxResult
     where
         B: FnMut(&mut Self) -> SyntaxResult
     {
