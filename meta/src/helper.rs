@@ -21,6 +21,7 @@ impl HelperVisitor {
         let concat = format!("set_{}", name);
         let concat = Ident::new(&concat, name.span());
         quote! {
+            /// Sets the field value and returns the previous value.
             pub fn #concat(&mut self, mut #name: #segment) -> #segment {
                 use std::mem::swap;
                 swap(&mut self.#name, &mut #name);

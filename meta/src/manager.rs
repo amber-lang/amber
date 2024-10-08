@@ -21,6 +21,9 @@ impl ManagerVisitor {
         let concat = format!("with_{}", name);
         let concat = Ident::new(&concat, name.span());
         quote! {
+            /// Sets the field value (which must implement the Copy and
+            /// Clone traits) and restores the previous value after the
+            /// body function has returned.
             pub fn #concat<B>(&mut self, #name: #segment, mut body: B) -> SyntaxResult
             where
                 B: FnMut(&mut Self) -> SyntaxResult,
@@ -39,6 +42,9 @@ impl ManagerVisitor {
         let concat = format!("with_{}_ref", name);
         let concat = Ident::new(&concat, name.span());
         quote! {
+            /// Sets the field value by swapping the references, and
+            /// restores the previous value after the body function has
+            /// returned.
             pub fn #concat<B>(&mut self, #name: &mut #segment, mut body: B) -> SyntaxResult
             where
                 B: FnMut(&mut Self) -> SyntaxResult,
@@ -56,6 +62,9 @@ impl ManagerVisitor {
         let concat = format!("with_{}_fn", name);
         let concat = Ident::new(&concat, name.span());
         quote! {
+            /// Sets the field value on the encapsulated struct using
+            /// its member function, and restores the previous value
+            /// after the body function has returned.
             pub fn #concat<V, S, B>(&mut self, mut setter: S, value: V, mut body: B) -> SyntaxResult
             where
                 S: FnMut(&mut #segment, V) -> V,
