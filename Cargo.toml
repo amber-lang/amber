@@ -8,21 +8,22 @@ rust-version = "1.79"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-heraclitus-compiler = "1.8.0"
-similar-string = "1.4.2"
-colored = "2.0.0"
-itertools = "0.13.0"
-clap = { version = "4.4.18", features = ["derive"] }
+amber-meta = { path = "meta" }
 chrono = "0.4.38"
-test-generator = "0.3.1"
+clap = { version = "4.4.18", features = ["derive"] }
+colored = "2.0.0"
+heraclitus-compiler = "1.8.0"
 include_dir = "0.7.4"
+itertools = "0.13.0"
+similar-string = "1.4.2"
+test-generator = "0.3.1"
 
 # test dependencies
 [dev-dependencies]
-tiny_http = "0.12.0"
 assert_cmd = "2.0.14"
 predicates = "3.1.0"
 tempfile = "3.10.1"
+tiny_http = "0.12.0"
 
 [profile.release]
 strip = true
@@ -36,6 +37,9 @@ lto = "thin"
 
 [profile.test]
 opt-level = 3
+
+[workspace]
+members = ["meta"]
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]

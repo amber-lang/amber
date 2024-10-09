@@ -1,10 +1,9 @@
-use std::mem::swap;
 use itertools::izip;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
+use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::utils::ParserMetadata;
-use crate::modules::block::Block;
 use crate::utils::context::FunctionDecl;
 
 // Convert a number to an ordinal number
@@ -47,33 +46,28 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
             }
         }
     }
-    let mut ctx = meta.fun_cache.get_context(fun.id).unwrap().clone();
+    let mut context = meta.fun_cache.get_context(fun.id).unwrap().clone();
     let mut block = Block::new();
-    let mut binop_border = None;
     // Swap the contexts to use the function context
-    swap(&mut ctx, &mut meta.context);
-    // Swap the binop border to clear it
-    swap(&mut binop_border, &mut meta.binop_border);
-    // Create a sub context for new variables
-    meta.push_scope();
-    for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
-        meta.add_param(name, kind.clone(), *is_ref);
-    }
-    // Set the expected return type if specified
-    if fun.returns != Type::Generic {
-        meta.context.fun_ret_type = Some(fun.returns.clone());
-    }
-    // Parse the function body
-    syntax(meta, &mut block)?;
-    // Pop function body
-    meta.pop_scope();
-    // Restore old context
-    swap(&mut ctx, &mut meta.context);
-    // Restore old binop border
-    swap(&mut binop_border, &mut meta.binop_border);
+    meta.with_context_ref(&mut context, |meta| {
+        // Create a sub context for new variables
+        meta.with_push_scope(|meta| {
+            for (kind, name, is_ref) in izip!(args, &fun.arg_names, &fun.arg_refs) {
+                meta.add_param(name, kind.clone(), *is_ref);
+            }
+            // Set the expected return type if specified
+            if fun.returns != Type::Generic {
+                meta.context.fun_ret_type = Some(fun.returns.clone());
+            }
+            // Parse the function body
+            syntax(meta, &mut block)?;
+            Ok(())
+        })?;
+        Ok(())
+    })?;
     // Set the new return type or null if nothing was returned
     if let Type::Generic = fun.returns {
-        fun.returns = ctx.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
+        fun.returns = context.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
     };
     // Set the new argument types
     fun.arg_types = args.to_vec();

@@ -35,28 +35,28 @@ impl SyntaxModule<ParserMetadata> for Block {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        meta.push_scope();
-        while let Some(token) = meta.get_current_token() {
-            // Handle the end of line or command
-            if ["\n", ";"].contains(&token.word.as_str()) {
-                meta.increment_index();
-                continue;
-            }
-            // Handle block end
-            else if token.word == "}" {
-                break;
-            }
-            let mut statement = Statement::new();
-            if let Err(failure) = statement.parse(meta) {
-                return match failure {
-                    Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
-                    Failure::Loud(err) => return Err(Failure::Loud(err))
+        meta.with_push_scope(|meta| {
+            while let Some(token) = meta.get_current_token() {
+                // Handle the end of line or command
+                if ["\n", ";"].contains(&token.word.as_str()) {
+                    meta.increment_index();
+                    continue;
                 }
+                // Handle block end
+                else if token.word == "}" {
+                    break;
+                }
+                let mut statement = Statement::new();
+                if let Err(failure) = statement.parse(meta) {
+                    return match failure {
+                        Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
+                        Failure::Loud(err) => return Err(Failure::Loud(err))
+                    }
+                }
+                self.statements.push(statement);
             }
-            self.statements.push(statement);
-        }
-        meta.pop_scope();
-        Ok(())
+            Ok(())
+        })
     }
 }
 

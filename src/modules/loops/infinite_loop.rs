@@ -1,8 +1,7 @@
-use std::mem::swap;
-
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::translate::module::TranslateModule;
+use crate::utils::context::Context;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 
@@ -24,23 +23,24 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
         token(meta, "loop")?;
         token(meta, "{")?;
         // Save loop context state and set it to true
-        let mut new_is_loop_ctx = true;
-        swap(&mut new_is_loop_ctx, &mut meta.context.is_loop_ctx);
-        // Parse loop
-        syntax(meta, &mut self.block)?;
-        token(meta, "}")?;
-        // Restore loop context state
-        swap(&mut new_is_loop_ctx, &mut meta.context.is_loop_ctx);
+        meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+            // Parse loop
+            syntax(meta, &mut self.block)?;
+            token(meta, "}")?;
+            Ok(())
+        })?;
         Ok(())
     }
 }
 
 impl TranslateModule for InfiniteLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        ["while :".to_string(),
+        [
+            "while :".to_string(),
             "do".to_string(),
             self.block.translate(meta),
-            "done".to_string()].join("\n")
+            "done".to_string(),
+        ].join("\n")
     }
 }
 

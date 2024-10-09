@@ -7,7 +7,7 @@ use std::{io::{BufWriter, Write}, process::{Command, Stdio}};
 #[derive(Debug, Clone, Copy)]
 #[allow(non_camel_case_types)]
 pub enum BashFormatter {
-    /// https://github.com/mvdan/sh
+    /// <https://github.com/mvdan/sh>
     shfmt
 }
 
