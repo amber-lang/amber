@@ -21,8 +21,8 @@ impl ManagerVisitor {
         let concat = format!("with_{}", name);
         let concat = Ident::new(&concat, name.span());
         quote! {
-            /// Sets the field value (which must implement the Copy and
-            /// Clone traits) and restores the previous value after the
+            /// Sets the field value (which must implement the `Copy` and
+            /// `Clone` traits) and restores the previous value after the
             /// body function has returned.
             pub fn #concat<T, E, B>(&mut self, #name: #segment, mut body: B) -> Result<T, E>
             where
