@@ -14,6 +14,7 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::types::parse_type;
+use crate::utils::function_name::FunctionName;
 use super::declaration_utils::*;
 
 #[derive(Debug, Clone)]
@@ -251,9 +252,9 @@ impl TranslateModule for FunctionDeclaration {
         let prev_fun_name = meta.fun_name.clone();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            let name = format!("{}__{}_v{}", self.name, self.id, index);
-            meta.fun_name = Some((self.name.clone(), self.id, index));
+            meta.fun_name = Some(FunctionName::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
+            let name = format!("{}__{}_v{}", self.name, self.id, index);
             result.push(format!("{name}() {{"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);

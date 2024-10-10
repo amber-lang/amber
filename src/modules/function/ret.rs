@@ -56,12 +56,15 @@ impl SyntaxModule<ParserMetadata> for Return {
 
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
+        let fun_name = meta.fun_name.as_ref()
+            .expect("Function name not set")
+            .mangled_name();
         let result = self.expr.translate_eval(meta, false);
         let result = matches!(self.expr.get_type(), Type::Array(_))
             .then(|| format!("({result})"))
             .unwrap_or(result);
-        meta.stmt_queue.push_back(format!("__AF_{name}{id}_v{variant}={result}"));
+        let stmt = format!("{}={}", fun_name, result);
+        meta.stmt_queue.push_back(stmt);
         "return 0".to_string()
     }
 }

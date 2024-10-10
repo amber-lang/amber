@@ -78,8 +78,9 @@ impl TranslateModule for Fail {
             format!("exit {translate}")
         } else {
             // Clean the return value if the function fails
-            let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
-            meta.stmt_queue.push_back(format!("__AF_{name}{id}_v{variant}=''"));
+            let fun_name = meta.fun_name.as_ref().expect("Function name not set");
+            let stmt = format!("{}={}", fun_name.mangled_name(), fun_name.default_value());
+            meta.stmt_queue.push_back(stmt);
             format!("return {translate}")
         }
     }

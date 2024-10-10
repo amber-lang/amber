@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache, Cli};
+use crate::utils::function_name::FunctionName;
 use super::ParserMetadata;
 
 pub struct TranslateMetadata {
@@ -12,7 +13,7 @@ pub struct TranslateMetadata {
     /// before current statement in order to be correct.
     pub stmt_queue: VecDeque<String>,
     /// The name of the function that is currently being translated.
-    pub fun_name: Option<(String, usize, usize)>,
+    pub fun_name: Option<FunctionName>,
     /// Array id is used to determine the array that is being evaluated.
     pub array_id: usize,
     /// Value ID - used to store values in variables.

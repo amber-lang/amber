@@ -80,23 +80,27 @@ impl TranslateModule for Failed {
             if self.is_question_mark {
                 // if the failed expression is in the main block we need to clear the return value
                 let clear_return = if !self.is_main {
-                    let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
-                    format!("__AF_{name}{id}_v{variant}=''")
+                    let fun_name = meta.fun_name.as_ref().expect("Function name not set");
+                    format!("{}={}", fun_name.mangled_name(), fun_name.default_value())
                 } else {
                     String::new()
                 };
-                ["__AS=$?;",
+                [
+                    "__AS=$?;",
                     "if [ $__AS != 0 ]; then",
                     &clear_return,
                     ret,
-                    "fi"].join("\n")
+                    "fi",
+                ].join("\n")
             } else if &block == ":" {
                 "__AS=$?".into()
             } else {
-                ["__AS=$?;",
+                [
+                    "__AS=$?;",
                     "if [ $__AS != 0 ]; then",
                     &block,
-                    "fi"].join("\n")
+                    "fi",
+                ].join("\n")
             }
         } else {
             String::new()

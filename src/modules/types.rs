@@ -30,6 +30,14 @@ impl Type {
     pub fn is_allowed_in(&self, other: &Type) -> bool {
         self == other || self.is_subset_of(other)
     }
+
+    pub fn is_array(&self) -> bool {
+        match self {
+            Type::Array(_) => true,
+            Type::Failable(inner) => inner.is_array(),
+            _ => false,
+        }
+    }
 }
 
 impl Display for Type {
