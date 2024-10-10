@@ -14,6 +14,7 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::types::parse_type;
+use crate::utils::function_metadata::FunctionMetadata;
 use super::declaration_utils::*;
 
 #[derive(Debug, Clone)]
@@ -248,12 +249,12 @@ impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
-        let prev_fun_name = meta.fun_name.clone();
+        let prev_fun_meta = meta.fun_meta.clone();
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            let name = format!("{}__{}_v{}", self.name, self.id, index);
-            meta.fun_name = Some((self.name.clone(), self.id, index));
+            meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
+            let name = format!("{}__{}_v{}", self.name, self.id, index);
             result.push(format!("{name}() {{"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);
@@ -262,7 +263,7 @@ impl TranslateModule for FunctionDeclaration {
             result.push(meta.gen_indent() + "}");
         }
         // Restore the function name
-        meta.fun_name = prev_fun_name;
+        meta.fun_meta = prev_fun_meta;
         // Return the translation
         result.join("\n")
     }
