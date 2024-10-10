@@ -20,4 +20,4 @@ You can find an installation guide on the [documentation website](https://docs.a
 
 ## Contributing
 
-Check our [documentation](https://docs.amber-lang.com/contribute/contribute).
+Contributing guide can be found on the [documentation website](https://docs.amber-lang.com/contribute/contribute).
