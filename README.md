@@ -16,7 +16,7 @@ If [shfmt](https://github.com/mvdan/sh) it is present in the machine it will be 
 
 ## Install
 
-Check our [documentation](https://docs.amber-lang.com/getting_started/installation).
+You can find an installation guide on the [documentation website](https://docs.amber-lang.com/getting_started/installation).
 
 ## Contributing
 
