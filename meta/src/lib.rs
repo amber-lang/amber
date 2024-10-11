@@ -37,6 +37,8 @@ use syn::*;
 /// struct Amplifier {
 ///     #[context]
 ///     power: bool,
+///     input: f64,
+///     output: f64,
 ///     #[context]
 ///     panel: Panel,
 /// }
@@ -44,15 +46,13 @@ use syn::*;
 /// #[derive(ContextHelper)]
 /// struct Panel {
 ///     #[context]
-///     started: bool,
-///     #[context]
 ///     volume: u8,
 ///     display: Option<String>,
 /// }
 ///
 /// impl Panel {
 ///     fn new() -> Panel {
-///         Panel { started: false, volume: 0, display: None }
+///         Panel { volume: 0, display: None }
 ///     }
 /// }
 ///
