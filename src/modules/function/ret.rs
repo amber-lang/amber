@@ -2,6 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
+use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 
@@ -57,8 +58,8 @@ impl SyntaxModule<ParserMetadata> for Return {
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let fun_name = meta.fun_meta.as_ref()
-            .expect("Function name not set")
-            .mangled_name();
+            .map(FunctionMetadata::mangled_name)
+            .expect("Function name not set");
         let result = self.expr.translate_eval(meta, false);
         let result = matches!(self.expr.get_type(), Type::Array(_))
             .then(|| format!("({result})"))
