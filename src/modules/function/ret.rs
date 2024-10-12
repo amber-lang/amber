@@ -56,7 +56,7 @@ impl SyntaxModule<ParserMetadata> for Return {
 
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let fun_name = meta.fun_name.as_ref()
+        let fun_name = meta.fun_meta.as_ref()
             .expect("Function name not set")
             .mangled_name();
         let result = self.expr.translate_eval(meta, false);
