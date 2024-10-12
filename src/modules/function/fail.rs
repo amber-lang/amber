@@ -78,7 +78,7 @@ impl TranslateModule for Fail {
             format!("exit {translate}")
         } else {
             // Clean the return value if the function fails
-            let fun_meta = meta.fun_meta.as_ref().expect("Function name not set");
+            let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
             let stmt = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
             meta.stmt_queue.push_back(stmt);
             format!("return {translate}")

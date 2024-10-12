@@ -80,7 +80,7 @@ impl TranslateModule for Failed {
             if self.is_question_mark {
                 // if the failed expression is in the main block we need to clear the return value
                 let clear_return = if !self.is_main {
-                    let fun_meta = meta.fun_meta.as_ref().expect("Function name not set");
+                    let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
                     format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return())
                 } else {
                     String::new()
