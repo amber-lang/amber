@@ -1,5 +1,4 @@
 import * from "std/fs"
-import * from "std/text"
 
 // Output
 // [xxx; do echo HACKED; done; for file in]
@@ -16,7 +15,7 @@ main {
     // didn't do this, the following code would output "[HACKED]" instead
     // of the filename.
     let files = glob("xxx; do echo HACKED; done; for file in") failed {
-        echo "*glob failed*"
+        echo "FAILED"
     }
     loop file in files {
         echo "[{file}]"

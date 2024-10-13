@@ -1,12 +1,18 @@
+import * from "std/array"
 import * from "std/fs"
 import * from "std/text"
 
-// Output
-// [file1.txt]
-// [file2.txt]
-// [file99.txt]
-// [file.txt]
-// [other.csv]
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    loop file in expected {
+        if not includes(actual, file) {
+            return false
+        }
+    }
+    return true
+}
 
 main {
     let tmpdir = trust $ mktemp -d $
@@ -21,11 +27,15 @@ main {
     }
     cd tmpdir
 
-    let files = glob_multiple(["missing*", "file*.txt", "other*.csv"]) failed {
-        echo "*glob failed*"
+    let expected = ["file.txt", "file1.txt", "file2.txt", "file99.txt", "other.csv"]
+    let actual = glob_multiple(["missing*", "file*.txt", "other*.csv"]) failed {
+        echo "FAILED"
     }
-    loop file in files {
-        echo "[{file}]"
+    if compare(actual, expected) {
+        echo "Succeded"
+    } else {
+        echo "Expected: {expected}"
+        echo "Actual: {actual}"
     }
 
     trust $ rm -rf {tmpdir} $

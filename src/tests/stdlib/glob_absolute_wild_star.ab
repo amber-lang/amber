@@ -1,11 +1,18 @@
+import * from "std/array"
 import * from "std/fs"
 import * from "std/text"
 
-// Output
-// [/tmp/tmpdir/file1.txt]
-// [/tmp/tmpdir/file2.txt]
-// [/tmp/tmpdir/file99.txt]
-// [/tmp/tmpdir/file.txt]
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    loop file in expected {
+        if not includes(actual, file) {
+            return false
+        }
+    }
+    return true
+}
 
 main {
     let tmpdir = trust $ mktemp -d $
@@ -19,12 +26,15 @@ main {
         $ touch {tmpdir}/other.csv $
     }
 
-    let files = glob("{tmpdir}/file*.txt") failed {
-        echo "*glob failed*"
+    let expected = ["{tmpdir}/file.txt", "{tmpdir}/file1.txt", "{tmpdir}/file2.txt", "{tmpdir}/file99.txt"]
+    let actual = glob("{tmpdir}/file*.txt") failed {
+        echo "FAILED"
     }
-    loop file in files {
-        file = replace_regex(file, tmpdir, "/tmp/tmpdir", true)
-        echo "[{file}]"
+    if compare(actual, expected) {
+        echo "Succeded"
+    } else {
+        echo "Expected: {expected}"
+        echo "Actual: {actual}"
     }
 
     trust $ rm -rf {tmpdir} $

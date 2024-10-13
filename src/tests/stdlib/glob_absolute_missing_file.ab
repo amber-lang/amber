@@ -1,8 +1,7 @@
 import * from "std/fs"
-import * from "std/text"
 
 // Output
-// *glob failed*
+// FAILED
 
 main {
     let tmpdir = trust $ mktemp -d $
@@ -17,10 +16,9 @@ main {
     }
 
     let files = glob("{tmpdir}/missing*") failed {
-        echo "*glob failed*"
+        echo "FAILED"
     }
     loop file in files {
-        file = replace_regex(file, tmpdir, "/tmp/tmpdir", true)
         echo "[{file}]"
     }
 

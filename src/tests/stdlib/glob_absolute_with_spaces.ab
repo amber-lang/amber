@@ -1,9 +1,18 @@
+import * from "std/array"
 import * from "std/fs"
 import * from "std/text"
 
-// Output
-// [/tmp/tmpdir/1st file with spaces.txt]
-// [/tmp/tmpdir/2nd file with spaces.txt]
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    loop file in expected {
+        if not includes(actual, file) {
+            return false
+        }
+    }
+    return true
+}
 
 main {
     let tmpdir = trust $ mktemp -d $
@@ -17,12 +26,15 @@ main {
         $ touch {tmpdir}/other.csv $
     }
 
-    let files = glob("{tmpdir}/*with spaces*") failed {
-        echo "*glob failed*"
+    let expected = ["{tmpdir}/1st file with spaces.txt", "{tmpdir}/2nd file with spaces.txt"]
+    let actual = glob("{tmpdir}/*with spaces*") failed {
+        echo "FAILED"
     }
-    loop file in files {
-        file = replace_regex(file, tmpdir, "/tmp/tmpdir", true)
-        echo "[{file}]"
+    if compare(actual, expected) {
+        echo "Succeded"
+    } else {
+        echo "Expected: {expected}"
+        echo "Actual: {actual}"
     }
 
     trust $ rm -rf {tmpdir} $
