@@ -1,4 +1,4 @@
-import * from "std/text"
+import { join, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
@@ -86,9 +86,9 @@ fun escape_non_glob_chars(path: Text): Text {
 }
 
 /// Finds all files matching the passed-in glob; uses `eval` because Bash
-/// does not expand environment variables in `for file in $path`.  Also
+/// does not expand environment variables in `for file in $path`. Also
 /// checks that files actually exist because Bash lists `*.xyz` as a file
-/// in `for file in *.xyz` if no matches.
+/// in `for file in *.xyz` if there are no matches.
 fun glob_and_ignore_missing(path: Text): [Text]? {
     let files = $eval "for file in {path}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$?
     return split(files, "\n")
@@ -100,7 +100,7 @@ pub fun glob(path: Text): [Text]? {
     return glob_and_ignore_missing(path)?
 }
 
-/// Finds all files or directories matching multiple file globs.  When
+/// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
 /// `glob` function.
 pub fun glob_multiple(path: [Text]): [Text]? {
