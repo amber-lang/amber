@@ -1,4 +1,4 @@
-import { join, replace_regex, split } from "std/text"
+import { join, len, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
@@ -42,7 +42,6 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
         trust $ln -s "{origin}" "{destination}"$
         return true
     }
-
     echo "The file {origin} doesn't exist!"
     return false
 }
@@ -62,7 +61,6 @@ pub fun make_executable(path: Text): Bool {
         trust $chmod +x "{path}"$
         return true
     }
-
     echo "The file {path} doesn't exist!"
     return false
 }
@@ -75,7 +73,6 @@ pub fun change_owner(user: Text, path: Text): Bool {
         trust $chown -R "{user}" "{path}"$
         return true
     }
-
     return false
 }
 
@@ -85,30 +82,26 @@ fun escape_non_glob_chars(path: Text): Text {
     return replace_regex(path, "\([^*?/]\)", "\\\\\1")
 }
 
-/// Finds all files matching the passed-in glob; uses `eval` because Bash
-/// does not expand environment variables in `for file in $path`. Also
-/// checks that files actually exist because Bash lists `*.xyz` as a file
-/// in `for file in *.xyz` if there are no matches.
-fun glob_and_ignore_missing(path: Text): [Text]? {
-    let files = $eval "for file in {path}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$?
+/// Finds all files or directories matching multiple file globs. When
+/// we have union types, this functionality can be merged into the main
+/// `glob` function.
+pub fun glob_multiple(paths: [Text]): [Text]? {
+    let combined = ""
+    if len(paths) == 1 {
+        combined = escape_non_glob_chars(paths[0])
+    } else {
+        let items = [Text]
+        loop item in paths {
+            item = escape_non_glob_chars(item)
+            items += [item]
+        }
+        combined = join(items, " ")
+    }
+    let files = $eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$?
     return split(files, "\n")
 }
 
 /// Finds all files or directories matching a file glob.
 pub fun glob(path: Text): [Text]? {
-    path = escape_non_glob_chars(path)
-    return glob_and_ignore_missing(path)?
-}
-
-/// Finds all files or directories matching multiple file globs. When
-/// we have union types, this functionality can be merged into the main
-/// `glob` function.
-pub fun glob_multiple(path: [Text]): [Text]? {
-    let items = [Text]
-    loop item in path {
-        item = escape_non_glob_chars(item)
-        items += [item]
-    }
-    let items = join(items, " ")
-    return glob_and_ignore_missing(items)?
+    return glob_multiple([path])?
 }
