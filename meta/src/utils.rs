@@ -18,8 +18,7 @@ pub fn make_block(name: &Ident, functions: &Vec<TokenStream2>) -> TokenStream2 {
 pub fn is_context(attr: &Attribute) -> bool {
     if let Meta::Path(path) = &attr.meta {
         if let Some(segment) = path.segments.last() {
-            let ident = segment.ident.to_string();
-            if ident == "context" {
+            if segment.ident == "context" {
                 return true;
             }
         }
