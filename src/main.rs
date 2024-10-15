@@ -36,10 +36,10 @@ pub struct Cli {
     /// (OUTPUT is dir instead, default: `docs/` if missing it will generate the folder)
     #[arg(long)]
     docs: bool,
-
-    /// Don't format the output file
-    #[arg(long)]
-    disable_format: bool,
+  
+    /// Disabled postprocessors
+    #[arg(help = "Disable a postprocessor\nPossible values: shfmt, bshchk\nTo select multiple, pass this argument multiple times with different values", long)]
+    disable_postprocessor: Vec<String>,
 
     /// Minify the resulting code
     #[arg(long)]

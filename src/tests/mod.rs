@@ -8,7 +8,7 @@ use std::path::PathBuf;
 pub mod cli;
 pub mod errors;
 pub mod extra;
-pub mod formatter;
+pub mod postprocessor;
 mod stdlib;
 mod validity;
 
@@ -24,7 +24,10 @@ pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
-    AmberCompiler::new(code.into(), None, Cli::default())
+    let mut cli = Cli::default();
+    cli.disable_postprocessor = vec!["*".into()];
+    
+    AmberCompiler::new(code.into(), None, cli)
         .compile()
         .unwrap()
         .1
