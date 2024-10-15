@@ -61,7 +61,7 @@ impl TranslateModule for Range {
         let to = self.to.translate(meta);
         if self.neq {
             let to_neq = match &self.to.value.as_ref().unwrap() {
-                ExprType::Number(_) => (to.parse::<i64>().unwrap() - 1_i64).to_string(),
+                ExprType::Number(_) => (to.parse::<usize>().unwrap() - 1).to_string(),
                 _ => translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string())),
             };
             meta.gen_subprocess(&format!("seq {} {}", from, to_neq))
