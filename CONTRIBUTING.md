@@ -6,7 +6,7 @@ This is a simple but exhaustive guide to get you started on contributing to ambe
 ## Contributing guidelines
 Before you dig into Amber, you should know a few things before you contribute.
 
-Any code change is submitted [through a PR](https://github.com/Ph0enixKM/Amber/pulls), which is then approved by at least 2 maintainers.
+Any code change is submitted [through a PR](https://github.com/amber-lang/Amber/pulls), which is then approved by at least 2 maintainers.
 
 The way we talk on github is not the same as we would talk in person. When on github, always get straight to the point and be critical.
 
@@ -16,12 +16,12 @@ Personal grudges are forbidden around here, as well as anything offtopic or offe
 
 Before a PR is opened, it usually has an issue about it first, where we discuss how exactly a feature must be implemented, to avoid making a mistake.
 
-It is recommended that you see how features were already implemented. A good example is [#130](https://github.com/Ph0enixKM/Amber/issues/130)
+It is recommended that you see how features were already implemented. A good example is [#130](https://github.com/amber-lang/Amber/issues/130)
 
 To create a PR, you should fork the repo, create a branch, do your work in there, and open a PR. It will then be reviewed and pushed into master.
 
 ### Getting help
-Along the way, you may need help with your code. The best way to ask is in [our Discord server](https://discord.com/invite/cjHjxbsDvZ), but you may also ask other contributors personally or post in [Discussions](https://github.com/Ph0enixKM/Amber/discussions).
+Along the way, you may need help with your code. The best way to ask is in [our Discord server](https://discord.com/invite/cjHjxbsDvZ), but you may also ask other contributors personally or post in [Discussions](https://github.com/amber-lang/Amber/discussions).
 
 ## Overview
 Amber consists of the following layers:
@@ -49,7 +49,7 @@ Compiler consists of:
 `AmberCompiler` struct by itself is just a bootstrapper for all the syntax modules.
 
 #### 2.1. Parser & tokenizer
-Thanks to [`heraclitus`](https://github.com/Ph0enixKM/Heraclitus), we can use simple abstractions to go through tokens.
+Thanks to [`heraclitus`](https://github.com/amber-lang/Heraclitus), we can use simple abstractions to go through tokens.
 
 Please open any syntax module code file, and find a line that says: `impl SyntaxModule<ParserMetadata> for MODULE_NAME_HERE`
 

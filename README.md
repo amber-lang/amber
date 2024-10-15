@@ -67,7 +67,7 @@ brew install messense/macos-cross-toolchains/x86_64-unknown-linux-gnu
 
 Compile it:
 ```
-git clone https://github.com/Ph0enixKM/Amber
+git clone https://github.com/amber-lang/Amber
 cd Amber
 cargo build
 ```
