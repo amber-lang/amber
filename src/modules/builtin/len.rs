@@ -7,7 +7,7 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
 pub struct Len {
-    value: Expr,
+    value: Box<Expr>,
 }
 
 impl SyntaxModule<ParserMetadata> for Len {
@@ -15,13 +15,13 @@ impl SyntaxModule<ParserMetadata> for Len {
 
     fn new() -> Self {
         Len {
-            value: Expr::new(),
+            value: Box::new(Expr::new()),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "len")?;
-        syntax(meta, &mut self.value)?;
+        syntax(meta, &mut *self.value)?;
 
         Ok(())
     }
@@ -42,5 +42,11 @@ impl TranslateModule for Len {
 impl DocumentationModule for Len {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
+    }
+}
+
+impl Typed for Len {
+    fn get_type(&self) -> Type {
+        Type::Num
     }
 }

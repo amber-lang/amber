@@ -46,6 +46,7 @@ use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::nameof::Nameof;
+use crate::modules::builtin::len::Len;
 use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
 
 #[derive(Debug, Clone)]
@@ -80,6 +81,7 @@ pub enum ExprType {
     Status(Status),
     Nameof(Nameof),
     Is(Is),
+    Len(Len),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -145,6 +147,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
             types @ TypeOp => [ Is, Cast ],
             unops @ UnOp => [ Neg, Not ],
             literals @ Literal => [
+                // Builtins
+                Len,
                 // Literals
                 Parentheses, Bool, Number, Text,
                 Array, Null, Nameof, Status,
@@ -162,6 +166,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         translate_expression!(meta, self.value.as_ref().unwrap(), [
+            // Builtin
+            Len,
             // Ternary conditional
             Ternary,
             // Logical operators
@@ -187,6 +193,8 @@ impl TranslateModule for Expr {
 impl DocumentationModule for Expr {
     fn document(&self, meta: &ParserMetadata) -> String {
         document_expression!(meta, self.value.as_ref().unwrap(), [
+            // Builtin
+            Len,
             // Ternary conditional
             Ternary,
             // Logical operators
