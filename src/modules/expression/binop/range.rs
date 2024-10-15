@@ -62,8 +62,7 @@ impl TranslateModule for Range {
         if self.neq {
             let to_neq = match &self.to.value.as_ref().unwrap() {
                 ExprType::Number(_) => (to.parse::<i64>().unwrap() - 1_i64).to_string(),
-                ExprType::VariableGet(_) => translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string())),
-                _ => unreachable!("range expression must be either Number or VariableGet"),
+                _ => translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string())),
             };
             meta.gen_subprocess(&format!("seq {} {}", from, to_neq))
         } else {
