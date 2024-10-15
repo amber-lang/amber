@@ -2,9 +2,9 @@ use std::{
     env::current_dir, fs::{self, Permissions}, os::unix::fs::PermissionsExt
 };
 
-use crate::compiler::postprocess::{PostProcessor, PostProcessorInput, PostProcessorOutput};
+use crate::compiler::postprocess::PostProcessor;
 
-fn create_fake_binary(processor: PostProcessor) {
+fn create_fake_binary(processor: &PostProcessor) {
     let body = if cfg!(unix) {
         "#!/usr/bin/env bash\nexit 0"
     } else {
@@ -21,9 +21,10 @@ fn all_exist() {
     let processor = PostProcessor::new(
         "test",
         current_dir().unwrap().join("test.sh"),
-        PostProcessorInput::Stdin,
-        PostProcessorOutput::Stdout
     );
 
-    create_fake_binary(processor);
+    create_fake_binary(&processor);
+    
+    assert!(processor.is_available(), "Postprocessor is unavailable but it should be! It is likely an issue with the environment");
+    fs::remove_file("test.sh").expect("Couldn't remove fake script");
 }
