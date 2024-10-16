@@ -9,8 +9,8 @@ pub struct FunctionMetadata {
 }
 
 impl FunctionMetadata {
-    pub fn new(name: &str, id: usize, variant: usize, returns: &Type) -> Self {
-        let name = String::from(name);
+    pub fn new<T: Into<String>>(name: T, id: usize, variant: usize, returns: &Type) -> Self {
+        let name = name.into();
         let returns = returns.clone();
         FunctionMetadata { name, id, variant, returns }
     }
