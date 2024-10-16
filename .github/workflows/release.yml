@@ -67,12 +67,15 @@ jobs:
       # functionality based on whether this is a pull_request, and whether it's from a fork.
       # (PRs run on the *source* but secrets are usually on the *target* -- that's *good*
       # but also really annoying to build CI around when it needs secrets to work right.)
+      - name: Cargo Deb
+        run: cargo install cargo-deb
       - id: plan
         run: |
           cargo dist ${{ (!github.event.pull_request && format('host --steps=create --tag={0}', github.ref_name)) || 'plan' }} --output-format=json > plan-dist-manifest.json
           echo "cargo dist ran successfully"
           cat plan-dist-manifest.json
           echo "manifest=$(jq -c "." plan-dist-manifest.json)" >> "$GITHUB_OUTPUT"
+          cargo deb --output="./target/distrib"
       - name: "Upload dist-manifest.json"
         uses: actions/upload-artifact@v4
         with:
