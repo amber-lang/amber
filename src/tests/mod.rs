@@ -9,6 +9,7 @@ pub mod cli;
 pub mod errors;
 pub mod extra;
 pub mod formatter;
+pub mod types;
 mod stdlib;
 mod validity;
 
