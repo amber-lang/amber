@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
@@ -9,6 +8,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::cc_flags::get_ccflag_by_name;
+use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -148,95 +148,94 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         let mut optional = false;
         context!({
             // Set the compiler flags
-            swap(&mut meta.context.cc_flags, &mut flags);
-            // Get the arguments
-            token(meta, "(")?;
-            loop {
-                if token(meta, ")").is_ok() {
-                    break
+            meta.with_context_fn(Context::set_cc_flags, flags, |meta| {
+                // Get the arguments
+                token(meta, "(")?;
+                loop {
+                    if token(meta, ")").is_ok() {
+                        break
+                    }
+                    let is_ref = token(meta, "ref").is_ok();
+                    let name_token = meta.get_current_token();
+                    let name = variable(meta, variable_name_extensions())?;
+                    // Optionally parse the argument type
+                    let mut arg_type = Type::Generic;
+                    match token(meta, ":") {
+                        Ok(_) => {
+                            self.arg_refs.push(is_ref);
+                            self.arg_names.push(name.clone());
+                            arg_type = parse_type(meta)?;
+                            self.arg_types.push(arg_type.clone());
+                        },
+                        Err(_) => {
+                            self.arg_refs.push(is_ref);
+                            self.arg_names.push(name.clone());
+                            self.arg_types.push(Type::Generic);
+                        }
+                    }
+                    if let Type::Failable(_) = arg_type {
+                        return error!(meta, name_token, "Failable types cannot be used as arguments");
+                    }
+                    match token(meta, "=") {
+                        Ok(_) => {
+                            if is_ref {
+                                return error!(meta, name_token, "A ref cannot be optional");
+                            }
+                            optional = true;
+                            let mut expr = Expr::new();
+                            syntax(meta, &mut expr)?;
+                            if arg_type != Type::Generic && arg_type != expr.get_type() {
+                                return error!(meta, name_token, "Optional argument does not match annotated type");
+                            }
+                            self.arg_optionals.push(expr);
+                        },
+                        Err(_) => {
+                            if optional {
+                               return error!(meta, name_token, "All arguments following an optional argument must also be optional");
+                            }
+                        },
+                    }
+                    match token(meta, ")") {
+                        Ok(_) => break,
+                        Err(_) => token(meta, ",")?
+                    };
                 }
-                let is_ref = token(meta, "ref").is_ok();
-                let name_token = meta.get_current_token();
-                let name = variable(meta, variable_name_extensions())?;
-                // Optionally parse the argument type
-                let mut arg_type = Type::Generic;
+                let mut returns_tok = None;
+                // Optionally parse the return type
                 match token(meta, ":") {
                     Ok(_) => {
-                        self.arg_refs.push(is_ref);
-                        self.arg_names.push(name.clone());
-                        arg_type = parse_type(meta)?;
-                        self.arg_types.push(arg_type.clone());
+                        returns_tok = meta.get_current_token();
+                        self.returns = parse_type(meta)?
                     },
-                    Err(_) => {
-                        self.arg_refs.push(is_ref);
-                        self.arg_names.push(name.clone());
-                        self.arg_types.push(Type::Generic);
-                    }
+                    Err(_) => self.returns = Type::Generic
                 }
-                if let Type::Failable(_) = arg_type {
-                    return error!(meta, name_token, "Failable types cannot be used as arguments");
+                // Parse the body
+                token(meta, "{")?;
+                let (index_begin, index_end, is_failable) = skip_function_body(meta);
+                if is_failable && !matches!(self.returns, Type::Failable(_) | Type::Generic) {
+                    return error!(meta, returns_tok, "Failable functions must return a Failable type");
+                } else if !is_failable && matches!(self.returns, Type::Failable(_)) {
+                    return error!(meta, returns_tok, "Non-failable functions cannot return a Failable type");
                 }
-                match token(meta,"=") {
-                    Ok(_) => {
-                        if is_ref {
-                            return error!(meta, name_token, "A ref cannot be optional");
-                        }
-                        optional = true;
-                        let mut expr = Expr::new();
-                        syntax(meta, &mut expr)?;
-                        if arg_type != Type::Generic && arg_type != expr.get_type() {
-                            return error!(meta, name_token, "Optional argument does not match annotated type");
-                        }
-                        self.arg_optionals.push(expr);
-                    },
-                    Err(_) => {
-                        if optional {
-                           return error!(meta, name_token, "All arguments following an optional argument must also be optional");
-                        }
-                    },
-                }
-
-                match token(meta, ")") {
-                    Ok(_) => break,
-                    Err(_) => token(meta, ",")?
-                };
-            }
-            let mut returns_tok = None;
-            // Optionally parse the return type
-            match token(meta, ":") {
-                Ok(_) => {
-                    returns_tok = meta.get_current_token();
-                    self.returns = parse_type(meta)?
-                },
-                Err(_) => self.returns = Type::Generic
-            }
-            // Parse the body
-            token(meta, "{")?;
-            let (index_begin, index_end, is_failable) = skip_function_body(meta);
-            if is_failable && !matches!(self.returns, Type::Failable(_) | Type::Generic) {
-                return error!(meta, returns_tok, "Failable functions must return a Failable type");
-            } else if !is_failable && matches!(self.returns, Type::Failable(_)) {
-                return error!(meta, returns_tok, "Non-failable functions cannot return a Failable type");
-            }
-            // Create a new context with the function body
-            let expr = meta.context.expr[index_begin..index_end].to_vec();
-            let ctx = meta.context.clone().function_invocation(expr);
-            token(meta, "}")?;
-            self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
-            // Add the function to the memory
-            self.id = handle_add_function(meta, tok, FunctionInterface {
-                id: None,
-                name: self.name.clone(),
-                arg_names: self.arg_names.clone(),
-                arg_types: self.arg_types.clone(),
-                arg_refs: self.arg_refs.clone(),
-                returns: self.returns.clone(),
-                arg_optionals: self.arg_optionals.clone(),
-                is_public: self.is_public,
-                is_failable
-            }, ctx)?;
-            // Restore the compiler flags
-            swap(&mut meta.context.cc_flags, &mut flags);
+                // Create a new context with the function body
+                let expr = meta.context.expr[index_begin..index_end].to_vec();
+                let ctx = meta.context.clone().function_invocation(expr);
+                token(meta, "}")?;
+                self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
+                // Add the function to the memory
+                self.id = handle_add_function(meta, tok.clone(), FunctionInterface {
+                    id: None,
+                    name: self.name.clone(),
+                    arg_names: self.arg_names.clone(),
+                    arg_types: self.arg_types.clone(),
+                    arg_refs: self.arg_refs.clone(),
+                    returns: self.returns.clone(),
+                    arg_optionals: self.arg_optionals.clone(),
+                    is_public: self.is_public,
+                    is_failable
+                }, ctx)?;
+                Ok(())
+            })?;
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
