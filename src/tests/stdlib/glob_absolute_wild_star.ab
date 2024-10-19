@@ -26,7 +26,12 @@ main {
         $ touch {tmpdir}/other.csv $
     }
 
-    let expected = ["{tmpdir}/file.txt", "{tmpdir}/file1.txt", "{tmpdir}/file2.txt", "{tmpdir}/file99.txt"]
+    let expected = [
+        "{tmpdir}/file.txt",
+        "{tmpdir}/file1.txt",
+        "{tmpdir}/file2.txt",
+        "{tmpdir}/file99.txt",
+    ]
     let actual = glob("{tmpdir}/file*.txt") failed {
         echo "FAILED"
     }

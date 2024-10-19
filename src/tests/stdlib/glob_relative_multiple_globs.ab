@@ -27,7 +27,13 @@ main {
     }
     cd tmpdir
 
-    let expected = ["file.txt", "file1.txt", "file2.txt", "file99.txt", "other.csv"]
+    let expected = [
+        "file.txt",
+        "file1.txt",
+        "file2.txt",
+        "file99.txt",
+        "other.csv",
+    ]
     let actual = glob_multiple(["missing*", "file*.txt", "other*.csv"]) failed {
         echo "FAILED"
     }

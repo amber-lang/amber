@@ -27,7 +27,12 @@ main {
     }
     cd tmpdir
 
-    let expected = ["file.txt", "file1.txt", "file2.txt", "file99.txt"]
+    let expected = [
+        "file.txt",
+        "file1.txt",
+        "file2.txt",
+        "file99.txt",
+    ]
     let actual = glob("file*.txt") failed {
         echo "FAILED"
     }
