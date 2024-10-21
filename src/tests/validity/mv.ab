@@ -4,7 +4,7 @@ main {
     trust $ touch {tmpdir}/a $
     trust mv "{tmpdir}/a" "{tmpdir}/b"
     if file_exist("{tmpdir}/b") {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "Not Found"
     }

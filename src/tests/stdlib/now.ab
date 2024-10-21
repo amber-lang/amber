@@ -1,5 +1,5 @@
 import * from "std/date"
 
 main {
-    if now() == (trust $ date +%s $ as Num): echo "Succeded"
+    if now() == (trust $ date +%s $ as Num): echo "Succeeded"
 }

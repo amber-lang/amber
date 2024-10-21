@@ -3,7 +3,7 @@ main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ touch {tmpdir}/amber-symbolic $
     if create_symbolic_link("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "failed"
     }

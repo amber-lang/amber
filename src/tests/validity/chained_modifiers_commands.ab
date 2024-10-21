@@ -1,5 +1,5 @@
 trust silent {
-    echo "Succeded"
+    echo "Succeeded"
     $ non-existent command $
 }
 // Test for expression

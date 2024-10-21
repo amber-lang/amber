@@ -3,6 +3,6 @@ main {
     create_dir("/tmp/amber-test")
     if dir_exist("/tmp/amber-test") {
         trust $ rm -rf /tmp/amber-test $
-        echo "Succeded"
+        echo "Succeeded"
     }
 } 

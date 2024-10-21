@@ -1,5 +1,5 @@
 fun test(ref a) {
-    a = "Succeded"
+    a = "Succeeded"
 }
 
 let a = "Goodbye World"

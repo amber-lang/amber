@@ -2,7 +2,7 @@ import * from "std/fs"
 main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ cd {tmpdir} $
-    trust file_write("test.txt", "Succeded")
+    trust file_write("test.txt", "Succeeded")
     let f = file_read("test.txt") failed {
         echo "Failed" 
     }

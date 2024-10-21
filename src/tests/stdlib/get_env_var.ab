@@ -5,7 +5,7 @@ main {
     trust $ cd {tmpdir} $
     trust file_write(".env", "TEST=1")
     if get_env_var("TEST") == "1" {
-        echo "Succeded"
+        echo "Succeeded"
     }
     trust $ rm -rf {tmpdir} $
 } 

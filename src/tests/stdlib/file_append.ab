@@ -3,7 +3,7 @@ main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ cd {tmpdir} $
     trust $ touch test.txt $
-    trust file_append("test.txt", "Succeded")
+    trust file_append("test.txt", "Succeeded")
     let f = file_read("test.txt") failed {
         echo "Failed" 
     }

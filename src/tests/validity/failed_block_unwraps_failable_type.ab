@@ -8,4 +8,4 @@ fun failable(): Num? {
 
 let a = failable() failed: echo "Failed"
 
-if a is Num: echo "Succeded"
+if a is Num: echo "Succeeded"

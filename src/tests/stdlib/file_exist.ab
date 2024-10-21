@@ -3,7 +3,7 @@ main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ touch {tmpdir}/test.txt $
     if file_exist("{tmpdir}/test.txt") {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "Not Found"
     }
