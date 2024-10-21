@@ -2,7 +2,7 @@ import { join, len, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
-    $[ -d "{path}" ]$ failed {
+    $ [ -d "{path}" ] $ failed {
         return false
     }
     return true
@@ -10,7 +10,7 @@ pub fun dir_exist(path) {
 
 /// Checks if a file exists.
 pub fun file_exist(path) {
-    $[ -f "{path}" ]$ failed {
+    $ [ -f "{path}" ] $ failed {
         return false
     }
     return true
@@ -18,20 +18,20 @@ pub fun file_exist(path) {
 
 /// Gets file contents from a path.
 pub fun file_read(path) {
-    return $< "{path}"$?
+    return $ < "{path}" $?
 }
 
 /// Writes content to a file.
 /// Doesn't check if the file exist
 pub fun file_write(path, content) {
-    return $echo "{content}" > "{path}"$?
+    return $ echo "{content}" > "{path}" $?
 }
 
 /// Appends content to a file.
 ///
 /// Doesn't check if the file exists.
 pub fun file_append(path, content) {
-    return $echo "{content}" >> "{path}"$?
+    return $ echo "{content}" >> "{path}" $?
 }
 
 /// Creates a symbolic link.
@@ -39,7 +39,7 @@ pub fun file_append(path, content) {
 /// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
-        trust $ln -s "{origin}" "{destination}"$
+        trust $ ln -s "{origin}" "{destination}" $
         return true
     }
 
@@ -50,7 +50,7 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
 /// Creates a directory with all parent directories as required.
 pub fun create_dir(path: Text): Null {
     if not dir_exist(path) {
-        trust $mkdir -p "{path}"$
+        trust $ mkdir -p "{path}" $
     }
 }
 
@@ -59,7 +59,7 @@ pub fun create_dir(path: Text): Null {
 /// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun make_executable(path: Text): Bool {
     if file_exist(path) {
-        trust $chmod +x "{path}"$
+        trust $ chmod +x "{path}" $
         return true
     }
 
@@ -72,7 +72,7 @@ pub fun make_executable(path: Text): Bool {
 /// If the file doesn't exist, it returns `false`
 pub fun change_owner(user: Text, path: Text): Bool {
     if file_exist(path) or dir_exist(path) {
-        trust $chown -R "{user}" "{path}"$
+        trust $ chown -R "{user}" "{path}" $
         return true
     }
 

@@ -1,8 +1,8 @@
 trust silent {
     echo "Succeded"
-    $non-existent command$
+    $ non-existent command $
 }
 // Test for expression
-let _ = silent trust $non-existent command$
+let _ = silent trust $ non-existent command $
 // Test for single statement
-silent trust $non-existent command$
+silent trust $ non-existent command $

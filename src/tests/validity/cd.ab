@@ -2,4 +2,4 @@
 // /tmp
 
 cd "/tmp/"
-trust $pwd$
+trust $ pwd $

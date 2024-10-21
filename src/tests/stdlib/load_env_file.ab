@@ -5,12 +5,12 @@ import { file_write } from "std/fs"
 // yes
 
 main {
-    let tmpdir = trust $mktemp -d /tmp/amber-XXXX$
-    trust $cd {tmpdir}$
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    trust $ cd {tmpdir} $
     trust file_write(".env", "TEST=1")
     load_env_file()
     if get_env_var("TEST") == "1" {
         echo "yes"
     }
-    trust $rm -fr {tmpdir}$
+    trust $ rm -fr {tmpdir} $
 } 

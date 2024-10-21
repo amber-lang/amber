@@ -70,18 +70,18 @@
 /// ```
 pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text? {
     if format == "": format = "%FT%T%Z"
-    if date == "": date = trust $date +"%FT%T%Z"$
+    if date == "": date = trust $ date +"%FT%T%Z" $
     if (utc) {
-        return $date --utc -d "{date}" +"{format}"$?
+        return $ date --utc -d "{date}" +"{format}" $?
     } else {
-        return $date -d "{date}" +"{format}"$?
+        return $ date -d "{date}" +"{format}" $?
     }    
 }
 
 /// Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
 #[allow_absurd_cast]
 pub fun now(): Num {
-    return trust $date +%s$ as Num
+    return trust $ date +%s $ as Num
 }
 
 /// ### EXPERIMENTAL
@@ -101,7 +101,7 @@ pub fun now(): Num {
 /// - minutes
 /// - seconds
 pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text? {
-    if date == "": date = trust $date +"%FT%T%Z"$
+    if date == "": date = trust $ date +"%FT%T%Z" $
     return date_posix("", "{date_posix("%F", date, utc)?} {add} {date_posix("%T", date, utc)?}", utc)?
 }
 

@@ -19,11 +19,11 @@ pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option; use that if the version information
             // contains "GNU sed".
-            $re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]]$
+            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
             let flag = status == 0 then "-r" else "-E"
-            return $echo "{source}" | sed {flag} -e "s/{search}/{replace}/g"$
+            return $ echo "{source}" | sed {flag} -e "s/{search}/{replace}/g" $
         } else {
-            return $echo "{source}" | sed -e "s/{search}/{replace}/g"$
+            return $ echo "{source}" | sed -e "s/{search}/{replace}/g" $
         }
     }
 }
@@ -31,7 +31,7 @@ pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool 
 /// Splits the input `text` into an array of substrings using the specified `delimiter`.
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    trust $IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}")$
+    trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
     return result
 }
 
@@ -47,17 +47,17 @@ pub fun words(text: Text): [Text] {
 
 /// Merges text using the delimeter specified.
 pub fun join(list: [Text], delimiter: Text): Text {
-    return trust $IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}"$
+    return trust $ IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}" $
 }
 
 /// Trims the spaces at top of the text using `sed`.
 pub fun trim_left(text: Text): Text {
-    return trust $echo "{text}" | sed -e 's/^[[:space:]]*//'$
+    return trust $ echo "{text}" | sed -e 's/^[[:space:]]*//' $
 }
 
 /// Trims the spaces at end of the text using `sed`.
 pub fun trim_right(text: Text): Text {
-    return trust $echo "{text}" | sed -e 's/[[:space:]]*\$//'$
+    return trust $ echo "{text}" | sed -e 's/[[:space:]]*\$//' $
 }
 
 /// Trims the spaces from the text input.
@@ -67,27 +67,27 @@ pub fun trim(text: Text): Text {
 
 /// Makes the text input lowercase using `tr`.
 pub fun lower(text: Text): Text {
-    return trust $echo "{text}" | tr '[:upper:]' '[:lower:]'$
+    return trust $ echo "{text}" | tr '[:upper:]' '[:lower:]' $
 }
 
 /// Makes the text input uppercase using `tr`.
 pub fun upper(text: Text): Text {
-    return trust $echo "{text}" | tr '[:lower:]' '[:upper:]'$
+    return trust $ echo "{text}" | tr '[:lower:]' '[:upper:]' $
 }
 
 /// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
 #[allow_absurd_cast]
 pub fun parse(text: Text): Num? {
-    $[ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null$?
+    $ [ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null $?
     return text as Num
 }
 
 /// Splits a text into an array of individual characters.
 pub fun chars(text: Text): [Text] {
     let chars = [Text]
-    trust $for ((i=0; i<\$\{#{nameof text}}; i++)); do
+    trust $ for ((i=0; i<\$\{#{nameof text}}; i++)); do
         {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
-    done;$
+    done $
     return chars
 }
 
@@ -96,40 +96,40 @@ pub fun chars(text: Text): [Text] {
 pub fun len(value): Num {
     trust {
         if value is Text:
-            return $echo "\$\{#{nameof value}}"$ as Num
+            return $ echo "\$\{#{nameof value}}" $ as Num
         else:
-            return $echo "\$\{#{nameof value}[@]}"$ as Num
+            return $ echo "\$\{#{nameof value}[@]}" $ as Num
     }
 }
 
 /// Checks if some text contains a value/
 pub fun contains(text: Text, phrase: Text): Bool {
-  let result = trust $if [[ "{text}" == *"{phrase}"* ]]; then
+  let result = trust $ if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1
-  fi$
+  fi $
 
   return result == "1"
 }
 
 /// Reverses text using `rev`.
 pub fun reverse(text: Text): Text {
-    return trust $echo "{text}" | rev$
+    return trust $ echo "{text}" | rev $
 }
 
 /// Checks if text starts with a value.
 pub fun starts_with(text: Text, prefix: Text): Bool {
-  let result = trust $if [[ "{text}" == "{prefix}"* ]]; then
+  let result = trust $ if [[ "{text}" == "{prefix}"* ]]; then
     echo 1
-  fi$
+  fi $
 
   return result == "1"
 }
 
 /// Checks if text ends with a value.
 pub fun ends_with(text: Text, suffix: Text): Bool {
-  let result = trust $if [[ "{text}" == *"{suffix}" ]]; then
+  let result = trust $ if [[ "{text}" == *"{suffix}" ]]; then
     echo 1
-  fi$
+  fi $
 
   return result == "1"
 }
@@ -142,26 +142,26 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 pub fun slice(text: Text, index: Num, length: Num = 0): Text {
     if length == 0: length = len(text) - index
     if length <= 0: return ""
-    return trust $printf "%.{length}s" "\$\{text:{index}}"$
+    return trust $ printf "%.{length}s" "\$\{text:{index}}" $
 }
 
 /// Returns the character from `text` at the specified `index` (0-based).
 ///
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 pub fun char_at(text: Text, index: Num): Text {
-    return trust $printf "%.1s" "\$\{text:{index}}"$
+    return trust $ printf "%.1s" "\$\{text:{index}}" $
 }
 
 /// Capitalize the first letter of the given `text`.
 pub fun capitalize(text: Text): Text {
-    return trust $echo "{text}" | sed "s/^\(.\)/\U\1/"$
+    return trust $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
 }
 
 /// Pads `text` with the specified `pad` character on left until it reaches the desired `length`.
 pub fun lpad(text: Text, pad: Text, length: Num): Text {
     if length <= len(text): return text
     length = len(text) - length
-    pad = trust $printf "%{length}s" "" | tr " " "{pad}"$
+    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
     return pad + text
 }
 
@@ -169,7 +169,7 @@ pub fun lpad(text: Text, pad: Text, length: Num): Text {
 pub fun rpad(text: Text, pad: Text, length: Num): Text {
     if length <= len(text): return text
     length = len(text) - length
-    pad = trust $printf "%{length}s" "" | tr " " "{pad}"$
+    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
     return text + pad
 }
 

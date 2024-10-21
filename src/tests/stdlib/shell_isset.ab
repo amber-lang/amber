@@ -1,6 +1,6 @@
 import * from "std/env"
 main {
-    trust $test_var_isset="test"$
+    trust $ test_var_isset="test" $
     if shell_isset("test_var_isset") {
         echo "Succeded"
     }
