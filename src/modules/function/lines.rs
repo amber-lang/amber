@@ -45,6 +45,21 @@ impl TranslateModule for LinesInvocation {
         "".to_string()
     }
 
+    fn append_let(&self, meta: &mut TranslateMetadata, name: &str, is_ref: bool) -> Option<String> {
+        let id = meta.gen_value_id();
+        let dollar = meta.gen_dollar();
+        let path = (*self.path).as_ref().map(|p| p.translate(meta)).unwrap_or_default();
+        let prefix = format!("while IFS= read -r __AMBER_LINE_{id}; do");
+        let assign = if is_ref {
+            format!("eval \"{dollar}{{{name}}}+=(\\\"{dollar}__AMBER_LINE_{id}\\\")\"")
+        } else {
+            format!("{name}+=(\"{dollar}__AMBER_LINE_{id}\")")
+        };
+        let suffix = format!("done <{path}");
+        let append = [prefix, assign, suffix].join("\n");
+        Some(append)
+    }
+
     fn surround_iter(&self, meta: &mut TranslateMetadata, name: &str) -> Option<(String, String)> {
         let path = (*self.path).as_ref().map(|p| p.translate(meta)).unwrap_or_default();
         let prefix = format!("while IFS= read -r {name}; do");

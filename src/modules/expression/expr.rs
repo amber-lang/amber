@@ -192,6 +192,13 @@ impl TranslateModule for Expr {
         ])
     }
 
+    fn append_let(&self, meta: &mut TranslateMetadata, name: &str, is_ref: bool) -> Option<String> {
+        match &self.value {
+            Some(ExprType::LinesInvocation(value)) => value.append_let(meta, name, is_ref),
+            _ => None,
+        }
+    }
+
     fn surround_iter(&self, meta: &mut TranslateMetadata, name: &str) -> Option<(String, String)> {
         match &self.value {
             Some(ExprType::LinesInvocation(value)) => value.surround_iter(meta, name),

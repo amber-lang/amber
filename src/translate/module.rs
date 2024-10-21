@@ -11,6 +11,10 @@ pub trait TranslateModule {
         expr
     }
 
+    fn append_let(&self, _meta: &mut TranslateMetadata, _name: &str, _is_ref: bool) -> Option<String> {
+        None
+    }
+
     fn surround_iter(&self, _meta: &mut TranslateMetadata, _name: &str) -> Option<(String, String)> {
         None
     }

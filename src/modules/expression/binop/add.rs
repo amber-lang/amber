@@ -68,6 +68,12 @@ impl TranslateModule for Add {
                 let id = meta.gen_array_id();
                 let name = format!("__AMBER_ARRAY_ADD_{id}");
                 meta.stmt_queue.push_back(format!("{name}=({left} {right})"));
+                if let Some(append) = self.left.append_let(meta, &name, false) {
+                    meta.stmt_queue.push_back(append);
+                }
+                if let Some(append) = self.right.append_let(meta, &name, false) {
+                    meta.stmt_queue.push_back(append);
+                }
                 format!("{quote}${{{name}[@]}}{quote}")
             },
             Type::Text => format!("{}{}", left, right),

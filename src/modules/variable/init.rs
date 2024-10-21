@@ -54,17 +54,23 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
+        let mut name = self.name.clone();
         let mut expr = self.expr.translate(meta);
         if let Type::Array(_) = self.expr.get_type() {
             expr = format!("({expr})");
         }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}={expr}")
+        let assign = if let Some(id) = self.global_id {
+            name = format!("__{id}_{name}");
+            format!("{name}={expr}")
         } else if self.is_fun_ctx {
             format!("local {name}={expr}")
         } else {
             format!("{name}={expr}")
+        };
+        if let Some(append) = self.expr.append_let(meta, &name, false) {
+            [assign, append].join("\n")
+        } else {
+            assign
         }
     }
 }
