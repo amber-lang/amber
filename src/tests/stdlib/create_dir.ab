@@ -2,7 +2,7 @@ import { create_dir, dir_exist } from "std/fs"
 main {
     create_dir("/tmp/amber-test")
     if dir_exist("/tmp/amber-test") {
-        trust $ rm -fr /tmp/amber-test $
+        trust $ rm -rf /tmp/amber-test $
         echo "Succeded"
     }
 } 

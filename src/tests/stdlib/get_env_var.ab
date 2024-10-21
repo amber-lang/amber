@@ -7,5 +7,5 @@ main {
     if get_env_var("TEST") == "1" {
         echo "Succeded"
     }
-    trust $ rm -fr {tmpdir} $
+    trust $ rm -rf {tmpdir} $
 } 

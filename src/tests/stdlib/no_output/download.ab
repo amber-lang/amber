@@ -8,5 +8,5 @@ main {
 			    echo "ok"
 		}
 	}
-	trust $ rm -fr {tmpdir} $
+	trust $ rm -rf {tmpdir} $
 }

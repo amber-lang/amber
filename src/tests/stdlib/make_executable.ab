@@ -9,5 +9,5 @@ main {
     if make_executable("{tmpdir}/amber-symbolic") {
         echo "created"
     }
-    trust $ rm -fr {tmpdir} $
+    trust $ rm -rf {tmpdir} $
 } 

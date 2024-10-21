@@ -12,5 +12,5 @@ main {
     if get_env_var("TEST") == "1" {
         echo "yes"
     }
-    trust $ rm -fr {tmpdir} $
+    trust $ rm -rf {tmpdir} $
 } 

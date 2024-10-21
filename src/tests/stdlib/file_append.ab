@@ -8,5 +8,5 @@ main {
         echo "Failed" 
     }
     echo f
-    trust $ rm -fr {tmpdir} $
+    trust $ rm -rf {tmpdir} $
 }

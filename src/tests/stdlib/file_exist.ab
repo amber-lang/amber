@@ -7,5 +7,5 @@ main {
     } else {
         echo "Not Found"
     }
-    trust $ rm -fr {tmpdir} $
+    trust $ rm -rf {tmpdir} $
 }
