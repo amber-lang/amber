@@ -72,7 +72,12 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = &self.iter_name;
-        let expr = self.iter_expr.translate(meta);
+        let (prefix, suffix) = self.iter_expr.surround_iter(meta, name).unwrap_or_else(|| {
+            let expr = self.iter_expr.translate(meta);
+            let pre = format!("for {name} in {expr}; do");
+            let suf = String::from("done");
+            (pre, suf)
+        });
         match self.iter_index.as_ref() {
             Some(index) => {
                 // Create an indentation for the index increment
@@ -81,19 +86,17 @@ impl TranslateModule for IterLoop {
                 meta.decrease_indent();
                 [
                     format!("{index}=0;"),
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
+                    prefix,
                     self.block.translate(meta),
                     format!("{indent}(( {index}++ )) || true"),
-                    "done".to_string(),
+                    suffix,
                 ].join("\n")
             },
             None => {
                 [
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
+                    prefix,
                     self.block.translate(meta),
-                    "done".to_string(),
+                    suffix,
                 ].join("\n")
             },
         }

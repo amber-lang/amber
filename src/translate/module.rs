@@ -10,4 +10,8 @@ pub trait TranslateModule {
         meta.eval_ctx = prev;
         expr
     }
+
+    fn surround_iter(&self, _meta: &mut TranslateMetadata, _name: &str) -> Option<(String, String)> {
+        None
+    }
 }
