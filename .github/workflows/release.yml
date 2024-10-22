@@ -76,11 +76,13 @@ jobs:
           cat plan-dist-manifest.json
           echo "manifest=$(jq -c "." plan-dist-manifest.json)" >> "$GITHUB_OUTPUT"
           cargo deb --output="./target/distrib"
-      - name: "Upload dist-manifest.json"
+      - name: "Upload dist-manifest.json and the Debian Package"
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-plan-dist-manifest
-          path: plan-dist-manifest.json
+          path: |
+            plan-dist-manifest.json
+            amber_*.deb
 
   # Build and packages all the platform-specific things
   build-local-artifacts:
