@@ -175,9 +175,6 @@ jobs:
           path: target/distrib/
           merge-multiple: true
 
-      - name: Untar the amber file
-        run: tar -xf path/to/your/file.tar.xz -C path/to/extract/directory
-
       - name: Compile installer/uninstaller
         run: |
           TARGET_TRIPLE="$(rustc -Vv | awk '/^host/ { print $2 }')"
