@@ -175,19 +175,17 @@ jobs:
           path: target/distrib/
           merge-multiple: true
 
-      - name: List files in root directory
-        run: ls -la
-
-      - name: List files in target/distrib directory
-        run: ls -la target/distrib
-
-      - name: List files in target directory
-        run: ls -la target
+      - name: Untar the amber file
+        run: tar -xf path/to/your/file.tar.xz -C path/to/extract/directory
 
       - name: Compile installer/uninstaller
         run: |
           TARGET_TRIPLE="$(rustc -Vv | awk '/^host/ { print $2 }')"
-          AMBER="$PWD/target/distrib/amber-${TARGET_TRIPLE}/amber"
+          AMBER_PACKAGE="$PWD/target/distrib/amber-${TARGET_TRIPLE}"
+          tar -xf $AMBER.tar.xz -C ./target/bin
+          ls -a
+          ls -a ./target/bin
+          AMBER="$PWD/target/bin/amber"
           $AMBER ./setup/install.ab ./target/distrib/install.sh
           $AMBER ./setup/uninstall.ab ./target/distrib/uninstall.sh
       - id: cargo-dist
