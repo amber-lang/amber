@@ -179,7 +179,7 @@ jobs:
         run: |
           TARGET_TRIPLE="$(rustc -Vv | awk '/^host/ { print $2 }')"
           AMBER_PACKAGE="$PWD/target/distrib/amber-${TARGET_TRIPLE}"
-          tar -xf $AMBER.tar.xz -C ./target/bin
+          tar -xf ${AMBER_PACKAGE}.tar.xz -C ./target/bin
           ls -a
           ls -a ./target/bin
           AMBER="$PWD/target/bin/amber"
