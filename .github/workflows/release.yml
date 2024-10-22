@@ -174,12 +174,15 @@ jobs:
           pattern: artifacts-*
           path: target/distrib/
           merge-multiple: true
-          
+
       - name: List files in root directory
         run: ls -la
 
       - name: List files in target/distrib directory
         run: ls -la target/distrib
+
+      - name: List files in target directory
+        run: ls -la target
 
       - name: Compile installer/uninstaller
         run: |
