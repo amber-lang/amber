@@ -1,6 +1,5 @@
-import { exit, includes } from "std"
+import { includes } from "std"
 import { get_arch, get_place, get_bins_folder } from "./shared.ab"
-
 
 echo ""
 
@@ -18,12 +17,12 @@ main(args) {
         ${sudo} rm -rf "{place}"$ failed {
             echo "Failed to remove Amber from {place}"
             echo "Make sure root has the correct permissions to access this directory"
-            exit(1)
+            exit 1
         }
         ${sudo} rm "{bins_folder}/amber"$ failed {
             echo "Failed to remove Amber symlink from {bins_folder}"
             echo "Make sure root has the correct permissions to access this directory"
-            exit(1)
+            exit 1
         }
         echo "Uninstalled Amber successfully 🎉"
     }
