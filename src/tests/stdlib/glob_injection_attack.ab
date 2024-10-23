@@ -17,7 +17,7 @@ main {
     let files = glob("xxx; do echo HACKED; done; for file in") failed {
         echo "FAILED"
     }
-    loop file in files {
+    for file in files {
         echo "[{file}]"
     }
 

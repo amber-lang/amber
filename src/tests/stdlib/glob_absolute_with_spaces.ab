@@ -6,7 +6,7 @@ fun compare(actual: [Text], expected: [Text]): Bool {
     if len(actual) != len(expected) {
         return false
     }
-    loop file in expected {
+    for file in expected {
         if not includes(actual, file) {
             return false
         }

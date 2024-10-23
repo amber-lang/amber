@@ -5,7 +5,7 @@ import { lines } from "std/text"
 // line: world
 
 main {
-    loop line in lines("hello\nworld") {
+    for line in lines("hello\nworld") {
         echo "line: " + line
     }
 } 
