@@ -1,4 +1,4 @@
-import { includes } from "std"
+import { includes } from "std/array"
 import { get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 echo ""
