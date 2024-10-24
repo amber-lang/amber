@@ -25,17 +25,21 @@ pub enum ArithOp {
 pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
     match meta.arith_module {
         ArithType::BcSed => {
-            let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
-            let mut math_lib_flag = true;
-            // Removes trailing zeros from the expression
-            let sed_regex = "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//";
+            let left = left.unwrap_or_default();
+            let right = right.unwrap_or_default();
+            let mut scale = "";
+            let mut after_bc = "";
+            let sed_regex = " | sed \"s/\\(\\.\\(0\\|[0-9]*[1-9]\\)\\)00*$/\\1/\"";
             let op = match operation {
                 ArithOp::Add => "+",
                 ArithOp::Sub => "-",
                 ArithOp::Mul => "*",
-                ArithOp::Div => "/",
+                ArithOp::Div => {
+                    after_bc = sed_regex;
+                    "/"
+                },
                 ArithOp::Modulo => {
-                    math_lib_flag = false;
+                    scale = "scale=0;";
                     "%"
                 },
                 ArithOp::Neg => "-",
@@ -49,8 +53,7 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            let math_lib_flag = if math_lib_flag { "-l" } else { "" };
-            meta.gen_subprocess(&format!("echo {left} '{op}' {right} | bc {math_lib_flag} | sed '{sed_regex}'"))
+            meta.gen_subprocess(&format!("echo \"{scale}{left}{op}{right}\" | bc -l{after_bc}"))
         }
     }
 }
