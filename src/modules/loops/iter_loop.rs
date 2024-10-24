@@ -31,7 +31,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "loop")?;
+        token(meta, "for")?;
         self.iter_name = variable(meta, variable_name_extensions())?;
         if token(meta, ",").is_ok() {
             self.iter_index = Some(self.iter_name.clone());

@@ -94,7 +94,7 @@ pub fun glob_multiple(paths: [Text]): [Text]? {
         combined = escape_non_glob_chars(paths[0])
     } else {
         let items = [Text]
-        loop item in paths {
+        for item in paths {
             item = escape_non_glob_chars(item)
             items += [item]
         }
