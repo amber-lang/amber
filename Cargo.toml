@@ -2,8 +2,15 @@
 name = "amber"
 version = "0.3.5-alpha"
 edition = "2021"
-repository = "https://github.com/Ph0enixKM/Amber"
+repository = "https://github.com/amber-lang/Amber"
+homepage = "https://amber-lang.com/"
+description = "The Programming Language compiled to Bash."
 rust-version = "1.79"
+
+[package.metadata.deb]
+maintainer = "Amber-Lang project"
+license-file = "LICENSE.md"
+copyright = "GPLv3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
