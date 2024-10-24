@@ -1,0 +1,10 @@
+// Output
+// abc
+// 123
+
+fun check(thing: Text | Num): Null {
+    echo thing
+}
+
+check("abc")
+check(123)
