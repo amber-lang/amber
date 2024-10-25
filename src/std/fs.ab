@@ -1,3 +1,5 @@
+import { join, len, replace_regex, split } from "std/text"
+
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
     $[ -d "{path}" ]$ failed {
@@ -75,4 +77,34 @@ pub fun change_owner(user: Text, path: Text): Bool {
     }
 
     return false
+}
+
+/// Escapes all characters in the passed-in glob except "*", "?" and "/",
+/// to prevent injection attacks.
+fun escape_non_glob_chars(path: Text): Text {
+    return replace_regex(path, "\([^*?/]\)", "\\\\\1")
+}
+
+/// Finds all files or directories matching multiple file globs. When
+/// we have union types, this functionality can be merged into the main
+/// `glob` function.
+pub fun glob_multiple(paths: [Text]): [Text]? {
+    let combined = ""
+    if len(paths) == 1 {
+        combined = escape_non_glob_chars(paths[0])
+    } else {
+        let items = [Text]
+        loop item in paths {
+            item = escape_non_glob_chars(item)
+            items += [item]
+        }
+        combined = join(items, " ")
+    }
+    let files = $eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$?
+    return split(files, "\n")
+}
+
+/// Finds all files or directories matching a file glob.
+pub fun glob(path: Text): [Text]? {
+    return glob_multiple([path])?
 }

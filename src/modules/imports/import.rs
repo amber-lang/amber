@@ -1,5 +1,4 @@
 use std::fs;
-use std::mem::swap;
 use heraclitus_compiler::prelude::*;
 use crate::compiler::AmberCompiler;
 use crate::docs::module::DocumentationModule;
@@ -103,17 +102,16 @@ impl Import {
                 let mut block = Block::new();
                 // Save snapshot of current file
                 let position = PositionInfo::from_token(meta, self.token_import.clone());
-                let mut ctx = Context::new(Some(self.path.value.clone()), tokens)
+                let mut context = Context::new(Some(self.path.value.clone()), tokens)
                     .file_import(&meta.context.trace, position);
-                swap(&mut ctx, &mut meta.context);
-                // Parse imported code
-                syntax(meta, &mut block)?;
-                // Restore snapshot of current file
-                swap(&mut ctx, &mut meta.context);
+                meta.with_context_ref(&mut context, |meta| {
+                    // Parse imported code
+                    syntax(meta, &mut block)
+                })?;
                 // Persist compiled file to cache
-                meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, ctx.pub_funs.clone());
+                meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, context.pub_funs.clone());
                 // Handle exports (add to current file)
-                self.handle_export(meta, ctx.pub_funs)?;
+                self.handle_export(meta, context.pub_funs)?;
                 Ok(())
             }
             Err(err) => Err(Failure::Loud(err))

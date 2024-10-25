@@ -1,9 +1,9 @@
+use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
+use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
-
-use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -94,7 +94,7 @@ impl ScopeUnit {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, ContextHelper)]
 pub struct Context {
     /// The current index in the expression
     pub index: usize,
@@ -109,6 +109,7 @@ pub struct Context {
     /// Determines if the context is in a function
     pub is_fun_ctx: bool,
     /// Determines if the context is in a loop
+    #[context]
     pub is_loop_ctx: bool,
     /// Determines if the context is in the main block
     pub is_main_ctx: bool,
@@ -119,6 +120,7 @@ pub struct Context {
     /// The return type of the currently parsed function
     pub fun_ret_type: Option<Type>,
     /// List of compiler flags
+    #[context]
     pub cc_flags: HashSet<CCFlags>,
 }
 

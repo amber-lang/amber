@@ -1,4 +1,4 @@
-import { has_failed, exit } from "std/env"
+import { has_failed } from "std/env"
 import { includes } from "std/array"
 
 pub fun get_os(): Text {
@@ -6,7 +6,7 @@ pub fun get_os(): Text {
     let os_type = $uname -s$ failed {
         echo "Failed to determine OS type (using `uname` command)."
         echo "Please try again or make sure you have it installed."
-        exit(1)
+        exit 1
     }
     if os_type == "Darwin":
         return "apple-darwin"
@@ -14,7 +14,7 @@ pub fun get_os(): Text {
     if os_type != "Linux" {
         echo "Unsupported OS type: {os_type}"
         echo "Please try again or use another download method."
-        exit(1)
+        exit 1
     }
     
     if not has_failed("ls -l /lib | grep libc.musl"):
@@ -28,7 +28,7 @@ pub fun get_arch(): Text {
     let arch_type = $uname -m$ failed {
         echo "Failed to determine architecture."
         echo "Please try again or use another download method."
-        exit(1)
+        exit 1
     }
 
     let arch = includes(["arm64", "aarch64"], arch_type)
@@ -41,11 +41,11 @@ pub fun get_arch(): Text {
 fun get_home(): Text {
     let home = $echo \$HOME$ failed {
         echo "User installation requested, but unable to retrieve home directory from $HOME environment."
-        exit(1)
+        exit 1
     }
     if home == "" {
         echo "User installation requested, but unable to find home directory."
-        exit(1)
+        exit 1
     }
     return home
 }
@@ -59,7 +59,7 @@ pub fun get_bins_folder(user_only: Bool): Text {
         silent $test -d "{bins_folder}"$ failed {
             silent $sudo mkdir -p "{bins_folder}"$ failed {
                 echo "Failed to create {bins_folder} directory."
-                exit(1)
+                exit 1
             }
         }
         return bins_folder
