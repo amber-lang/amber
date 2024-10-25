@@ -73,7 +73,7 @@ jobs:
           echo "cargo dist ran successfully"
           cat plan-dist-manifest.json
           echo "manifest=$(jq -c "." plan-dist-manifest.json)" >> "$GITHUB_OUTPUT"
-      - name: "Upload dist-manifest.json and the Debian Package"
+      - name: "Upload dist-manifest.json"
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-plan-dist-manifest
