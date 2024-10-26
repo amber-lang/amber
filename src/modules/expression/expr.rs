@@ -175,10 +175,10 @@ impl TranslateModule for Expr {
             // Binary operators
             Range, Cast, Is,
             // Unary operators
-            Not, Neg, Nameof,
+            Not, Neg, Nameof, Len,
             // Literals
             Parentheses, Bool, Number, Text,
-            Array, Null, Status, Len,
+            Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -201,10 +201,10 @@ impl DocumentationModule for Expr {
             // Binary operators
             Range, Cast, Is,
             // Unary operators
-            Not, Neg, Nameof,
+            Not, Neg, Nameof, Len,
             // Literals
             Parentheses, Bool, Number, Text,
-            Array, Null, Status, Len,
+            Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
