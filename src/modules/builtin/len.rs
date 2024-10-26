@@ -53,13 +53,13 @@ impl TranslateModule for Len {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let value = self.value.translate(meta);
         if self.value.get_type() == Type::Text {
-            meta.stmt_queue.push_back(format!("__AL={value}"));
-            return String::from("\"${#__AL}\"")
+            meta.stmt_queue.push_back(format!("__AMBER_LEN={value}"));
+            return String::from("\"${#__AMBER_LEN}\"")
         }
-        // This will have to be reworked when/if we implement Translation Modules
+        // Case for Array passed as a reference
         if value.starts_with("\"${!") {
-                meta.stmt_queue.push_back(format!("__AL=({value})"));
-                String::from("\"${#__AL[@]}\"")
+                meta.stmt_queue.push_back(format!("__AMBER_LEN=({value})"));
+                String::from("\"${#__AMBER_LEN[@]}\"")
         } else {
             format!("\"${{#{}", value.trim_start_matches("\"${"))
                 .trim_end()
