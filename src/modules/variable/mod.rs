@@ -32,7 +32,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Command Modifiers
         "silent", "trust",
         // Misc
-        "echo", "status", "nameof", "mv", "cd", "exit",
+        "echo", "status", "nameof", "mv", "cd", "exit", "len"
     ]
 }
 

@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::builtin::len::Len;
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
 use crate::modules::types::{Typed, Type};
@@ -79,6 +80,7 @@ pub enum ExprType {
     Cast(Cast),
     Status(Status),
     Nameof(Nameof),
+    Len(Len),
     Is(Is),
 }
 
@@ -147,7 +149,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
             literals @ Literal => [
                 // Literals
                 Parentheses, Bool, Number, Text,
-                Array, Null, Nameof, Status,
+                Array, Null, Nameof, Status, Len,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -175,7 +177,8 @@ impl TranslateModule for Expr {
             // Unary operators
             Not, Neg, Nameof,
             // Literals
-            Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text,
+            Array, Null, Status, Len,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -200,7 +203,8 @@ impl DocumentationModule for Expr {
             // Unary operators
             Not, Neg, Nameof,
             // Literals
-            Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text,
+            Array, Null, Status, Len,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
