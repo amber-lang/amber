@@ -1,4 +1,4 @@
-import { join, len, replace_regex, split } from "std/text"
+import { join, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {

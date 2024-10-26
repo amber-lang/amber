@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
+use crate::modules::expression::unop::UnOp;
 use crate::translate::module::TranslateModule;
 use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Type, Typed};
@@ -16,6 +17,17 @@ impl Typed for Len {
     }
 }
 
+impl UnOp for Len {
+    fn set_expr(&mut self, expr: Expr) {
+        self.value = Box::new(expr);
+    }
+
+    fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        token(meta, "len")?;
+        Ok(())
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Len {
     syntax_name!("Length");
 
@@ -26,9 +38,10 @@ impl SyntaxModule<ParserMetadata> for Len {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "len")?;
-        syntax(meta, &mut *self.value)?;
-
+        if !matches!(self.value.get_type(), Type::Text | Type::Array(_)) {
+            let msg = self.value.get_error_message(meta).message("Length can only be applied to text or array types");
+            return Err(Failure::Loud(msg));
+        }
         Ok(())
     }
 }
@@ -41,7 +54,12 @@ impl TranslateModule for Len {
             return String::from("\"${#__AL}\"");
         } else {
             // This will have to be reworked when/if we implement Translation Modules
-            format!("\"${{#{}", value.trim_start_matches("\"${")).trim_end().to_string()
+            if value.starts_with("\"${!") {
+                meta.stmt_queue.push_back(format!("__AL=({value})"));
+                return String::from("\"${#__AL[@]}\"");
+            } else {
+                format!("\"${{#{}", value.trim_start_matches("\"${")).trim_end().to_string()
+            }
         }
     }
 }

@@ -1,0 +1,22 @@
+// Output
+// 5
+// 6
+// 3
+// 3
+// 6
+// 3
+
+let name = "Andrew"
+let fruits = ["apple", "banana", "cherry"]
+
+fun foo(ref text, ref arr) {
+  echo len text
+  echo len arr
+}
+
+echo len "Hello"
+echo len name
+echo len fruits
+echo len [1, 2, 3]
+
+foo(name, fruits)

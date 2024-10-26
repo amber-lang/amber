@@ -91,17 +91,6 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
-/// Gets the length of provided text or array.
-#[allow_absurd_cast]
-pub fun len(value): Num {
-    trust {
-        if value is Text:
-            return $echo "\$\{#{nameof value}}"$ as Num
-        else:
-            return $echo "\$\{#{nameof value}[@]}"$ as Num
-    }
-}
-
 /// Checks if some text contains a value/
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = trust $if [[ "{text}" == *"{phrase}"* ]]; then

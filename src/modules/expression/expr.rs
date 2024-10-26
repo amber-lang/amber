@@ -145,11 +145,11 @@ impl SyntaxModule<ParserMetadata> for Expr {
             addition @ BinOp => [ Add, Sub ],
             multiplication @ BinOp => [ Mul, Div, Modulo ],
             types @ TypeOp => [ Is, Cast ],
-            unops @ UnOp => [ Neg, Not ],
+            unops @ UnOp => [ Neg, Not, Len ],
             literals @ Literal => [
                 // Literals
                 Parentheses, Bool, Number, Text,
-                Array, Null, Nameof, Status, Len,
+                Array, Null, Status, Nameof,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
