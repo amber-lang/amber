@@ -100,7 +100,7 @@ pub fun glob_multiple(paths: [Text]): [Text]? {
         }
         combined = join(items, " ")
     }
-    let files = $eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done"$?
+    let files = $ eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done" $?
     return split(files, "\n")
 }
 

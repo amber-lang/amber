@@ -1,5 +1,5 @@
 // Check if such directory exists
-$test -f "Cargo.toml" > /dev/null $ failed {
+$ test -f "Cargo.toml" > /dev/null $ failed {
     echo "Please run this command in the project root directory"
     trust $ exit 1 $
 }
