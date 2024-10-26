@@ -1,4 +1,4 @@
 // Output
 // Hello World
 
-echo $ echo {$ echo Hello World $ failed {}} $ failed {}
+echo $ echo { $ echo Hello World $ failed { } } $ failed { }
