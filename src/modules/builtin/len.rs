@@ -54,17 +54,16 @@ impl TranslateModule for Len {
         let value = self.value.translate(meta);
         if self.value.get_type() == Type::Text {
             meta.stmt_queue.push_back(format!("__AL={value}"));
-            String::from("\"${#__AL}\"")
-        } else {
-            // This will have to be reworked when/if we implement Translation Modules
-            if value.starts_with("\"${!") {
+            return String::from("\"${#__AL}\"")
+        }
+        // This will have to be reworked when/if we implement Translation Modules
+        if value.starts_with("\"${!") {
                 meta.stmt_queue.push_back(format!("__AL=({value})"));
                 String::from("\"${#__AL[@]}\"")
-            } else {
-                format!("\"${{#{}", value.trim_start_matches("\"${"))
-                    .trim_end()
-                    .to_string()
-            }
+        } else {
+            format!("\"${{#{}", value.trim_start_matches("\"${"))
+                .trim_end()
+                .to_string()
         }
     }
 }
