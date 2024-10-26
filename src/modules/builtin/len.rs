@@ -1,10 +1,10 @@
-use heraclitus_compiler::prelude::*;
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
-use crate::translate::module::TranslateModule;
-use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Type, Typed};
+use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Len {
@@ -39,7 +39,10 @@ impl SyntaxModule<ParserMetadata> for Len {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if !matches!(self.value.get_type(), Type::Text | Type::Array(_)) {
-            let msg = self.value.get_error_message(meta).message("Length can only be applied to text or array types");
+            let msg = self
+                .value
+                .get_error_message(meta)
+                .message("Length can only be applied to text or array types");
             return Err(Failure::Loud(msg));
         }
         Ok(())
@@ -58,7 +61,9 @@ impl TranslateModule for Len {
                 meta.stmt_queue.push_back(format!("__AL=({value})"));
                 String::from("\"${#__AL[@]}\"")
             } else {
-                format!("\"${{#{}", value.trim_start_matches("\"${")).trim_end().to_string()
+                format!("\"${{#{}", value.trim_start_matches("\"${"))
+                    .trim_end()
+                    .to_string()
             }
         }
     }
