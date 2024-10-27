@@ -1,11 +1,11 @@
 import { get_env_var } from "std/env"
 import { file_write } from "std/fs"
 main {
-    let tmpdir = trust $mktemp -d /tmp/amber-XXXX$
-    trust $cd {tmpdir}$
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    trust $ cd {tmpdir} $
     trust file_write(".env", "TEST=1")
     if get_env_var("TEST") == "1" {
-        echo "Succeded"
+        echo "Succeeded"
     }
-    trust $rm -fr {tmpdir}$
+    trust $ rm -rf {tmpdir} $
 } 
