@@ -1,0 +1,16 @@
+// Output
+// 0
+// 0
+
+fun value(value) {
+    let var = value
+    var += 1
+    var -= 1
+    var *= 1
+    var /= 1
+    var %= 1
+    echo var
+}
+
+value(4)
+value(-1)
