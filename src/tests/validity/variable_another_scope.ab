@@ -1,0 +1,8 @@
+let var = "Succeeded"
+
+fun set() {
+    let var = "abc"
+}
+set()
+
+echo var
