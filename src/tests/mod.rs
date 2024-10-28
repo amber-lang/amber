@@ -55,7 +55,7 @@ pub fn script_test(input: &str) {
         output = match output_path.exists() {
             true => fs::read_to_string(output_path)
                 .unwrap_or_else(|_| panic!("Failed to open {input}.output.txt file")),
-            _ => "Succeded".to_string(),
+            _ => "Succeeded".to_string(),
         };
     }
 

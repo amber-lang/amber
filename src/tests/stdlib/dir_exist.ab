@@ -1,10 +1,10 @@
 import * from "std/fs"
 main {
-    let tmpdir = trust $mktemp -d /tmp/amber-XXXX$
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     if dir_exist(tmpdir) {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "Not Found"
     }
-    trust $rm -fr {tmpdir}$
+    trust $ rm -rf {tmpdir} $
 }

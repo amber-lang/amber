@@ -2,7 +2,7 @@
 // "sram"
 
 fun reverse(input: Text): Text {
-    return trust $echo {input} | rev$
+    return trust $ echo {input} | rev $
 }
 
 fun foo(ref a) {

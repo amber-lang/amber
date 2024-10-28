@@ -37,7 +37,7 @@ main {
         echo "FAILED"
     }
     if compare(actual, expected) {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "Expected: {expected}"
         echo "Actual: {actual}"
