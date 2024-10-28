@@ -77,9 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-plan-dist-manifest
-          path: |
-            plan-dist-manifest.json
-            amber_*.deb
+          path: plan-dist-manifest.json
 
   # Build and packages all the platform-specific things
   build-local-artifacts:
@@ -198,7 +196,7 @@ jobs:
           echo "paths<<EOF" >> "$GITHUB_OUTPUT"
           jq --raw-output ".upload_files[]" dist-manifest.json >> "$GITHUB_OUTPUT"
           AMBER_VERSION=$($AMBER --version)
-          echo "$PWD/target/distrib/amber_${AMBER_VERSION}-1_amd64.sh" >> "$GITHUB_OUTPUT"
+          echo "$PWD/target/distrib/amber_${AMBER_VERSION}-1_amd64.deb" >> "$GITHUB_OUTPUT"
           echo "$PWD/target/distrib/install.sh" >> "$GITHUB_OUTPUT"
           echo "$PWD/target/distrib/uninstall.sh" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
