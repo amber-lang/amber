@@ -275,20 +275,16 @@ impl DocumentationModule for FunctionDeclaration {
     fn document(&self, meta: &ParserMetadata) -> String {
         let mut result = vec![];
         result.push(format!("## `{}`", self.name));
-        result.push("```ab".to_string());
-        result.push(self.doc_signature.to_owned().unwrap());
-        result.push("```\n".to_string());
-        if let Some(comment) = &self.comment {
-            result.push(comment.document(meta));
-        }
 
         let exe_path = env::current_exe().expect("Error executable not found").parent().expect("Error executable path not found").display().to_string();
+        let mut test_reference = String::from("You can check the original tests for code examples: ");
+        let mut found_test = false;
         if exe_path.contains("target/debug") {
-            let mut test_reference = String::from("You can check the original tests for code examples: ");
+            let file_std = meta.context.path.as_ref().and_then(|p| Path::new(&p).file_name()?.to_str().map(|s| s.to_string())).unwrap_or_default();
+            result.push(format!("\n```import {{ {} }} from \"std/{}\"```\n", self.name, file_std));
             let std_test_path = exe_path.replace("target/debug", "src/tests/stdlib");
             let std_test_path_buf = Path::new(&std_test_path);
             if std_test_path_buf.exists() && std_test_path_buf.is_dir() {
-                let mut found_test = false;
                 if let Ok(entries) = fs::read_dir(std_test_path_buf) {
                     for entry in entries.flatten() {
                         let path = entry.path();
@@ -300,13 +296,21 @@ impl DocumentationModule for FunctionDeclaration {
                         }
                     }
                 }
-                if found_test {
-                    test_reference.truncate(test_reference.len() - 2);
-                    test_reference.push_str(".");
-                    result.push(test_reference);
-                    result.push("\n\n".to_string());
-                }
             }
+        }
+
+        result.push("```ab".to_string());
+        result.push(self.doc_signature.to_owned().unwrap());
+        result.push("```\n".to_string());
+        if let Some(comment) = &self.comment {
+            result.push(comment.document(meta));
+        }
+
+        if found_test {
+            test_reference.truncate(test_reference.len() - 2);
+            test_reference.push_str(".");
+            result.push(test_reference);
+            result.push("\n\n".to_string());
         }
         result.join("\n")
     }
