@@ -15,6 +15,9 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
+use std::env;
+use std::fs;
+use std::path::Path;
 use super::declaration_utils::*;
 
 #[derive(Debug, Clone)]
@@ -277,6 +280,33 @@ impl DocumentationModule for FunctionDeclaration {
         result.push("```\n".to_string());
         if let Some(comment) = &self.comment {
             result.push(comment.document(meta));
+        }
+
+        let exe_path = env::current_exe().expect("Error executable not found").parent().expect("Error executable path not found").display().to_string();
+        if exe_path.contains("target/debug") {
+            let mut test_reference = String::from("You can check the original tests for code examples: ");
+            let std_test_path = exe_path.replace("target/debug", "src/tests/stdlib");
+            let std_test_path_buf = Path::new(&std_test_path);
+            if std_test_path_buf.exists() && std_test_path_buf.is_dir() {
+                let mut found_test = false;
+                if let Ok(entries) = fs::read_dir(std_test_path_buf) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if let Some(file_name) = path.file_name().and_then(|f| f.to_str()) {
+                            if glob::Pattern::new(&format!("{}*.ab", self.name)).unwrap().matches(file_name) {
+                                found_test = true;
+                                test_reference.push_str(&format!("[{}](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib/{}), ", file_name, file_name));
+                            }
+                        }
+                    }
+                }
+                if found_test {
+                    test_reference.truncate(test_reference.len() - 2);
+                    test_reference.push_str(".");
+                    result.push(test_reference);
+                    result.push("\n\n".to_string());
+                }
+            }
         }
         result.join("\n")
     }

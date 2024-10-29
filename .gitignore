@@ -5,6 +5,7 @@ test*.ab
 test*.sh
 test*.md
 /docs/
+src/std/docs/
 
 # Flamegraph files
 flamegraph.svg
@@ -15,3 +16,4 @@ flamegraph.svg
 # Nixos
 .direnv
 /result
+
