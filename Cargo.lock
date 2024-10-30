@@ -15,6 +15,7 @@ dependencies = [
 name = "amber"
 version = "0.3.5-alpha"
 dependencies = [
+ "amber-meta",
  "assert_cmd",
  "build-helper",
  "chrono",
@@ -29,6 +30,15 @@ dependencies = [
  "test-generator",
  "tiny_http",
  "wildmatch",
+]
+
+[[package]]
+name = "amber-meta"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.86",
+ "quote 1.0.36",
+ "syn 2.0.68",
 ]
 
 [[package]]
@@ -760,9 +770,9 @@ checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 
 [[package]]
 name = "wildmatch"
-version = "2.3.4"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3928939971918220fed093266b809d1ee4ec6c1a2d72692ff6876898f3b16c19"
+checksum = "68ce1ab1f8c62655ebe1350f589c61e505cf94d385bc6a12899442d9081e71fd"
 
 [[package]]
 name = "windows-core"
