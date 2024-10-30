@@ -6,8 +6,6 @@
 
 Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts. It's particularly well suited for cloud services.
 
-It will automatically postprocess code via any of those programs if they are installed: [`shfmt`](https://github.com/mvdan/sh), [`bshchk`](https://github.com/b1ek/bshchk)
-
 > [!Warning]
 > This software is not ready for extended usage.
 
