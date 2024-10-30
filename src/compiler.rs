@@ -170,8 +170,7 @@ impl AmberCompiler {
         let filters = self.cli_opts.disable_postprocessor.iter()
             .map(|x| WildMatchPattern::new(x)).collect();
 
-        let postprocessors = PostProcessor::get_default(self.cli_opts.clone());
-        let postprocessors = PostProcessor::filter_default(postprocessors, filters);
+        let postprocessors = PostProcessor::filter_default(filters);
 
         for postprocessor in postprocessors {
             result = postprocessor.clone().execute(result);

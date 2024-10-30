@@ -1,9 +1,11 @@
-use std::{collections::HashMap, io::{BufWriter, Write}, path::PathBuf, process::Command, sync::{Arc, Mutex, MutexGuard}};
+use std::collections::HashMap;
+use std::io::{BufWriter, Write};
+use std::path::PathBuf;
+use std::process::Command;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use itertools::Itertools;
 use wildmatch::WildMatchPattern;
-
-use crate::Cli;
 
 #[derive(Debug, Clone)]
 pub struct PostProcessor {
@@ -65,7 +67,7 @@ impl PostProcessor {
         }
     }
 
-    pub fn get_default(cli: Cli) -> Vec<Self> {
+    pub fn get_default() -> Vec<Self> {
         let mut postprocessors = HashMap::new();
         
         let shfmt = PostProcessor::new_stdin_stdout("shfmt", "/usr/bin/shfmt");
@@ -77,17 +79,11 @@ impl PostProcessor {
         bshchk.cmd().arg("--ignore-shebang");
         postprocessors.insert("bshchk", bshchk);
 
-        for postprocessor in cli.disable_postprocessor.iter() {
-            postprocessors.remove(postprocessor.as_str());
-        }
-
         postprocessors.values().cloned().collect_vec()
     }
 
-    pub fn filter_default(default: Vec<Self>, filters: Vec<WildMatchPattern<'*', '?'>>) -> Vec<Self> {
-        if filters.is_empty() {
-            return default
-        }
+    pub fn filter_default(filters: Vec<WildMatchPattern<'*', '?'>>) -> Vec<Self> {
+        let default = Self::get_default();
 
         default
             .iter()
