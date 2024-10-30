@@ -165,7 +165,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut res = result.join("\n") + "\n";
+        let mut result = result.join("\n") + "\n";
 
         let filters = self.cli_opts.disable_postprocessor.iter()
             .map(|x| WildMatchPattern::new(x)).collect();
@@ -174,7 +174,7 @@ impl AmberCompiler {
         let postprocessors = PostProcessor::filter_default(postprocessors, filters);
 
         for postprocessor in postprocessors {
-            res = postprocessor.clone().execute(res);
+            result = postprocessor.clone().execute(result);
         }
 
         let header = include_str!("header.sh")
@@ -184,7 +184,7 @@ impl AmberCompiler {
                 .to_string()
                 .as_str()
             );
-        format!("{}\n{}", header, res)
+        format!("{}\n{}", header, result)
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
