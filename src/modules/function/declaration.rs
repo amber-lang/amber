@@ -323,7 +323,8 @@ impl FunctionDeclaration {
         result.push(String::from("```\n"));
         if test_path.exists() && test_path.is_dir() {
             if let Ok(entries) = fs::read_dir(test_path) {
-                let pattern = glob::Pattern::new(&format!("{}*.ab", self.name)).unwrap();
+                let pattern = format!("{}*.ab", self.name);
+                let pattern = glob::Pattern::new(&pattern).unwrap();
                 for entry in entries.flatten() {
                     let path = entry.path();
                     if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
