@@ -31,10 +31,6 @@ impl PostProcessor {
         }
     }
 
-    pub fn new_stdin_stdout<N: Into<String>, B: Into<PathBuf>>(name: N, bin: B) -> Self {
-        Self::new(name, bin)
-    }
-
     pub fn cmd(&self) -> MutexGuard<Command> {
         self.command.lock().expect("Couldn't lock on command (arc)")
     }
@@ -73,12 +69,12 @@ impl PostProcessor {
     pub fn get_default() -> Vec<Self> {
         let mut postprocessors = HashMap::new();
         
-        let shfmt = PostProcessor::new_stdin_stdout("shfmt", "/usr/bin/shfmt");
+        let shfmt = PostProcessor::new("shfmt", "/usr/bin/shfmt");
         shfmt.cmd().arg("-i").arg("4");
         shfmt.cmd().arg("-ln").arg("bash");
         postprocessors.insert("shfmt", shfmt);
         
-        let bshchk = PostProcessor::new_stdin_stdout("bshchk", "/usr/bin/bshchk");
+        let bshchk = PostProcessor::new("bshchk", "/usr/bin/bshchk");
         bshchk.cmd().arg("--ignore-shebang");
         postprocessors.insert("bshchk", bshchk);
 
