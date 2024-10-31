@@ -51,21 +51,17 @@ impl PostProcessor {
         let mut spawned = self.cmd().spawn()?;
         
         // send to stdin
-        {
-            if let Some(stdin) = spawned.stdin.as_mut() {
-                let mut writer = BufWriter::new(stdin);
-                writer.write_all(code.as_bytes())?;
-                writer.flush()?;
-            } else {
-                return Err(String::new().into())
-            }
+        if let Some(stdin) = spawned.stdin.as_mut() {
+            let mut writer = BufWriter::new(stdin);
+            writer.write_all(code.as_bytes())?;
+            writer.flush()?;
+        } else {
+            return Err(String::new().into())
         }
 
         // read from stdout
-        {
-            let res = spawned.wait_with_output()?;
-            Ok(String::from_utf8(res.stdout)?)
-        }
+        let res = spawned.wait_with_output()?;
+        Ok(String::from_utf8(res.stdout)?)
     }
 
     pub fn get_default() -> Vec<Self> {
