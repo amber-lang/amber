@@ -183,7 +183,7 @@ impl AmberCompiler {
                 .to_string()
                 .as_str()
             );
-        format!("{}\n{}", header, result)
+        format!("{}{}", header, result)
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
