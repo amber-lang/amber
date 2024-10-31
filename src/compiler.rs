@@ -173,7 +173,7 @@ impl AmberCompiler {
         let postprocessors = PostProcessor::filter_default(filters);
 
         for postprocessor in postprocessors {
-            result = postprocessor.clone().execute(result);
+            result = postprocessor.clone().execute(result).expect(format!("Postprocessor {} failed!", postprocessor.name).as_str());
         }
 
         let header = include_str!("header.sh")

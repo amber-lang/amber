@@ -4,6 +4,7 @@ extern crate test_generator;
 use itertools::Itertools;
 use std::fs;
 use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
 pub mod cli;
 pub mod errors;
@@ -31,6 +32,21 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
         .compile()
         .unwrap()
         .1
+}
+
+pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
+    let mut cmd = Command::new("bash");
+    cmd.arg("-c");
+    cmd.arg(code.into());
+    cmd.stdout(Stdio::piped());
+    cmd.stderr(Stdio::piped());
+
+    let output = cmd.spawn().unwrap().wait_with_output().unwrap();
+
+    (
+        String::from_utf8(output.stdout).unwrap().trim_end().into(),
+        String::from_utf8(output.stderr).unwrap().trim_end().into(),
+    )
 }
 
 /// Extracts the output from the comment of amber code

@@ -1,5 +1,5 @@
 
-use crate::compiler::postprocess::PostProcessor;
+use crate::{compiler::postprocess::PostProcessor, tests::eval_bash};
 
 use super::compile_code;
 
@@ -21,6 +21,10 @@ fn default_ok() {
     assert!(unavailable.len() == 0, "These commands have to be in $PATH for this test to pass: {}", unavailable.join(", "));
 
     for processor in default {
-        assert!(processor.execute(hello.clone()).is_ok(), "Postprocessor {} couldn't process hello world", processor.name)
+        let res = processor.execute(hello.clone());
+        assert!(res.is_ok(), "Postprocessor {} couldn't process hello world", processor.name);
+        let res = res.unwrap();
+        let (stdout, _) = eval_bash(res);
+        assert_eq!(stdout, "Hello world!");
     }
 }

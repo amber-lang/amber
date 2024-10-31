@@ -45,24 +45,27 @@ impl PostProcessor {
         }
     }
 
-    pub fn execute(&self, code: String) -> String {
+    pub fn execute(&self, code: String) -> Result<String, Box<dyn std::error::Error>> {
 
-        if !self.is_available() { return code }
+        if !self.is_available() { return Ok(code) }
 
-        let mut spawned = self.cmd().spawn().unwrap_or_else(|_| panic!("Couldn't spawn {}", self.name));
+        let mut spawned = self.cmd().spawn()?;
         
         // send to stdin
         {
-            let stdin = spawned.stdin.as_mut().unwrap_or_else(|| panic!("Couldn't get {}'s stdin", self.name));
-            let mut writer = BufWriter::new(stdin);
-            writer.write_all(code.as_bytes()).unwrap_or_else(|_| panic!("Couldn't write to {}'s stdin", self.name));
-            writer.flush().unwrap_or_else(|_| panic!("Couldn't flush {} stdin", self.name));
+            if let Some(stdin) = spawned.stdin.as_mut() {
+                let mut writer = BufWriter::new(stdin);
+                writer.write_all(code.as_bytes())?;
+                writer.flush()?;
+            } else {
+                return Err(String::new().into())
+            }
         }
 
         // read from stdout
         {
-            let res = spawned.wait_with_output().unwrap_or_else(|_| panic!("Couldn't wait for {} to finish", self.name));
-            String::from_utf8(res.stdout).unwrap_or_else(|_| panic!("{} returned a non-utf8 code in stdout", self.name))
+            let res = spawned.wait_with_output()?;
+            Ok(String::from_utf8(res.stdout)?)
         }
     }
 
