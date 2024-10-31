@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use itertools::Itertools;
@@ -19,7 +19,10 @@ impl PostProcessor {
     pub fn new<N: Into<String>, B: Into<PathBuf>>(name: N, bin: B) -> Self {
         let name: String = name.into();
         let bin: PathBuf = bin.into();
-        let command = Command::new(bin.clone());
+        let mut command = Command::new(bin.clone());
+        command.stdin(Stdio::piped());
+        command.stdout(Stdio::piped());
+        command.stderr(Stdio::piped());
         let command = Arc::new(Mutex::new(command));
         Self {
             name,
