@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
@@ -70,18 +69,18 @@ impl PostProcessor {
     }
 
     pub fn get_default() -> Vec<Self> {
-        let mut postprocessors = HashMap::new();
+        let mut postprocessors = Vec::new();
         
         let shfmt = PostProcessor::new("shfmt", "/usr/bin/shfmt");
         shfmt.cmd().arg("-i").arg("4");
         shfmt.cmd().arg("-ln").arg("bash");
-        postprocessors.insert("shfmt", shfmt);
+        postprocessors.push(shfmt);
         
         let bshchk = PostProcessor::new("bshchk", "/usr/bin/bshchk");
         bshchk.cmd().arg("--ignore-shebang");
-        postprocessors.insert("bshchk", bshchk);
+        postprocessors.push(bshchk);
 
-        postprocessors.values().cloned().collect_vec()
+        postprocessors
     }
 
     pub fn filter_default(filters: Vec<WildMatchPattern<'*', '?'>>) -> Vec<Self> {
