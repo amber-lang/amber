@@ -25,6 +25,7 @@ fn all_exist() {
 
     create_fake_binary(&processor);
     
-    assert!(processor.is_available(), "Postprocessor is unavailable but it should be! It is likely an issue with the environment");
+    let ok = processor.is_available();
     fs::remove_file("test.sh").expect("Couldn't remove fake script");
+    assert!(ok, "Postprocessor is unavailable but it should be! It is likely an issue with the environment");
 }
