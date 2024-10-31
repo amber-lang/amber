@@ -37,8 +37,11 @@ pub struct Cli {
     #[arg(long)]
     docs: bool,
   
-    /// Disabled postprocessors
-    #[arg(help = "Disable a postprocessor\nAvailable postprocessors: shfmt, bshchk\nTo select multiple, pass this argument multiple times with different values.\nThis argument also supports a wilcard match, like \"*\" or \"s*mt\"", long)]
+    /// Disable a postprocessor
+    /// Available postprocessors: shfmt, bshchk
+    /// To select multiple, pass this argument multiple times with different values.
+    /// This argument also supports a wilcard match, like "*" or "s*mt"
+    #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 
     /// Minify the resulting code
