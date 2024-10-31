@@ -38,8 +38,8 @@ pub struct Cli {
     docs: bool,
   
     /// Disabled postprocessors
-    #[arg(help = "Disable a postprocessor\nPossible values: shfmt, bshchk\nTo select multiple, pass this argument multiple times with different values", long)]
-    disable_postprocessor: Vec<String>,
+    #[arg(help = "Disable a postprocessor\nAvailable postprocessors: shfmt, bshchk\nTo select multiple, pass this argument multiple times with different values.\nThis argument also supports a wilcard match, like \"*\" or \"s*mt\"", long)]
+    no_proc: Vec<String>,
 
     /// Minify the resulting code
     #[arg(long)]

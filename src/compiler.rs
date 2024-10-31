@@ -167,7 +167,7 @@ impl AmberCompiler {
 
         let mut result = result.join("\n") + "\n";
 
-        let filters = self.cli_opts.disable_postprocessor.iter()
+        let filters = self.cli_opts.no_proc.iter()
             .map(|x| WildMatchPattern::new(x)).collect();
 
         let postprocessors = PostProcessor::filter_default(filters);
@@ -268,7 +268,7 @@ impl AmberCompiler {
 
     #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
-        self.cli_opts.disable_postprocessor = vec!["*".into()];
+        self.cli_opts.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();

@@ -26,7 +26,7 @@ impl PostProcessor {
         Self {
             name,
             bin,
-            command
+            command,
         }
     }
 
