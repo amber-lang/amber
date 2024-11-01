@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
-use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache, Cli};
+use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
+use crate::compiler::CompilerOptions;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::ParserMetadata;
 
@@ -31,7 +32,7 @@ pub struct TranslateMetadata {
 }
 
 impl TranslateMetadata {
-    pub fn new(meta: ParserMetadata, cli: &Cli) -> Self {
+    pub fn new(meta: ParserMetadata, options: &CompilerOptions) -> Self {
         TranslateMetadata {
             arith_module: ArithType::BcSed,
             fun_cache: meta.fun_cache,
@@ -42,7 +43,7 @@ impl TranslateMetadata {
             eval_ctx: false,
             silenced: false,
             indent: -1,
-            minify: cli.minify,
+            minify: options.minify,
         }
     }
 

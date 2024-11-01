@@ -1,6 +1,6 @@
 use std::fs;
 use heraclitus_compiler::prelude::*;
-use crate::compiler::AmberCompiler;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
@@ -8,7 +8,6 @@ use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::Cli;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -97,7 +96,8 @@ impl Import {
     }
 
     fn handle_compile_code(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
-        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), Cli::default());
+        let options = CompilerOptions::default();
+        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
         match compiler.tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();

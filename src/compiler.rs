@@ -4,7 +4,7 @@ use crate::modules::block::Block;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::{rules, Cli};
+use crate::rules;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
@@ -24,16 +24,30 @@ const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
 const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 
+pub struct CompilerOptions {
+    pub no_proc: Vec<String>,
+    pub minify: bool,
+}
+
+impl Default for CompilerOptions {
+    fn default() -> Self {
+        Self {
+            no_proc: vec![String::from("*")],
+            minify: false,
+        }
+    }
+}
+
 pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
-    pub cli_opts: Cli,
+    pub options: CompilerOptions,
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
         let cc = Compiler::new("Amber", rules::get_rules());
-        let compiler = AmberCompiler { cc, path, cli_opts };
+        let compiler = AmberCompiler { cc, path, options };
         compiler.load_code(AmberCompiler::comment_shebang(code))
     }
 
@@ -147,7 +161,7 @@ impl AmberCompiler {
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
-        let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
+        let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = vec![];
         for (_path, block) in ast_forest {
@@ -164,7 +178,7 @@ impl AmberCompiler {
 
         let mut result = result.join("\n") + "\n";
 
-        let filters = self.cli_opts.no_proc.iter()
+        let filters = self.options.no_proc.iter()
             .map(|x| WildMatchPattern::new(x))
             .collect();
         let postprocessors = PostProcessor::filter_default(filters);
@@ -274,7 +288,7 @@ impl AmberCompiler {
 
     #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
-        self.cli_opts.no_proc = vec!["*".into()];
+        self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();

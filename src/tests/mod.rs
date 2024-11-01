@@ -1,5 +1,4 @@
-use crate::compiler::AmberCompiler;
-use crate::Cli;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 extern crate test_generator;
 use itertools::Itertools;
 use std::fs;
@@ -15,7 +14,8 @@ mod validity;
 
 /// compare the output of the given code with the expected output
 pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
-    let mut compiler = AmberCompiler::new(code.into(), None, Cli::default());
+    let options = CompilerOptions::default();
+    let mut compiler = AmberCompiler::new(code.into(), None, options);
     match compiler.test_eval() {
         Ok(eval_result) => assert_eq!(
             eval_result.trim_end_matches('\n'),
@@ -26,8 +26,8 @@ pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
-    let cli = Cli { no_proc: vec!["*".into()], ..Cli::default() };
-    let compiler = AmberCompiler::new(code.into(), None, cli);
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.into(), None, options);
     let (_, code) = compiler.compile().unwrap();
     code
 }

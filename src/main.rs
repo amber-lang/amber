@@ -9,66 +9,145 @@ mod utils;
 #[cfg(test)]
 pub mod tests;
 
-use crate::compiler::AmberCompiler;
-use clap::Parser;
+use crate::compiler::{AmberCompiler, CompilerOptions};
+use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::fs;
 use std::io::{prelude::*, stdin};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Parser, Clone, Debug)]
 #[command(version, arg_required_else_help(true))]
-#[derive(Default)]
-pub struct Cli {
-    #[arg(help = "'-' to read from stdin")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<CommandKind>,
+
+    /// Input filename ('-' to read from stdin)
     input: Option<PathBuf>,
-    #[arg(help = "'-' to output to stdout, '--silent' to discard")]
+}
+
+#[derive(Subcommand, Clone, Debug)]
+enum CommandKind {
+    /// Execute Amber code fragment
+    Eval(EvalCommand),
+    /// Execute Amber script
+    Run(RunCommand),
+    /// Check Amber script for errors
+    Check(CheckCommand),
+    /// Compile Amber script to Bash
+    Build(BuildCommand),
+    /// Generate documentation for Amber script
+    Doc(DocCommand),
+}
+
+#[derive(Args, Clone, Debug)]
+struct EvalCommand {
+    /// Code to evaluate
+    code: String,
+}
+
+#[derive(Args, Clone, Debug)]
+struct RunCommand {
+    /// Input filename ('-' to read from stdin)
+    input: PathBuf,
+}
+
+#[derive(Args, Clone, Debug)]
+struct CheckCommand {
+    /// Input filename ('-' to read from stdin)
+    input: PathBuf,
+
+    /// Disable a postprocessor
+    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    #[arg(long, verbatim_doc_comment)]
+    no_proc: Vec<String>,
+}
+
+#[derive(Args, Clone, Debug)]
+struct BuildCommand {
+    /// Input filename ('-' to read from stdin)
+    input: PathBuf,
+
+    /// Output filename ('-' to output to stdout)
     output: Option<PathBuf>,
 
-    /// Code to evaluate
-    #[arg(short, long)]
-    eval: Option<String>,
-
-    /// Generate docs
-    /// (OUTPUT is dir instead, default: `docs/` if missing it will generate the folder)
-    #[arg(long)]
-    docs: bool,
-  
     /// Disable a postprocessor
-    /// Available postprocessors: shfmt, bshchk
-    /// To select multiple, pass this argument multiple times with different values.
-    /// This argument also supports a wilcard match, like "*" or "s*mt"
+    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wilcard match, like "*" or "s*mt"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 
-    /// Minify the resulting code
+    /// Minify the output file
     #[arg(long)]
     minify: bool,
 }
 
+#[derive(Args, Clone, Debug)]
+struct DocCommand {
+    /// Input filename ('-' to read from stdin)
+    input: PathBuf,
+
+    /// Output directory (relative to input file, default 'docs')
+    output: Option<PathBuf>,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-    if cli.docs {
-        handle_docs(cli)?;
-    } else if let Some(ref code) = cli.eval {
-        handle_eval(code.to_string(), cli)?;
-    } else {
-        handle_compile(cli)?;
+    if let Some(command) = cli.command {
+        match command {
+            CommandKind::Eval(command) => {
+                handle_eval(command)?;
+            }
+            CommandKind::Run(command) => {
+                let options = CompilerOptions::default();
+                let (code, messages) = compile_input(command.input, options);
+                execute_output(code, messages)?;
+            }
+            CommandKind::Check(command) => {
+                let options = CompilerOptions {
+                    no_proc: command.no_proc.clone(),
+                    minify: false,
+                };
+                compile_input(command.input, options);
+            }
+            CommandKind::Build(command) => {
+                let output = create_output(&command);
+                let options = CompilerOptions {
+                    no_proc: command.no_proc.clone(),
+                    minify: command.minify,
+                };
+                let (code, _) = compile_input(command.input, options);
+                write_output(output, code);
+            }
+            CommandKind::Doc(command) => {
+                handle_doc(command)?;
+            }
+        }
+    } else if let Some(input) = cli.input {
+        let options = CompilerOptions::default();
+        let (code, messages) = compile_input(input, options);
+        execute_output(code, messages)?;
     }
     Ok(())
 }
 
-fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
-    let input = if let Some(input) = cli.input.clone() {
-        String::from(input.to_string_lossy().trim())
+fn create_output(command: &BuildCommand) -> PathBuf {
+    if let Some(output) = &command.output {
+        output.clone()
     } else {
-        return Ok(());
-    };
+        command.input.with_extension("sh")
+    }
+}
 
-    let code = if input == "-" {
+fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
+    let input = input.to_string_lossy().to_string();
+    let amber_code = if input == "-" {
         let mut code = String::new();
         match stdin().read_to_string(&mut code) {
             Ok(_) => code,
@@ -80,9 +159,8 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
             Err(err) => handle_err(err),
         }
     };
-
-    let compiler = AmberCompiler::new(code, Some(input), cli.clone());
-    let (messages, code) = match compiler.compile() {
+    let compiler = AmberCompiler::new(amber_code, Some(input), options);
+    let (messages, bash_code) = match compiler.compile() {
         Ok(result) => result,
         Err(err) => {
             err.show();
@@ -90,41 +168,38 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
         }
     };
     messages.iter().for_each(|m| m.show());
-    // Save to the output file
-    let output = if let Some(output) = cli.output {
-        String::from(output.to_string_lossy())
-    } else {
-        // Execute the code
-        (!messages.is_empty()).then(render_dash);
-        let exit_status = AmberCompiler::execute(code, &[])?;
-        std::process::exit(exit_status.code().unwrap_or(1));
-    };
-
-    if output == "--silent" {
-        return Ok(());
-    }
-
-    if output == "-" {
-        print!("{code}");
-        return Ok(());
-    }
-
-    match fs::File::create(&output) {
-        Ok(mut file) => {
-            write!(file, "{}", code).unwrap();
-            set_file_permission(&file, output);
-        }
-        Err(err) => {
-            Message::new_err_msg(err.to_string()).show();
-            std::process::exit(1);
-        }
-    }
-
-    Ok(())
+    (bash_code, !messages.is_empty())
 }
 
-fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
-    let compiler = AmberCompiler::new(code, None, cli);
+fn execute_output(code: String, messages: bool) -> Result<(), Box<dyn Error>> {
+    if messages {
+        render_dash();
+    }
+    let exit_status = AmberCompiler::execute(code, &[])?;
+    std::process::exit(exit_status.code().unwrap_or(1));
+}
+
+fn write_output(output: PathBuf, code: String) {
+    let output = output.to_string_lossy().to_string();
+    if output == "-" {
+        print!("{code}");
+    } else {
+        match fs::File::create(&output) {
+            Ok(mut file) => {
+                write!(file, "{}", code).unwrap();
+                set_file_permission(&file, output);
+            }
+            Err(err) => {
+                Message::new_err_msg(err.to_string()).show();
+                std::process::exit(1);
+            }
+        }
+    }
+}
+
+fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
@@ -139,30 +214,8 @@ fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
-    let input = if let Some(ref input) = cli.input {
-        let path = Path::new(input);
-        if !path.exists() {
-            Message::new_err_msg(format!(
-                "Amber file doesn't exist: `{}`.", input.to_string_lossy()
-            ))
-            .show();
-            std::process::exit(1);
-        }
-        String::from(input.to_string_lossy())
-    } else {
-        Message::new_err_msg(
-            "You need to provide a path to an entry file to generate the documentation",
-        )
-        .show();
-        std::process::exit(1);
-    };
-
-    let output = {
-        let out = cli.output.clone().unwrap_or_else(|| PathBuf::from("docs"));
-        String::from(out.to_string_lossy())
-    };
-
+fn handle_doc(command: DocCommand) -> Result<(), Box<dyn Error>> {
+    let input = command.input.to_string_lossy().to_string();
     let code = match fs::read_to_string(&input) {
         Ok(code) => code,
         Err(err) => {
@@ -170,8 +223,10 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     };
-
-    let compiler = AmberCompiler::new(code, Some(input), cli);
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code, Some(input), options);
+    let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
+    let output = output.to_string_lossy().to_string();
     match compiler.generate_docs(output) {
         Ok(_) => Ok(()),
         Err(err) => {
