@@ -18,7 +18,7 @@ fn default_ok() {
         }
     }
 
-    assert!(unavailable.len() == 0, "These commands have to be in $PATH for this test to pass: {}", unavailable.join(", "));
+    assert!(unavailable.is_empty(), "These commands have to be in $PATH for this test to pass: {}", unavailable.join(", "));
 
     for processor in default {
         let res = processor.execute(hello.clone());

@@ -25,8 +25,10 @@ pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
-    let mut cli = Cli::default();
-    cli.no_proc = vec!["*".into()];
+    let cli = Cli {
+        no_proc: vec!["*".into()],
+        ..Cli::default()
+    };
     
     AmberCompiler::new(code.into(), None, cli)
         .compile()
