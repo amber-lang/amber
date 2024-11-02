@@ -1,7 +1,8 @@
+use std::cell::RefCell;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::rc::Rc;
 
 use itertools::Itertools;
 use wildmatch::WildMatchPattern;
@@ -10,8 +11,7 @@ use wildmatch::WildMatchPattern;
 pub struct PostProcessor {
     pub name: String,
     pub bin: PathBuf,
-
-    command: Arc<Mutex<Command>>
+    command: Rc<RefCell<Command>>,
 }
 
 impl PostProcessor {
@@ -22,7 +22,7 @@ impl PostProcessor {
         command.stdin(Stdio::piped());
         command.stdout(Stdio::piped());
         command.stderr(Stdio::piped());
-        let command = Arc::new(Mutex::new(command));
+        let command = Rc::new(RefCell::new(command));
         Self {
             name,
             bin,
@@ -30,8 +30,8 @@ impl PostProcessor {
         }
     }
 
-    pub fn cmd(&self) -> MutexGuard<Command> {
-        self.command.lock().expect("Couldn't lock on command (arc)")
+    pub fn cmd(&self) -> Rc<RefCell<Command>> {
+        self.command.clone()
     }
 
     pub fn is_available(&self) -> bool {
@@ -48,7 +48,7 @@ impl PostProcessor {
 
         if !self.is_available() { return Ok(code) }
 
-        let mut spawned = self.cmd().spawn()?;
+        let mut spawned = self.cmd().borrow_mut().spawn()?;
         
         // send to stdin
         if let Some(stdin) = spawned.stdin.as_mut() {
@@ -66,14 +66,14 @@ impl PostProcessor {
 
     pub fn get_default() -> Vec<Self> {
         let mut postprocessors = Vec::new();
-        
+
         let shfmt = PostProcessor::new("shfmt", "/usr/bin/shfmt");
-        shfmt.cmd().arg("-i").arg("4");
-        shfmt.cmd().arg("-ln").arg("bash");
+        shfmt.cmd().borrow_mut().arg("-i").arg("4");
+        shfmt.cmd().borrow_mut().arg("-ln").arg("bash");
         postprocessors.push(shfmt);
-        
+
         let bshchk = PostProcessor::new("bshchk", "/usr/bin/bshchk");
-        bshchk.cmd().arg("--ignore-shebang");
+        bshchk.cmd().borrow_mut().arg("--ignore-shebang");
         postprocessors.push(bshchk);
 
         postprocessors

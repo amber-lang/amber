@@ -1,5 +1,5 @@
-
-use crate::{compiler::postprocess::PostProcessor, tests::eval_bash};
+use crate::compiler::postprocessor::PostProcessor;
+use crate::tests::eval_bash;
 
 use super::compile_code;
 

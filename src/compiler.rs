@@ -5,7 +5,7 @@ use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
-use postprocess::PostProcessor;
+use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
@@ -18,7 +18,7 @@ use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
 
-pub mod postprocess;
+pub mod postprocessor;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
