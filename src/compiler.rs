@@ -269,9 +269,15 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
-    pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
+    pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         if let Some(mut command) = Self::find_bash() {
-            let code = format!("set -- {};\n{}", flags.join(" "), code);
+            if !args.is_empty() {
+                let args = args.into_iter()
+                    .map(|arg| arg.replace("\"", "\\\""))
+                    .map(|arg| format!("\"{arg}\""))
+                    .collect::<Vec<String>>();
+                code = format!("set -- {}\n{}", args.join(" "), code);
+            }
             command.arg("-c").arg(code).spawn()?.wait()
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find Bash");

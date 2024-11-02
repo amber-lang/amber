@@ -27,6 +27,10 @@ struct Cli {
 
     /// Input filename ('-' to read from stdin)
     input: Option<PathBuf>,
+
+    /// Arguments passed to Amber script
+    #[arg(trailing_var_arg = true)]
+    args: Vec<String>,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -53,6 +57,10 @@ struct EvalCommand {
 struct RunCommand {
     /// Input filename ('-' to read from stdin)
     input: PathBuf,
+
+    /// Arguments passed to Amber script
+    #[arg(trailing_var_arg = true)]
+    args: Vec<String>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -107,7 +115,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             CommandKind::Run(command) => {
                 let options = CompilerOptions::default();
                 let (code, messages) = compile_input(command.input, options);
-                execute_output(code, messages)?;
+                execute_output(code, command.args, messages)?;
             }
             CommandKind::Check(command) => {
                 let options = CompilerOptions {
@@ -132,7 +140,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if let Some(input) = cli.input {
         let options = CompilerOptions::default();
         let (code, messages) = compile_input(input, options);
-        execute_output(code, messages)?;
+        execute_output(code, cli.args, messages)?;
     }
     Ok(())
 }
@@ -171,11 +179,11 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
     (bash_code, !messages.is_empty())
 }
 
-fn execute_output(code: String, messages: bool) -> Result<(), Box<dyn Error>> {
+fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<(), Box<dyn Error>> {
     if messages {
         render_dash();
     }
-    let exit_status = AmberCompiler::execute(code, &[])?;
+    let exit_status = AmberCompiler::execute(code, args)?;
     std::process::exit(exit_status.code().unwrap_or(1));
 }
 
@@ -204,7 +212,7 @@ fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
-            let exit_status = AmberCompiler::execute(code, &[])?;
+            let exit_status = AmberCompiler::execute(code, vec![])?;
             std::process::exit(exit_status.code().unwrap_or(1));
         }
         Err(err) => {
