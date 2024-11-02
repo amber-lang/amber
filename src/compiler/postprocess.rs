@@ -86,7 +86,7 @@ impl PostProcessor {
             .iter()
             .filter(|x| {
                 filters.iter()  
-                    .any(|xx| !xx.matches(&x.name))
+                    .all(|xx| !xx.matches(&x.name))
             })
             .cloned()
             .collect_vec()
