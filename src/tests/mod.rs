@@ -15,25 +15,21 @@ mod validity;
 
 /// compare the output of the given code with the expected output
 pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
-    match AmberCompiler::new(code.into(), None, Cli::default()).test_eval() {
+    let mut compiler = AmberCompiler::new(code.into(), None, Cli::default());
+    match compiler.test_eval() {
         Ok(eval_result) => assert_eq!(
             eval_result.trim_end_matches('\n'),
-            result.as_ref().trim_end_matches('\n')
+            result.as_ref().trim_end_matches('\n'),
         ),
         Err(err) => panic!("ERROR: {}", err.message.unwrap()),
     }
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
-    let cli = Cli {
-        no_proc: vec!["*".into()],
-        ..Cli::default()
-    };
-    
-    AmberCompiler::new(code.into(), None, cli)
-        .compile()
-        .unwrap()
-        .1
+    let cli = Cli { no_proc: vec!["*".into()], ..Cli::default() };
+    let compiler = AmberCompiler::new(code.into(), None, cli);
+    let (_, code) = compiler.compile().unwrap();
+    code
 }
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {

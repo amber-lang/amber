@@ -32,12 +32,9 @@ pub struct AmberCompiler {
 
 impl AmberCompiler {
     pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
-        AmberCompiler {
-            cc: Compiler::new("Amber", rules::get_rules()),
-            path,
-            cli_opts,
-        }
-        .load_code(AmberCompiler::comment_shebang(code))
+        let cc = Compiler::new("Amber", rules::get_rules());
+        let compiler = AmberCompiler { cc, path, cli_opts };
+        compiler.load_code(AmberCompiler::comment_shebang(code))
     }
 
     fn comment_shebang(code: String) -> String {
@@ -185,13 +182,10 @@ impl AmberCompiler {
             };
         }
 
+        let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let header = include_str!("header.sh")
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
-            .replace("{{ date }}", Local::now()
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string()
-                .as_str()
-            );
+            .replace("{{ date }}", now.as_str());
         Ok(format!("{}{}", header, result))
     }
 

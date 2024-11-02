@@ -42,7 +42,7 @@ impl TranslateMetadata {
             eval_ctx: false,
             silenced: false,
             indent: -1,
-            minify: cli.minify
+            minify: cli.minify,
         }
     }
 

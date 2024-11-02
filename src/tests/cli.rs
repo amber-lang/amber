@@ -31,9 +31,7 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "notexistingcommand: command not found",
-        ))
+        .stderr(predicate::str::contains("notexistingcommand: command not found"))
         .code(127);
 
     Ok(())
