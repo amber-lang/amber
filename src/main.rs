@@ -10,14 +10,15 @@ mod utils;
 pub mod tests;
 
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use std::error::Error;
-use std::fs;
 use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
 use std::process::Command;
+use std::{fs, io};
 
 #[derive(Parser, Clone, Debug)]
 #[command(version, arg_required_else_help(true))]
@@ -45,6 +46,8 @@ enum CommandKind {
     Build(BuildCommand),
     /// Generate documentation for Amber script
     Doc(DocCommand),
+    /// Generate Bash completion script
+    Comp,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -139,6 +142,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             CommandKind::Doc(command) => {
                 handle_doc(command)?;
+            }
+            CommandKind::Comp => {
+                handle_complete();
             }
         }
     } else if let Some(input) = cli.input {
@@ -246,6 +252,12 @@ fn handle_doc(command: DocCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     }
+}
+
+fn handle_complete() {
+    let mut command = Cli::command();
+    let name = command.get_name().to_string();
+    clap_complete::generate(Shell::Bash, &mut command, name, &mut io::stdout());
 }
 
 #[cfg(windows)]
