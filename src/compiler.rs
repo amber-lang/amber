@@ -102,14 +102,9 @@ impl AmberCompiler {
         }
     }
 
-    pub fn parse(
-        &self,
-        tokens: Vec<Token>,
-        is_docs_gen: bool,
-    ) -> Result<(Block, ParserMetadata), Message> {
+    pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
-        meta.is_docs_gen = is_docs_gen;
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
@@ -263,7 +258,7 @@ impl AmberCompiler {
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         let tokens = self.tokenize()?;
-        let (block, meta) = self.parse(tokens, false)?;
+        let (block, meta) = self.parse(tokens)?;
         let messages = meta.messages.clone();
         let code = self.translate(block, meta)?;
         Ok((messages, code))
@@ -285,9 +280,10 @@ impl AmberCompiler {
         }
     }
 
-    pub fn generate_docs(&self, output: String) -> Result<(), Message> {
+    pub fn generate_docs(&self, output: String, usage: bool) -> Result<(), Message> {
         let tokens = self.tokenize()?;
-        let (block, meta) = self.parse(tokens, true)?;
+        let (block, mut meta) = self.parse(tokens)?;
+        meta.doc_usage = usage;
         self.document(block, meta, output);
         Ok(())
     }

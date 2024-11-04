@@ -103,6 +103,10 @@ struct DocCommand {
 
     /// Output directory (relative to input file, default 'docs')
     output: Option<PathBuf>,
+
+    /// Show standard library usage in documentation
+    #[arg(long)]
+    usage: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -235,7 +239,7 @@ fn handle_doc(command: DocCommand) -> Result<(), Box<dyn Error>> {
     let compiler = AmberCompiler::new(code, Some(input), options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
-    match compiler.generate_docs(output) {
+    match compiler.generate_docs(output, command.usage) {
         Ok(_) => Ok(()),
         Err(err) => {
             err.show();
