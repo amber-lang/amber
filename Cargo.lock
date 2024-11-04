@@ -21,6 +21,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
+ "glob",
  "heraclitus-compiler",
  "include_dir",
  "itertools",
