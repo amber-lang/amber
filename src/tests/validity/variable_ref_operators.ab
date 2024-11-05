@@ -1,14 +1,26 @@
 // Output
+// 5
+// 4
+// 4
+// 4
 // 0
+// 0
+// -1
+// -1
+// -1
 // 0
 
 fun value(ref value) {
-    var += 1
-    var -= 1
-    var *= 1
-    var /= 1
-    var %= 1
-    echo var
+    value += 1
+    echo value
+    value -= 1
+    echo value
+    value *= 1
+    echo value
+    value /= 1
+    echo value
+    value %= 1
+    echo value
 }
 
 let value_a = 4
