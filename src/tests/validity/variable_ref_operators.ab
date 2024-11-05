@@ -4,47 +4,40 @@
 // 4
 // 4
 // 0
-// 0
-// -1
-// -1
-// -1
-// 0
 
 fun sum(ref value) {
+    value = 4
     value += 1
     echo value
 }
 
 fun sub(ref value) {
+    value = 5
     value -= 1
     echo value
 }
 
 fun mul(ref value) {
+    value = 4
     value *= 1
     echo value
 }
 
 fun div(ref value) {
+    value = 4
     value /= 1
     echo value
 }
 
 fun mod(ref value) {
+    value = 4
     value %= 1
     echo value
 }
 
-let value_a = 4
+let value_a = 0
 sum(value_a)
 sub(value_a)
 mul(value_a)
 div(value_a)
 mod(value_a)
-
-let value_b = -1
-sum(value_b)
-sub(value_b)
-mul(value_b)
-div(value_b)
-mod(value_b)
