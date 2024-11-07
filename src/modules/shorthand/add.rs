@@ -48,31 +48,47 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 }
 
 impl TranslateModule for ShorthandAdd {
+    //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let expr = self.is_ref
-            .then(|| self.expr.translate_eval(meta, true))
-            .unwrap_or_else(|| self.expr.translate(meta));
-        let name: String = match self.global_id {
-            Some(id) => format!("__{id}_{}", self.var),
-            None => if self.is_ref { format!("${{{}}}", self.var) } else { self.var.clone() }
-        };
-        let stmt = match self.kind {
-            Type::Text => format!("{}+={}", name, expr),
-            Type::Array(_) => format!("{}+=({})", name, expr),
-            _ => {
-                let var = if self.is_ref { format!("\\${{{name}}}") } else { format!("${{{name}}}") };
-                let translated_computation = if self.is_ref {
-                    translate_computation_eval(meta, ArithOp::Add, Some(var), Some(expr))
-                } else {
-                    translate_computation(meta, ArithOp::Add, Some(var), Some(expr))
-                };
-                format!("{}={}", name, translated_computation)
-            }
-        };
-        if self.is_ref {
-            format!("eval \"{}\"", stmt)
+        let name = if let Some(id) = self.global_id {
+            format!("__{id}_{}", self.var)
+        } else if self.is_ref {
+            format!("${{{}}}", self.var)
         } else {
-            stmt
+            self.var.clone()
+        };
+        match self.kind {
+            Type::Text => {
+                if self.is_ref {
+                    let expr = self.expr.translate_eval(meta, true);
+                    format!("eval \"{name}+={expr}\"")
+                } else {
+                    let expr = self.expr.translate(meta);
+                    format!("{name}+={expr}")
+                }
+            }
+            Type::Array(_) => {
+                if self.is_ref {
+                    let expr = self.expr.translate_eval(meta, true);
+                    format!("eval \"{name}+=({expr})\"")
+                } else {
+                    let expr = self.expr.translate(meta);
+                    format!("{name}+=({expr})")
+                }
+            }
+            _ => {
+                if self.is_ref {
+                    let var = format!("\\${{{name}}}");
+                    let expr = self.expr.translate_eval(meta, true);
+                    let expr = translate_computation_eval(meta, ArithOp::Add, Some(var), Some(expr));
+                    format!("eval \"{name}={expr}\"")
+                } else {
+                    let var = format!("${{{name}}}");
+                    let expr = self.expr.translate(meta);
+                    let expr = translate_computation(meta, ArithOp::Add, Some(var), Some(expr));
+                    format!("{name}={expr}")
+                }
+            }
         }
     }
 }
