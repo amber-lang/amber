@@ -68,25 +68,12 @@ impl TranslateModule for ShorthandAdd {
                 }
             }
             Type::Array(_) => {
-                let assign = if self.is_ref {
+                if self.is_ref {
                     let expr = self.expr.translate_eval(meta, true);
                     format!("eval \"{name}+=({expr})\"")
                 } else {
                     let expr = self.expr.translate(meta);
                     format!("{name}+=({expr})")
-                };
-                // Recreate the name before generating the optional append
-                // statement; otherwise if the variable is being passed by
-                // reference, we would use "${${name}}" instead of "${name}".
-                let name = if let Some(id) = self.global_id {
-                    format!("__{id}_{}", self.var)
-                } else {
-                    self.var.clone()
-                };
-                if let Some(append) = self.expr.append_let(meta, &name, self.is_ref) {
-                    [assign, append].join("\n")
-                } else {
-                    assign
                 }
             }
             _ => {

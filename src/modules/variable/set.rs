@@ -73,7 +73,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 
 impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let mut name = self.name.clone();
+        let name = self.name.clone();
         let index = self.index.as_ref()
             .map(|index| self.translate_eval_if_ref(index, meta))
             .map(|index| format!("[{index}]"))
@@ -82,18 +82,12 @@ impl TranslateModule for VariableSet {
         if let Type::Array(_) = self.expr.get_type() {
             expr = format!("({expr})");
         }
-        let assign = if let Some(id) = self.global_id {
-            name = format!("__{id}_{name}");
-            format!("{name}{index}={expr}")
+        if let Some(id) = self.global_id {
+            format!("__{id}_{name}{index}={expr}")
         } else if self.is_ref {
             format!("eval \"${{{name}}}{index}={expr}\"")
         } else {
             format!("{name}{index}={expr}")
-        };
-        if let Some(append) = self.expr.append_let(meta, &name, self.is_ref) {
-            [assign, append].join("\n")
-        } else {
-            assign
         }
     }
 }

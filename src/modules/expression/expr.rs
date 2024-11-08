@@ -191,13 +191,6 @@ impl TranslateModule for Expr {
             VariableGet
         ])
     }
-
-    fn append_let(&self, meta: &mut TranslateMetadata, name: &str, is_ref: bool) -> Option<String> {
-        match &self.value {
-            Some(ExprType::LinesInvocation(value)) => value.append_let(meta, name, is_ref),
-            _ => None,
-        }
-    }
 }
 
 impl DocumentationModule for Expr {
