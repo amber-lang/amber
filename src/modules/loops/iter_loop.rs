@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
@@ -71,13 +71,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = &self.iter_name;
-        let (prefix, suffix) = self.iter_expr.surround_iter(meta, name).unwrap_or_else(|| {
-            let expr = self.iter_expr.translate(meta);
-            let pre = format!("for {name} in {expr}; do");
-            let suf = String::from("done");
-            (pre, suf)
-        });
+        let (prefix, suffix) = self.surround_iter(meta);
         match self.iter_index.as_ref() {
             Some(index) => {
                 let indent = TranslateMetadata::single_indent();
@@ -96,6 +90,20 @@ impl TranslateModule for IterLoop {
                     suffix,
                 ].join("\n")
             },
+        }
+    }
+}
+
+impl IterLoop {
+    fn surround_iter(&self, meta: &mut TranslateMetadata) -> (String, String) {
+        let name = &self.iter_name;
+        if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
+            value.surround_iter(meta, name)
+        } else {
+            let expr = self.iter_expr.translate(meta);
+            let prefix = format!("for {name} in {expr}; do");
+            let suffix = String::from("done");
+            (prefix, suffix)
         }
     }
 }
