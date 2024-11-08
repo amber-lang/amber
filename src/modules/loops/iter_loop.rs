@@ -80,10 +80,7 @@ impl TranslateModule for IterLoop {
         });
         match self.iter_index.as_ref() {
             Some(index) => {
-                // Create an indentation for the index increment
-                meta.increase_indent();
-                let indent = meta.gen_indent();
-                meta.decrease_indent();
+                let indent = TranslateMetadata::single_indent();
                 [
                     format!("{index}=0;"),
                     prefix,
