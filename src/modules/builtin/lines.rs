@@ -33,7 +33,8 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
         syntax(meta, &mut path)?;
         token(meta, ")")?;
         if path.get_type() != Type::Text {
-            return error!(meta, tok, "Expected string");
+            let msg = format!("Expected value of type 'Text' but got '{}'", path.get_type());
+            return error!(meta, tok, msg);
         }
         self.path = Box::new(Some(path));
         Ok(())
