@@ -44,7 +44,6 @@ impl PostProcessor {
     }
 
     pub fn execute(&self, code: String) -> Result<String, Box<dyn std::error::Error>> {
-
         if !self.is_available() { return Ok(code) }
 
         let mut spawned = self.cmd().borrow_mut().spawn()?;
