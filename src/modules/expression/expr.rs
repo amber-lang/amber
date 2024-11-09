@@ -46,7 +46,7 @@ use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
-use crate::modules::function::lines::LinesInvocation;
+use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::builtin::nameof::Nameof;
 use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
 
