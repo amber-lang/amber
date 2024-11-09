@@ -1,4 +1,4 @@
 import * from "std/text"
 main {
-    echo replace_once("Sucworld", "world", "ceded")
+    echo replace_once("Succinctly", "inctly", "eeded")
 }

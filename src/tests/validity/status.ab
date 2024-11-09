@@ -2,7 +2,7 @@
 // 127
 // 127
 
-silent $non-existent command$ failed {
+silent $ non-existent command $ failed {
     echo status
     echo status
 }

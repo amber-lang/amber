@@ -22,7 +22,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
-        "loop", "break", "continue", "in",
+        "for", "loop", "break", "continue", "in",
         // Module keywords
         "pub", "import", "from",
         // Function keywords
@@ -32,7 +32,8 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Command Modifiers
         "silent", "trust",
         // Misc
-        "echo", "status", "nameof", "mv", "cd", "exit",
+        "echo", "status", "nameof", "mv", "cd",
+        "exit", "len",
     ]
 }
 

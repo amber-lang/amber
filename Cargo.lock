@@ -21,6 +21,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
+ "glob",
  "heraclitus-compiler",
  "include_dir",
  "itertools",
@@ -321,9 +322,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "heraclitus-compiler"
-version = "1.8.0"
+version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6b44f6c9fa2cd2c68945ef5247b8cdfd6b84de10a8c5a9a5ad0b7f1991891b1"
+checksum = "2c689c82b381fc881791741e1ab4a4d03cf3cf0f453b30a9f4ed88a54cd8798e"
 dependencies = [
  "capitalize",
  "colored",

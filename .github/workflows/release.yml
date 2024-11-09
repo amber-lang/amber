@@ -174,6 +174,15 @@ jobs:
           pattern: artifacts-*
           path: target/distrib/
           merge-multiple: true
+
+      - name: Compile installer/uninstaller
+        run: |
+          TARGET_TRIPLE="$(rustc -Vv | awk '/^host/ { print $2 }')"
+          AMBER_PACKAGE="$PWD/target/distrib/amber-${TARGET_TRIPLE}"
+          tar -xf ${AMBER_PACKAGE}.tar.xz -C ./target
+          AMBER="$PWD/target/amber-${TARGET_TRIPLE}/amber"
+          $AMBER ./setup/install.ab ./target/distrib/install.sh
+          $AMBER ./setup/uninstall.ab ./target/distrib/uninstall.sh
       - id: cargo-dist
         shell: bash
         run: |
@@ -183,6 +192,8 @@ jobs:
           # Parse out what we just built and upload it to scratch storage
           echo "paths<<EOF" >> "$GITHUB_OUTPUT"
           jq --raw-output ".upload_files[]" dist-manifest.json >> "$GITHUB_OUTPUT"
+          echo "$PWD/target/distrib/install.sh" >> "$GITHUB_OUTPUT"
+          echo "$PWD/target/distrib/uninstall.sh" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
           cp dist-manifest.json "$BUILD_MANIFEST_NAME"

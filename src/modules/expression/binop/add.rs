@@ -62,12 +62,13 @@ impl TranslateModule for Add {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let left = self.left.translate_eval(meta, false);
         let right = self.right.translate_eval(meta, false);
-        let quote = meta.gen_quote();
         match self.kind {
             Type::Array(_) => {
+                let quote = meta.gen_quote();
                 let id = meta.gen_array_id();
-                meta.stmt_queue.push_back(format!("__AMBER_ARRAY_ADD_{id}=({left} {right})"));
-                format!("{quote}${{__AMBER_ARRAY_ADD_{id}[@]}}{quote}")
+                let name = format!("__AMBER_ARRAY_ADD_{id}");
+                meta.stmt_queue.push_back(format!("{name}=({left} {right})"));
+                format!("{quote}${{{name}[@]}}{quote}")
             },
             Type::Text => format!("{}{}", left, right),
             _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))

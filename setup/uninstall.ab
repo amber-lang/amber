@@ -1,6 +1,5 @@
-import { exit, includes } from "std"
+import { includes } from "std/array"
 import { get_arch, get_place, get_bins_folder } from "./shared.ab"
-
 
 echo ""
 
@@ -11,19 +10,19 @@ main(args) {
     let place = get_place(user_only_install)
     let bins_folder = get_bins_folder(user_only_install)
 
-    trust $test -d "{place}" > /dev/null$
+    trust $ test -d "{place}" > /dev/null $
 
     if status == 0 {
         let sudo = user_only_install then "" else "sudo"
-        ${sudo} rm -rf "{place}"$ failed {
+        $ {sudo} rm -rf "{place}" $ failed {
             echo "Failed to remove Amber from {place}"
             echo "Make sure root has the correct permissions to access this directory"
-            exit(1)
+            exit 1
         }
-        ${sudo} rm "{bins_folder}/amber"$ failed {
+        $ {sudo} rm "{bins_folder}/amber" $ failed {
             echo "Failed to remove Amber symlink from {bins_folder}"
             echo "Make sure root has the correct permissions to access this directory"
-            exit(1)
+            exit 1
         }
         echo "Uninstalled Amber successfully 🎉"
     }
