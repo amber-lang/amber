@@ -37,8 +37,7 @@ impl PostProcessor {
     pub fn is_available(&self) -> bool {
         match Command::new(self.bin.clone()).spawn() {
             Ok(mut v) => {
-                let _ = v.kill();
-                true
+                v.kill().is_ok()
             },
             Err(_) => false
         }
