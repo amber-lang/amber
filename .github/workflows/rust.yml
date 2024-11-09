@@ -36,6 +36,10 @@ jobs:
         with:
           packages: bc shfmt
           version: 1.0
+      - name: Install bshchk
+        run: |
+          sudo curl https://github.com/b1ek/bshchk/releases/download/1.1/bshchk.linux.amd64 -L -o /usr/bin/bshchk
+          sudo chmod +x /usr/bin/bshchk
       - uses: dtolnay/rust-toolchain@stable
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v4

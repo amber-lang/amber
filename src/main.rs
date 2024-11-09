@@ -36,10 +36,13 @@ pub struct Cli {
     /// (OUTPUT is dir instead, default: `docs/` if missing it will generate the folder)
     #[arg(long)]
     docs: bool,
-
-    /// Don't format the output file
-    #[arg(long)]
-    disable_format: bool,
+  
+    /// Disable a postprocessor
+    /// Available postprocessors: shfmt, bshchk
+    /// To select multiple, pass this argument multiple times with different values.
+    /// This argument also supports a wilcard match, like "*" or "s*mt"
+    #[arg(long, verbatim_doc_comment)]
+    no_proc: Vec<String>,
 
     /// Minify the resulting code
     #[arg(long)]

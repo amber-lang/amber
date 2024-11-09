@@ -1,14 +1,15 @@
 extern crate chrono;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
-use crate::modules::formatter::BashFormatter;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
+use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use wildmatch::WildMatchPattern;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -16,6 +17,8 @@ use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
+
+pub mod postprocessor;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
@@ -164,22 +167,23 @@ impl AmberCompiler {
 
         let mut result = result.join("\n") + "\n";
 
-        if !self.cli_opts.disable_format {
-            if let Some(formatter) = BashFormatter::get_available() {
-                result = formatter.format(result);
-            }
+        let filters = self.cli_opts.no_proc.iter()
+            .map(|x| WildMatchPattern::new(x)).collect();
+
+        let postprocessors = PostProcessor::filter_default(filters);
+
+        for postprocessor in postprocessors {
+            result = postprocessor.execute(result).unwrap_or_else(|_| panic!("Postprocessor {} failed!", postprocessor.name));
         }
 
-        let header = [
-            include_str!("header.sh"),
-            &("# version: ".to_owned() + env!("CARGO_PKG_VERSION").to_string().as_str()),
-            &("# date: ".to_owned()
-                + Local::now()
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-                    .as_str()),
-        ].join("\n");
-        format!("{}\n{}", header, result)
+        let header = include_str!("header.sh")
+            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+            .replace("{{ date }}", Local::now()
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string()
+                .as_str()
+            );
+        format!("{}{}", header, result)
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
@@ -264,6 +268,7 @@ impl AmberCompiler {
 
     #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
+        self.cli_opts.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
