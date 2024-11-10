@@ -180,7 +180,7 @@ impl AmberCompiler {
                         postprocessor.name,
                         error.to_string().trim_end(),
                     );
-                    return Err(Message::new_err_msg(error))
+                    return Err(Message::new_err_msg(error));
                 },
             };
         }
