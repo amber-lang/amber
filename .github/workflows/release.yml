@@ -177,7 +177,7 @@ jobs:
       - name: Cargo Deb
         run: |
           cargo install cargo-deb
-          cargo deb --output="./target/distrib"
+          cargo deb --output="./target/distrib/amber-amd64.deb"
       - name: Compile installer/uninstaller
         run: |
           TARGET_TRIPLE="$(rustc -Vv | awk '/^host/ { print $2 }')"
@@ -186,7 +186,6 @@ jobs:
           AMBER="$PWD/target/amber-${TARGET_TRIPLE}/amber"
           $AMBER ./setup/install.ab ./target/distrib/install.sh
           $AMBER ./setup/uninstall.ab ./target/distrib/uninstall.sh
-          echo "AMBER_VERSION=$($PWD/target/amber-${TARGET_TRIPLE}/amber --version)" >> $GITHUB_ENV
       - id: cargo-dist
         shell: bash
         run: |
@@ -196,7 +195,7 @@ jobs:
           # Parse out what we just built and upload it to scratch storage
           echo "paths<<EOF" >> "$GITHUB_OUTPUT"
           jq --raw-output ".upload_files[]" dist-manifest.json >> "$GITHUB_OUTPUT"
-          echo "$PWD/target/distrib/amber_${{env.AMBER_VERSION}}-1_amd64.deb" >> "$GITHUB_OUTPUT"
+          echo "$PWD/target/distrib/amber-amd64.deb" >> "$GITHUB_OUTPUT"
           echo "$PWD/target/distrib/install.sh" >> "$GITHUB_OUTPUT"
           echo "$PWD/target/distrib/uninstall.sh" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
