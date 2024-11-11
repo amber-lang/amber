@@ -57,9 +57,15 @@ impl PostProcessor {
             return Err(String::new().into())
         }
 
-        // read from stdout
+        // read from stdout or stderr
         let res = spawned.wait_with_output()?;
-        Ok(String::from_utf8(res.stdout)?)
+        if res.status.success() {
+            let stdout = String::from_utf8(res.stdout)?;
+            Ok(stdout)
+        } else {
+            let stderr = String::from_utf8(res.stderr)?;
+            Err(stderr.into())
+        }
     }
 
     pub fn get_default() -> Vec<Self> {

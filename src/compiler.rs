@@ -148,7 +148,7 @@ impl AmberCompiler {
         result
     }
 
-    pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
+    pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
         let time = Instant::now();
@@ -168,12 +168,21 @@ impl AmberCompiler {
         let mut result = result.join("\n") + "\n";
 
         let filters = self.cli_opts.no_proc.iter()
-            .map(|x| WildMatchPattern::new(x)).collect();
-
+            .map(|x| WildMatchPattern::new(x))
+            .collect();
         let postprocessors = PostProcessor::filter_default(filters);
-
         for postprocessor in postprocessors {
-            result = postprocessor.execute(result).unwrap_or_else(|_| panic!("Postprocessor {} failed!", postprocessor.name));
+            result = match postprocessor.execute(result) {
+                Ok(result) => result,
+                Err(error) => {
+                    let error = format!(
+                        "Postprocessor '{}' failed\n{}",
+                        postprocessor.name,
+                        error.to_string().trim_end(),
+                    );
+                    return Err(Message::new_err_msg(error));
+                },
+            };
         }
 
         let header = include_str!("header.sh")
@@ -183,7 +192,7 @@ impl AmberCompiler {
                 .to_string()
                 .as_str()
             );
-        format!("{}{}", header, result)
+        Ok(format!("{}{}", header, result))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
@@ -245,9 +254,11 @@ impl AmberCompiler {
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
-        self.tokenize()
-            .and_then(|tokens| self.parse(tokens, false))
-            .map(|(block, meta)| (meta.messages.clone(), self.translate(block, meta)))
+        let tokens = self.tokenize()?;
+        let (block, meta) = self.parse(tokens, false)?;
+        let messages = meta.messages.clone();
+        let code = self.translate(block, meta)?;
+        Ok((messages, code))
     }
 
     pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
@@ -261,9 +272,10 @@ impl AmberCompiler {
     }
 
     pub fn generate_docs(&self, output: String) -> Result<(), Message> {
-        self.tokenize()
-            .and_then(|tokens| self.parse(tokens, true))
-            .map(|(block, meta)| self.document(block, meta, output))
+        let tokens = self.tokenize()?;
+        let (block, meta) = self.parse(tokens, true)?;
+        self.document(block, meta, output);
+        Ok(())
     }
 
     #[cfg(test)]
