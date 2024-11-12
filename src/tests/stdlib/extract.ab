@@ -1,0 +1,15 @@
+import * from "std/fs"
+import { includes } from "std/array"
+main {
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    cd tmpdir
+    trust $touch test.txt$
+    silent trust $tar -czf "filename.tar.gz" "{tmpdir}/test.txt"$
+    trust $rm "test.txt"$
+    let package = tmpdir + "/" + "filename.tar.gz"
+
+    if (extract(package, tmpdir)) {
+        echo "Succeeded"
+    }
+    trust $rm -rf "{tmpdir}"$
+}

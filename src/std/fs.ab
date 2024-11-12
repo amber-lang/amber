@@ -1,4 +1,4 @@
-import { join, replace_regex, split } from "std/text"
+import { join, replace_regex, split, contains_multiple } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
@@ -107,4 +107,35 @@ pub fun glob_multiple(paths: [Text]): [Text]? {
 /// Finds all files or directories matching a file glob.
 pub fun glob(path: Text): [Text]? {
     return glob_multiple([path])?
+}
+
+/// Extract the file detecting from the filename the extension
+/// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
+/// Note: Not all the commands supports the output folder path
+pub fun extract(path: Text, target: Text): Bool{
+    if file_exist(path) {
+        if {
+            contains_multiple(path, [".tar.bz2", ".tbz", ".tbz2"]): trust $tar xvjf "{path}" -C "{target}"$
+            contains_multiple(path, [".tar.gz", ".tgz"]): trust $tar xzf "{path}" -C "{target}"$
+            contains_multiple(path, [".tar.xz", ".txz"]): trust $tar xJf "{path}" -C "{target}"$
+            contains_multiple(path, [".bz2"]): trust $bunzip2 "{path}"$
+            contains_multiple(path, [".deb"]): trust $dpkg-deb -xv "{path}" "{target}"$
+            contains_multiple(path, [".gz"]): trust $gunzip "{path}"$
+            contains_multiple(path, [".rar"]): trust $unrar x "{path}" "{target}"$
+            contains_multiple(path, [".rpm"]): trust $rpm2cpio "{path}"| cpio -idm{{}}$
+            contains_multiple(path, [".tar"]): trust $tar xf "{path}"-C "{target}"$
+            contains_multiple(path, [".xz"]): trust $xz --decompress "{path}"$
+            contains_multiple(path, [".7z"]): trust $7z -y "{path}" -o "{target}"$
+            contains_multiple(path, [".zip", ".war", ".jar"]): trust $unzip "{path}" -d "{target}"$
+            else {
+                echo "Error: Unsupported file type"
+                return false
+            }
+        }
+    } else {
+        echo "Error: File not found"
+        return false
+    }
+
+    return true
 }

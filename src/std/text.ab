@@ -91,13 +91,24 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
-/// Checks if some text contains a value/
+/// Checks if some text contains a value.
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = trust $ if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1
   fi $
 
   return result == "1"
+}
+
+/// Checks if an array value is in the text.
+pub fun contains_multiple(text, terms): Bool {
+    for index, term in terms {
+        if contains(text, term) {
+            return true
+        }
+    }
+
+    return false
 }
 
 /// Reverses text using `rev`.
