@@ -64,7 +64,9 @@ impl TranslateModule for LinesInvocation {
 
 impl LinesInvocation {
     pub fn surround_iter(&self, meta: &mut TranslateMetadata, name: &str) -> (String, String) {
-        let path = (*self.path).as_ref().map(|p| p.translate(meta)).unwrap_or_default();
+        let path = (*self.path).as_ref()
+            .map(|p| p.translate(meta))
+            .unwrap_or_default();
         let prefix = format!("while IFS= read -r {name}; do");
         let suffix = format!("done <{path}");
         (prefix, suffix)
