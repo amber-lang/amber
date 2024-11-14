@@ -112,7 +112,7 @@ pub fun glob(path: Text): [Text]? {
 /// Extract the file detecting from the filename the extension
 /// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
 /// Note: Not all the commands supports the output folder path
-pub fun extract(path: Text, target: Text): Bool{
+pub fun extract(path: Text, target: Text): Bool? {
     if file_exist(path) {
         if {
             contains_any_regex(path, ["/.tar.bz2$/g", "/.tbz$/g", "/.tbz2$/g"]): $ tar xvjf "{path}" -C "{target}" $?
