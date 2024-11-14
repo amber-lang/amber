@@ -145,7 +145,6 @@ pub fun contains_regex(source: Text, search: Text, extended: Bool = false): Bool
             output = $ echo "{source}" | sed -e "{search}" $
         }
         if output == "" {
-            echo output
             return true
         }
     }
