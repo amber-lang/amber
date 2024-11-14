@@ -10,7 +10,9 @@ main {
     let package = tmpdir + "/" + "filename.tar.gz"
 
     if (extract(package, tmpdir)) {
-        echo "Succeeded"
+        if dir_exist(tmpdir + "/" + tmpdir) {
+            echo "Succeeded"
+        }
     }
     trust $ rm -rf "{tmpdir}" $
 }

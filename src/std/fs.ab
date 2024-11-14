@@ -1,4 +1,4 @@
-import { contains_all, join, replace_regex, split } from "std/text"
+import { contains_any, join, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
@@ -115,18 +115,18 @@ pub fun glob(path: Text): [Text]? {
 pub fun extract(path: Text, target: Text): Bool{
     if file_exist(path) {
         if {
-            contains_all(path, [".tar.bz2", ".tbz", ".tbz2"]): trust $ tar xvjf "{path}" -C "{target}" $
-            contains_all(path, [".tar.gz", ".tgz"]): trust $ tar xzf "{path}" -C "{target}" $
-            contains_all(path, [".tar.xz", ".txz"]): trust $ tar xJf "{path}" -C "{target}" $
-            contains_all(path, [".bz2"]): trust $ bunzip2 "{path}" $
-            contains_all(path, [".deb"]): trust $ dpkg-deb -xv "{path}" "{target}" $
-            contains_all(path, [".gz"]): trust $ gunzip "{path}" $
-            contains_all(path, [".rar"]): trust $ unrar x "{path}" "{target}" $
-            contains_all(path, [".rpm"]): trust $ rpm2cpio "{path}"| cpio -idm{{}} $
-            contains_all(path, [".tar"]): trust $ tar xf "{path}" -C "{target}" $
-            contains_all(path, [".xz"]): trust $ xz --decompress "{path}" $
-            contains_all(path, [".7z"]): trust $ 7z -y "{path}" -o "{target}" $
-            contains_all(path, [".zip", ".war", ".jar"]): trust $ unzip "{path}" -d "{target}" $
+            contains_any(path, [".tar.bz2", ".tbz", ".tbz2"]): trust $ tar xvjf "{path}" -C "{target}" $
+            contains_any(path, [".tar.gz", ".tgz"]): trust $ tar xzf "{path}" -C "{target}" $
+            contains_any(path, [".tar.xz", ".txz"]): trust $ tar xJf "{path}" -C "{target}" $
+            contains_any(path, [".bz2"]): trust $ bunzip2 "{path}" $
+            contains_any(path, [".deb"]): trust $ dpkg-deb -xv "{path}" "{target}" $
+            contains_any(path, [".gz"]): trust $ gunzip "{path}" $
+            contains_any(path, [".rar"]): trust $ unrar x "{path}" "{target}" $
+            contains_any(path, [".rpm"]): trust $ rpm2cpio "{path}" | cpio -idm{{}} $
+            contains_any(path, [".tar"]): trust $ tar xf "{path}" -C "{target}" $
+            contains_any(path, [".xz"]): trust $ xz --decompress "{path}" $
+            contains_any(path, [".7z"]): trust $ 7z -y "{path}" -o "{target}" $
+            contains_any(path, [".zip", ".war", ".jar"]): trust $ unzip "{path}" -d "{target}" $
             else {
                 echo "Error: Unsupported file type"
                 return false

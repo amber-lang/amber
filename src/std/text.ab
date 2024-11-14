@@ -117,7 +117,7 @@ pub fun contains_all(text: Text, terms: [Text]): Bool {
     let i = 0
     for term in terms {
         if contains(text, term) {
-            i++
+            i += 1
         }
     }
 

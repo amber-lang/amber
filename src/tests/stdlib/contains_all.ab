@@ -5,9 +5,10 @@ import { contains_all } from "std/text"
 // Succeeded
 
 main {
-    if ! contains_all("Hello World", ["World", "Something"]) {
+    if contains_all("Hello World", ["World", "Something"]) == false {
         echo "Succeeded"
     }
+
     if contains_all("Hello World", ["World", "Hello"]) {
         echo "Succeeded"
     }
