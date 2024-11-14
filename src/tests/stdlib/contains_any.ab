@@ -1,0 +1,7 @@
+import { contains_any } from "std/text"
+
+main {
+    if contains_any("Hello World", ["World", "Something"]) {
+        echo "Succeeded"
+    }
+} 

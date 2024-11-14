@@ -101,11 +101,28 @@ pub fun contains(text: Text, phrase: Text): Bool {
 }
 
 /// Checks if an array value is in the text.
-pub fun contains_multiple(text, terms): Bool {
-    for index, term in terms {
+pub fun contains_any(text: Text, terms: [Text]): Bool {
+    for term in terms {
         if contains(text, term) {
             return true
         }
+    }
+
+    return false
+}
+
+/// Checks if all the arrays values are in the string
+pub fun contains_all(text: Text, terms: [Text]): Bool {
+    let total = len terms
+    let i = 0
+    for term in terms {
+        if contains(text, term) {
+            i++
+        }
+    }
+
+    if i == total {
+        return true
     }
 
     return false

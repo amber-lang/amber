@@ -1,6 +1,0 @@
-import { contains_multiple } from "std/text"
-main {
-    if contains_multiple("Hello World", ["World", "Something"]) {
-        echo "Succeeded"
-    }
-} 
