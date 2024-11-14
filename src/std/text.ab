@@ -21,7 +21,7 @@ pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool 
             // contains "GNU sed".
             $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
             let flag = status == 0 then "-r" else "-E"
-            return $ echo "{source}" | sed {flag} -e "s/{search}/{replace}/g" $
+            return $ echo "{source}" | sed "{flag}" -e "s/{search}/{replace}/g" $
         } else {
             return $ echo "{source}" | sed -e "s/{search}/{replace}/g" $
         }
@@ -123,6 +123,41 @@ pub fun contains_all(text: Text, terms: [Text]): Bool {
 
     if i == total {
         return true
+    }
+
+    return false
+}
+
+/// Search all occurences of a regex pattern in the content.
+///
+/// Function uses `sed`
+pub fun contains_regex(source: Text, search: Text, extended: Bool = false): Bool {
+    trust {
+        let output = ""
+        if extended {
+            // GNU sed versions 4.0 through 4.2 support extended regex syntax,
+            // but only via the "-r" option; use that if the version information
+            // contains "GNU sed".
+            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+            let flag = status == 0 then "-r" else "-E"
+            output = $ echo "{source}" | sed "{flag}" -e "{search}" $
+        } else {
+            output = $ echo "{source}" | sed -e "{search}" $
+        }
+        if output == "" {
+            echo output
+            return true
+        }
+    }
+    return false
+}
+
+/// Checks if an array value (with regular expression) is in the text.
+pub fun contains_any_regex(text: Text, terms: [Text]): Bool {
+    for term in terms {
+        if contains_regex(text, term) {
+            return true
+        }
     }
 
     return false

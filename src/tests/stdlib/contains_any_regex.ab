@@ -1,0 +1,19 @@
+import { contains_any_regex } from "std/text"
+
+// Output
+// None: 0
+// Right: 1
+// Left: 1
+// Both: 1
+
+fun test_multiple(label, text, terms) {
+    let result = contains_any_regex(text, terms)
+    echo "{label}: {result}"
+}
+
+main {
+    test_multiple("None", "Hello World", ["/Other/g", "/Other$/g"])
+    test_multiple("Right", "Hello World", ["/Other/g", "/World$/g"])
+    test_multiple("Left", "Hello World", ["/^Hello/g", "/Other/g"])
+    test_multiple("Both", "Hello World", ["/^Hello/g", "/$World/g"])
+}
