@@ -9,10 +9,13 @@ main {
     trust $ rm "test.txt" $
     let package = tmpdir + "/" + "filename.tar.gz"
 
-    if (extract(package, tmpdir)) {
-        if dir_exist(tmpdir + "/" + tmpdir) {
-            echo "Succeeded"
-        }
+    extract(package, tmpdir) failed {
+        echo "Error"
     }
+
+    if dir_exist(tmpdir + "/" + tmpdir) {
+        echo "Succeeded"
+    }
+
     trust $ rm -rf "{tmpdir}" $
 }
