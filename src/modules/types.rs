@@ -17,6 +17,7 @@ pub enum Type {
 impl Type {
     pub fn is_subset_of(&self, other: &Type) -> bool {
         match (self, other) {
+            (_, Type::Generic) => true,
             (Type::Array(current), Type::Array(other)) => {
                 **current != Type::Generic && **other == Type::Generic
             }
@@ -28,7 +29,7 @@ impl Type {
     }
 
     pub fn is_allowed_in(&self, other: &Type) -> bool {
-        self == other || self.is_subset_of(other) || other == &Type::Generic
+        self == other || self.is_subset_of(other)
     }
 
     pub fn is_array(&self) -> bool {
