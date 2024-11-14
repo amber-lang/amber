@@ -1,0 +1,4 @@
+import * from "std/text"
+main {
+    echo replace_once("Succinctly\\", "inctly\\", "eeded")
+}

@@ -1,11 +1,15 @@
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 pub fun replace(source, search, replace) {
-    return "\$\{source//{search}/{replace}}"
+    search = trust $ echo \$\{{nameof search}//\\\\/\\\\\\\\} $
+    replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
+    return trust $ echo \$\{{nameof source}//{search}/{replace}} $
 }
 
 /// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
-    return "\$\{source/{search}/{replace}}"
+    search = replace(search, "\\", "\\\\")
+    replace = replace(replace, "\\", "\\\\")
+    return trust $ echo \$\{{nameof source}/{search}/{replace}} $
 }
 
 /// Replaces all occurrences of a regex pattern in the content with the provided replace text.
