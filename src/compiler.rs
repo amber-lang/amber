@@ -5,7 +5,8 @@ use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
-use cache::PreparsedFile;
+use cache::parse::PreparsedFile;
+use file_source::FileMeta;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
@@ -20,6 +21,7 @@ use std::process::{Command, ExitStatus};
 use std::time::Instant;
 
 pub mod postprocessor;
+pub mod file_source;
 pub mod cache;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
@@ -30,14 +32,16 @@ pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
     pub cli_opts: Cli,
+    pub file_meta: FileMeta
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, cli_opts: Cli, file_meta: FileMeta) -> AmberCompiler {
         AmberCompiler {
             cc: Compiler::new("Amber", rules::get_rules()),
             path,
             cli_opts,
+            file_meta
         }
         .load_code(AmberCompiler::comment_shebang(code))
     }
@@ -98,7 +102,7 @@ impl AmberCompiler {
         tokens: Vec<Token>,
         is_docs_gen: bool,
     ) -> Result<(Block, ParserMetadata), Message> {
-        if let Some(cached) = self.load_cache()? {
+        if let Some(cached) = self.load_parse_cache()? {
             return Ok(( cached.block, cached.meta ))
         }
 
@@ -273,8 +277,13 @@ impl AmberCompiler {
             .show();
     }
 
-    pub fn load_cache(&self) -> Result<Option<PreparsedFile>, Message> {
-        if self.cli_opts.no_cache {
+    pub fn cache_disabled(&self) -> bool {
+        self.cli_opts.no_cache
+            || self.file_meta.source.cache_disabled()
+    }
+
+    pub fn load_parse_cache(&self) -> Result<Option<PreparsedFile>, Message> {
+        if self.cache_disabled() {
             return Ok(None)
         }
         
@@ -296,7 +305,7 @@ impl AmberCompiler {
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
-        if let Some(cached) = self.load_cache()? {
+        if let Some(cached) = self.load_parse_cache()? {
             return Ok(( vec![], self.translate(cached.block, cached.meta)? ))
         }
         let tokens = self.tokenize()?;

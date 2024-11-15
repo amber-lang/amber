@@ -12,6 +12,7 @@ pub mod tests;
 use crate::compiler::AmberCompiler;
 use clap::Parser;
 use colored::Colorize;
+use compiler::file_source::{FileMeta, FileSource};
 use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::fs;
@@ -65,6 +66,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
+    let mut file_source = FileSource::File;
+
     let input = if let Some(input) = cli.input.clone() {
         String::from(input.to_string_lossy().trim())
     } else {
@@ -72,6 +75,7 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
     };
 
     let code = if input == "-" {
+        file_source = FileSource::Stream;
         let mut buf = String::new();
         match stdin().read_to_string(&mut buf) {
             Ok(_) => buf,
@@ -84,7 +88,16 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let (messages, code) = match AmberCompiler::new(code, Some(input), cli.clone()).compile() {
+    let compiler = AmberCompiler::new(
+        code,
+        Some(input),
+        cli.clone(),
+        FileMeta {
+            is_import: false,
+            source: file_source
+        }
+    );
+    let (messages, code) = match compiler.compile() {
         Ok(result) => result,
         Err(err) => {
             err.show();
@@ -126,7 +139,16 @@ fn handle_compile(cli: Cli) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
-    match AmberCompiler::new(code, None, cli).compile() {
+    let compiler = AmberCompiler::new(
+        code,
+        None,
+        cli,
+        FileMeta {
+            is_import: false,
+            source: FileSource::Stream
+        }
+    );
+    match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
@@ -172,7 +194,16 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    match AmberCompiler::new(code, Some(input), cli).generate_docs(output) {
+    let compiler = AmberCompiler::new(
+        code,
+        Some(input),
+        cli,
+        FileMeta {
+            is_import: false,
+            source: FileSource::File
+        }
+    );
+    match compiler.generate_docs(output) {
         Ok(_) => Ok(()),
         Err(err) => {
             err.show();
