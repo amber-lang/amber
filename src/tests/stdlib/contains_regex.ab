@@ -1,7 +1,7 @@
 import { contains_regex } from "std/text"
 
 main {
-    if contains_regex("Hello World", "/World$/g") {
+    if contains_regex("Hello World", "World$") {
         echo "Succeeded"
     }
 }

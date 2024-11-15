@@ -122,10 +122,10 @@ pub fun contains_all(text: Text, terms: [Text]): Bool {
     return true
 }
 
-/// Search all occurences of a regex pattern in the content.
+/// Match all occurences of a regex pattern.
 ///
 /// Function uses `sed`
-pub fun contains_regex(source: Text, search: Text, extended: Bool = false): Bool {
+pub fun contains_regex(source: Text, search: Text, extended: Bool = false, match: Text = "g"): Bool {
     trust {
         let output = ""
         if extended {
@@ -134,9 +134,9 @@ pub fun contains_regex(source: Text, search: Text, extended: Bool = false): Bool
             // contains "GNU sed".
             $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
             let flag = status == 0 then "-r" else "-E"
-            output = $ echo "{source}" | sed "{flag}" -e "{search}" $
+            output = $ echo "{source}" | sed "{flag}" -e "/{search}/{match}" $
         } else {
-            output = $ echo "{source}" | sed -e "{search}" $
+            output = $ echo "{source}" | sed -e "/{search}/{match}" $
         }
         if output == "" {
             return true
@@ -146,9 +146,9 @@ pub fun contains_regex(source: Text, search: Text, extended: Bool = false): Bool
 }
 
 /// Checks if an array value (with regular expression) is in the text.
-pub fun contains_any_regex(text: Text, terms: [Text]): Bool {
+pub fun contains_any_regex(text: Text, terms: [Text], match: Text = "g"): Bool {
     for term in terms {
-        if contains_regex(text, term) {
+        if contains_regex(text, term, false, match) {
             return true
         }
     }

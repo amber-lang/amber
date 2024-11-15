@@ -115,18 +115,18 @@ pub fun glob(path: Text): [Text]? {
 pub fun extract(path: Text, target: Text): Null? {
     if file_exist(path) {
         if {
-            contains_any_regex(path, ["/.tar.bz2$/g", "/.tbz$/g", "/.tbz2$/g"]): $ tar xvjf "{path}" -C "{target}" $?
-            contains_any_regex(path, ["/.tar.gz$/g", "/.tgz$/g"]): $ tar xzf "{path}" -C "{target}" $?
-            contains_any_regex(path, ["/.tar.xz$/g", "/.txz$/g"]): $ tar xJf "{path}" -C "{target}" $?
-            contains_any_regex(path, ["/.bz2$/g"]): $ bunzip2 "{path}" $?
-            contains_any_regex(path, ["/.deb$/g"]): $ dpkg-deb -xv "{path}" "{target}" $?
-            contains_any_regex(path, ["/.gz$/g"]): $ gunzip "{path}" $?
-            contains_any_regex(path, ["/.rar$/g"]): $ unrar x "{path}" "{target}" $?
-            contains_any_regex(path, ["/.rpm$/g"]): $ rpm2cpio "{path}" | cpio -idm $?
-            contains_any_regex(path, ["/.tar$/g"]): $ tar xf "{path}" -C "{target}" $?
-            contains_any_regex(path, ["/.xz$/g"]): $ xz --decompress "{path}" $?
-            contains_any_regex(path, ["/.7z$/g"]): $ 7z -y "{path}" -o "{target}" $?
-            contains_any_regex(path, ["/.zip$/g", "/.war$/g", "/.jar$/g"]): $ unzip "{path}" -d "{target}" $?
+            contains_any_regex(path, ["tar.bz2$", "tbz$", "tbz2$"]): $ tar xvjf "{path}" -C "{target}" $?
+            contains_any_regex(path, ["tar.gz$", "tgz$"]): $ tar xzf "{path}" -C "{target}" $?
+            contains_any_regex(path, ["tar.xz$", "txz$"]): $ tar xJf "{path}" -C "{target}" $?
+            contains_any_regex(path, ["bz2$"]): $ bunzip2 "{path}" $?
+            contains_any_regex(path, ["deb$"]): $ dpkg-deb -xv "{path}" "{target}" $?
+            contains_any_regex(path, ["gz$"]): $ gunzip "{path}" $?
+            contains_any_regex(path, ["rar$"]): $ unrar x "{path}" "{target}" $?
+            contains_any_regex(path, ["rpm$"]): $ rpm2cpio "{path}" | cpio -idm $?
+            contains_any_regex(path, ["tar$"]): $ tar xf "{path}" -C "{target}" $?
+            contains_any_regex(path, ["xz$"]): $ xz --decompress "{path}" $?
+            contains_any_regex(path, ["7z$"]): $ 7z -y "{path}" -o "{target}" $?
+            contains_any_regex(path, ["zip$", "war$", "jar$"]): $ unzip "{path}" -d "{target}" $?
             else {
                 echo "Error: Unsupported file type"
                 fail 3

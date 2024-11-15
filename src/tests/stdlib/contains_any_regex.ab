@@ -14,8 +14,8 @@ fun test_multiple(label, text, terms) {
 
 main {
     test_multiple("Empty", "Hello World", [Text])
-    test_multiple("None", "Hello World", ["/Other/g", "/Other$/g"])
-    test_multiple("Right", "Hello World", ["/Other/g", "/World$/g"])
-    test_multiple("Left", "Hello World", ["/^Hello/g", "/Other/g"])
-    test_multiple("Both", "Hello World", ["/^Hello/g", "/$World/g"])
+    test_multiple("None", "Hello World", ["Other", "Other$"])
+    test_multiple("Right", "Hello World", ["Other", "World$"])
+    test_multiple("Left", "Hello World", ["^Hello", "Other"])
+    test_multiple("Both", "Hello World", ["^Hello", "$World"])
 }
