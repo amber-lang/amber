@@ -47,6 +47,9 @@ pub struct Cli {
     /// Minify the resulting code
     #[arg(long)]
     minify: bool,
+
+    #[arg(long, short)]
+    no_cache: bool
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
