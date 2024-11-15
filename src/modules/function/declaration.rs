@@ -191,7 +191,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                             optional = true;
                             let mut expr = Expr::new();
                             syntax(meta, &mut expr)?;
-                            if arg_type != Type::Generic && arg_type != expr.get_type() {
+                            if !expr.get_type().is_allowed_in(&arg_type) {
                                 return error!(meta, name_token, "Optional argument does not match annotated type");
                             }
                             self.arg_optionals.push(expr);
