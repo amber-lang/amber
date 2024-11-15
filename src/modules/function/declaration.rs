@@ -8,6 +8,7 @@ use std::path::Path;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::expression::expr::Expr;
@@ -23,7 +24,7 @@ use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::declaration_utils::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionDeclaration {
     pub name: String,
     pub arg_refs: Vec<bool>,

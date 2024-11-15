@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use crate::translate::{compute::{translate_computation, ArithOp}, module::TranslateModule};
 use crate::modules::types::{Type, Typed};
@@ -7,7 +8,7 @@ use super::super::expr::Expr;
 use crate::error_type_match;
 use super::UnOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Not {
     expr: Box<Expr>
 }

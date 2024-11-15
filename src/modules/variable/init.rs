@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Typed, Type};
 use crate::modules::expression::expr::Expr;
@@ -6,7 +7,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_identifier_name};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VariableInit {
     name: String,
     expr: Box<Expr>,

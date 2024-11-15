@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::{handle_binop, error_type_match};
 use crate::translate::compute::{ArithOp, translate_computation};
@@ -8,7 +9,7 @@ use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Modulo {
     left: Box<Expr>,
     right: Box<Expr>

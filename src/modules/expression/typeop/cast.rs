@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::modules::expression::expr::Expr;
 use crate::{docs::module::DocumentationModule, translate::module::TranslateModule};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
@@ -8,7 +9,7 @@ use crate::modules::types::{Type, Typed};
 
 use super::TypeOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Cast {
     expr: Box<Expr>,
     kind: Type

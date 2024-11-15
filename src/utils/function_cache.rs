@@ -1,8 +1,10 @@
 use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+
 use crate::modules::{types::Type, block::Block};
 use super::context::Context;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 /// This is a compiled function instance
 pub struct FunctionInstance {
     pub variant_id: usize,
@@ -11,14 +13,14 @@ pub struct FunctionInstance {
     pub block: Block
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// This is a cached data representing a function
 pub struct FunctionCacheEntry {
     pub instances: Vec<FunctionInstance>,
     pub context: Context
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 // This is a map of all generated functions based on their invocations
 pub struct FunctionCache {
     pub funs: HashMap<usize, FunctionCacheEntry>,

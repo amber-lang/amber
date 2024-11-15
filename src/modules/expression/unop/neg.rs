@@ -1,10 +1,11 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
 use super::{super::expr::Expr, UnOp};
 use crate::docs::module::DocumentationModule;
 use crate::error_type_match;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Neg {
     expr: Box<Expr>
 }

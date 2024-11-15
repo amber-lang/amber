@@ -1,19 +1,21 @@
+use serde::{Deserialize, Serialize};
+
 use crate::modules::block::Block;
 use super::context::FunctionDecl;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileMetadata {
     pub block: Block,
     pub pub_funs: Vec<FunctionDecl>
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileCache {
     pub path: String,
     pub metadata: Option<FileMetadata>
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportCache {
     /// The paths of the imports (used to be able to resolve imports with topological sort)
     pub import_graph: Vec<Vec<usize>>,

@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
@@ -8,7 +9,7 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
 use crate::modules::types::{Type, Typed};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShorthandAdd {
     var: String,
     expr: Box<Expr>,

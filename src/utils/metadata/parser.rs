@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use heraclitus_compiler::prelude::*;
 use amber_meta::ContextManager;
+use serde::{Deserialize, Serialize};
 use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
@@ -9,7 +10,7 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::import_cache::ImportCache;
 use crate::utils::function_cache::FunctionCache;
 
-#[derive(Debug, ContextManager)]
+#[derive(Debug, Clone, ContextManager, Serialize, Deserialize)]
 pub struct ParserMetadata {
     /// Code if the parser is in eval mode
     pub eval_code: Option<String>,

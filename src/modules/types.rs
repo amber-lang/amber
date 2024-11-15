@@ -1,9 +1,10 @@
 use std::fmt::Display;
 
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum Type {
     #[default] Null,
     Text,

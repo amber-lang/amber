@@ -3,9 +3,10 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FunctionDecl {
     pub name: String,
     pub arg_names: Vec<String>,
@@ -35,7 +36,7 @@ impl FunctionDecl {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VariableDecl {
     pub name: String,
     pub kind: Type,
@@ -43,7 +44,7 @@ pub struct VariableDecl {
     pub is_ref: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ScopeUnit {
     pub vars: HashMap<String, VariableDecl>,
     pub funs: HashMap<String, FunctionDecl>,
@@ -94,7 +95,7 @@ impl ScopeUnit {
     }
 }
 
-#[derive(Clone, Debug, ContextHelper)]
+#[derive(Clone, Debug, ContextHelper, Serialize, Deserialize)]
 pub struct Context {
     /// The current index in the expression
     pub index: usize,

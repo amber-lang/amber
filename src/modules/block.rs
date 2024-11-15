@@ -3,12 +3,13 @@ use std::ops::Index;
 
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 use super::statement::stmt::Statement;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub statements: Vec<Statement>
 }

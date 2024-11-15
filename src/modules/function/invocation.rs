@@ -2,6 +2,7 @@ use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
@@ -12,7 +13,7 @@ use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
 use super::invocation_utils::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionInvocation {
     name: String,
     args: Vec<Expr>,

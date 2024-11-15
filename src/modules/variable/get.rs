@@ -1,9 +1,10 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
 use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VariableGet {
     pub name: String,
     kind: Type,

@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::{handle_binop, error_type_match};
 use crate::translate::compute::{translate_computation, ArithOp};
@@ -8,7 +9,7 @@ use crate::translate::module::TranslateModule;
 use super::{strip_text_quotes, BinOp};
 use crate::modules::types::{Typed, Type};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Neq {
     left: Box<Expr>,
     right: Box<Expr>

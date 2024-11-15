@@ -1,5 +1,6 @@
 use std::fs;
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::compiler::AmberCompiler;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
@@ -11,7 +12,7 @@ use crate::translate::module::TranslateModule;
 use crate::Cli;
 use super::import_string::ImportString;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Import {
     path: ImportString,
     token_import: Option<Token>,

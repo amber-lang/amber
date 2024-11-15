@@ -1,13 +1,14 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
 use super::modifier::CommandModifier;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Command {
     strings: Vec<String>,
     interps: Vec<Expr>,
