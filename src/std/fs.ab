@@ -129,13 +129,11 @@ pub fun extract(path: Text, target: Text): Null? {
             contains_any_regex(path, ["/.zip$/g", "/.war$/g", "/.jar$/g"]): $ unzip "{path}" -d "{target}" $?
             else {
                 echo "Error: Unsupported file type"
-                return false
+                fail 3
             }
         }
     } else {
         echo "Error: File not found"
-        return false
+        fail 2
     }
-
-    return true
 }
