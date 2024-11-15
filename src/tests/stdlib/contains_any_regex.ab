@@ -1,7 +1,7 @@
 import { contains_any_regex } from "std/text"
 
 // Output
-// Empty: 1
+// Empty: 0
 // None: 0
 // Right: 1
 // Left: 1

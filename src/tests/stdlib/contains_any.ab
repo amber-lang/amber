@@ -1,7 +1,7 @@
 import { contains_any } from "std/text"
 
 // Output
-// Empty: 1
+// Empty: 0
 // None: 0
 // Left: 1
 // Right: 1
