@@ -1,3 +1,4 @@
+use crate::compiler::file_source::{FileMeta, FileSource};
 use crate::compiler::AmberCompiler;
 use crate::Cli;
 extern crate test_generator;
@@ -13,9 +14,21 @@ pub mod postprocessor;
 mod stdlib;
 mod validity;
 
+pub fn compiler(code: impl Into<String>) -> AmberCompiler {
+    AmberCompiler::new(
+        code.into(),
+        None,
+        Cli::default(),
+        FileMeta {
+            is_import: false,
+            source: FileSource::Stream
+        }
+    )
+}
+
 /// compare the output of the given code with the expected output
 pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
-    match AmberCompiler::new(code.into(), None, Cli::default()).test_eval() {
+    match compiler(code).test_eval() {
         Ok(eval_result) => assert_eq!(
             eval_result.trim_end_matches('\n'),
             result.as_ref().trim_end_matches('\n')
@@ -27,10 +40,11 @@ pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
 pub fn compile_code<T: Into<String>>(code: T) -> String {
     let cli = Cli {
         no_proc: vec!["*".into()],
+        no_cache: true,
         ..Cli::default()
     };
     
-    AmberCompiler::new(code.into(), None, cli)
+    compiler(code)
         .compile()
         .unwrap()
         .1
