@@ -5,6 +5,7 @@ use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
+use cache::PreparsedFile;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
@@ -19,6 +20,7 @@ use std::process::{Command, ExitStatus};
 use std::time::Instant;
 
 pub mod postprocessor;
+pub mod cache;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
@@ -96,6 +98,10 @@ impl AmberCompiler {
         tokens: Vec<Token>,
         is_docs_gen: bool,
     ) -> Result<(Block, ParserMetadata), Message> {
+        if let Some(cached) = self.load_cache()? {
+            return Ok(( cached.block, cached.meta ))
+        }
+
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
         meta.is_docs_gen = is_docs_gen;
@@ -118,6 +124,20 @@ impl AmberCompiler {
                 time.elapsed().as_millis()
             );
         }
+
+        let time = Instant::now();
+        if let Some(path) = self.path.clone() {
+            if let Ok(_) = PreparsedFile::save(&path, block.clone(), &meta) {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    println!(
+                        "[{}]\tin\t{}ms\t{path}",
+                        "Saved cache".blue(),
+                        time.elapsed().as_millis()
+                    );
+                }
+            }
+        }
+        
         // Return result
         match result {
             Ok(()) => Ok((block, meta)),
@@ -253,7 +273,32 @@ impl AmberCompiler {
             .show();
     }
 
+    pub fn load_cache(&self) -> Result<Option<PreparsedFile>, Message> {
+        if self.cli_opts.no_cache {
+            return Ok(None)
+        }
+        
+        if let Some(path) = self.path.clone() {
+            let time = Instant::now();
+            if let Some(cached) = PreparsedFile::load_for(&path).map_err(|err| Message::new_err_msg(err.to_string()))? {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                    println!(
+                        "[{}]\tin\t{}ms\t{pathname}",
+                        "Loaded cache".blue(),
+                        time.elapsed().as_millis()
+                    )
+                }
+                return Ok(Some(cached))
+            }
+        }
+        Ok(None)
+    }
+
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
+        if let Some(cached) = self.load_cache()? {
+            return Ok(( vec![], self.translate(cached.block, cached.meta)? ))
+        }
         let tokens = self.tokenize()?;
         let (block, meta) = self.parse(tokens, false)?;
         let messages = meta.messages.clone();
