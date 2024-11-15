@@ -113,19 +113,13 @@ pub fun contains_any(text: Text, terms: [Text]): Bool {
 
 /// Checks if all the arrays values are in the string
 pub fun contains_all(text: Text, terms: [Text]): Bool {
-    let total = len terms
-    let i = 0
     for term in terms {
-        if contains(text, term) {
-            i += 1
+        if not contains(text, term) {
+            return false
         }
     }
 
-    if i == total {
-        return true
-    }
-
-    return false
+    return true
 }
 
 /// Search all occurences of a regex pattern in the content.
