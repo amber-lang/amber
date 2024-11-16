@@ -1,7 +1,8 @@
 use std::collections::VecDeque;
 
-use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache};
 use crate::compiler::CompilerOptions;
+use crate::translate::compute::ArithType;
+use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::ParserMetadata;
 
