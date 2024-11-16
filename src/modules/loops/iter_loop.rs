@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
@@ -71,31 +71,39 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = &self.iter_name;
-        let expr = self.iter_expr.translate(meta);
+        let (prefix, suffix) = self.surround_iter(meta);
         match self.iter_index.as_ref() {
             Some(index) => {
-                // Create an indentation for the index increment
-                meta.increase_indent();
-                let indent = meta.gen_indent();
-                meta.decrease_indent();
+                let indent = TranslateMetadata::single_indent();
                 [
                     format!("{index}=0;"),
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
+                    prefix,
                     self.block.translate(meta),
                     format!("{indent}(( {index}++ )) || true"),
-                    "done".to_string(),
+                    suffix,
                 ].join("\n")
             },
             None => {
                 [
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
+                    prefix,
                     self.block.translate(meta),
-                    "done".to_string(),
+                    suffix,
                 ].join("\n")
             },
+        }
+    }
+}
+
+impl IterLoop {
+    fn surround_iter(&self, meta: &mut TranslateMetadata) -> (String, String) {
+        let name = &self.iter_name;
+        if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
+            value.surround_iter(meta, name)
+        } else {
+            let expr = self.iter_expr.translate(meta);
+            let prefix = format!("for {name} in {expr}; do");
+            let suffix = String::from("done");
+            (prefix, suffix)
         }
     }
 }

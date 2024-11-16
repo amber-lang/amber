@@ -36,7 +36,7 @@ pub fun split(text: Text, delimiter: Text): [Text] {
 }
 
 /// Splits a `text` into an array of substrings based on newline characters.
-pub fun lines(text: Text): [Text] {
+pub fun split_lines(text: Text): [Text] {
     return split(text, "\n")
 }
 
