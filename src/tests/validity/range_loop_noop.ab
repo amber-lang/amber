@@ -1,0 +1,7 @@
+// Output
+// -1
+// 0
+
+loop i in -1..=0 {
+    echo i
+}

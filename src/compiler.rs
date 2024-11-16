@@ -6,6 +6,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
 use cache::parse::PreparsedFile;
+use cache::tokenize::PretokenizedFile;
 use file_source::FileMeta;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
@@ -69,6 +70,19 @@ impl AmberCompiler {
 
     pub fn tokenize(&self) -> Result<Vec<Token>, Message> {
         let time = Instant::now();
+        if let Some(cache) = self.load_token_cache()? {
+            if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                println!(
+                    "[{}]\tin\t{}ms\t{pathname}",
+                    "Loaded cache".cyan(),
+                    time.elapsed().as_millis()
+                );
+            }
+            return Ok(cache.tokens)
+        }
+        
+        let time = Instant::now();
         match self.cc.tokenize() {
             Ok(tokens) => {
                 if Self::env_flag_set(AMBER_DEBUG_TIME) {
@@ -79,6 +93,21 @@ impl AmberCompiler {
                         time.elapsed().as_millis()
                     );
                 }
+                let time = Instant::now();
+                if ! self.cache_disabled() {
+                    if let Some(filename) = self.path.clone() {
+                        PretokenizedFile::save(filename, self.file_meta, tokens.clone()).map_err(|x| Message::new_err_msg(format!("Error while saving token cache: {x}")))?;
+                        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                            println!(
+                                "[{}]\tin\t{}ms\t{pathname}",
+                                "Saved cache".cyan(),
+                                time.elapsed().as_millis()
+                            );
+                        }
+                    }
+                }
+
                 Ok(tokens)
             }
             Err((err_type, pos)) => {
@@ -301,6 +330,29 @@ impl AmberCompiler {
                 return Ok(Some(cached))
             }
         }
+        Ok(None)
+    }
+
+    pub fn load_token_cache(&self) -> Result<Option<PretokenizedFile>, Message> {
+        if self.cache_disabled() {
+            return Ok(None)
+        }
+
+        if let Some(path) = self.path.clone() {
+            let time = Instant::now();
+            if let Some(cached) = PretokenizedFile::load_for(path, self.file_meta).map_err(|err| Message::new_err_msg(err.to_string()))? {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                    println!(
+                        "[{}]\tin\t{}ms\t{pathname}",
+                        "Loaded cache".cyan(),
+                        time.elapsed().as_millis()
+                    )
+                }
+                return Ok(Some(cached))
+            }
+        }
+
         Ok(None)
     }
 

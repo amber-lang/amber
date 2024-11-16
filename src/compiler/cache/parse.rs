@@ -5,6 +5,8 @@ use crate::{modules::block::Block, utils::ParserMetadata};
 
 use super::GIT_HASH;
 
+pub const FILE_EXT: &'static str = "ab.pr.c";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PreparsedFile {
     pub block: Block,
@@ -24,13 +26,13 @@ impl PreparsedFile {
         let meta = File::open(&filename)?;
         let meta = meta.metadata()?;
 
-        filename.set_extension("abc"); // amber compiled
+        filename.set_extension(FILE_EXT); // amber compiled
         if ! filename.is_file() {
             return Ok(None);
         }
         
         let preparsed = fs::read(&filename)?;
-        if let Ok(preparsed) = rmp_serde::from_slice::<PreparsedFile>(&preparsed) {
+        if let Ok(preparsed) = Self::try_from(preparsed) {
 
             if ! preparsed.validate(&meta) {
                 fs::remove_file(&filename)?;
@@ -64,9 +66,9 @@ impl PreparsedFile {
 
     fn save_to_file<T: Into<PathBuf>>(&self, filename: T) -> Result<(), Box<dyn Error>> {
         let mut filename: PathBuf = filename.into();
-        filename.set_extension("abc");
+        filename.set_extension(FILE_EXT);
 
-        let serialized = rmp_serde::to_vec(self)?;
+        let serialized: Vec<u8> = self.try_into()?;
         fs::write(filename, serialized)?;
 
         Ok(())
@@ -81,5 +83,19 @@ impl PreparsedFile {
             },
             Err(_) => false
         }
+    }
+}
+
+impl TryInto<Vec<u8>> for &PreparsedFile {
+    type Error = String;
+    fn try_into(self) -> Result<Vec<u8>, Self::Error> {
+        Ok(rmp_serde::to_vec(&self).map_err(|x| x.to_string())?)
+    }
+}
+
+impl TryFrom<Vec<u8>> for PreparsedFile {
+    type Error = String;
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        Ok(rmp_serde::from_slice(&value).map_err(|x| x.to_string())?)
     }
 }

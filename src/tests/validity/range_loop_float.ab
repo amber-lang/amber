@@ -1,0 +1,8 @@
+// Output
+// 1
+// 2
+// 3
+
+loop i in 1..4.5 {
+    echo i
+}
