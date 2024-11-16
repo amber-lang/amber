@@ -44,7 +44,7 @@ enum CommandKind {
     Check(CheckCommand),
     /// Compile Amber script to Bash
     Build(BuildCommand),
-    /// Generate documentation for Amber script
+    /// Generate Amber script documentation
     Doc(DocCommand),
     /// Generate Bash completion script
     Comp,
