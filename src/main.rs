@@ -158,6 +158,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn create_output(command: &BuildCommand) -> PathBuf {
     if let Some(output) = &command.output {
         output.clone()
+    } else if command.input.as_os_str() == "-" {
+        command.input.clone()
     } else {
         command.input.with_extension("sh")
     }
