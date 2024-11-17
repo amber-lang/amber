@@ -43,3 +43,13 @@ pub fun extract_at(ref array, index) {
     remove_at(array, index)
     return elem
 }
+
+/// Removes the last element from the array, and returns it
+pub fun pop(ref array) {
+    return extract_at(array, len(array) - 1)
+}
+
+/// Removes the first element from the array, and returns it
+pub fun shift(ref array) {
+    return extract_at(array, 0)
+}

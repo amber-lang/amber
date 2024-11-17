@@ -1,0 +1,11 @@
+import { pop, array_first_index } from "std/array"
+
+main {
+    let array = ["Failed", "Failed", "Popped"]
+    if pop(array) == "Popped"
+        and len(array) == 2
+        and array_first_index(array, "Popped") == -1
+    {
+        echo "Succeeded"
+    }
+}
