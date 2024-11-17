@@ -1,0 +1,6 @@
+import { last } from "std/array"
+
+main {
+        let array = ["Failed", "Not", "Succeeded"]
+        echo last(array)
+}

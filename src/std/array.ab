@@ -26,3 +26,8 @@ pub fun includes(array, value) {
     let result = array_first_index(array, value)
     return result >= 0
 }
+
+/// Returns the last element in the array
+pub fun last(array) {
+    return array[len(array) - 1]
+}
