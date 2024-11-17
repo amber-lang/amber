@@ -1,0 +1,9 @@
+import { remove_at, array_first_index } from "std/array"
+
+main {
+    let array = ["Failed", "Removed", "Failed"]
+    remove_at(array, 1)
+    if len(array) == 2 and array_first_index(array, "Removed") == -1 {
+        echo "Succeeded"
+    }
+}
