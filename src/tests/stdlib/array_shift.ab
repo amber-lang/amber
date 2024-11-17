@@ -1,0 +1,11 @@
+import { shift, array_first_index } from "std/array"
+
+main {
+    let array = ["Shifted", "Failed", "Failed"]
+    if shift(array) == "Shifted"
+        and len(array) == 2
+        and array_first_index(array, "Shifted") == -1
+    {
+        echo "Succeeded"
+    }
+}
