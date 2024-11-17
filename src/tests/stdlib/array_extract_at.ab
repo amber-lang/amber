@@ -1,0 +1,12 @@
+import { extract_at, array_first_index } from "std/array"
+
+main {
+    let array = ["Failed", "Extracted", "Failed"]
+
+    if extract_at(array, 1) == "Extracted"
+        and len(array) == 2
+        and array_first_index(array, "Extracted") == -1
+    {
+        echo "Succeeded"
+    }
+}

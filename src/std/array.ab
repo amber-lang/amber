@@ -36,3 +36,10 @@ pub fun last(array) {
 pub fun remove_at(ref array: [], index: Num): Null {
     trust $ unset {nameof array}[{index}] $
 }
+
+/// Removes an element at the index from the array, and returns it
+pub fun extract_at(ref array, index) {
+    let elem = array[index]
+    remove_at(array, index)
+    return elem
+}
