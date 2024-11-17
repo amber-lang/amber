@@ -45,7 +45,7 @@ enum CommandKind {
     /// Compile Amber script to Bash
     Build(BuildCommand),
     /// Generate Amber script documentation
-    Doc(DocCommand),
+    Docs(DocsCommand),
     /// Generate Bash completion script
     Comp,
 }
@@ -100,7 +100,7 @@ struct BuildCommand {
 }
 
 #[derive(Args, Clone, Debug)]
-struct DocCommand {
+struct DocsCommand {
     /// Input filename ('-' to read from stdin)
     input: PathBuf,
 
@@ -140,8 +140,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
             }
-            CommandKind::Doc(command) => {
-                handle_doc(command)?;
+            CommandKind::Docs(command) => {
+                handle_docs(command)?;
             }
             CommandKind::Comp => {
                 handle_complete();
@@ -234,7 +234,7 @@ fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_doc(command: DocCommand) -> Result<(), Box<dyn Error>> {
+fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     let input = command.input.to_string_lossy().to_string();
     let code = match fs::read_to_string(&input) {
         Ok(code) => code,
