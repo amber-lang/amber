@@ -31,3 +31,8 @@ pub fun includes(array, value) {
 pub fun last(array) {
     return array[len(array) - 1]
 }
+
+/// Removes an element at the index from the array
+pub fun remove_at(ref array: [], index: Num): Null {
+    trust $ unset {nameof array}[{index}] $
+}
