@@ -146,6 +146,9 @@ impl SyntaxModule<ParserMetadata> for Import {
                 token(meta, "{")?;
                 let mut exports = vec![];
                 loop {
+                    if token(meta, "}").is_ok() {
+                        break;
+                    }
                     let tok = meta.get_current_token();
                     let name = variable(meta, variable_name_extensions())?;
                     let alias = match token(meta, "as") {
@@ -153,13 +156,14 @@ impl SyntaxModule<ParserMetadata> for Import {
                         Err(_) => None
                     };
                     exports.push((name, alias, tok));
-                    match token(meta, ",") {
-                        Ok(_) => {},
-                        Err(_) => break
+                    if token(meta, "}").is_ok() {
+                        break;
+                    }
+                    if token(meta, ",").is_err() {
+                        return error!(meta, meta.get_current_token(), "Expected ',' or '}' after import");
                     }
                 }
                 self.export_defs = exports;
-                token(meta, "}")?;
             }
         }
         token(meta, "from")?;
