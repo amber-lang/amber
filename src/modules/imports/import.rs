@@ -144,7 +144,7 @@ impl SyntaxModule<ParserMetadata> for Import {
             Ok(_) => self.is_all = true,
             Err(_) => {
                 token(meta, "{")?;
-                let mut exports = Vec::new();
+                let mut exports = vec![];
                 if token(meta, "}").is_err() {
                     loop {
                         let tok = meta.get_current_token();
