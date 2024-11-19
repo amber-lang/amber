@@ -125,7 +125,7 @@ pub fun contains_all(text: Text, terms: [Text]): Bool {
 /// Match all occurences of a regex pattern.
 ///
 /// Function uses `sed`
-pub fun contains_regex(source: Text, search: Text, extended: Bool = false, match: Text = "g"): Bool {
+pub fun match_regex(source: Text, search: Text, extended: Bool = false, match: Text = "g"): Bool {
     trust {
         let output = ""
         if extended {

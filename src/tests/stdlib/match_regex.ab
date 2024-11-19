@@ -1,0 +1,7 @@
+import { match_regex } from "std/text"
+
+main {
+    if match_regex("Hello World", "World$") {
+        echo "Succeeded"
+    }
+}
