@@ -148,7 +148,7 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false, match: T
 /// Checks if an array value (with regular expression) is in the text.
 pub fun contains_any_regex(text: Text, terms: [Text], match: Text = "g"): Bool {
     for term in terms {
-        if contains_regex(text, term, false, match) {
+        if match_regex(text, term, false, match) {
             return true
         }
     }
