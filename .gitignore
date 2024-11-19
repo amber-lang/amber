@@ -17,3 +17,6 @@ flamegraph.svg
 .direnv
 /result
 
+# Cache files
+*.ab.pr.c
+*.ab.tk.c

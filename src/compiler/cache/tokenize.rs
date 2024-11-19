@@ -33,13 +33,11 @@ impl PretokenizedFile {
         match file_meta.source {
             FileSource::File => {
                 if ! filename.is_file() {
-                    println!("not a file: {filename:?}");
                     return Ok(None)
                 }
             },
             FileSource::Stdlib => {
                 if Self::get_stdlib(&filename).is_none() {
-                    println!("not a stdlib: {filename:?}");
                     return Ok(None)
                 }
             },
@@ -51,16 +49,14 @@ impl PretokenizedFile {
         if let Some(cache_filename) = cache_filename {
             
             if ! cache_filename.is_file() {
-                println!("not a cachefile: {filename:?}");
                 return Ok(None)
             }
 
-            let parsed = Self::try_from(fs::read(cache_filename)?)?;
+            let parsed = Self::try_from(fs::read(&cache_filename)?)?;
 
             if parsed.validate(&filename, file_meta) {
                 Ok(Some(parsed))
             } else {
-                println!("invalid cachefile for {filename:?}");
                 Ok(None)
             }
             

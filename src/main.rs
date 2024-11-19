@@ -50,12 +50,20 @@ pub struct Cli {
     minify: bool,
 
     #[arg(long, short)]
-    no_cache: bool
+    no_cache: bool,
+
+    /// If you want to speed up your compile time, use this to precompile stdlib
+    /// It needs to be done only once per update, until you remove ~/.cache/amber
+    /// If you pass this, all other arguments will be discarded
+    #[arg(long, verbatim_doc_comment)]
+    precompile: bool
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-    if cli.docs {
+    if cli.precompile {
+        handle_precompile();
+    } else if cli.docs {
         handle_docs(cli)?;
     } else if let Some(ref code) = cli.eval {
         handle_eval(code.to_string(), cli)?;
@@ -210,6 +218,10 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     }
+}
+
+fn handle_precompile() {
+    stdlib::precompile_all();
 }
 
 #[cfg(windows)]
