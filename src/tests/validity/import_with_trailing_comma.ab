@@ -3,7 +3,7 @@ import {
     replace_regex,
 } from "std/text"
 import { sum, abs } from "std/math"
-import {} from "std/env"
+import { } from "std/env"
 
 // Output
 // c
