@@ -157,8 +157,13 @@ impl SyntaxModule<ParserMetadata> for Import {
                         if token(meta, "}").is_ok() {
                             break;
                         }
-                        if token(meta, ",").is_err() {
-                            return error!(meta, meta.get_current_token(), "Expected ',' or '}' after import");
+                        match token(meta, ",") {
+                            Ok(_) => {
+                                if token(meta, "}").is_ok() {
+                                    break
+                                }
+                            },
+                            Err(_) => return error!(meta, meta.get_current_token(), "Expected ',' or '}' after import"),
                         }
                     }
                 }
