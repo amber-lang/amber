@@ -1,0 +1,24 @@
+// Output
+// [one]
+// [two three four]
+// []
+// [five]
+// [  six  ]
+
+fun set_ref(ref inner: [Text], path: Text): Null {
+    inner = lines(path)
+}
+
+main {
+    let tmpdir = trust $ mktemp -d $
+    trust $ echo -e 'one\ntwo three four\n\nfive\n  six  ' >{tmpdir}/numbers.txt $
+
+    // Inefficient for large files.
+    let lines = ["a", "b", "c"]
+    set_ref(lines, "{tmpdir}/numbers.txt")
+    for line in lines {
+        echo "[{line}]"
+    }
+
+    trust $ rm -rf {tmpdir} $
+}
