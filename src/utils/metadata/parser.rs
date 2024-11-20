@@ -75,7 +75,7 @@ impl ParserMetadata {
             kind,
             global_id,
             is_ref: false,
-            is_const
+            is_const,
         });
         global_id
     }
@@ -89,7 +89,7 @@ impl ParserMetadata {
             kind,
             global_id,
             is_ref,
-            is_const: false
+            is_const: false,
         });
         global_id
     }

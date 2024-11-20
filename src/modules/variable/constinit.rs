@@ -23,7 +23,7 @@ impl ConstInit {
 }
 
 impl SyntaxModule<ParserMetadata> for ConstInit {
-    syntax_name!("Constant Initialization");
+    syntax_name!("Constant Initialize");
 
     fn new() -> Self {
         ConstInit {

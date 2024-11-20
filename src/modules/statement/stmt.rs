@@ -70,7 +70,7 @@ pub enum StatementType {
     CommandModifier(CommandModifier),
     Comment(Comment),
     CommentDoc(CommentDoc),
-    ConstInit(ConstInit)
+    ConstInit(ConstInit),
 }
 
 #[derive(Debug, Clone)]
