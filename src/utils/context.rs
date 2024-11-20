@@ -41,6 +41,7 @@ pub struct VariableDecl {
     pub kind: Type,
     pub global_id: Option<usize>,
     pub is_ref: bool,
+    pub is_const: bool,
 }
 
 #[derive(Clone, Debug)]
