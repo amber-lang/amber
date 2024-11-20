@@ -275,7 +275,7 @@ impl DocumentationModule for FunctionDeclaration {
     fn document(&self, meta: &ParserMetadata) -> String {
         let mut result = vec![];
         result.push(format!("## `{}`\n", self.name));
-        let references = self.create_reference(meta, &mut result);
+        let references = self.create_test_references(meta, &mut result);
         result.push("```ab".to_string());
         result.push(self.doc_signature.to_owned().unwrap());
         result.push("```\n".to_string());
@@ -293,7 +293,7 @@ impl DocumentationModule for FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn create_reference(&self, meta: &ParserMetadata, result: &mut Vec<String>) -> Option<Vec<String>> {
+    fn create_test_references(&self, meta: &ParserMetadata, result: &mut Vec<String>) -> Option<Vec<String>> {
         if meta.doc_usage {
             let mut references = Vec::new();
             let exe_path = env::current_exe()
