@@ -47,7 +47,7 @@ enum CommandKind {
     /// Generate Amber script documentation
     Docs(DocsCommand),
     /// Generate Bash completion script
-    Comp,
+    Completion,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -143,8 +143,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             CommandKind::Docs(command) => {
                 handle_docs(command)?;
             }
-            CommandKind::Comp => {
-                handle_complete();
+            CommandKind::Completion => {
+                handle_completion();
             }
         }
     } else if let Some(input) = cli.input {
@@ -256,7 +256,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_complete() {
+fn handle_completion() {
     let mut command = Cli::command();
     let name = command.get_name().to_string();
     clap_complete::generate(Shell::Bash, &mut command, name, &mut io::stdout());
