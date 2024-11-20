@@ -32,6 +32,13 @@ struct Cli {
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
     args: Vec<String>,
+
+    /// Disable a postprocessor
+    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    #[arg(long, verbatim_doc_comment)]
+    no_proc: Vec<String>,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -64,6 +71,13 @@ struct RunCommand {
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
     args: Vec<String>,
+
+    /// Disable a postprocessor
+    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    #[arg(long, verbatim_doc_comment)]
+    no_proc: Vec<String>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -120,23 +134,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 handle_eval(command)?;
             }
             CommandKind::Run(command) => {
-                let options = CompilerOptions::default();
+                let options = CompilerOptions::from_args(&command.no_proc, false);
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?;
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions {
-                    no_proc: command.no_proc.clone(),
-                    minify: false,
-                };
+                let options = CompilerOptions::from_args(&command.no_proc, false);
                 compile_input(command.input, options);
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions {
-                    no_proc: command.no_proc.clone(),
-                    minify: command.minify,
-                };
+                let options = CompilerOptions::from_args(&command.no_proc, command.minify);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
             }
@@ -148,7 +156,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::default();
+        let options = CompilerOptions::from_args(&cli.no_proc, false);
         let (code, messages) = compile_input(input, options);
         execute_output(code, cli.args, messages)?;
     }

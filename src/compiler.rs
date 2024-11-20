@@ -31,10 +31,15 @@ pub struct CompilerOptions {
 
 impl Default for CompilerOptions {
     fn default() -> Self {
-        Self {
-            no_proc: vec![String::from("*")],
-            minify: false,
-        }
+        let no_proc = vec![String::from("*")];
+        Self { no_proc, minify: false }
+    }
+}
+
+impl CompilerOptions {
+    pub fn from_args(no_proc: &Vec<String>, minify: bool) -> Self {
+        let no_proc = no_proc.clone();
+        Self { no_proc, minify }
     }
 }
 
