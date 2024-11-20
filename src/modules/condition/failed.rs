@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         if token(meta, "?").is_ok() {
-            if !meta.context.is_fun_ctx && !meta.context.is_main_ctx && !meta.context.is_unsafe_ctx {
+            if !meta.context.is_fun_ctx && !meta.context.is_main_ctx && !meta.context.is_trust_ctx {
                 return error!(meta, tok, "The '?' operator can only be used in the main block or function body")
             }
             self.is_question_mark = true;
@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
                         if self.block.is_empty() {
                             let message = Message::new_warn_at_token(meta, tok)
                                 .message("Empty failed block")
-                                .comment("You should use 'unsafe' modifier to run commands without handling errors");
+                                .comment("You should use 'trust' modifier to run commands without handling errors");
                             meta.add_message(message);
                         }
                         token(meta, "}")?;
@@ -56,7 +56,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
                         }
                     }
                 },
-                Err(_) => if meta.context.is_unsafe_ctx {
+                Err(_) => if meta.context.is_trust_ctx {
                     self.is_main = meta.context.is_main_ctx;
                     self.is_parsed = true;
                     return Ok(());
@@ -80,23 +80,27 @@ impl TranslateModule for Failed {
             if self.is_question_mark {
                 // if the failed expression is in the main block we need to clear the return value
                 let clear_return = if !self.is_main {
-                    let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
-                    format!("__AF_{name}{id}_v{variant}=''")
+                    let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
+                    format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return())
                 } else {
                     String::new()
                 };
-                ["__AS=$?;",
+                [
+                    "__AS=$?;",
                     "if [ $__AS != 0 ]; then",
                     &clear_return,
                     ret,
-                    "fi"].join("\n")
+                    "fi",
+                ].join("\n")
             } else if &block == ":" {
                 "__AS=$?".into()
             } else {
-                ["__AS=$?;",
+                [
+                    "__AS=$?;",
                     "if [ $__AS != 0 ]; then",
                     &block,
-                    "fi"].join("\n")
+                    "fi",
+                ].join("\n")
             }
         } else {
             String::new()

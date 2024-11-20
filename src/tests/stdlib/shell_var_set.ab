@@ -1,5 +1,5 @@
 import * from "std/env"
 main {
-    unsafe shell_var_set("test_shell_var_set", "Succeded")
-    unsafe $echo \$test_shell_var_set$
+    trust shell_var_set("test_shell_var_set", "Succeeded")
+    trust $ echo \$test_shell_var_set $
 }

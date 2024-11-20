@@ -1,9 +1,9 @@
+use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
+use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
-
-use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -95,7 +95,7 @@ impl ScopeUnit {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, ContextHelper)]
 pub struct Context {
     /// The current index in the expression
     pub index: usize,
@@ -110,16 +110,18 @@ pub struct Context {
     /// Determines if the context is in a function
     pub is_fun_ctx: bool,
     /// Determines if the context is in a loop
+    #[context]
     pub is_loop_ctx: bool,
     /// Determines if the context is in the main block
     pub is_main_ctx: bool,
-    /// Determines if the context is in an unsafe block
-    pub is_unsafe_ctx: bool,
+    /// Determines if the context is in a trust block
+    pub is_trust_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
     /// The return type of the currently parsed function
     pub fun_ret_type: Option<Type>,
     /// List of compiler flags
+    #[context]
     pub cc_flags: HashSet<CCFlags>,
 }
 
@@ -135,7 +137,7 @@ impl Context {
             is_fun_ctx: false,
             is_loop_ctx: false,
             is_main_ctx: false,
-            is_unsafe_ctx: false,
+            is_trust_ctx: false,
             pub_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new(),

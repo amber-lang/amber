@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::builtin::len::Len;
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
 use crate::modules::types::{Typed, Type};
@@ -15,7 +16,7 @@ use super::literal::{
     text::Text,
     array::Array,
     null::Null,
-    status::Status
+    status::Status,
 };
 use super::binop::{
     add::Add,
@@ -35,11 +36,11 @@ use super::binop::{
 };
 use super::unop::{
     not::Not,
-    neg::Neg
+    neg::Neg,
 };
 use super::typeop::{
     cast::Cast,
-    is::Is
+    is::Is,
 };
 use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
@@ -79,7 +80,8 @@ pub enum ExprType {
     Cast(Cast),
     Status(Status),
     Nameof(Nameof),
-    Is(Is)
+    Len(Len),
+    Is(Is),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -143,11 +145,11 @@ impl SyntaxModule<ParserMetadata> for Expr {
             addition @ BinOp => [ Add, Sub ],
             multiplication @ BinOp => [ Mul, Div, Modulo ],
             types @ TypeOp => [ Is, Cast ],
-            unops @ UnOp => [ Neg, Not ],
+            unops @ UnOp => [ Neg, Not, Len ],
             literals @ Literal => [
                 // Literals
                 Parentheses, Bool, Number, Text,
-                Array, Null, Nameof, Status,
+                Array, Null, Status, Nameof,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -173,9 +175,10 @@ impl TranslateModule for Expr {
             // Binary operators
             Range, Cast, Is,
             // Unary operators
-            Not, Neg, Nameof,
+            Not, Neg, Nameof, Len,
             // Literals
-            Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text,
+            Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -198,9 +201,10 @@ impl DocumentationModule for Expr {
             // Binary operators
             Range, Cast, Is,
             // Unary operators
-            Not, Neg, Nameof,
+            Not, Neg, Nameof, Len,
             // Literals
-            Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text,
+            Array, Null, Status,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access

@@ -1,32 +1,45 @@
+import { join, replace_regex, split } from "std/text"
+
+/// Checks if a directory exists.
 pub fun dir_exist(path) {
-    $[ -d "{path}" ]$ failed {
+    $ [ -d "{path}" ] $ failed {
         return false
     }
     return true
 }
 
+/// Checks if a file exists.
 pub fun file_exist(path) {
-    $[ -f "{path}" ]$ failed {
+    $ [ -f "{path}" ] $ failed {
         return false
     }
     return true
 }
 
+/// Gets file contents from a path.
 pub fun file_read(path) {
-    return $< "{path}"$?
+    return $ < "{path}" $?
 }
 
+/// Writes content to a file.
+/// Doesn't check if the file exist
 pub fun file_write(path, content) {
-    return $echo "{content}" > "{path}"$?
+    return $ echo "{content}" > "{path}" $?
 }
 
+/// Appends content to a file.
+///
+/// Doesn't check if the file exists.
 pub fun file_append(path, content) {
-    return $echo "{content}" >> "{path}"$?
+    return $ echo "{content}" >> "{path}" $?
 }
 
+/// Creates a symbolic link.
+///
+/// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     if file_exist(origin) {
-        unsafe $ln -s "{origin}" "{destination}"$
+        trust $ ln -s "{origin}" "{destination}" $
         return true
     }
 
@@ -34,15 +47,19 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
     return false
 }
 
+/// Creates a directory with all parent directories as required.
 pub fun create_dir(path: Text): Null {
     if not dir_exist(path) {
-        unsafe $mkdir -p "{path}"$
+        trust $ mkdir -p "{path}" $
     }
 }
 
+/// Sets a file as executable.
+///
+/// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun make_executable(path: Text): Bool {
     if file_exist(path) {
-        unsafe $chmod +x "{path}"$
+        trust $ chmod +x "{path}" $
         return true
     }
 
@@ -50,11 +67,44 @@ pub fun make_executable(path: Text): Bool {
     return false
 }
 
+/// Changes the owner of a file.
+///
+/// If the file doesn't exist, it returns `false`
 pub fun change_owner(user: Text, path: Text): Bool {
     if file_exist(path) or dir_exist(path) {
-        unsafe $chown -R "{user}" "{path}"$
+        trust $ chown -R "{user}" "{path}" $
         return true
     }
 
     return false
+}
+
+/// Escapes all characters in the passed-in glob except "*", "?" and "/",
+/// to prevent injection attacks.
+fun escape_non_glob_chars(path: Text): Text {
+    return replace_regex(path, "\([^*?/]\)", "\\\\\1")
+}
+
+/// Finds all files or directories matching multiple file globs. When
+/// we have union types, this functionality can be merged into the main
+/// `glob` function.
+pub fun glob_multiple(paths: [Text]): [Text]? {
+    let combined = ""
+    if len(paths) == 1 {
+        combined = escape_non_glob_chars(paths[0])
+    } else {
+        let items = [Text]
+        for item in paths {
+            item = escape_non_glob_chars(item)
+            items += [item]
+        }
+        combined = join(items, " ")
+    }
+    let files = $ eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done" $?
+    return split(files, "\n")
+}
+
+/// Finds all files or directories matching a file glob.
+pub fun glob(path: Text): [Text]? {
+    return glob_multiple([path])?
 }

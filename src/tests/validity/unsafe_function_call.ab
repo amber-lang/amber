@@ -7,5 +7,5 @@ fun safe_division(a: Num, b: Num): Num? {
     return a / b
 }
 
-let result = unsafe safe_division(24, 4)
+let result = trust safe_division(24, 4)
 echo "{result}, {status}"

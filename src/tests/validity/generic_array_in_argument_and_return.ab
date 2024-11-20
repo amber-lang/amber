@@ -1,0 +1,10 @@
+// Output
+// 1 2 3
+// Hello Hi
+
+fun test(arr: []): [] {
+        return arr
+}
+
+echo test([1, 2, 3])
+echo test(["Hello", "Hi"])

@@ -2,6 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
+use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
 
@@ -37,16 +38,9 @@ impl SyntaxModule<ParserMetadata> for Return {
         syntax(meta, &mut self.expr)?;
         let ret_type = meta.context.fun_ret_type.as_ref();
         let expr_type = &self.expr.get_type();
-        // Unpacking Failable types
-        let (ret_type, expr_type) = match (ret_type, expr_type) {
-                types @ (Some(Type::Failable(_)), Type::Failable(_)) => types,
-                (Some(Type::Failable(ret_type)), expr_type) => (Some(ret_type.as_ref()), expr_type),
-                (Some(ret_type), Type::Failable(expr_type)) => (Some(ret_type), expr_type.as_ref()),
-                types => types
-        };
         match ret_type {
             Some(ret_type) => {
-                if ret_type != expr_type {
+                if !expr_type.is_allowed_in(ret_type) {
                     return error!(meta, tok => {
                         message: "Return type does not match function return type",
                         comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
@@ -63,12 +57,15 @@ impl SyntaxModule<ParserMetadata> for Return {
 
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let (name, id, variant) = meta.fun_name.clone().expect("Function name not set");
+        let fun_name = meta.fun_meta.as_ref()
+            .map(FunctionMetadata::mangled_name)
+            .expect("Function name and return type not set");
         let result = self.expr.translate_eval(meta, false);
         let result = matches!(self.expr.get_type(), Type::Array(_))
             .then(|| format!("({result})"))
             .unwrap_or(result);
-        meta.stmt_queue.push_back(format!("__AF_{name}{id}_v{variant}={result}"));
+        let stmt = format!("{}={}", fun_name, result);
+        meta.stmt_queue.push_back(stmt);
         "return 0".to_string()
     }
 }

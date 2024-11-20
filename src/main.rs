@@ -16,7 +16,7 @@ use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::fs;
 use std::io::{prelude::*, stdin};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Parser, Clone, Debug)]
@@ -33,13 +33,16 @@ pub struct Cli {
     eval: Option<String>,
 
     /// Generate docs
-    /// (OUTPUT is dir instead, default: `docs/`)
+    /// (OUTPUT is dir instead, default: `docs/` if missing it will generate the folder)
     #[arg(long)]
     docs: bool,
-
-    /// Don't format the output file
-    #[arg(long)]
-    disable_format: bool,
+  
+    /// Disable a postprocessor
+    /// Available postprocessors: shfmt, bshchk
+    /// To select multiple, pass this argument multiple times with different values.
+    /// This argument also supports a wilcard match, like "*" or "s*mt"
+    #[arg(long, verbatim_doc_comment)]
+    no_proc: Vec<String>,
 
     /// Minify the resulting code
     #[arg(long)]
@@ -136,6 +139,14 @@ fn handle_eval(code: String, cli: Cli) -> Result<(), Box<dyn Error>> {
 
 fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
     let input = if let Some(ref input) = cli.input {
+        let path = Path::new(input);
+        if !path.exists() {
+            Message::new_err_msg(format!(
+                "Amber file doesn't exist: `{}`.", input.to_string_lossy()
+            ))
+            .show();
+            std::process::exit(1);
+        }
         String::from(input.to_string_lossy())
     } else {
         Message::new_err_msg(
@@ -167,15 +178,13 @@ fn handle_docs(cli: Cli) -> Result<(), Box<dyn Error>> {
     }
 }
 
-/*
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 fn set_file_permission(_file: &fs::File, _output: String) {
     // We don't need to set permission on Windows
 }
-*/
 
-#[cfg(not(target_os = "windows"))]
-fn set_file_permission(file: &std::fs::File, path: String) {
+#[cfg(not(windows))]
+fn set_file_permission(file: &fs::File, path: String) {
     use std::os::unix::prelude::PermissionsExt;
     let mut perm = fs::metadata(path).unwrap().permissions();
     perm.set_mode(0o755);

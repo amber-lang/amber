@@ -1,0 +1,12 @@
+// Output
+// 1000
+
+fun sum_array(a : [Num] = [100,200,300,400]): Num {
+    let sum = 0
+    for n in a {
+        sum += n;
+    }
+    return sum;
+}
+let result = sum_array();
+echo result

@@ -1,11 +1,11 @@
 // Output
 // Hello World
 
-unsafe silent {
+trust silent {
     echo "Hello World"
-    $non-existent command$
+    $ non-existent command $
 }
 // Test for expression
-let _ = silent unsafe $non-existent command$
+let _ = silent trust $ non-existent command $
 // Test for single statement
-silent unsafe $non-existent command$
+silent trust $ non-existent command $

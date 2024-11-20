@@ -1,4 +1,4 @@
 fun test() {
-    return "Succeded"
+    return "Succeeded"
 }
 echo test()

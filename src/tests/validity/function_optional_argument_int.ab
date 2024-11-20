@@ -1,0 +1,9 @@
+// Output
+// 1010
+
+fun addition(a: Num, b: Num = 100): Num {
+    return a + b
+}
+
+let result = addition(10, 1000)
+echo result

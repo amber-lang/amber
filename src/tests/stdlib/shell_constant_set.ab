@@ -1,10 +1,10 @@
 import * from "std/env"
 main {
-    unsafe shell_constant_set("test_shell_constant_set", "Succe")
+    trust shell_constant_set("test_shell_constant_set", "Succe")
     let str = ""
-    str += unsafe $echo "\$test_shell_constant_set"$
+    str += trust $ echo "\$test_shell_constant_set" $
     shell_constant_set("test_shell_constant_set", "Succe") failed {
-        str += "ded"
+        str += "eded"
     }
     echo str
 } 

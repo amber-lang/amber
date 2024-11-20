@@ -11,7 +11,6 @@ pub mod types;
 pub mod imports;
 pub mod main;
 pub mod builtin;
-pub mod formatter;
 
 #[macro_export]
 macro_rules! handle_types {

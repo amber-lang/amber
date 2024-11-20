@@ -1,22 +1,24 @@
 extern crate chrono;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
-use crate::modules::formatter::BashFormatter;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{rules, Cli};
+use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
+use wildmatch::WildMatchPattern;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::Write;
+use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
+
+pub mod postprocessor;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
@@ -35,12 +37,12 @@ impl AmberCompiler {
             path,
             cli_opts,
         }
-        .load_code(AmberCompiler::strip_off_shebang(code))
+        .load_code(AmberCompiler::comment_shebang(code))
     }
 
-    fn strip_off_shebang(code: String) -> String {
+    fn comment_shebang(code: String) -> String {
         if code.starts_with("#!") {
-            code.split('\n').skip(1).collect_vec().join("\n")
+            String::from("// ") + &code
         } else {
             code
         }
@@ -129,10 +131,7 @@ impl AmberCompiler {
         meta: &ParserMetadata,
     ) -> Vec<(String, Block)> {
         let imports_sorted = meta.import_cache.topological_sort();
-        let imports_blocks = meta
-            .import_cache
-            .files
-            .iter()
+        let imports_blocks = meta.import_cache.files.iter()
             .map(|file| {
                 file.metadata
                     .as_ref()
@@ -149,7 +148,7 @@ impl AmberCompiler {
         result
     }
 
-    pub fn translate(&self, block: Block, meta: ParserMetadata) -> String {
+    pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
         let time = Instant::now();
@@ -166,53 +165,60 @@ impl AmberCompiler {
             );
         }
 
-        let mut res = result.join("\n");
+        let mut result = result.join("\n") + "\n";
 
-        if !self.cli_opts.disable_format {
-            if let Some(formatter) = BashFormatter::get_available() {
-                res = formatter.format(res);
-            }
+        let filters = self.cli_opts.no_proc.iter()
+            .map(|x| WildMatchPattern::new(x))
+            .collect();
+        let postprocessors = PostProcessor::filter_default(filters);
+        for postprocessor in postprocessors {
+            result = match postprocessor.execute(result) {
+                Ok(result) => result,
+                Err(error) => {
+                    let error = format!(
+                        "Postprocessor '{}' failed\n{}",
+                        postprocessor.name,
+                        error.to_string().trim_end(),
+                    );
+                    return Err(Message::new_err_msg(error));
+                },
+            };
         }
 
-        let header = [
-            include_str!("header.sh"),
-            &("# version: ".to_owned() + env!("CARGO_PKG_VERSION").to_string().as_str()),
-            &("# date: ".to_owned()
-                + Local::now()
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-                    .as_str()),
-        ].join("\n");
-        format!("{}\n{}", header, res)
+        let header = include_str!("header.sh")
+            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+            .replace("{{ date }}", Local::now()
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string()
+                .as_str()
+            );
+        Ok(format!("{}{}", header, result))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
-        let base_path = PathBuf::from(
-            meta.get_path()
-                .expect("Input file must exist in docs generation"),
-        );
+        let base_path = meta.get_path()
+            .map(PathBuf::from)
+            .expect("Input file must exist in docs generation");
         let base_dir = fs::canonicalize(base_path).map(|val| {
             val.parent()
                 .expect("Parent dir must exist in docs generation")
                 .to_owned()
                 .clone()
         });
-        if let Err(err) = base_dir {
+        let base_dir = base_dir.unwrap_or_else(|err| {
             Message::new_err_msg("Couldn't get the absolute path to the provided input file")
                 .comment(err.to_string())
                 .show();
             std::process::exit(1);
-        }
-        let base_dir = base_dir.unwrap();
+        });
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut paths = vec![];
         for (path, block) in ast_forest {
             let dep_path = {
-                let dep_path = fs::canonicalize(PathBuf::from(path.clone()));
-                if dep_path.is_err() {
-                    continue;
-                }
-                let dep_path = dep_path.unwrap();
+                let dep_path = match fs::canonicalize(PathBuf::from(path)) {
+                    Ok(path) => path,
+                    Err(_) => continue,
+                };
 
                 if !dep_path.starts_with(&base_dir) {
                     continue;
@@ -221,22 +227,23 @@ impl AmberCompiler {
                 dep_path
             };
             let document = block.document(&meta);
-            // Save to file
+            // Save to file; replace the base directory if the output
+            // path is absolute, otherwise append the output path.
             let dir_path = {
-                let file_dir = dep_path.strip_prefix(&base_dir).unwrap();
-                let parent = file_dir.parent().unwrap().display();
-                format!("{}/{output}/{}", base_dir.to_string_lossy(), parent)
+                let file_path = dep_path.strip_prefix(&base_dir).unwrap();
+                let file_dir = file_path.parent().unwrap();
+                base_dir.join(&output).join(file_dir)
             };
             if let Err(err) = fs::create_dir_all(dir_path.clone()) {
                 Message::new_err_msg(format!(
-                    "Couldn't create directory `{dir_path}`. Do you have sufficient permissions?"
+                    "Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display()
                 ))
                 .comment(err.to_string())
                 .show();
                 std::process::exit(1);
             }
             let filename = dep_path.file_stem().unwrap().to_string_lossy();
-            let path = PathBuf::from(dir_path).join(format!("{filename}.md"));
+            let path = dir_path.join(format!("{filename}.md"));
             let mut file = File::create(path.clone()).unwrap();
             file.write_all(document.as_bytes()).unwrap();
             paths.push(String::from(path.to_string_lossy()));
@@ -247,37 +254,63 @@ impl AmberCompiler {
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
-        self.tokenize()
-            .and_then(|tokens| self.parse(tokens, false))
-            .map(|(block, meta)| (meta.messages.clone(), self.translate(block, meta)))
+        let tokens = self.tokenize()?;
+        let (block, meta) = self.parse(tokens, false)?;
+        let messages = meta.messages.clone();
+        let code = self.translate(block, meta)?;
+        Ok((messages, code))
     }
 
     pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
-        let code = format!("set -- {};\n\n{}", flags.join(" "), code);
-        Command::new("/usr/bin/env")
-            .arg("bash")
-            .arg("-c")
-            .arg(code)
-            .spawn()?
-            .wait()
+        if let Some(mut command) = Self::find_bash() {
+            let code = format!("set -- {};\n{}", flags.join(" "), code);
+            command.arg("-c").arg(code).spawn()?.wait()
+        } else {
+            let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find Bash");
+            Err(error)
+        }
     }
 
     pub fn generate_docs(&self, output: String) -> Result<(), Message> {
-        self.tokenize()
-            .and_then(|tokens| self.parse(tokens, true))
-            .map(|(block, meta)| self.document(block, meta, output))
+        let tokens = self.tokenize()?;
+        let (block, meta) = self.parse(tokens, true)?;
+        self.document(block, meta, output);
+        Ok(())
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
+        self.cli_opts.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
-            let child = Command::new("/usr/bin/env")
-                .arg("bash")
-                .arg("-c")
-                .arg::<&str>(code.as_ref())
-                .output()
-                .unwrap();
-            Ok(String::from_utf8_lossy(&child.stdout).to_string())
+            if let Some(mut command) = Self::find_bash() {
+                let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
+                let output = String::from_utf8_lossy(&child.stdout).to_string();
+                Ok(output)
+            } else {
+                let message = Message::new_err_msg("Failed to find Bash");
+                Err(message)
+            }
         })
+    }
+
+    #[cfg(windows)]
+    fn find_bash() -> Option<Command> {
+        if let Some(paths) = env::var_os("PATH") {
+            for path in env::split_paths(&paths) {
+                let path = path.join("bash.exe");
+                if path.exists() {
+                    let command = Command::new(path);
+                    return Some(command);
+                }
+            }
+        }
+        return None;
+    }
+
+    #[cfg(not(windows))]
+    fn find_bash() -> Option<Command> {
+        let mut command = Command::new("/usr/bin/env");
+        command.arg("bash");
+        Some(command)
     }
 }

@@ -1,7 +1,7 @@
 fun foo(ref a) {
-    a = $echo Succeded$?
+    a = $ echo Succeeded $?
 }
 
 let a = ""
-unsafe foo(a)
+trust foo(a)
 echo a
