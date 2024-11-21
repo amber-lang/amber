@@ -25,15 +25,14 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
 
     // Changes locale to default to prevent locale-specific error messages.
     cmd.env("LC_ALL", "C")
+        .arg("run")
         .arg("--no-proc")
         .arg("*")
         .arg(file.path());
 
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "notexistingcommand: command not found",
-        ))
+        .stderr(predicate::str::contains("notexistingcommand: command not found"))
         .code(127);
 
     Ok(())

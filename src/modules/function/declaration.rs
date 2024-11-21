@@ -1,9 +1,6 @@
 use std::collections::HashSet;
-#[cfg(debug_assertions)]
 use std::{env, fs};
-#[cfg(debug_assertions)]
 use std::ffi::OsStr;
-#[cfg(debug_assertions)]
 use std::path::Path;
 
 use heraclitus_compiler::prelude::*;
@@ -278,74 +275,65 @@ impl DocumentationModule for FunctionDeclaration {
     fn document(&self, meta: &ParserMetadata) -> String {
         let mut result = vec![];
         result.push(format!("## `{}`\n", self.name));
-
-        let references = self.create_reference(meta, &mut result);
-
+        let references = self.create_test_references(meta, &mut result);
         result.push("```ab".to_string());
         result.push(self.doc_signature.to_owned().unwrap());
         result.push("```\n".to_string());
         if let Some(comment) = &self.comment {
             result.push(comment.document(meta));
         }
-
         if let Some(references) = references {
             for reference in references {
                 result.push(reference);
             }
             result.push("\n".to_string());
         }
-
         result.join("\n")
     }
 }
 
 impl FunctionDeclaration {
-    #[cfg(debug_assertions)]
-    fn create_reference(&self, meta: &ParserMetadata, result: &mut Vec<String>) -> Option<Vec<String>> {
-        let mut references = Vec::new();
-        let exe_path = env::current_exe()
-            .expect("Executable path not found");
-        let root_path = exe_path.parent()
-            .and_then(Path::parent)
-            .and_then(Path::parent)
-            .expect("Root path not found");
-        let test_path = root_path.join("src")
-            .join("tests")
-            .join("stdlib");
-        let lib_name = meta.context.path.as_ref()
-            .map(Path::new)
-            .and_then(Path::file_name)
-            .and_then(OsStr::to_str)
-            .map(String::from)
-            .unwrap_or_default();
-        result.push(String::from("```ab"));
-        result.push(format!("import {{ {} }} from \"std/{}\"", self.name, lib_name));
-        result.push(String::from("```\n"));
-        if test_path.exists() && test_path.is_dir() {
-            if let Ok(entries) = fs::read_dir(test_path) {
-                let pattern = format!("{}*.ab", self.name);
-                let pattern = glob::Pattern::new(&pattern).unwrap();
-                for entry in entries.flatten() {
-                    let path = entry.path();
-                    if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
-                        if pattern.matches(file_name) {
-                            references.push(format!("* [{}](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib/{})", file_name, file_name));
+    fn create_test_references(&self, meta: &ParserMetadata, result: &mut Vec<String>) -> Option<Vec<String>> {
+        if meta.doc_usage {
+            let mut references = Vec::new();
+            let exe_path = env::current_exe()
+                .expect("Executable path not found");
+            let root_path = exe_path.parent()
+                .and_then(Path::parent)
+                .and_then(Path::parent)
+                .expect("Root path not found");
+            let test_path = root_path.join("src")
+                .join("tests")
+                .join("stdlib");
+            let lib_name = meta.context.path.as_ref()
+                .map(Path::new)
+                .and_then(Path::file_name)
+                .and_then(OsStr::to_str)
+                .map(String::from)
+                .unwrap_or_default();
+            result.push(String::from("```ab"));
+            result.push(format!("import {{ {} }} from \"std/{}\"", self.name, lib_name));
+            result.push(String::from("```\n"));
+            if test_path.exists() && test_path.is_dir() {
+                if let Ok(entries) = fs::read_dir(test_path) {
+                    let pattern = format!("{}*.ab", self.name);
+                    let pattern = glob::Pattern::new(&pattern).unwrap();
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
+                            if pattern.matches(file_name) {
+                                references.push(format!("* [{}](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib/{})", file_name, file_name));
+                            }
                         }
                     }
                 }
             }
+            if !references.is_empty() {
+                references.sort();
+                references.insert(0, String::from("You can check the original tests for code examples:"));
+                return Some(references);
+            }
         }
-        if !references.is_empty() {
-            references.sort();
-            references.insert(0, String::from("You can check the original tests for code examples:"));
-            Some(references)
-        } else {
-            None
-        }
-    }
-
-    #[cfg(not(debug_assertions))]
-    fn create_reference(&self, _meta: &ParserMetadata, _result: &mut Vec<String>) -> Option<Vec<String>> {
         None
     }
 }

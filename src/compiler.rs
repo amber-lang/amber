@@ -4,7 +4,7 @@ use crate::modules::block::Block;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::{rules, Cli};
+use crate::rules;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
@@ -24,20 +24,36 @@ const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
 const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 
+pub struct CompilerOptions {
+    pub no_proc: Vec<String>,
+    pub minify: bool,
+}
+
+impl Default for CompilerOptions {
+    fn default() -> Self {
+        let no_proc = vec![String::from("*")];
+        Self { no_proc, minify: false }
+    }
+}
+
+impl CompilerOptions {
+    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+        let no_proc = no_proc.to_owned();
+        Self { no_proc, minify }
+    }
+}
+
 pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
-    pub cli_opts: Cli,
+    pub options: CompilerOptions,
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
-        AmberCompiler {
-            cc: Compiler::new("Amber", rules::get_rules()),
-            path,
-            cli_opts,
-        }
-        .load_code(AmberCompiler::comment_shebang(code))
+    pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
+        let cc = Compiler::new("Amber", rules::get_rules());
+        let compiler = AmberCompiler { cc, path, options };
+        compiler.load_code(AmberCompiler::comment_shebang(code))
     }
 
     fn comment_shebang(code: String) -> String {
@@ -91,14 +107,9 @@ impl AmberCompiler {
         }
     }
 
-    pub fn parse(
-        &self,
-        tokens: Vec<Token>,
-        is_docs_gen: bool,
-    ) -> Result<(Block, ParserMetadata), Message> {
+    pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
-        meta.is_docs_gen = is_docs_gen;
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
@@ -150,7 +161,7 @@ impl AmberCompiler {
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
-        let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
+        let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = vec![];
         for (_path, block) in ast_forest {
@@ -167,7 +178,7 @@ impl AmberCompiler {
 
         let mut result = result.join("\n") + "\n";
 
-        let filters = self.cli_opts.no_proc.iter()
+        let filters = self.options.no_proc.iter()
             .map(|x| WildMatchPattern::new(x))
             .collect();
         let postprocessors = PostProcessor::filter_default(filters);
@@ -185,13 +196,10 @@ impl AmberCompiler {
             };
         }
 
+        let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let header = include_str!("header.sh")
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
-            .replace("{{ date }}", Local::now()
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string()
-                .as_str()
-            );
+            .replace("{{ date }}", now.as_str());
         Ok(format!("{}{}", header, result))
     }
 
@@ -255,15 +263,21 @@ impl AmberCompiler {
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         let tokens = self.tokenize()?;
-        let (block, meta) = self.parse(tokens, false)?;
+        let (block, meta) = self.parse(tokens)?;
         let messages = meta.messages.clone();
         let code = self.translate(block, meta)?;
         Ok((messages, code))
     }
 
-    pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
+    pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         if let Some(mut command) = Self::find_bash() {
-            let code = format!("set -- {};\n{}", flags.join(" "), code);
+            if !args.is_empty() {
+                let args = args.into_iter()
+                    .map(|arg| arg.replace("\"", "\\\""))
+                    .map(|arg| format!("\"{arg}\""))
+                    .collect::<Vec<String>>();
+                code = format!("set -- {}\n{}", args.join(" "), code);
+            }
             command.arg("-c").arg(code).spawn()?.wait()
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find Bash");
@@ -271,16 +285,17 @@ impl AmberCompiler {
         }
     }
 
-    pub fn generate_docs(&self, output: String) -> Result<(), Message> {
+    pub fn generate_docs(&self, output: String, usage: bool) -> Result<(), Message> {
         let tokens = self.tokenize()?;
-        let (block, meta) = self.parse(tokens, true)?;
+        let (block, mut meta) = self.parse(tokens)?;
+        meta.doc_usage = usage;
         self.document(block, meta, output);
         Ok(())
     }
 
     #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
-        self.cli_opts.no_proc = vec!["*".into()];
+        self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
