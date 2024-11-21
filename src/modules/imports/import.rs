@@ -168,6 +168,10 @@ impl SyntaxModule<ParserMetadata> for Import {
                             }
                         }
                     }
+                } else {
+                    let message = Message::new_warn_at_token(meta, self.token_import.clone())
+                        .message("Empty import statement");
+                    meta.add_message(message);
                 }
                 self.export_defs = exports;
             }
