@@ -37,8 +37,8 @@ impl Default for CompilerOptions {
 }
 
 impl CompilerOptions {
-    pub fn from_args(no_proc: &Vec<String>, minify: bool) -> Self {
-        let no_proc = no_proc.clone();
+    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+        let no_proc = no_proc.to_owned();
         Self { no_proc, minify }
     }
 }
