@@ -1,2 +1,2 @@
 import * from "test_files/str/trim.ab"
-echo trim("    Succeded     ")
+echo trim("    Succeeded     ")

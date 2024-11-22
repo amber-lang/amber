@@ -1,4 +1,4 @@
-import { has_failed, exit, input } from "std/env"
+import { has_failed, input } from "std/env"
 import { chars } from "std/text"
 import { includes } from "std/array"
 import { file_exist } from "std/fs"
@@ -9,18 +9,18 @@ let target = "amber"
 let archive = "amber.tar.xz"
 let agent = has_failed("uname -a")
     then "unknown"
-    else unsafe $uname -a$
+    else trust $ uname -a $
 
 echo ""
 
 fun get_latest_release_tag() {
     let tag_url = "https://api.github.com/repos/Ph0enixKM/{name}/releases/latest"
-    let tag_json = $curl -sL "{tag_url}"$?
+    let tag_json = $ curl -sL "{tag_url}" $?
     // Get the tag name from the JSON
-    let tag = $echo "\${nameof tag_json}" \
+    let tag = $ echo "\${nameof tag_json}" \
         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
         | grep -Eo "\\"[^\\"]+\\"\$" \
-        | grep -Eo "[^\\"\\s]+"$?
+        | grep -Eo "[^\\"\\s]+" $?
     return tag
 }
 
@@ -33,21 +33,21 @@ main(args) {
     let bins_folder = get_bins_folder(user_only_install)
 
     // Check if such directory exists
-    unsafe $test -d "{place}"$
+    trust $ test -d "{place}" $
 
     if status == 0 {
         echo "Amber already installed"
         echo "It seems that Amber is already installed on your system. ({place})"
         echo "If you want to reinstall Amber, uninstall it first."
         echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)"
-        exit(2)
+        exit 2
     }
 
     // Check if curl is installed
     if has_failed("curl -V") {
         echo "Curl is not installed on your system."
         echo "Please install `curl` and try again."
-        exit(1)
+        exit 1
     }
 
     echo "Installing Amber... 🚀"
@@ -56,85 +56,85 @@ main(args) {
     // this decreases the chance that our script results in partial installation leaving assets behind
     let sudo = user_only_install then "" else "sudo"
     // Create directory for amber
-    silent ${sudo} mkdir -p "{place}"$ failed {
+    silent $ {sudo} mkdir -p "{place}" $ failed {
         echo "Failed to create directory for amber."
         if user_only_install {
             echo "Please make sure that root user can access {place} directory."
         } else {
             echo "Please make sure that your user can access {place} directory."
         }
-        exit(1)
+        exit 1
     }
     if user_only_install {
-        silent $mkdir -p "{bins_folder}"$ failed {
+        silent $ mkdir -p "{bins_folder}" $ failed {
             echo "Failed to create directory for amber bin at {bins_folder}."
-            exit(1)
+            exit 1
         }
     }
 
     let tag = get_latest_release_tag() failed {
         echo "Failed to get the latest release tag."
         echo "Please try again or use another download method."
-        exit(1)
+        exit 1
     }
 
     // Set the download link
     let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
 
     // Download amber
-    silent $curl -L -o "{archive}" "{url}"$ failed {
+    silent $ curl -L -o "{archive}" "{url}" $ failed {
         echo "Curl failed to download amber."
         echo "Something went wrong. Please try again later."
-        exit(1)
+        exit 1
     }
 
     // Move archived version of amber
-    ${sudo} mv "{archive}" "{place}/{archive}"$ failed {
+    $ {sudo} mv "{archive}" "{place}/{archive}" $ failed {
         echo "Failed to move amber to the installation directory."
         echo "Please make sure that root user can access {place} directory."
-        exit(1)
+        exit 1
     }
 
     // Unarchive amber
-    silent ${sudo} tar --strip-components=1 -xvf {place}/{archive} -C {place}$ failed {
+    silent $ {sudo} tar --strip-components=1 -xvf {place}/{archive} -C {place} $ failed {
         echo "Failed to unarchive amber at {place}/{archive}"
         echo "Please make sure that you have `tar` command installed."
-        exit(1)
+        exit 1
     }
 
     // Delete the archive
-    ${sudo} rm {place}/{archive}$ failed {
+    $ {sudo} rm {place}/{archive} $ failed {
         echo "Failed to remove downloaded archive at {place}/{archive}"
-        exit(1)
+        exit 1
     }
 
     // Give permissions to execute amber
-    ${sudo} chmod +x "{place}/{target}"$ failed {
+    $ {sudo} chmod +x "{place}/{target}" $ failed {
         echo "Failed to give permissions to execute amber."
         echo "Please make sure that root user can access {place} directory."
-        exit(1)
+        exit 1
     }
 
     // Delete the previous symbolic link
     if file_exist("{bins_folder}/{target}") {
-        ${sudo} rm "{bins_folder}/{target}"$ failed {
+        $ {sudo} rm "{bins_folder}/{target}" $ failed {
             echo "Failed to remove the previous amber symbol link."
             echo "Please make sure that root user can access {bins_folder} directory."
-            exit(1)
+            exit 1
         }
     }
 
     // Create amber symbol link
-    ${sudo} ln -s "{place}/{target}" "{bins_folder}/{target}"$ failed {
+    $ {sudo} ln -s "{place}/{target}" "{bins_folder}/{target}" $ failed {
         echo "Failed to create amber symbol link."
         echo "Please make sure that root user can access {bins_folder} directory."
-        exit(1)
+        exit 1
     }
 
     let nickname = input("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
     if (nickname != "no") {
         // Send feedback to the server
-        unsafe silent $curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit"$
+        trust silent $ curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" $
     }
 
     // Send success message

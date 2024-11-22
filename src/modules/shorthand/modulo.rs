@@ -48,21 +48,25 @@ impl SyntaxModule<ParserMetadata> for ShorthandModulo {
 }
 
 impl TranslateModule for ShorthandModulo {
+    //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let expr = self.is_ref
-            .then(|| self.expr.translate_eval(meta, true))
-            .unwrap_or_else(|| self.expr.translate(meta));
-        let name = match self.global_id {
-            Some(id) => format!("__{id}_{}", self.var),
-            None => if self.is_ref { format!("${{{}}}", self.var) } else { self.var.clone() }
-        };
-        let var = if self.is_ref { format!("\\${{{name}}}") } else { format!("${{{name}}}") };
-        if self.is_ref {
-            let expr = translate_computation_eval(meta, ArithOp::Modulo, Some(var), Some(expr));
-            format!("eval \"{}={}\"", name, expr)
+        let name = if let Some(id) = self.global_id {
+            format!("__{id}_{}", self.var)
+        } else if self.is_ref {
+            format!("${{{}}}", self.var)
         } else {
+            self.var.clone()
+        };
+        if self.is_ref {
+            let var = format!("\\${{{name}}}");
+            let expr = self.expr.translate_eval(meta, true);
+            let expr = translate_computation_eval(meta, ArithOp::Modulo, Some(var), Some(expr));
+            format!("eval \"{name}={expr}\"")
+        } else {
+            let var = format!("${{{name}}}");
+            let expr = self.expr.translate(meta);
             let expr = translate_computation(meta, ArithOp::Modulo, Some(var), Some(expr));
-            format!("{}={}", name, expr)
+            format!("{name}={expr}")
         }
     }
 }

@@ -17,7 +17,7 @@ pub struct VariableInit {
 impl VariableInit {
     fn handle_add_variable(&mut self, meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>) -> SyntaxResult {
         handle_identifier_name(meta, name, tok)?;
-        self.global_id = meta.add_var(name, kind);
+        self.global_id = meta.add_var(name, kind, false);
         Ok(())
     }
 }
@@ -55,14 +55,16 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.name.clone();
-        let mut  expr = self.expr.translate(meta);
+        let mut expr = self.expr.translate(meta);
         if let Type::Array(_) = self.expr.get_type() {
             expr = format!("({expr})");
         }
-        let local = if self.is_fun_ctx { "local " } else { "" };
-        match self.global_id {
-            Some(id) => format!("__{id}_{name}={expr}"),
-            None => format!("{local}{name}={expr}")
+        if let Some(id) = self.global_id {
+            format!("__{id}_{name}={expr}")
+        } else if self.is_fun_ctx {
+            format!("local {name}={expr}")
+        } else {
+            format!("{name}={expr}")
         }
     }
 }

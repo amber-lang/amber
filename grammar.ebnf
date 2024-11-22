@@ -29,7 +29,7 @@ TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
 UNARY_OP = '-' | 'not' ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | 'and' | 'or' | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 SILENT_MOD = 'silent' ;
-UNSAFE_MOD = 'unsafe' ;
+TRUST_MOD = 'trust' ;
 VISIBILITY = 'pub' ;
 
 (* Identifier *)
@@ -59,11 +59,11 @@ list = empty_list | full_list ;
 
 (* Command expression *)
 (* The ordering of command modifiers doesn't matter *)
-command_modifier = SILENT_MOD, [ UNSAFE_MOD ] ;
+command_modifier = SILENT_MOD, [ TRUST_MOD ] ;
 command_modifier_block = command_modifier, multiline_block ;
 command_base = '$', { ANY_CHAR | interpolation }, '$' ;
 command = [ SILENT_MOD ], command_base, [ failure_handler ] ;
-command_unsafe = [ SILENT_MOD ], UNSAFE_MOD, command_base ;
+command_trust = [ SILENT_MOD ], TRUST_MOD, command_base ;
 
 (* Operations *)
 binary_operation = expression , BINARY_OP , expression ;
@@ -86,7 +86,7 @@ variable_set = identifier, variable_index?, '=', expression ;
 (* Function *)
 function_call = identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = [ SILENT_MOD ], function_call, failure_handler ;
-function_call_unsafe = [ SILENT_MOD ], UNSAFE_MOD, function_call ;
+function_call_trust = [ SILENT_MOD ], TRUST_MOD, function_call ;
 function_def = [ VISIBILITY ], 'fun', identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
 function_def_typed = [ VISIBILITY ], 'fun', identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;

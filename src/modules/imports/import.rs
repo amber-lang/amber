@@ -1,7 +1,6 @@
 use std::fs;
-use std::mem::swap;
 use heraclitus_compiler::prelude::*;
-use crate::compiler::AmberCompiler;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
@@ -9,7 +8,6 @@ use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::Cli;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -89,31 +87,32 @@ impl Import {
         }
     }
 
-    fn handle_import(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
+    fn handle_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
         match meta.import_cache.get_import_pub_funs(Some(self.path.value.clone())) {
             Some(pub_funs) => self.handle_export(meta, pub_funs),
-            None => self.handle_compile_code(meta, imported_code)
+            None => self.handle_compile_code(meta, code)
         }
     }
 
-    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone()), Cli::default()).tokenize() {
+    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+        let options = CompilerOptions::default();
+        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
+        match compiler.tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();
                 // Save snapshot of current file
                 let position = PositionInfo::from_token(meta, self.token_import.clone());
-                let mut ctx = Context::new(Some(self.path.value.clone()), tokens)
+                let mut context = Context::new(Some(self.path.value.clone()), tokens)
                     .file_import(&meta.context.trace, position);
-                swap(&mut ctx, &mut meta.context);
-                // Parse imported code
-                syntax(meta, &mut block)?;
-                // Restore snapshot of current file
-                swap(&mut ctx, &mut meta.context);
+                meta.with_context_ref(&mut context, |meta| {
+                    // Parse imported code
+                    syntax(meta, &mut block)
+                })?;
                 // Persist compiled file to cache
-                meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, ctx.pub_funs.clone());
+                meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, context.pub_funs.clone());
                 // Handle exports (add to current file)
-                self.handle_export(meta, ctx.pub_funs)?;
+                self.handle_export(meta, context.pub_funs)?;
                 Ok(())
             }
             Err(err) => Err(Failure::Loud(err))
@@ -169,9 +168,8 @@ impl SyntaxModule<ParserMetadata> for Import {
         syntax(meta, &mut self.path)?;
         // Import code from file or standard library
         self.add_import(meta, &self.path.value.clone())?;
-        let imported_code = self.resolve_import(meta)?;
-
-        self.handle_import(meta, imported_code)?;
+        let code = self.resolve_import(meta)?;
+        self.handle_import(meta, code)?;
         Ok(())
     }
 }

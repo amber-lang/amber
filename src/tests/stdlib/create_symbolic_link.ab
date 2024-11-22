@@ -1,12 +1,11 @@
 import { create_symbolic_link } from "std/fs"
 main {
-    let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
-    unsafe $touch {tmpdir}/amber-symbolic$
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    trust $ touch {tmpdir}/amber-symbolic $
     if create_symbolic_link("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "failed"
     }
-    unsafe $rm {tmpdir}/amber-symbolic$
-    unsafe $rm {tmpdir}/amber-symbolic-link$
+    trust $ rm -fr {tmpdir} $
 } 

@@ -1,5 +1,5 @@
 import * from "std/env"
 main {
-    unsafe shell_constant_set("test_shell_constant_get", "Succeded")
-    unsafe $echo "\$test_shell_constant_get"$
+    trust shell_constant_set("test_shell_constant_get", "Succeeded")
+    trust $ echo "\$test_shell_constant_get" $
 } 

@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::builtin::len::Len;
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
 use crate::modules::types::{Typed, Type};
@@ -15,7 +16,7 @@ use super::literal::{
     text::Text,
     array::Array,
     null::Null,
-    status::Status
+    status::Status,
 };
 use super::binop::{
     add::Add,
@@ -35,16 +36,17 @@ use super::binop::{
 };
 use super::unop::{
     not::Not,
-    neg::Neg
+    neg::Neg,
 };
 use super::typeop::{
     cast::Cast,
-    is::Is
+    is::Is,
 };
 use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
+use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::builtin::nameof::Nameof;
 use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
 
@@ -71,6 +73,7 @@ pub enum ExprType {
     Neq(Neq),
     Not(Not),
     Ternary(Ternary),
+    LinesInvocation(LinesInvocation),
     FunctionInvocation(FunctionInvocation),
     Command(Command),
     Array(Array),
@@ -79,7 +82,8 @@ pub enum ExprType {
     Cast(Cast),
     Status(Status),
     Nameof(Nameof),
-    Is(Is)
+    Len(Len),
+    Is(Is),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -143,11 +147,13 @@ impl SyntaxModule<ParserMetadata> for Expr {
             addition @ BinOp => [ Add, Sub ],
             multiplication @ BinOp => [ Mul, Div, Modulo ],
             types @ TypeOp => [ Is, Cast ],
-            unops @ UnOp => [ Neg, Not ],
+            unops @ UnOp => [ Neg, Not, Len ],
             literals @ Literal => [
                 // Literals
                 Parentheses, Bool, Number, Text,
-                Array, Null, Nameof, Status,
+                Array, Null, Status, Nameof,
+                // Builtin invocation
+                LinesInvocation,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -173,9 +179,12 @@ impl TranslateModule for Expr {
             // Binary operators
             Range, Cast, Is,
             // Unary operators
-            Not, Neg, Nameof,
+            Not, Neg, Nameof, Len,
             // Literals
-            Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text,
+            Array, Null, Status,
+            // Builtin invocation
+            LinesInvocation,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -198,9 +207,12 @@ impl DocumentationModule for Expr {
             // Binary operators
             Range, Cast, Is,
             // Unary operators
-            Not, Neg, Nameof,
+            Not, Neg, Nameof, Len,
             // Literals
-            Parentheses, Bool, Number, Text, Array, Null, Status,
+            Parentheses, Bool, Number, Text,
+            Array, Null, Status,
+            // Builtin invocation
+            LinesInvocation,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access

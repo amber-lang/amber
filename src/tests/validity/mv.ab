@@ -1,12 +1,12 @@
 import * from "std/fs"
 main {
-    let tmpdir = unsafe $mktemp -d /tmp/amber-XXXX$
-    unsafe $touch {tmpdir}/a$
-    unsafe mv "{tmpdir}/a" "{tmpdir}/b"
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    trust $ touch {tmpdir}/a $
+    trust mv "{tmpdir}/a" "{tmpdir}/b"
     if file_exist("{tmpdir}/b") {
-        echo "Succeded"
+        echo "Succeeded"
     } else {
         echo "Not Found"
     }
-    unsafe $rm -fr {tmpdir}$
+    trust $ rm -rf {tmpdir} $
 }

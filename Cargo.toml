@@ -1,28 +1,39 @@
 [package]
 name = "amber"
-version = "0.3.4-alpha"
+version = "0.3.5-alpha"
 edition = "2021"
-repository = "https://github.com/Ph0enixKM/Amber"
+repository = "https://github.com/amber-lang/Amber"
+homepage = "https://amber-lang.com/"
+description = "The Programming Language compiled to Bash."
 rust-version = "1.79"
+
+[package.metadata.deb]
+maintainer = "Amber-Lang project"
+license-file = "LICENSE.md"
+copyright = "GPLv3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-heraclitus-compiler = "1.7.8"
-similar-string = "1.4.2"
-colored = "2.0.0"
-itertools = "0.13.0"
-clap = { version = "4.4.18", features = ["derive"] }
+amber-meta = { path = "meta" }
 chrono = "0.4.38"
-test-generator = "0.3.1"
+clap = { version = "4.5.20", features = ["derive"] }
+clap_complete = "4.5.36"
+colored = "2.0.0"
+glob = "0.3"
+heraclitus-compiler = "1.8.1"
 include_dir = "0.7.4"
+itertools = "0.13.0"
+similar-string = "1.4.2"
+test-generator = "0.3.1"
+wildmatch = "2.4.0"
 
 # test dependencies
 [dev-dependencies]
-tiny_http = "0.12.0"
 assert_cmd = "2.0.14"
 predicates = "3.1.0"
 tempfile = "3.10.1"
+tiny_http = "0.12.0"
 
 [profile.release]
 strip = true
@@ -37,6 +48,9 @@ lto = "thin"
 [profile.test]
 opt-level = 3
 
+[workspace]
+members = ["meta"]
+
 # Config for 'cargo dist'
 [workspace.metadata.dist]
 # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
@@ -47,12 +61,16 @@ ci = "github"
 installers = []
 # Target platforms to build apps for (Rust target-triple syntax)
 targets = [
-  "aarch64-apple-darwin",
-  "x86_64-apple-darwin",
-  "x86_64-unknown-linux-gnu",
-  "x86_64-unknown-linux-musl",
+      "aarch64-apple-darwin",
+      "x86_64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl",
+      "x86_64-pc-windows-msvc"
 ]
 # Publish jobs to run in CI
 pr-run-mode = "skip"
-# Allow modifying release.yml
+# Skip checking whether the specified configuration files are up to date
 allow-dirty = ["ci"]
+
+[build-dependencies]
+build-helper = "0.1.1"

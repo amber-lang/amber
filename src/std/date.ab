@@ -1,9 +1,15 @@
-/// EXPERIMENTAL
-/// Format a date with a special format
-/// If no date is specified, the current date is used
-/// If no format is specified, "%FT%T%Z" format is used
-/// For more info about format type "man date" on your shell or go to https://www.gnu.org/software/coreutils/date
+/// ### EXPERIMENTAL
+/// 
+/// Formats a date with a special format.
+///
+/// If no date is specified, the current date is used.
+///
+/// If no format is specified, "%FT%T%Z" format is used.
+///
+/// For more info about format type "man date" on your shell or go to <https://www.gnu.org/software/coreutils/date>.
+///
 /// Format : 
+/// ```
 /// %%     a literal %
 /// %a     locale's abbreviated weekday name (e.g., Sun)
 /// %A     locale's full weekday name (e.g., Sunday)
@@ -50,57 +56,68 @@
 /// %::z   +hh:mm:ss numeric time zone (e.g., -04:00:00)
 /// %:::z  numeric time zone with : to necessary precision (e.g., -04, +05:30)
 /// %Z     alphabetic time zone abbreviation (e.g., EDT)
-///
+/// ```
+/// 
 /// By default, date pads numeric fields with zeroes.  The following optional flags may follow '%':
 ///
+/// ```
 /// -      (hyphen) do not pad the field
 /// _      (underscore) pad with spaces
 /// 0      (zero) pad with zeros
 /// +      pad with zeros, and put '+' before future years with >4 digits
 /// ^      use upper case if possible
 /// #      use opposite case if possible
+/// ```
 pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text? {
     if format == "": format = "%FT%T%Z"
-    if date == "": date = unsafe $date +"%FT%T%Z"$
+    if date == "": date = trust $ date +"%FT%T%Z" $
     if (utc) {
-        return $date --utc -d "{date}" +"{format}"$?
+        return $ date --utc -d "{date}" +"{format}" $?
     } else {
-        return $date -d "{date}" +"{format}"$?
+        return $ date -d "{date}" +"{format}" $?
     }    
 }
 
-/// Return current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC))
+/// Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
 #[allow_absurd_cast]
 pub fun now(): Num {
-    return unsafe $date +%s$ as Num
+    return trust $ date +%s $ as Num
 }
 
-/// EXPERIMENTAL
-/// Add value to date.
-/// If no date is specified, the current date is used
-/// Ex : date_add("+3 days")
-/// You can use : 
-/// (+/-)
-/// years
-/// months
-/// days
-/// hours
-/// minutes
-/// seconds
+/// ### EXPERIMENTAL
+///
+/// Adds a value to a date.
+/// 
+/// If no date is specified, the current date is used.
+/// 
+/// Example : `date_add("+3 days")`
+/// 
+/// You can use (+/-): 
+///
+/// - years
+/// - months
+/// - days
+/// - hours
+/// - minutes
+/// - seconds
 pub fun date_add(add:Text, date:Text = "", utc: Bool = false): Text? {
-    if date == "": date = unsafe $date +"%FT%T%Z"$
+    if date == "": date = trust $ date +"%FT%T%Z" $
     return date_posix("", "{date_posix("%F", date, utc)?} {add} {date_posix("%T", date, utc)?}", utc)?
 }
 
-/// EXPERIMENTAL
-// Compare 2 date
-// Return 1 if date_a is after date_b
-// Return 0 if date_a and date_b is the same
-// Return -1 if date_b is after date_a
-// If date_b is not provided, current date will be used
+/// ### EXPERIMENTAL
+/// Compares two dates.
+///
+/// Returns 1 if date_a is after date_b.
+///
+/// Returns 0 if date_a and date_b is the same.
+/// 
+/// Returns -1 if date_b is after date_a.
+///
+/// If date_b is not provided, current date will be used.
 #[allow_absurd_cast]
 pub fun date_compare(date_a: Text, date_b: Text = "", utc: Bool = false): Num? {
-    if date_b == "": date_b = unsafe date_posix("", "", utc)
+    if date_b == "": date_b = trust date_posix("", "", utc)
     let timestamp_a = date_posix("%s", date_a, utc)? as Num
     let timestamp_b = date_posix("%s", date_b, utc)? as Num
     if timestamp_a > timestamp_b: return 1

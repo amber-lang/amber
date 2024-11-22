@@ -1,0 +1,25 @@
+// Output
+// [one]
+// [two three four]
+// []
+// [five]
+// [  six  ]
+
+fun append_ref(ref inner: [Text], path: Text): Null {
+    inner += lines(path)
+}
+
+main {
+    let tmpdir = trust $ mktemp -d $
+    trust $ echo -e 'one\ntwo three four' >{tmpdir}/numbers1.txt $
+    trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
+
+    // Inefficient for large files.
+    let lines = lines("{tmpdir}/numbers1.txt")
+    append_ref(lines, "{tmpdir}/numbers2.txt")
+    for line in lines {
+        echo "[{line}]"
+    }
+
+    trust $ rm -rf {tmpdir} $
+}

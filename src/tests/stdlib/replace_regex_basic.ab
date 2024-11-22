@@ -1,0 +1,12 @@
+import * from "std/text"
+
+// Output
+// abc[123]def
+// aeon aeons ### eons
+// #path#to#file.txt
+
+main {
+    echo replace_regex("abc123def", "\([0-9][0-9]*\)", "[\1]")
+    echo replace_regex("aeon aeons eon eons", "\beon\b", "###")
+    echo replace_regex("/path/to/file.txt", "/", "#")
+}

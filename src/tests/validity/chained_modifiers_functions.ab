@@ -11,9 +11,9 @@ fun bar() {
     echo "this should not appear"
 }
 
-unsafe foo("one")
-unsafe {
+trust foo("one")
+trust {
     foo("two")
 }
-unsafe silent foo("this should not appear")
+trust silent foo("this should not appear")
 silent bar()

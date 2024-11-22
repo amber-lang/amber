@@ -8,6 +8,7 @@ use super::expression::expr::Expr;
 pub mod init;
 pub mod set;
 pub mod get;
+pub mod constinit;
 
 pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
@@ -18,11 +19,11 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Literals
         "true", "false", "null",
         // Variable keywords
-        "let", "as", "is",
+        "let", "as", "is", "const",
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
-        "loop", "break", "continue", "in",
+        "for", "loop", "break", "continue", "in",
         // Module keywords
         "pub", "import", "from",
         // Function keywords
@@ -30,9 +31,10 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Types
         "Text", "Number", "Bool", "Null",
         // Command Modifiers
-        "silent", "unsafe",
+        "silent", "trust",
         // Misc
-        "echo", "status", "nameof", "mv", "cd"
+        "echo", "status", "nameof", "mv", "cd",
+        "exit", "len",
     ]
 }
 

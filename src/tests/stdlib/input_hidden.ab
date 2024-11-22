@@ -1,0 +1,12 @@
+import * from "std/env"
+
+// Output
+// Hello, Amber
+
+main {
+    trust $ echo "Amber" >> /tmp/test_input $
+    trust $ exec 0< /tmp/test_input $
+    let name = input_hidden("Please enter your name:")
+    echo "Hello, " + name
+    trust $ rm /tmp/test_input $
+}

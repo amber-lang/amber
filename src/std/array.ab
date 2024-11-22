@@ -1,7 +1,8 @@
-/// Returns index of the first value found in the specified array
-/// If the value is not found, the function returns -1
+/// Returns index of the first value found in the specified array.
+///
+/// If the value is not found, the function returns -1.
 pub fun array_first_index(array, value): Num {
-    loop index, element in array {
+    for index, element in array {
         if value as Text == element as Text {
             return index
         }
@@ -9,10 +10,10 @@ pub fun array_first_index(array, value): Num {
     return -1
 }
 
-/// Search the value in array and return an array with the index of the various items
+/// Searches for a value in an array and returns an array with the index of the various items.
 pub fun array_search(array, value): [Num] {
     let result = [Num]
-    loop index, element in array {
+    for index, element in array {
         if value as Text == element as Text {
             result += [index]
         }
@@ -20,7 +21,7 @@ pub fun array_search(array, value): [Num] {
     return result
 }
 
-/// Check if the value is in the array
+/// Checks if a value is in the array.
 pub fun includes(array, value) {
     let result = array_first_index(array, value)
     return result >= 0

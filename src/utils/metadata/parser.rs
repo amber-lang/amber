@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 
 use heraclitus_compiler::prelude::*;
+use amber_meta::ContextManager;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
@@ -8,12 +9,10 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::import_cache::ImportCache;
 use crate::utils::function_cache::FunctionCache;
 
-#[derive(Debug)]
+#[derive(Debug, ContextManager)]
 pub struct ParserMetadata {
     /// Code if the parser is in eval mode
     pub eval_code: Option<String>,
-    /// Determines where the binary operator should end
-    pub binop_border: Option<usize>,
     /// Used for debugging by Heraclitus
     pub debug: Option<usize>,
     /// Cache of already imported modules
@@ -25,11 +24,12 @@ pub struct ParserMetadata {
     /// Global variable id
     pub var_id: usize,
     /// Context of the parser
+    #[context]
     pub context: Context,
     /// List of all failure messages
     pub messages: Vec<Message>,
-    /// Determines if we are generating documentation
-    pub is_docs_gen: bool
+    /// Show standard library usage in documentation
+    pub doc_usage: bool,
 }
 
 impl ParserMetadata {
@@ -48,13 +48,14 @@ impl ParserMetadata {
     }
 
     /// Pushes a new scope to the stack
-    pub fn push_scope(&mut self) {
-        self.context.scopes.push(ScopeUnit::new())
-    }
-
-    /// Pops the last scope from the stack
-    pub fn pop_scope(&mut self) -> Option<ScopeUnit> {
-        self.context.scopes.pop()
+    pub fn with_push_scope<B>(&mut self, mut body: B) -> SyntaxResult
+    where
+        B: FnMut(&mut Self) -> SyntaxResult
+    {
+        self.context.scopes.push(ScopeUnit::new());
+        let result = body(self);
+        self.context.scopes.pop();
+        result
     }
 
     /* Variables */
@@ -67,19 +68,20 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type) -> Option<usize> {
+    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
             name: name.to_string(),
             kind,
             global_id,
-            is_ref: false
+            is_ref: false,
+            is_const,
         });
         global_id
     }
 
-    /// Adds a parameter as variable to the current scope
+    /// Adds a function parameter as variable to the current scope
     pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
@@ -87,7 +89,8 @@ impl ParserMetadata {
             name: name.to_string(),
             kind,
             global_id,
-            is_ref
+            is_ref,
+            is_const: false,
         });
         global_id
     }
@@ -162,7 +165,6 @@ impl Metadata for ParserMetadata {
     fn new(tokens: Vec<Token>, path: Option<String>, code: Option<String>) -> Self {
         ParserMetadata {
             eval_code: code,
-            binop_border: None,
             debug: None,
             import_cache: ImportCache::new(path.clone()),
             fun_cache: FunctionCache::new(),
@@ -170,12 +172,12 @@ impl Metadata for ParserMetadata {
             var_id: 0,
             context: Context::new(path, tokens),
             messages: Vec::new(),
-            is_docs_gen: false
+            doc_usage: false,
         }
     }
 
-    fn get_trace(&self) -> Vec<PositionInfo> {
-        self.context.trace.clone()
+    fn get_token_at(&self, index: usize) -> Option<Token> {
+        self.context.expr.get(index).cloned()
     }
 
     fn get_index(&self) -> usize {
@@ -186,10 +188,6 @@ impl Metadata for ParserMetadata {
         self.context.index = index
     }
 
-    fn get_token_at(&self, index: usize) -> Option<Token> {
-        self.context.expr.get(index).cloned()
-    }
-
     fn get_debug(&mut self) -> Option<usize> {
         self.debug
     }
@@ -198,11 +196,15 @@ impl Metadata for ParserMetadata {
         self.debug = Some(indent)
     }
 
+    fn get_path(&self) -> Option<String> {
+        self.context.path.clone()
+    }
+
     fn get_code(&self) -> Option<&String> {
         self.eval_code.as_ref()
     }
 
-    fn get_path(&self) -> Option<String> {
-        self.context.path.clone()
+    fn get_trace(&self) -> Vec<PositionInfo> {
+        self.context.trace.clone()
     }
 }

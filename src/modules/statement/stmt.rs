@@ -1,43 +1,45 @@
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use crate::docs::module::DocumentationModule;
+use crate::modules::variable::constinit::ConstInit;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
-    set::VariableSet
+    set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
 use crate::handle_types;
 use crate::modules::condition::{
     ifchain::IfChain,
-    ifcond::IfCondition
+    ifcond::IfCondition,
 };
 use crate::modules::shorthand::{
     add::ShorthandAdd,
     sub::ShorthandSub,
     mul::ShorthandMul,
     div::ShorthandDiv,
-    modulo::ShorthandModulo
+    modulo::ShorthandModulo,
 };
 use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
     iter_loop::IterLoop,
     break_stmt::Break,
-    continue_stmt::Continue
+    continue_stmt::Continue,
 };
 use crate::modules::function::{
     declaration::FunctionDeclaration,
     ret::Return,
-    fail::Fail
+    fail::Fail,
 };
 use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
 use crate::modules::builtin::{
     echo::Echo,
     mv::Mv,
-    cd::Cd
+    cd::Cd,
+    exit::Exit,
 };
 use super::comment_doc::CommentDoc;
 use super::comment::Comment;
@@ -66,9 +68,11 @@ pub enum StatementType {
     Cd(Cd),
     Echo(Echo),
     Mv(Mv),
+    Exit(Exit),
     CommandModifier(CommandModifier),
     Comment(Comment),
-    CommentDoc(CommentDoc)
+    CommentDoc(CommentDoc),
+    ConstInit(ConstInit),
 }
 
 #[derive(Debug, Clone)]
@@ -87,13 +91,13 @@ impl Statement {
         // Conditions
         IfChain, IfCondition,
         // Variables
-        VariableInit, VariableSet,
+        VariableInit, VariableSet, ConstInit,
         // Short hand
         ShorthandAdd, ShorthandSub,
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
         // Command
-        CommandModifier, Echo, Mv, Cd,
+        CommandModifier, Echo, Mv, Cd, Exit,
         // Comment doc
         CommentDoc, Comment,
         // Expression
@@ -112,6 +116,13 @@ impl Statement {
                 Ok(())
             }
             Err(details) => Err(details)
+        }
+    }
+
+    pub fn get_docs_item_name(&self) -> Option<String> {
+        match &self.value {
+            Some(StatementType::FunctionDeclaration(inner)) => Some(inner.name.clone()),
+            _ => None,
         }
     }
 }
