@@ -1,0 +1,12 @@
+import {
+    replace,
+    replace_regex,
+} from "std/text"
+import { sum, abs } from "std/math"
+
+// Output
+// c
+// 3
+
+echo replace_regex(replace("aa", "a", "b"), "b+", "c", true)
+echo sum([abs(-2), 1])
