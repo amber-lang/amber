@@ -6,8 +6,8 @@
 root = { statement_global } ;
 
 (* Statement *)
-statement_local = expression | variable_init | variable_set
-    | loop | loop_array | if_statement | if_chain ;
+statement_local = expression | variable_init_mut | variable_init_const
+    | variable_set | loop | loop_array | if_statement | if_chain | builtins_statement ;
 statement_global = statement_local | function_def | main
     | import_all | import_ids;
 
@@ -19,7 +19,7 @@ block = singleline_block | multiline_block ;
 (* Expression *)
 expression = number | text | boolean | null | list | command
     | binary_operation | unary_operation | parentheses | ternary
-    | range | range_inclusive | identifier | function_call ;
+    | range | range_inclusive | builtins_expression | identifier | function_call ;
 
 (* Terminals *)
 ANY_CHAR = ? any character ? ;
@@ -79,7 +79,8 @@ failure_handler = failure_propagation | failure_block ;
 
 (* Variable *)
 variable_index = '[', expression, ']' ;
-variable_init = 'let', identifier, '=', expression ;
+variable_init_mut = 'let', identifier, '=', expression ;
+variable_init_const = 'const', identifier, '=', expression ;
 variable_get = identifier, variable_index? ;
 variable_set = identifier, variable_index?, '=', expression ;
 
@@ -93,8 +94,8 @@ function_def_typed = [ VISIBILITY ], 'fun', identifier, '(',
 
 (* Loop *)
 loop = 'loop', block ;
-loop_array = 'loop', identifier, 'in', expression, block ;
-loop_array_iterator = 'loop', identifier, ',', identifier, 'in', expression, block ;
+loop_array = 'for', identifier, 'in', expression, block ;
+loop_array_iterator = 'for', identifier, ',', identifier, 'in', expression, block ;
 
 (* Ranges *)
 range = expression, '..', expression ;
@@ -111,7 +112,19 @@ main = 'main', [ '(', identifier, ')' ], block ;
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
 import_all = [ VISIBILITY ], 'import', '*', 'from', import_path ;
-import_ids = [ VISIBILITY ], 'import', '{', { identifier, [ 'as', identifier ] }, '}', 'from', import_path ;
+import_ids = [ VISIBILITY ], 'import', '{', { identifier, [ 'as', identifier ], [ ',' ] }, '}', 'from', import_path ;
 
 (* Comment *)
 comment = '//', { ANY_CHAR }, '\n'
+
+(* Built-ins *)
+builtins_statement = builtin_echo | builtin_cd | builtin_mv ;
+builtin_echo = 'echo', expression ;
+builtin_exit = 'exit', expression ;
+builtin_cd = 'cd', expression ;
+builtin_mv = 'mv', expression ;
+
+builtins_expression = builtin_exit | builtin_len | builtin_lines ;
+builtin_len = 'len', expression ;
+builtin_lines = 'lines', expression ;
+builtin_nameof = 'nameof', expression ;
