@@ -4,7 +4,7 @@ import { includes } from "std/array"
 import { file_exist } from "std/fs"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
-let name = "AmberNative"
+let name = "amber"
 let target = "amber"
 let archive = "amber.tar.xz"
 let agent = has_failed("uname -a")
@@ -14,7 +14,7 @@ let agent = has_failed("uname -a")
 echo ""
 
 fun get_latest_release_tag() {
-    let tag_url = "https://api.github.com/repos/Ph0enixKM/{name}/releases/latest"
+    let tag_url = "https://api.github.com/repos/amber-lang/{name}/releases/latest"
     let tag_json = $ curl -sL "{tag_url}" $?
     // Get the tag name from the JSON
     let tag = $ echo "\${nameof tag_json}" \
@@ -79,7 +79,7 @@ main(args) {
     }
 
     // Set the download link
-    let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
+    let url = "https://github.com/amber-lang/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
 
     // Download amber
     silent $ curl -L -o "{archive}" "{url}" $ failed {
