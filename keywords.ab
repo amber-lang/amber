@@ -1,0 +1,35 @@
+import { file_read } from "std/fs"
+import {
+    words,
+    contains,
+    starts_with,
+    trim,
+    replace,
+    lines
+} from "std/text"
+
+main (args) {
+    let keywords = [Text]
+    let content = file_read("grammar.ebnf")?
+    let should_append = false
+    loop line in lines(content) {
+        // Inlined starts_with function
+        if not should_append {
+            $ if [[ \${nameof line} != KEYWORD* ]]; then
+                continue
+            fi$?
+        }
+        should_append = true
+        loop token in words(line) {
+            if {
+                starts_with(token, "'"):
+                    keywords += [replace(token, "'", "")]
+                token == ";" {
+                    should_append = false
+                    break
+                }
+            }
+        }
+    }
+    echo keywords
+}

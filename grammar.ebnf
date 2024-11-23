@@ -33,16 +33,52 @@ expression = number | text | boolean | null | list | command
     | binary_operation | unary_operation | parentheses | ternary
     | range | range_inclusive | builtins_expression | identifier | function_call ;
 
+(* Keywords *)
+KEYWORD_AND = 'and' ;
+KEYWORD_AS = 'as' ;
+KEYWORD_BREAK = 'break' ;
+KEYWORD_CD = 'cd' ;
+KEYWORD_CONST = 'const' ;
+KEYWORD_CONTINUE = 'continue' ;
+KEYWORD_ECHO = 'echo' ;
+KEYWORD_ELSE = 'else' ;
+KEYWORD_FAIL = 'fail' ;
+KEYWORD_FAILED = 'failed' ;
+KEYWORD_FOR = 'for' ;
+KEYWORD_FROM = 'from' ;
+KEYWORD_FUN = 'fun' ;
+KEYWORD_IF = 'if' ;
+KEYWORD_IMPORT = 'import' ;
+KEYWORD_IN = 'in' ;
+KEYWORD_IS = 'is' ;
+KEYWORD_LEN = 'len' ;
+KEYWORD_LET = 'let' ;
+KEYWORD_LINES = 'lines' ;
+KEYWORD_LOOP = 'loop' ;
+KEYWORD_MAIN = 'main' ;
+KEYWORD_MV = 'mv' ;
+KEYWORD_NAMEOF = 'nameof' ;
+KEYWORD_NOT = 'not' ;
+KEYWORD_OR = 'or' ;
+KEYWORD_PUB = 'pub' ;
+KEYWORD_REF = 'ref' ;
+KEYWORD_RETURN = 'return' ;
+KEYWORD_SILENT = 'silent' ;
+KEYWORD_STATUS = 'status' ;
+KEYWORD_THEN = 'then' ;
+KEYWORD_TRUST = 'trust' ;
+KEYWORD_UNSAFE = 'unsafe' ;
+
 (* Terminals *)
 ANY_CHAR = ? any character ? ;
 LETTER = 'A'..'Z' | 'a'..'z' ;
 DIGIT = '0'..'9' ;
 TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
-UNARY_OP = '-' | 'not' ;
+UNARY_OP = '-' | KEYWORD_NOT ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | 'and' | 'or' | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
-SILENT_MOD = 'silent' ;
-TRUST_MOD = 'trust' ;
-VISIBILITY = 'pub' ;
+SILENT_MOD = KEYWORD_SILENT ;
+TRUST_MOD = KEYWORD_TRUST ;
+VISIBILITY = KEYWORD_PUB ;
 
 (* Identifier *)
 any_identifier = (LETTER | '_') , { LETTER | '_' | DIGIT } ;
@@ -86,13 +122,13 @@ parentheses = '(', expression, ')' ;
 
 (* Failure handler *)
 failure_propagation = '?';
-failure_block = 'failed', block ;
+failure_block = KEYWORD_FAILED , block ;
 failure_handler = failure_propagation | failure_block ;
 
 (* Variable *)
 variable_index = '[', expression, ']' ;
-variable_init_mut = 'let', identifier, '=', expression ;
-variable_init_const = 'const', identifier, '=', expression ;
+variable_init_mut = KEYWORD_LET , identifier, '=', expression ;
+variable_init_const = KEYWORD_CONST , identifier, '=', expression ;
 variable_get = identifier, variable_index? ;
 variable_set = identifier, variable_index?, '=', expression ;
 
@@ -100,31 +136,31 @@ variable_set = identifier, variable_index?, '=', expression ;
 function_call = identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = [ SILENT_MOD ], function_call, failure_handler ;
 function_call_trust = [ SILENT_MOD ], TRUST_MOD, function_call ;
-function_def = [ VISIBILITY ], 'fun', identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
-function_def_typed = [ VISIBILITY ], 'fun', identifier, '(',
+function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
 
 (* Loop *)
-loop = 'loop', block ;
-loop_array = 'for', identifier, 'in', expression, block ;
-loop_array_iterator = 'for', identifier, ',', identifier, 'in', expression, block ;
+loop = KEYWORD_LOOP, block ;
+loop_array = KEYWORD_FOR | KEYWORD_LOOP, identifier, KEYWORD_IN, expression, block ;
+loop_array_iterator = KEYWORD_FOR, identifier, ',', identifier, KEYWORD_IN, expression, block ;
 
 (* Ranges *)
 range = expression, '..', expression ;
 range_inclusive = expression, '..=', expression ;
 
 (* Conditional *)
-if_statement = 'if', expression, block, [ 'else', block ] ;
-if_chain = 'if', '{', { expression, block }, [ 'else', block ],  '}' ;
-ternary = expression, 'then', expression, 'else', expression ;
+if_statement = KEYWORD_IF, expression, block, [ KEYWORD_ELSE, block ] ;
+if_chain = KEYWORD_IF, '{', { expression, block }, [ KEYWORD_ELSE, block ],  '}' ;
+ternary = expression, KEYWORD_THEN, expression, KEYWORD_ELSE, expression ;
 
 (* Main *)
-main = 'main', [ '(', identifier, ')' ], block ;
+main = KEYWORD_MAIN, [ '(', identifier, ')' ], block ;
 
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
-import_all = [ VISIBILITY ], 'import', '*', 'from', import_path ;
-import_ids = [ VISIBILITY ], 'import', '{', { identifier, [ 'as', identifier ], [ ',' ] }, '}', 'from', import_path ;
+import_all = [ VISIBILITY ], KEYWORD_IMPORT, '*', KEYWORD_FROM, import_path ;
+import_ids = [ VISIBILITY ], KEYWORD_IMPORT, '{', { identifier, [ KEYWORD_AS, identifier ], [ ',' ] }, '}', KEYWORD_FROM, import_path ;
 
 (* Comment *)
 comment = '//', { ANY_CHAR }, '\n' ;
@@ -135,15 +171,15 @@ builtins_statement =
     | builtin_exit
     | builtin_cd
     | builtin_mv ;
-builtin_echo = 'echo', expression ;
-builtin_exit = 'exit', expression ;
-builtin_cd = 'cd', expression ;
-builtin_mv = 'mv', expression ;
+builtin_echo = KEYWORD_ECHO, expression ;
+builtin_exit = KEYWORD_EXIT, expression ;
+builtin_cd = KEYWORD_CD, expression ;
+builtin_mv = KEYWORD_MV, expression ;
 
 builtins_expression =
     builtin_nameof
     | builtin_len
     | builtin_lines ;
-builtin_nameof = 'nameof', expression ;
-builtin_len = 'len', expression ;
-builtin_lines = 'lines', expression ;
+builtin_nameof = KEYWORD_NAMEOF, expression ;
+builtin_len = KEYWORD_LEN, expression ;
+builtin_lines = KEYWORD_LINES, expression ;
