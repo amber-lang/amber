@@ -21,7 +21,7 @@ statement_global =
     | function_def
     | main
     | import_all
-    | import_ids;
+    | import_ids ;
 
 (* Block *)
 singleline_block = ':', statement_local ;
