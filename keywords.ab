@@ -31,5 +31,7 @@ main (args) {
             }
         }
     }
-    echo keywords
+    echo $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
+        echo "Something went wrong while sorting the keywords"
+    }
 }
