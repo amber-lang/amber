@@ -6,10 +6,22 @@
 root = { statement_global } ;
 
 (* Statement *)
-statement_local = expression | variable_init_mut | variable_init_const
-    | variable_set | loop | loop_array | if_statement | if_chain | builtins_statement ;
-statement_global = statement_local | function_def | main
-    | import_all | import_ids;
+statement_local =
+    expression
+    | variable_init_mut
+    | variable_init_const
+    | variable_set
+    | loop
+    | loop_array
+    | if_statement
+    | if_chain
+    | builtins_statement ;
+statement_global =
+    statement_local
+    | function_def
+    | main
+    | import_all
+    | import_ids;
 
 (* Block *)
 singleline_block = ':', statement_local ;
@@ -118,13 +130,20 @@ import_ids = [ VISIBILITY ], 'import', '{', { identifier, [ 'as', identifier ], 
 comment = '//', { ANY_CHAR }, '\n'
 
 (* Built-ins *)
-builtins_statement = builtin_echo | builtin_cd | builtin_mv ;
+builtins_statement =
+    builtin_echo
+    | builtin_exit
+    | builtin_cd
+    | builtin_mv ;
 builtin_echo = 'echo', expression ;
 builtin_exit = 'exit', expression ;
 builtin_cd = 'cd', expression ;
 builtin_mv = 'mv', expression ;
 
-builtins_expression = builtin_exit | builtin_len | builtin_lines ;
+builtins_expression =
+    builtin_nameof
+    | builtin_len
+    | builtin_lines ;
+builtin_nameof = 'nameof', expression ;
 builtin_len = 'len', expression ;
 builtin_lines = 'lines', expression ;
-builtin_nameof = 'nameof', expression ;
