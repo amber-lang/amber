@@ -4,7 +4,7 @@ use crate::tests::eval_bash;
 use super::compile_code;
 
 #[test]
-fn default_ok() {
+fn test_each_installed_postprocessor() {
     let hello = "echo \"Hello world!\"";
     let hello = compile_code(hello);
 
