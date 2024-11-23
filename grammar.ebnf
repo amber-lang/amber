@@ -127,7 +127,7 @@ import_all = [ VISIBILITY ], 'import', '*', 'from', import_path ;
 import_ids = [ VISIBILITY ], 'import', '{', { identifier, [ 'as', identifier ], [ ',' ] }, '}', 'from', import_path ;
 
 (* Comment *)
-comment = '//', { ANY_CHAR }, '\n'
+comment = '//', { ANY_CHAR }, '\n' ;
 
 (* Built-ins *)
 builtins_statement =
