@@ -43,7 +43,7 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
 
 impl TranslateModule for LinesInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = format!("__AMBER_ARRAY_{}", meta.gen_array_id());
+        let name = format!("__AMBER_ARRAY_{}", meta.gen_value_id());
         let temp = format!("__AMBER_LINE_{}", meta.gen_value_id());
         let path = (*self.path).as_ref()
             .map(|p| p.translate_eval(meta, false))

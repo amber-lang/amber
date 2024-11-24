@@ -18,9 +18,7 @@ pub struct TranslateMetadata {
     pub stmt_queue: VecDeque<String>,
     /// The metadata of the function that is currently being translated.
     pub fun_meta: Option<FunctionMetadata>,
-    /// Array id is used to determine the array that is being evaluated.
-    pub array_id: usize,
-    /// Value ID - used to store values in variables.
+    /// Used to determine the value or array being evaluated.
     pub value_id: usize,
     /// Determines whether the current context is a context in bash's `eval`.
     pub eval_ctx: bool,
@@ -39,7 +37,6 @@ impl TranslateMetadata {
             fun_cache: meta.fun_cache,
             fun_meta: None,
             stmt_queue: VecDeque::new(),
-            array_id: 0,
             value_id: 0,
             eval_ctx: false,
             silenced: false,
@@ -62,12 +59,6 @@ impl TranslateMetadata {
 
     pub fn decrease_indent(&mut self) {
         self.indent -= 1;
-    }
-
-    pub fn gen_array_id(&mut self) -> usize {
-        let id = self.array_id;
-        self.array_id += 1;
-        id
     }
 
     pub fn gen_value_id(&mut self) -> usize {

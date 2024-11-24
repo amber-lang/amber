@@ -65,7 +65,7 @@ impl TranslateModule for Add {
         match self.kind {
             Type::Array(_) => {
                 let quote = meta.gen_quote();
-                let id = meta.gen_array_id();
+                let id = meta.gen_value_id();
                 let name = format!("__AMBER_ARRAY_ADD_{id}");
                 meta.stmt_queue.push_back(format!("{name}=({left} {right})"));
                 format!("{quote}${{{name}[@]}}{quote}")
