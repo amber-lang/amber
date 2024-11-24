@@ -181,19 +181,19 @@ comment = '//', { ANY_CHAR }, '\n' ;
 
 (* Built-ins *)
 builtins_statement =
-    builtin_echo
-    | builtin_exit
-    | builtin_cd
-    | builtin_mv ;
+    builtin_cd |
+    builtin_echo |
+    builtin_exit |
+    builtin_mv ;
+builtin_cd = KEYWORD_CD, expression ;
 builtin_echo = KEYWORD_ECHO, expression ;
 builtin_exit = KEYWORD_EXIT, expression ;
-builtin_cd = KEYWORD_CD, expression ;
 builtin_mv = KEYWORD_MV, expression ;
 
 builtins_expression =
-    builtin_nameof
-    | builtin_len
-    | builtin_lines ;
-builtin_nameof = KEYWORD_NAMEOF, expression ;
+    builtin_len |
+    builtin_lines |
+    builtin_nameof ;
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
+builtin_nameof = KEYWORD_NAMEOF, expression ;
