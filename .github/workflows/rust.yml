@@ -30,6 +30,17 @@ jobs:
   build_and_test:
     name: Rust and clippy tests
     runs-on: ubuntu-latest
+    matrix:
+      bash:
+        - "5.3"
+        - "5.2"
+        - "5.1"
+        - "5.0"
+        - "4.4"
+        - "4.3"
+        - "4.2"
+        - "4.1"
+        - "4.0"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
@@ -53,6 +64,11 @@ jobs:
         # the binary will be used by the next cargo test step
         run: cargo build
       - name: Run cargo tests
-        run: cargo test --all-targets --all-features
+        env:
+          GITHUB_ACTIONS_BASH_CONTAINER: 1
+        run: |
+          docker run --volume $PWD:/root --detach --name bash bash:${{ matrix.bash }} sleep infinity
+          cargo test --all-targets --all-features
+          docker rm --force bash
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
