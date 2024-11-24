@@ -55,6 +55,7 @@ KEYWORD_CONST = 'const' ;
 KEYWORD_CONTINUE = 'continue' ;
 KEYWORD_ECHO = 'echo' ;
 KEYWORD_ELSE = 'else' ;
+KEYWORD_EXIT = 'exit' ;
 KEYWORD_FAIL = 'fail' ;
 KEYWORD_FAILED = 'failed' ;
 KEYWORD_FOR = 'for' ;
