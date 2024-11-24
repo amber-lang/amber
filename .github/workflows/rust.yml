@@ -30,6 +30,28 @@ jobs:
   build_and_test:
     name: Rust and clippy tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sed:
+          - GNU
+        bash_version:
+          - "5.3-alpha"
+          - "5.2"
+          - "5.1"
+          - "5.0"
+          - "4.4"
+          - "4.3"
+          - "4.2"
+          - "4.1"
+          - "4.0"
+          - "3.2"
+          - "3.1"
+          - "3.0"
+        # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
+        # include:
+        #   - sed: BusyBox
+        #     bash_version: "latest"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
@@ -53,6 +75,16 @@ jobs:
         # the binary will be used by the next cargo test step
         run: cargo build
       - name: Run cargo tests
-        run: cargo test --all-targets --all-features
+        env:
+          GITHUB_ACTIONS_BASH_CONTAINER: 1
+        run: |
+          docker run --volume $PWD:/root --network host --detach --name bash bash:${{ matrix.bash_version }} sleep infinity
+          # coreutils includes mktemp
+          docker exec bash apk add coreutils curl
+          if [ "${{ matrix.sed }}" == "GNU" ]; then
+            docker exec bash apk add sed
+          fi
+          cargo test --all-targets --all-features
+          docker rm --force bash
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
