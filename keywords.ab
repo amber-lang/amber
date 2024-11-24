@@ -1,37 +1,29 @@
 import { file_read } from "std/fs"
 import {
-    words,
     contains,
+    replace,
     starts_with,
     trim,
-    replace,
-    lines
+    words,
 } from "std/text"
 
 main (args) {
     let keywords = [Text]
-    let content = file_read("grammar.ebnf")?
     let should_append = false
-    loop line in lines(content) {
-        // Inlined starts_with function
-        if not should_append {
-            $ if [[ \${nameof line} != KEYWORD* ]]; then
-                continue
-            fi$?
-        }
+    for line in lines("grammar.ebnf") {
+        if not should_append and not starts_with(line, "KEYWORD"): continue
         should_append = true
-        loop token in words(line) {
+        for token in words(line) {
             if {
-                starts_with(token, "'"):
-                    keywords += [replace(token, "'", "")]
-                token == ";" {
-                    should_append = false
-                    break
-                }
+                starts_with(token, "'"): keywords += [replace(token, "'", "")]
+                token == ";": should_append = false
             }
         }
     }
-    echo $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
+    let result = $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
         echo "Something went wrong while sorting the keywords"
+    }
+    for item in words(result) {
+        echo item
     }
 }

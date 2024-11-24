@@ -7,21 +7,21 @@ root = { statement_global } ;
 
 (* Statement *)
 statement_local =
-    expression
-    | variable_init_mut
-    | variable_init_const
-    | variable_set
-    | loop
-    | loop_array
-    | if_statement
-    | if_chain
-    | builtins_statement ;
+    builtins_statement |
+    expression |
+    if_chain |
+    if_statement |
+    loop |
+    loop_array |
+    variable_init_const |
+    variable_init_mut |
+    variable_set ;
 statement_global =
-    statement_local
-    | function_def
-    | main
-    | import_all
-    | import_ids ;
+    function_def |
+    import_all |
+    import_ids |
+    main |
+    statement_local ;
 
 (* Block *)
 singleline_block = ':', statement_local ;
@@ -29,9 +29,22 @@ multiline_block = '{', { statement_local }, '}' ;
 block = singleline_block | multiline_block ;
 
 (* Expression *)
-expression = number | text | boolean | null | list | command
-    | binary_operation | unary_operation | parentheses | ternary
-    | range | range_inclusive | builtins_expression | identifier | function_call ;
+expression =
+    binary_operation |
+    boolean |
+    builtins_expression |
+    command |
+    function_call |
+    identifier |
+    list |
+    null |
+    number |
+    parentheses |
+    range |
+    range_inclusive |
+    ternary |
+    text |
+    unary_operation ;
 
 (* Keywords *)
 KEYWORD_AND = 'and' ;
@@ -75,24 +88,24 @@ LETTER = 'A'..'Z' | 'a'..'z' ;
 DIGIT = '0'..'9' ;
 TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
 UNARY_OP = '-' | KEYWORD_NOT ;
-BINARY_OP = '+' | '-' | '*' | '/' | '%' | 'and' | 'or' | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
+BINARY_OP = '+' | '-' | '*' | '/' | '%' | KEYWORD_AND | KEYWORD_OR | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 SILENT_MOD = KEYWORD_SILENT ;
 TRUST_MOD = KEYWORD_TRUST ;
 VISIBILITY = KEYWORD_PUB ;
 
 (* Identifier *)
-any_identifier = (LETTER | '_') , { LETTER | '_' | DIGIT } ;
-internal_identifier = '__' , { LETTER | '_' | DIGIT } ;
+any_identifier = (LETTER | '_'), { LETTER | '_' | DIGIT } ;
+internal_identifier = '__', { LETTER | '_' | DIGIT } ;
 identifier = any_identifier - internal_identifier ;
 
 (* `Num` literal *)
-integer = DIGIT , { DIGIT } ;
-real = integer , '.' , integer ;
+integer = DIGIT, { DIGIT } ;
+real = integer, '.', integer ;
 number = integer | real ;
 
 (* `Text` literal *)
-interpolation = '{' , expression , '}' ;
-text = '"' , { ANY_CHAR | interpolation } , '"' ;
+interpolation = '{', expression, '}' ;
+text = '"', { ANY_CHAR | interpolation }, '"' ;
 
 (* `Bool` literal *)
 boolean = 'true' | 'false' ;
@@ -101,8 +114,8 @@ boolean = 'true' | 'false' ;
 null = 'null' ;
 
 (* `List` literal *)
-empty_list = '[' , TYPE , ']' ;
-full_list = '[' , [ expression , { ',' , expression } ] , ']' ;
+empty_list = '[', TYPE, ']' ;
+full_list = '[', [ expression, { ',', expression } ], ']' ;
 list = empty_list | full_list ;
 
 (* Command expression *)
@@ -114,21 +127,21 @@ command = [ SILENT_MOD ], command_base, [ failure_handler ] ;
 command_trust = [ SILENT_MOD ], TRUST_MOD, command_base ;
 
 (* Operations *)
-binary_operation = expression , BINARY_OP , expression ;
-unary_operation = UNARY_OP , expression ;
+binary_operation = expression, BINARY_OP, expression ;
+unary_operation = UNARY_OP, expression ;
 
 (* Parentheses *)
 parentheses = '(', expression, ')' ;
 
 (* Failure handler *)
 failure_propagation = '?';
-failure_block = KEYWORD_FAILED , block ;
+failure_block = KEYWORD_FAILED, block ;
 failure_handler = failure_propagation | failure_block ;
 
 (* Variable *)
 variable_index = '[', expression, ']' ;
-variable_init_mut = KEYWORD_LET , identifier, '=', expression ;
-variable_init_const = KEYWORD_CONST , identifier, '=', expression ;
+variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
+variable_init_const = KEYWORD_CONST, identifier, '=', expression ;
 variable_get = identifier, variable_index? ;
 variable_set = identifier, variable_index?, '=', expression ;
 
@@ -143,7 +156,7 @@ function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
 (* Loop *)
 loop = KEYWORD_LOOP, block ;
 loop_array = KEYWORD_FOR | KEYWORD_LOOP, identifier, KEYWORD_IN, expression, block ;
-loop_array_iterator = KEYWORD_FOR, identifier, ',', identifier, KEYWORD_IN, expression, block ;
+loop_array_iterator = KEYWORD_FOR | KEYWORD_LOOP, identifier, ',', identifier, KEYWORD_IN, expression, block ;
 
 (* Ranges *)
 range = expression, '..', expression ;
