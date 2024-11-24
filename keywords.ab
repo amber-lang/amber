@@ -1,3 +1,5 @@
+#! /usr/bin/env amber
+
 import {
     replace,
     starts_with,
