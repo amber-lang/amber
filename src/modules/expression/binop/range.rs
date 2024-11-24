@@ -1,12 +1,13 @@
+use std::ops::Sub;
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::expr::ExprType;
-use crate::{handle_binop, error_type_match};
-use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::ParserMetadata;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use crate::{handle_binop, error_type_match};
 use super::BinOp;
 
 #[derive(Debug, Clone)]
@@ -60,9 +61,10 @@ impl TranslateModule for Range {
         let from = self.from.translate(meta);
         let to = self.to.translate(meta);
         if self.neq {
-            let to_neq = match &self.to.value.as_ref().unwrap() {
-                ExprType::Number(_) => (to.parse::<usize>().unwrap() - 1).to_string(),
-                _ => translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string())),
+            let to_neq = if let Some(ExprType::Number(_)) = &self.to.value {
+                to.parse::<isize>().unwrap_or_default().sub(1).to_string()
+            } else {
+                translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string()))
             };
             meta.gen_subprocess(&format!("seq {} {}", from, to_neq))
         } else {
