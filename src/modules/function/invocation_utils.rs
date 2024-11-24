@@ -39,6 +39,17 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     // Check if the function argument types match
     if fun.is_args_typed {
         for (index, (arg_name, arg_type, given_type)) in izip!(fun.arg_names.iter(), fun.arg_types.iter(), args.iter()).enumerate() {
+
+            // union type matching works differently in functions
+            if let Type::Union(union) = &arg_type {
+                if ! union.has(given_type) {
+                    let fun_name = &fun.name;
+                    let ordinal = ordinal_number(index);
+                    return error!(meta, tok, format!("{ordinal} argument of function '{fun_name}' does not allow '{given_type}' in '{arg_type}'"))
+                }
+                continue;
+            }
+
             if !given_type.is_allowed_in(arg_type) {
                 let fun_name = &fun.name;
                 let ordinal = ordinal_number(index);
