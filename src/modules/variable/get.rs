@@ -75,7 +75,7 @@ impl TranslateModule for VariableGet {
             },
             (true, Type::Array(_)) => match *self.index {
                 Some(ref expr) => {
-                    let id = meta.gen_array_id();
+                    let id = meta.gen_value_id();
                     let expr = expr.translate_eval(meta, true);
                     meta.stmt_queue.push_back(format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{${name}[{expr}]}}\\\"\""));
                     format!("$__AMBER_ARRAY_GET_{id}_{name}") // echo $__ARRAY_GET
