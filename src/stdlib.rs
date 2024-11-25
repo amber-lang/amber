@@ -3,7 +3,7 @@ use std::{path::PathBuf, sync::mpsc::{channel, Sender}};
 use include_dir::{include_dir, Dir, File};
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::{compiler::{file_source::{FileMeta, FileSource}, AmberCompiler}, Cli};
+use crate::compiler::{file_source::{FileMeta, FileSource}, AmberCompiler, CompilerOptions};
 pub const STDLIB: Dir = include_dir!("src/std");
 
 pub fn resolve<T: Into<String>>(path: T) -> Option<String> {
@@ -18,7 +18,6 @@ pub fn resolve<T: Into<String>>(path: T) -> Option<String> {
 }
 
 pub fn precompile_all() {
-
     let mut threads = vec![];
     let (tx, rx) = channel::<String>();
 
@@ -31,10 +30,10 @@ pub fn precompile_all() {
         let compiler = AmberCompiler::new(
             file.contents_utf8().unwrap().into(),
             Some(path.clone()),
-            Cli {
+            CompilerOptions {
                 no_cache: false,
-                precompile: false,
-                ..Cli::default()
+                no_proc: vec![String::from("*")],
+                minify: false
             },
             FileMeta {
                 is_import: true,

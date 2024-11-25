@@ -39,7 +39,7 @@ struct Cli {
     /// To select multiple, pass multiple times with different values
     /// Argument also supports a wilcard match, like "*" or "s*mt"
     #[arg(long, verbatim_doc_comment)]
-    no_proc: Vec<String>,
+    no_proc: Vec<String>
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -62,6 +62,10 @@ enum CommandKind {
 struct EvalCommand {
     /// Code to evaluate
     code: String,
+
+    /// Disable cache
+    #[arg(long, verbatim_doc_comment)]
+    no_cache: bool
 }
 
 #[derive(Args, Clone, Debug)]
@@ -79,6 +83,10 @@ struct RunCommand {
     /// Argument also supports a wilcard match, like "*" or "s*mt"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Disable cache
+    #[arg(long, verbatim_doc_comment)]
+    no_cache: bool
 }
 
 #[derive(Args, Clone, Debug)]
@@ -92,6 +100,10 @@ struct CheckCommand {
     /// Argument also supports a wilcard match, like "*" or "s*mt"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Disable cache
+    #[arg(long, verbatim_doc_comment)]
+    no_cache: bool
 }
 
 #[derive(Args, Clone, Debug)]
@@ -113,6 +125,7 @@ struct BuildCommand {
     #[arg(long)]
     minify: bool,
 
+    /// Disable cache
     #[arg(long, short)]
     no_cache: bool,
 
@@ -144,17 +157,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 handle_eval(command)?;
             }
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, command.no_cache, false);
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?;
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, command.no_cache, false);
                 compile_input(command.input, options);
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify);
+                let options = CompilerOptions::from_args(&command.no_proc, command.no_cache, command.minify);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
             }
@@ -166,7 +179,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false);
+        let options = CompilerOptions::from_args(&cli.no_proc, true, false);
         let (code, messages) = compile_input(input, options);
         execute_output(code, cli.args, messages)?;
     }
@@ -198,7 +211,8 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
         }
     };
     
-    let compiler = AmberCompiler::new(amber_code, Some(input), options);
+    let meta = FileMeta::file(false);
+    let compiler = AmberCompiler::new(amber_code, Some(input), options, meta);
     let (messages, bash_code) = match compiler.compile() {
         Ok(result) => result,
         Err(err) => {
@@ -237,8 +251,9 @@ fn write_output(output: PathBuf, code: String) {
 }
 
 fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
+    let meta = FileMeta::stream(false);
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(command.code, None, options);
+    let compiler = AmberCompiler::new(command.code, None, options, meta);
     match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
@@ -263,8 +278,9 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
         }
     };
     
+    let meta = FileMeta::file(true);
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code, Some(input), options);
+    let compiler = AmberCompiler::new(code, Some(input), options, meta);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
     match compiler.generate_docs(output, command.usage) {
