@@ -142,8 +142,26 @@ pub fun char_at(text: Text, index: Num): Text {
 }
 
 /// Capitalize the first letter of the given `text`.
+#[allow_absurd_cast]
 pub fun capitalize(text: Text): Text {
-    return trust $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+    trust {
+        if len(text) == 0: return text
+        const bash_version = $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
+        if {
+            bash_version >= 4 {
+                return $ echo \"\$\{text^}\" $
+            } else {
+                // GNU sed supports \U
+                $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+                if status == 0:
+                    return trust $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+                else {
+                    let first_letter = upper(char_at(text, 0)) 
+                    return first_letter + slice(text, 1)
+                }
+            }
+        }
+    }
 }
 
 /// Pads `text` with the specified `pad` character on left until it reaches the desired `length`.
@@ -165,4 +183,8 @@ pub fun rpad(text: Text, pad: Text, length: Num): Text {
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
 pub fun zfill(text: Text, length: Num): Text {
     return lpad(text, "0", length)
+}
+
+main(args) {
+    echo capitalize("aaa")
 }
