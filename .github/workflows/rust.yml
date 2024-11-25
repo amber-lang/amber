@@ -31,6 +31,7 @@ jobs:
     name: Rust and clippy tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         bash_version:
           - "5.3"
@@ -42,9 +43,11 @@ jobs:
           - "4.2"
           - "4.1"
           - "4.0"
+          - "BusyBox"
         sed:
           - "GNU"
           - "BusyBox"
+    if: ${{ ( matrix.sed == "GNU" && matrix.bash_version != "BusyBox" ) || ( matrix.sed == "BusyBox" && matrix.bash_version == "BusyBox" ) }}
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
