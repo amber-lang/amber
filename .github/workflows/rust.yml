@@ -73,7 +73,7 @@ jobs:
         env:
           GITHUB_ACTIONS_BASH_CONTAINER: 1
         run: |
-          docker run --volume $PWD:/root --detach --name bash bash:${{ matrix.bash_version }} sleep infinity
+          docker run --volume $PWD:/root --network host --detach --name bash bash:${{ matrix.bash_version }} sleep infinity
           # coreutils includes mktemp
           docker exec bash apk add coreutils curl
           if "${{ matrix.sed }}" == "GNU"; then
