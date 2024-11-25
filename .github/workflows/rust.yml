@@ -70,9 +70,6 @@ jobs:
       - name: Build binary
         # the binary will be used by the next cargo test step
         run: cargo build
-      - run: |
-          bash --version
-          cargo run -- build src/tests/stdlib/replace.ab -
       - name: Run cargo tests
         env:
           GITHUB_ACTIONS_BASH_CONTAINER: 1
