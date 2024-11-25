@@ -1,0 +1,28 @@
+#! /usr/bin/env amber
+
+import {
+    replace,
+    starts_with,
+    words,
+} from "std/text"
+
+main (args) {
+    let keywords = [Text]
+    let should_append = false
+    for line in lines("grammar.ebnf") {
+        if not should_append and not starts_with(line, "KEYWORD"): continue
+        should_append = true
+        for token in words(line) {
+            if {
+                starts_with(token, "'"): keywords += [replace(token, "'", "")]
+                token == ";": should_append = false
+            }
+        }
+    }
+    let result = $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
+        echo "Something went wrong while sorting the keywords"
+    }
+    for item in words(result) {
+        echo item
+    }
+}
