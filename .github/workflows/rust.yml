@@ -36,7 +36,7 @@ jobs:
         sed:
           - "GNU"
         bash_version:
-          - "5.3"
+          - "5.3-alpha"
           - "5.2"
           - "5.1"
           - "5.0"
