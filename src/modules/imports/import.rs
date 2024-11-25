@@ -2,7 +2,7 @@ use std::fs;
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::compiler::file_source::{FileMeta, FileSource};
-use crate::compiler::AmberCompiler;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
@@ -10,7 +10,6 @@ use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
-use crate::Cli;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,24 +96,22 @@ impl Import {
         }
     }
 
-    fn handle_import(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
+    fn handle_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
         match meta.import_cache.get_import_pub_funs(Some(self.path.value.clone())) {
             Some(pub_funs) => self.handle_export(meta, pub_funs),
-            None => self.handle_compile_code(meta, imported_code)
+            None => self.handle_compile_code(meta, code)
         }
     }
+    
+    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+        let file_meta = FileMeta {
+            is_import: true,
+            source: self.source.unwrap()
+        };
+        let options = CompilerOptions::default();
 
-    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        let compiler = AmberCompiler::new(
-            imported_code.clone(),
-            Some(self.path.value.clone()),
-            Cli::default(),
-            FileMeta {
-                is_import: true,
-                source: self.source.unwrap()
-            }
-        );
+        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options, file_meta);
 
         match compiler.tokenize() {
             Ok(tokens) => {
@@ -187,9 +184,8 @@ impl SyntaxModule<ParserMetadata> for Import {
         syntax(meta, &mut self.path)?;
         // Import code from file or standard library
         self.add_import(meta, &self.path.value.clone())?;
-        let imported_code = self.resolve_import(meta)?;
-
-        self.handle_import(meta, imported_code)?;
+        let code = self.resolve_import(meta)?;
+        self.handle_import(meta, code)?;
         Ok(())
     }
 }

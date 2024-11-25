@@ -48,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             meta.with_push_scope(|meta| {
                 // Create variables
                 for arg in self.args.iter() {
-                    meta.add_var(arg, Type::Array(Box::new(Type::Text)));
+                    meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
                 }
                 // Parse the block
                 syntax(meta, &mut self.block)?;
@@ -72,7 +72,7 @@ impl TranslateModule for Main {
             let dollar = meta.gen_dollar();
             let args = self.args.clone().map_or_else(
                 String::new,
-                |name| format!("{name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                |name| format!("declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
             format!("{args}\n{}", self.block.translate(meta))
         }

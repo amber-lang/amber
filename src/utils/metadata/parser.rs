@@ -29,8 +29,8 @@ pub struct ParserMetadata {
     pub context: Context,
     /// List of all failure messages
     pub messages: Vec<Message>,
-    /// Determines if we are generating documentation
-    pub is_docs_gen: bool
+    /// Show standard library usage in documentation
+    pub doc_usage: bool,
 }
 
 impl ParserMetadata {
@@ -69,19 +69,20 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type) -> Option<usize> {
+    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
             name: name.to_string(),
             kind,
             global_id,
-            is_ref: false
+            is_ref: false,
+            is_const,
         });
         global_id
     }
 
-    /// Adds a parameter as variable to the current scope
+    /// Adds a function parameter as variable to the current scope
     pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
@@ -89,7 +90,8 @@ impl ParserMetadata {
             name: name.to_string(),
             kind,
             global_id,
-            is_ref
+            is_ref,
+            is_const: false,
         });
         global_id
     }
@@ -171,7 +173,7 @@ impl Metadata for ParserMetadata {
             var_id: 0,
             context: Context::new(path, tokens),
             messages: Vec::new(),
-            is_docs_gen: false
+            doc_usage: false,
         }
     }
 

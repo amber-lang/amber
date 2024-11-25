@@ -47,6 +47,10 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         let variable = handle_variable_reference(meta, tok.clone(), &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
+        // Check for constant reassignment
+        if variable.is_const {
+            return error!(meta, tok, format!("Cannot reassign constant"))
+        }
         // Typecheck the variable
         let left_type = variable.kind.clone();
         let right_type = self.expr.get_type();

@@ -1,6 +1,5 @@
 use crate::compiler::file_source::{FileMeta, FileSource};
-use crate::compiler::AmberCompiler;
-use crate::Cli;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 extern crate test_generator;
 use itertools::Itertools;
 use std::fs;
@@ -18,7 +17,10 @@ pub fn compiler(code: impl Into<String>) -> AmberCompiler {
     AmberCompiler::new(
         code.into(),
         None,
-        Cli::default(),
+        CompilerOptions {
+            no_cache: true,
+            ..CompilerOptions::default()
+        },
         FileMeta {
             is_import: false,
             source: FileSource::Stream
@@ -28,26 +30,32 @@ pub fn compiler(code: impl Into<String>) -> AmberCompiler {
 
 /// compare the output of the given code with the expected output
 pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
-    match compiler(code).test_eval() {
+    let meta = FileMeta {
+        is_import: false,
+        source: FileSource::Stream
+    };
+    let options = CompilerOptions::default();
+
+    let mut compiler = AmberCompiler::new(code.into(), None, options, meta);
+    match compiler.test_eval() {
         Ok(eval_result) => assert_eq!(
             eval_result.trim_end_matches('\n'),
-            result.as_ref().trim_end_matches('\n')
+            result.as_ref().trim_end_matches('\n'),
         ),
         Err(err) => panic!("ERROR: {}", err.message.unwrap()),
     }
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
-    let cli = Cli {
-        no_proc: vec!["*".into()],
-        no_cache: true,
-        ..Cli::default()
+    let meta = FileMeta {
+        is_import: false,
+        source: FileSource::Stream
     };
-    
-    compiler(code)
-        .compile()
-        .unwrap()
-        .1
+    let options = CompilerOptions::default();
+
+    let compiler = AmberCompiler::new(code.into(), None, options, meta);
+    let (_, code) = compiler.compile().unwrap();
+    code
 }
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {

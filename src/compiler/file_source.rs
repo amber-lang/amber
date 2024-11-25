@@ -1,3 +1,5 @@
+use std::default;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
@@ -6,8 +8,18 @@ pub struct FileMeta {
     pub source: FileSource
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+impl Default for FileMeta {
+    fn default() -> Self {
+        Self {
+            is_import: false,
+            source: FileSource::default()
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum FileSource {
+    #[default]
     File,
     Stdlib,
     Stream

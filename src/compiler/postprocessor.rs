@@ -71,12 +71,12 @@ impl PostProcessor {
     pub fn get_default() -> Vec<Self> {
         let mut postprocessors = Vec::new();
 
-        let shfmt = PostProcessor::new("shfmt", "/usr/bin/shfmt");
+        let shfmt = PostProcessor::new("shfmt", "shfmt");
         shfmt.cmd().borrow_mut().arg("-i").arg("4");
         shfmt.cmd().borrow_mut().arg("-ln").arg("bash");
         postprocessors.push(shfmt);
 
-        let bshchk = PostProcessor::new("bshchk", "/usr/bin/bshchk");
+        let bshchk = PostProcessor::new("bshchk", "bshchk");
         bshchk.cmd().borrow_mut().arg("--ignore-shebang");
         postprocessors.push(bshchk);
 

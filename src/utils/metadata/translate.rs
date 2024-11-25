@@ -1,8 +1,12 @@
 use std::collections::VecDeque;
 
-use crate::{translate::compute::ArithType, utils::function_cache::FunctionCache, Cli};
+use crate::compiler::CompilerOptions;
+use crate::translate::compute::ArithType;
+use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::ParserMetadata;
+
+const INDENT_SPACES: &str = "    ";
 
 pub struct TranslateMetadata {
     /// The arithmetic module that is used to evaluate math.
@@ -29,7 +33,7 @@ pub struct TranslateMetadata {
 }
 
 impl TranslateMetadata {
-    pub fn new(meta: ParserMetadata, cli: &Cli) -> Self {
+    pub fn new(meta: ParserMetadata, options: &CompilerOptions) -> Self {
         TranslateMetadata {
             arith_module: ArithType::BcSed,
             fun_cache: meta.fun_cache,
@@ -40,12 +44,16 @@ impl TranslateMetadata {
             eval_ctx: false,
             silenced: false,
             indent: -1,
-            minify: cli.minify
+            minify: options.minify,
         }
     }
 
+    pub fn single_indent() -> String {
+        INDENT_SPACES.to_string()
+    }
+
     pub fn gen_indent(&self) -> String {
-        "    ".repeat(self.indent as usize)
+        INDENT_SPACES.repeat(self.indent as usize)
     }
 
     pub fn increase_indent(&mut self) {

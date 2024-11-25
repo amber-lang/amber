@@ -2,6 +2,7 @@ use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
+use crate::modules::variable::constinit::ConstInit;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
@@ -72,6 +73,7 @@ pub enum StatementType {
     CommandModifier(CommandModifier),
     Comment(Comment),
     CommentDoc(CommentDoc),
+    ConstInit(ConstInit),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,7 +92,7 @@ impl Statement {
         // Conditions
         IfChain, IfCondition,
         // Variables
-        VariableInit, VariableSet,
+        VariableInit, VariableSet, ConstInit,
         // Short hand
         ShorthandAdd, ShorthandSub,
         ShorthandMul, ShorthandDiv,
