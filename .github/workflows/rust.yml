@@ -80,7 +80,7 @@ jobs:
           docker run --volume $PWD:/root --network host --detach --name bash bash:${{ matrix.bash_version }} sleep infinity
           # coreutils includes mktemp
           docker exec bash apk add coreutils curl
-          if "${{ matrix.sed }}" == "GNU"; then
+          if [ "${{ matrix.sed }}" == "GNU" ]; then
             docker exec bash apk add sed
           fi
           cargo test --all-targets --all-features
