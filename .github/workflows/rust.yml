@@ -30,20 +30,21 @@ jobs:
   build_and_test:
     name: Rust and clippy tests
     runs-on: ubuntu-latest
-    matrix:
-      bash_version:
-        - "5.3"
-        - "5.2"
-        - "5.1"
-        - "5.0"
-        - "4.4"
-        - "4.3"
-        - "4.2"
-        - "4.1"
-        - "4.0"
-      sed:
-        - "GNU"
-        - "BusyBox"
+    strategy:
+      matrix:
+        bash_version:
+          - "5.3"
+          - "5.2"
+          - "5.1"
+          - "5.0"
+          - "4.4"
+          - "4.3"
+          - "4.2"
+          - "4.1"
+          - "4.0"
+        sed:
+          - "GNU"
+          - "BusyBox"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
