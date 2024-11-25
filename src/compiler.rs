@@ -327,11 +327,11 @@ impl AmberCompiler {
         if env::var("GITHUB_ACTIONS_BASH_CONTAINER").is_ok() {
             let mut command = Command::new("/usr/bin/docker");
             command.args(["exec", "--workdir", "/root", "--user", "405", "bash", "bash"]);
-            return Some(command)
+            Some(command)
         } else {
             let mut command = Command::new("/usr/bin/env");
             command.arg("bash");
-            return Some(command)
+            Some(command)
         }
     }
 }
