@@ -34,7 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         sed:
-          - "GNU"
+          - GNU
         bash_version:
           - "5.3-alpha"
           - "5.2"
@@ -45,9 +45,10 @@ jobs:
           - "4.2"
           - "4.1"
           - "4.0"
-        include:
-          - sed: BusyBox
-            bash_version: "latest"
+        # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
+        # include:
+        #   - sed: BusyBox
+        #     bash_version: "latest"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
