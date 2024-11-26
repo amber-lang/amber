@@ -184,7 +184,3 @@ pub fun rpad(text: Text, pad: Text, length: Num): Text {
 pub fun zfill(text: Text, length: Num): Text {
     return lpad(text, "0", length)
 }
-
-main(args) {
-    echo capitalize("aaa")
-}
