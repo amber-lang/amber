@@ -325,7 +325,7 @@ impl AmberCompiler {
     #[cfg(not(windows))]
     fn find_bash() -> Option<Command> {
         if env::var("GITHUB_ACTIONS_BASH_CONTAINER").is_ok() {
-            let mut command = Command::new("/usr/bin/docker");
+            let mut command = Command::new("docker");
             command.args(["exec", "--workdir", "/root", "--user", "405", "test_container", "bash"]);
             Some(command)
         } else {
