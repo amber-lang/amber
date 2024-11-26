@@ -34,23 +34,23 @@ jobs:
       fail-fast: false
       matrix:
         sed:
-          - GNU
-        bash_version:
-          - "5.2"
-          - "5.1"
-          - "5.0"
-          - "4.4"
-          - "4.3"
-          - "4.2"
-          - "4.1"
-          - "4.0"
-          - "3.2"
-          - "3.1"
-          - "3.0"
+          - GNU sed
+        bash_docker_image:
+          - "bash:5.2"
+          - "bash:5.1"
+          - "bash:5.0"
+          - "bash:4.4"
+          - "bash:4.3"
+          - "bash:4.2"
+          - "bash:4.1"
+          - "bash:4.0"
+          - "bash:3.2"
+          - "bash:3.1"
+          - "bash:3.0"
         # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
         # include:
-        #   - sed: BusyBox
-        #     bash_version: "latest"
+        #   - sed: BusyBox sed
+        #     bash_version: "bash:latest"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
@@ -77,10 +77,10 @@ jobs:
         env:
           GITHUB_ACTIONS_BASH_CONTAINER: 1
         run: |
-          docker run --volume $PWD:/root --network host --detach --name test_container bash:${{ matrix.bash_version }} sleep infinity
+          docker run --volume $PWD:/root --network host --detach --name test_container ${{ matrix.bash_docker_image }} sleep infinity
           # coreutils includes mktemp
           docker exec test_container apk add coreutils curl
-          if [ "${{ matrix.sed }}" == "GNU" ]; then
+          if [ "${{ matrix.sed }}" == "GNU sed" ]; then
             docker exec test_container apk add sed
           fi
           cargo test --all-targets --all-features
