@@ -36,7 +36,6 @@ jobs:
         sed:
           - GNU
         bash_version:
-          - "5.3-alpha"
           - "5.2"
           - "5.1"
           - "5.0"
@@ -45,6 +44,9 @@ jobs:
           - "4.2"
           - "4.1"
           - "4.0"
+          - "3.2"
+          - "3.1"
+          - "3.0"
         # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
         # include:
         #   - sed: BusyBox
