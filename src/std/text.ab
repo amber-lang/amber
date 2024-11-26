@@ -154,7 +154,7 @@ pub fun capitalize(text: Text): Text {
                 // GNU sed supports \U
                 $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
                 if status == 0:
-                    return trust $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+                    return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
                 else {
                     let first_letter = upper(char_at(text, 0)) 
                     return first_letter + slice(text, 1)
