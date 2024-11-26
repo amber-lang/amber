@@ -45,8 +45,7 @@ jobs:
           - "bash:4.1"
           - "bash:4.0"
           - "bash:3.2"
-          - "bash:3.1"
-          - "bash:3.0"
+          # - "bash:3.1" # https://github.com/amber-lang/amber/issues/621
         # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
         # include:
         #   - sed: BusyBox sed
