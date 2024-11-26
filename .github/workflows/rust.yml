@@ -77,13 +77,13 @@ jobs:
         env:
           GITHUB_ACTIONS_BASH_CONTAINER: 1
         run: |
-          docker run --volume $PWD:/root --network host --detach --name bash bash:${{ matrix.bash_version }} sleep infinity
+          docker run --volume $PWD:/root --network host --detach --name test_container bash:${{ matrix.bash_version }} sleep infinity
           # coreutils includes mktemp
-          docker exec bash apk add coreutils curl
+          docker exec test_container apk add coreutils curl
           if [ "${{ matrix.sed }}" == "GNU" ]; then
-            docker exec bash apk add sed
+            docker exec test_container apk add sed
           fi
           cargo test --all-targets --all-features
-          docker rm --force bash
+          docker rm --force test_container
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
