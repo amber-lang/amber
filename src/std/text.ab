@@ -145,22 +145,20 @@ pub fun char_at(text: Text, index: Num): Text {
 #[allow_absurd_cast]
 pub fun capitalize(text: Text): Text {
     trust {
-        if len(text) == 0: return text
-        const bash_version = $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
-        if {
-            bash_version >= 4 {
-                return $ echo \"\$\{text^}\" $
-            } else {
-                // GNU sed supports \U
-                $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-                if status == 0:
-                    return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
-                else {
-                    let first_letter = upper(char_at(text, 0)) 
-                    return first_letter + slice(text, 1)
-                }
-            }
+        if len(text) == 0 {
+            return text
         }
+        const bash_version = $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
+        if bash_version >= 4 {
+            return $ echo \"\$\{text^}\" $
+        }
+        // GNU sed supports \U
+        $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+        if status == 0 {
+            return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+        }
+        const first_letter = upper(char_at(text, 0)) 
+        return first_letter + slice(text, 1)
     }
 }
 
