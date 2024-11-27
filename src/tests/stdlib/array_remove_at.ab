@@ -1,9 +1,25 @@
-import { remove_at, array_first_index } from "std/array"
+import { remove_at } from "std/array"
+
+// Output
+// Array after -5: [apple banana cherry date]
+// Array after -4: [apple banana cherry date]
+// Array after -3: [apple banana cherry date]
+// Array after -2: [apple banana cherry date]
+// Array after -1: [apple banana cherry date]
+// Array after 0: [banana cherry date]
+// Array after 1: [apple cherry date]
+// Array after 2: [apple banana date]
+// Array after 3: [apple banana cherry]
+// Array after 4: [apple banana cherry date]
+
+fun test_remove(inner: [Text], index: Num): Null {
+    let value = remove_at(inner, index)
+    echo "Array after {index}: [{inner}]"
+}
 
 main {
-    let array = ["Failed", "Removed", "Failed"]
-    remove_at(array, 1)
-    if len(array) == 2 and array_first_index(array, "Removed") == -1 {
-        echo "Succeeded"
+    let data = ["apple", "banana", "cherry", "date"]
+    for index in -5..=4 {
+        test_remove(data, index)
     }
 }

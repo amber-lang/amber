@@ -1,12 +1,25 @@
-import { extract_at, array_first_index } from "std/array"
+import { extract_at } from "std/array"
+
+// Output
+// Value at -5: "", [apple banana cherry date]
+// Value at -4: "apple", [apple banana cherry date]
+// Value at -3: "banana", [apple banana cherry date]
+// Value at -2: "cherry", [apple banana cherry date]
+// Value at -1: "date", [apple banana cherry date]
+// Value at 0: "apple", [banana cherry date]
+// Value at 1: "banana", [apple cherry date]
+// Value at 2: "cherry", [apple banana date]
+// Value at 3: "date", [apple banana cherry]
+// Value at 4: "", [apple banana cherry date]
+
+fun test_extract(inner: [Text], index: Num): Null {
+    let value = extract_at(inner, index)
+    echo "Value at {index}: \"{value}\", [{inner}]"
+}
 
 main {
-    let array = ["Failed", "Extracted", "Failed"]
-
-    if extract_at(array, 1) == "Extracted"
-        and len(array) == 2
-        and array_first_index(array, "Extracted") == -1
-    {
-        echo "Succeeded"
+    let data = ["apple", "banana", "cherry", "date"]
+    for index in -5..=4 {
+        test_extract(data, index)
     }
 }

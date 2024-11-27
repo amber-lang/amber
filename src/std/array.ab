@@ -1,7 +1,7 @@
 /// Returns index of the first value found in the specified array.
 ///
 /// If the value is not found, the function returns -1.
-pub fun array_first_index(array, value): Num {
+pub fun array_index(array, value): Num {
     for index, element in array {
         if value as Text == element as Text {
             return index
@@ -23,13 +23,19 @@ pub fun array_search(array, value): [Num] {
 
 /// Checks if a value is in the array.
 pub fun includes(array, value) {
-    let result = array_first_index(array, value)
+    let result = array_index(array, value)
     return result >= 0
+}
+
+/// Returns the first element in the array
+pub fun first(array) {
+    return array[0]
 }
 
 /// Returns the last element in the array
 pub fun last(array) {
-    return array[len(array) - 1]
+    let index = len(array) - 1
+    return array[index]
 }
 
 /// Removes an element at the index from the array
@@ -46,7 +52,8 @@ pub fun extract_at(ref array, index) {
 
 /// Removes the last element from the array, and returns it
 pub fun pop(ref array) {
-    return extract_at(array, len(array) - 1)
+    let index = len(array) - 1
+    return extract_at(array, index)
 }
 
 /// Removes the first element from the array, and returns it

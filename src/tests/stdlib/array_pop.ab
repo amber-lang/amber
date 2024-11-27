@@ -1,11 +1,17 @@
-import { pop, array_first_index } from "std/array"
+import { pop } from "std/array"
+
+// Output
+// Popped from data: "date", [apple banana cherry]
+// Popped from empty: "", []
+
+fun test_pop(label: Text, inner: [Text]): Null {
+    let value = pop(inner)
+    echo "Popped from {label}: \"{value}\", [{inner}]"
+}
 
 main {
-    let array = ["Failed", "Failed", "Popped"]
-    if pop(array) == "Popped"
-        and len(array) == 2
-        and array_first_index(array, "Popped") == -1
-    {
-        echo "Succeeded"
-    }
+    let data = ["apple", "banana", "cherry", "date"]
+    let empty = [Text]
+    test_pop("data", data)
+    test_pop("empty", empty)
 }

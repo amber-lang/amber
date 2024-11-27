@@ -1,9 +1,22 @@
-import * from "std/array"
+import { array_search } from "std/array"
 
 // Output
-// 6
+// Indices of "apple": [0 6]
+// Indices of "banana": [1 5]
+// Indices of "cherry": [2 4]
+// Indices of "date": [3]
+// Indices of "kiwi": []
+
+fun test_search(array: [Text], value: Text): Null {
+    let indices = array_search(array, value)
+    echo "Indices of \"{value}\": [{indices}]"
+}
 
 main {
-    let result = array_search([1, 2, 3, 4, 3], 3)
-    echo result[0] + result[1]
+    let array = ["apple", "banana", "cherry", "date", "cherry", "banana", "apple"]
+    test_search(array, "apple")
+    test_search(array, "banana")
+    test_search(array, "cherry")
+    test_search(array, "date")
+    test_search(array, "kiwi")
 }

@@ -1,8 +1,22 @@
-import * from "std/array"
+import { array_index } from "std/array"
 
 // Output
-// 2
+// Index of "apple": 0
+// Index of "banana": 1
+// Index of "cherry": 2
+// Index of "date": 3
+// Index of "kiwi": -1
+
+fun test_index(array: [Text], value: Text): Null {
+    let index = array_index(array, value)
+    echo "Index of \"{value}\": {index}"
+}
 
 main {
-    echo array_first_index([1, 2, 3, 4], 3)
+    let array = ["apple", "banana", "cherry", "date", "cherry", "banana", "apple"]
+    test_index(array, "apple")
+    test_index(array, "banana")
+    test_index(array, "cherry")
+    test_index(array, "date")
+    test_index(array, "kiwi")
 }
