@@ -1,6 +1,7 @@
-use crate::compiler::{AmberCompiler, CompilerOptions};
 extern crate test_generator;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use itertools::Itertools;
+use pretty_assertions::assert_eq;
 use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
@@ -82,6 +83,7 @@ pub fn script_test(input: &str) {
 #[cfg(test)]
 mod test {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_extract_output() {
