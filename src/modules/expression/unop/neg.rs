@@ -8,6 +8,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
 use heraclitus_compiler::prelude::*;
+use std::ops::Neg as _;
 
 #[derive(Debug, Clone)]
 pub struct Neg {
@@ -53,6 +54,21 @@ impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         translate_computation(meta, ArithOp::Neg, None, Some(expr))
+    }
+}
+
+impl Neg {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        self.expr.get_integer_value().map(isize::neg)
+    }
+
+    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> String {
+        if let Some(expr) = self.get_integer_value() {
+            expr.to_string()
+        } else {
+            let expr = self.expr.translate(meta);
+            translate_computation(meta, ArithOp::Neg, None, Some(expr))
+        }
     }
 }
 

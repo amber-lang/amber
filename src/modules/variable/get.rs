@@ -1,5 +1,5 @@
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
 use crate::translate::module::TranslateModule;
@@ -64,6 +64,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 }
 
 impl TranslateModule for VariableGet {
+    #[allow(clippy::collapsible_else_if)]
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_translated_name();
         // Text variables need to be encapsulated in string literals
@@ -73,9 +74,15 @@ impl TranslateModule for VariableGet {
             Type::Array(_) => {
                 if self.is_ref {
                     if let Some(index) = self.index.as_ref() {
-                        let value = {
-                            let index = index.translate_eval(meta, true);
-                            format!("\\\"\\${{${name}[{index}]}}\\\"")
+                        let value = match &index.value {
+                            Some(ExprType::Neg(neg)) => {
+                                let index = neg.get_array_index(meta);
+                                format!("\\\"\\${{${name}[{index}]}}\\\"")
+                            }
+                            _ => {
+                                let index = index.translate_eval(meta, true);
+                                format!("\\\"\\${{${name}[{index}]}}\\\"")
+                            }
                         };
                         let id = meta.gen_value_id();
                         let stmt = format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}={value}\"");
@@ -86,8 +93,16 @@ impl TranslateModule for VariableGet {
                     }
                 } else {
                     if let Some(index) = self.index.as_ref() {
-                        let index = index.translate(meta);
-                        format!("{quote}${{{name}[{index}]}}{quote}")
+                        match &index.value {
+                            Some(ExprType::Neg(neg)) => {
+                                let index = neg.get_array_index(meta);
+                                format!("{quote}${{{name}[{index}]}}{quote}")
+                            }
+                            _ => {
+                                let index = index.translate(meta);
+                                format!("{quote}${{{name}[{index}]}}{quote}")
+                            }
+                        }
                     } else {
                         format!("{quote}${{{name}[@]}}{quote}")
                     }
