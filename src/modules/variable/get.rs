@@ -26,10 +26,22 @@ impl VariableGet {
 
 impl Typed for VariableGet {
     fn get_type(&self) -> Type {
-        match (&*self.index, self.kind.clone()) {
-            // Return the type of the array element if indexed
-            (Some(_), Type::Array(kind)) => *kind,
-            _ => self.kind.clone()
+        if let Type::Array(item_kind) = &self.kind {
+            if let Some(index) = self.index.as_ref() {
+                if let Some(ExprType::Range(_)) = &index.value {
+                    // Array type (indexing array by range)
+                    self.kind.clone()
+                } else {
+                    // Item type (indexing array by number)
+                    *item_kind.clone()
+                }
+            } else {
+                // Array type (returning array)
+                self.kind.clone()
+            }
+        } else {
+            // Variable type (returning text or number)
+            self.kind.clone()
         }
     }
 }
@@ -54,7 +66,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         self.kind = variable.kind.clone();
-        self.index = Box::new(handle_index_accessor(meta)?);
+        self.index = Box::new(handle_index_accessor(meta, true)?);
         // Check if the variable can be indexed
         if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
             return error!(meta, tok, format!("Cannot index a non-array variable of type '{}'", self.kind));
@@ -74,6 +86,10 @@ impl TranslateModule for VariableGet {
                 if self.is_ref {
                     if let Some(index) = self.index.as_ref() {
                         let value = match &index.value {
+                            Some(ExprType::Range(range)) => {
+                                let (offset, length) = range.get_array_index(meta);
+                                format!("\\\"\\${{${name}[@]:{offset}:{length}}}\\\"")
+                            }
                             Some(ExprType::Neg(neg)) => {
                                 let index = neg.get_array_index(meta);
                                 format!("\\\"\\${{${name}[{index}]}}\\\"")
@@ -93,6 +109,10 @@ impl TranslateModule for VariableGet {
                 } else {
                     if let Some(index) = self.index.as_ref() {
                         match &index.value {
+                            Some(ExprType::Range(range)) => {
+                                let (offset, length) = range.get_array_index(meta);
+                                format!("{quote}${{{name}[@]:{offset}:{length}}}{quote}")
+                            }
                             Some(ExprType::Neg(neg)) => {
                                 let index = neg.get_array_index(meta);
                                 format!("{quote}${{{name}[{index}]}}{quote}")
