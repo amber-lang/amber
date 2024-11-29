@@ -1,7 +1,10 @@
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::docs::module::DocumentationModule;
+use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
+use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
 use crate::translate::module::TranslateModule;
-use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VariableGet {
@@ -63,27 +66,41 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 impl TranslateModule for VariableGet {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_translated_name();
-        let ref_prefix = if self.is_ref { "!" } else { "" };
-        let res = format!("${{{ref_prefix}{name}}}");
         // Text variables need to be encapsulated in string literals
         // Otherwise, they will be "spread" into tokens
         let quote = meta.gen_quote();
-        match (self.is_ref, &self.kind) {
-            (false, Type::Array(_)) => match *self.index {
-                Some(ref expr) => format!("{quote}${{{name}[{}]}}{quote}", expr.translate(meta)),
-                None => format!("{quote}${{{name}[@]}}{quote}")
-            },
-            (true, Type::Array(_)) => match *self.index {
-                Some(ref expr) => {
-                    let id = meta.gen_value_id();
-                    let expr = expr.translate_eval(meta, true);
-                    meta.stmt_queue.push_back(format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{${name}[{expr}]}}\\\"\""));
-                    format!("$__AMBER_ARRAY_GET_{id}_{name}") // echo $__ARRAY_GET
-                },
-                None => format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
-            },
-            (_, Type::Text) => format!("{quote}{res}{quote}"),
-            _ => res
+        match &self.kind {
+            Type::Array(_) => {
+                if self.is_ref {
+                    if let Some(index) = self.index.as_ref() {
+                        let value = {
+                            let index = index.translate_eval(meta, true);
+                            format!("\\\"\\${{${name}[{index}]}}\\\"")
+                        };
+                        let id = meta.gen_value_id();
+                        let stmt = format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}={value}\"");
+                        meta.stmt_queue.push_back(stmt);
+                        format!("$__AMBER_ARRAY_GET_{id}_{name}") // echo $__ARRAY_GET
+                    } else {
+                        format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
+                    }
+                } else {
+                    if let Some(index) = self.index.as_ref() {
+                        let index = index.translate(meta);
+                        format!("{quote}${{{name}[{index}]}}{quote}")
+                    } else {
+                        format!("{quote}${{{name}[@]}}{quote}")
+                    }
+                }
+            }
+            Type::Text => {
+                let ref_prefix = if self.is_ref { "!" } else { "" };
+                format!("{quote}${{{ref_prefix}{name}}}{quote}")
+            }
+            _ => {
+                let ref_prefix = if self.is_ref { "!" } else { "" };
+                format!("${{{ref_prefix}{name}}}")
+            }
         }
     }
 }

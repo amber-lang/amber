@@ -1,14 +1,14 @@
-use std::ops::Sub;
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::expression::binop::BinOp;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
-use crate::utils::metadata::ParserMetadata;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
+use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
-use crate::{handle_binop, error_type_match};
-use super::BinOp;
+use crate::{error_type_match, handle_binop};
+use heraclitus_compiler::prelude::*;
+use std::ops::Sub;
 
 #[derive(Debug, Clone)]
 pub struct Range {
