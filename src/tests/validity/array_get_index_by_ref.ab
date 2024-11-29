@@ -1,0 +1,22 @@
+// Output
+// Value at -5: ""
+// Value at -4: "apple"
+// Value at -3: "banana"
+// Value at -2: "cherry"
+// Value at -1: "date"
+// Value at 0: "apple"
+// Value at 1: "banana"
+// Value at 2: "cherry"
+// Value at 3: "date"
+// Value at 4: ""
+
+fun test_index(ref inner) {
+    for index in -5..=4 {
+        echo "Value at {index}: \"{inner[index]}\""
+    }
+}
+
+main {
+    let array = ["apple", "banana", "cherry", "date"]
+    test_index(array)
+}

@@ -1,0 +1,25 @@
+// Output
+// Value at -5: ""
+// Value at -4: "apple"
+// Value at -3: "banana"
+// Value at -2: "cherry"
+// Value at -1: "date"
+// Value at 0: "apple"
+// Value at 1: "banana"
+// Value at 2: "cherry"
+// Value at 3: "date"
+// Value at 4: ""
+
+main {
+    let array = ["apple", "banana", "cherry", "date"]
+    echo "Value at -5: \"{array[-5]}\""
+    echo "Value at -4: \"{array[-4]}\""
+    echo "Value at -3: \"{array[-3]}\""
+    echo "Value at -2: \"{array[-2]}\""
+    echo "Value at -1: \"{array[-1]}\""
+    echo "Value at 0: \"{array[0]}\""
+    echo "Value at 1: \"{array[1]}\""
+    echo "Value at 2: \"{array[2]}\""
+    echo "Value at 3: \"{array[3]}\""
+    echo "Value at 4: \"{array[4]}\""
+}
