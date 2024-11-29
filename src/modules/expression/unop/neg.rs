@@ -1,8 +1,13 @@
-use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
-use super::{super::expr::Expr, UnOp};
 use crate::docs::module::DocumentationModule;
 use crate::error_type_match;
+use crate::modules::expression::expr::Expr;
+use crate::modules::expression::unop::UnOp;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compute::{translate_computation, ArithOp};
+use crate::translate::module::TranslateModule;
+use crate::utils::metadata::ParserMetadata;
+use crate::utils::TranslateMetadata;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Neg {

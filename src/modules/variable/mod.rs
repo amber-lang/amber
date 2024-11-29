@@ -1,9 +1,10 @@
+use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use crate::utils::context::VariableDecl;
+use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
-use crate::utils::{metadata::ParserMetadata, context::VariableDecl, cc_flags::{get_ccflag_name, CCFlags}};
 use similar_string::find_best_similarity;
-use crate::modules::types::{Typed, Type};
-
-use super::expression::expr::Expr;
 
 pub mod init;
 pub mod set;
