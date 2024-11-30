@@ -21,7 +21,7 @@ pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool 
             // contains "GNU sed".
             $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
             let flag = status == 0 then "-r" else "-E"
-            return $ echo "{source}" | sed {flag} -e "s/{search}/{replace}/g" $
+            return $ echo "{source}" | sed "{flag}" -e "s/{search}/{replace}/g" $
         } else {
             return $ echo "{source}" | sed -e "s/{search}/{replace}/g" $
         }
@@ -91,13 +91,70 @@ pub fun chars(text: Text): [Text] {
     return chars
 }
 
-/// Checks if some text contains a value/
+/// Checks if some text contains a value.
 pub fun contains(text: Text, phrase: Text): Bool {
   let result = trust $ if [[ "{text}" == *"{phrase}"* ]]; then
     echo 1
   fi $
 
   return result == "1"
+}
+
+/// Checks if an array value is in the text.
+pub fun contains_any(text: Text, terms: [Text]): Bool {
+    for term in terms {
+        if contains(text, term) {
+            return true
+        }
+    }
+
+    return false
+}
+
+/// Checks if all the arrays values are in the string
+pub fun contains_all(text: Text, terms: [Text]): Bool {
+    for term in terms {
+        if not contains(text, term) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/// Match all occurences of a regex pattern.
+///
+/// Function uses `sed`
+pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
+    trust {
+        search = replace(search, "/", "\/")
+        let output = ""
+        if extended {
+            // GNU sed versions 4.0 through 4.2 support extended regex syntax,
+            // but only via the "-r" option; use that if the version information
+            // contains "GNU sed".
+            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+            let flag = status == 0 then "-r" else "-E"
+            output = $ echo "{source}" | sed "{flag}" -ne "/{search}/p" $
+        } else {
+            output = $ echo "{source}" | sed -ne "/{search}/p" $
+        }
+        if output != "" {
+            return true
+        }
+    }
+    return false
+}
+
+/// Checks if an array value (with regular expression) is in the text.
+pub fun match_any_regex(text: Text, terms: [Text]): Bool {
+    for term in terms {
+        if match_regex(text, term, false) {
+            return true
+        }
+    }
+
+    return false
 }
 
 /// Reverses text using `rev`.

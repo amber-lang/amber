@@ -1,4 +1,4 @@
-import { join, replace_regex, split } from "std/text"
+import { match_regex, join, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exist(path) {
@@ -107,4 +107,33 @@ pub fun glob_multiple(paths: [Text]): [Text]? {
 /// Finds all files or directories matching a file glob.
 pub fun glob(path: Text): [Text]? {
     return glob_multiple([path])?
+}
+
+/// Extract the file detecting from the filename the extension
+/// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
+/// Note: Not all the commands supports the output folder path
+pub fun extract(path: Text, target: Text): Null? {
+    if file_exist(path) {
+        if {
+            match_regex(path, "\.\(tar\.bz2\|tbz\|tbz2\)$"): $ tar xvjf "{path}" -C "{target}" $?
+            match_regex(path, "\.\(tar\.gz\|tgz\)$"): $ tar xzf "{path}" -C "{target}" $?
+            match_regex(path, "\.\(tar\.xz\|txz$\)$"): $ tar xJf "{path}" -C "{target}" $?
+            match_regex(path, "\.bz2$"): $ bunzip2 "{path}" $?
+            match_regex(path, "\.deb$"): $ dpkg-deb -xv "{path}" "{target}" $?
+            match_regex(path, "\.gz$"): $ gunzip "{path}" $?
+            match_regex(path, "\.rar$"): $ unrar x "{path}" "{target}" $?
+            match_regex(path, "\.rpm$"): $ rpm2cpio "{path}" | cpio -idm $?
+            match_regex(path, "\.tar$"): $ tar xf "{path}" -C "{target}" $?
+            match_regex(path, "\.xz$"): $ xz --decompress "{path}" $?
+            match_regex(path, "\.7z$"): $ 7z -y "{path}" -o "{target}" $?
+            match_regex(path, "\.\(zip\|war\|jar\)$"): $ unzip "{path}" -d "{target}" $?
+            else {
+                echo "Error: Unsupported file type"
+                fail 3
+            }
+        }
+    } else {
+        echo "Error: File not found"
+        fail 2
+    }
 }
