@@ -40,23 +40,33 @@ pub fun last(array) {
 
 /// Removes an element at the index from the array
 pub fun remove_at(ref array: [], index: Num): Null {
-    trust $ unset {nameof array}[{index}] $
+    let offset = index + 1
+    let length = len(array)
+    array = array[0..index] + array[offset..length]
 }
 
 /// Removes an element at the index from the array, and returns it
 pub fun extract_at(ref array, index) {
-    let elem = array[index]
-    remove_at(array, index)
-    return elem
+    let element = array[index]
+    let offset = index + 1
+    let length = len(array)
+    array = array[0..index] + array[offset..length]
+    return element
 }
 
 /// Removes the last element from the array, and returns it
 pub fun pop(ref array) {
-    let index = len(array) - 1
-    return extract_at(array, index)
+    let length = len(array)
+    let index = length - 1
+    let element = array[index]
+    array = array[0..index]
+    return element
 }
 
 /// Removes the first element from the array, and returns it
 pub fun shift(ref array) {
-    return extract_at(array, 0)
+    let length = len(array)
+    let element = array[0]
+    array = array[1..length]
+    return element
 }
