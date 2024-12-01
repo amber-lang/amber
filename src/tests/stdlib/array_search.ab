@@ -7,16 +7,16 @@ import { array_search } from "std/array"
 // Indices of "date": [3]
 // Indices of "kiwi": []
 
-fun test_search(array: [Text], value: Text): Null {
-    let indices = array_search(array, value)
+fun test_search(inner: [Text], value: Text): Null {
+    let indices = array_search(inner, value)
     echo "Indices of \"{value}\": [{indices}]"
 }
 
 main {
-    let array = ["apple", "banana", "cherry", "date", "cherry", "banana", "apple"]
-    test_search(array, "apple")
-    test_search(array, "banana")
-    test_search(array, "cherry")
-    test_search(array, "date")
-    test_search(array, "kiwi")
+    let data = ["apple", "banana", "cherry", "date", "cherry", "banana", "apple"]
+    test_search(data, "apple")
+    test_search(data, "banana")
+    test_search(data, "cherry")
+    test_search(data, "date")
+    test_search(data, "kiwi")
 }

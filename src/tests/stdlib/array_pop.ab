@@ -1,12 +1,12 @@
 import { pop } from "std/array"
 
 // Output
-// Popped from data: "date", [apple banana cherry]
-// Popped from empty: "", []
+// Popped from data: "date" (3) [apple banana cherry]
+// Popped from empty: "" (0) []
 
 fun test_pop(label: Text, inner: [Text]): Null {
     let value = pop(inner)
-    echo "Popped from {label}: \"{value}\", [{inner}]"
+    echo "Popped from {label}: \"{value}\" ({len(inner)}) [{inner}]"
 }
 
 main {

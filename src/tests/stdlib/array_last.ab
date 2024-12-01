@@ -1,17 +1,17 @@
 import { last } from "std/array"
 
 // Output
-// Last of array: "date", [apple banana cherry date]
-// Last of empty: "", []
+// Last of data: "date" (4) [apple banana cherry date]
+// Last of empty: "" (0) []
 
-fun test_last(label: Text, array: [Text]): Null {
-    let value = last(array)
-    echo "Last of {label}: \"{value}\", [{array}]"
+fun test_last(label: Text, inner: [Text]): Null {
+    let value = last(inner)
+    echo "Last of {label}: \"{value}\" ({len(inner)}) [{inner}]"
 }
 
 main {
-    let array = ["apple", "banana", "cherry", "date"]
+    let data = ["apple", "banana", "cherry", "date"]
     let empty = [Text]
-    test_last("array", array)
+    test_last("data", data)
     test_last("empty", empty)
 }

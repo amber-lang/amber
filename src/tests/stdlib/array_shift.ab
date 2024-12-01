@@ -1,12 +1,12 @@
 import { shift } from "std/array"
 
 // Output
-// Shifted from data: "apple", [banana cherry date]
-// Shifted from empty: "", []
+// Shifted from data: "apple" (3) [banana cherry date]
+// Shifted from empty: "" (0) []
 
 fun test_shift(label: Text, inner: [Text]): Null {
     let value = shift(inner)
-    echo "Shifted from {label}: \"{value}\", [{inner}]"
+    echo "Shifted from {label}: \"{value}\" ({len(inner)}) [{inner}]"
 }
 
 main {

@@ -1,17 +1,17 @@
 import { first } from "std/array"
 
 // Output
-// First of array: "apple", [apple banana cherry date]
-// First of empty: "", []
+// First of data: "apple" (4) [apple banana cherry date]
+// First of empty: "" (0) []
 
-fun test_first(label: Text, array: [Text]): Null {
-    let value = first(array)
-    echo "First of {label}: \"{value}\", [{array}]"
+fun test_first(label: Text, inner: [Text]): Null {
+    let value = first(inner)
+    echo "First of {label}: \"{value}\" ({len(inner)}) [{inner}]"
 }
 
 main {
-    let array = ["apple", "banana", "cherry", "date"]
+    let data = ["apple", "banana", "cherry", "date"]
     let empty = [Text]
-    test_first("array", array)
+    test_first("data", data)
     test_first("empty", empty)
 }

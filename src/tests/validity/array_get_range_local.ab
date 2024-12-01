@@ -1,125 +1,129 @@
 // Output
-// Values at -1..0: []
-// Values at -1..1: [apple]
-// Values at -1..2: [apple banana]
-// Values at -1..3: [apple banana cherry]
-// Values at -1..4: [apple banana cherry]
-// Values at 0..0: []
-// Values at 0..1: [apple]
-// Values at 0..2: [apple banana]
-// Values at 0..3: [apple banana cherry]
-// Values at 0..4: [apple banana cherry]
-// Values at 1..0: []
-// Values at 1..1: []
-// Values at 1..2: [banana]
-// Values at 1..3: [banana cherry]
-// Values at 1..4: [banana cherry]
-// Values at 2..0: []
-// Values at 2..1: []
-// Values at 2..2: []
-// Values at 2..3: [cherry]
-// Values at 2..4: [cherry]
-// Values at 3..0: []
-// Values at 3..1: []
-// Values at 3..2: []
-// Values at 3..3: []
-// Values at 3..4: []
-// Values at 4..0: []
-// Values at 4..1: []
-// Values at 4..2: []
-// Values at 4..3: []
-// Values at 4..4: []
-// Values at -1..=-1: []
-// Values at -1..=0: [apple]
-// Values at -1..=1: [apple banana]
-// Values at -1..=2: [apple banana cherry]
-// Values at -1..=3: [apple banana cherry]
-// Values at 0..=-1: []
-// Values at 0..=0: [apple]
-// Values at 0..=1: [apple banana]
-// Values at 0..=2: [apple banana cherry]
-// Values at 0..=3: [apple banana cherry]
-// Values at 1..=-1: []
-// Values at 1..=0: []
-// Values at 1..=1: [banana]
-// Values at 1..=2: [banana cherry]
-// Values at 1..=3: [banana cherry]
-// Values at 2..=-1: []
-// Values at 2..=0: []
-// Values at 2..=1: []
-// Values at 2..=2: [cherry]
-// Values at 2..=3: [cherry]
-// Values at 3..=-1: []
-// Values at 3..=0: []
-// Values at 3..=1: []
-// Values at 3..=2: []
-// Values at 3..=3: []
-// Values at 4..=-1: []
-// Values at 4..=0: []
-// Values at 4..=1: []
-// Values at 4..=2: []
-// Values at 4..=3: []
+// Values at -1..0: (0) []
+// Values at -1..1: (1) [apple]
+// Values at -1..2: (2) [apple banana]
+// Values at -1..3: (3) [apple banana cherry]
+// Values at -1..4: (3) [apple banana cherry]
+// Values at 0..0: (0) []
+// Values at 0..1: (1) [apple]
+// Values at 0..2: (2) [apple banana]
+// Values at 0..3: (3) [apple banana cherry]
+// Values at 0..4: (3) [apple banana cherry]
+// Values at 1..0: (0) []
+// Values at 1..1: (0) []
+// Values at 1..2: (1) [banana]
+// Values at 1..3: (2) [banana cherry]
+// Values at 1..4: (2) [banana cherry]
+// Values at 2..0: (0) []
+// Values at 2..1: (0) []
+// Values at 2..2: (0) []
+// Values at 2..3: (1) [cherry]
+// Values at 2..4: (1) [cherry]
+// Values at 3..0: (0) []
+// Values at 3..1: (0) []
+// Values at 3..2: (0) []
+// Values at 3..3: (0) []
+// Values at 3..4: (0) []
+// Values at 4..0: (0) []
+// Values at 4..1: (0) []
+// Values at 4..2: (0) []
+// Values at 4..3: (0) []
+// Values at 4..4: (0) []
+// Values at -1..=-1: (0) []
+// Values at -1..=0: (1) [apple]
+// Values at -1..=1: (2) [apple banana]
+// Values at -1..=2: (3) [apple banana cherry]
+// Values at -1..=3: (3) [apple banana cherry]
+// Values at 0..=-1: (0) []
+// Values at 0..=0: (1) [apple]
+// Values at 0..=1: (2) [apple banana]
+// Values at 0..=2: (3) [apple banana cherry]
+// Values at 0..=3: (3) [apple banana cherry]
+// Values at 1..=-1: (0) []
+// Values at 1..=0: (0) []
+// Values at 1..=1: (1) [banana]
+// Values at 1..=2: (2) [banana cherry]
+// Values at 1..=3: (2) [banana cherry]
+// Values at 2..=-1: (0) []
+// Values at 2..=0: (0) []
+// Values at 2..=1: (0) []
+// Values at 2..=2: (1) [cherry]
+// Values at 2..=3: (1) [cherry]
+// Values at 3..=-1: (0) []
+// Values at 3..=0: (0) []
+// Values at 3..=1: (0) []
+// Values at 3..=2: (0) []
+// Values at 3..=3: (0) []
+// Values at 4..=-1: (0) []
+// Values at 4..=0: (0) []
+// Values at 4..=1: (0) []
+// Values at 4..=2: (0) []
+// Values at 4..=3: (0) []
+
+fun show_range(label, inner) {
+    echo "Values at {label}: ({len(inner)}) [{inner}]"
+}
 
 main {
-    let array = ["apple", "banana", "cherry"]
-    echo "Values at -1..0: [{array[-1..0]}]"
-    echo "Values at -1..1: [{array[-1..1]}]"
-    echo "Values at -1..2: [{array[-1..2]}]"
-    echo "Values at -1..3: [{array[-1..3]}]"
-    echo "Values at -1..4: [{array[-1..4]}]"
-    echo "Values at 0..0: [{array[0..0]}]"
-    echo "Values at 0..1: [{array[0..1]}]"
-    echo "Values at 0..2: [{array[0..2]}]"
-    echo "Values at 0..3: [{array[0..3]}]"
-    echo "Values at 0..4: [{array[0..4]}]"
-    echo "Values at 1..0: [{array[1..0]}]"
-    echo "Values at 1..1: [{array[1..1]}]"
-    echo "Values at 1..2: [{array[1..2]}]"
-    echo "Values at 1..3: [{array[1..3]}]"
-    echo "Values at 1..4: [{array[1..4]}]"
-    echo "Values at 2..0: [{array[2..0]}]"
-    echo "Values at 2..1: [{array[2..1]}]"
-    echo "Values at 2..2: [{array[2..2]}]"
-    echo "Values at 2..3: [{array[2..3]}]"
-    echo "Values at 2..4: [{array[2..4]}]"
-    echo "Values at 3..0: [{array[3..0]}]"
-    echo "Values at 3..1: [{array[3..1]}]"
-    echo "Values at 3..2: [{array[3..2]}]"
-    echo "Values at 3..3: [{array[3..3]}]"
-    echo "Values at 3..4: [{array[3..4]}]"
-    echo "Values at 4..0: [{array[4..0]}]"
-    echo "Values at 4..1: [{array[4..1]}]"
-    echo "Values at 4..2: [{array[4..2]}]"
-    echo "Values at 4..3: [{array[4..3]}]"
-    echo "Values at 4..4: [{array[4..4]}]"
-    echo "Values at -1..=-1: [{array[-1..=-1]}]"
-    echo "Values at -1..=0: [{array[-1..=0]}]"
-    echo "Values at -1..=1: [{array[-1..=1]}]"
-    echo "Values at -1..=2: [{array[-1..=2]}]"
-    echo "Values at -1..=3: [{array[-1..=3]}]"
-    echo "Values at 0..=-1: [{array[0..=-1]}]"
-    echo "Values at 0..=0: [{array[0..=0]}]"
-    echo "Values at 0..=1: [{array[0..=1]}]"
-    echo "Values at 0..=2: [{array[0..=2]}]"
-    echo "Values at 0..=3: [{array[0..=3]}]"
-    echo "Values at 1..=-1: [{array[1..=-1]}]"
-    echo "Values at 1..=0: [{array[1..=0]}]"
-    echo "Values at 1..=1: [{array[1..=1]}]"
-    echo "Values at 1..=2: [{array[1..=2]}]"
-    echo "Values at 1..=3: [{array[1..=3]}]"
-    echo "Values at 2..=-1: [{array[2..=-1]}]"
-    echo "Values at 2..=0: [{array[2..=0]}]"
-    echo "Values at 2..=1: [{array[2..=1]}]"
-    echo "Values at 2..=2: [{array[2..=2]}]"
-    echo "Values at 2..=3: [{array[2..=3]}]"
-    echo "Values at 3..=-1: [{array[3..=-1]}]"
-    echo "Values at 3..=0: [{array[3..=0]}]"
-    echo "Values at 3..=1: [{array[3..=1]}]"
-    echo "Values at 3..=2: [{array[3..=2]}]"
-    echo "Values at 3..=3: [{array[3..=3]}]"
-    echo "Values at 4..=-1: [{array[4..=-1]}]"
-    echo "Values at 4..=0: [{array[4..=0]}]"
-    echo "Values at 4..=1: [{array[4..=1]}]"
-    echo "Values at 4..=2: [{array[4..=2]}]"
-    echo "Values at 4..=3: [{array[4..=3]}]"
+    let data = ["apple", "banana", "cherry"]
+    let slice = data[-1..0]; show_range("-1..0", slice)
+    let slice = data[-1..1]; show_range("-1..1", slice)
+    let slice = data[-1..2]; show_range("-1..2", slice)
+    let slice = data[-1..3]; show_range("-1..3", slice)
+    let slice = data[-1..4]; show_range("-1..4", slice)
+    let slice = data[0..0]; show_range("0..0", slice)
+    let slice = data[0..1]; show_range("0..1", slice)
+    let slice = data[0..2]; show_range("0..2", slice)
+    let slice = data[0..3]; show_range("0..3", slice)
+    let slice = data[0..4]; show_range("0..4", slice)
+    let slice = data[1..0]; show_range("1..0", slice)
+    let slice = data[1..1]; show_range("1..1", slice)
+    let slice = data[1..2]; show_range("1..2", slice)
+    let slice = data[1..3]; show_range("1..3", slice)
+    let slice = data[1..4]; show_range("1..4", slice)
+    let slice = data[2..0]; show_range("2..0", slice)
+    let slice = data[2..1]; show_range("2..1", slice)
+    let slice = data[2..2]; show_range("2..2", slice)
+    let slice = data[2..3]; show_range("2..3", slice)
+    let slice = data[2..4]; show_range("2..4", slice)
+    let slice = data[3..0]; show_range("3..0", slice)
+    let slice = data[3..1]; show_range("3..1", slice)
+    let slice = data[3..2]; show_range("3..2", slice)
+    let slice = data[3..3]; show_range("3..3", slice)
+    let slice = data[3..4]; show_range("3..4", slice)
+    let slice = data[4..0]; show_range("4..0", slice)
+    let slice = data[4..1]; show_range("4..1", slice)
+    let slice = data[4..2]; show_range("4..2", slice)
+    let slice = data[4..3]; show_range("4..3", slice)
+    let slice = data[4..4]; show_range("4..4", slice)
+    let slice = data[-1..=-1]; show_range("-1..=-1", slice)
+    let slice = data[-1..=0]; show_range("-1..=0", slice)
+    let slice = data[-1..=1]; show_range("-1..=1", slice)
+    let slice = data[-1..=2]; show_range("-1..=2", slice)
+    let slice = data[-1..=3]; show_range("-1..=3", slice)
+    let slice = data[0..=-1]; show_range("0..=-1", slice)
+    let slice = data[0..=0]; show_range("0..=0", slice)
+    let slice = data[0..=1]; show_range("0..=1", slice)
+    let slice = data[0..=2]; show_range("0..=2", slice)
+    let slice = data[0..=3]; show_range("0..=3", slice)
+    let slice = data[1..=-1]; show_range("1..=-1", slice)
+    let slice = data[1..=0]; show_range("1..=0", slice)
+    let slice = data[1..=1]; show_range("1..=1", slice)
+    let slice = data[1..=2]; show_range("1..=2", slice)
+    let slice = data[1..=3]; show_range("1..=3", slice)
+    let slice = data[2..=-1]; show_range("2..=-1", slice)
+    let slice = data[2..=0]; show_range("2..=0", slice)
+    let slice = data[2..=1]; show_range("2..=1", slice)
+    let slice = data[2..=2]; show_range("2..=2", slice)
+    let slice = data[2..=3]; show_range("2..=3", slice)
+    let slice = data[3..=-1]; show_range("3..=-1", slice)
+    let slice = data[3..=0]; show_range("3..=0", slice)
+    let slice = data[3..=1]; show_range("3..=1", slice)
+    let slice = data[3..=2]; show_range("3..=2", slice)
+    let slice = data[3..=3]; show_range("3..=3", slice)
+    let slice = data[4..=-1]; show_range("4..=-1", slice)
+    let slice = data[4..=0]; show_range("4..=0", slice)
+    let slice = data[4..=1]; show_range("4..=1", slice)
+    let slice = data[4..=2]; show_range("4..=2", slice)
+    let slice = data[4..=3]; show_range("4..=3", slice)
 }

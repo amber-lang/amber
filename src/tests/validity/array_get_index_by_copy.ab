@@ -17,6 +17,6 @@ fun test_index(inner) {
 }
 
 main {
-    let array = ["apple", "banana", "cherry", "date"]
-    test_index(array)
+    let data = ["apple", "banana", "cherry", "date"]
+    test_index(data)
 }

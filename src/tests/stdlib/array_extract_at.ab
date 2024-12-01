@@ -1,20 +1,20 @@
 import { extract_at } from "std/array"
 
 // Output
-// Value at -5: "", [apple banana cherry date]
-// Value at -4: "apple", [apple banana cherry date]
-// Value at -3: "banana", [apple banana cherry date]
-// Value at -2: "cherry", [apple banana cherry date]
-// Value at -1: "date", [apple banana cherry date]
-// Value at 0: "apple", [banana cherry date]
-// Value at 1: "banana", [apple cherry date]
-// Value at 2: "cherry", [apple banana date]
-// Value at 3: "date", [apple banana cherry]
-// Value at 4: "", [apple banana cherry date]
+// Value at -5: "" (4) [apple banana cherry date]
+// Value at -4: "apple" (4) [apple banana cherry date]
+// Value at -3: "banana" (4) [apple banana cherry date]
+// Value at -2: "cherry" (4) [apple banana cherry date]
+// Value at -1: "date" (4) [apple banana cherry date]
+// Value at 0: "apple" (3) [banana cherry date]
+// Value at 1: "banana" (3) [apple cherry date]
+// Value at 2: "cherry" (3) [apple banana date]
+// Value at 3: "date" (3) [apple banana cherry]
+// Value at 4: "" (4) [apple banana cherry date]
 
 fun test_extract(inner: [Text], index: Num): Null {
     let value = extract_at(inner, index)
-    echo "Value at {index}: \"{value}\", [{inner}]"
+    echo "Value at {index}: \"{value}\" ({len(inner)}) [{inner}]"
 }
 
 main {
