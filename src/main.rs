@@ -13,7 +13,7 @@ use crate::compiler::{AmberCompiler, CompilerOptions};
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use colored::Colorize;
-use compiler::file_source::{FileMeta, FileSource};
+use compiler::file_source::FileMeta;
 use heraclitus_compiler::prelude::*;
 use std::error::Error;
 use std::io::{prelude::*, stdin};
@@ -54,6 +54,8 @@ enum CommandKind {
     Build(BuildCommand),
     /// Generate Amber script documentation
     Docs(DocsCommand),
+    /// Preparse stdlib
+    Precompile,
     /// Generate Bash completion script
     Completion,
 }
@@ -176,6 +178,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             CommandKind::Completion => {
                 handle_completion();
+            },
+            CommandKind::Precompile => {
+                handle_precompile();
             }
         }
     } else if let Some(input) = cli.input {
