@@ -67,7 +67,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     })?;
     // Set the new return type or null if nothing was returned
     if let Type::Generic = fun.returns {
-        fun.returns = context.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
+        fun.returns = context.fun_ret_type.clone().unwrap_or(Type::Null);
     };
     // Set the new argument types
     fun.arg_types = args.to_vec();
