@@ -76,6 +76,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 }
 
 impl TranslateModule for VariableGet {
+    #[allow(clippy::collapsible_else_if)]
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_translated_name();
         // Text variables need to be encapsulated in string literals

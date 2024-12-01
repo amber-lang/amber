@@ -84,7 +84,7 @@ impl Range {
             if let Some(mut to) = self.to.get_integer_value() {
                 // Make the upper bound exclusive.
                 if !self.neq {
-                    to = to + 1;
+                    to += 1;
                 }
                 // Cap the lower bound at zero.
                 let offset = max(from, 0);
