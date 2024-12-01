@@ -1,4 +1,4 @@
-use std::{error::Error, fs::{self, File, Metadata}, path::PathBuf, time::SystemTime};
+use std::{error::Error, fs::{self, File, Metadata, Permissions}, os::unix::fs::PermissionsExt, path::PathBuf, time::SystemTime};
 use serde::{Serialize, Deserialize};
 
 use crate::{modules::block::Block, utils::ParserMetadata};
@@ -69,7 +69,10 @@ impl PreparsedFile {
         filename.set_extension(FILE_EXT);
 
         let serialized: Vec<u8> = self.try_into()?;
-        fs::write(filename, serialized)?;
+        fs::write(&filename, serialized)?;
+
+        #[cfg(unix)]
+        fs::set_permissions(&filename, Permissions::from_mode(0o700)).map_err(|x| format!("Cannot set perms to {filename:?}: {x}"))?;
 
         Ok(())
     }

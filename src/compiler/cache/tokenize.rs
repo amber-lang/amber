@@ -1,4 +1,5 @@
-use std::fs::File;
+use std::fs::{File, Permissions};
+use std::os::unix::fs::PermissionsExt;
 use std::{fs, path::PathBuf};
 use std::time::SystemTime;
 
@@ -109,7 +110,12 @@ impl PretokenizedFile {
 
         if let Some(cache_file) = Self::get_path(&filename, file_meta) {
             let serialized: Vec<u8> = self.try_into()?;
+            
             fs::write(&cache_file, serialized).map_err(|x| format!("Cannot write to {cache_file:?}: {x}"))?;
+
+            #[cfg(unix)]
+            fs::set_permissions(&filename, Permissions::from_mode(0o700)).map_err(|x| format!("Cannot set perms to {cache_file:?}: {x}"))?;
+            
             Ok(())
         } else {
             Err(String::from("Couldn't get path to saved directory").into())
