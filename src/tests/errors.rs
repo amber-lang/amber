@@ -1,5 +1,7 @@
 use super::test_amber;
 
+mod unions;
+
 #[test]
 #[should_panic(expected = "ERROR: Return type does not match function return type")]
 fn function_with_wrong_typed_return() {

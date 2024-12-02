@@ -1,14 +1,19 @@
 use std::fmt::Display;
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
+use union::UnionType;
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+mod union;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum Type {
     #[default] Null,
     Text,
     Bool,
     Num,
+    Union(UnionType),
     Array(Box<Type>),
     Failable(Box<Type>),
     Generic
@@ -54,7 +59,12 @@ impl Display for Type {
                     write!(f, "[{}]", t)
                 },
             Type::Failable(t) => write!(f, "{}?", t),
-            Type::Generic => write!(f, "Generic")
+            Type::Generic => write!(f, "Generic"),
+
+            Type::Union(types) => {
+                let types: &Vec<Type> = types.into();
+                write!(f, "{}", types.iter().map(|x| format!("{x}")).join(" | "))
+            }
         }
     }
 }
@@ -70,10 +80,8 @@ pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
         .map_err(|_| Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type")))
 }
 
-// Tries to parse the type - if it fails, it fails quietly
-pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
-    let tok = meta.get_current_token();
-    let res = match tok.clone() {
+fn parse_type_tok(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<Type, Failure> {
+    match tok.clone() {
         Some(matched_token) => {
             match matched_token.word.as_ref() {
                 "Text" => {
@@ -134,10 +142,35 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
         None => {
             Err(Failure::Quiet(PositionInfo::at_eof(meta)))
         }
-    };
+    }
+}
 
+fn parse_one_type(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<Type, Failure> {
+    let res = parse_type_tok(meta, tok)?;
     if token(meta, "?").is_ok() {
-        return res.map(|t| Type::Failable(Box::new(t)))
+        return Ok(Type::Failable(Box::new(res)))
+    }
+    Ok(res)
+}
+
+// Tries to parse the type - if it fails, it fails quietly
+pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
+    let tok = meta.get_current_token();
+    let res = parse_one_type(meta, tok);
+
+    if token(meta, "|").is_ok() {
+        // is union type
+        let mut unioned = vec![ res? ];
+        loop {
+            match parse_one_type(meta, meta.get_current_token()) {
+                Err(err) => return Err(err),
+                Ok(t) => unioned.push(t)
+            };
+            if token(meta, "|").is_err() {
+                break;
+            }
+        }
+        return Ok(Type::Union(unioned.into()))
     }
 
     res
