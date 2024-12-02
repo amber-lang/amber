@@ -1,14 +1,18 @@
-/// Replaces all occurences of a pattern in the content with the provided replace text.
+/// Replaces all occurrences of a pattern in the content with the provided replace text.
 pub fun replace(source, search, replace) {
-    return "\$\{source//{search}/{replace}}"
+    search = trust $ echo \$\{{nameof search}//\\\\/\\\\\\\\} $
+    replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
+    return trust $ echo \$\{{nameof source}//{search}/{replace}} $
 }
 
-/// Replaces the first occurence of a pattern in the content with the provided replace text.
+/// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_once(source, search, replace) {
-    return "\$\{source/{search}/{replace}}"
+    search = replace(search, "\\", "\\\\")
+    replace = replace(replace, "\\", "\\\\")
+    return trust $ echo \$\{{nameof source}/{search}/{replace}} $
 }
 
-/// Replaces all occurences of a regex pattern in the content with the provided replace text.
+/// Replaces all occurrences of a regex pattern in the content with the provided replace text.
 ///
 /// Function uses `sed`
 pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
@@ -45,7 +49,7 @@ pub fun words(text: Text): [Text] {
     return split(text, " ")
 }
 
-/// Merges text using the delimeter specified.
+/// Merges text using the delimiter specified.
 pub fun join(list: [Text], delimiter: Text): Text {
     return trust $ IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}" $
 }
