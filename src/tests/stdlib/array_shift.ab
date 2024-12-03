@@ -1,7 +1,7 @@
 import { shift } from "std/array"
 
 // Output
-// Shifted from data: "apple" (3) [banana cherry date]
+// Shifted from data: "zero" (3) [one two three]
 // Shifted from empty: "" (0) []
 
 fun test_shift(label: Text, inner: [Text]): Null {
@@ -10,7 +10,7 @@ fun test_shift(label: Text, inner: [Text]): Null {
 }
 
 main {
-    let data = ["apple", "banana", "cherry", "date"]
+    let data = ["zero", "one", "two", "three"]
     let empty = [Text]
     test_shift("data", data)
     test_shift("empty", empty)

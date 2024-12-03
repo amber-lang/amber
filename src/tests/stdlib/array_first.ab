@@ -1,7 +1,7 @@
 import { first } from "std/array"
 
 // Output
-// First of data: "apple" (4) [apple banana cherry date]
+// First of data: "zero" (4) [zero one two three]
 // First of empty: "" (0) []
 
 fun test_first(label: Text, inner: [Text]): Null {
@@ -10,7 +10,7 @@ fun test_first(label: Text, inner: [Text]): Null {
 }
 
 main {
-    let data = ["apple", "banana", "cherry", "date"]
+    let data = ["zero", "one", "two", "three"]
     let empty = [Text]
     test_first("data", data)
     test_first("empty", empty)

@@ -1,11 +1,11 @@
 import { array_search } from "std/array"
 
 // Output
-// Indices of "apple": [0 6]
-// Indices of "banana": [1 5]
-// Indices of "cherry": [2 4]
-// Indices of "date": [3]
-// Indices of "kiwi": []
+// Indices of "zero": [0 6]
+// Indices of "one": [1 5]
+// Indices of "two": [2 4]
+// Indices of "three": [3]
+// Indices of "four": []
 
 fun test_search(inner: [Text], value: Text): Null {
     let indices = array_search(inner, value)
@@ -13,10 +13,10 @@ fun test_search(inner: [Text], value: Text): Null {
 }
 
 main {
-    let data = ["apple", "banana", "cherry", "date", "cherry", "banana", "apple"]
-    test_search(data, "apple")
-    test_search(data, "banana")
-    test_search(data, "cherry")
-    test_search(data, "date")
-    test_search(data, "kiwi")
+    let data = ["zero", "one", "two", "three", "two", "one", "zero"]
+    test_search(data, "zero")
+    test_search(data, "one")
+    test_search(data, "two")
+    test_search(data, "three")
+    test_search(data, "four")
 }

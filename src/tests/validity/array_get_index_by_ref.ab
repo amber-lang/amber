@@ -1,13 +1,13 @@
 // Output
 // Value at -5: ""
-// Value at -4: "apple"
-// Value at -3: "banana"
-// Value at -2: "cherry"
-// Value at -1: "date"
-// Value at 0: "apple"
-// Value at 1: "banana"
-// Value at 2: "cherry"
-// Value at 3: "date"
+// Value at -4: "zero"
+// Value at -3: "one"
+// Value at -2: "two"
+// Value at -1: "three"
+// Value at 0: "zero"
+// Value at 1: "one"
+// Value at 2: "two"
+// Value at 3: "three"
 // Value at 4: ""
 
 fun test_index(ref inner) {
@@ -17,6 +17,6 @@ fun test_index(ref inner) {
 }
 
 main {
-    let data = ["apple", "banana", "cherry", "date"]
+    let data = ["zero", "one", "two", "three"]
     test_index(data)
 }

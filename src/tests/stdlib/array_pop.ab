@@ -1,7 +1,7 @@
 import { pop } from "std/array"
 
 // Output
-// Popped from data: "date" (3) [apple banana cherry]
+// Popped from data: "three" (3) [zero one two]
 // Popped from empty: "" (0) []
 
 fun test_pop(label: Text, inner: [Text]): Null {
@@ -10,7 +10,7 @@ fun test_pop(label: Text, inner: [Text]): Null {
 }
 
 main {
-    let data = ["apple", "banana", "cherry", "date"]
+    let data = ["zero", "one", "two", "three"]
     let empty = [Text]
     test_pop("data", data)
     test_pop("empty", empty)

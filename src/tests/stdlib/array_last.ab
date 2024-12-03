@@ -1,7 +1,7 @@
 import { last } from "std/array"
 
 // Output
-// Last of data: "date" (4) [apple banana cherry date]
+// Last of data: "three" (4) [zero one two three]
 // Last of empty: "" (0) []
 
 fun test_last(label: Text, inner: [Text]): Null {
@@ -10,7 +10,7 @@ fun test_last(label: Text, inner: [Text]): Null {
 }
 
 main {
-    let data = ["apple", "banana", "cherry", "date"]
+    let data = ["zero", "one", "two", "three"]
     let empty = [Text]
     test_last("data", data)
     test_last("empty", empty)
