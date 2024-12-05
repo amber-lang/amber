@@ -11,13 +11,18 @@ pub struct VariableInit {
     name: String,
     expr: Box<Expr>,
     global_id: Option<usize>,
-    is_fun_ctx: bool
+    is_fun_ctx: bool,
+    is_const: bool
 }
 
 impl VariableInit {
-    fn handle_add_variable(&mut self, meta: &mut ParserMetadata, name: &str, kind: Type, tok: Option<Token>) -> SyntaxResult {
-        handle_identifier_name(meta, name, tok)?;
-        self.global_id = meta.add_var(name, kind, false);
+    fn handle_add_variable(
+        &mut self,
+        meta: &mut ParserMetadata,
+        tok: Option<Token>
+    ) -> SyntaxResult {
+        handle_identifier_name(meta, &self.name, tok)?;
+        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
         Ok(())
     }
 }
@@ -30,12 +35,14 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             name: String::new(),
             expr: Box::new(Expr::new()),
             global_id: None,
-            is_fun_ctx: false
+            is_fun_ctx: false,
+            is_const: false
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "let")?;
+        let keyword = token_by(meta, |word| ["let", "const"].contains(&word.as_str()))?;
+        self.is_const = keyword == "const";
         // Get the variable name
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
@@ -43,7 +50,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
             // Add a variable to the memory
-            self.handle_add_variable(meta, &self.name.clone(), self.expr.get_type(), tok)?;
+            self.handle_add_variable(meta, tok)?;
             self.is_fun_ctx = meta.context.is_fun_ctx;
             Ok(())
         }, |position| {

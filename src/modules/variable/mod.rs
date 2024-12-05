@@ -8,7 +8,6 @@ use super::expression::expr::Expr;
 pub mod init;
 pub mod set;
 pub mod get;
-pub mod constinit;
 
 pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
