@@ -1,0 +1,14 @@
+// Output
+// 12
+// 42
+
+const x = 42
+
+fun foo() {
+    const test = 12
+    echo test
+}
+
+foo()
+
+echo x
