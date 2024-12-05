@@ -15,33 +15,25 @@ pub struct VariableGet {
     is_ref: bool
 }
 
-impl VariableGet {
-    pub fn get_translated_name(&self) -> String {
-        match self.global_id {
-            Some(id) => format!("__{id}_{}", self.name),
-            None => self.name.to_string()
-        }
-    }
-}
-
 impl Typed for VariableGet {
     fn get_type(&self) -> Type {
-        if let Type::Array(item_kind) = &self.kind {
-            if let Some(index) = self.index.as_ref() {
-                if let Some(ExprType::Range(_)) = &index.value {
-                    // Array type (indexing array by range)
-                    self.kind.clone()
-                } else {
-                    // Item type (indexing array by number)
-                    *item_kind.clone()
-                }
-            } else {
-                // Array type (returning array)
-                self.kind.clone()
+        match (&self.kind, self.index.as_ref()) {
+            (Type::Array(kind), Some(index)) if matches!(index.value, Some(ExprType::Range(_))) => {
+                // Array type (indexing array by range)
+                Type::Array(kind.clone())
             }
-        } else {
-            // Variable type (returning text or number)
-            self.kind.clone()
+            (Type::Array(kind), Some(_)) => {
+                // Item type (indexing array by number)
+                *kind.clone()
+            }
+            (Type::Array(kind), None) => {
+                // Array type (returning array)
+                Type::Array(kind.clone())
+            }
+            (kind, _) => {
+                // Variable type (returning text or number)
+                kind.clone()
+            }
         }
     }
 }
@@ -76,65 +68,81 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 }
 
 impl TranslateModule for VariableGet {
-    #[allow(clippy::collapsible_else_if)]
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_translated_name();
         // Text variables need to be encapsulated in string literals
         // Otherwise, they will be "spread" into tokens
         let quote = meta.gen_quote();
         match &self.kind {
-            Type::Array(_) => {
-                if self.is_ref {
-                    if let Some(index) = self.index.as_ref() {
-                        let value = match &index.value {
-                            Some(ExprType::Range(range)) => {
-                                let (offset, length) = range.get_array_index(meta);
-                                format!("\\\"\\${{${name}[@]:{offset}:{length}}}\\\"")
-                            }
-                            Some(ExprType::Neg(neg)) => {
-                                let index = neg.get_array_index(meta);
-                                format!("\\\"\\${{${name}[{index}]}}\\\"")
-                            }
-                            _ => {
-                                let index = index.translate_eval(meta, true);
-                                format!("\\\"\\${{${name}[{index}]}}\\\"")
-                            }
-                        };
-                        let id = meta.gen_value_id();
-                        let stmt = format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}={value}\"");
-                        meta.stmt_queue.push_back(stmt);
-                        format!("$__AMBER_ARRAY_GET_{id}_{name}") // echo $__ARRAY_GET
-                    } else {
-                        format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
-                    }
+            Type::Array(_) if self.is_ref => {
+                if let Some(index) = self.index.as_ref() {
+                    let id = meta.gen_value_id();
+                    let value = Self::slice_ref_array(meta, &name, &index);
+                    let stmt = format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{{value}}}\\\"\"");
+                    meta.stmt_queue.push_back(stmt);
+                    format!("$__AMBER_ARRAY_GET_{id}_{name}")
                 } else {
-                    if let Some(index) = self.index.as_ref() {
-                        match &index.value {
-                            Some(ExprType::Range(range)) => {
-                                let (offset, length) = range.get_array_index(meta);
-                                format!("{quote}${{{name}[@]:{offset}:{length}}}{quote}")
-                            }
-                            Some(ExprType::Neg(neg)) => {
-                                let index = neg.get_array_index(meta);
-                                format!("{quote}${{{name}[{index}]}}{quote}")
-                            }
-                            _ => {
-                                let index = index.translate(meta);
-                                format!("{quote}${{{name}[{index}]}}{quote}")
-                            }
-                        }
-                    } else {
-                        format!("{quote}${{{name}[@]}}{quote}")
-                    }
+                    format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
+                }
+            }
+            Type::Array(_) if !self.is_ref => {
+                if let Some(index) = self.index.as_ref() {
+                    let value = Self::slice_copy_array(meta, &name, &index);
+                    format!("{quote}{value}{quote}")
+                } else {
+                    format!("{quote}${{{name}[@]}}{quote}")
                 }
             }
             Type::Text => {
-                let ref_prefix = if self.is_ref { "!" } else { "" };
-                format!("{quote}${{{ref_prefix}{name}}}{quote}")
+                let prefix = if self.is_ref { "!" } else { "" };
+                format!("{quote}${{{prefix}{name}}}{quote}")
             }
             _ => {
-                let ref_prefix = if self.is_ref { "!" } else { "" };
-                format!("${{{ref_prefix}{name}}}")
+                let prefix = if self.is_ref { "!" } else { "" };
+                format!("${{{prefix}{name}}}")
+            }
+        }
+    }
+}
+
+impl VariableGet {
+    pub fn get_translated_name(&self) -> String {
+        match self.global_id {
+            Some(id) => format!("__{id}_{}", self.name),
+            None => self.name.to_string()
+        }
+    }
+
+    fn slice_ref_array(meta: &mut TranslateMetadata, name: &str, index: &Expr) -> String {
+        match &index.value {
+            Some(ExprType::Range(range)) => {
+                let (offset, length) = range.get_array_index(meta);
+                format!("${name}[@]:{offset}:{length}")
+            }
+            Some(ExprType::Neg(neg)) => {
+                let index = neg.get_array_index(meta);
+                format!("${name}[{index}]")
+            }
+            _ => {
+                let index = index.translate_eval(meta, true);
+                format!("${name}[{index}]")
+            }
+        }
+    }
+
+    fn slice_copy_array(meta: &mut TranslateMetadata, name: &str, index: &Expr) -> String {
+        match &index.value {
+            Some(ExprType::Range(range)) => {
+                let (offset, length) = range.get_array_index(meta);
+                format!("${{{name}[@]:{offset}:{length}}}")
+            }
+            Some(ExprType::Neg(neg)) => {
+                let index = neg.get_array_index(meta);
+                format!("${{{name}[{index}]}}")
+            }
+            _ => {
+                let index = index.translate(meta);
+                format!("${{{name}[{index}]}}")
             }
         }
     }
