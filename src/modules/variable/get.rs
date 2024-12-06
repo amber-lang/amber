@@ -77,7 +77,7 @@ impl TranslateModule for VariableGet {
             Type::Array(_) if self.is_ref => {
                 if let Some(index) = self.index.as_ref() {
                     let id = meta.gen_value_id();
-                    let value = Self::slice_ref_array(meta, &name, &index);
+                    let value = Self::slice_ref_array(meta, &name, index);
                     let stmt = format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{{value}}}\\\"\"");
                     meta.stmt_queue.push_back(stmt);
                     format!("$__AMBER_ARRAY_GET_{id}_{name}")
@@ -87,7 +87,7 @@ impl TranslateModule for VariableGet {
             }
             Type::Array(_) if !self.is_ref => {
                 if let Some(index) = self.index.as_ref() {
-                    let value = Self::slice_copy_array(meta, &name, &index);
+                    let value = Self::slice_copy_array(meta, &name, index);
                     format!("{quote}{value}{quote}")
                 } else {
                     format!("{quote}${{{name}[@]}}{quote}")
