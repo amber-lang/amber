@@ -73,7 +73,14 @@ jobs:
         run: cargo build
       - name: Run cargo tests
         env:
-          GITHUB_ACTIONS_BASH_CONTAINER: 1
+          AMBER_TEST_STRATEGY: docker
+          AMBER_TEST_ARGS:
+            # 405 is a non-root user(guest) for is_root() test
+            exec
+            --workdir /root
+            --user 405
+            test_container
+            bash
         run: |
           docker run --volume $PWD:/root --network host --detach --name test_container ${{ matrix.bash_docker_image }} sleep infinity
           # coreutils includes mktemp
