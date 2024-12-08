@@ -101,6 +101,14 @@ impl Typed for Expr {
 }
 
 impl Expr {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        match &self.value {
+            Some(ExprType::Number(value)) => value.get_integer_value(),
+            Some(ExprType::Neg(value)) => value.get_integer_value(),
+            _ => None,
+        }
+    }
+
     pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
         let begin = meta.get_token_at(self.pos.0);
         let end = meta.get_token_at(self.pos.1);

@@ -65,10 +65,11 @@ impl TranslateModule for Add {
         match self.kind {
             Type::Array(_) => {
                 let quote = meta.gen_quote();
+                let dollar = meta.gen_dollar();
                 let id = meta.gen_value_id();
                 let name = format!("__AMBER_ARRAY_ADD_{id}");
                 meta.stmt_queue.push_back(format!("{name}=({left} {right})"));
-                format!("{quote}${{{name}[@]}}{quote}")
+                format!("{quote}{dollar}{{{name}[@]}}{quote}")
             },
             Type::Text => format!("{}{}", left, right),
             _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
