@@ -11,6 +11,7 @@
 // Value at 4: ""
 
 main {
+    // Do not use loop; we want to test compile time arithmetic.
     let array = ["zero", "one", "two", "three"]
     echo "Value at -5: \"{array[-5]}\""
     echo "Value at -4: \"{array[-4]}\""
