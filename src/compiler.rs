@@ -324,9 +324,11 @@ impl AmberCompiler {
 
     #[cfg(not(windows))]
     fn find_bash() -> Option<Command> {
-        if env::var("GITHUB_ACTIONS_BASH_CONTAINER").is_ok() {
+        if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
             let mut command = Command::new("docker");
-            command.args(["exec", "--workdir", "/root", "--user", "405", "test_container", "bash"]);
+            let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
+            let args: Vec<&str> = args_string.split_whitespace().collect();
+            command.args(args);
             Some(command)
         } else {
             let mut command = Command::new("/usr/bin/env");
