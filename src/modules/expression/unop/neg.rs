@@ -66,8 +66,7 @@ impl Neg {
         if let Some(expr) = self.get_integer_value() {
             expr.to_string()
         } else {
-            let expr = self.expr.translate(meta);
-            translate_computation(meta, ArithOp::Neg, None, Some(expr))
+            self.translate(meta)
         }
     }
 }
