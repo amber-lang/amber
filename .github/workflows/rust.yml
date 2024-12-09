@@ -77,7 +77,6 @@ jobs:
           AMBER_TEST_ARGS:
             # 405 is a non-root user(guest) for is_root() test
             exec
-            --workdir /root
             --user 405
             test_container
             bash
