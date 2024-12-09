@@ -82,7 +82,7 @@ jobs:
             test_container
             bash
         run: |
-          docker run --volume $PWD:/root --network host --detach --name test_container ${{ matrix.bash_docker_image }} sleep infinity
+          docker run --network host --detach --name test_container ${{ matrix.bash_docker_image }} sleep infinity
           # coreutils includes mktemp
           docker exec test_container apk add coreutils curl
           if [ "${{ matrix.sed }}" == "GNU sed" ]; then
