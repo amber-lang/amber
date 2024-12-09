@@ -1,8 +1,14 @@
-use heraclitus_compiler::prelude::*;
-use crate::{utils::{metadata::ParserMetadata, TranslateMetadata}, modules::types::{Type, Typed}, translate::{module::TranslateModule, compute::{translate_computation, ArithOp}}};
-use super::{super::expr::Expr, UnOp};
 use crate::docs::module::DocumentationModule;
 use crate::error_type_match;
+use crate::modules::expression::expr::Expr;
+use crate::modules::expression::unop::UnOp;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compute::{translate_computation, ArithOp};
+use crate::translate::module::TranslateModule;
+use crate::utils::metadata::ParserMetadata;
+use crate::utils::TranslateMetadata;
+use heraclitus_compiler::prelude::*;
+use std::ops::Neg as _;
 
 #[derive(Debug, Clone)]
 pub struct Neg {
@@ -48,6 +54,20 @@ impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         translate_computation(meta, ArithOp::Neg, None, Some(expr))
+    }
+}
+
+impl Neg {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        self.expr.get_integer_value().map(isize::neg)
+    }
+
+    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> String {
+        if let Some(expr) = self.get_integer_value() {
+            expr.to_string()
+        } else {
+            self.translate(meta)
+        }
     }
 }
 

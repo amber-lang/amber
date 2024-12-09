@@ -46,6 +46,13 @@ impl TranslateModule for Number {
     }
 }
 
+impl Number {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        let value = self.value.parse().unwrap_or_default();
+        Some(value)
+    }
+}
+
 impl DocumentationModule for Number {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
