@@ -75,9 +75,10 @@ jobs:
         env:
           AMBER_TEST_STRATEGY: docker
           AMBER_TEST_ARGS:
+            # 405 is a non-root user(guest) for is_root() test
             exec
             --workdir /root
-            --user 405 # a non-root user(guest) for is_root() test
+            --user 405
             test_container
             bash
         run: |
