@@ -322,6 +322,7 @@ impl AmberCompiler {
         return None;
     }
 
+    /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
     fn find_bash() -> Option<Command> {
         if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
