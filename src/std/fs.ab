@@ -70,12 +70,13 @@ pub fun make_executable(path: Text, mode: Text): Bool {
 /// Changes the owner of a file.
 ///
 /// If the file doesn't exist, it returns `false`
-pub fun change_owner(user: Text, path: Text): Bool {
+pub fun change_owner(path: Text, user: Text): Bool {
     if file_exist(path) or dir_exist(path) {
         trust $ chown -R "{user}" "{path}" $
         return true
     }
 
+    echo "The file {path} doesn't exist!"
     return false
 }
 

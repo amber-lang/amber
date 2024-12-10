@@ -7,7 +7,8 @@ main {
     $ touch {tmpdir}/amber-symbolic $ failed {
         echo "It wasn't possible to create {tmpdir}/amber-symbolic"
     }
-    if change_owner(trust $ whoami $, "{tmpdir}/amber-symbolic") {
+    let owner = trust $ whoami $
+    if change_owner("{tmpdir}/amber-symbolic", owner) {
         echo "Succeeded"
     } else {
         echo "File {tmpdir}/amber-symbolic not exists"
