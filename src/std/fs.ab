@@ -57,9 +57,9 @@ pub fun create_dir(path: Text): Null {
 /// Sets a file as executable.
 ///
 /// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun make_executable(path: Text): Bool {
+pub fun make_executable(path: Text, mode: Text): Bool {
     if file_exist(path) {
-        trust $ chmod +x "{path}" $
+        trust $ chmod "{mode}" "{path}" $
         return true
     }
 
