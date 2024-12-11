@@ -51,3 +51,36 @@ fn function_with_failable_typed_arg() {
 
     test_amber(code, "Hello, World!");
 }
+
+#[test]
+#[should_panic(expected = "ERROR: Index accessor must be a number or range")]
+fn get_array_index_by_string() {
+    let code = r#"
+        let array = [0, 1, 2, 3]
+        let slice = array["foo"]
+    "#;
+
+    test_amber(code, "");
+}
+
+#[test]
+#[should_panic(expected = "ERROR: Index accessor must be a number")]
+fn set_array_index_by_string() {
+    let code = r#"
+        let array = [0, 1, 2, 3]
+        array["foo"] = [11, 22]
+    "#;
+
+    test_amber(code, "");
+}
+
+#[test]
+#[should_panic(expected = "ERROR: Index accessor must be a number")]
+fn set_array_index_by_range() {
+    let code = r#"
+        let array = [0, 1, 2, 3]
+        array[1..=2] = [11, 22]
+    "#;
+
+    test_amber(code, "");
+}
