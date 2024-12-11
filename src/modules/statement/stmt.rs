@@ -70,7 +70,7 @@ pub enum StatementType {
     Exit(Exit),
     CommandModifier(CommandModifier),
     Comment(Comment),
-    CommentDoc(CommentDoc)
+    CommentDoc(CommentDoc),
 }
 
 #[derive(Debug, Clone)]

@@ -1,15 +1,18 @@
 // Output
-// 42
-// 1
-// 2
-// 3
+// Before: 42
+// Looping: 1
+// Looping: 2
+// Looping: 3
+// After: 42
 
 main {
     const x = 42
-    echo x
+    echo "Before: {x}"
 
     for i in [1, 2, 3] {
         const x = i
-        echo x
+        echo "Looping: {x}"
     }
+
+    echo "After: {x}"
 }

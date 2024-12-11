@@ -1,7 +1,9 @@
 // Output
 // Outer: 42
 // If: 12
+// Outer: 42
 // Else: 24
+// Outer: 42
 
 main {
     const x = 42
@@ -12,6 +14,8 @@ main {
         echo "If: {x}"
     }
 
+    echo "Outer: {x}"
+
     if x < 12 {
         const x = 12
         echo "If: {x}"
@@ -19,4 +23,6 @@ main {
         const x = 24
         echo "Else: {x}"
     }
+
+    echo "Outer: {x}"
 }

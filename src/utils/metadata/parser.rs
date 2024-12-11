@@ -69,7 +69,7 @@ impl ParserMetadata {
 
     /// Adds a variable to the current scope
     pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
-        let global_id = self.is_global_scope().then(|| self.gen_var_id());
+        let global_id = (self.is_global_scope() || self.is_shadowing_prev_scope(name)).then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
             name: name.to_string(),

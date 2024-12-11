@@ -12,7 +12,7 @@ pub struct VariableInit {
     expr: Box<Expr>,
     global_id: Option<usize>,
     is_fun_ctx: bool,
-    is_const: bool
+    is_const: bool,
 }
 
 impl VariableInit {
