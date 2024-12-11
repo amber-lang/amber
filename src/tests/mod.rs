@@ -1,27 +1,47 @@
 use crate::compiler::{AmberCompiler, CompilerOptions};
 extern crate test_generator;
+use heraclitus_compiler::prelude::Message;
 use itertools::Itertools;
 use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 pub mod cli;
-pub mod errors;
 pub mod extra;
 pub mod postprocessor;
 mod stdlib;
 mod validity;
+mod erroring;
 
-/// compare the output of the given code with the expected output
-pub fn test_amber(code: impl Into<String>, result: impl AsRef<str>) {
+pub enum TestOutcomeTarget {
+    Success,
+    Failure,
+}
+
+pub fn eval_amber_code(code: &str) -> Result<String, Message> {
     let options = CompilerOptions::default();
-    let mut compiler = AmberCompiler::new(code.into(), None, options);
-    match compiler.test_eval() {
-        Ok(eval_result) => assert_eq!(
-            eval_result.trim_end_matches('\n'),
-            result.as_ref().trim_end_matches('\n'),
-        ),
-        Err(err) => panic!("ERROR: {}", err.message.unwrap()),
+    let mut compiler = AmberCompiler::new(code.to_string(), None, options);
+    compiler.test_eval()
+}
+
+/// Tests script output in case of success or failure
+pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
+    match target {
+        TestOutcomeTarget::Success => {
+            match eval_amber_code(code.as_ref()) {
+                Ok(eval_result) => assert_eq!(
+                    eval_result.trim_end_matches('\n'),
+                    result.trim_end_matches('\n'),
+                ),
+                Err(err) => panic!("ERROR: {}", err.message.unwrap()),
+            }
+        }
+        TestOutcomeTarget::Failure => {
+            match eval_amber_code(code.as_ref()) {
+                Ok(eval_result) => panic!("Expected error, got: {}", eval_result),
+                Err(err) => assert_eq!(err.message.expect("Error message expected"), result),
+            }
+        }
     }
 }
 
@@ -48,7 +68,7 @@ pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
 }
 
 /// Extracts the output from the comment of amber code
-pub fn extract_output(code: impl Into<String>) -> String {
+fn extract_output(code: impl Into<String>) -> String {
     code.into()
         .lines()
         .skip_while(|line| !line.starts_with("// Output"))
@@ -58,8 +78,8 @@ pub fn extract_output(code: impl Into<String>) -> String {
         .join("\n")
 }
 
-/// inner test logic for script tests, used by stdlib tests and validity tests
-pub fn script_test(input: &str) {
+/// Inner test logic for testing script output in case of success or failure
+pub fn script_test(input: &str, target: TestOutcomeTarget) {
     let code =
         fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
 
@@ -75,8 +95,7 @@ pub fn script_test(input: &str) {
             _ => "Succeeded".to_string(),
         };
     }
-
-    test_amber(code, output);
+    test_amber(&code, &output, target);
 }
 
 #[cfg(test)]

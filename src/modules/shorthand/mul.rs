@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
-use crate::modules::variable::{variable_name_extensions, handle_variable_reference};
+use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
@@ -34,7 +34,8 @@ impl SyntaxModule<ParserMetadata> for ShorthandMul {
         let var_tok = meta.get_current_token();
         self.var = variable(meta, variable_name_extensions())?;
         token(meta, "*=")?;
-        let variable = handle_variable_reference(meta, var_tok, &self.var)?;
+        let variable = handle_variable_reference(meta, &var_tok, &self.var)?;
+        prevent_constant_mutation(meta, &var_tok, &self.var, variable.is_const)?;
         self.kind = variable.kind;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
