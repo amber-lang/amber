@@ -28,7 +28,7 @@ pub fn eval_amber_code(code: &str) -> Result<String, Message> {
 pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
     match target {
         TestOutcomeTarget::Success => {
-            match eval_amber_code(code.as_ref()) {
+            match eval_amber_code(code) {
                 Ok(eval_result) => assert_eq!(
                     eval_result.trim_end_matches('\n'),
                     result.trim_end_matches('\n'),
@@ -37,7 +37,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
             }
         }
         TestOutcomeTarget::Failure => {
-            match eval_amber_code(code.as_ref()) {
+            match eval_amber_code(code) {
                 Ok(eval_result) => panic!("Expected error, got: {}", eval_result),
                 Err(err) => assert_eq!(err.message.expect("Error message expected"), result),
             }
