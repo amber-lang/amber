@@ -26,21 +26,26 @@ pub fn eval_amber_code(code: &str) -> Result<String, Message> {
 
 /// Tests script output in case of success or failure
 pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
+    let evaluated = eval_amber_code(code);
     match target {
-        TestOutcomeTarget::Success => {
-            match eval_amber_code(code) {
-                Ok(eval_result) => assert_eq!(
-                    eval_result.trim_end_matches('\n'),
+        TestOutcomeTarget::Success => match evaluated {
+            Ok(stdout) => {
+                assert_eq!(
+                    stdout.trim_end_matches('\n'),
                     result.trim_end_matches('\n'),
-                ),
-                Err(err) => panic!("ERROR: {}", err.message.unwrap()),
-            }
+                )
+            },
+            Err(err) => {
+                panic!("ERROR: {}", err.message.unwrap())
+            },
         }
-        TestOutcomeTarget::Failure => {
-            match eval_amber_code(code) {
-                Ok(eval_result) => panic!("Expected error, got: {}", eval_result),
-                Err(err) => assert_eq!(err.message.expect("Error message expected"), result),
-            }
+        TestOutcomeTarget::Failure => match evaluated {
+            Ok(stdout) => {
+                panic!("Expected error, got: {}", stdout)
+            },
+            Err(err) => {
+                assert_eq!(err.message.expect("Error message expected"), result)
+            },
         }
     }
 }
