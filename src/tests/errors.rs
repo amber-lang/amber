@@ -64,7 +64,7 @@ fn get_array_index_by_string() {
 }
 
 #[test]
-#[should_panic(expected = "ERROR: Index accessor must be a number")]
+#[should_panic(expected = "ERROR: Index accessor must be a number (and not a range)")]
 fn set_array_index_by_string() {
     let code = r#"
         let array = [0, 1, 2, 3]
@@ -75,7 +75,7 @@ fn set_array_index_by_string() {
 }
 
 #[test]
-#[should_panic(expected = "ERROR: Index accessor must be a number")]
+#[should_panic(expected = "ERROR: Index accessor must be a number (and not a range)")]
 fn set_array_index_by_range() {
     let code = r#"
         let array = [0, 1, 2, 3]

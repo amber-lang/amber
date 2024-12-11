@@ -110,7 +110,7 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<O
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
         if !allow_index_accessor(&index, range) {
-            let expected = if range { "number or range" } else { "number" };
+            let expected = if range { "number or range" } else { "number (and not a range)" };
             let message = format!("Index accessor must be a {}", expected);
             let comment = format!("The index accessor must be a {} not a {}", expected, index.get_type());
             return error!(meta, tok => { message: message, comment: comment });
