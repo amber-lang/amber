@@ -96,9 +96,15 @@ impl ParserMetadata {
     }
 
     pub fn is_shadowing_prev_scope(&self, name: &str) -> bool {
-        self.context.scopes.len() > 1
-            && self.context.scopes.iter().rev().skip(1)
-                .find_map(|scope| scope.get_var(name)).is_some()
+        if self.context.scopes.len() > 1 {
+            self.context.scopes.iter()
+                .rev()
+                .skip(1)
+                .find_map(|scope| scope.get_var(name))
+                .is_some()
+        } else {
+            false
+        }
     }
 
     /// Gets a variable from the current scope or any parent scope
