@@ -1,9 +1,10 @@
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::types::{Type, Typed};
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use crate::utils::context::VariableDecl;
+use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
-use crate::utils::{metadata::ParserMetadata, context::VariableDecl, cc_flags::{get_ccflag_name, CCFlags}};
 use similar_string::find_best_similarity;
-use crate::modules::types::{Typed, Type};
-
-use super::expression::expr::Expr;
 
 pub mod init;
 pub mod set;
@@ -103,19 +104,28 @@ fn is_camel_case(name: &str) -> bool {
     false
 }
 
-pub fn handle_index_accessor(meta: &mut ParserMetadata) -> Result<Option<Expr>, Failure> {
+pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<Option<Expr>, Failure> {
     if token(meta, "[").is_ok() {
         let tok = meta.get_current_token();
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
-        if index.get_type() != Type::Num {
-            return error!(meta, tok => {
-                message: format!("Index accessor must be a number"),
-                comment: format!("The index accessor must be a number, not a {}", index.get_type())
-            })
+        if !allow_index_accessor(&index, range) {
+            let expected = if range { "number or range" } else { "number (and not a range)" };
+            let side = if range { "right" } else { "left" };
+            let message = format!("Index accessor must be a {} for {} side of operation", expected, side);
+            let comment = format!("The index accessor must be a {} not a {}", expected, index.get_type());
+            return error!(meta, tok => { message: message, comment: comment });
         }
         token(meta, "]")?;
         return Ok(Some(index));
     }
     Ok(None)
+}
+
+fn allow_index_accessor(index: &Expr, range: bool) -> bool {
+    match (&index.kind, &index.value) {
+        (Type::Num, _) => true,
+        (Type::Array(_), Some(ExprType::Range(_))) => range,
+        _ => false,
+    }
 }
