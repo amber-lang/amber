@@ -3,8 +3,10 @@ import * from "std/text"
 // Output
 // apple apple
 // apple
+// banana\\
 
 main {
     echo replace("banana banana", "banana", "apple")
     echo replace("\\", "\\", "apple")
+    echo replace("banana\\", "\\", "\\\\")
 }

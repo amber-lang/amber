@@ -1,7 +1,14 @@
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
+#[allow_absurd_cast]
 pub fun replace(source, search, replace) {
     search = trust $ echo \$\{{nameof search}//\\\\/\\\\\\\\} $
-    replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
+    const bash_major = trust $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
+    const bash_minor = trust $ echo \"\$\{BASH_VERSINFO[1]}\" $ as Num
+    if bash_major > 5 or (bash_major == 5 and bash_minor > 1) {
+        replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
+    } else {
+        replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\} $
+    }
     return trust $ echo \$\{{nameof source}//{search}/{replace}} $
 }
 
