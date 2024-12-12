@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        self.index = handle_index_accessor(meta)?;
+        self.index = handle_index_accessor(meta, false)?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
         let variable = handle_variable_reference(meta, &tok, &self.name)?;

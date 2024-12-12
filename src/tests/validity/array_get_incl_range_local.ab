@@ -1,0 +1,70 @@
+// Output
+// Values at -1..=-1: (0) []
+// Values at -1..=0: (1) [zero]
+// Values at -1..=1: (2) [zero one]
+// Values at -1..=2: (3) [zero one two]
+// Values at -1..=3: (3) [zero one two]
+// Values at 0..=-1: (0) []
+// Values at 0..=0: (1) [zero]
+// Values at 0..=1: (2) [zero one]
+// Values at 0..=2: (3) [zero one two]
+// Values at 0..=3: (3) [zero one two]
+// Values at 1..=-1: (0) []
+// Values at 1..=0: (0) []
+// Values at 1..=1: (1) [one]
+// Values at 1..=2: (2) [one two]
+// Values at 1..=3: (2) [one two]
+// Values at 2..=-1: (0) []
+// Values at 2..=0: (0) []
+// Values at 2..=1: (0) []
+// Values at 2..=2: (1) [two]
+// Values at 2..=3: (1) [two]
+// Values at 3..=-1: (0) []
+// Values at 3..=0: (0) []
+// Values at 3..=1: (0) []
+// Values at 3..=2: (0) []
+// Values at 3..=3: (0) []
+// Values at 4..=-1: (0) []
+// Values at 4..=0: (0) []
+// Values at 4..=1: (0) []
+// Values at 4..=2: (0) []
+// Values at 4..=3: (0) []
+
+fun show_range(label, array) {
+    echo "Values at {label}: ({len(array)}) [{array}]"
+}
+
+main {
+    // Do not use nested loops; we want to test compile time arithmetic.
+    let array = ["zero", "one", "two"]
+    let slice = array[-1..=-1]; show_range("-1..=-1", slice)
+    let slice = array[-1..=0]; show_range("-1..=0", slice)
+    let slice = array[-1..=1]; show_range("-1..=1", slice)
+    let slice = array[-1..=2]; show_range("-1..=2", slice)
+    let slice = array[-1..=3]; show_range("-1..=3", slice)
+    let slice = array[0..=-1]; show_range("0..=-1", slice)
+    let slice = array[0..=0]; show_range("0..=0", slice)
+    let slice = array[0..=1]; show_range("0..=1", slice)
+    let slice = array[0..=2]; show_range("0..=2", slice)
+    let slice = array[0..=3]; show_range("0..=3", slice)
+    let slice = array[1..=-1]; show_range("1..=-1", slice)
+    let slice = array[1..=0]; show_range("1..=0", slice)
+    let slice = array[1..=1]; show_range("1..=1", slice)
+    let slice = array[1..=2]; show_range("1..=2", slice)
+    let slice = array[1..=3]; show_range("1..=3", slice)
+    let slice = array[2..=-1]; show_range("2..=-1", slice)
+    let slice = array[2..=0]; show_range("2..=0", slice)
+    let slice = array[2..=1]; show_range("2..=1", slice)
+    let slice = array[2..=2]; show_range("2..=2", slice)
+    let slice = array[2..=3]; show_range("2..=3", slice)
+    let slice = array[3..=-1]; show_range("3..=-1", slice)
+    let slice = array[3..=0]; show_range("3..=0", slice)
+    let slice = array[3..=1]; show_range("3..=1", slice)
+    let slice = array[3..=2]; show_range("3..=2", slice)
+    let slice = array[3..=3]; show_range("3..=3", slice)
+    let slice = array[4..=-1]; show_range("4..=-1", slice)
+    let slice = array[4..=0]; show_range("4..=0", slice)
+    let slice = array[4..=1]; show_range("4..=1", slice)
+    let slice = array[4..=2]; show_range("4..=2", slice)
+    let slice = array[4..=3]; show_range("4..=3", slice)
+}
