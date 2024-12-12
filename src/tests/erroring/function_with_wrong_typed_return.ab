@@ -1,0 +1,7 @@
+// Output
+// Return type does not match function return type
+
+pub fun test(): Num {
+    return "Hello, World!"
+}
+echo test()

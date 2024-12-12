@@ -1,0 +1,5 @@
+// Output
+// Index accessor must be a number or range for right side of operation
+
+let array = [0, 1, 2, 3]
+let slice = array["foo"]

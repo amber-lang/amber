@@ -1,0 +1,18 @@
+// Output
+// Before: 42
+// Looping: 1
+// Looping: 2
+// Looping: 3
+// After: 42
+
+main {
+    const x = 42
+    echo "Before: {x}"
+
+    for i in [1, 2, 3] {
+        const x = i
+        echo "Looping: {x}"
+    }
+
+    echo "After: {x}"
+}

@@ -1,0 +1,5 @@
+// Output
+// Cannot reassign constant 'foo'
+
+const foo = 12
+foo /= 13

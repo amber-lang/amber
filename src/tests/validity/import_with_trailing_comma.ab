@@ -5,8 +5,8 @@ import {
 import { sum, abs } from "std/math"
 
 // Output
-// c
+// bb
 // 3
 
-echo replace_regex(replace("aa", "a", "b"), "b+", "c", true)
+echo replace("aa", "a", "b")
 echo sum([abs(-2), 1])

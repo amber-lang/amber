@@ -9,7 +9,6 @@ use similar_string::find_best_similarity;
 pub mod init;
 pub mod set;
 pub mod get;
-pub mod constinit;
 
 pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
@@ -40,7 +39,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 }
 
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
+pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var(name) {
         Some(variable_unit) => Ok(variable_unit.clone()),
@@ -48,11 +47,19 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, 
             let message = format!("Variable '{}' does not exist", name);
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_variable(meta, name) {
-                error!(meta, tok, message, comment)
+                error!(meta, tok.clone(), message, comment)
             } else {
-                error!(meta, tok, message)
+                error!(meta, tok.clone(), message)
             }
         }
+    }
+}
+
+pub fn prevent_constant_mutation(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str, is_const: bool) -> SyntaxResult {
+    if is_const {
+        error!(meta, tok.clone(), format!("Cannot reassign constant '{name}'"))
+    } else {
+        Ok(())
     }
 }
 

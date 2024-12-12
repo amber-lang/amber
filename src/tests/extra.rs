@@ -5,6 +5,7 @@ use crate::tests::compile_code;
 use std::fs;
 use std::process::{Command, Stdio};
 use std::time::Duration;
+use super::TestOutcomeTarget;
 
 fn http_server() {
     use tiny_http::{Response, Server};
@@ -67,7 +68,7 @@ fn download() {
     let code = fs::read_to_string("src/tests/stdlib/no_output/download.ab")
         .expect("Failed to open stdlib/no_output/download.ab test file");
 
-    test_amber(code, "ok");
+    test_amber(&code, "ok", TestOutcomeTarget::Success);
 
     std::thread::sleep(Duration::from_millis(150));
     assert!(server.is_finished(), "Server has not stopped!");

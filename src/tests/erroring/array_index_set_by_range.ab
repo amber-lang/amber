@@ -1,0 +1,5 @@
+// Output
+// Index accessor must be a number (and not a range) for left side of operation
+
+let array = [0, 1, 2, 3]
+array[1..=2] = [11, 22]
