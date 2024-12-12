@@ -53,7 +53,7 @@ fn function_with_failable_typed_arg() {
 }
 
 #[test]
-#[should_panic(expected = "ERROR: Index accessor must be a number or range for retrieval")]
+#[should_panic(expected = "ERROR: Index accessor must be a number or range for right side of operation")]
 fn get_array_index_by_string() {
     let code = r#"
         let array = [0, 1, 2, 3]
@@ -64,7 +64,7 @@ fn get_array_index_by_string() {
 }
 
 #[test]
-#[should_panic(expected = "ERROR: Index accessor must be a number (and not a range) for assignment")]
+#[should_panic(expected = "ERROR: Index accessor must be a number (and not a range) for left side of operation")]
 fn set_array_index_by_string() {
     let code = r#"
         let array = [0, 1, 2, 3]
@@ -75,7 +75,7 @@ fn set_array_index_by_string() {
 }
 
 #[test]
-#[should_panic(expected = "ERROR: Index accessor must be a number (and not a range) for assignment")]
+#[should_panic(expected = "ERROR: Index accessor must be a number (and not a range) for left side of operation")]
 fn set_array_index_by_range() {
     let code = r#"
         let array = [0, 1, 2, 3]
