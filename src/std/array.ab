@@ -27,28 +27,31 @@ pub fun includes(array, value) {
     return result >= 0
 }
 
-/// Returns the first element in the array.
+/// Returns the first element in the array; if the array is empty, the return
+/// value is undefined.
 pub fun first(array) {
     return array[0]
 }
 
-/// Returns the last element in the array.
+/// Returns the last element in the array; if the array is empty, the return
+/// value is undefined.
 pub fun last(array) {
     let index = len(array) - 1
     return array[index]
 }
 
-/// Removes an element at the index from the array; this will have no effect
-/// if the index is before the start or beyond the end of the array.
+/// Removes an element at the index from the array; if the index is negative
+/// or beyond the end, the return value is undefined, but the array will be
+/// unchanged.
 pub fun remove_at(ref array: [], index: Num): Null {
     let offset = index + 1
     let length = len(array)
     array = array[0..index] + array[offset..length]
 }
 
-/// Removes an element at the index from the array, and returns it; this will
-/// have no effect if the index is before the start or beyond the end of the
-/// array.
+/// Removes an element at the index from the array, and returns it; if the
+/// index is negative or beyond the end, the return value is undefined, but
+/// the array will be unchanged.
 pub fun extract_at(ref array, index) {
     let element = array[index]
     let offset = index + 1
@@ -57,8 +60,8 @@ pub fun extract_at(ref array, index) {
     return element
 }
 
-/// Removes the last element from the array, and returns it; this will have
-/// no effect if the array is empty.
+/// Removes the last element from the array, and returns it; if the array
+/// is empty, the return value is undefined, but the array will be unchanged.
 pub fun pop(ref array) {
     let length = len(array)
     let index = length - 1
@@ -67,8 +70,8 @@ pub fun pop(ref array) {
     return element
 }
 
-/// Removes the first element from the array, and returns it; this will have
-/// no effect if the array is empty.
+/// Removes the first element from the array, and returns it; if the array
+/// is empty, the return value is undefined, but the array will be unchanged.
 pub fun shift(ref array) {
     let length = len(array)
     let element = array[0]
