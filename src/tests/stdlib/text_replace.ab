@@ -3,10 +3,14 @@ import * from "std/text"
 // Output
 // apple apple
 // apple
-// banana\\
+// Succeeded
+// one\\two\\\\three\\\\\\
+// one\two\three\\
 
 main {
     echo replace("banana banana", "banana", "apple")
     echo replace("\\", "\\", "apple")
-    echo replace("banana\\", "\\", "\\\\")
+    echo replace("Succinctly\\", "inctly\\", "eeded")
+    echo replace("one\\two\\\\three\\\\\\", "\\", "\\\\")
+    echo replace("one\\two\\\\three\\\\\\", "\\\\", "\\")
 }

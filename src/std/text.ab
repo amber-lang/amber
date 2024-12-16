@@ -22,7 +22,10 @@ pub fun replace(source, search, replace) {
 /// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
     search = replace(search, "\\", "\\\\")
-    replace = replace(replace, "\\", "\\\\")
+    if bash_version() >= 502 {
+        replace = replace(replace, "\\", "\\\\")
+    }
+
     return trust $ echo \$\{{nameof source}/{search}/{replace}} $
 }
 
