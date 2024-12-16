@@ -40,9 +40,6 @@ jobs:
           - "bash:4.4"
           - "bash:4.3"
           - "bash:4.2"
-          - "bash:4.1"
-          - "bash:4.0"
-          - "bash:3.2"
         sed:
           - GNU sed
         # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
