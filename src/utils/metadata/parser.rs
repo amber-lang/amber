@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use heraclitus_compiler::prelude::*;
 use amber_meta::ContextManager;
 use crate::modules::block::Block;
+use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
 use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
 use crate::utils::function_interface::FunctionInterface;
@@ -121,6 +122,11 @@ impl ParserMetadata {
     /// Gets a variable from the current scope or any parent scope
     pub fn get_var(&self, name: &str) -> Option<&VariableDecl> {
         self.context.scopes.iter().rev().find_map(|scope| scope.get_var(name))
+    }
+
+    /// Gets a variable from the current scope or any parent scope
+    pub fn get_var_from_expr(&self, expr: &Expr) -> Option<&VariableDecl> {
+        expr.get_original_name().and_then(|name| self.get_var(&name))
     }
 
     /// Gets variable names

@@ -29,6 +29,9 @@ impl VariableInit {
             self.expr.get_payload(),
             self.is_const,
         );
+        if let Some(mut payload) = self.expr.get_payload() {
+            payload.set_var_name(&self.name, self.global_id);
+        }
         Ok(())
     }
 }

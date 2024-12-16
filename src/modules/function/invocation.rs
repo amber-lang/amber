@@ -147,7 +147,7 @@ impl TranslateModule for FunctionInvocation {
         let silent = meta.gen_silent();
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | {
             if *is_ref {
-                arg.get_var_translated_name().unwrap()
+                arg.get_translated_name().unwrap()
             } else {
                 let translation = arg.translate_eval(meta, false);
                 // If the argument is an array, we have to get just the "name[@]" part
