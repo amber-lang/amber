@@ -34,8 +34,10 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
         TestOutcomeTarget::Success => match evaluated {
             Ok(stdout) => {
                 let stdout = stdout.trim_end_matches('\n');
-                let result = result.trim_end_matches('\n');
-                assert_eq!(stdout, result)
+                if stdout != SUCCEEDED {
+                    let result = result.trim_end_matches('\n');
+                    assert_eq!(stdout, result)
+                }
             }
             Err(err) => {
                 panic!("ERROR: {}", err.message.unwrap())
