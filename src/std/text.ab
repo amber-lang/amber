@@ -1,11 +1,17 @@
+// Replace this with builtin if/when we get around to writing one.
+#[allow_absurd_cast]
+fun bash_version(): Num {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Num
+    return (major * 100) + minor
+}
+
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 #[allow_absurd_cast]
 pub fun replace(source, search, replace) {
     search = trust $ echo \$\{{nameof search}//\\\\/\\\\\\\\} $
     // TODO: Revisit after https://github.com/amber-lang/amber/issues/622
-    const bash_major = trust $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
-    const bash_minor = trust $ echo \"\$\{BASH_VERSINFO[1]}\" $ as Num
-    if bash_major > 5 or (bash_major == 5 and bash_minor > 1) {
+    if bash_version() >= 502 {
         replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
     } else {
         replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\} $
