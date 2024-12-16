@@ -1,6 +1,6 @@
 extern crate test_generator;
-use heraclitus_compiler::prelude::Message;
 use crate::compiler::{AmberCompiler, CompilerOptions};
+use heraclitus_compiler::prelude::Message;
 use itertools::Itertools;
 use pretty_assertions::assert_eq;
 use std::fs;
@@ -14,12 +14,14 @@ mod stdlib;
 mod validity;
 mod erroring;
 
+const SUCCEEDED: &str = "Succeeded";
+
 pub enum TestOutcomeTarget {
     Success,
     Failure,
 }
 
-pub fn eval_amber_code(code: &str) -> Result<String, Message> {
+fn eval_amber(code: &str) -> Result<String, Message> {
     let options = CompilerOptions::default();
     let mut compiler = AmberCompiler::new(code.to_string(), None, options);
     compiler.test_eval()
@@ -27,26 +29,26 @@ pub fn eval_amber_code(code: &str) -> Result<String, Message> {
 
 /// Tests script output in case of success or failure
 pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
-    let evaluated = eval_amber_code(code);
+    let evaluated = eval_amber(code);
     match target {
         TestOutcomeTarget::Success => match evaluated {
             Ok(stdout) => {
-                assert_eq!(
-                    stdout.trim_end_matches('\n'),
-                    result.trim_end_matches('\n'),
-                )
-            },
+                let stdout = stdout.trim_end_matches('\n');
+                let result = result.trim_end_matches('\n');
+                assert_eq!(stdout, result)
+            }
             Err(err) => {
                 panic!("ERROR: {}", err.message.unwrap())
-            },
+            }
         }
         TestOutcomeTarget::Failure => match evaluated {
             Ok(stdout) => {
                 panic!("Expected error, got: {}", stdout)
-            },
+            }
             Err(err) => {
-                assert_eq!(err.message.expect("Error message expected"), result)
-            },
+                let message = err.message.expect("Error message expected");
+                assert_eq!(message, result)
+            }
         }
     }
 }
@@ -73,7 +75,7 @@ pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
     )
 }
 
-/// Extracts the output from the comment of amber code
+/// Extracts the output from the comment of Amber code
 fn extract_output(code: impl Into<String>) -> String {
     code.into()
         .lines()
@@ -86,19 +88,18 @@ fn extract_output(code: impl Into<String>) -> String {
 
 /// Inner test logic for testing script output in case of success or failure
 pub fn script_test(input: &str, target: TestOutcomeTarget) {
-    let code =
-        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
-
-    // extract Output from script comment
+    let code = fs::read_to_string(input)
+        .unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    // Extract output from script comment
     let mut output = extract_output(&code);
-
-    // if output is not in comment, try to read from .output.txt file
+    // If output is not in comment, try to read from .output.txt file
     if output.is_empty() {
-        let output_path = PathBuf::from(input.replace(".ab", ".output.txt"));
-        output = match output_path.exists() {
-            true => fs::read_to_string(output_path)
-                .unwrap_or_else(|_| panic!("Failed to open {input}.output.txt file")),
-            _ => "Succeeded".to_string(),
+        let path = PathBuf::from(input.replace(".ab", ".output.txt"));
+        output = if path.exists() {
+            fs::read_to_string(&path)
+                .unwrap_or_else(|_| panic!("Failed to open {} test file", path.display()))
+        } else {
+            SUCCEEDED.to_string()
         };
     }
     test_amber(&code, &output, target);
