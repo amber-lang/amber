@@ -1,0 +1,7 @@
+// Output
+// Non-failable functions cannot return a Failable type
+
+pub fun test(): Null? {
+    echo "Hello, World!"
+}
+echo test() failed: echo "Failed"
