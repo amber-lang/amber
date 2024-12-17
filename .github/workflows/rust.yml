@@ -81,13 +81,18 @@ jobs:
             test_container
             bash
         run: |
-          docker run --network host --detach --name test_container ${{ matrix.bash_docker_image }} sleep infinity
+          echo "FROM ${{ matrix.bash_docker_image }}" > Dockerfile
           # coreutils includes mktemp
-          docker exec test_container apk add coreutils curl
+          apks="coreutils curl"
           if [ "${{ matrix.sed }}" == "GNU sed" ]; then
-            docker exec test_container apk add sed
+            apks="$apks sed"
           fi
+          echo "RUN apk add $apks" >> Dockerfile
+
+          docker build -t testbash .
+          docker run --network host --detach --name test_container testbash sleep infinity
           cargo test --all-targets --all-features
+          docker stop test_container -t 0
           docker rm --force test_container
   clippy:
     name: Clippy tests
