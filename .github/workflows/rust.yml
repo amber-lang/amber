@@ -108,8 +108,8 @@ jobs:
           key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
       - name: Load or build docker image
         run: |
-          if [ -f "~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}" ]; then
-            docker load -i "~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}"
+          if [ -f ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}" ]; then
+            docker load -i ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}"
           else
             docker build --tag testenv -f TestEnvDockerfile \
               --build-arg "BASE_BASH_IMAGE=${{ matrix.bash_docker_image }}" \
