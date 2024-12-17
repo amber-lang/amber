@@ -29,6 +29,6 @@ pub fun ceil(number: Num): Num {
 /// Returns the absolute value of a number
 #[allow_absurd_cast]
 pub fun abs(number: Num): Num {
-    if number < 0: return -number
+    if number < 0: return number * -1
     return number
 }
