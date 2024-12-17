@@ -72,10 +72,10 @@ jobs:
           # - "bash:4.0"
           # - "bash:3.2"
         sed:
-          - GNU sed
+          - GNU_sed
         # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
         # include:
-        #   - sed: BusyBox sed
+        #   - sed: BusyBox_sed
         #     bash_version: "bash:latest"
     steps:
       - uses: actions/checkout@v4
@@ -101,26 +101,32 @@ jobs:
           name: target
           path: artifact
       - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Cache test docker image
+        uses: actions/cache@v4
+        with:
+          path: ~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}
+          key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
+      - name: Load or build docker image
+        run: |
+          if [ -f "~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}" ]; then
+            docker load -i "~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}"
+          else
+            docker build --tag testenv -f TestEnvDockerfile \
+              --build-arg "BASE_BASH_IMAGE=${{ matrix.bash_docker_image }}" \
+              --build-arg "INSTALL_GNU_SED=${{ matrix.sed }}" \
+              .
+            mkdir ~/docker-images
+            docker save -o ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}" testenv
+          fi
       - name: Run cargo tests
         env:
           AMBER_TEST_STRATEGY: docker
           AMBER_TEST_ARGS:
-            # 405 is a non-root user(guest) for is_root() test
             exec
-            --user 405
             test_container
             bash
         run: |
-          echo "FROM ${{ matrix.bash_docker_image }}" > Dockerfile
-          # coreutils includes mktemp
-          apks="coreutils curl"
-          if [ "${{ matrix.sed }}" == "GNU sed" ]; then
-            apks="$apks sed"
-          fi
-          echo "RUN apk add $apks" >> Dockerfile
-
-          docker build -t testbash .
-          docker run --network host --detach --name test_container testbash sleep infinity
+          docker run --network host --detach --name test_container testenv
           cargo test --all-targets --all-features
           docker stop test_container -t 0
           docker rm --force test_container

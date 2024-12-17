@@ -1,0 +1,18 @@
+ARG BASE_BASE_IMAGE=bash:5.2
+FROM $BASE_BASE_IMAGE
+ARG INSTALL_GNU_SED
+
+RUN apk add \
+  curl \
+  # Includes mktemp
+  coreutils \
+  ;
+RUN if [ "$INSTALL_GNU_SED" == "GNU_sed" ]; then apk add sed; fi
+
+# A non-root user(guest) is required by is_root() test
+RUN adduser -D appuser
+USER appuser
+WORKDIR /home/appuser
+
+CMD ["sleep", "infinity"]
+LABEL description="Used to test the compiled bash script for various environment."
