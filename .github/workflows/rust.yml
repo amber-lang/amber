@@ -113,7 +113,7 @@ jobs:
           else
             docker build --tag testenv -f TestEnvDockerfile \
               --build-arg "BASE_BASH_IMAGE=${{ matrix.bash_docker_image }}" \
-              --build-arg "INSTALL_GNU_SED=${{ matrix.sed }}" \
+              --build-arg "SED_VERSION=${{ matrix.sed }}" \
               .
             mkdir -p ~/docker-images
             docker save -o ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}" testenv

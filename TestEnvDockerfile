@@ -1,13 +1,13 @@
 ARG BASE_BASE_IMAGE=bash:5.2
 FROM $BASE_BASE_IMAGE
-ARG INSTALL_GNU_SED
+ARG SED_VERSION
 
 RUN apk add \
   curl \
   # Includes mktemp
   coreutils \
   ;
-RUN if [ "$INSTALL_GNU_SED" == "GNU_sed" ]; then apk add sed; fi
+RUN if [ "$SED_VERSION" == "GNU_sed" ]; then apk add sed; fi
 
 # A non-root user(guest) is required by is_root() test
 RUN adduser -D appuser
