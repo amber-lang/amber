@@ -1,0 +1,29 @@
+// Output
+// Value at -5: ""
+// Value at -4: "zero"
+// Value at -3: "one"
+// Value at -2: "two"
+// Value at -1: "three"
+
+// Replace this with builtin if/when we get around to writing one.
+#[allow_absurd_cast]
+fun bash_version(): Num {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Num
+    return (major * 100) + minor
+}
+
+main {
+    if bash_version() >= 402 {
+        // Do not use loop; we want to test compile time arithmetic.
+        let array = ["zero", "one", "two", "three"]
+        echo "Value at -5: \"{array[-5]}\""
+        echo "Value at -4: \"{array[-4]}\""
+        echo "Value at -3: \"{array[-3]}\""
+        echo "Value at -2: \"{array[-2]}\""
+        echo "Value at -1: \"{array[-1]}\""
+    } else {
+        // Negative indexing is not supported before Bash 4.2.
+        echo "Succeeded"
+    }
+}
