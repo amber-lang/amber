@@ -4,5 +4,5 @@ import * from "std/text"
 // 123
 
 main {
-    echo parse("123")?
+    echo parse_number("123")?
 } 

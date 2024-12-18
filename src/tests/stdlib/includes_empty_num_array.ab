@@ -5,7 +5,7 @@ import * from "std/array"
 
 main {
     let array = [Num]
-    if includes(array, 0) {
+    if array_contains(array, 0) {
         echo "Found"
     } else {
         echo "Not Found"

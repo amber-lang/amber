@@ -15,7 +15,7 @@ main {
         $ touch {tmpdir}/other.csv $
     }
 
-    let files = glob("{tmpdir}/missing*") failed {
+    let files = file_glob("{tmpdir}/missing*") failed {
         echo "FAILED"
     }
     for file in files {

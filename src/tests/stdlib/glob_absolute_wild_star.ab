@@ -7,7 +7,7 @@ fun compare(actual: [Text], expected: [Text]): Bool {
         return false
     }
     for file in expected {
-        if not includes(actual, file) {
+        if not array_contains(actual, file) {
             return false
         }
     }
@@ -32,7 +32,7 @@ main {
         "{tmpdir}/file2.txt",
         "{tmpdir}/file99.txt",
     ]
-    let actual = glob("{tmpdir}/file*.txt") failed {
+    let actual = file_glob("{tmpdir}/file*.txt") failed {
         echo "FAILED"
     }
     if compare(actual, expected) {

@@ -1,4 +1,4 @@
-import { contains_all } from "std/text"
+import { text_contains_all } from "std/text"
 
 // Output
 // None: 0
@@ -7,7 +7,7 @@ import { contains_all } from "std/text"
 // Both: 1
 
 fun test_multiple(label, text, terms) {
-    let result = contains_all(text, terms)
+    let result = text_contains_all(text, terms)
     echo "{label}: {result}"
 }
 

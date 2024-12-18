@@ -1,7 +1,8 @@
 import * from "std/env"
+
 main {
-    trust shell_var_set("test_shell_unset", "Succeeded")
+    trust env_var_set("test_shell_unset", "Succeeded")
     trust $ echo \$test_shell_unset $
-    trust shell_unset("test_shell_unset")
+    trust env_var_unset("test_shell_unset")
     trust $ echo \$test_shell_unset $
 }

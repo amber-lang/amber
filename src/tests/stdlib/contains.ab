@@ -1,6 +1,7 @@
-import { contains } from "std/text"
+import { text_contains } from "std/text"
+
 main {
-    if contains("Hello World", "World") {
+    if text_contains("Hello World", "World") {
         echo "Succeeded"
     }
 } 

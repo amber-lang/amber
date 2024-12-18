@@ -5,6 +5,6 @@ import * from "std/math"
 // 1
 
 main {
-    echo abs(1);
-    echo abs(-1);
+    echo math_abs(1);
+    echo math_abs(-1);
 }

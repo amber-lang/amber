@@ -7,7 +7,7 @@ fun compare(actual: [Text], expected: [Text]): Bool {
         return false
     }
     for file in expected {
-        if not includes(actual, file) {
+        if not array_contains(actual, file) {
             return false
         }
     }
@@ -31,7 +31,7 @@ main {
         "1st file with spaces.txt",
         "2nd file with spaces.txt",
     ]
-    let actual = glob("*with spaces*") failed {
+    let actual = file_glob("*with spaces*") failed {
         echo "FAILED"
     }
     if compare(actual, expected) {

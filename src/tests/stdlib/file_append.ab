@@ -1,4 +1,5 @@
 import * from "std/fs"
+
 main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ cd {tmpdir} $

@@ -11,7 +11,7 @@ main(args) {
     for line in lines("grammar.ebnf") {
         if not should_append and not starts_with(line, "KEYWORD"): continue
         should_append = true
-        for token in words(line) {
+        for token in split_words(line) {
             if {
                 starts_with(token, "'"): keywords += [replace(token, "'", "")]
                 token == ";": should_append = false
@@ -21,7 +21,7 @@ main(args) {
     let result = $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
         echo "Something went wrong while sorting the keywords"
     }
-    for item in words(result) {
+    for item in split_words(result) {
         echo item
     }
 }

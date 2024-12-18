@@ -1,8 +1,9 @@
-import { create_symbolic_link } from "std/fs"
+import { symlink_create } from "std/fs"
+
 main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ touch {tmpdir}/amber-symbolic $
-    if create_symbolic_link("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
+    if symlink_create("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
         echo "Succeeded"
     } else {
         echo "failed"

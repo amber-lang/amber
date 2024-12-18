@@ -1,4 +1,4 @@
-import { array_first_index } from "std/array"
+import { array_find } from "std/array"
 
 // Output
 // Index of "zero": 0
@@ -8,7 +8,7 @@ import { array_first_index } from "std/array"
 // Index of "four": -1
 
 fun test_index(data: [Text], value: Text): Null {
-    let index = array_first_index(data, value)
+    let index = array_find(data, value)
     echo "Index of \"{value}\": {index}"
 }
 

@@ -16,7 +16,7 @@ main {
     }
     cd tmpdir
 
-    let files = glob("missing*") failed {
+    let files = file_glob("missing*") failed {
         echo "FAILED"
     }
     for file in files {

@@ -5,7 +5,7 @@ import * from "std/array"
 
 main {
     let array = ["apple", "banana cherry"]
-    if includes(array, "banana") {
+    if array_contains(array, "banana") {
         echo "Found"
     } else {
         echo "Not Found"

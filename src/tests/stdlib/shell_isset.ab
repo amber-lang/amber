@@ -1,11 +1,12 @@
 import * from "std/env"
+
 main {
     trust $ test_var_isset="test" $
-    if shell_isset("test_var_isset") {
+    if env_var_test("test_var_isset") {
         echo "Succeeded"
     }
 
-    if shell_isset("test_var_isset2") {
+    if env_var_test("test_var_isset2") {
         echo "test_var_isset2"
     }
 } 

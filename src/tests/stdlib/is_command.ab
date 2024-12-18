@@ -1,4 +1,5 @@
 import { is_command } from "std/env"
+
 main {
     if is_command("cat") {
         echo "Succeeded"

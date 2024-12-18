@@ -1,4 +1,4 @@
-import { match_any_regex } from "std/text"
+import { match_regex_any } from "std/text"
 
 // Output
 // Empty: 0
@@ -8,7 +8,7 @@ import { match_any_regex } from "std/text"
 // Both: 1
 
 fun test_multiple(label, text, terms) {
-    let result = match_any_regex(text, terms)
+    let result = match_regex_any(text, terms)
     echo "{label}: {result}"
 }
 
