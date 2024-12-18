@@ -65,8 +65,8 @@ fn exit_with_no_code() {
 fn download() {
     let server = std::thread::spawn(http_server);
 
-    let code = fs::read_to_string("src/tests/stdlib/no_output/download.ab")
-        .expect("Failed to open stdlib/no_output/download.ab test file");
+    let code = fs::read_to_string("src/tests/stdlib/no_output/http_file_download.ab")
+        .expect("Failed to open stdlib/no_output/http_file_download.ab test file");
 
     test_amber(&code, "ok", TestOutcomeTarget::Success);
 
