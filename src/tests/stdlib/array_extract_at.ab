@@ -1,4 +1,4 @@
-import { extract_at } from "std/array"
+import { array_extract_at } from "std/array"
 
 // Output
 // Value at -5: "" (4) [zero one two three]
@@ -13,7 +13,7 @@ import { extract_at } from "std/array"
 // Value at 4: "" (4) [zero one two three]
 
 fun test_extract(data: [Text], index: Num): Null {
-    let value = extract_at(data, index)
+    let value = array_extract_at(data, index)
     echo "Value at {index}: \"{value}\" ({len(data)}) [{data}]"
 }
 

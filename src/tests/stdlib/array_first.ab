@@ -1,11 +1,11 @@
-import { first } from "std/array"
+import { array_first } from "std/array"
 
 // Output
 // First of numbers: "zero" (4) [zero one two three]
 // First of empty: "" (0) []
 
 fun test_first(label: Text, data: [Text]): Null {
-    let value = first(data)
+    let value = array_first(data)
     echo "First of {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

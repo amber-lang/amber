@@ -1,0 +1,8 @@
+import * from "std/env"
+
+// Output
+// \x1b[31;1;42mHello Amber!\x1b[0m
+
+main {
+    echo styled("Hello Amber!", 31, 1, 42)
+} 

@@ -1,11 +1,11 @@
-import { pop } from "std/array"
+import { array_pop } from "std/array"
 
 // Output
 // Popped from numbers: "three" (3) [zero one two]
 // Popped from empty: "" (0) []
 
 fun test_pop(label: Text, data: [Text]): Null {
-    let value = pop(data)
+    let value = array_pop(data)
     echo "Popped from {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

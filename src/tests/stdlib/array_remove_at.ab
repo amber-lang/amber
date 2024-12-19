@@ -1,4 +1,4 @@
-import { remove_at } from "std/array"
+import { array_remove_at } from "std/array"
 
 // Output
 // Array after -5: (4) [zero one two three]
@@ -13,7 +13,7 @@ import { remove_at } from "std/array"
 // Array after 4: (4) [zero one two three]
 
 fun test_remove(data: [Text], index: Num): Null {
-    remove_at(data, index)
+    array_remove_at(data, index)
     echo "Array after {index}: ({len(data)}) [{data}]"
 }
 

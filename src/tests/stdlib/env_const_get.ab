@@ -1,0 +1,6 @@
+import * from "std/env"
+
+main {
+    trust env_const_set("test_shell_constant_get", "Succeeded")
+    trust $ echo "\$test_shell_constant_get" $
+} 

@@ -1,11 +1,11 @@
-import { last } from "std/array"
+import { array_last } from "std/array"
 
 // Output
 // Last of numbers: "three" (4) [zero one two three]
 // Last of empty: "" (0) []
 
 fun test_last(label: Text, data: [Text]): Null {
-    let value = last(data)
+    let value = array_last(data)
     echo "Last of {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

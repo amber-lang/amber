@@ -1,0 +1,13 @@
+import { file_chmod } from "std/fs"
+
+// Output
+// created
+
+main {
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    trust $ touch {tmpdir}/amber-symbolic $
+    if file_chmod("{tmpdir}/amber-symbolic", "+x") {
+        echo "created"
+    }
+    trust $ rm -rf {tmpdir} $
+} 

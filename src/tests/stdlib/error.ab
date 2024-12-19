@@ -1,8 +1,0 @@
-import * from "std/env"
-
-// Output
-// [1;3;97;41mHello Amber![0m
-
-main {
-    error("Hello Amber!", 0)
-} 

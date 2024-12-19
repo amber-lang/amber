@@ -1,0 +1,8 @@
+import * from "std/env"
+
+// Output
+// Hello \\v Amber %%T
+
+main {
+    echo escaped("Hello \v Amber %T")
+} 

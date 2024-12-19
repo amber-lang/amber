@@ -1,0 +1,8 @@
+import * from "std/text"
+
+// Output
+// h e l l o
+
+main {
+    echo split_chars("hello")
+} 

@@ -1,0 +1,5 @@
+import * from "std/text"
+
+main {
+    echo replace_one("Succinctly", "inctly", "eeded")
+}
