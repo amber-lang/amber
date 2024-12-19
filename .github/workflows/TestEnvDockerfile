@@ -9,7 +9,7 @@ RUN apk add \
   ;
 RUN if [ "$SED_VERSION" == "GNU_sed" ]; then apk add sed; fi
 
-# A non-root user(guest) is required by is_root() test
+# A non-root user is required by is_root() test
 RUN adduser -D appuser
 USER appuser
 WORKDIR /home/appuser
