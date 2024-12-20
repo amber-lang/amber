@@ -25,11 +25,9 @@ jobs:
         run: cross build --release --target aarch64-unknown-linux-gnu
 
       - name: Create .tar.xz archive
-        run: |
-          cd target/aarch64-unknown-linux-gnu/release
-          tar -cJf amber-aarch64-unknown-linux-gnu.tar.xz amber
+        run: tar -cJf amber-aarch64-unknown-linux-gnu.tar.xz -C ./resources . -C ../target/aarch64-unknown-linux-gnu/release amber
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-            files: target/aarch64-unknown-linux-gnu/release/amber-aarch64-unknown-linux-gnu.tar.xz
+            files: amber-aarch64-unknown-linux-gnu.tar.xz

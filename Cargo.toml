@@ -72,6 +72,8 @@ targets = [
 pr-run-mode = "skip"
 # Skip checking whether the specified configuration files are up to date
 allow-dirty = ["ci"]
+# Include std lib files in the dist
+include = ["resources/std"]
 
 [build-dependencies]
 build-helper = "0.1.1"

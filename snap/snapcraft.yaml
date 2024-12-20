@@ -26,6 +26,12 @@ parts:
     override-pull: |
       craftctl default
       craftctl set version=$(cat $CRAFT_PART_SRC/Cargo.toml | tomlq -rc '.package.version')
+    prime:
+      - bin/amber
+      - resources/std
+    organize:
+      usr/bin: bin
+      std/*: std
 
   deps:
     plugin: nil
@@ -42,3 +48,5 @@ parts:
 apps:
   amber-bash:
     command: bin/amber
+    environment:
+      STD_PATH: $SNAP/std
