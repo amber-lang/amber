@@ -125,7 +125,7 @@ main(args) {
     }
 
     // Create amber executable
-    $ {sudo} sh -c "echo '#!/bin/bash\nexport STD_PATH="{target_folder}/std"\nexec {target_folder}/{executable} "\$@"' > {bins_folder}/{executable}" $ failed {
+    $ {sudo} echo '#!/bin/bash\nexport STD_PATH="{target_folder}/std"\nexec {target_folder}/{executable} "\$@"' > {bins_folder}/{executable} $ failed {
         echo "Failed to create amber executable."
         echo "Please make sure that root user can access {bins_folder} directory."
         exit 1
