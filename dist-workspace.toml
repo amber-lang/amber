@@ -18,6 +18,6 @@ install-path = "CARGO_HOME"
 # Whether to install an updater program
 install-updater = true
 # Extra static files to include in each App (path relative to this Cargo.toml's dir)
-include = ["std", "assets", "uninstall.sh"]
+include = ["std", "assets", "uninstall.ab"]
 # Success installation message
 custom-success-msg = "Amber has been installed successfully. 🎉\n> Now you can use amber by typing `amber` in your terminal."
