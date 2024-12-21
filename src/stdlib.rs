@@ -4,7 +4,7 @@ use std::{env, fs, path::PathBuf};
 fn get_install_dir() -> PathBuf {
     let exec_path = env::current_exe().expect("Could not fetch executable file path.");
 
-    PathBuf::from(exec_path.read_link().unwrap_or(exec_path)).join("std")
+    PathBuf::from(exec_path.read_link().unwrap_or(exec_path).parent().unwrap()).join("std")
 }
 
 #[cfg(debug_assertions)]
