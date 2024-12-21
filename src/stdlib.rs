@@ -2,16 +2,16 @@ use std::{env, fs, path::PathBuf};
 
 #[cfg(not(debug_assertions))]
 fn get_install_dir() -> PathBuf {
-    let path = env::var("STD_PATH").expect("STD_PATH not set");
+    let exec_path = env::current_exe().expect("Could not fetch executable file path.");
 
-    PathBuf::from(path)
+    PathBuf::from(exec_path.read_link().unwrap_or(exec_path)).join("std")
 }
 
 #[cfg(debug_assertions)]
 fn get_install_dir() -> PathBuf {
     let path = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
 
-    PathBuf::from(path).join("resources/std")
+    PathBuf::from(path).join("std")
 }
 
 pub fn resolve<T: Into<String>>(path: T) -> Option<String> {
