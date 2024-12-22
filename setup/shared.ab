@@ -1,5 +1,5 @@
 import { has_failed } from "std/env"
-import { includes } from "std/array"
+import { array_contains } from "std/array"
 
 pub fun get_os(): Text {
     // Determine OS type
@@ -31,7 +31,7 @@ pub fun get_arch(): Text {
         exit 1
     }
 
-    let arch = includes(["arm64", "aarch64"], arch_type)
+    let arch = array_contains(["arm64", "aarch64"], arch_type)
         then "aarch64"
         else "x86_64"
 

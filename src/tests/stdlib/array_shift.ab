@@ -1,0 +1,17 @@
+import { array_shift } from "std/array"
+
+// Output
+// Shifted from numbers: "zero" (3) [one two three]
+// Shifted from empty: "" (0) []
+
+fun test_shift(label: Text, data: [Text]): Null {
+    let value = array_shift(data)
+    echo "Shifted from {label}: \"{value}\" ({len(data)}) [{data}]"
+}
+
+main {
+    let numbers = ["zero", "one", "two", "three"]
+    let empty = [Text]
+    test_shift("numbers", numbers)
+    test_shift("empty", empty)
+}

@@ -1,0 +1,21 @@
+import { array_remove_at } from "std/array"
+
+// Output
+// Array before 1: (4) [zero one two three]
+// Array after 1: (3) [zero two three]
+// Array after 2: (2) [zero three]
+// Array after 3: (1) [zero]
+// Array after 4: (1) [zero]
+
+main {
+    let numbers = ["zero", "one", "two", "three"]
+    echo "Array before 1: ({len(numbers)}) [{numbers}]"
+    array_remove_at(numbers, 1)
+    echo "Array after 1: ({len(numbers)}) [{numbers}]"
+    array_remove_at(numbers, 1)
+    echo "Array after 2: ({len(numbers)}) [{numbers}]"
+    array_remove_at(numbers, 1)
+    echo "Array after 3: ({len(numbers)}) [{numbers}]"
+    array_remove_at(numbers, 1)
+    echo "Array after 4: ({len(numbers)}) [{numbers}]"
+}

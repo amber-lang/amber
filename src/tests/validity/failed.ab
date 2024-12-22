@@ -1,4 +1,4 @@
-import { sum } from "std/math"
+import { math_sum } from "std/math"
 
 // Output
 // Requirements not met
@@ -12,7 +12,7 @@ main {
         $ you don\'t have this $ failed: requirements[2] = false
     }
 
-    if sum(requirements as [Num]) == 3 {
+    if math_sum(requirements as [Num]) == 3 {
         echo "All requirements are met"
     } else {
         echo "Requirements not met"

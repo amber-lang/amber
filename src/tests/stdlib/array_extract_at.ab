@@ -1,0 +1,25 @@
+import { array_extract_at } from "std/array"
+
+// Output
+// Value at -5: "" (4) [zero one two three]
+// Value at -4: "zero" (4) [zero one two three]
+// Value at -3: "one" (4) [zero one two three]
+// Value at -2: "two" (4) [zero one two three]
+// Value at -1: "three" (4) [zero one two three]
+// Value at 0: "zero" (3) [one two three]
+// Value at 1: "one" (3) [zero two three]
+// Value at 2: "two" (3) [zero one three]
+// Value at 3: "three" (3) [zero one two]
+// Value at 4: "" (4) [zero one two three]
+
+fun test_extract(data: [Text], index: Num): Null {
+    let value = array_extract_at(data, index)
+    echo "Value at {index}: \"{value}\" ({len(data)}) [{data}]"
+}
+
+main {
+    let numbers = ["zero", "one", "two", "three"]
+    for index in -5..=4 {
+        test_extract(numbers, index)
+    }
+}

@@ -1,7 +1,7 @@
 import { match_regex, join, replace_regex, split } from "std/text"
 
 /// Checks if a directory exists.
-pub fun dir_exist(path) {
+pub fun dir_exists(path) {
     $ [ -d "{path}" ] $ failed {
         return false
     }
@@ -9,7 +9,7 @@ pub fun dir_exist(path) {
 }
 
 /// Checks if a file exists.
-pub fun file_exist(path) {
+pub fun file_exists(path) {
     $ [ -f "{path}" ] $ failed {
         return false
     }
@@ -37,8 +37,8 @@ pub fun file_append(path, content) {
 /// Creates a symbolic link.
 ///
 /// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
-    if file_exist(origin) {
+pub fun symlink_create(origin: Text, destination: Text): Bool {
+    if file_exists(origin) {
         trust $ ln -s "{origin}" "{destination}" $
         return true
     }
@@ -48,8 +48,8 @@ pub fun create_symbolic_link(origin: Text, destination: Text): Bool {
 }
 
 /// Creates a directory with all parent directories as required.
-pub fun create_dir(path: Text): Null {
-    if not dir_exist(path) {
+pub fun dir_create(path: Text): Null {
+    if not dir_exists(path) {
         trust $ mkdir -p "{path}" $
     }
 }
@@ -57,9 +57,9 @@ pub fun create_dir(path: Text): Null {
 /// Sets a file as executable.
 ///
 /// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun make_executable(path: Text): Bool {
-    if file_exist(path) {
-        trust $ chmod +x "{path}" $
+pub fun file_chmod(path: Text, mode: Text): Bool {
+    if file_exists(path) {
+        trust $ chmod "{mode}" "{path}" $
         return true
     }
 
@@ -70,12 +70,13 @@ pub fun make_executable(path: Text): Bool {
 /// Changes the owner of a file.
 ///
 /// If the file doesn't exist, it returns `false`
-pub fun change_owner(user: Text, path: Text): Bool {
-    if file_exist(path) or dir_exist(path) {
+pub fun file_chown(path: Text, user: Text): Bool {
+    if file_exists(path) or dir_exists(path) {
         trust $ chown -R "{user}" "{path}" $
         return true
     }
 
+    echo "The file {path} doesn't exist!"
     return false
 }
 
@@ -88,7 +89,7 @@ fun escape_non_glob_chars(path: Text): Text {
 /// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
 /// `glob` function.
-pub fun glob_multiple(paths: [Text]): [Text]? {
+pub fun file_glob_all(paths: [Text]): [Text]? {
     let combined = ""
     if len(paths) == 1 {
         combined = escape_non_glob_chars(paths[0])
@@ -105,15 +106,15 @@ pub fun glob_multiple(paths: [Text]): [Text]? {
 }
 
 /// Finds all files or directories matching a file glob.
-pub fun glob(path: Text): [Text]? {
-    return glob_multiple([path])?
+pub fun file_glob(path: Text): [Text]? {
+    return file_glob_all([path])?
 }
 
 /// Extract the file detecting from the filename the extension
 /// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
 /// Note: Not all the commands supports the output folder path
-pub fun extract(path: Text, target: Text): Null? {
-    if file_exist(path) {
+pub fun file_extract(path: Text, target: Text): Null? {
+    if file_exists(path) {
         if {
             match_regex(path, "\.\(tar\.bz2\|tbz\|tbz2\)$"): $ tar xvjf "{path}" -C "{target}" $?
             match_regex(path, "\.\(tar\.gz\|tgz\)$"): $ tar xzf "{path}" -C "{target}" $?

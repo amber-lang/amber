@@ -99,7 +99,7 @@ jobs:
       # - 1 "global" task that builds universal installers
       # - N "local" tasks that build each platform's binaries and platform-specific installers
       matrix: ${{ fromJson(needs.plan.outputs.val).ci.github.artifacts_matrix }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner == 'macos-12' && 'macos-15' || matrix.runner }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BUILD_MANIFEST_NAME: target/distrib/${{ join(matrix.targets, '-') }}-dist-manifest.json
@@ -184,8 +184,8 @@ jobs:
           AMBER_PACKAGE="$PWD/target/distrib/amber-${TARGET_TRIPLE}"
           tar -xf ${AMBER_PACKAGE}.tar.xz -C ./target
           AMBER="$PWD/target/amber-${TARGET_TRIPLE}/amber"
-          $AMBER ./setup/install.ab ./target/distrib/install.sh
-          $AMBER ./setup/uninstall.ab ./target/distrib/uninstall.sh
+          $AMBER build ./setup/install.ab ./target/distrib/install.sh
+          $AMBER build ./setup/uninstall.ab ./target/distrib/uninstall.sh
       - id: cargo-dist
         shell: bash
         run: |

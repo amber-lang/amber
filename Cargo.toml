@@ -1,6 +1,6 @@
 [package]
 name = "amber"
-version = "0.3.5-alpha"
+version = "0.4.0-alpha"
 edition = "2021"
 repository = "https://github.com/amber-lang/Amber"
 homepage = "https://amber-lang.com/"
@@ -32,6 +32,7 @@ wildmatch = "2.4.0"
 [dev-dependencies]
 assert_cmd = "2.0.14"
 predicates = "3.1.0"
+pretty_assertions = "1.4.1"
 tempfile = "3.10.1"
 tiny_http = "0.12.0"
 

@@ -1,0 +1,12 @@
+import { env_var_load } from "std/env"
+import { file_write } from "std/fs"
+
+main {
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    trust $ cd {tmpdir} $
+    trust file_write(".env", "TEST=1")
+    if env_var_load("TEST") == "1" {
+        echo "Succeeded"
+    }
+    trust $ rm -rf {tmpdir} $
+} 

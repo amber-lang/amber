@@ -312,6 +312,7 @@ impl FunctionDeclaration {
                 .map(Path::new)
                 .and_then(Path::file_name)
                 .and_then(OsStr::to_str)
+                .map(|s| s.trim_end_matches(".ab"))
                 .map(String::from)
                 .unwrap_or_default();
             result.push(String::from("```ab"));

@@ -1,0 +1,9 @@
+import { dir_create, dir_exists } from "std/fs"
+
+main {
+    dir_create("/tmp/amber-test")
+    if dir_exists("/tmp/amber-test") {
+        trust $ rm -rf /tmp/amber-test $
+        echo "Succeeded"
+    }
+} 

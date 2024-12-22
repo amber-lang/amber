@@ -1,0 +1,8 @@
+import * from "std/text"
+
+// Output
+// Hello world
+
+main {
+    echo capitalized("hello world"); 
+}
