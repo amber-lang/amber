@@ -6,7 +6,7 @@ use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 use crate::utils::context::Context;
 use crate::utils::function_interface::FunctionInterface;
 
-pub fn skip_function_body(meta: &mut ParserMetadata, declared_failable: bool) -> Result<(usize, usize, bool), Failure> {
+pub fn skip_function_body(meta: &mut ParserMetadata, declared_failable: bool, returns_tok: &Option<Token>) -> Result<(usize, usize, bool), Failure> {
     let index_begin = meta.get_index();
     let mut is_failable = false;
     let mut scope = 1;
@@ -15,7 +15,7 @@ pub fn skip_function_body(meta: &mut ParserMetadata, declared_failable: bool) ->
             "{" => scope += 1,
             "}" => scope -= 1,
             "fail" => {
-                if !declared_failable {
+                if !declared_failable && returns_tok.is_some() {
                     return error!(meta, Some(tok), "Functions that can fail must have a '?' after the type name");
                 }
                 is_failable = true
