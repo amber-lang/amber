@@ -27,9 +27,56 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_test:
-    name: Rust and clippy tests
+  build:
+    name: Rust build
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./target/deps
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Build binary
+        run: |
+          # the binary will be used by the cargo test
+          cargo build
+          cargo test --no-run --all-targets --all-features
+      - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
+        run: tar -cvzf target.tgz target/
+      - uses: actions/upload-artifact@v4
+        with:
+          include-hidden-files: true
+          name: target
+          path: target.tgz
+          retention-days: 1
+  test:
+    name: Rust tests
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        bash_docker_image:
+          - "bash:5.2"
+          - "bash:5.1"
+          - "bash:5.0"
+          - "bash:4.4"
+          - "bash:4.3"
+          - "bash:4.2"
+          - "bash:4.1"
+          - "bash:4.0"
+          - "bash:3.2"
+        sed:
+          - GNU_sed
+        # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
+        # include:
+        #   - sed: BusyBox_sed
+        #     bash_version: "bash:latest"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest
@@ -49,10 +96,50 @@ jobs:
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - name: Build binary
-        # the binary will be used by the next cargo test step
-        run: cargo build
+      - uses: actions/download-artifact@v4
+        with:
+          name: target
+          path: artifact
+      - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Cache test docker image
+        uses: actions/cache@v4
+        with:
+          path: ~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}
+          key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
+      - name: Load or build docker image
+        run: |
+          if [ -f ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}" ]; then
+            docker load -i ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}"
+          else
+            docker build --tag testenv -f .github/workflows/TestEnvDockerfile \
+              --build-arg "BASE_BASH_IMAGE=${{ matrix.bash_docker_image }}" \
+              --build-arg "SED_VERSION=${{ matrix.sed }}" \
+              .
+            mkdir -p ~/docker-images
+            docker save -o ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}" testenv
+          fi
       - name: Run cargo tests
-        run: cargo test --all-targets --all-features
+        env:
+          AMBER_TEST_STRATEGY: docker
+          AMBER_TEST_ARGS: exec test_container bash
+        run: |
+          docker run --network host --detach --name test_container testenv
+          cargo test --all-targets --all-features
+          docker stop test_container -t 0
+          docker rm --force test_container
+  clippy:
+    name: Clippy tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./target/deps
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
