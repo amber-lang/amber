@@ -6,7 +6,7 @@ use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 use crate::utils::context::Context;
 use crate::utils::function_interface::FunctionInterface;
 
-pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
+pub fn skip_function_body(meta: &mut ParserMetadata, declared_failable: bool) -> Result<(usize, usize, bool), Failure> {
     let index_begin = meta.get_index();
     let mut is_failable = false;
     let mut scope = 1;
@@ -14,7 +14,12 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
         match tok.word.as_str() {
             "{" => scope += 1,
             "}" => scope -= 1,
-            "fail" => is_failable = true,
+            "fail" => {
+                if !declared_failable {
+                    return error!(meta, Some(tok), "Functions that can fail must have a '?' after the type name");
+                }
+                is_failable = true
+            },
             "?" => is_failable = true,
             _ => {}
         }
@@ -22,7 +27,7 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
         meta.increment_index();
     }
     let index_end = meta.get_index();
-    (index_begin, index_end, is_failable)
+    Ok((index_begin, index_end, is_failable))
 }
 
 pub fn is_functions_comment_doc(meta: &mut ParserMetadata) -> bool {
