@@ -162,6 +162,9 @@ fn translate_escaped_string(string: String, is_str: bool) -> String {
                         chars.next();
                     },
                     Some('$') => {
+                        if is_str {
+                            result.push('\\');
+                        }
                         result.push('$');
                         chars.next();
                     },
