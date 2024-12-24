@@ -1,5 +1,5 @@
 use crate::docs::module::DocumentationModule;
-use crate::modules::builtin::cli::param::ParamImpl;
+use crate::modules::builtin::cli::param::{ParamImpl, ParamKind};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
@@ -27,6 +27,142 @@ impl ParserImpl {
 
     pub fn add_param(&mut self, param: Rc<RefCell<ParamImpl>>) {
         self.params.push(param);
+    }
+
+    pub fn translate(&self, meta: &mut TranslateMetadata, args: &Expr) -> String {
+        let mut output = Vec::new();
+        let indent = TranslateMetadata::single_indent();
+        // Run getopt to parse command line
+        let getopt = self.create_getopt(meta, args);
+        output.push(format!("getopt=$({getopt}) || exit"));
+        output.push(String::from("eval set -- $getopt"));
+        output.push(String::from("while true; do"));
+        output.push(format!("{indent}case \"$1\" in"));
+        // Extract optional parameters
+        for param in &self.params {
+            let param = param.borrow();
+            self.append_optional(&mut output, &indent, args, &param);
+        }
+        // Stop at "--" or unexpected parameter
+        output.push(format!("{indent}--)"));
+        output.push(format!("{indent}{indent}shift"));
+        output.push(format!("{indent}{indent}break"));
+        output.push(format!("{indent}{indent};;"));
+        output.push(format!("{indent}*)"));
+        output.push(format!("{indent}{indent}exit 1"));
+        output.push(format!("{indent}{indent};;"));
+        output.push(format!("{indent}esac"));
+        output.push(String::from("done"));
+        // Skip "$0" in remaining parameters
+        output.push(String::from("shift"));
+        // Extract positional parameters
+        for param in &self.params {
+            let param = param.borrow();
+            self.append_positional(&mut output, &param);
+        }
+        meta.stmt_queue.push_back(output.join("\n"));
+        String::new()
+    }
+
+    fn create_getopt(&self, meta: &mut TranslateMetadata, args: &Expr) -> String {
+        let mut all_shorts = Vec::new();
+        let mut all_longs = Vec::new();
+        for param in &self.params {
+            let param = param.borrow();
+            if let ParamKind::Optional(shorts, longs, _) = &param.kind {
+                let colon = match param.default.kind {
+                    Type::Bool | Type::Null => "",
+                    _ => ":",
+                };
+                for short in shorts {
+                    all_shorts.push(format!("{short}{colon}"));
+                }
+                for long in longs {
+                    all_longs.push(format!("{long}{colon}"));
+                }
+            }
+        }
+        let shorts = all_shorts.join("");
+        let longs = all_longs.join(",");
+        let args = args.translate(meta);
+        format!("getopt --options={shorts} --longoptions={longs} -- {args}")
+    }
+
+    fn append_optional(&self, output: &mut Vec<String>, indent: &str, args: &Expr, param: &ParamImpl) {
+        if let ParamKind::Optional(shorts, longs, help) = &param.kind {
+            let option = ParamImpl::describe_optional(shorts, longs);
+            output.push(format!("{indent}{option})"));
+            if *help {
+                let run_name = Self::create_run_name(args);
+                self.append_help(output, indent, run_name);
+            } else {
+                let name = &param.name;
+                match param.default.kind {
+                    Type::Null => {
+                        output.push(format!("{indent}{indent}{name}=1"));
+                        output.push(format!("{indent}{indent}shift"));
+                    }
+                    Type::Bool => {
+                        let value = param.invert_default_bool();
+                        output.push(format!("{indent}{indent}{name}={value}"));
+                        output.push(format!("{indent}{indent}shift"));
+                    }
+                    Type::Array(_) => {
+                        // Optional array parameters with non-empty default
+                        // values will *extend* not *replace* the default
+                        // values here.  We could code for this edge case,
+                        // but I'm not sure it's worth it.
+                        output.push(format!("{indent}{indent}{name}+=(\"$2\")"));
+                        output.push(format!("{indent}{indent}shift"));
+                        output.push(format!("{indent}{indent}shift"));
+                    }
+                    _ => {
+                        output.push(format!("{indent}{indent}{name}=\"$2\""));
+                        output.push(format!("{indent}{indent}shift"));
+                        output.push(format!("{indent}{indent}shift"));
+                    }
+                }
+            }
+            output.push(format!("{indent}{indent};;"));
+        }
+    }
+
+    fn append_positional(&self, output: &mut Vec<String>, param: &ParamImpl) {
+        if let ParamKind::Positional(_) = &param.kind {
+            let name = &param.name;
+            if let Type::Array(_) = param.default.kind {
+                output.push(format!("[ -n \"$1\" ] && {name}=(\"$@\")"));
+                output.push(String::from("set --"));
+            } else {
+                output.push(format!("[ -n \"$1\" ] && {name}=\"$1\""));
+                output.push(String::from("shift"));
+            }
+        }
+    }
+
+    fn create_run_name(args: &Expr) -> String {
+        let name = args.get_translated_name().unwrap_or_default();
+        format!("$(basename ${{{name}[0]}})")
+    }
+
+    fn append_help(&self, output: &mut Vec<String>, indent: &str, run_name: String) {
+        let params = self.params.iter()
+            .map(|param| param.borrow().describe_help())
+            .collect::<Vec<_>>();
+        let width = params.iter()
+            .map(|(x, _)| x.len())
+            .max()
+            .unwrap_or_default();
+        output.push(format!("{indent}{indent}cat <<EOF"));
+        output.push(self.about.clone());
+        output.push(format!("Syntax: {run_name} [options]"));
+        for (option, help) in params {
+            let padding = width.checked_sub(option.len()).unwrap_or_default() + 3;
+            let padding = ".".repeat(padding);
+            output.push(format!("  {option} {padding} {help}"));
+        }
+        output.push(String::from("EOF"));
+        output.push(format!("{indent}{indent}exit 1"))
     }
 }
 

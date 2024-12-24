@@ -7,6 +7,7 @@ use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::utils::payload::Payload;
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -78,6 +79,29 @@ impl ParamImpl {
             Some(id) => format!("__{id}_{name}"),
             None => name.to_string(),
         };
+    }
+
+    pub fn describe_optional(shorts: &Vec<char>, longs: &Vec<String>) -> String {
+        let shorts = shorts.iter().map(|short| format!("-{short}"));
+        let longs = longs.iter().map(|long| format!("--{long}"));
+        shorts.chain(longs).join("|")
+    }
+
+    pub fn describe_help(&self) -> (String, String) {
+        let mut option = match &self.kind {
+            ParamKind::Positional(name) => name.to_uppercase(),
+            ParamKind::Optional(shorts, longs, _) => Self::describe_optional(shorts, longs),
+        };
+        if self.default.kind != Type::Null {
+            let default = self.default.kind.to_string();
+            option = format!("{option}: {default}");
+        }
+        (option, self.help.clone())
+    }
+
+    pub fn invert_default_bool(&self) -> isize {
+        let value = self.default.get_integer_value().unwrap_or_default();
+        if value == 0 { 1 } else { 0 }
     }
 }
 

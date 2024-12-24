@@ -49,8 +49,10 @@ impl SyntaxModule<ParserMetadata> for GetoptCli {
 }
 
 impl TranslateModule for GetoptCli {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        String::new()
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        self.parser.as_ref()
+            .map(|parser| parser.borrow().translate(meta, &self.args))
+            .unwrap_or_default()
     }
 }
 
