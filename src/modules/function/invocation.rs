@@ -101,7 +101,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
                 match syntax(meta, &mut self.failed) {
-                    Ok(_) => {},
+                    Ok(_) => (),
                     Err(Failure::Quiet(_)) => return error!(meta, tok => {
                         message: "This function can fail. Please handle the failure",
                         comment: "You can use '?' in the end to propagate the failure"

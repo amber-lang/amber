@@ -217,7 +217,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 // Parse the body
                 token(meta, "{")?;
                 let (index_begin, index_end, is_failable) = skip_function_body(meta, declared_failable, &returns_tok)?;
-                if (!is_failable) && declared_failable {
+                if !is_failable && declared_failable {
                     return error!(meta, returns_tok, "Infallible functions must not have a '?' after the type name");
                 }
                 // Create a new context with the function body
