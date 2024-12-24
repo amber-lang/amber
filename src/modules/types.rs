@@ -29,10 +29,7 @@ impl Type {
     }
 
     pub fn is_array(&self) -> bool {
-        match self {
-            Type::Array(_) => true,
-            _ => false,
-        }
+        matches!(self, Type::Array(_))
     }
 }
 
