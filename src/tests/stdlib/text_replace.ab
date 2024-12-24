@@ -7,6 +7,7 @@ import * from "std/text"
 // mono
 // di
 // tri
+
 main {
     echo replace("one one one", "one", "TWO")
     echo replace("a\\b\\c\\d", "\\", "\\\\")

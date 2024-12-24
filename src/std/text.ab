@@ -13,9 +13,8 @@ pub fun replace(source, search, replace) {
     trust $ {nameof search}="\$\{{nameof search}//\\\\/\\\\\\\}" $
     if bash_version() >= 502 {
         trust $ {nameof replace}="\$\{{nameof replace}//\\\\/\\\\\\\\}" $
-    } else {
-        trust $ {nameof replace}="\$\{{nameof replace}//\\\\/\\\\}" $
     }
+
     return trust $ echo "\$\{{nameof source}//{search}/{replace}}" $
 }
 
