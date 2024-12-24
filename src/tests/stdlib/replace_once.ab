@@ -1,12 +1,14 @@
 import * from "std/text"
 
 // Output
-// Succeeded
-// one\\two\\three\\\.
-// one\two\three\\\.
+// TWO one one
+// a\\b\c\d
+// first..second
+// third
+// fourth
 
 main {
-    echo replace_once("Succinctly\\", "inctly\\", "eeded")
-    echo replace_once("one\\two\\\\three\\\\\\.", "\\", "\\\\")
-    echo replace_once("one\\two\\\\three\\\\\\.", "\\\\", "\\")
+    echo replace_once("one one one", "one", "TWO")
+    echo replace_once("a\\b\\c\\d", "\\", "\\\\")
+    echo replace_once("first\nsecond\nthird\nfourth", "\n", "..")
 }

@@ -1,16 +1,11 @@
 import * from "std/text"
 
 // Output
-// apple apple
-// apple
-// Succeeded
-// one\\two\\\\three\\\\\\
-// one\two\three\\
-
+// TWO TWO TWO
+// a\\b\\c\\d
+// first..second..third..fourth
 main {
-    echo replace("banana banana", "banana", "apple")
-    echo replace("\\", "\\", "apple")
-    echo replace("Succinctly\\", "inctly\\", "eeded")
-    echo replace("one\\two\\\\three\\\\\\", "\\", "\\\\")
-    echo replace("one\\two\\\\three\\\\\\", "\\\\", "\\")
+    echo replace("one one one", "one", "TWO")
+    echo replace("a\\b\\c\\d", "\\", "\\\\")
+    echo replace("first\nsecond\nthird\nfourth", "\n", "..")
 }
