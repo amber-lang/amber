@@ -7,10 +7,8 @@ fun bash_version(): Num {
 }
 
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
-#[allow_absurd_cast]
 pub fun replace(source, search, replace) {
     search = trust $ echo \$\{{nameof search}//\\\\/\\\\\\\\} $
-    // TODO: Revisit after https://github.com/amber-lang/amber/issues/622
     if bash_version() >= 502 {
         replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
     } else {
