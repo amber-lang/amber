@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             meta.with_push_scope(|meta| {
                 // Create variables
                 for arg in self.args.iter() {
-                    meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+                    meta.add_var(arg, Type::Array(Box::new(Type::Text)), None, true);
                 }
                 // Parse the block
                 syntax(meta, &mut self.block)?;

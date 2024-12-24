@@ -1,10 +1,11 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Typed, Type};
 use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
+use crate::modules::variable::handle_identifier_name;
+use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use super::{variable_name_extensions, handle_identifier_name};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VariableInit {
@@ -19,10 +20,15 @@ impl VariableInit {
     fn handle_add_variable(
         &mut self,
         meta: &mut ParserMetadata,
-        tok: Option<Token>
+        tok: Option<Token>,
     ) -> SyntaxResult {
         handle_identifier_name(meta, &self.name, tok)?;
-        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
+        self.global_id = meta.add_var(
+            &self.name,
+            self.expr.get_type(),
+            self.expr.get_payload(),
+            self.is_const,
+        );
         Ok(())
     }
 }

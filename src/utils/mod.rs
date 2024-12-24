@@ -5,5 +5,6 @@ pub mod function_interface;
 pub mod function_metadata;
 pub mod import_cache;
 pub mod metadata;
+pub mod payload;
 
 pub use metadata::*;

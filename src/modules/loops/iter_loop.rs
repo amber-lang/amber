@@ -49,9 +49,9 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             token(meta, "{")?;
             // Create iterator variable
             meta.with_push_scope(|meta| {
-                meta.add_var(&self.iter_name, self.iter_type.clone(), false);
+                meta.add_var(&self.iter_name, self.iter_type.clone(), None, false);
                 if let Some(index) = self.iter_index.as_ref() {
-                    meta.add_var(index, Type::Num, false);
+                    meta.add_var(index, Type::Num, None, false);
                 }
                 // Save loop context state and set it to true
                 meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {

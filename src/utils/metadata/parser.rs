@@ -8,6 +8,7 @@ use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::import_cache::ImportCache;
 use crate::utils::function_cache::FunctionCache;
+use crate::utils::payload::Payload;
 
 #[derive(Debug, ContextManager)]
 pub struct ParserMetadata {
@@ -68,16 +69,24 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
+    pub fn add_var(
+        &mut self,
+        name: &str,
+        kind: Type,
+        payload: Option<Payload>,
+        is_const: bool,
+    ) -> Option<usize> {
         let global_id = (self.is_global_scope() || self.is_shadowing_prev_scope(name)).then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(VariableDecl {
+        let var = VariableDecl {
             name: name.to_string(),
             kind,
+            payload,
             global_id,
             is_ref: false,
             is_const,
-        });
+        };
+        scope.add_var(var);
         global_id
     }
 
@@ -85,13 +94,15 @@ impl ParserMetadata {
     pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(VariableDecl {
+        let var = VariableDecl {
             name: name.to_string(),
             kind,
+            payload: None,
             global_id,
             is_ref,
             is_const: false,
-        });
+        };
+        scope.add_var(var);
         global_id
     }
 

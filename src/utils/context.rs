@@ -1,6 +1,7 @@
 use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
+use crate::utils::payload::Payload;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -39,6 +40,7 @@ impl FunctionDecl {
 pub struct VariableDecl {
     pub name: String,
     pub kind: Type,
+    pub payload: Option<Payload>,
     pub global_id: Option<usize>,
     pub is_ref: bool,
     pub is_const: bool,
