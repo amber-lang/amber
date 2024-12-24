@@ -6,9 +6,14 @@ import * from "std/text"
 // first..second
 // third
 // fourth
+// mono
+// di
+// tri
 
 main {
     echo replace_once("one one one", "one", "TWO")
     echo replace_once("a\\b\\c\\d", "\\", "\\\\")
     echo replace_once("first\nsecond\nthird\nfourth", "\n", "..")
+    // other newlines should not be touched
+    echo replace_once("mono\ndo\ntri", "do\n", "di\n")
 }

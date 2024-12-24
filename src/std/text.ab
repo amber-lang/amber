@@ -8,23 +8,26 @@ fun bash_version(): Num {
 
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 pub fun replace(source, search, replace) {
-    search = trust $ echo \$\{{nameof search}//\\\\/\\\\\\\\} $
+    // Here we use commands for assigning values to avoid the side effect of Amber
+    // Escape `\` as `\\`.
+    trust $ {nameof search}="\$\{{nameof search}//\\\\/\\\\\\\}" $
     if bash_version() >= 502 {
-        replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\\\\\} $
+        trust $ {nameof replace}="\$\{{nameof replace}//\\\\/\\\\\\\\}" $
     } else {
-        replace = trust $ echo \$\{{nameof replace}//\\\\/\\\\} $
+        trust $ {nameof replace}="\$\{{nameof replace}//\\\\/\\\\}" $
     }
-    return trust $ echo \$\{{nameof source}//{search}/{replace}} $
+    return trust $ echo "\$\{{nameof source}//{search}/{replace}}" $
 }
 
 /// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
-    search = replace(search, "\\", "\\\\")
+    // Here we use commands for assigning values to avoid the side effect of Amber
+    trust $ {nameof search}="\$\{{nameof search}//\\\\/\\\\\\\}" $
     if bash_version() >= 502 {
-        replace = replace(replace, "\\", "\\\\")
+        trust $ {nameof replace}="\$\{{nameof replace}//\\\\/\\\\\\\\}" $
     }
 
-    return trust $ echo \$\{{nameof source}/{search}/{replace}} $
+    return trust $ echo "\$\{{nameof source}/{search}/{replace}}" $
 }
 
 /// Replaces all occurrences of a regex pattern in the content with the provided replace text.
