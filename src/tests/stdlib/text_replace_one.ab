@@ -1,5 +1,19 @@
 import * from "std/text"
 
+// Output
+// TWO one one
+// a\\b\c\d
+// first..second
+// third
+// fourth
+// mono
+// di
+// tri
+
 main {
-    echo replace_one("Succinctly", "inctly", "eeded")
+    echo replace_one("one one one", "one", "TWO")
+    echo replace_one("a\\b\\c\\d", "\\", "\\\\")
+    echo replace_one("first\nsecond\nthird\nfourth", "\n", "..")
+    // other newlines should not be touched
+    echo replace_one("mono\ndo\ntri", "do\n", "di\n")
 }
