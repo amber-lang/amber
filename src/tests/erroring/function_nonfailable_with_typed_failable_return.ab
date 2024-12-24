@@ -1,5 +1,5 @@
 // Output
-// Non-failable functions cannot return a Failable type
+// Infallible functions must not have a '?' after the type name
 
 pub fun test(): Null? {
     echo "Hello, World!"
