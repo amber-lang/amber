@@ -9,7 +9,7 @@ use crate::utils::function_interface::FunctionInterface;
 pub fn skip_function_body(
     meta: &mut ParserMetadata,
     declared_failable: bool,
-    returns_tok: &Option<Token>
+    returns_tok: &Option<Token>,
 ) -> Result<(usize, usize, bool), Failure> {
     let index_begin = meta.get_index();
     let mut is_failable = false;
