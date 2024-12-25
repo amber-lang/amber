@@ -20,7 +20,7 @@ pub fn skip_function_body(
             "}" => scope -= 1,
             "fail" => {
                 if !declared_failable && returns_tok.is_some() {
-                    return error!(meta, Some(tok), "Functions that can fail must have a '?' after the type name");
+                    return error!(meta, Some(tok), "Failable functions must have a '?' after the type name");
                 }
                 is_failable = true
             },
