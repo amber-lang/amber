@@ -73,7 +73,16 @@ impl TranslateModule for Main {
                 String::new,
                 |name| format!("declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
-            format!("{args}\n{}", self.block.translate(meta))
+            // Temporarily decrease the indentation level to counteract
+            // the indentation applied by the block translate.  Unlike
+            // other instances of code blocks, we do not want to indent
+            // the code generated from the main block.  We will ultimately
+            // need to rewrite the code generation, and this hack will go
+            // away.
+            meta.decrease_indent();
+            let result = format!("{args}\n{}", self.block.translate(meta));
+            meta.increase_indent();
+            result
         }
     }
 }
