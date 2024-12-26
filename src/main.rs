@@ -31,6 +31,7 @@ struct Cli {
 
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
+    #[arg(allow_hyphen_values = true)]
     args: Vec<String>,
 
     /// Disable a postprocessor
@@ -70,6 +71,7 @@ struct RunCommand {
 
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
+    #[arg(allow_hyphen_values = true)]
     args: Vec<String>,
 
     /// Disable a postprocessor
