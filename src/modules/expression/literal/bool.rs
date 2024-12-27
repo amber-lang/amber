@@ -8,6 +8,13 @@ pub struct Bool {
     value: bool
 }
 
+impl Bool {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        let value = if self.value { 1 } else { 0 };
+        Some(value)
+    }
+}
+
 impl Typed for Bool {
     fn get_type(&self) -> Type {
         Type::Bool

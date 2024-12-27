@@ -7,6 +7,13 @@ pub struct Number {
     value: String
 }
 
+impl Number {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        let value = self.value.parse().unwrap_or_default();
+        Some(value)
+    }
+}
+
 impl Typed for Number {
     fn get_type(&self) -> Type {
         Type::Num
@@ -43,13 +50,6 @@ impl SyntaxModule<ParserMetadata> for Number {
 impl TranslateModule for Number {
     fn translate(&self, _meta: &mut TranslateMetadata) -> String {
         self.value.to_string()
-    }
-}
-
-impl Number {
-    pub fn get_integer_value(&self) -> Option<isize> {
-        let value = self.value.parse().unwrap_or_default();
-        Some(value)
     }
 }
 

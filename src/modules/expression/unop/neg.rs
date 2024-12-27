@@ -15,6 +15,20 @@ pub struct Neg {
     expr: Box<Expr>
 }
 
+impl Neg {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        self.expr.get_integer_value().map(isize::neg)
+    }
+
+    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> String {
+        if let Some(expr) = self.get_integer_value() {
+            expr.to_string()
+        } else {
+            self.translate(meta)
+        }
+    }
+}
+
 impl Typed for Neg {
     fn get_type(&self) -> Type {
         Type::Num
@@ -54,20 +68,6 @@ impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> String {
         let expr = self.expr.translate(meta);
         translate_computation(meta, ArithOp::Neg, None, Some(expr))
-    }
-}
-
-impl Neg {
-    pub fn get_integer_value(&self) -> Option<isize> {
-        self.expr.get_integer_value().map(isize::neg)
-    }
-
-    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> String {
-        if let Some(expr) = self.get_integer_value() {
-            expr.to_string()
-        } else {
-            self.translate(meta)
-        }
     }
 }
 
