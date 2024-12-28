@@ -84,8 +84,22 @@ fn extract_output(code: impl Into<String>) -> String {
         .skip_while(|line| !line.starts_with("// Output"))
         .skip(1) // skip "// Output" itself
         .take_while(|line| !line.is_empty() && line.starts_with("//"))
-        .map(|line| line.trim_start_matches("//").trim())
+        .map(|line| trim_comment(line).trim_end())
         .join("\n")
+}
+
+fn trim_comment(line: &str) -> &str {
+    let mut chars = line.chars();
+    if chars.next() == Some('/') {
+        if chars.next() == Some('/') {
+            return if chars.next() == Some(' ') {
+                &line[3..]
+            } else {
+                &line[2..]
+            }
+        }
+    }
+    line
 }
 
 /// Inner test logic for testing script output in case of success or failure
@@ -120,18 +134,21 @@ mod test {
 some header
 // some comment
 // Output
-// expected
-// output
+//
+//no space
+// one space
+//  two spaces
+//   three spaces
+//
 
-theres more code
+more code
 not output
 
 // Output
 // another output is invalid
-
         "#
             ),
-            "expected\noutput"
+            "\nno space\none space\n two spaces\n  three spaces\n"
         );
     }
 }

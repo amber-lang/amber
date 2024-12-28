@@ -1,0 +1,44 @@
+// Output
+// Positional text: Goodbye world
+// Positional number: 999
+// Positional array: qux quux
+// Optional text: dolor sit
+// Optional number: -12.345
+// Optional flag: 1
+// Optional invert: 0
+// Optional array: 101 102 103 104 105 106
+
+let parser = parser("Command line parser")
+let positional_text = param(parser, "text", "Hello world", "Positional text")
+let positional_number = param(parser, "number", 42, "Positional number")
+let positional_array = param(parser, "array", ["foo", "bar", "baz"], "Positional array")
+let optional_text = param(parser, "-t|--text", "Lorem ipsum", "Optional text")
+let optional_number = param(parser, "-n|--number", 0.001, "Optional number")
+let optional_false = param(parser, "-f|--flag", false, "Optional flag")
+let optional_true = param(parser, "-i|--invert", true, "Optional invert")
+let optional_array = param(parser, "-a|--array", [101, 102, 103], "Optional array")
+
+let args = [
+    "./script.ab",
+    "Goodbye world",
+    "--text", "dolor sit",
+    "--number", "-12.345",
+    "--flag",
+    "--invert",
+    "--array", "104",
+    "--array", "105",
+    "--array", "106",
+    "999",
+    "qux",
+    "quux",
+]
+getopt(parser, args)
+
+echo "Positional text: {positional_text}"
+echo "Positional number: {positional_number}"
+echo "Positional array: {positional_array}"
+echo "Optional text: {optional_text}"
+echo "Optional number: {optional_number}"
+echo "Optional flag: {optional_false}"
+echo "Optional invert: {optional_true}"
+echo "Optional array: {optional_array}"
