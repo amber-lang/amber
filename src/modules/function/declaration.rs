@@ -286,8 +286,9 @@ impl DocumentationModule for FunctionDeclaration {
             for reference in references {
                 result.push(reference);
             }
-            result.push("\n".to_string());
+            result.push("".to_string());
         }
+        result.push("".to_string());
         result.join("\n")
     }
 }
