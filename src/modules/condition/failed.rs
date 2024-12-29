@@ -61,7 +61,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
-                    return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    return error!(meta, tok, format!("The function '{}' requires a 'failed' block or statement to handle errors", meta.get_token_at(meta.get_index() - 4).unwrap().word))
                 }
             }
         }
