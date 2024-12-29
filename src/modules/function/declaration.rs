@@ -323,7 +323,7 @@ impl FunctionDeclaration {
                         let path = entry.path();
                         if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
                             if pattern.matches(file_name) {
-                                references.push(format!("* [{}](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib/{})", file_name, file_name));
+                                references.push(format!("* [{}](https://github.com/amber-lang/amber/blob/{}/src/tests/stdlib/{})", file_name, env!("CARGO_PKG_VERSION"), file_name));
                             }
                         }
                     }
