@@ -41,7 +41,7 @@ impl ParserImpl {
         // Extract optional parameters
         for param in &self.params {
             let param = param.borrow();
-            self.append_optional(&mut output, &indent, args, &param);
+            self.append_optional(&mut output, &indent, meta, args, &param);
         }
         // Stop at "--" or unexpected parameter
         output.push(format!("{indent}--)"));
@@ -88,12 +88,19 @@ impl ParserImpl {
         format!("getopt --options={shorts} --longoptions={longs} -- {args}")
     }
 
-    fn append_optional(&self, output: &mut Vec<String>, indent: &str, args: &Expr, param: &ParamImpl) {
+    fn append_optional(
+        &self,
+        output: &mut Vec<String>,
+        indent: &str,
+        meta: &TranslateMetadata,
+        args: &Expr,
+        param: &ParamImpl,
+    ) {
         if let ParamKind::Optional(shorts, longs, help) = &param.kind {
             let option = ParamImpl::describe_optional(shorts, longs);
             output.push(format!("{indent}{option})"));
             if *help {
-                let run_name = Self::create_run_name(args);
+                let run_name = Self::create_run_name(meta, args);
                 self.append_help(output, indent, run_name);
             } else {
                 let name = &param.name;
@@ -140,9 +147,13 @@ impl ParserImpl {
         }
     }
 
-    fn create_run_name(args: &Expr) -> String {
-        let name = args.get_translated_name().unwrap_or_default();
-        format!("$(basename ${{{name}[0]}})")
+    fn create_run_name(meta: &TranslateMetadata, args: &Expr) -> String {
+        if let Some(run_name) = &meta.run_name {
+            run_name.clone()
+        } else {
+            let name = args.get_translated_name().unwrap_or_default();
+            format!("$(basename ${{{name}[0]}})")
+        }
     }
 
     fn append_help(&self, output: &mut Vec<String>, indent: &str, run_name: String) {

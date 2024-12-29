@@ -136,17 +136,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 handle_eval(command)?;
             }
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, Some(&command.input));
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?;
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, None);
                 compile_input(command.input, options);
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify);
+                let options = CompilerOptions::from_args(&command.no_proc, command.minify, None);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
             }
@@ -158,7 +158,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false);
+        let options = CompilerOptions::from_args(&cli.no_proc, false, Some(&input));
         let (code, messages) = compile_input(input, options);
         execute_output(code, cli.args, messages)?;
     }

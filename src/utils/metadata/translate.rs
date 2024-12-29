@@ -28,7 +28,9 @@ pub struct TranslateMetadata {
     /// The current indentation level.
     pub indent: i64,
     /// Determines if minify flag was set.
-    pub minify: bool
+    pub minify: bool,
+    /// Amber script name if running not building.
+    pub run_name: Option<String>,
 }
 
 impl TranslateMetadata {
@@ -43,6 +45,7 @@ impl TranslateMetadata {
             silenced: false,
             indent: -1,
             minify: options.minify,
+            run_name: options.run_name.clone(),
         }
     }
 
