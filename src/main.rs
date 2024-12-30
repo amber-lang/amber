@@ -118,7 +118,7 @@ struct DocsCommand {
     /// Input filename ('-' to read from stdin)
     input: PathBuf,
 
-    /// Output directory (relative to input file, default 'docs')
+    /// Output directory (relative to input file, default 'docs', '-' to write to stdout)
     output: Option<PathBuf>,
 
     /// Show standard library usage in documentation
@@ -255,6 +255,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     let compiler = AmberCompiler::new(code, Some(input), options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
+    let output = if output != "-" { Some(output) } else { None };
     match compiler.generate_docs(output, command.usage) {
         Ok(_) => Ok(()),
         Err(err) => {
