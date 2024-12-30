@@ -263,7 +263,7 @@ impl AmberCompiler {
         }
         if !paths.is_empty() {
             let files = if paths.len() > 1 { "Files" } else { "File" };
-            let message = once(format!("{files} generated at:")).chain(paths.into_iter()).join("\n");
+            let message = once(format!("{files} generated at:")).chain(paths).join("\n");
             Message::new_info_msg(message).show();
         }
     }
