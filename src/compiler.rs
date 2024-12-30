@@ -9,11 +9,13 @@ use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use wildmatch::WildMatchPattern;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::{ErrorKind, Write};
+use std::iter::once;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
@@ -261,7 +263,8 @@ impl AmberCompiler {
         }
         if !paths.is_empty() {
             let files = if paths.len() > 1 { "Files" } else { "File" };
-            Message::new_info_msg(format!("{files} generated at:\n{}", paths.join("\n"))).show();
+            let message = once(format!("{files} generated at:")).chain(paths.into_iter()).join("\n");
+            Message::new_info_msg(message).show();
         }
     }
 
