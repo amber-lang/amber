@@ -1,3 +1,4 @@
+use std::cmp;
 use std::collections::VecDeque;
 
 use crate::compiler::CompilerOptions;
@@ -50,7 +51,7 @@ impl TranslateMetadata {
     }
 
     pub fn gen_indent(&self) -> String {
-        INDENT_SPACES.repeat(self.indent as usize)
+        INDENT_SPACES.repeat(cmp::max(self.indent, 0) as usize)
     }
 
     pub fn increase_indent(&mut self) {
