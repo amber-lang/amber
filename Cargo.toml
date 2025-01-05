@@ -10,7 +10,7 @@ rust-version = "1.79"
 [package.metadata.deb]
 maintainer = "Amber-Lang project"
 license-file = "LICENSE.md"
-copyright = "GPLv3"
+copyright = "LGPL-3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
