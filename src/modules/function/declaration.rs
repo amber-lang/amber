@@ -318,10 +318,14 @@ impl FunctionDeclaration {
             result.push(String::from("```\n"));
             if test_path.exists() && test_path.is_dir() {
                 if let Ok(entries) = fs::read_dir(test_path) {
-                    let pattern1 = format!("{}*.ab", self.name);
-                    let pattern2 = format!("{}_{}*.ab", lib_name, self.name);
-                    let pattern1 = glob::Pattern::new(&pattern1).unwrap();
-                    let pattern2 = glob::Pattern::new(&pattern2).unwrap();
+                    let pattern1 = {
+                        let pattern = format!("{}*.ab", self.name);
+                        glob::Pattern::new(&pattern).unwrap()
+                    };
+                    let pattern2 = {
+                        let pattern = format!("{}_{}*.ab", lib_name, self.name);
+                        glob::Pattern::new(&pattern).unwrap()
+                    };
                     for entry in entries.flatten() {
                         let path = entry.path();
                         if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
