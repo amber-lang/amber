@@ -41,10 +41,12 @@ impl ParamKind {
                 return None;
             }
         }
-        if names.len() == 1 && (shorts.len() + longs.len()) == 0 {
+        let positionals = names.len();
+        let optionals = shorts.len() + longs.len();
+        if positionals == 1 && optionals == 0 {
             let name = names.into_iter().next().unwrap();
             Some(ParamKind::Positional(name))
-        } else if names.len() == 0 && (shorts.len() + longs.len()) >= 1 {
+        } else if positionals == 0 && optionals >= 1 {
             Some(ParamKind::Optional(shorts, longs, false))
         } else {
             None
@@ -81,7 +83,7 @@ impl ParamImpl {
         };
     }
 
-    pub fn describe_optional(shorts: &Vec<char>, longs: &Vec<String>) -> String {
+    pub fn describe_optional(shorts: &[char], longs: &[String]) -> String {
         let shorts = shorts.iter().map(|short| format!("-{short}"));
         let longs = longs.iter().map(|long| format!("--{long}"));
         shorts.chain(longs).join("|")

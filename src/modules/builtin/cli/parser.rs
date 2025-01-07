@@ -184,11 +184,8 @@ pub struct ParserCli {
 
 impl ParserCli {
     pub fn get_payload(&self) -> Option<Payload> {
-        if let Some(parser) = &self.parser {
-            Some(Payload::Parser(Rc::clone(parser)))
-        } else {
-            None
-        }
+        self.parser.as_ref()
+            .map(|parser| Payload::Parser(Rc::clone(parser)))
     }
 }
 

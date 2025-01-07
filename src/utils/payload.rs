@@ -11,9 +11,8 @@ pub enum Payload {
 
 impl Payload {
     pub fn set_var_name(&mut self, name: &str, id: Option<usize>) {
-        match self {
-            Payload::Param(param) => param.borrow_mut().set_var_name(name, id),
-            _ => (),
+        if let Payload::Param(param) = self {
+            param.borrow_mut().set_var_name(name, id)
         }
     }
 }

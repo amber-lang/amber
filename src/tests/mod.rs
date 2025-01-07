@@ -90,13 +90,11 @@ fn extract_output(code: impl Into<String>) -> String {
 
 fn trim_comment(line: &str) -> &str {
     let mut chars = line.chars();
-    if chars.next() == Some('/') {
-        if chars.next() == Some('/') {
-            return if chars.next() == Some(' ') {
-                &line[3..]
-            } else {
-                &line[2..]
-            }
+    if chars.next() == Some('/') && chars.next() == Some('/') {
+        return if chars.next() == Some(' ') {
+            &line[3..]
+        } else {
+            &line[2..]
         }
     }
     line
