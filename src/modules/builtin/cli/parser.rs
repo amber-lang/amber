@@ -33,9 +33,11 @@ impl ParserImpl {
         let mut output = Vec::new();
         let indent = TranslateMetadata::single_indent();
         // Run getopt to parse command line
-        let getopt = self.create_getopt(meta, args);
-        output.push(format!("getopt=$({getopt}) || exit"));
-        output.push(String::from("eval set -- $getopt"));
+        let getopt_id = meta.gen_value_id();
+        let getopt_name = format!("__AMBER_GETOPT_{getopt_id}");
+        let getopt_cmd = self.create_getopt(meta, args);
+        output.push(format!("{getopt_name}=$({getopt_cmd}) || exit"));
+        output.push(format!("eval set -- ${getopt_name}"));
         output.push(String::from("while true; do"));
         output.push(format!("{indent}case \"$1\" in"));
         // Extract optional parameters
