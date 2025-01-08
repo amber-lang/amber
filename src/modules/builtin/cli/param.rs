@@ -19,7 +19,7 @@ pub enum ParamKind {
 
 impl ParamKind {
     fn from(option: String) -> Option<Self> {
-        let regex = regex!(r"^(?:(\w+)|-(\w)|--(\w+))$");
+        let regex = regex!(r"^(?:(\w+)|-(\w)|--(\w+(?:-\w+)*))$");
         let mut names = Vec::new();
         let mut shorts = Vec::new();
         let mut longs = Vec::new();

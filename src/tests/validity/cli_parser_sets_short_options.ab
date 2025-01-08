@@ -15,7 +15,7 @@ let positional_array = param(parser, "array", ["foo", "bar", "baz"], "Positional
 let optional_text = param(parser, "-t|--text", "Lorem ipsum", "Optional text")
 let optional_number = param(parser, "-n|--number", 0.001, "Optional number")
 let optional_false = param(parser, "-f|--flag", false, "Optional flag")
-let optional_true = param(parser, "-i|--invert", true, "Optional invert")
+let optional_true = param(parser, "-g|--no-flag", true, "Optional invert")
 let optional_array = param(parser, "-a|--array", [101, 102, 103], "Optional array")
 
 let args = [
@@ -23,7 +23,7 @@ let args = [
     "Goodbye world",
     "-t", "dolor sit",
     "-n-12.345",
-    "-fi",
+    "-fg",
     "-a104",
     "-a105",
     "-a106",
