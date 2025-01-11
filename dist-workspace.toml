@@ -8,16 +8,16 @@ cargo-dist-version = "0.27.0"
 # CI backends to support
 ci = "github"
 # The installers to generate for each app
-installers = ["shell"]
+installers = []
 # Target platforms to build apps for (Rust target-triple syntax)
-targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "aarch64-pc-windows-msvc", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
+targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
 # Skip checking whether the specified configuration files are up to date
 allow-dirty = ["ci"]
 # Path that installers should place binaries in
-install-path = "CARGO_HOME"
+install-path = "~/.amber"
 # Whether to install an updater program
 install-updater = true
 # Extra static files to include in each App (path relative to this Cargo.toml's dir)
-include = ["std", "assets", "uninstall.ab"]
+include = ["std", "setup"]
 # Success installation message
 custom-success-msg = "Amber has been installed successfully. 🎉\n> Now you can use amber by typing `amber` in your terminal."

@@ -1,0 +1,178 @@
+import { has_failed, input_prompt } from "std/env"
+import { array_contains } from "std/array"
+import { text_contains } from "std/text"
+
+let home_path = trust $ echo \$HOME $
+let archive = "amber.tar.xz"
+let install_dir = "{home_path}/.amber"
+
+fun get_latest_release_tag() {
+    let tag_url = "https://api.github.com/repos/amber-lang/amber/releases/latest"
+    let tag_json = $ curl -sL "{tag_url}" $?
+    // Get the tag name from the JSON
+    let tag = $ echo "\${nameof tag_json}" \
+        | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
+        | grep -Eo "\\"[^\\"]+\\"\$" \
+        | grep -Eo "[^\\"\\s]+" $?
+    return tag
+}
+
+fun get_os(): Text {
+    // Determine OS type
+    let os_type = $ uname -s $ failed {
+        echo "Failed to determine OS type (using `uname` command)."
+        echo "Please try again or make sure you have it installed."
+        exit 1
+    }
+    if os_type == "Darwin":
+        return "apple-darwin"
+    
+    if os_type != "Linux" {
+        echo "Unsupported OS type: {os_type}"
+        echo "Please try again or use another download method."
+        exit 1
+    }
+    
+    if not has_failed("ls -l /lib | grep libc.musl"):
+        return "unknown-linux-musl"
+
+    return "unknown-linux-gnu"
+}
+
+fun get_arch(): Text {
+    // Determine architecture
+    let arch_type = $ uname -m $ failed {
+        echo "Failed to determine architecture."
+        echo "Please try again or use another download method."
+        exit 1
+    }
+
+    let arch = array_contains(["arm64", "aarch64"], arch_type)
+        then "aarch64"
+        else "x86_64"
+
+    return arch
+}
+
+fun add_install_dir_to_path() {
+    let path_str = trust $ echo \$PATH $
+
+    if text_contains(path_str, install_dir) {
+        return null
+    }
+
+    let user_shell = trust $ basename "\$SHELL" $
+
+    let shell_config_file = ""
+    if {
+        user_shell == "bash" {
+            shell_config_file = "{home_path}/.bashrc"
+        }
+        user_shell == "zsh" {
+            shell_config_file = "{home_path}/.zshrc"
+        }
+        user_shell == "fish" {
+            shell_config_file = "{home_path}/.config/fish/config.fish"
+        }
+        else {
+            shell_config_file = "{home_path}/.profile"
+        }
+    }
+
+    $ echo "export PATH=\\"{install_dir}:\\\$PATH\\"" >> {shell_config_file} $ failed {
+        echo "Failed to add {install_dir} to $PATH"
+        echo "Try adding it yourself by adding \"export PATH=\\\"{install_dir}:$PATH\\\"\" to your shell config file ({shell_config_file})"
+    }
+
+    echo "`amber` has been added to $PATH variable."
+    echo "Run `source {shell_config_file}` to apply changes to the current session.\n"
+}
+
+main {
+    let os = get_os()
+    let arch = get_arch()
+
+    // Check if such directory exists
+    trust $ test -d "{install_dir}" $
+
+    if status == 0 {
+        echo "Amber already installed"
+        echo "It seems that Amber is already installed on your system. ({install_dir})"
+        echo "If you want to reinstall Amber, uninstall it first."
+        echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)"
+        exit 2
+    }
+
+    // Check if curl is installed
+    if has_failed("curl -V") {
+        echo "Curl is not installed on your system."
+        echo "Please install `curl` and try again."
+        exit 1
+    }
+
+    echo "Installing Amber... 🚀\n"
+
+    // Create directory for amber
+    silent $ mkdir -p "{install_dir}" $ failed {
+        echo "Failed to create directory for amber."
+        echo "Please make sure that your user can access {install_dir} directory."
+        exit 1
+    }
+
+    let tag = get_latest_release_tag() failed {
+        echo "Failed to get the latest release tag."
+        echo "Please try again or use another download method."
+        exit 1
+    }
+
+    // Set the download link
+    let url = "https://github.com/amber-lang/amber/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
+
+    // Download amber
+    silent $ curl -L -o "{archive}" "{url}" $ failed {
+        echo "Curl failed to download amber."
+        echo "Something went wrong. Please try again later."
+        exit 1
+    }
+
+    // Move archived version of amber
+    $ mv "{archive}" "{install_dir}/{archive}" $ failed {
+        echo "Failed to move amber to the installation directory."
+        echo "Please make sure that root user can access {install_dir} directory."
+        exit 1
+    }
+
+    // Unarchive amber
+    silent $ tar --strip-components=1 -xvf {install_dir}/{archive} -C {install_dir} $ failed {
+        echo "Failed to unarchive amber at {install_dir}/{archive}"
+        echo "Please make sure that you have `tar` command installed."
+        exit 1
+    }
+
+    // Delete the archive
+    $ rm {install_dir}/{archive} $ failed {
+        echo "Failed to remove downloaded archive at {install_dir}/{archive}"
+        exit 1
+    }
+
+    // Give permissions to execute amber
+    $ chmod +x "{install_dir}/amber" $ failed {
+        echo "Failed to give permissions to execute amber."
+        echo "Please make sure that root user can access {install_dir} directory."
+        exit 1
+    }
+
+    add_install_dir_to_path()
+
+    let nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    if (nickname != "no") {
+        let agent = has_failed("uname -a")
+            then "unknown"
+            else trust $ uname -a $
+        // Send feedback to the server
+        trust silent $ curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" $
+    }
+
+    // Send success message
+    echo "\nAmber has been installed successfully. 🎉"
+}

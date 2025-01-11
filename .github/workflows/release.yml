@@ -15,7 +15,7 @@
 
 name: Release
 permissions:
-  "contents": "write"
+  contents: write
 
 # This task will run whenever you push a git tag that looks like a version
 # like "1.0.0", "v0.1.0-prerelease.1", "my-app/0.1.0", "releases/v1.0.0", etc.
@@ -188,6 +188,14 @@ jobs:
           pattern: artifacts-*
           path: target/distrib/
           merge-multiple: true
+      - name: Compile installer/uninstaller
+        run: |
+          TARGET_TRIPLE="$(rustc -Vv | awk '/^host/ { print $2 }')"
+          AMBER_PACKAGE="$PWD/target/distrib/amber-${TARGET_TRIPLE}"
+          tar -xf ${AMBER_PACKAGE}.tar.xz -C ./target
+          AMBER="$PWD/target/amber-${TARGET_TRIPLE}/amber"
+          $AMBER build ./setup/install.ab ./target/distrib/install.sh
+          $cp ./setup/uninstall.ab ./target/distrib/uninstall.ab
       - id: cargo-dist
         shell: bash
         run: |

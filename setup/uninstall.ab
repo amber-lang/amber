@@ -1,0 +1,35 @@
+#!/usr/bin/env amber
+import { dir_exists, file_exists } from "std/fs"
+import { ends_with } from "std/text"
+import { is_root } from "std/env"
+
+main {
+    if not is_root() {
+        echo "Script has to run with root permissions"
+        exit 1
+    }
+
+    let amber_path = $ command -v amber $ failed {
+        echo "Amber is not in $PATH."
+        exit 1
+    }
+
+    let amber_install_dir = trust $ dirname "\$(readlink -f {amber_path})" $
+
+    echo "Uninstalling Amber..."
+
+    $ rm -f {amber_path} $ failed {
+        echo "Failed to uninstall Amber"
+        exit 1
+    }
+
+    // Check if installation dir is a dedicated amber dir and not for example `/bin` with different files
+    if ends_with(amber_install_dir, "/.amber") {
+        $ rm -rf {amber_install_dir} $ failed {
+            echo "Failed to cleanup {amber_install_dir}"
+            exit 1
+        }
+    }
+    
+    echo "Amber uninstalled. See you later, 🐊"
+}

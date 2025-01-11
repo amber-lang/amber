@@ -1,0 +1,45 @@
+name: amber-bash
+icon: assets/amber.png
+title: Amber
+base: core24
+adopt-info: amber-bash
+summary: Amber the programming language compiled to bash
+description: |
+  Programming language that compiles to Bash. It's a high level programming language that makes it easy to create shell scripts.
+  It's particularly well suited for cloud services.
+contact: https://discord.com/invite/cjHjxbsDvZ
+source-code: https://github.com/Ph0enixKM/Amber
+issues: https://github.com/Ph0enixKM/Amber/issues
+website: https://amber-lang.com/
+grade: stable
+confinement: classic
+compression: lzo
+
+parts:
+  amber-bash:
+    plugin: rust
+    source: .
+    build-packages:
+      - yq
+    build-attributes:
+      - enable-patchelf
+    override-pull: |
+      craftctl default
+      craftctl set version=$(cat $CRAFT_PART_SRC/Cargo.toml | tomlq -rc '.package.version')
+      cp -r ${CRAFT_PART_SRC}/std ${CRAFT_PART_INSTALL}/std
+
+  deps:
+    plugin: nil
+    stage-packages:
+      - bc
+    prime:
+      - bin/bc
+    build-attributes:
+      - enable-patchelf
+    organize:
+      usr/bin: bin
+
+
+apps:
+  amber-bash:
+    command: bin/amber
