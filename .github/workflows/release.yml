@@ -204,6 +204,8 @@ jobs:
           # Parse out what we just built and upload it to scratch storage
           echo "paths<<EOF" >> "$GITHUB_OUTPUT"
           jq --raw-output ".upload_files[]" dist-manifest.json >> "$GITHUB_OUTPUT"
+          echo "$PWD/target/distrib/install.sh" >> "$GITHUB_OUTPUT"
+          echo "$PWD/target/distrib/uninstall.ab" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
           cp dist-manifest.json "$BUILD_MANIFEST_NAME"

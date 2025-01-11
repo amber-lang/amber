@@ -13,11 +13,5 @@ installers = []
 targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
 # Skip checking whether the specified configuration files are up to date
 allow-dirty = ["ci"]
-# Path that installers should place binaries in
-install-path = "~/.amber"
-# Whether to install an updater program
-install-updater = true
 # Extra static files to include in each App (path relative to this Cargo.toml's dir)
-include = ["std", "setup"]
-# Success installation message
-custom-success-msg = "Amber has been installed successfully. 🎉\n> Now you can use amber by typing `amber` in your terminal."
+include = ["std"]
