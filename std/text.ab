@@ -45,7 +45,7 @@ pub fun split_words(text: Text): [Text] {
     return split(text, " ")
 }
 
-/// Merges text using the delimeter specified.
+/// Merges text using the delimiter specified.
 pub fun join(list: [Text], delimiter: Text): Text {
     return trust $ IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}" $
 }

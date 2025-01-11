@@ -54,9 +54,9 @@ pub fun dir_create(path: Text): Null {
     }
 }
 
-/// Sets a file as executable.
+/// Changes the permission bits of a file.
 ///
-/// If the file doesn't exist, it returns a boolean and prints a message.
+/// If the file doesn't exist, it returns `false` and prints a message.
 pub fun file_chmod(path: Text, mode: Text): Bool {
     if file_exists(path) {
         trust $ chmod "{mode}" "{path}" $
@@ -69,7 +69,7 @@ pub fun file_chmod(path: Text, mode: Text): Bool {
 
 /// Changes the owner of a file.
 ///
-/// If the file doesn't exist, it returns `false`
+/// If the file doesn't exist, it returns `false` and prints a message.
 pub fun file_chown(path: Text, user: Text): Bool {
     if file_exists(path) or dir_exists(path) {
         trust $ chown -R "{user}" "{path}" $

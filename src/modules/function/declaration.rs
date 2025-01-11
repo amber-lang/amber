@@ -286,8 +286,9 @@ impl DocumentationModule for FunctionDeclaration {
             for reference in references {
                 result.push(reference);
             }
-            result.push("\n".to_string());
+            result.push("".to_string());
         }
+        result.push("".to_string());
         result.join("\n")
     }
 }
@@ -317,13 +318,24 @@ impl FunctionDeclaration {
             result.push(String::from("```\n"));
             if test_path.exists() && test_path.is_dir() {
                 if let Ok(entries) = fs::read_dir(test_path) {
-                    let pattern = format!("{}*.ab", self.name);
-                    let pattern = glob::Pattern::new(&pattern).unwrap();
+                    let pattern1 = {
+                        let pattern = format!("{}*.ab", self.name);
+                        glob::Pattern::new(&pattern).unwrap()
+                    };
+                    let pattern2 = {
+                        let pattern = format!("{}_{}*.ab", lib_name, self.name);
+                        glob::Pattern::new(&pattern).unwrap()
+                    };
                     for entry in entries.flatten() {
                         let path = entry.path();
                         if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
-                            if pattern.matches(file_name) {
-                                references.push(format!("* [{}](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib/{})", file_name, file_name));
+                            if pattern1.matches(file_name) || pattern2.matches(file_name) {
+                                references.push(format!(
+                                    "* [{}](https://github.com/amber-lang/amber/blob/{}/src/tests/stdlib/{})",
+                                    file_name,
+                                    env!("CARGO_PKG_VERSION"),
+                                    file_name,
+                                ));
                             }
                         }
                     }

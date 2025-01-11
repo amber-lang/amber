@@ -73,7 +73,15 @@ impl TranslateModule for Main {
                 String::new,
                 |name| format!("declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
-            format!("{args}\n{}", self.block.translate(meta))
+            // Temporarily decrease the indentation level to counteract
+            // the indentation applied by the block translation.  Unlike
+            // other instances of code blocks, we do not want to indent
+            // the code generated from the main block.
+            // TODO: Rethink as part of the Bash output improvement work.
+            meta.decrease_indent();
+            let result = format!("{args}\n{}", self.block.translate(meta));
+            meta.increase_indent();
+            result
         }
     }
 }
