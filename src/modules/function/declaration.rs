@@ -217,13 +217,16 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 // Parse the body
                 token(meta, "{")?;
                 let (index_begin, index_end, is_failable) = skip_function_body(meta);
-                if (!(is_failable && declared_failable)) && (is_failable || declared_failable) {
-                    if is_failable {
-                        return error!(meta, returns_tok, "Functions that can fail must have a '?' after the type name");
-                    } else {
-                        return error!(meta, returns_tok, "Infallible functions must not have a '?' after the type name");
-                    }
+                if self.returns == Type::Generic {
+                    declared_failable = is_failable;
                 }
+                if is_failable && !declared_failable {
+                    return error!(meta, returns_tok, "Failable functions must have a '?' after the type name");
+                }
+                if !is_failable && declared_failable {
+                    return error!(meta, returns_tok, "Infallible functions must not have a '?' after the type name");
+                }
+
                 // Create a new context with the function body
                 let expr = meta.context.expr[index_begin..index_end].to_vec();
                 let ctx = meta.context.clone().function_invocation(expr);
