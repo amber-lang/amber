@@ -56,14 +56,6 @@ impl SyntaxModule<ParserMetadata> for Cast {
             let message = Message::new_warn_at_position(meta, pos)
                 .message(format!("Casting a value of type '{l_type}' value to a '{r_type}' is not recommended"))
                 .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
-            let (l_type, r_type) = match (l_type, r_type) {
-                (Type::Failable(l), Type::Failable(r)) => (*l, *r),
-                (Type::Failable(_), _) | (_, Type::Failable(_)) => {
-                    meta.add_message(message);
-                    return Ok(());
-                },
-                types => types
-            };
             match (l_type, r_type) {
                 (Type::Array(left), Type::Array(right)) => {
                     if *left != *right && !matches!(*left, Type::Bool | Type::Num) && !matches!(*right, Type::Bool | Type::Num) {

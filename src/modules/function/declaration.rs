@@ -177,9 +177,6 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                             self.arg_types.push(Type::Generic);
                         }
                     }
-                    if let Type::Failable(_) = arg_type {
-                        return error!(meta, name_token, "Failable types cannot be used as arguments");
-                    }
                     match token(meta, "=") {
                         Ok(_) => {
                             if is_ref {
@@ -205,22 +202,31 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     };
                 }
                 let mut returns_tok = None;
+                let mut declared_failable = false;
                 // Optionally parse the return type
                 match token(meta, ":") {
                     Ok(_) => {
                         returns_tok = meta.get_current_token();
-                        self.returns = parse_type(meta)?
+                        self.returns = parse_type(meta)?;
+                        if token(meta, "?").is_ok() {
+                            declared_failable = true;
+                        }
                     },
                     Err(_) => self.returns = Type::Generic
                 }
                 // Parse the body
                 token(meta, "{")?;
                 let (index_begin, index_end, is_failable) = skip_function_body(meta);
-                if is_failable && !matches!(self.returns, Type::Failable(_) | Type::Generic) {
-                    return error!(meta, returns_tok, "Failable functions must return a Failable type");
-                } else if !is_failable && matches!(self.returns, Type::Failable(_)) {
-                    return error!(meta, returns_tok, "Non-failable functions cannot return a Failable type");
+                if self.returns == Type::Generic {
+                    declared_failable = is_failable;
                 }
+                if is_failable && !declared_failable {
+                    return error!(meta, returns_tok, "Failable functions must have a '?' after the type name");
+                }
+                if !is_failable && declared_failable {
+                    return error!(meta, returns_tok, "Infallible functions must not have a '?' after the type name");
+                }
+
                 // Create a new context with the function body
                 let expr = meta.context.expr[index_begin..index_end].to_vec();
                 let ctx = meta.context.clone().function_invocation(expr);
