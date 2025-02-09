@@ -37,10 +37,19 @@ impl SyntaxModule<ParserMetadata> for Nameof {
                 Ok(())
             }
             None => {
-                let tok = meta.get_current_token();
-                error!(meta, tok, format!("Variable '{name}' not found"))
+                match meta.get_fun_declaration(&name) {
+                    Some(fun_decl) => {
+                        self.name = format!("{}__{}_v0", &fun_decl.name, fun_decl.id);
+                        Ok(())
+                    }
+                    None => {
+                        let tok = meta.get_current_token();
+                        error!(meta, tok, format!("Variable or function '{name}' not found"))
+                    }
+                }
             }
         }
+
     }
 }
 
