@@ -54,7 +54,7 @@ pub fun dir_create(path: Text): Null {
     }
 }
 
-/// Sets a file as executable.
+/// Changes the file mode of a file.
 ///
 /// If the file doesn't exist, it returns a boolean and prints a message.
 pub fun file_chmod(path: Text, mode: Text): Bool {
