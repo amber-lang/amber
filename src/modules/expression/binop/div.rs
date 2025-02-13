@@ -1,12 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, utils::TranslateMetadata};
+use crate::modules::prelude::*;
 use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::ArithOp;
-use crate::utils::metadata::ParserMetadata;
 use crate::translate::compute::translate_computation;
 use crate::modules::types::{Typed, Type};
-use crate::translate::module::TranslateModule;
 
 use super::BinOp;
 
@@ -39,7 +37,7 @@ impl BinOp for Div {
 
 impl SyntaxModule<ParserMetadata> for Div {
     syntax_name!("Div");
-    
+
     fn new() -> Self {
         Div {
             left: Box::new(Expr::new()),
@@ -54,7 +52,7 @@ impl SyntaxModule<ParserMetadata> for Div {
 }
 
 impl TranslateModule for Div {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Div, Some(left), Some(right))

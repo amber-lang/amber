@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use crate::fragments;
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -12,16 +14,6 @@ pub struct VariableSet {
     global_id: Option<usize>,
     index: Option<Expr>,
     is_ref: bool
-}
-
-impl VariableSet {
-    fn translate_eval_if_ref(&self, expr: &Expr, meta: &mut TranslateMetadata) -> String {
-        if self.is_ref {
-            expr.translate_eval(meta, true)
-        } else {
-            expr.translate(meta)
-        }
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -73,23 +65,15 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 }
 
 impl TranslateModule for VariableSet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let name = self.name.clone();
-        let index = self.index.as_ref()
-            .map(|index| self.translate_eval_if_ref(index, meta))
-            .map(|index| format!("[{index}]"))
-            .unwrap_or_default();
-        let mut expr = self.translate_eval_if_ref(self.expr.as_ref(), meta);
+        let index = self.index.as_ref().map(|v| v.translate_eval(meta, self.is_ref));
+        let mut expr = self.expr.translate_eval(meta, self.is_ref);
         if let Type::Array(_) = self.expr.get_type() {
-            expr = format!("({expr})");
+            expr = fragments!("(", expr, ")");
         }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}{index}={expr}")
-        } else if self.is_ref {
-            format!("eval \"${{{name}}}{index}={expr}\"")
-        } else {
-            format!("{name}{index}={expr}")
-        }
+        let (stmt, _var) = meta.gen_stmt_variable(&name, self.global_id, self.expr.get_type(), self.is_ref, index, "=", expr);
+        stmt
     }
 }
 

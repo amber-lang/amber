@@ -3,9 +3,10 @@ use std::{env, fs};
 use std::ffi::OsStr;
 use std::path::Path;
 
+use crate::fragments;
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
-use crate::docs::module::DocumentationModule;
 use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
@@ -14,8 +15,6 @@ use crate::utils::cc_flags::get_ccflag_by_name;
 use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::declaration_utils::*;
@@ -36,23 +35,21 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<String> {
+    fn set_args_as_variables(&self, _meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<TranslationFragment> {
         if !self.arg_names.is_empty() {
-            meta.increase_indent();
             let mut result = vec![];
             for (index, (name, kind, is_ref)) in izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate() {
-                let indent = meta.gen_indent();
                 match (is_ref, kind) {
-                    (false, Type::Array(_)) => result.push(format!("{indent}local {name}=(\"${{!{}}}\")", index + 1)),
+                    (false, Type::Array(_)) => result.push(fragments!(raw: "local {name}=(\"${{!{}}}\")", index + 1)),
                     (true, Type::Array(_)) => {
-                        result.push(format!("{indent}local __AMBER_ARRAY_{name}=\"${}[@]\"", index + 1));
-                        result.push(format!("{indent}local {name}=${}", index + 1))
+                        result.push(fragments!(raw: "local __AMBER_ARRAY_{name}=\"${}[@]\"", index + 1));
+                        result.push(fragments!(raw: "local {name}=${}", index + 1))
                     },
-                    _ => result.push(format!("{indent}local {name}=${}", index + 1))
+                    // _ => result.push(RawFragment::new(!("local {name}=${}", index + 1))
+                    _ => result.push(fragments!(raw: "local {name}=${}", index + 1))
                 }
             }
-            meta.decrease_indent();
-            Some(result.join("\n"))
+            Some(BlockFragment::new(result, true).to_frag())
         } else { None }
     }
 
@@ -248,7 +245,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
 }
 
 impl TranslateModule for FunctionDeclaration {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_meta.clone();
@@ -256,18 +253,18 @@ impl TranslateModule for FunctionDeclaration {
         for (index, function) in blocks.iter().enumerate() {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
-            let name = format!("{}__{}_v{}", self.name, self.id, index);
-            result.push(format!("{name}() {{"));
+            let name = fragments!(raw: "{}__{}_v{}", self.name, self.id, index);
+            result.push(fragments!(name, "() {{"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);
             }
             result.push(function.block.translate(meta));
-            result.push(meta.gen_indent() + "}");
+            result.push(fragments!("}"));
         }
         // Restore the function name
         meta.fun_meta = prev_fun_meta;
         // Return the translation
-        result.join("\n")
+        BlockFragment::new(result, false).to_frag()
     }
 }
 

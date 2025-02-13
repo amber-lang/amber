@@ -1,9 +1,7 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -68,83 +66,13 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 }
 
 impl TranslateModule for VariableGet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.get_translated_name();
-        // Text variables need to be encapsulated in string literals
-        // Otherwise, they will be "spread" into tokens
-        let quote = meta.gen_quote();
-        match &self.kind {
-            Type::Array(_) if self.is_ref => {
-                if let Some(index) = self.index.as_ref() {
-                    let id = meta.gen_value_id();
-                    let value = Self::slice_ref_array(meta, &name, index);
-                    let stmt = format!("eval \"local __AMBER_ARRAY_GET_{id}_{name}=\\\"\\${{{value}}}\\\"\"");
-                    meta.stmt_queue.push_back(stmt);
-                    format!("$__AMBER_ARRAY_GET_{id}_{name}")
-                } else {
-                    format!("{quote}${{!__AMBER_ARRAY_{name}}}{quote}")
-                }
-            }
-            Type::Array(_) if !self.is_ref => {
-                if let Some(index) = self.index.as_ref() {
-                    let value = Self::slice_copy_array(meta, &name, index);
-                    format!("{quote}{value}{quote}")
-                } else {
-                    format!("{quote}${{{name}[@]}}{quote}")
-                }
-            }
-            Type::Text => {
-                let prefix = if self.is_ref { "!" } else { "" };
-                format!("{quote}${{{prefix}{name}}}{quote}")
-            }
-            _ => {
-                let prefix = if self.is_ref { "!" } else { "" };
-                format!("${{{prefix}{name}}}")
-            }
-        }
-    }
-}
-
-impl VariableGet {
-    pub fn get_translated_name(&self) -> String {
-        match self.global_id {
-            Some(id) => format!("__{id}_{}", self.name),
-            None => self.name.to_string()
-        }
-    }
-
-    fn slice_ref_array(meta: &mut TranslateMetadata, name: &str, index: &Expr) -> String {
-        match &index.value {
-            Some(ExprType::Range(range)) => {
-                let (offset, length) = range.get_array_index(meta);
-                format!("${name}[@]:{offset}:{length}")
-            }
-            Some(ExprType::Neg(neg)) => {
-                let index = neg.get_array_index(meta);
-                format!("${name}[{index}]")
-            }
-            _ => {
-                let index = index.translate_eval(meta, true);
-                format!("${name}[{index}]")
-            }
-        }
-    }
-
-    fn slice_copy_array(meta: &mut TranslateMetadata, name: &str, index: &Expr) -> String {
-        match &index.value {
-            Some(ExprType::Range(range)) => {
-                let (offset, length) = range.get_array_index(meta);
-                format!("${{{name}[@]:{offset}:{length}}}")
-            }
-            Some(ExprType::Neg(neg)) => {
-                let index = neg.get_array_index(meta);
-                format!("${{{name}[{index}]}}")
-            }
-            _ => {
-                let index = index.translate(meta);
-                format!("${{{name}[{index}]}}")
-            }
-        }
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+        return VarFragment::new(
+            &self.name,
+            self.kind.clone(),
+            self.is_ref,
+            self.global_id
+        ).with_index(meta, *self.index.clone()).to_frag();
     }
 }
 

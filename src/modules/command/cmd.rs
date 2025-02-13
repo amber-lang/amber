@@ -1,11 +1,13 @@
 use std::mem::swap;
-
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::modules::types::{Type, Typed};
+use crate::modules::expression::literal::bool;
+use crate::modules::condition::failed::Failed;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
+use crate::modules::expression::literal::parse_interpolated_region;
 use super::modifier::CommandModifier;
+use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
+use crate::fragments;
 
 #[derive(Debug, Clone)]
 pub struct Command {
@@ -51,43 +53,51 @@ impl SyntaxModule<ParserMetadata> for Command {
 }
 
 impl Command {
-    fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> String {
+    fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> TranslationFragment {
         // Translate all interpolations
         let interps = self.interps.iter()
             .map(|item| item.translate(meta))
-            .collect::<Vec<String>>();
+            .collect::<Vec<TranslationFragment>>();
         let failed = self.failed.translate(meta);
+
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
-        let silent = meta.gen_silent();
-        let translation = translate_interpolated_region(self.strings.clone(), interps, false);
+
+        let translation = InterpolableFragment::new(
+            self.strings.clone(),
+            interps,
+            InterpolableRenderType::GlobalContext
+        ).to_frag();
+
+        let silent = meta.gen_silent().to_frag();
+        let translation = fragments!(translation, silent);
         swap(&mut is_silent, &mut meta.silenced);
-        let translation = format!("{translation}{silent}");
+
         if is_statement {
-            return if failed.is_empty() { translation } else {
+            return if let TranslationFragment::Empty = failed { translation } else {
                 meta.stmt_queue.push_back(translation);
                 failed
             }
         }
-        if failed.is_empty() {
-            meta.gen_subprocess(&translation)
+
+        if let TranslationFragment::Empty = failed {
+            meta.gen_subprocess(translation)
         } else {
             let id = meta.gen_value_id();
-            let quote = meta.gen_quote();
-            let dollar = meta.gen_dollar();
-            meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation})"));
+            let value = fragments!("$(", translation, ")");
+            let variable = meta.push_stmt_variable("__command", Some(id), Type::Text, value);
             meta.stmt_queue.push_back(failed);
-            format!("{quote}{dollar}{{__AMBER_VAL_{id}}}{quote}")
+            variable.to_frag()
         }
     }
 
-    pub fn translate_command_statement(&self, meta: &mut TranslateMetadata) -> String {
+    pub fn translate_command_statement(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         self.translate_command(meta, true)
     }
 }
 
 impl TranslateModule for Command {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         self.translate_command(meta, false)
     }
 }

@@ -1,22 +1,19 @@
-use heraclitus_compiler::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Exit {
-    code: Option<Expr>
+    code: Option<Expr>,
 }
 
 impl SyntaxModule<ParserMetadata> for Exit {
     syntax_name!("Exit");
 
     fn new() -> Self {
-        Exit {
-            code: None
-        }
+        Exit { code: None }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -43,11 +40,12 @@ impl SyntaxModule<ParserMetadata> for Exit {
 }
 
 impl TranslateModule for Exit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let code = self.code.as_ref()
-            .map(|expr| expr.translate(meta))
-            .unwrap_or_else(|| "0".to_string());
-        format!("exit {}", code)
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+        let exit_code = self.code.as_ref().map(|expr| expr.translate(meta));
+        fragments!(
+            "exit ",
+            exit_code.unwrap_or(fragments!("0"))
+        )
     }
 }
 

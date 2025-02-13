@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::{Expr, ExprType};
@@ -9,7 +9,7 @@ use crate::modules::variable::{
     set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
-use crate::handle_types;
+use crate::{fragments, handle_types};
 use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition,
@@ -154,22 +154,22 @@ impl SyntaxModule<ParserMetadata> for Statement {
 }
 
 impl TranslateModule for Statement {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
         let translated = match statement {
             StatementType::Expr(expr) => match &expr.value {
                 Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
-                _ => format!("echo {} > /dev/null 2>&1", self.translate_match(meta, statement))
+                _ => fragments!("echo ", self.translate_match(meta, statement), " > /dev/null 2>&1")
             },
             _ => self.translate_match(meta, statement)
         };
-        // Get all the required supplemental statements
-        let indentation = meta.gen_indent();
-        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + st.trim_end_matches(';') + ";\n").join("");
-        // Return all the statements
-        statements + &indentation + &translated
+        if meta.stmt_queue.is_empty() {
+            return translated;
+        } else {
+            return BlockFragment::new(meta.stmt_queue.drain(..).collect(), false).to_frag()
+        }
     }
 }
 

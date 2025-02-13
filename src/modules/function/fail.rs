@@ -1,6 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::TranslationFragment;
 use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -70,18 +73,18 @@ impl SyntaxModule<ParserMetadata> for Fail {
 }
 
 impl TranslateModule for Fail {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let translate = self.code.is_empty()
             .then(|| self.expr.translate(meta))
-            .unwrap_or_else(|| self.code.clone());
+            .unwrap_or_else(|| fragments!(raw: "{}", &self.code));
         if self.is_main {
-            format!("exit {translate}")
+            fragments!("exit ", translate)
         } else {
             // Clean the return value if the function fails
             let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-            let stmt = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
+            let stmt = fragments!(raw: "{}={}", fun_meta.mangled_name(), fun_meta.default_return());
             meta.stmt_queue.push_back(stmt);
-            format!("return {translate}")
+            fragments!("return ", translate)
         }
     }
 }

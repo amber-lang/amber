@@ -1,9 +1,8 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::fragments;
 use crate::modules::types::Type;
 use crate::modules::block::Block;
+use crate::modules::prelude::*;
 
 use super::variable::variable_name_extensions;
 
@@ -20,7 +19,7 @@ impl SyntaxModule<ParserMetadata> for Main {
     fn new() -> Self {
         Self {
             args: None,
-            block: Block::new(),
+            block: Block::new().no_indent(),
             is_skipped: false
         }
     }
@@ -63,25 +62,23 @@ impl SyntaxModule<ParserMetadata> for Main {
 }
 
 impl TranslateModule for Main {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         if self.is_skipped {
-            String::new()
+            TranslationFragment::Empty
         } else {
             let quote = meta.gen_quote();
             let dollar = meta.gen_dollar();
             let args = self.args.clone().map_or_else(
-                String::new,
-                |name| format!("declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                || TranslationFragment::Empty,
+                |name| fragments!(raw: "declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
             // Temporarily decrease the indentation level to counteract
             // the indentation applied by the block translation.  Unlike
             // other instances of code blocks, we do not want to indent
             // the code generated from the main block.
             // TODO: Rethink as part of the Bash output improvement work.
-            meta.decrease_indent();
-            let result = format!("{args}\n{}", self.block.translate(meta));
-            meta.increase_indent();
-            result
+            meta.stmt_queue.push_back(args);
+            self.block.translate(meta)
         }
     }
 }

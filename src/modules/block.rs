@@ -1,16 +1,16 @@
 use std::collections::VecDeque;
 use std::ops::Index;
 
+use crate::fragments;
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use crate::docs::module::DocumentationModule;
-use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use super::statement::stmt::Statement;
+use super::statement::statement::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
-    pub statements: Vec<Statement>
+    pub statements: Vec<Statement>,
+    pub should_indent: bool
 }
 
 impl Block {
@@ -23,6 +23,11 @@ impl Block {
     pub fn push_statement(&mut self, statement: Statement) {
         self.statements.push(statement);
     }
+
+    pub fn no_indent(mut self) -> Self {
+        self.should_indent = false;
+        self
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Block {
@@ -30,7 +35,8 @@ impl SyntaxModule<ParserMetadata> for Block {
 
     fn new() -> Self {
         Block {
-            statements: vec![]
+            statements: vec![],
+            should_indent: true
         }
     }
 
@@ -61,20 +67,16 @@ impl SyntaxModule<ParserMetadata> for Block {
 }
 
 impl TranslateModule for Block {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         // Save the current statement queue and create a new one
         let mut new_queue = VecDeque::new();
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
-        meta.increase_indent();
         let result = if self.is_empty() {
-            ":".to_string()
+            fragments!(":")
         } else {
-            self.statements.iter()
-                .map(|statement| statement.translate(meta))
-                .filter(|translation| !translation.trim().is_empty())
-                .collect::<Vec<_>>().join("\n")
+            let statements = self.statements.iter().map(|statement| statement.translate(meta)).collect();
+            BlockFragment::new(statements, self.should_indent).to_frag()
         };
-        meta.decrease_indent();
         // Restore the old statement queue
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         result

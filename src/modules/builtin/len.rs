@@ -1,6 +1,6 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -50,21 +50,11 @@ impl SyntaxModule<ParserMetadata> for Len {
 }
 
 impl TranslateModule for Len {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let value = self.value.translate(meta);
-        if self.value.get_type() == Type::Text {
-            meta.stmt_queue.push_back(format!("__AMBER_LEN={value}"));
-            return String::from("\"${#__AMBER_LEN}\"")
-        }
-        // Case for Array passed as a reference
-        if value.starts_with("\"${!") {
-                meta.stmt_queue.push_back(format!("__AMBER_LEN=({value})"));
-                String::from("\"${#__AMBER_LEN[@]}\"")
-        } else {
-            format!("\"${{#{}", value.trim_start_matches("\"${"))
-                .trim_end()
-                .to_string()
-        }
+        let id = meta.gen_value_id();
+        let var_fragment = meta.push_stmt_variable("__length", Some(id), Type::Num, value).set_get_length();
+        var_fragment.to_frag()
     }
 }
 

@@ -1,8 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::translate::module::TranslateModule;
+use crate::fragments;
+use crate::modules::prelude::*;
 use crate::utils::context::Context;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]
@@ -34,13 +33,13 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 }
 
 impl TranslateModule for InfiniteLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        [
-            "while :".to_string(),
-            "do".to_string(),
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+        BlockFragment::new(vec![
+            fragments!("while :"),
+            fragments!("do"),
             self.block.translate(meta),
-            "done".to_string(),
-        ].join("\n")
+            fragments!("done")
+        ], false).to_frag()
     }
 }
 

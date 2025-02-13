@@ -1,10 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
-use crate::modules::statement::stmt::Statement;
+use crate::modules::statement::statement::Statement;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
@@ -77,25 +76,25 @@ impl SyntaxModule<ParserMetadata> for IfChain {
 }
 
 impl TranslateModule for IfChain {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let mut result = vec![];
         let mut is_first = true;
         for (cond, block) in self.cond_blocks.iter() {
             if is_first {
-                result.push(format!("if [ {} != 0 ]; then", cond.translate(meta)));
+                result.push(fragments!("if [ ", cond.translate(meta), " != 0 ]; then"));
                 result.push(block.translate(meta));
                 is_first = false;
             } else {
-                result.push(format!("elif [ {} != 0 ]; then", cond.translate(meta)));
+                result.push(fragments!("elif [ ", cond.translate(meta), " != 0 ]; then"));
                 result.push(block.translate(meta));
             }
         }
         if let Some(false_block) = &self.false_block {
-            result.push("else".to_string());
+            result.push(fragments!("else"));
             result.push(false_block.translate(meta));
         }
-        result.push("fi".to_string());
-        result.join("\n")
+        result.push(fragments!("fi"));
+        BlockFragment::new(result, false).to_frag()
     }
 }
 

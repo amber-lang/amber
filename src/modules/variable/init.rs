@@ -1,9 +1,8 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Typed, Type};
+use crate::fragments;
+use crate::modules::prelude::*;
+use crate::modules::types::Typed;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_identifier_name};
 
 #[derive(Debug, Clone)]
@@ -60,19 +59,13 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 }
 
 impl TranslateModule for VariableInit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let mut expr = self.expr.translate(meta);
-        if let Type::Array(_) = self.expr.get_type() {
-            expr = format!("({expr})");
+        if self.expr.get_type().is_array()  {
+            expr = fragments!("(", expr, ")");
         }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}={expr}")
-        } else if self.is_fun_ctx {
-            format!("local {name}={expr}")
-        } else {
-            format!("{name}={expr}")
-        }
+        let (stmt, _var) = meta.gen_stmt_variable(&self.name, self.global_id, self.expr.get_type(), false, None, "=", expr);
+        stmt
     }
 }
 

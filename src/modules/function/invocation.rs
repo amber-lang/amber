@@ -1,14 +1,13 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use crate::fragments;
+use crate::modules::prelude::*;
 use itertools::izip;
-use crate::docs::module::DocumentationModule;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
 use super::invocation_utils::*;
 
@@ -126,55 +125,45 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 }
 
 impl FunctionInvocation {
-    fn get_variable(&self, meta: &TranslateMetadata, name: &str, dollar_override: bool) -> String {
-        let dollar = dollar_override.then_some("$").unwrap_or_else(|| meta.gen_dollar());
+    fn get_variable(&self, meta: &TranslateMetadata, name: &str) -> String {
         let quote = meta.gen_quote();
         if matches!(self.kind, Type::Array(_)) {
-            format!("{quote}{dollar}{{{name}[@]}}{quote}")
+            format!("{quote}${{{name}[@]}}{quote}")
         } else if matches!(self.kind, Type::Text) {
-            format!("{quote}{dollar}{{{name}}}{quote}")
+            format!("{quote}${{{name}}}{quote}")
         } else {
-            format!("{quote}{dollar}{name}{quote}")
+            format!("{quote}${name}{quote}")
         }
     }
 }
 
 impl TranslateModule for FunctionInvocation {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = format!("{}__{}_v{}", self.name, self.id, self.variant_id);
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+        let name = fragments!(raw: "{}__{}_v{}", self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
-        let silent = meta.gen_silent();
-        let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | {
-            if *is_ref {
-                arg.get_var_translated_name().unwrap()
-            } else {
-                let translation = arg.translate_eval(meta, false);
-                // If the argument is an array, we have to get just the "name[@]" part
-                (translation.starts_with("\"${") && translation.ends_with("[@]}\""))
-                    .then(|| translation.get(3..translation.len() - 2).unwrap().to_string())
-                    .unwrap_or(translation)
-            }
-        }).collect::<Vec<String>>().join(" ");
+        let silent = meta.gen_silent().to_frag();
 
-        meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
-        let invocation_return = &format!("__AF_{}{}_v{}", self.name, self.id, self.variant_id);
-        let invocation_instance = &format!("__AF_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-        let parsed_invocation_return = self.get_variable(meta, invocation_return, true);
+        let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
+            TranslationFragment::Var(var) if *is_ref => var.set_render_type(VarRenderType::BashName).to_frag(),
+            TranslationFragment::Var(var) if var.kind.is_array() => var.set_render_type(VarRenderType::BashName).to_frag(),
+            _ if *is_ref => panic!("Reference value accepts only variables"),
+            var @ _ => var
+        }).collect::<Vec<TranslationFragment>>();
+        let args = ListFragment::new(args, " ").to_frag();
+        meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
+
+        let invocation_return = &format!("__returned_{}{}_v{}", self.name, self.id, self.variant_id);
+        let invocation_instance = &format!("__returned_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+        let parsed_invocation_return = self.get_variable(meta, invocation_return);
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        meta.stmt_queue.push_back(
-            format!("__AF_{}{}_v{}__{}_{}={}", self.name, self.id, self.variant_id, self.line, self.col, if matches!(self.kind, Type::Array(_)) {
-                // If the function returns an array we have to store the intermediate result in a variable that is of type array
-                format!("({})", parsed_invocation_return)
-            } else {
-                parsed_invocation_return
-            })
-        );
-        self.get_variable(meta, invocation_instance, false)
+        let ret_value = if self.kind.is_array() { format!("({})", parsed_invocation_return) } else { parsed_invocation_return };
+        let variable = meta.push_stmt_variable(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", ret_value));
+        variable.to_frag()
     }
 }
 

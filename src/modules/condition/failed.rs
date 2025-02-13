@@ -1,8 +1,8 @@
 use heraclitus_compiler::prelude::*;
+use crate::fragments;
+use crate::modules::prelude::*;
 use crate::modules::block::Block;
-use crate::modules::statement::stmt::Statement;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use crate::modules::statement::statement::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Failed {
@@ -72,38 +72,42 @@ impl SyntaxModule<ParserMetadata> for Failed {
 }
 
 impl TranslateModule for Failed {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         if self.is_parsed {
             let block = self.block.translate(meta);
-            let ret = if self.is_main { "exit $__AS" } else { "return $__AS" };
+            let ret = if self.is_main { "exit $__status" } else { "return $__status" };
             // the condition of '$?' clears the status code thus we need to store it in a variable
             if self.is_question_mark {
-                // if the failed expression is in the main block we need to clear the return value
+                // Set default return value if failure happened in a function
                 let clear_return = if !self.is_main {
                     let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-                    format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return())
+                    let statement = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
+                    RawFragment::new(&statement).to_frag()
                 } else {
-                    String::new()
+                    TranslationFragment::Empty
                 };
-                [
-                    "__AS=$?;",
-                    "if [ $__AS != 0 ]; then",
-                    &clear_return,
-                    ret,
-                    "fi",
-                ].join("\n")
-            } else if &block == ":" {
-                "__AS=$?".into()
-            } else {
-                [
-                    "__AS=$?;",
-                    "if [ $__AS != 0 ]; then",
-                    &block,
-                    "fi",
-                ].join("\n")
+                let ret = RawFragment::new(&ret).to_frag();
+                return BlockFragment::new(vec![
+                    fragments!("__status=$?;"),
+                    fragments!("if [ $__status != 0 ]; then"),
+                    BlockFragment::new(vec![
+                        clear_return,
+                        ret,
+                    ], true).to_frag(),
+                    fragments!("fi"),
+                ], false).to_frag()
             }
+            if let TranslationFragment::Empty = block {
+                return fragments!("__status=$?")
+            }
+            BlockFragment::new(vec![
+                fragments!("__status=$?;"),
+                fragments!("if [ $__status != 0 ]; then"),
+                block,
+                fragments!("fi"),
+            ], false).to_frag()
         } else {
-            String::new()
+            TranslationFragment::Empty
         }
     }
 }

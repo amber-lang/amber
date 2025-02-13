@@ -2,6 +2,7 @@ use crate::docs::module::DocumentationModule;
 use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
+use crate::modules::prelude::{RawFragment, TranslationFragment, TranslationFragmentable};
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
@@ -51,7 +52,7 @@ impl SyntaxModule<ParserMetadata> for Neg {
 }
 
 impl TranslateModule for Neg {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let expr = self.expr.translate(meta);
         translate_computation(meta, ArithOp::Neg, None, Some(expr))
     }
@@ -62,9 +63,9 @@ impl Neg {
         self.expr.get_integer_value().map(isize::neg)
     }
 
-    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> String {
+    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         if let Some(expr) = self.get_integer_value() {
-            expr.to_string()
+            RawFragment::new(&expr.to_string()).to_frag()
         } else {
             self.translate(meta)
         }

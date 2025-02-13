@@ -1,8 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use crate::{fragments, modules::prelude::*};
 use itertools::Itertools;
-use crate::docs::module::DocumentationModule;
-use crate::utils::metadata::ParserMetadata;
-use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct CommentDoc {
@@ -63,8 +61,8 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
 }
 
 impl TranslateModule for CommentDoc {
-    fn translate(&self, _meta: &mut crate::utils::TranslateMetadata) -> String {
-        format!("# {}", self.value.trim().split('\n').join("\n# "))
+    fn translate(&self, _meta: &mut crate::utils::TranslateMetadata) -> TranslationFragment {
+        fragments!(raw: "# {}", self.value.trim().split('\n').join("\n# "))
     }
 }
 

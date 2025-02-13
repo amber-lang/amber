@@ -1,11 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::error_type_match;
+use crate::modules::prelude::*;
+use crate::{error_type_match, fragments};
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
+use crate::translate::{compute::ArithOp, module::TranslateModule};
 use crate::modules::types::{Type, Typed};
 
 #[derive(Debug, Clone)]
@@ -50,45 +49,20 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 
 impl TranslateModule for ShorthandAdd {
     //noinspection DuplicatedCode
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = if let Some(id) = self.global_id {
-            format!("__{id}_{}", self.var)
-        } else if self.is_ref {
-            format!("${{{}}}", self.var)
-        } else {
-            self.var.clone()
-        };
+    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+        let var = VarFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
+        let name = var.get_name();
         match self.kind {
-            Type::Text => {
-                if self.is_ref {
-                    let expr = self.expr.translate_eval(meta, true);
-                    format!("eval \"{name}+={expr}\"")
-                } else {
-                    let expr = self.expr.translate(meta);
-                    format!("{name}+={expr}")
-                }
-            }
-            Type::Array(_) => {
-                if self.is_ref {
-                    let expr = self.expr.translate_eval(meta, true);
-                    format!("eval \"{name}+=({expr})\"")
-                } else {
-                    let expr = self.expr.translate(meta);
-                    format!("{name}+=({expr})")
-                }
+            Type::Text | Type::Array(_) => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                let (stmt, _var) = meta.gen_stmt_variable(&name, self.global_id, self.kind.clone(), self.is_ref, None, "+=", expr);
+                stmt
             }
             _ => {
-                if self.is_ref {
-                    let var = format!("\\${{{name}}}");
-                    let expr = self.expr.translate_eval(meta, true);
-                    let expr = translate_computation_eval(meta, ArithOp::Add, Some(var), Some(expr));
-                    format!("eval \"{name}={expr}\"")
-                } else {
-                    let var = format!("${{{name}}}");
-                    let expr = self.expr.translate(meta);
-                    let expr = translate_computation(meta, ArithOp::Add, Some(var), Some(expr));
-                    format!("{name}={expr}")
-                }
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                let expr = translate_computation_eval(meta, ArithOp::Add, Some(fragments!(raw: "{}", name)), Some(expr), self.is_ref);
+                let (stmt, _var) = meta.gen_stmt_variable(&name, self.global_id, self.kind.clone(), self.is_ref, None, "+=", expr);
+                stmt
             }
         }
     }

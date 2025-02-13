@@ -1,4 +1,7 @@
-use crate::utils::TranslateMetadata;
+use crate::{modules::prelude::{TranslationFragment, TranslationFragmentable}, utils::TranslateMetadata};
+
+use crate::modules::prelude::*;
+use crate::fragments;
 
 pub enum ArithType {
     BcSed
@@ -22,13 +25,21 @@ pub enum ArithOp {
     Or
 }
 
-pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
+pub fn translate_computation(
+    meta: &TranslateMetadata,
+    operation: ArithOp,
+    left: Option<TranslationFragment>,
+    right: Option<TranslationFragment>
+) -> TranslationFragment {
     match meta.arith_module {
         ArithType::BcSed => {
-            let (left, right) = (left.unwrap_or_default(), right.unwrap_or_default());
+            let (left, right) = (
+                left.unwrap_or_else(|| TranslationFragment::Empty),
+                right.unwrap_or_else(|| TranslationFragment::Empty)
+            );
             let mut math_lib_flag = true;
             // Removes trailing zeros from the expression
-            let sed_regex = "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//";
+            let sed_regex = RawFragment::new("/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//").to_frag();
             let op = match operation {
                 ArithOp::Add => "+",
                 ArithOp::Sub => "-",
@@ -49,15 +60,23 @@ pub fn translate_computation(meta: &TranslateMetadata, operation: ArithOp, left:
                 ArithOp::And => "&&",
                 ArithOp::Or => "||"
             };
-            let math_lib_flag = if math_lib_flag { "-l" } else { "" };
-            meta.gen_subprocess(&format!("echo {left} '{op}' {right} | bc {math_lib_flag} | sed '{sed_regex}'"))
+            let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
+            let operator = RawFragment::new(&format!(" '{op}' ")).to_frag();
+            let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed", sed_regex);
+            meta.gen_subprocess(value)
         }
     }
 }
 
-pub fn translate_computation_eval(meta: &mut TranslateMetadata, operation: ArithOp, left: Option<String>, right: Option<String>) -> String {
+pub fn translate_computation_eval(
+    meta: &mut TranslateMetadata,
+    operation: ArithOp,
+    left: Option<TranslationFragment>,
+    right: Option<TranslationFragment>,
+    is_eval: bool,
+) -> TranslationFragment {
     let old_eval = meta.eval_ctx;
-    meta.eval_ctx = true;
+    meta.eval_ctx = is_eval;
     let result = translate_computation(meta, operation, left, right);
     meta.eval_ctx = old_eval;
     result
