@@ -155,6 +155,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             meta.with_context_fn(Context::set_cc_flags, flags, |meta| {
                 // Get the arguments
                 token(meta, "(")?;
+                let mut seen_argument_names = HashSet::new();
                 loop {
                     if token(meta, ")").is_ok() {
                         break
@@ -162,6 +163,12 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     let is_ref = token(meta, "ref").is_ok();
                     let name_token = meta.get_current_token();
                     let name = variable(meta, variable_name_extensions())?;
+
+                    // Check for duplicate argument name
+                    if !seen_argument_names.insert(name.clone()) {
+                        return error!(meta, name_token, format!("Argument '{name}' is already defined"));
+                    }
+
                     // Optionally parse the argument type
                     let mut arg_type = Type::Generic;
                     match token(meta, ":") {
