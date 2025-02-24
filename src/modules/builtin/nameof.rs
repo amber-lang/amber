@@ -28,28 +28,20 @@ impl SyntaxModule<ParserMetadata> for Nameof {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "nameof")?;
         let name = variable(meta, variable_name_extensions())?;
-        match meta.get_var(&name) {
-            Some(var_decl) => {
-                self.name.clone_from(&var_decl.name);
-                if let Some(id) = var_decl.global_id {
-                    self.name = format!("__{id}_{}", self.name);
-                }
-                Ok(())
-            }
-            None => {
-                match meta.get_fun_declaration(&name) {
-                    Some(fun_decl) => {
-                        self.name = format!("{}__{}_v0", &fun_decl.name, fun_decl.id);
-                        Ok(())
-                    }
-                    None => {
-                        let tok = meta.get_current_token();
-                        error!(meta, tok, format!("Variable or function '{name}' not found"))
-                    }
-                }
-            }
+        if let Some(var_decl) = meta.get_var(&name) {
+            self.name = if let Some(id) = var_decl.global_id {
+                format!("__{id}_{}", var_decl.name)
+            } else {
+                var_decl.name.clone()
+            };
+            Ok(())
+        } else if let Some(fun_decl) = meta.get_fun_declaration(&name) {
+            self.name = format!("{}__{}_v0", fun_decl.name, fun_decl.id);
+            Ok(())
+        } else {
+            let tok = meta.get_current_token();
+            error!(meta, tok, format!("Variable or function '{name}' not found"))
         }
-
     }
 }
 
