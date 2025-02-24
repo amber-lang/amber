@@ -3,6 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::function::invocation_utils::handle_function_parameters;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -37,6 +38,10 @@ impl SyntaxModule<ParserMetadata> for Nameof {
             Ok(())
         } else if let Some(fun_decl) = meta.get_fun_declaration(&name) {
             self.name = format!("{}__{}_v0", fun_decl.name, fun_decl.id);
+
+            // Create an empty call to ensure referenced function gets built
+            let fun_decl2 = fun_decl.clone();
+            let _ = handle_function_parameters(meta, fun_decl2.id, fun_decl2.clone(), &fun_decl2.arg_types, &[], None);
             Ok(())
         } else {
             let tok = meta.get_current_token();
