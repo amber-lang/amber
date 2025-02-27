@@ -3,7 +3,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::types::Type;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::{collections::{HashMap, HashSet}, path::PathBuf, env};
 
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
@@ -123,6 +123,9 @@ pub struct Context {
     /// List of compiler flags
     #[context]
     pub cc_flags: HashSet<CCFlags>,
+    /// List of lookup paths
+    #[context]
+    pub import_paths: Vec<PathBuf>,
 }
 
 // FIXME: Move the scope related structures to the separate file
@@ -141,6 +144,7 @@ impl Context {
             pub_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new(),
+            import_paths: env::split_paths(&env::var("AMBER_PATH").unwrap_or("".to_string())).collect(),
         }
     }
 

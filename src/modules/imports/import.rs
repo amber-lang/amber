@@ -78,12 +78,19 @@ impl Import {
             }
         } else {
             match fs::read_to_string(self.path.value.clone()) {
-                Ok(content) => Ok(content),
-                Err(err) => error!(meta, self.token_path.clone() => {
-                    message: format!("Could not read file '{}'", self.path.value),
-                    comment: err.to_string()
-                })
+                Ok(content) => return Ok(content),
+                Err(_) => ()
             }
+            for path in meta.context.import_paths.clone() {
+                match fs::read_to_string(path.join(self.path.value.clone())) {
+                    Ok(content) => return Ok(content),
+                    Err(_) => ()
+                }
+            }
+            error!(meta, self.token_path.clone() => {
+                message: format!("Could not find '{}'", self.path.value),
+                comment: format!("Tried lookup paths: {:?}", meta.context.import_paths)
+            })
         }
     }
 
