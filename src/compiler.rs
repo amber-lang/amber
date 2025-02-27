@@ -197,10 +197,18 @@ impl AmberCompiler {
         }
 
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        let header = include_str!("header.sh")
+        let raw_header = fs::read_to_string(
+            env::var("AMBER_HEADER")
+                .unwrap_or_default().to_string())
+            .unwrap_or(include_str!("header.sh").to_string());
+        let header = raw_header
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
             .replace("{{ date }}", now.as_str());
-        Ok(format!("{}{}", header, result))
+        let footer = fs::read_to_string(
+            env::var("AMBER_FOOTER")
+                .unwrap_or_default().to_string())
+            .unwrap_or_default();
+        Ok(format!("{}{}{}", header, result, footer))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
