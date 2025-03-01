@@ -254,7 +254,7 @@ impl TranslateModule for FunctionDeclaration {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
             let name = fragments!(raw: "{}__{}_v{}", self.name, self.id, index);
-            result.push(fragments!(name, "() {{"));
+            result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);
             }

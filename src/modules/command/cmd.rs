@@ -56,7 +56,7 @@ impl Command {
     fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> TranslationFragment {
         // Translate all interpolations
         let interps = self.interps.iter()
-            .map(|item| item.translate(meta))
+            .map(|item| item.translate(meta).unquote())
             .collect::<Vec<TranslationFragment>>();
         let failed = self.failed.translate(meta);
 
@@ -81,10 +81,10 @@ impl Command {
         }
 
         if let TranslationFragment::Empty = failed {
-            meta.gen_subprocess(translation)
+            SubprocessFragment::new(translation).to_frag()
         } else {
             let id = meta.gen_value_id();
-            let value = fragments!("$(", translation, ")");
+            let value = SubprocessFragment::new(translation).to_frag();
             let variable = meta.push_stmt_variable("__command", Some(id), Type::Text, value);
             meta.stmt_queue.push_back(failed);
             variable.to_frag()

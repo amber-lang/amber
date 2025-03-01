@@ -118,7 +118,7 @@ impl TranslationFragmentable for InterpolableFragment {
         let quote = meta.gen_quote();
         match render_type {
             InterpolableRenderType::StringLiteral => format!("{quote}{result}{quote}"),
-            InterpolableRenderType::GlobalContext => result,
+            InterpolableRenderType::GlobalContext => result.trim().to_string(),
         }
     }
 

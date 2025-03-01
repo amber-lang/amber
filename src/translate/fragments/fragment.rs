@@ -1,10 +1,5 @@
 use super::{
-    block::BlockFragment,
-    compound::CompoundFragment,
-    interpolable::InterpolableFragment,
-    list::ListFragment,
-    raw::RawFragment,
-    var::VarFragment,
+    block::BlockFragment, compound::CompoundFragment, eval::EvalFragment, interpolable::InterpolableFragment, list::ListFragment, raw::RawFragment, subprocess::SubprocessFragment, var::VarFragment
 };
 use crate::utils::TranslateMetadata;
 
@@ -21,6 +16,8 @@ pub enum TranslationFragment {
     Compound(CompoundFragment),
     Interpolable(InterpolableFragment),
     List(ListFragment),
+    Eval(EvalFragment),
+    Subprocess(SubprocessFragment),
     Empty
 }
 
@@ -42,6 +39,8 @@ impl TranslationFragmentable for TranslationFragment {
             TranslationFragment::Compound(statement) => statement.render(meta),
             TranslationFragment::Interpolable(interpolable) => interpolable.render(meta),
             TranslationFragment::List(list) => list.render(meta),
+            TranslationFragment::Eval(eval) => eval.render(meta),
+            TranslationFragment::Subprocess(subprocess) => subprocess.render(meta),
             TranslationFragment::Empty => String::new(),
         }
     }

@@ -39,7 +39,7 @@ impl TranslateModule for Text {
     fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         // Translate all interpolations
         let interps = self.interps.iter()
-            .map(|item| item.translate(meta))
+            .map(|item| item.translate(meta).unquote())
             .collect::<Vec<TranslationFragment>>();
         InterpolableFragment::new(self.strings.clone(), interps, InterpolableRenderType::StringLiteral).to_frag()
     }

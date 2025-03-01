@@ -54,7 +54,7 @@ impl TranslateModule for Neq {
         let left = self.left.translate(meta).unquote();
         let right = self.right.translate(meta).unquote();
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
-            meta.gen_subprocess(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?"))
+            SubprocessFragment::new(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?")).to_frag()
         } else {
             translate_computation(meta, ArithOp::Neq, Some(left), Some(right))
         }

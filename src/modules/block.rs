@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 use std::ops::Index;
 
-use crate::fragments;
 use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
@@ -71,10 +70,13 @@ impl TranslateModule for Block {
         // Save the current statement queue and create a new one
         let mut new_queue = VecDeque::new();
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
-        let result = if self.is_empty() {
-            fragments!(":")
-        } else {
-            let statements = self.statements.iter().map(|statement| statement.translate(meta)).collect();
+        let result = {
+            let mut statements = vec![];
+            for statement in &self.statements {
+                let statement = statement.translate(meta);
+                statements.extend(meta.stmt_queue.drain(..));
+                statements.push(statement);
+            }
             BlockFragment::new(statements, self.should_indent).to_frag()
         };
         // Restore the old statement queue

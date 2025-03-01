@@ -97,11 +97,17 @@ impl TranslateModule for Failed {
                     fragments!("fi"),
                 ], false).to_frag()
             }
-            if let TranslationFragment::Empty = block {
-                return fragments!("__status=$?")
+            match &block {
+                TranslationFragment::Empty => {
+                    return fragments!("__status=$?")
+                },
+                TranslationFragment::Block(block) if block.is_empty() => {
+                    return fragments!("__status=$?")
+                },
+                _ => {}
             }
             BlockFragment::new(vec![
-                fragments!("__status=$?;"),
+                fragments!("__status=$?"),
                 fragments!("if [ $__status != 0 ]; then"),
                 block,
                 fragments!("fi"),

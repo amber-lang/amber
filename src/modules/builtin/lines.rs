@@ -54,7 +54,7 @@ impl TranslateModule for LinesInvocation {
             .expect("Cannot read lines without provided path");
         let indent = TranslateMetadata::single_indent();
         let id = meta.gen_value_id();
-        let value = meta.push_stmt_variable("__array", Some(id), Type::array_of(Type::Text), fragments!("()"));
+        let value = meta.push_stmt_variable_lazy("__array", Some(id), Type::array_of(Type::Text), TranslationFragment::Empty);
         meta.stmt_queue.extend([
             fragments!(raw: "while IFS= read -r {temp}; do"),
             fragments!(raw: "{indent}{}+=(\"${}\")", value.get_name(), temp),

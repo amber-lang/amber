@@ -1,3 +1,4 @@
+use std::mem;
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 use crate::utils::TranslateMetadata;
 
@@ -18,25 +19,42 @@ impl BlockFragment {
     pub fn append(&mut self, statement: TranslationFragment) {
         self.statements.push(statement);
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.statements.is_empty()
+    }
 }
 
 impl TranslationFragmentable for BlockFragment {
     fn render(self, meta: &mut TranslateMetadata) -> String {
+        if self.is_empty() && self.increase_indent {
+            return ":".to_string()
+        }
         if self.increase_indent {
             meta.increase_indent();
         }
-        let mut result = String::new();
+        let mut result = vec![];
         for statement in self.statements {
-            if let TranslationFragment::Empty = statement {
-                continue;
+            match statement {
+                TranslationFragment::Empty => {
+                    continue
+                }
+                TranslationFragment::Block(block) => {
+                    result.push(block.render(meta));
+                }
+                _ => {
+                    let statement = statement.render(meta);
+                    for stmt in mem::take(&mut meta.stmt_queue) {
+                        result.push(meta.gen_indent() + &stmt.render(meta));
+                    }
+                    result.push(meta.gen_indent() + &statement);
+                }
             }
-            result.push_str(&meta.gen_indent());
-            result.push_str(&statement.render(meta));
         }
         if self.increase_indent {
             meta.decrease_indent();
         }
-        result
+        result.join("\n")
     }
 
     fn to_frag(self) -> TranslationFragment {

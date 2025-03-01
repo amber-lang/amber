@@ -5,6 +5,8 @@ pub mod raw;
 pub mod var;
 pub mod interpolable;
 pub mod list;
+pub mod eval;
+pub mod subprocess;
 
 #[macro_export]
 macro_rules! fragments {

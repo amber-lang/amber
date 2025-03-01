@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{error_type_match, fragments};
+use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
@@ -51,11 +51,9 @@ impl TranslateModule for ShorthandMul {
     //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let var = VarFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
-        let name = var.get_name();
-
         let expr = self.expr.translate_eval(meta, self.is_ref);
-        let expr = translate_computation_eval(meta, ArithOp::Mul, Some(fragments!(raw: "{}", name)), Some(expr), self.is_ref);
-        let (stmt, _var) = meta.gen_stmt_variable(&name, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);
+        let expr = translate_computation_eval(meta, ArithOp::Mul, Some(var.to_frag()), Some(expr), self.is_ref);
+        let (stmt, _var) = meta.gen_stmt_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);
         stmt
     }
 }

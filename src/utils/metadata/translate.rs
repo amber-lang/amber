@@ -7,6 +7,7 @@ use crate::fragments;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::translate::compute::ArithType;
+use crate::translate::fragments::eval::EvalFragment;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 
@@ -64,7 +65,49 @@ impl TranslateMetadata {
         var
     }
 
+    #[inline]
+    pub fn push_stmt_variable_lazy(&mut self, name: &str, id: Option<usize>, kind: Type, value: TranslationFragment) -> VarFragment {
+        let (stmt, var) = self.gen_stmt_variable_lazy(name, id, kind, false, None, "=", value);
+        self.stmt_queue.push_back(stmt);
+        var
+    }
+
     pub fn gen_stmt_variable(
+        &mut self,
+        name: &str,
+        id: Option<usize>,
+        kind: Type,
+        is_ref: bool,
+        index: Option<TranslationFragment>,
+        op: &str,
+        value: TranslationFragment
+    ) -> (TranslationFragment, VarFragment) {
+        let is_array = kind.is_array();
+        let variable = VarFragment::new(name, kind, is_ref, id);
+        let frags = {
+            let mut result = vec![];
+            match is_ref {
+                true => result.push(fragments!(raw: "${{{}}}", variable.get_name())),
+                false => result.push(fragments!(raw: "{}", variable.get_name())),
+            }
+            if let Some(index) = index {
+                result.push(fragments!("[", index, "]"));
+            }
+            result.push(fragments!(raw: "{}", op));
+            if is_array {
+                result.push(fragments!(raw: "("));
+            }
+            result.push(value);
+            if is_array {
+                result.push(fragments!(raw: ")"));
+            }
+            result
+        };
+        let stmt = CompoundFragment::new(frags).to_frag();
+        (EvalFragment::new(stmt, is_ref).to_frag(), variable)
+    }
+
+    pub fn gen_stmt_variable_lazy(
         &mut self,
         name: &str,
         id: Option<usize>,
@@ -80,25 +123,7 @@ impl TranslateMetadata {
                 (TranslationFragment::Empty, var)
             },
             _ => {
-                let variable = VarFragment::new(name, kind, is_ref, id);
-                let frags = {
-                    let mut result = vec![];
-                    if is_ref {
-                        result.push(fragments!(raw: "eval \""));
-                    }
-                    result.push(fragments!(raw: "{}", variable.get_name()));
-                    if let Some(index) = index {
-                        result.push(fragments!("[", index, "]"));
-                    }
-                    result.push(fragments!(raw: "{}", op));
-                    result.push(value);
-                    if is_ref {
-                        result.push(fragments!(raw: "\""));
-                    }
-                    result
-                };
-                let stmt = CompoundFragment::new(frags).to_frag();
-                (stmt, variable)
+                self.gen_stmt_variable(name, id, kind, is_ref, index, op, value)
             }
         }
     }
@@ -128,14 +153,6 @@ impl TranslateMetadata {
             "\\\""
         } else {
             "\""
-        }
-    }
-
-    pub fn gen_subprocess(&self, stmt: TranslationFragment) -> TranslationFragment {
-        if self.eval_ctx {
-            fragments!("$(eval \"", stmt, "\")")
-        } else {
-            fragments!("$(", stmt, ")")
         }
     }
 

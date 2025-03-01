@@ -165,11 +165,7 @@ impl TranslateModule for Statement {
             },
             _ => self.translate_match(meta, statement)
         };
-        if meta.stmt_queue.is_empty() {
-            return translated;
-        } else {
-            return BlockFragment::new(meta.stmt_queue.drain(..).collect(), false).to_frag()
-        }
+        translated
     }
 }
 

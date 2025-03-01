@@ -60,11 +60,6 @@ impl TranslateModule for Return {
             .map(FunctionMetadata::mangled_name)
             .expect("Function name and return type not set");
         let result = self.expr.translate(meta);
-        let result = if self.expr.get_type().is_array() {
-            fragments!("(", result, ")")
-        } else {
-            result
-        };
         meta.push_stmt_variable(&fun_name, None, self.expr.get_type(), result);
         fragments!("return 0")
     }

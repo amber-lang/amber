@@ -146,23 +146,22 @@ impl TranslateModule for FunctionInvocation {
 
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
             TranslationFragment::Var(var) if *is_ref => var.set_render_type(VarRenderType::BashName).to_frag(),
-            TranslationFragment::Var(var) if var.kind.is_array() => var.set_render_type(VarRenderType::BashName).to_frag(),
+            TranslationFragment::Var(var) if var.kind.is_array() => fragments!(var.set_render_type(VarRenderType::BashName).to_frag().unquote(), "[@]"),
             _ if *is_ref => panic!("Reference value accepts only variables"),
             var @ _ => var
         }).collect::<Vec<TranslationFragment>>();
         let args = ListFragment::new(args, " ").to_frag();
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
 
-        let invocation_return = &format!("__returned_{}{}_v{}", self.name, self.id, self.variant_id);
-        let invocation_instance = &format!("__returned_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+        let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
+        let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
         let parsed_invocation_return = self.get_variable(meta, invocation_return);
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        let ret_value = if self.kind.is_array() { format!("({})", parsed_invocation_return) } else { parsed_invocation_return };
-        let variable = meta.push_stmt_variable(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", ret_value));
+        let variable = meta.push_stmt_variable_lazy(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", parsed_invocation_return));
         variable.to_frag()
     }
 }

@@ -63,8 +63,8 @@ impl TranslateModule for Add {
         match self.kind {
             Type::Array(_) => {
                 let id = meta.gen_value_id();
-                let value = fragments!("(", left, " ", right, ")");
-                let var = meta.push_stmt_variable("__array_add", Some(id), self.kind.clone(), value);
+                let value = fragments!(left, " ", right);
+                let var = meta.push_stmt_variable_lazy("__array_add", Some(id), self.kind.clone(), value);
                 var.to_frag()
             },
             Type::Text => fragments!(left, right),

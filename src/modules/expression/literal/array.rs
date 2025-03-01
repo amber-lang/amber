@@ -1,5 +1,4 @@
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{try_parse_type, Type, Typed};
 use crate::modules::prelude::*;
@@ -88,7 +87,7 @@ impl TranslateModule for Array {
         let id = meta.gen_value_id();
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<TranslationFragment>>();
         let args = ListFragment::new(args, " ").to_frag();
-        let var = meta.push_stmt_variable("__array", Some(id), self.kind.clone(), fragments!("(", args, ")"));
+        let var = meta.push_stmt_variable_lazy("__array", Some(id), self.kind.clone(), args);
         var.to_frag()
     }
 }

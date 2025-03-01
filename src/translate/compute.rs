@@ -3,6 +3,8 @@ use crate::{modules::prelude::{TranslationFragment, TranslationFragmentable}, ut
 use crate::modules::prelude::*;
 use crate::fragments;
 
+use super::fragments::subprocess::SubprocessFragment;
+
 pub enum ArithType {
     BcSed
 }
@@ -62,8 +64,8 @@ pub fn translate_computation(
             };
             let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
             let operator = RawFragment::new(&format!(" '{op}' ")).to_frag();
-            let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed", sed_regex);
-            meta.gen_subprocess(value)
+            let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed '", sed_regex, "'");
+            SubprocessFragment::new(value).to_frag()
         }
     }
 }

@@ -89,13 +89,14 @@ impl VarFragment {
         if !self.is_quoted {
             self.get_name()
         } else {
-            meta.gen_quote().to_string() + &self.name + meta.gen_quote()
+            meta.gen_quote().to_string() + &self.get_name() + meta.gen_quote()
         }
     }
 
     // Returns the variable value in the bash context Ex. "$varname" or "${varname[@]}"
     pub fn render_bash_value(mut self, meta: &mut TranslateMetadata) -> String {
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+        let dollar = meta.gen_dollar();
         let name = self.get_name();
         let index = self.index.take();
 
@@ -107,11 +108,11 @@ impl VarFragment {
         }
 
         match self.kind {
-            Type::Text => {
-                format!("{quote}${{{name}}}{quote}")
+            Type::Text | Type::Array(_) => {
+                format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
             }
             _ => {
-                format!("${{{name}}}")
+                format!("{dollar}{{{prefix}{name}{suffix}}}")
             }
         }
     }
@@ -146,19 +147,32 @@ impl VarFragment {
         }
     }
 
+    fn result_is_array(&self) -> bool {
+        let is_index = matches!(*self.index, Some(VarIndexValue::Index(_)));
+        self.kind.is_array() && !self.is_length && !is_index
+    }
+
     fn render_deref_variable(self, meta: &mut TranslateMetadata, prefix: &str, name: &str, suffix: &str) -> String {
+        let arr_open = if self.result_is_array() { "(" } else { "" };
+        let arr_close = if self.result_is_array() { ")" } else { "" };
+        let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+        let dollar = meta.gen_dollar();
         if prefix.is_empty() && suffix.is_empty() {
-            let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-            return format!("{quote}${{!{name}}}{quote}");
+            return format!("{quote}{dollar}{{!{name}}}{quote}");
         }
         let id = meta.gen_value_id();
-        let eval_value = format!("{prefix}${{{name}}}{suffix}");
+        let eval_value = format!("{prefix}{dollar}{{{name}}}{suffix}");
         // TODO: Check if we can just `{name}_deref` without `__` and/or id.
         let var_name = format!("__{name}_deref_{id}");
         meta.stmt_queue.push_back(RawFragment::new(
-            &format!("eval \"local {var_name}=\\\"\\${{{eval_value}}}\\\"\"")
+            &format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
         ).to_frag());
-        format!("${var_name}")
+
+        if self.result_is_array() {
+            format!("{quote}{dollar}{{{var_name}[@]}}{quote}")
+        } else {
+            format!("{quote}{dollar}{{{var_name}}}{quote}")
+        }
     }
 }
 

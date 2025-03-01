@@ -80,7 +80,7 @@ impl TranslateModule for Ternary {
         let true_expr = self.true_expr.translate(meta);
         let false_expr = self.false_expr.translate(meta);
         let expr = fragments!("if [ ", cond, " != 0 ]; then echo ", true_expr, "; else echo ", false_expr, "; fi");
-        meta.gen_subprocess(expr)
+        SubprocessFragment::new(expr).to_frag()
     }
 }
 

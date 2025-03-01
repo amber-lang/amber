@@ -56,7 +56,7 @@ impl TranslateModule for Eq {
         let right = self.right.translate(meta).unquote();
         // Handle text comparison
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
-            meta.gen_subprocess(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?"))
+            SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
         } else {
             translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
         }

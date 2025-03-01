@@ -1,5 +1,4 @@
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
 use crate::modules::prelude::*;
 use crate::modules::types::Typed;
 use crate::modules::expression::expr::Expr;
@@ -60,10 +59,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
-        let mut expr = self.expr.translate(meta);
-        if self.expr.get_type().is_array()  {
-            expr = fragments!("(", expr, ")");
-        }
+        let expr = self.expr.translate(meta);
         let (stmt, _var) = meta.gen_stmt_variable(&self.name, self.global_id, self.expr.get_type(), false, None, "=", expr);
         stmt
     }
