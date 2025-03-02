@@ -161,7 +161,7 @@ impl VarFragment {
             return format!("{quote}{dollar}{{!{name}}}{quote}");
         }
         let id = meta.gen_value_id();
-        let eval_value = format!("{prefix}{dollar}{{{name}}}{suffix}");
+        let eval_value = format!("{prefix}${{{name}}}{suffix}");
         // TODO: Check if we can just `{name}_deref` without `__` and/or id.
         let var_name = format!("__{name}_deref_{id}");
         meta.stmt_queue.push_back(RawFragment::new(

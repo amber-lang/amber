@@ -92,7 +92,7 @@ impl InterpolableFragment {
                             InterpolableRenderType::StringLiteral => result.push('\''),
                             InterpolableRenderType::GlobalContext => result += "\\'",
                         }
-                        Some('\"') => match self.render_type {
+                        Some('"') => match self.render_type {
                             InterpolableRenderType::StringLiteral => result += "\\\"",
                             InterpolableRenderType::GlobalContext => result.push('"'),
                         }
@@ -100,7 +100,11 @@ impl InterpolableFragment {
                             InterpolableRenderType::StringLiteral => result += "\\\\",
                             InterpolableRenderType::GlobalContext => result.push('\\'),
                         }
-                        _ => result.push(c)
+                        Some(char) => match self.render_type {
+                            InterpolableRenderType::StringLiteral => result.push(*char),
+                            InterpolableRenderType::GlobalContext => result.push(*char),
+                        }
+                        None => result.push(c),
                     }
                     chars.next();
                 },
