@@ -15,23 +15,14 @@ pub struct VariableGet {
 
 impl Typed for VariableGet {
     fn get_type(&self) -> Type {
-        match (&self.kind, self.index.as_ref()) {
-            (Type::Array(kind), Some(index)) if matches!(index.value, Some(ExprType::Range(_))) => {
-                // Array type (indexing array by range)
-                Type::Array(kind.clone())
+        if let Some(index) = &*self.index {
+            match (&index.value, &self.kind) {
+                (Some(ExprType::Range(_)), _) => self.kind.clone(),
+                (Some(_), Type::Array(item_type)) => *item_type.clone(),
+                _ => self.kind.clone()
             }
-            (Type::Array(kind), Some(_)) => {
-                // Item type (indexing array by number)
-                *kind.clone()
-            }
-            (Type::Array(kind), None) => {
-                // Array type (returning array)
-                Type::Array(kind.clone())
-            }
-            (kind, _) => {
-                // Variable type (returning text or number)
-                kind.clone()
-            }
+        } else {
+            self.kind.clone()
         }
     }
 }
@@ -69,7 +60,7 @@ impl TranslateModule for VariableGet {
     fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         return VarFragment::new(
             &self.name,
-            self.kind.clone(),
+            self.get_type(),
             self.is_ref,
             self.global_id
         ).with_index(meta, *self.index.clone()).to_frag();

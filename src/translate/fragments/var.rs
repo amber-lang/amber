@@ -134,7 +134,7 @@ impl VarFragment {
                 let length = length.render(meta);
                 format!("[@]:{offset}:{length}")
             }
-            (Type::Array(_), Some(VarIndexValue::Index(index))) => {
+            (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.render(meta);
                 format!("[{index}]")
             }
@@ -147,14 +147,9 @@ impl VarFragment {
         }
     }
 
-    fn result_is_array(&self) -> bool {
-        let is_index = matches!(*self.index, Some(VarIndexValue::Index(_)));
-        self.kind.is_array() && !self.is_length && !is_index
-    }
-
     fn render_deref_variable(self, meta: &mut TranslateMetadata, prefix: &str, name: &str, suffix: &str) -> String {
-        let arr_open = if self.result_is_array() { "(" } else { "" };
-        let arr_close = if self.result_is_array() { ")" } else { "" };
+        let arr_open = if self.kind.is_array() { "(" } else { "" };
+        let arr_close = if self.kind.is_array() { ")" } else { "" };
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
         let dollar = meta.gen_dollar();
         if prefix.is_empty() && suffix.is_empty() {
@@ -168,7 +163,7 @@ impl VarFragment {
             &format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
         ).to_frag());
 
-        if self.result_is_array() {
+        if self.kind.is_array() {
             format!("{quote}{dollar}{{{var_name}[@]}}{quote}")
         } else {
             format!("{quote}{dollar}{{{var_name}}}{quote}")
