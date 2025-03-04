@@ -148,7 +148,7 @@ impl TranslateModule for FunctionInvocation {
             TranslationFragment::Var(var) if *is_ref => var.set_render_type(VarRenderType::BashName).to_frag(),
             TranslationFragment::Var(var) if var.kind.is_array() => fragments!(var.set_render_type(VarRenderType::BashName).to_frag().unquote(), "[@]"),
             _ if *is_ref => panic!("Reference value accepts only variables"),
-            var @ _ => var
+            var => var
         }).collect::<Vec<TranslationFragment>>();
         let args = ListFragment::new(args, " ").to_frag();
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
@@ -161,7 +161,7 @@ impl TranslateModule for FunctionInvocation {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        let variable = meta.push_stmt_variable_lazy(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", parsed_invocation_return));
+        let variable = meta.push_intermediate_variable_lazy(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", parsed_invocation_return));
         variable.to_frag()
     }
 }

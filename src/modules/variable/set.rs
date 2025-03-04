@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::translate::gen_intermediate_variable;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
@@ -68,7 +69,7 @@ impl TranslateModule for VariableSet {
         let name = self.name.clone();
         let index = self.index.as_ref().map(|v| v.translate(meta));
         let expr = self.expr.translate(meta);
-        let (stmt, _var) = meta.gen_stmt_variable(&name, self.global_id, self.expr.get_type(), self.is_ref, index, "=", expr);
+        let (stmt, _var) = gen_intermediate_variable(&name, self.global_id, self.expr.get_type(), self.is_ref, index, "=", expr);
         stmt
     }
 }

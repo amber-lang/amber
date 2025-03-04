@@ -158,14 +158,13 @@ impl TranslateModule for Statement {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
-        let translated = match statement {
+        match statement {
             StatementType::Expr(expr) => match &expr.value {
                 Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
                 _ => fragments!("echo ", self.translate_match(meta, statement), " > /dev/null 2>&1")
             },
             _ => self.translate_match(meta, statement)
-        };
-        translated
+        }
     }
 }
 

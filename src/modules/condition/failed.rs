@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::fragments;
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
-use crate::modules::statement::statement::Statement;
+use crate::modules::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Failed {
@@ -86,7 +86,7 @@ impl TranslateModule for Failed {
                 } else {
                     TranslationFragment::Empty
                 };
-                let ret = RawFragment::new(&ret).to_frag();
+                let ret = RawFragment::new(ret).to_frag();
                 return BlockFragment::new(vec![
                     fragments!("__status=$?;"),
                     fragments!("if [ $__status != 0 ]; then"),

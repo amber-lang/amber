@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
+use crate::{modules::prelude::*, translate::gen_intermediate_variable};
 use crate::modules::types::Typed;
 use crate::modules::expression::expr::Expr;
 use super::{variable_name_extensions, handle_identifier_name};
@@ -60,7 +60,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
         let expr = self.expr.translate(meta);
-        let (stmt, _var) = meta.gen_stmt_variable(&self.name, self.global_id, self.expr.get_type(), false, None, "=", expr);
+        let (stmt, _var) = gen_intermediate_variable(&self.name, self.global_id, self.expr.get_type(), false, None, "=", expr);
         stmt
     }
 }

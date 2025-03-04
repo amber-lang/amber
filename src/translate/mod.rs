@@ -1,6 +1,6 @@
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
-
-use crate::utils::ParserMetadata;
+use crate::{fragments, modules::types::Type, utils::ParserMetadata};
 
 pub mod module;
 pub mod fragments;
@@ -19,4 +19,61 @@ pub fn check_all_blocks(meta: &ParserMetadata) -> SyntaxResult {
         }
     }
     Ok(())
+}
+
+/// Create an intermediate variable and return it's statement and
+/// expression representing the intermediate variable.
+pub fn gen_intermediate_variable(
+    name: &str,
+    id: Option<usize>,
+    kind: Type,
+    is_ref: bool,
+    index: Option<TranslationFragment>,
+    op: &str,
+    value: TranslationFragment
+) -> (TranslationFragment, VarFragment) {
+    let is_array = kind.is_array();
+    let variable = VarFragment::new(name, kind, is_ref, id);
+    let frags = {
+        let mut result = vec![];
+        match is_ref {
+            true => result.push(fragments!(raw: "${{{}}}", variable.get_name())),
+            false => result.push(fragments!(raw: "{}", variable.get_name())),
+        }
+        if let Some(index) = index {
+            result.push(fragments!("[", index, "]"));
+        }
+        result.push(fragments!(raw: "{}", op));
+        if is_array {
+            result.push(fragments!(raw: "("));
+        }
+        result.push(value);
+        if is_array {
+            result.push(fragments!(raw: ")"));
+        }
+        result
+    };
+    let stmt = CompoundFragment::new(frags).to_frag();
+    (EvalFragment::new(stmt, is_ref).to_frag(), variable)
+}
+
+/// Create an intermediate variable only if it makes sense to do so.
+pub fn gen_intermediate_variable_lazy(
+    name: &str,
+    id: Option<usize>,
+    kind: Type,
+    is_ref: bool,
+    index: Option<TranslationFragment>,
+    op: &str,
+    value: TranslationFragment
+) -> (TranslationFragment, VarFragment) {
+    match value {
+        // If the value is already variable, then we don't need to assign it to a new variable.
+        TranslationFragment::Var(var) => {
+            (TranslationFragment::Empty, var)
+        },
+        _ => {
+            gen_intermediate_variable(name, id, kind, is_ref, index, op, value)
+        }
+    }
 }

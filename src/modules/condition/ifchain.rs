@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
-use crate::modules::statement::statement::Statement;
+use crate::modules::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {

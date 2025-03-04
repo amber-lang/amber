@@ -87,7 +87,7 @@ impl TranslateModule for Array {
         let id = meta.gen_value_id();
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<TranslationFragment>>();
         let args = ListFragment::new(args, " ").to_frag();
-        let var = meta.push_stmt_variable_lazy("__array", Some(id), self.kind.clone(), args);
+        let var = meta.push_intermediate_variable_lazy("__array", Some(id), self.kind.clone(), args);
         var.to_frag()
     }
 }

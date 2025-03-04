@@ -1,11 +1,13 @@
 /// This is a prelude module that re-exports all the necessary modules for syntax modules
-pub use crate::translate::fragments::fragment::TranslationFragmentable;
-pub use crate::translate::fragments::{
-    block::BlockFragment, compound::CompoundFragment, fragment::TranslationFragment,
-    raw::RawFragment, var::VarFragment, var::VarRenderType,
-    interpolable::InterpolableFragment, interpolable::InterpolableRenderType,
-    list::ListFragment, subprocess::SubprocessFragment
-};
-pub use crate::translate::module::TranslateModule;
 pub use crate::docs::module::DocumentationModule;
+pub use crate::translate::fragments::block::BlockFragment;
+pub use crate::translate::fragments::compound::CompoundFragment;
+pub use crate::translate::fragments::eval::EvalFragment;
+pub use crate::translate::fragments::fragment::{TranslationFragmentable, TranslationFragment};
+pub use crate::translate::fragments::interpolable::{InterpolableFragment, InterpolableRenderType};
+pub use crate::translate::fragments::list::ListFragment;
+pub use crate::translate::fragments::raw::RawFragment;
+pub use crate::translate::fragments::subprocess::SubprocessFragment;
+pub use crate::translate::fragments::var::{VarFragment, VarRenderType};
+pub use crate::translate::module::TranslateModule;
 pub use crate::utils::{ParserMetadata, TranslateMetadata};

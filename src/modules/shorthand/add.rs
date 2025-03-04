@@ -4,6 +4,7 @@ use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
+use crate::translate::gen_intermediate_variable;
 use crate::translate::{compute::ArithOp, module::TranslateModule};
 use crate::modules::types::{Type, Typed};
 
@@ -54,13 +55,13 @@ impl TranslateModule for ShorthandAdd {
         match self.kind {
             Type::Text | Type::Array(_) => {
                 let expr = self.expr.translate_eval(meta, self.is_ref);
-                let (stmt, _var) = meta.gen_stmt_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "+=", expr);
+                let (stmt, _var) = gen_intermediate_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "+=", expr);
                 stmt
             }
             _ => {
                 let expr = self.expr.translate_eval(meta, self.is_ref);
                 let expr = translate_computation_eval(meta, ArithOp::Add, Some(var.to_frag()), Some(expr), self.is_ref);
-                let (stmt, _var) = meta.gen_stmt_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);
+                let (stmt, _var) = gen_intermediate_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);
                 stmt
             }
         }

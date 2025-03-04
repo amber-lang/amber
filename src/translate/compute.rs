@@ -36,8 +36,8 @@ pub fn translate_computation(
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (
-                left.unwrap_or_else(|| TranslationFragment::Empty),
-                right.unwrap_or_else(|| TranslationFragment::Empty)
+                left.unwrap_or(TranslationFragment::Empty),
+                right.unwrap_or(TranslationFragment::Empty)
             );
             let mut math_lib_flag = true;
             // Removes trailing zeros from the expression

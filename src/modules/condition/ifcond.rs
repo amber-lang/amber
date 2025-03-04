@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
-use crate::modules::statement::statement::{Statement, StatementType};
+use crate::modules::statement::stmt::{Statement, StatementType};
 use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]

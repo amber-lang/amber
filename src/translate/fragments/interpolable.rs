@@ -34,24 +34,16 @@ impl InterpolableFragment {
 
     pub fn render_interpolated_region(mut self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
-        loop {
-            match self.strings.pop_front() {
-                Some(string) => {
-                    result.push(self.translate_escaped_string(string));
+        while let Some(string) = self.strings.pop_front() {
+            result.push(self.translate_escaped_string(string));
+            if let Some(translated) = self.interps.pop_front() {
+                // Quotes inside of interpolable strings are not necessary
+                if let TranslationFragment::Interpolable(mut interpolable) = translated {
+                    interpolable = interpolable.set_render_type(InterpolableRenderType::GlobalContext);
+                    result.push(interpolable.render(meta));
+                } else {
+                    result.push(translated.render(meta));
                 }
-                None => break
-            }
-            match self.interps.pop_front() {
-                Some(translated) => {
-                    // Quotes inside of interpolable strings are not necessary
-                    if let TranslationFragment::Interpolable(mut interpolable) = translated {
-                        interpolable = interpolable.set_render_type(InterpolableRenderType::GlobalContext);
-                        result.push(interpolable.render(meta));
-                    } else {
-                        result.push(translated.render(meta));
-                    }
-                }
-                None => break
             }
         }
         result.join("")

@@ -4,7 +4,7 @@ use std::ops::Index;
 use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use super::statement::statement::Statement;
+use super::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
