@@ -77,14 +77,12 @@ impl Import {
                     format!("Standard library module '{}' does not exist", self.path.value))
             }
         } else {
-            match fs::read_to_string(self.path.value.clone()) {
-                Ok(content) => return Ok(content),
-                Err(_) => ()
+            if let Ok(content) = fs::read_to_string(&self.path.value) {
+                return Ok(content);
             }
-            for path in meta.context.import_paths.clone() {
-                match fs::read_to_string(path.join(self.path.value.clone())) {
-                    Ok(content) => return Ok(content),
-                    Err(_) => ()
+            for path in &meta.context.import_paths {
+                if let Ok(content) = fs::read_to_string(path.join(&self.path.value)) {
+                    return Ok(content);
                 }
             }
             error!(meta, self.token_path.clone() => {
