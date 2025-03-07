@@ -259,7 +259,7 @@ impl TranslateModule for FunctionDeclaration {
                 result.push(args);
             }
             result.push(function.block.translate(meta));
-            result.push(fragments!("}"));
+            result.push(fragments!("}\n"));
         }
         // Restore the function name
         meta.fun_meta = prev_fun_meta;

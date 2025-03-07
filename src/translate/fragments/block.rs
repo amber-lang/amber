@@ -16,7 +16,7 @@ impl BlockFragment {
         BlockFragment {
             statements,
             increase_indent,
-            needs_noop: false
+            needs_noop: false,
         }
     }
 
@@ -47,7 +47,11 @@ impl TranslationFragmentable for BlockFragment {
                     continue
                 }
                 TranslationFragment::Block(block) => {
-                    result.push(block.render(meta));
+                    let rendered = block.render(meta);
+                    if rendered.is_empty() {
+                        continue;
+                    }
+                    result.push(rendered);
                 }
                 _ => {
                     let statement = statement.render(meta);
