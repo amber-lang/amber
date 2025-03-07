@@ -25,7 +25,7 @@ impl InterpolableFragment {
             strings: VecDeque::from_iter(strings),
             interps: VecDeque::from_iter(interps),
             render_type,
-            quoted: false,
+            quoted: true,
         }
     }
 
