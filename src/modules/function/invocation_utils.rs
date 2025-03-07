@@ -47,7 +47,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
         }
     }
     let mut context = meta.fun_cache.get_context(fun.id).unwrap().clone();
-    let mut block = Block::new();
+    let mut block = Block::new().needs_noop();
     // Swap the contexts to use the function context
     meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables

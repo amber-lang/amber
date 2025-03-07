@@ -9,7 +9,8 @@ use super::statement::stmt::Statement;
 #[derive(Debug, Clone)]
 pub struct Block {
     pub statements: Vec<Statement>,
-    pub should_indent: bool
+    pub should_indent: bool,
+    pub translate_needs_noop: bool,
 }
 
 impl Block {
@@ -21,6 +22,11 @@ impl Block {
     // Push a parsed statement into the block
     pub fn push_statement(&mut self, statement: Statement) {
         self.statements.push(statement);
+    }
+
+    pub fn needs_noop(mut self) -> Self {
+        self.translate_needs_noop = true;
+        self
     }
 
     pub fn no_indent(mut self) -> Self {
@@ -35,7 +41,8 @@ impl SyntaxModule<ParserMetadata> for Block {
     fn new() -> Self {
         Block {
             statements: vec![],
-            should_indent: true
+            should_indent: true,
+            translate_needs_noop: false,
         }
     }
 
@@ -77,7 +84,9 @@ impl TranslateModule for Block {
                 statements.extend(meta.stmt_queue.drain(..));
                 statements.push(statement);
             }
-            BlockFragment::new(statements, self.should_indent).to_frag()
+            BlockFragment::new(statements, self.should_indent)
+                .set_needs_noop(self.translate_needs_noop)
+                .to_frag()
         };
         // Restore the old statement queue
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);

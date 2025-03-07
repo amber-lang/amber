@@ -2,24 +2,30 @@ use crate::utils::TranslateMetadata;
 
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 
+/// Represents a list of fragments that can be separated by a given separator.
+
 #[derive(Debug, Clone)]
 pub struct ListFragment {
-    pub value: Vec<TranslationFragment>,
+    pub values: Vec<TranslationFragment>,
     pub separator: String,
 }
 
 impl ListFragment {
     pub fn new(value: Vec<TranslationFragment>, separator: &str) -> Self {
         ListFragment {
-            value,
+            values: value,
             separator: separator.to_string(),
         }
+    }
+
+    pub fn is_empty_logic(&self) -> bool {
+        self.values.iter().all(|fragment| fragment.is_empty_logic())
     }
 }
 
 impl TranslationFragmentable for ListFragment {
     fn render(self, meta: &mut TranslateMetadata) -> String {
-        self.value.into_iter().map(|x| x.render(meta)).collect::<Vec<String>>().join(&self.separator)
+        self.values.into_iter().map(|x| x.render(meta)).collect::<Vec<String>>().join(&self.separator)
     }
 
     fn to_frag(self) -> TranslationFragment {

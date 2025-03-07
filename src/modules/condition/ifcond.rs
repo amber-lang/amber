@@ -34,7 +34,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
     fn new() -> Self {
         IfCondition {
             expr: Box::new(Expr::new()),
-            true_block: Box::new(Block::new()),
+            true_block: Box::new(Block::new().needs_noop()),
             false_block: None
         }
     }
@@ -60,7 +60,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         if token(meta, "else").is_ok() {
             match token(meta, "{") {
                 Ok(_) => {
-                    let mut false_block = Box::new(Block::new());
+                    let mut false_block = Box::new(Block::new().needs_noop());
                     let tok = meta.get_current_token();
                     syntax(meta, &mut *false_block)?;
                     // Check if the statement is using if chain syntax sugar

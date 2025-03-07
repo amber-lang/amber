@@ -1,6 +1,8 @@
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 use crate::utils::TranslateMetadata;
 
+// Creates a subprocess fragment that is correctly escaped.
+
 #[derive(Debug, Clone)]
 pub struct SubprocessFragment {
     pub fragment: Box<TranslationFragment>,

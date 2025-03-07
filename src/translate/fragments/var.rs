@@ -2,6 +2,8 @@ use crate::modules::prelude::*;
 use crate::{modules::{expression::expr::{Expr, ExprType}, prelude::RawFragment, types::Type}, utils::TranslateMetadata};
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 
+/// Represents a variable expression such as `$var` or `${var}`
+
 #[derive(Debug, Clone)]
 pub enum VarRenderType {
     Name,

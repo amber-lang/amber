@@ -101,7 +101,7 @@ impl TranslateModule for Failed {
                 TranslationFragment::Empty => {
                     return fragments!("__status=$?")
                 },
-                TranslationFragment::Block(block) if block.is_empty() => {
+                TranslationFragment::Block(block) if block.statements.is_empty() => {
                     return fragments!("__status=$?")
                 },
                 _ => {}

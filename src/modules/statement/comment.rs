@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{fragments, modules::prelude::*};
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Comment {
@@ -27,7 +27,7 @@ impl TranslateModule for Comment {
         if meta.minify {
             TranslationFragment::Empty
         } else {
-            fragments!(raw: "# {}", self.value)
+            CommentFragment::new(&self.value).to_frag()
         }
     }
 }

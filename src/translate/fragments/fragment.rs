@@ -1,5 +1,13 @@
 use super::{
-    block::BlockFragment, compound::CompoundFragment, eval::EvalFragment, interpolable::InterpolableFragment, list::ListFragment, raw::RawFragment, subprocess::SubprocessFragment, var::VarFragment
+    block::BlockFragment,
+    comment::CommentFragment,
+    compound::CompoundFragment,
+    eval::EvalFragment,
+    interpolable::InterpolableFragment,
+    list::ListFragment,
+    raw::RawFragment,
+    subprocess::SubprocessFragment,
+    var::VarFragment
 };
 use crate::utils::TranslateMetadata;
 
@@ -18,6 +26,7 @@ pub enum TranslationFragment {
     List(ListFragment),
     Eval(EvalFragment),
     Subprocess(SubprocessFragment),
+    Comment(CommentFragment),
     Empty
 }
 
@@ -27,6 +36,17 @@ impl TranslationFragment {
             TranslationFragment::Var(var) => TranslationFragment::Var(var.set_quoted(false)),
             TranslationFragment::Interpolable(inter) => TranslationFragment::Interpolable(inter.set_quoted(false)),
             _ => self,
+        }
+    }
+
+    pub fn is_empty_logic(&self) -> bool {
+        match self {
+            TranslationFragment::Empty => true,
+            TranslationFragment::Comment(_) => true,
+            TranslationFragment::Block(block) => block.is_empty_logic(),
+            TranslationFragment::List(list) => list.is_empty_logic(),
+            TranslationFragment::Compound(compound) => compound.is_empty_logic(),
+            _ => false,
         }
     }
 }
@@ -43,6 +63,7 @@ impl TranslationFragmentable for TranslationFragment {
             TranslationFragment::Eval(eval) => eval.render(meta),
             TranslationFragment::Subprocess(subprocess) => subprocess.render(meta),
             TranslationFragment::Empty => String::new(),
+            TranslationFragment::Comment(comment) => comment.render(meta),
         }
     }
 

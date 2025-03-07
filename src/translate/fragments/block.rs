@@ -2,10 +2,13 @@ use std::mem;
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 use crate::utils::TranslateMetadata;
 
+/// Renders blocks of statements in Bash code.
+
 #[derive(Debug, Clone)]
 pub struct BlockFragment {
     pub statements: Vec<TranslationFragment>,
     pub increase_indent: bool,
+    pub needs_noop: bool,
 }
 
 impl BlockFragment {
@@ -13,23 +16,27 @@ impl BlockFragment {
         BlockFragment {
             statements,
             increase_indent,
+            needs_noop: false
         }
+    }
+
+    pub fn set_needs_noop(mut self, needs_noop: bool) -> Self {
+        self.needs_noop = needs_noop;
+        self
     }
 
     pub fn append(&mut self, statement: TranslationFragment) {
         self.statements.push(statement);
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.statements.is_empty()
+    pub fn is_empty_logic(&self) -> bool {
+        self.statements.iter().all(|fragment| fragment.is_empty_logic())
     }
 }
 
 impl TranslationFragmentable for BlockFragment {
     fn render(self, meta: &mut TranslateMetadata) -> String {
-        if self.is_empty() && self.increase_indent {
-            return ":".to_string()
-        }
+        let empty_logic = self.is_empty_logic();
         if self.increase_indent {
             meta.increase_indent();
         }
@@ -50,6 +57,9 @@ impl TranslationFragmentable for BlockFragment {
                     result.push(meta.gen_indent() + &statement);
                 }
             }
+        }
+        if empty_logic && self.needs_noop {
+            result.push(meta.gen_indent() + ":");
         }
         if self.increase_indent {
             meta.decrease_indent();

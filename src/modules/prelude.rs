@@ -1,6 +1,7 @@
 /// This is a prelude module that re-exports all the necessary modules for syntax modules
 pub use crate::docs::module::DocumentationModule;
 pub use crate::translate::fragments::block::BlockFragment;
+pub use crate::translate::fragments::comment::CommentFragment;
 pub use crate::translate::fragments::compound::CompoundFragment;
 pub use crate::translate::fragments::eval::EvalFragment;
 pub use crate::translate::fragments::fragment::{TranslationFragmentable, TranslationFragment};

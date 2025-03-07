@@ -1,6 +1,9 @@
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 use crate::utils::TranslateMetadata;
 
+/// This module represents an eval string fragment.
+/// Inside of an eval string, translation fragments are properly escaped.
+
 #[derive(Debug, Clone)]
 pub struct EvalFragment {
     pub fragment: Box<TranslationFragment>,

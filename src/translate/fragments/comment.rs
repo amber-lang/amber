@@ -1,29 +1,27 @@
 use crate::utils::TranslateMetadata;
-
 use super::fragment::{TranslationFragment, TranslationFragmentable};
 
-/// This module represents a raw code fragment in Bash.
-/// It is used to render code fragments that do not require any further processing.
+/// Represents a comment fragment in the translation process.
 
 #[derive(Debug, Clone)]
-pub struct RawFragment {
+pub struct CommentFragment {
     pub value: String,
 }
 
-impl RawFragment {
+impl CommentFragment {
     pub fn new(value: &str) -> Self {
-        RawFragment {
+        CommentFragment {
             value: value.to_string(),
         }
     }
 }
 
-impl TranslationFragmentable for RawFragment {
+impl TranslationFragmentable for CommentFragment {
     fn render(self, _meta: &mut TranslateMetadata) -> String {
-        self.value
+        "# ".to_string() + &self.value
     }
 
     fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Raw(self)
+        TranslationFragment::Comment(self)
     }
 }

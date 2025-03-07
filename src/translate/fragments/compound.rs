@@ -1,6 +1,9 @@
 use crate::translate::fragments::fragment::TranslationFragmentable;
 use crate::{translate::fragments::fragment::TranslationFragment, utils::TranslateMetadata};
 
+/// This module represents a Bash code fragment that is composed of multiple parts.
+/// The sole purpose of this module is to bundle multiple `TranslationFragment` instances into a single fragment.
+
 #[derive(Debug, Clone)]
 pub struct CompoundFragment {
     fragments: Vec<TranslationFragment>,
@@ -9,6 +12,10 @@ pub struct CompoundFragment {
 impl CompoundFragment {
     pub fn new(frags: Vec<TranslationFragment>) -> Self {
         CompoundFragment { fragments: frags }
+    }
+
+    pub fn is_empty_logic(&self) -> bool {
+        self.fragments.iter().all(|fragment| fragment.is_empty_logic())
     }
 }
 
