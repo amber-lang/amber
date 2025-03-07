@@ -25,6 +25,7 @@ impl TranslationFragment {
     pub fn unquote(self) -> Self {
         match self {
             TranslationFragment::Var(var) => TranslationFragment::Var(var.set_quoted(false)),
+            TranslationFragment::Interpolable(inter) => TranslationFragment::Interpolable(inter.set_quoted(false)),
             _ => self,
         }
     }

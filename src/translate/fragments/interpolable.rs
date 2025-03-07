@@ -16,6 +16,7 @@ pub struct InterpolableFragment {
     pub strings: VecDeque<String>,
     pub interps: VecDeque<TranslationFragment>,
     pub render_type: InterpolableRenderType,
+    pub quoted: bool,
 }
 
 impl InterpolableFragment {
@@ -24,11 +25,17 @@ impl InterpolableFragment {
             strings: VecDeque::from_iter(strings),
             interps: VecDeque::from_iter(interps),
             render_type,
+            quoted: false,
         }
     }
 
     pub fn set_render_type(mut self, render_type: InterpolableRenderType) -> Self {
         self.render_type = render_type;
+        self
+    }
+
+    pub fn set_quoted(mut self, quoted: bool) -> Self {
+        self.quoted = quoted;
         self
     }
 
@@ -109,8 +116,8 @@ impl InterpolableFragment {
 impl TranslationFragmentable for InterpolableFragment {
     fn render(self, meta: &mut TranslateMetadata) -> String {
         let render_type = self.render_type.clone();
+        let quote = if self.quoted { meta.gen_quote() } else { "" };
         let result = self.render_interpolated_region(meta);
-        let quote = meta.gen_quote();
         match render_type {
             InterpolableRenderType::StringLiteral => format!("{quote}{result}{quote}"),
             InterpolableRenderType::GlobalContext => result.trim().to_string(),
