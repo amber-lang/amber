@@ -72,7 +72,7 @@ impl TranslateModule for Range {
             }
         };
         let expr = fragments!("seq ", from, " ", to);
-        SubprocessFragment::new(expr).to_frag()
+        SubprocessFragment::new(expr).set_quoted(false).to_frag()
     }
 }
 

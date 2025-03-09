@@ -152,17 +152,20 @@ impl TranslateModule for FunctionInvocation {
         }).collect::<Vec<TranslationFragment>>();
         let args = ListFragment::new(args, " ").to_frag();
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
-
-        let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-        let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-        let parsed_invocation_return = self.get_variable(meta, invocation_return);
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        let variable = meta.push_intermediate_variable_lazy(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", parsed_invocation_return));
-        variable.to_frag()
+        if self.kind != Type::Null {
+            let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
+            let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+            let parsed_invocation_return = self.get_variable(meta, invocation_return);
+            let variable = meta.push_intermediate_variable_lazy(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", parsed_invocation_return));
+            variable.to_frag()
+        } else {
+            fragments!("''")
+        }
     }
 }
 

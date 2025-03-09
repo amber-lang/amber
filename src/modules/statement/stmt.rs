@@ -9,7 +9,7 @@ use crate::modules::variable::{
     set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
-use crate::{fragments, handle_types};
+use crate::handle_types;
 use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition,
@@ -161,7 +161,10 @@ impl TranslateModule for Statement {
         match statement {
             StatementType::Expr(expr) => match &expr.value {
                 Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
-                _ => fragments!("echo ", self.translate_match(meta, statement), " > /dev/null 2>&1")
+                _ => {
+                    self.translate_match(meta, statement);
+                    TranslationFragment::Empty
+                }
             },
             _ => self.translate_match(meta, statement)
         }

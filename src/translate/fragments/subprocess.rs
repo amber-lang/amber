@@ -6,23 +6,31 @@ use crate::utils::TranslateMetadata;
 #[derive(Debug, Clone)]
 pub struct SubprocessFragment {
     pub fragment: Box<TranslationFragment>,
+    pub quoted: bool,
 }
 
 impl SubprocessFragment {
     pub fn new(fragment: TranslationFragment) -> Self {
         SubprocessFragment {
             fragment: Box::new(fragment),
+            quoted: true,
         }
+    }
+
+    pub fn set_quoted(mut self, quoted: bool) -> Self {
+        self.quoted = quoted;
+        self
     }
 }
 
 impl TranslationFragmentable for SubprocessFragment {
     fn render(self, meta: &mut TranslateMetadata) -> String {
         let result = self.fragment.render(meta);
+        let quote = if self.quoted { meta.gen_quote() } else { "" };
         if meta.eval_ctx {
-            format!("$(eval \"{}\")", result)
+            format!("{quote}$(eval \"{}\"){quote}", result)
         } else {
-            format!("$({})", result)
+            format!("{quote}$({}){quote}", result)
         }
     }
 
