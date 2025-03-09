@@ -88,10 +88,15 @@ impl VarFragment {
 
     // Returns the variable name in the bash context Ex. "varname"
     pub fn render_bash_name(self, meta: &mut TranslateMetadata) -> String {
+        let dollar = meta.gen_dollar();
+        let name = self.get_name();
+        // Dereference variable if it's a reference and is passed by reference
+        let result = if self.is_ref { format!("{dollar}{name}") } else { name };
+
         if !self.is_quoted {
-            self.get_name()
+            result
         } else {
-            meta.gen_quote().to_string() + &self.get_name() + meta.gen_quote()
+            meta.gen_quote().to_string() + &result + meta.gen_quote()
         }
     }
 

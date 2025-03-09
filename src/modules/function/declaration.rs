@@ -41,12 +41,7 @@ impl FunctionDeclaration {
             for (index, (name, kind, is_ref)) in izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate() {
                 match (is_ref, kind) {
                     (false, Type::Array(_)) => result.push(fragments!(raw: "local {name}=(\"${{!{}}}\")", index + 1)),
-                    (true, Type::Array(_)) => {
-                        result.push(fragments!(raw: "local __AMBER_ARRAY_{name}=\"${}[@]\"", index + 1));
-                        result.push(fragments!(raw: "local {name}=${}", index + 1))
-                    },
-                    // _ => result.push(RawFragment::new(!("local {name}=${}", index + 1))
-                    _ => result.push(fragments!(raw: "local {name}=${}", index + 1))
+                    _ => result.push(fragments!(raw: "local {name}=${}", index + 1)),
                 }
             }
             Some(BlockFragment::new(result, true).to_frag())

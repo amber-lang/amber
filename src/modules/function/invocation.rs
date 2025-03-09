@@ -8,7 +8,7 @@ use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use super::invocation_utils::*;
 
 #[derive(Debug, Clone)]
@@ -93,9 +93,12 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             }
 
             let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-            let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
+            let var_refs = self.args.iter().map(|e| match &e.value {
+                Some(ExprType::VariableGet(var)) => !var.is_variable_modified(),
+                _ => false,
+            }).collect::<Vec<bool>>();
             self.refs.clone_from(&function_unit.arg_refs);
-            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_names, tok.clone())?;
+            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
 
             self.is_failable = function_unit.is_failable;
             if self.is_failable {

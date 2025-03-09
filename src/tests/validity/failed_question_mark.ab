@@ -1,0 +1,11 @@
+// Output
+// Failed with error 127
+
+fun foo() {
+    silent $ you_do_not_have_this $?
+    echo "This should never happen"
+}
+
+echo foo() failed {
+    echo "Failed with error {status}"
+}

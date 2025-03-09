@@ -120,10 +120,6 @@ impl Expr {
         let pos = self.get_position(meta);
         Message::new_err_at_position(meta, pos)
     }
-
-    pub fn is_var(&self) -> bool {
-        matches!(self.value, Some(ExprType::VariableGet(_)))
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {

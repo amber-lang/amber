@@ -1,0 +1,8 @@
+// Output
+// \/
+// \p
+// \z
+
+echo "\/"
+echo "\p"
+echo "\z"

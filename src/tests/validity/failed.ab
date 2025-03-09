@@ -7,9 +7,9 @@ let requirements = [true, true, true]
 
 main {
     silent {
-        $ make -v $ failed: requirements[0] = false
-        $ gcc -v $ failed: requirements[1] = false
-        $ you don\'t have this $ failed: requirements[2] = false
+        $ seq 1 $ failed: requirements[0] = false
+        $ ls $ failed: requirements[1] = false
+        $ you_do_not_have_this $ failed: requirements[2] = false
     }
 
     if math_sum(requirements as [Num]) == 3 {
