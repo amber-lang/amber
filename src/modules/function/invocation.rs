@@ -149,7 +149,7 @@ impl TranslateModule for FunctionInvocation {
         if self.kind != Type::Null {
             let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
             let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-            let parsed_invocation_return = VarFragment::new(&invocation_return, self.kind.clone(), false, None).to_frag();
+            let parsed_invocation_return = VarFragment::new(invocation_return, self.kind.clone(), false, None).to_frag();
             let variable = meta.push_intermediate_variable(invocation_instance, None, self.kind.clone(), parsed_invocation_return);
             variable.to_frag()
         } else {
