@@ -76,11 +76,18 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+        let is_array = self.true_expr.get_type().is_array();
         let cond = self.cond.translate(meta);
         let true_expr = self.true_expr.translate(meta);
         let false_expr = self.false_expr.translate(meta);
         let expr = fragments!("if [ ", cond, " != 0 ]; then echo ", true_expr, "; else echo ", false_expr, "; fi");
-        SubprocessFragment::new(expr).set_quoted(false).to_frag()
+        if is_array {
+            let id = meta.gen_value_id();
+            let value = SubprocessFragment::new(expr).set_quoted(false).to_frag();
+            meta.push_intermediate_variable("__ternary", Some(id), self.true_expr.get_type(), value).to_frag()
+        } else {
+            SubprocessFragment::new(expr).to_frag()
+        }
     }
 }
 
