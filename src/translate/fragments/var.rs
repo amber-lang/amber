@@ -119,7 +119,7 @@ impl VarFragment {
                 format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
             }
             _ => {
-                format!("{dollar}{{{prefix}{name}{suffix}}}")
+                format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
             }
         }
     }

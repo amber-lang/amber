@@ -121,22 +121,8 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                     meta.add_message(message);
                 }
             }
-
             Ok(())
         })
-    }
-}
-
-impl FunctionInvocation {
-    fn get_variable(&self, meta: &TranslateMetadata, name: &str) -> String {
-        let quote = meta.gen_quote();
-        if matches!(self.kind, Type::Array(_)) {
-            format!("{quote}${{{name}[@]}}{quote}")
-        } else if matches!(self.kind, Type::Text) {
-            format!("{quote}${{{name}}}{quote}")
-        } else {
-            format!("{quote}${name}{quote}")
-        }
     }
 }
 
@@ -163,8 +149,8 @@ impl TranslateModule for FunctionInvocation {
         if self.kind != Type::Null {
             let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
             let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-            let parsed_invocation_return = self.get_variable(meta, invocation_return);
-            let variable = meta.push_intermediate_variable_lazy(invocation_instance, None, self.kind.clone(), fragments!(raw: "{}", parsed_invocation_return));
+            let parsed_invocation_return = VarFragment::new(&invocation_return, self.kind.clone(), false, None).to_frag();
+            let variable = meta.push_intermediate_variable(invocation_instance, None, self.kind.clone(), parsed_invocation_return);
             variable.to_frag()
         } else {
             fragments!("''")
