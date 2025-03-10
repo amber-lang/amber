@@ -9,11 +9,13 @@ use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use wildmatch::WildMatchPattern;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::{ErrorKind, Write};
+use std::iter::once;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
@@ -211,7 +213,7 @@ impl AmberCompiler {
         Ok(format!("{}{}{}", header, result, footer))
     }
 
-    pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
+    pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
         let base_path = meta.get_path()
             .map(PathBuf::from)
             .expect("Input file must exist in docs generation");
@@ -235,38 +237,43 @@ impl AmberCompiler {
                     Ok(path) => path,
                     Err(_) => continue,
                 };
-
                 if !dep_path.starts_with(&base_dir) {
                     continue;
                 }
-
                 dep_path
             };
             let document = block.document(&meta);
-            // Save to file; replace the base directory if the output
-            // path is absolute, otherwise append the output path.
-            let dir_path = {
-                let file_path = dep_path.strip_prefix(&base_dir).unwrap();
-                let file_dir = file_path.parent().unwrap();
-                base_dir.join(&output).join(file_dir)
-            };
-            if let Err(err) = fs::create_dir_all(dir_path.clone()) {
-                Message::new_err_msg(format!(
-                    "Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display()
-                ))
-                .comment(err.to_string())
-                .show();
-                std::process::exit(1);
+            // Check if an output directory was specified.
+            if let Some(output) = &output {
+                // Save to file; replace the base directory if the output
+                // path is absolute, otherwise append the output path.
+                let dir_path = {
+                    let file_path = dep_path.strip_prefix(&base_dir).unwrap();
+                    let file_dir = file_path.parent().unwrap();
+                    base_dir.join(output).join(file_dir)
+                };
+                if let Err(err) = fs::create_dir_all(dir_path.clone()) {
+                    let message = format!("Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display());
+                    Message::new_err_msg(message)
+                        .comment(err.to_string())
+                        .show();
+                    std::process::exit(1);
+                }
+                let filename = dep_path.file_stem().unwrap().to_string_lossy();
+                let path = dir_path.join(format!("{filename}.md"));
+                let mut file = File::create(path.clone()).unwrap();
+                file.write_all(document.as_bytes()).unwrap();
+                paths.push(String::from(path.to_string_lossy()));
+            } else {
+                // Write to standard output.
+                std::io::stdout().write_all(document.as_bytes()).unwrap();
             }
-            let filename = dep_path.file_stem().unwrap().to_string_lossy();
-            let path = dir_path.join(format!("{filename}.md"));
-            let mut file = File::create(path.clone()).unwrap();
-            file.write_all(document.as_bytes()).unwrap();
-            paths.push(String::from(path.to_string_lossy()));
         }
-        let file_text = if paths.len() > 1 { "Files" } else { "File" };
-        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
-            .show();
+        if !paths.is_empty() {
+            let files = if paths.len() > 1 { "Files" } else { "File" };
+            let message = once(format!("{files} generated at:")).chain(paths).join("\n");
+            Message::new_info_msg(message).show();
+        }
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
@@ -293,7 +300,7 @@ impl AmberCompiler {
         }
     }
 
-    pub fn generate_docs(&self, output: String, usage: bool) -> Result<(), Message> {
+    pub fn generate_docs(&self, output: Option<String>, usage: bool) -> Result<(), Message> {
         let tokens = self.tokenize()?;
         let (block, mut meta) = self.parse(tokens)?;
         meta.doc_usage = usage;
