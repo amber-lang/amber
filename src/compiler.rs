@@ -199,17 +199,29 @@ impl AmberCompiler {
         }
 
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        let raw_header = fs::read_to_string(
-            env::var("AMBER_HEADER")
-                .unwrap_or_default().to_string())
-            .unwrap_or(include_str!("header.sh").to_string());
-        let header = raw_header
+        
+        let header_template = 
+            if let Ok(dynamic) = env::var("AMBER_HEADER") {
+                fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from {dynamic}").as_str())
+            } else {
+                include_str!("header.sh").to_string()
+            };
+        
+        let footer_template = 
+            if let Ok(dynamic) = env::var("AMBER_FOOTER") {
+                fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic footer file from {dynamic}").as_str())
+            } else {
+                String::new()
+            };
+        
+        let header = header_template
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
             .replace("{{ date }}", now.as_str());
-        let footer = fs::read_to_string(
-            env::var("AMBER_FOOTER")
-                .unwrap_or_default().to_string())
-            .unwrap_or_default();
+        
+        let footer = footer_template
+            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+            .replace("{{ date }}", now.as_str());
+        
         Ok(format!("{}{}{}", header, result, footer))
     }
 
