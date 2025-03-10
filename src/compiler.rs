@@ -222,7 +222,7 @@ impl AmberCompiler {
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
             .replace("{{ date }}", now.as_str());
         
-        Ok(format!("{}{}{}", header, result, footer))
+        Ok(format!("{}\n{}\n{}", header, result, footer))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
