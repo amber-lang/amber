@@ -49,6 +49,10 @@ use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::builtin::nameof::Nameof;
 use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
+use crate::modules::builtin::cli::getopt::GetoptCli;
+use crate::modules::builtin::cli::param::ParamCli;
+use crate::modules::builtin::cli::parser::ParserCli;
+use crate::utils::payload::Payload;
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
@@ -73,6 +77,9 @@ pub enum ExprType {
     Neq(Neq),
     Not(Not),
     Ternary(Ternary),
+    ParserCli(ParserCli),
+    ParamCli(ParamCli),
+    GetoptCli(GetoptCli),
     LinesInvocation(LinesInvocation),
     FunctionInvocation(FunctionInvocation),
     Command(Command),
@@ -101,14 +108,6 @@ impl Typed for Expr {
 }
 
 impl Expr {
-    pub fn get_integer_value(&self) -> Option<isize> {
-        match &self.value {
-            Some(ExprType::Number(value)) => value.get_integer_value(),
-            Some(ExprType::Neg(value)) => value.get_integer_value(),
-            _ => None,
-        }
-    }
-
     pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
         let begin = meta.get_token_at(self.pos.0);
         let end = meta.get_token_at(self.pos.1);
@@ -124,11 +123,43 @@ impl Expr {
         matches!(self.value, Some(ExprType::VariableGet(_)))
     }
 
-    // Get the variable name if the expression is a variable access
-    pub fn get_var_translated_name(&self) -> Option<String> {
+    // Get the translated variable name for Bash output
+    pub fn get_translated_name(&self) -> Option<String> {
         match &self.value {
             Some(ExprType::VariableGet(var)) => Some(var.get_translated_name()),
-            _ => None
+            _ => None,
+        }
+    }
+
+    // Get the original variable name for variable lookup
+    pub fn get_original_name(&self) -> Option<String> {
+        match &self.value {
+            Some(ExprType::VariableGet(var)) => Some(var.name.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn get_integer_value(&self) -> Option<isize> {
+        match &self.value {
+            Some(ExprType::Bool(value)) => value.get_integer_value(),
+            Some(ExprType::Number(value)) => value.get_integer_value(),
+            Some(ExprType::Neg(value)) => value.get_integer_value(),
+            _ => None,
+        }
+    }
+
+    pub fn get_literal_text(&self) -> Option<String> {
+        match &self.value {
+            Some(ExprType::Text(text)) => text.get_literal_text(),
+            _ => None,
+        }
+    }
+
+    pub fn get_payload(&self) -> Option<Payload> {
+        match &self.value {
+            Some(ExprType::ParserCli(parser)) => parser.get_payload(),
+            Some(ExprType::ParamCli(param)) => param.get_payload(),
+            _ => None,
         }
     }
 }
@@ -160,6 +191,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 // Literals
                 Parentheses, Bool, Number, Text,
                 Array, Null, Status, Nameof,
+                // Command line parser
+                ParserCli, ParamCli, GetoptCli,
                 // Builtin invocation
                 LinesInvocation,
                 // Function invocation
@@ -191,6 +224,8 @@ impl TranslateModule for Expr {
             // Literals
             Parentheses, Bool, Number, Text,
             Array, Null, Status,
+            // Command line parser
+            ParserCli, ParamCli, GetoptCli,
             // Builtin invocation
             LinesInvocation,
             // Function invocation
@@ -219,6 +254,8 @@ impl DocumentationModule for Expr {
             // Literals
             Parentheses, Bool, Number, Text,
             Array, Null, Status,
+            // Command line parser
+            ParserCli, ParamCli, GetoptCli,
             // Builtin invocation
             LinesInvocation,
             // Function invocation

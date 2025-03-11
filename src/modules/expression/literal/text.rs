@@ -11,6 +11,16 @@ pub struct Text {
     interps: Vec<Expr>,
 }
 
+impl Text {
+    pub fn get_literal_text(&self) -> Option<String> {
+        if self.strings.len() == 1 && self.interps.is_empty() {
+            self.strings.first().cloned()
+        } else {
+            None
+        }
+    }
+}
+
 impl Typed for Text {
     fn get_type(&self) -> Type {
         Type::Text

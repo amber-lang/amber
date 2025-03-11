@@ -12,11 +12,12 @@ use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use wildmatch::WildMatchPattern;
 use std::env;
+use std::ffi::OsStr;
 use std::fs;
 use std::fs::File;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
 
@@ -29,19 +30,23 @@ const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
     pub minify: bool,
+    pub run_name: Option<String>,
 }
 
 impl Default for CompilerOptions {
     fn default() -> Self {
         let no_proc = vec![String::from("*")];
-        Self { no_proc, minify: false }
+        Self { no_proc, minify: false, run_name: None }
     }
 }
 
 impl CompilerOptions {
-    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+    pub fn from_args(no_proc: &[String], minify: bool, input: Option<&Path>) -> Self {
         let no_proc = no_proc.to_owned();
-        Self { no_proc, minify }
+        let run_name = input.and_then(Path::file_name)
+            .and_then(OsStr::to_str)
+            .map(String::from);
+        Self { no_proc, minify, run_name }
     }
 }
 
@@ -138,7 +143,7 @@ impl AmberCompiler {
         }
     }
 
-    pub fn get_sorted_ast_forest(
+    fn get_sorted_ast_forest(
         &self,
         block: Block,
         meta: &ParserMetadata,
