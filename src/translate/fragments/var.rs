@@ -7,7 +7,7 @@ use super::fragment::{TranslationFragment, TranslationFragmentable};
 #[derive(Debug, Clone)]
 pub enum VarRenderType {
     Name,
-    BashName,
+    BashRef,
     BashValue,
 }
 
@@ -87,7 +87,7 @@ impl VarFragment {
     }
 
     // Returns the variable name in the bash context Ex. "varname"
-    pub fn render_bash_name(self, meta: &mut TranslateMetadata) -> String {
+    pub fn render_bash_reference(self, meta: &mut TranslateMetadata) -> String {
         let dollar = meta.gen_dollar();
         let name = self.get_name();
         // Dereference variable if it's a reference and is passed by reference
@@ -137,12 +137,12 @@ impl VarFragment {
     fn render_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<VarIndexValue>) -> String {
         match (&self.kind, index) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
-                let offset = offset.render(meta);
-                let length = length.render(meta);
+                let offset = offset.unquote().render(meta);
+                let length = length.unquote().render(meta);
                 format!("[@]:{offset}:{length}")
             }
             (_, Some(VarIndexValue::Index(index))) => {
-                let index = index.render(meta);
+                let index = index.unquote().render(meta);
                 format!("[{index}]")
             }
             (Type::Array(_), None) => {
@@ -182,7 +182,7 @@ impl TranslationFragmentable for VarFragment {
     fn render(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
             VarRenderType::Name => self.get_name(),
-            VarRenderType::BashName => self.render_bash_name(meta),
+            VarRenderType::BashRef => self.render_bash_reference(meta),
             VarRenderType::BashValue => self.render_bash_value(meta),
         }
     }
