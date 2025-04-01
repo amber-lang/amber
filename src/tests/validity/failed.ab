@@ -1,7 +1,7 @@
 import { math_sum } from "std/math"
 
 // Output
-// Requirements not met
+// 1 1 0
 
 let requirements = [true, true, true]
 
@@ -12,10 +12,5 @@ main {
         $ you_do_not_have_this $ failed: requirements[2] = false
     }
 
-    if math_sum(requirements as [Num]) == 3 {
-        echo "All requirements are met"
-    } else {
-        echo "Requirements not met"
-        fail
-    }
+    echo requirements
 }
