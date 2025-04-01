@@ -85,7 +85,7 @@ impl TranslateModule for Block {
                 statements.push(statement);
             }
             BlockFragment::new(statements, self.should_indent)
-                .set_needs_noop(self.translate_needs_noop)
+                .with_needs_noop(self.translate_needs_noop)
                 .to_frag()
         };
         // Restore the old statement queue

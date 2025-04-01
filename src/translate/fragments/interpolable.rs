@@ -64,20 +64,20 @@ impl InterpolableFragment {
         while let Some(c) = chars.next() {
             match c {
                 '"' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += "\\\"",
-                    InterpolableRenderType::GlobalContext => result.push('"'),
+                    InterpolableRenderType::StringLiteral => result += r#"\""#,
+                    InterpolableRenderType::GlobalContext => result += r#"""#,
                 }
                 '$' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result.push('$'),
-                    InterpolableRenderType::GlobalContext => result += "\\$",
+                    InterpolableRenderType::StringLiteral => result += r"$",
+                    InterpolableRenderType::GlobalContext => result += r"\$",
                 }
                 '`' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result.push('`'),
-                    InterpolableRenderType::GlobalContext => result += "\\`",
+                    InterpolableRenderType::StringLiteral => result += r"`",
+                    InterpolableRenderType::GlobalContext => result += r"\`",
                 }
                 '!' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += "\"'!'\"",
-                    InterpolableRenderType::GlobalContext => result.push('!'),
+                    InterpolableRenderType::StringLiteral => result += r#""'!'""#,
+                    InterpolableRenderType::GlobalContext => result += r"!",
                 }
                 '\\' => {
                     // Escape symbols
@@ -90,16 +90,16 @@ impl InterpolableFragment {
                         Some('{') => result.push('{'),
                         Some('$') => result.push('$'),
                         Some('\'') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result.push('\''),
-                            InterpolableRenderType::GlobalContext => result += "\\'",
+                            InterpolableRenderType::StringLiteral => result += r#"'"#,
+                            InterpolableRenderType::GlobalContext => result += r#"\'"#,
                         }
                         Some('"') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += "\\\"",
-                            InterpolableRenderType::GlobalContext => result.push('"'),
+                            InterpolableRenderType::StringLiteral => result += r#"\""#,
+                            InterpolableRenderType::GlobalContext => result += r#"""#,
                         }
                         Some('\\') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += "\\\\",
-                            InterpolableRenderType::GlobalContext => result.push('\\'),
+                            InterpolableRenderType::StringLiteral => result += r#"\\"#,
+                            InterpolableRenderType::GlobalContext => result += r#"\"#,
                         }
                         _ => {
                             result.push(c);

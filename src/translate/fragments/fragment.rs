@@ -63,8 +63,8 @@ impl FragmentRenderable for FragmentKind {
             FragmentKind::List(list) => list.to_string(meta),
             FragmentKind::Eval(eval) => eval.to_string(meta),
             FragmentKind::Subprocess(subprocess) => subprocess.to_string(meta),
-            FragmentKind::Empty => String::new(),
             FragmentKind::Comment(comment) => comment.to_string(meta),
+            FragmentKind::Empty => String::new(),
         }
     }
 

@@ -20,7 +20,7 @@ impl BlockFragment {
         }
     }
 
-    pub fn set_needs_noop(mut self, needs_noop: bool) -> Self {
+    pub fn with_needs_noop(mut self, needs_noop: bool) -> Self {
         self.needs_noop = needs_noop;
         self
     }
