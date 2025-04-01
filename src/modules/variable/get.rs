@@ -19,7 +19,7 @@ impl Typed for VariableGet {
             match (&index.value, &self.kind) {
                 (Some(ExprType::Range(_)), _) => self.kind.clone(),
                 (Some(_), Type::Array(item_type)) => *item_type.clone(),
-                _ => self.kind.clone()
+                _ => self.kind.clone(),
             }
         } else {
             self.kind.clone()
