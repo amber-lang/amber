@@ -24,8 +24,8 @@ impl SubprocessFragment {
 }
 
 impl TranslationFragmentable for SubprocessFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
-        let result = self.fragment.render(meta);
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
+        let result = self.fragment.to_string(meta);
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         if meta.eval_ctx {
             format!("{quote}$(eval \"{}\"){quote}", result)

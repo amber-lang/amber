@@ -17,7 +17,7 @@ impl CommentFragment {
 }
 
 impl TranslationFragmentable for CommentFragment {
-    fn render(self, _meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, _meta: &mut TranslateMetadata) -> String {
         "# ".to_string() + &self.value
     }
 

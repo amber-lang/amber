@@ -12,7 +12,7 @@ use super::{
 use crate::utils::TranslateMetadata;
 
 pub trait TranslationFragmentable {
-    fn render(self, meta: &mut TranslateMetadata) -> String;
+    fn to_string(self, meta: &mut TranslateMetadata) -> String;
     fn to_frag(self) -> TranslationFragment;
 }
 
@@ -53,18 +53,18 @@ impl TranslationFragment {
 }
 
 impl TranslationFragmentable for TranslationFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self {
-            TranslationFragment::Raw(raw) => raw.render(meta),
-            TranslationFragment::Var(var) => var.render(meta),
-            TranslationFragment::Block(block) => block.render(meta),
-            TranslationFragment::Compound(statement) => statement.render(meta),
-            TranslationFragment::Interpolable(interpolable) => interpolable.render(meta),
-            TranslationFragment::List(list) => list.render(meta),
-            TranslationFragment::Eval(eval) => eval.render(meta),
-            TranslationFragment::Subprocess(subprocess) => subprocess.render(meta),
+            TranslationFragment::Raw(raw) => raw.to_string(meta),
+            TranslationFragment::Var(var) => var.to_string(meta),
+            TranslationFragment::Block(block) => block.to_string(meta),
+            TranslationFragment::Compound(statement) => statement.to_string(meta),
+            TranslationFragment::Interpolable(interpolable) => interpolable.to_string(meta),
+            TranslationFragment::List(list) => list.to_string(meta),
+            TranslationFragment::Eval(eval) => eval.to_string(meta),
+            TranslationFragment::Subprocess(subprocess) => subprocess.to_string(meta),
             TranslationFragment::Empty => String::new(),
-            TranslationFragment::Comment(comment) => comment.render(meta),
+            TranslationFragment::Comment(comment) => comment.to_string(meta),
         }
     }
 

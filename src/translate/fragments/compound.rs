@@ -20,10 +20,10 @@ impl CompoundFragment {
 }
 
 impl TranslationFragmentable for CompoundFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let mut result = String::new();
         for fragment in self.fragments {
-            result.push_str(&fragment.render(meta));
+            result.push_str(&fragment.to_string(meta));
         }
         result
     }

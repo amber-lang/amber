@@ -107,8 +107,8 @@ impl VarFragment {
         let name = self.get_name();
         let index = self.index.take();
 
-        let prefix = self.render_variable_prefix(self.is_length);
-        let suffix = self.render_variable_suffix(meta, index);
+        let prefix = self.get_variable_prefix(self.is_length);
+        let suffix = self.get_variable_suffix(meta, index);
 
         if self.is_ref {
             return self.render_deref_variable(meta, prefix, &name, &suffix);
@@ -124,8 +124,8 @@ impl VarFragment {
         }
     }
 
-    // Render variable prefix ${PREFIX:varname:suffix}
-    fn render_variable_prefix(&self, is_length: bool) -> &'static str {
+    // Get variable prefix ${PREFIX:varname:suffix}
+    fn get_variable_prefix(&self, is_length: bool) -> &'static str {
         if is_length {
             "#"
         } else {
@@ -133,16 +133,16 @@ impl VarFragment {
         }
     }
 
-    // Render variable suffix ${prefix:varname:SUFFIX}
-    fn render_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<VarIndexValue>) -> String {
+    // Get variable suffix ${prefix:varname:SUFFIX}
+    fn get_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<VarIndexValue>) -> String {
         match (&self.kind, index) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
-                let offset = offset.unquote().render(meta);
-                let length = length.unquote().render(meta);
+                let offset = offset.unquote().to_string(meta);
+                let length = length.unquote().to_string(meta);
                 format!("[@]:{offset}:{length}")
             }
             (_, Some(VarIndexValue::Index(index))) => {
-                let index = index.unquote().render(meta);
+                let index = index.unquote().to_string(meta);
                 format!("[{index}]")
             }
             (Type::Array(_), None) => {
@@ -179,7 +179,7 @@ impl VarFragment {
 }
 
 impl TranslationFragmentable for VarFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
             VarRenderType::Name => self.get_name(),
             VarRenderType::BashRef => self.render_bash_reference(meta),

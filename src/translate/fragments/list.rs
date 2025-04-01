@@ -24,8 +24,8 @@ impl ListFragment {
 }
 
 impl TranslationFragmentable for ListFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
-        self.values.into_iter().map(|x| x.render(meta)).collect::<Vec<String>>().join(&self.separator)
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
+        self.values.into_iter().map(|x| x.to_string(meta)).collect::<Vec<String>>().join(&self.separator)
     }
 
     fn to_frag(self) -> TranslationFragment {

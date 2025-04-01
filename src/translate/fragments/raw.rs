@@ -19,7 +19,7 @@ impl RawFragment {
 }
 
 impl TranslationFragmentable for RawFragment {
-    fn render(self, _meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, _meta: &mut TranslateMetadata) -> String {
         self.value
     }
 

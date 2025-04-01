@@ -49,9 +49,9 @@ impl InterpolableFragment {
                 // Quotes inside of interpolable strings are not necessary
                 if let TranslationFragment::Interpolable(mut interpolable) = translated {
                     interpolable = interpolable.set_render_type(InterpolableRenderType::GlobalContext);
-                    result.push(interpolable.render(meta));
+                    result.push(interpolable.to_string(meta));
                 } else {
-                    result.push(translated.render(meta));
+                    result.push(translated.to_string(meta));
                 }
             }
         }
@@ -116,7 +116,7 @@ impl InterpolableFragment {
 }
 
 impl TranslationFragmentable for InterpolableFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let render_type = self.render_type.clone();
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         let result = self.render_interpolated_region(meta);

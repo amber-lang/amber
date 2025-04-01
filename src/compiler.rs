@@ -179,7 +179,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut result = result.render(&mut meta_translate);
+        let mut result = result.to_string(&mut meta_translate);
 
         let filters = self.options.no_proc.iter()
             .map(|x| WildMatchPattern::new(x))

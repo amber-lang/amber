@@ -35,7 +35,7 @@ impl BlockFragment {
 }
 
 impl TranslationFragmentable for BlockFragment {
-    fn render(self, meta: &mut TranslateMetadata) -> String {
+    fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let empty_logic = self.is_empty_logic();
         if self.increase_indent {
             meta.increase_indent();
@@ -47,16 +47,16 @@ impl TranslationFragmentable for BlockFragment {
                     continue
                 }
                 TranslationFragment::Block(block) => {
-                    let rendered = block.render(meta);
+                    let rendered = block.to_string(meta);
                     if rendered.is_empty() {
                         continue;
                     }
                     result.push(rendered);
                 }
                 _ => {
-                    let statement = statement.render(meta);
+                    let statement = statement.to_string(meta);
                     for stmt in mem::take(&mut meta.stmt_queue) {
-                        result.push(meta.gen_indent() + &stmt.render(meta));
+                        result.push(meta.gen_indent() + &stmt.to_string(meta));
                     }
                     result.push(meta.gen_indent() + &statement);
                 }
