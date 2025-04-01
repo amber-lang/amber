@@ -51,7 +51,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
 }
 
 impl TranslateModule for Mul {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Mul, Some(left), Some(right))

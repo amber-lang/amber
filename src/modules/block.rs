@@ -73,7 +73,7 @@ impl SyntaxModule<ParserMetadata> for Block {
 }
 
 impl TranslateModule for Block {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Save the current statement queue and create a new one
         let mut new_queue = VecDeque::new();
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);

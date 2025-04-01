@@ -3,7 +3,7 @@ use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::len::Len;
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
-use crate::modules::prelude::TranslationFragment;
+use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -163,7 +163,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
 }
 
 impl TranslateModule for Expr {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         translate_expression!(meta, self.value.as_ref().unwrap(), [
             // Ternary conditional
             Ternary,

@@ -65,7 +65,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 }
 
 impl TranslateModule for VariableSet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let name = self.name.clone();
         let index = self.index.as_ref().map(|v| v.translate(meta));
         let expr = self.expr.translate(meta);

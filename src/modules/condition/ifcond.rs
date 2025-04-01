@@ -88,7 +88,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
 }
 
 impl TranslateModule for IfCondition {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
         result.push(fragments!("if [ ", self.expr.translate(meta), " != 0 ]; then"));
         result.push(self.true_block.translate(meta));

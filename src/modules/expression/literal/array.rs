@@ -83,9 +83,9 @@ impl SyntaxModule<ParserMetadata> for Array {
 }
 
 impl TranslateModule for Array {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let id = meta.gen_value_id();
-        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<TranslationFragment>>();
+        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args, " ").to_frag();
         let var = meta.push_intermediate_variable_lazy("__array", Some(id), self.kind.clone(), args);
         var.to_frag()

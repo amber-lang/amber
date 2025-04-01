@@ -58,7 +58,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 }
 
 impl TranslateModule for VariableInit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
         let (stmt, _var) = gen_intermediate_variable(&self.name, self.global_id, self.expr.get_type(), false, None, "=", expr);
         stmt

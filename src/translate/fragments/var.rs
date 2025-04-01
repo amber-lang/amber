@@ -1,6 +1,6 @@
 use crate::modules::prelude::*;
 use crate::{modules::{expression::expr::{Expr, ExprType}, prelude::RawFragment, types::Type}, utils::TranslateMetadata};
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a variable expression such as `$var` or `${var}`
 
@@ -13,8 +13,8 @@ pub enum VarRenderType {
 
 #[derive(Debug, Clone)]
 pub enum VarIndexValue {
-    Range(TranslationFragment, TranslationFragment),
-    Index(TranslationFragment)
+    Range(FragmentKind, FragmentKind),
+    Index(FragmentKind)
 }
 
 #[derive(Debug, Clone)]
@@ -178,7 +178,7 @@ impl VarFragment {
     }
 }
 
-impl TranslationFragmentable for VarFragment {
+impl FragmentRenderable for VarFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
             VarRenderType::Name => self.get_name(),
@@ -187,7 +187,7 @@ impl TranslationFragmentable for VarFragment {
         }
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Var(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Var(self)
     }
 }

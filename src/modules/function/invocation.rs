@@ -127,18 +127,18 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 }
 
 impl TranslateModule for FunctionInvocation {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let name = fragments!(raw: "{}__{}_v{}", self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
 
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
-            TranslationFragment::Var(var) if *is_ref => var.set_render_type(VarRenderType::BashRef).to_frag(),
-            TranslationFragment::Var(var) if var.kind.is_array() => fragments!(var.set_render_type(VarRenderType::BashRef).to_frag().unquote(), "[@]"),
+            FragmentKind::Var(var) if *is_ref => var.set_render_type(VarRenderType::BashRef).to_frag(),
+            FragmentKind::Var(var) if var.kind.is_array() => fragments!(var.set_render_type(VarRenderType::BashRef).to_frag().unquote(), "[@]"),
             _ if *is_ref => panic!("Reference value accepts only variables"),
             var => var
-        }).collect::<Vec<TranslationFragment>>();
+        }).collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args, " ").to_frag();
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);

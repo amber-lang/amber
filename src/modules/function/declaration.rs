@@ -35,7 +35,7 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, _meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<TranslationFragment> {
+    fn set_args_as_variables(&self, _meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<FragmentKind> {
         if !self.arg_names.is_empty() {
             let mut result = vec![];
             for (index, (name, kind, is_ref)) in izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate() {
@@ -240,7 +240,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
 }
 
 impl TranslateModule for FunctionDeclaration {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_meta.clone();

@@ -62,14 +62,14 @@ impl SyntaxModule<ParserMetadata> for Main {
 }
 
 impl TranslateModule for Main {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_skipped {
-            TranslationFragment::Empty
+            FragmentKind::Empty
         } else {
             let quote = meta.gen_quote();
             let dollar = meta.gen_dollar();
             let args = self.args.clone().map_or_else(
-                || TranslationFragment::Empty,
+                || FragmentKind::Empty,
                 |name| fragments!(raw: "declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
             // Temporarily decrease the indentation level to counteract

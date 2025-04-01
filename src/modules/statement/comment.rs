@@ -23,9 +23,9 @@ impl SyntaxModule<ParserMetadata> for Comment {
 }
 
 impl TranslateModule for Comment {
-    fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> FragmentKind {
         if meta.minify {
-            TranslationFragment::Empty
+            FragmentKind::Empty
         } else {
             CommentFragment::new(&self.value).to_frag()
         }

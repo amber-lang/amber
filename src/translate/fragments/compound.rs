@@ -1,16 +1,16 @@
-use crate::translate::fragments::fragment::TranslationFragmentable;
-use crate::{translate::fragments::fragment::TranslationFragment, utils::TranslateMetadata};
+use crate::translate::fragments::fragment::FragmentRenderable;
+use crate::{translate::fragments::fragment::FragmentKind, utils::TranslateMetadata};
 
 /// This module represents a Bash code fragment that is composed of multiple parts.
 /// The sole purpose of this module is to bundle multiple `TranslationFragment` instances into a single fragment.
 
 #[derive(Debug, Clone)]
 pub struct CompoundFragment {
-    fragments: Vec<TranslationFragment>,
+    fragments: Vec<FragmentKind>,
 }
 
 impl CompoundFragment {
-    pub fn new(frags: Vec<TranslationFragment>) -> Self {
+    pub fn new(frags: Vec<FragmentKind>) -> Self {
         CompoundFragment { fragments: frags }
     }
 
@@ -19,7 +19,7 @@ impl CompoundFragment {
     }
 }
 
-impl TranslationFragmentable for CompoundFragment {
+impl FragmentRenderable for CompoundFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let mut result = String::new();
         for fragment in self.fragments {
@@ -28,7 +28,7 @@ impl TranslationFragmentable for CompoundFragment {
         result
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Compound(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Compound(self)
     }
 }

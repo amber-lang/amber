@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for Break {
 }
 
 impl TranslateModule for Break {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         fragments!("break")
     }
 }

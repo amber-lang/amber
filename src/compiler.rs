@@ -1,7 +1,7 @@
 extern crate chrono;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
-use crate::modules::prelude::{BlockFragment, TranslationFragmentable};
+use crate::modules::prelude::{BlockFragment, FragmentRenderable};
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};

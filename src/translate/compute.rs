@@ -1,4 +1,4 @@
-use crate::{modules::prelude::{TranslationFragment, TranslationFragmentable}, utils::TranslateMetadata};
+use crate::{modules::prelude::{FragmentKind, FragmentRenderable}, utils::TranslateMetadata};
 
 use crate::modules::prelude::*;
 use crate::fragments;
@@ -30,14 +30,14 @@ pub enum ArithOp {
 pub fn translate_computation(
     meta: &TranslateMetadata,
     operation: ArithOp,
-    left: Option<TranslationFragment>,
-    right: Option<TranslationFragment>
-) -> TranslationFragment {
+    left: Option<FragmentKind>,
+    right: Option<FragmentKind>
+) -> FragmentKind {
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (
-                left.unwrap_or(TranslationFragment::Empty),
-                right.unwrap_or(TranslationFragment::Empty)
+                left.unwrap_or(FragmentKind::Empty),
+                right.unwrap_or(FragmentKind::Empty)
             );
             let mut math_lib_flag = true;
             // Removes trailing zeros from the expression
@@ -73,10 +73,10 @@ pub fn translate_computation(
 pub fn translate_computation_eval(
     meta: &mut TranslateMetadata,
     operation: ArithOp,
-    left: Option<TranslationFragment>,
-    right: Option<TranslationFragment>,
+    left: Option<FragmentKind>,
+    right: Option<FragmentKind>,
     is_eval: bool,
-) -> TranslationFragment {
+) -> FragmentKind {
     let old_eval = meta.eval_ctx;
     meta.eval_ctx = is_eval;
     let result = translate_computation(meta, operation, left, right);

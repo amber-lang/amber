@@ -52,7 +52,7 @@ impl SyntaxModule<ParserMetadata> for Div {
 }
 
 impl TranslateModule for Div {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Div, Some(left), Some(right))

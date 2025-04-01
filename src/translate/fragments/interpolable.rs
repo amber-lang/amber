@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::utils::TranslateMetadata;
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a region that can be interpolated. Similarily to what Heraclitus returns when parsing a region.
 
@@ -16,13 +16,13 @@ pub enum InterpolableRenderType {
 #[derive(Debug, Clone)]
 pub struct InterpolableFragment {
     pub strings: VecDeque<String>,
-    pub interps: VecDeque<TranslationFragment>,
+    pub interps: VecDeque<FragmentKind>,
     pub render_type: InterpolableRenderType,
     pub quoted: bool,
 }
 
 impl InterpolableFragment {
-    pub fn new(strings: Vec<String>, interps: Vec<TranslationFragment>, render_type: InterpolableRenderType) -> Self {
+    pub fn new(strings: Vec<String>, interps: Vec<FragmentKind>, render_type: InterpolableRenderType) -> Self {
         InterpolableFragment {
             strings: VecDeque::from_iter(strings),
             interps: VecDeque::from_iter(interps),
@@ -47,7 +47,7 @@ impl InterpolableFragment {
             result.push(self.translate_escaped_string(string));
             if let Some(translated) = self.interps.pop_front() {
                 // Quotes inside of interpolable strings are not necessary
-                if let TranslationFragment::Interpolable(mut interpolable) = translated {
+                if let FragmentKind::Interpolable(mut interpolable) = translated {
                     interpolable = interpolable.set_render_type(InterpolableRenderType::GlobalContext);
                     result.push(interpolable.to_string(meta));
                 } else {
@@ -115,7 +115,7 @@ impl InterpolableFragment {
     }
 }
 
-impl TranslationFragmentable for InterpolableFragment {
+impl FragmentRenderable for InterpolableFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let render_type = self.render_type.clone();
         let quote = if self.quoted { meta.gen_quote() } else { "" };
@@ -126,7 +126,7 @@ impl TranslationFragmentable for InterpolableFragment {
         }
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Interpolable(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Interpolable(self)
     }
 }

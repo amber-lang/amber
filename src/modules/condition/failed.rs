@@ -72,7 +72,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
 }
 
 impl TranslateModule for Failed {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
             let block = self.block.translate(meta);
             let ret = if self.is_main { "exit $__status" } else { "return $__status" };
@@ -84,7 +84,7 @@ impl TranslateModule for Failed {
                     let statement = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
                     RawFragment::new(&statement).to_frag()
                 } else {
-                    TranslationFragment::Empty
+                    FragmentKind::Empty
                 };
                 let ret = RawFragment::new(ret).to_frag();
                 return BlockFragment::new(vec![
@@ -98,10 +98,10 @@ impl TranslateModule for Failed {
                 ], false).to_frag()
             }
             match &block {
-                TranslationFragment::Empty => {
+                FragmentKind::Empty => {
                     return fragments!("__status=$?")
                 },
-                TranslationFragment::Block(block) if block.statements.is_empty() => {
+                FragmentKind::Block(block) if block.statements.is_empty() => {
                     return fragments!("__status=$?")
                 },
                 _ => {}
@@ -113,7 +113,7 @@ impl TranslateModule for Failed {
                 fragments!("fi"),
             ], false).to_frag()
         } else {
-            TranslationFragment::Empty
+            FragmentKind::Empty
         }
     }
 }

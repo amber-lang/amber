@@ -1,16 +1,16 @@
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 use crate::utils::TranslateMetadata;
 
 // Creates a subprocess fragment that is correctly escaped.
 
 #[derive(Debug, Clone)]
 pub struct SubprocessFragment {
-    pub fragment: Box<TranslationFragment>,
+    pub fragment: Box<FragmentKind>,
     pub quoted: bool,
 }
 
 impl SubprocessFragment {
-    pub fn new(fragment: TranslationFragment) -> Self {
+    pub fn new(fragment: FragmentKind) -> Self {
         SubprocessFragment {
             fragment: Box::new(fragment),
             quoted: true,
@@ -23,7 +23,7 @@ impl SubprocessFragment {
     }
 }
 
-impl TranslationFragmentable for SubprocessFragment {
+impl FragmentRenderable for SubprocessFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let result = self.fragment.to_string(meta);
         let quote = if self.quoted { meta.gen_quote() } else { "" };
@@ -34,7 +34,7 @@ impl TranslationFragmentable for SubprocessFragment {
         }
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Subprocess(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Subprocess(self)
     }
 }

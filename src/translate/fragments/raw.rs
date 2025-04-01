@@ -1,6 +1,6 @@
 use crate::utils::TranslateMetadata;
 
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// This module represents a raw code fragment in Bash.
 /// It is used to render code fragments that do not require any further processing.
@@ -18,12 +18,12 @@ impl RawFragment {
     }
 }
 
-impl TranslationFragmentable for RawFragment {
+impl FragmentRenderable for RawFragment {
     fn to_string(self, _meta: &mut TranslateMetadata) -> String {
         self.value
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Raw(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Raw(self)
     }
 }

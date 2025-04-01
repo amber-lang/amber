@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 }
 
 impl TranslateModule for InfiniteLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         BlockFragment::new(vec![
             fragments!("while :"),
             fragments!("do"),

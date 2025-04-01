@@ -57,7 +57,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
 }
 
 impl TranslateModule for Mv {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let source = self.source.translate(meta);
         let destination = self.destination.translate(meta);
         let failed = self.failed.translate(meta);

@@ -46,7 +46,7 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
 }
 
 impl TranslateModule for LinesInvocation {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let temp = format!("__AMBER_LINE_{}", meta.gen_value_id());
         let path = (*self.path)
             .as_ref()
@@ -54,7 +54,7 @@ impl TranslateModule for LinesInvocation {
             .expect("Cannot read lines without provided path");
         let indent = TranslateMetadata::single_indent();
         let id = meta.gen_value_id();
-        let value = meta.push_intermediate_variable_lazy("__array", Some(id), Type::array_of(Type::Text), TranslationFragment::Empty);
+        let value = meta.push_intermediate_variable_lazy("__array", Some(id), Type::array_of(Type::Text), FragmentKind::Empty);
         meta.stmt_queue.extend([
             fragments!(raw: "while IFS= read -r {temp}; do"),
             fragments!(raw: "{indent}{}+=(\"${}\")", value.get_name(), temp),
@@ -65,7 +65,7 @@ impl TranslateModule for LinesInvocation {
 }
 
 impl LinesInvocation {
-    pub fn translate_path(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    pub fn translate_path(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let path = (*self.path)
             .as_ref()
             .map(|p| p.translate(meta))

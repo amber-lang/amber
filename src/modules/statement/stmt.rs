@@ -154,7 +154,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
 }
 
 impl TranslateModule for Statement {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
@@ -166,7 +166,7 @@ impl TranslateModule for Statement {
                     },
                     _ => {
                         self.translate_match(meta, statement);
-                        TranslationFragment::Empty
+                        FragmentKind::Empty
                     }
                 }
             },

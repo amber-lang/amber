@@ -55,7 +55,7 @@ impl SyntaxModule<ParserMetadata> for Range {
 }
 
 impl TranslateModule for Range {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let from = self.from.translate(meta);
         let to = if let Some(to) = self.to.get_integer_value() {
             if self.neq {
@@ -77,7 +77,7 @@ impl TranslateModule for Range {
 }
 
 impl Range {
-    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> (TranslationFragment, TranslationFragment) {
+    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> (FragmentKind, FragmentKind) {
         if let Some(from) = self.from.get_integer_value() {
             if let Some(mut to) = self.to.get_integer_value() {
                 // Make the upper bound exclusive.

@@ -11,13 +11,13 @@ use super::{
 };
 use crate::utils::TranslateMetadata;
 
-pub trait TranslationFragmentable {
+pub trait FragmentRenderable {
     fn to_string(self, meta: &mut TranslateMetadata) -> String;
-    fn to_frag(self) -> TranslationFragment;
+    fn to_frag(self) -> FragmentKind;
 }
 
 #[derive(Debug, Clone)]
-pub enum TranslationFragment {
+pub enum FragmentKind {
     Raw(RawFragment),
     Var(VarFragment),
     Block(BlockFragment),
@@ -30,45 +30,45 @@ pub enum TranslationFragment {
     Empty
 }
 
-impl TranslationFragment {
+impl FragmentKind {
     pub fn unquote(self) -> Self {
         match self {
-            TranslationFragment::Var(var) => TranslationFragment::Var(var.set_quoted(false)),
-            TranslationFragment::Interpolable(inter) => TranslationFragment::Interpolable(inter.set_quoted(false)),
-            TranslationFragment::Subprocess(sub) => TranslationFragment::Subprocess(sub.set_quoted(false)),
+            FragmentKind::Var(var) => FragmentKind::Var(var.set_quoted(false)),
+            FragmentKind::Interpolable(inter) => FragmentKind::Interpolable(inter.set_quoted(false)),
+            FragmentKind::Subprocess(sub) => FragmentKind::Subprocess(sub.set_quoted(false)),
             _ => self,
         }
     }
 
     pub fn is_empty_logic(&self) -> bool {
         match self {
-            TranslationFragment::Empty => true,
-            TranslationFragment::Comment(_) => true,
-            TranslationFragment::Block(block) => block.is_empty_logic(),
-            TranslationFragment::List(list) => list.is_empty_logic(),
-            TranslationFragment::Compound(compound) => compound.is_empty_logic(),
+            FragmentKind::Empty => true,
+            FragmentKind::Comment(_) => true,
+            FragmentKind::Block(block) => block.is_empty_logic(),
+            FragmentKind::List(list) => list.is_empty_logic(),
+            FragmentKind::Compound(compound) => compound.is_empty_logic(),
             _ => false,
         }
     }
 }
 
-impl TranslationFragmentable for TranslationFragment {
+impl FragmentRenderable for FragmentKind {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self {
-            TranslationFragment::Raw(raw) => raw.to_string(meta),
-            TranslationFragment::Var(var) => var.to_string(meta),
-            TranslationFragment::Block(block) => block.to_string(meta),
-            TranslationFragment::Compound(statement) => statement.to_string(meta),
-            TranslationFragment::Interpolable(interpolable) => interpolable.to_string(meta),
-            TranslationFragment::List(list) => list.to_string(meta),
-            TranslationFragment::Eval(eval) => eval.to_string(meta),
-            TranslationFragment::Subprocess(subprocess) => subprocess.to_string(meta),
-            TranslationFragment::Empty => String::new(),
-            TranslationFragment::Comment(comment) => comment.to_string(meta),
+            FragmentKind::Raw(raw) => raw.to_string(meta),
+            FragmentKind::Var(var) => var.to_string(meta),
+            FragmentKind::Block(block) => block.to_string(meta),
+            FragmentKind::Compound(statement) => statement.to_string(meta),
+            FragmentKind::Interpolable(interpolable) => interpolable.to_string(meta),
+            FragmentKind::List(list) => list.to_string(meta),
+            FragmentKind::Eval(eval) => eval.to_string(meta),
+            FragmentKind::Subprocess(subprocess) => subprocess.to_string(meta),
+            FragmentKind::Empty => String::new(),
+            FragmentKind::Comment(comment) => comment.to_string(meta),
         }
     }
 
-    fn to_frag(self) -> TranslationFragment {
+    fn to_frag(self) -> FragmentKind {
         self
     }
 }

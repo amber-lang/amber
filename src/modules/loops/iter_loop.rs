@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::{Expr, ExprType};
-use crate::modules::prelude::{RawFragment, TranslationFragment};
+use crate::modules::prelude::{RawFragment, FragmentKind};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
@@ -73,7 +73,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 }
 
 impl TranslateModule for IterLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let lines_iterator_path = self.get_iterator_lines_path(meta);
         let iter_name = RawFragment::new(&self.iter_name).to_frag();
 
@@ -109,7 +109,7 @@ impl TranslateModule for IterLoop {
 }
 
 impl IterLoop {
-    fn get_iterator_lines_path(&self, meta: &mut TranslateMetadata) -> Option<TranslationFragment> {
+    fn get_iterator_lines_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
         if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
             Some(value.translate_path(meta))
         } else {

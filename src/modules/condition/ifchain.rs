@@ -76,7 +76,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
 }
 
 impl TranslateModule for IfChain {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
         let mut is_first = true;
         for (cond, block) in self.cond_blocks.iter() {

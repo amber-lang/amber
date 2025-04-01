@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
-use crate::modules::prelude::TranslationFragment;
+use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -73,7 +73,7 @@ impl SyntaxModule<ParserMetadata> for Fail {
 }
 
 impl TranslateModule for Fail {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let translate = self.code.is_empty()
             .then(|| self.expr.translate(meta))
             .unwrap_or_else(|| fragments!(raw: "{}", &self.code));

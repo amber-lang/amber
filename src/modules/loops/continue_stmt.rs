@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for Continue {
 }
 
 impl TranslateModule for Continue {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         fragments!("continue")
     }
 }

@@ -1,5 +1,5 @@
 use crate::utils::TranslateMetadata;
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a comment fragment in the translation process.
 
@@ -16,13 +16,13 @@ impl CommentFragment {
     }
 }
 
-impl TranslationFragmentable for CommentFragment {
+impl FragmentRenderable for CommentFragment {
     fn to_string(self, _meta: &mut TranslateMetadata) -> String {
         "# ".to_string() + &self.value
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Comment(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Comment(self)
     }
 }
 

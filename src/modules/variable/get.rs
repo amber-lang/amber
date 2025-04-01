@@ -63,7 +63,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
 }
 
 impl TranslateModule for VariableGet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         VarFragment::new(&self.name, self.get_type(), self.is_ref, self.global_id)
             .with_index(meta, *self.index.clone())
             .to_frag()

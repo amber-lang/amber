@@ -75,7 +75,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 }
 
 impl TranslateModule for Ternary {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let is_array = self.true_expr.get_type().is_array();
         let cond = self.cond.translate(meta);
         let true_expr = self.true_expr.translate(meta);

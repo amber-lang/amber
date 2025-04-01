@@ -187,8 +187,8 @@ impl SyntaxModule<ParserMetadata> for Import {
 }
 
 impl TranslateModule for Import {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> TranslationFragment {
-        TranslationFragment::Empty
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        FragmentKind::Empty
     }
 }
 

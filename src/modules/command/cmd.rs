@@ -53,11 +53,11 @@ impl SyntaxModule<ParserMetadata> for Command {
 }
 
 impl Command {
-    fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> TranslationFragment {
+    fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> FragmentKind {
         // Translate all interpolations
         let interps = self.interps.iter()
             .map(|item| item.translate(meta).unquote())
-            .collect::<Vec<TranslationFragment>>();
+            .collect::<Vec<FragmentKind>>();
         let failed = self.failed.translate(meta);
 
         let mut is_silent = self.modifier.is_silent || meta.silenced;
@@ -74,13 +74,13 @@ impl Command {
         swap(&mut is_silent, &mut meta.silenced);
 
         if is_statement {
-            return if let TranslationFragment::Empty = failed { translation } else {
+            return if let FragmentKind::Empty = failed { translation } else {
                 meta.stmt_queue.push_back(translation);
                 failed
             }
         }
 
-        if let TranslationFragment::Empty = failed {
+        if let FragmentKind::Empty = failed {
             SubprocessFragment::new(translation).to_frag()
         } else {
             let id = meta.gen_value_id();
@@ -91,13 +91,13 @@ impl Command {
         }
     }
 
-    pub fn translate_command_statement(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    pub fn translate_command_statement(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         self.translate_command(meta, true)
     }
 }
 
 impl TranslateModule for Command {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         self.translate_command(meta, false)
     }
 }

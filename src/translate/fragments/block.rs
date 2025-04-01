@@ -1,18 +1,18 @@
 use std::mem;
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 use crate::utils::TranslateMetadata;
 
 /// Renders blocks of statements in Bash code.
 
 #[derive(Debug, Clone)]
 pub struct BlockFragment {
-    pub statements: Vec<TranslationFragment>,
+    pub statements: Vec<FragmentKind>,
     pub increase_indent: bool,
     pub needs_noop: bool,
 }
 
 impl BlockFragment {
-    pub fn new(statements: Vec<TranslationFragment>, increase_indent: bool) -> Self {
+    pub fn new(statements: Vec<FragmentKind>, increase_indent: bool) -> Self {
         BlockFragment {
             statements,
             increase_indent,
@@ -25,7 +25,7 @@ impl BlockFragment {
         self
     }
 
-    pub fn append(&mut self, statement: TranslationFragment) {
+    pub fn append(&mut self, statement: FragmentKind) {
         self.statements.push(statement);
     }
 
@@ -34,7 +34,7 @@ impl BlockFragment {
     }
 }
 
-impl TranslationFragmentable for BlockFragment {
+impl FragmentRenderable for BlockFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let empty_logic = self.is_empty_logic();
         if self.increase_indent {
@@ -43,10 +43,10 @@ impl TranslationFragmentable for BlockFragment {
         let mut result = vec![];
         for statement in self.statements {
             match statement {
-                TranslationFragment::Empty => {
+                FragmentKind::Empty => {
                     continue
                 }
-                TranslationFragment::Block(block) => {
+                FragmentKind::Block(block) => {
                     let rendered = block.to_string(meta);
                     if rendered.is_empty() {
                         continue;
@@ -71,7 +71,7 @@ impl TranslationFragmentable for BlockFragment {
         result.join("\n")
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Block(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Block(self)
     }
 }

@@ -78,7 +78,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
 }
 
 impl TranslateModule for Cast {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         self.expr.translate(meta)
     }
 }

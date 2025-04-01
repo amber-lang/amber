@@ -28,10 +28,10 @@ pub fn gen_intermediate_variable(
     id: Option<usize>,
     kind: Type,
     is_ref: bool,
-    index: Option<TranslationFragment>,
+    index: Option<FragmentKind>,
     op: &str,
-    value: TranslationFragment
-) -> (TranslationFragment, VarFragment) {
+    value: FragmentKind
+) -> (FragmentKind, VarFragment) {
     let is_array = kind.is_array();
     let variable = VarFragment::new(name, kind, is_ref, id);
     let frags = {
@@ -63,14 +63,14 @@ pub fn gen_intermediate_variable_lazy(
     id: Option<usize>,
     kind: Type,
     is_ref: bool,
-    index: Option<TranslationFragment>,
+    index: Option<FragmentKind>,
     op: &str,
-    value: TranslationFragment
-) -> (TranslationFragment, VarFragment) {
+    value: FragmentKind
+) -> (FragmentKind, VarFragment) {
     match value {
         // If the value is already variable, then we don't need to assign it to a new variable.
-        TranslationFragment::Var(var) => {
-            (TranslationFragment::Empty, var)
+        FragmentKind::Var(var) => {
+            (FragmentKind::Empty, var)
         },
         _ => {
             gen_intermediate_variable(name, id, kind, is_ref, index, op, value)

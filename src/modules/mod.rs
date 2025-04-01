@@ -32,7 +32,7 @@ macro_rules! handle_types {
             }
         }
 
-        fn translate_match(&self, meta: &mut TranslateMetadata, module: &$enum_name) -> TranslationFragment {
+        fn translate_match(&self, meta: &mut TranslateMetadata, module: &$enum_name) -> FragmentKind {
             match module {
                 $(
                     $enum_name::$item(module) => module.translate(meta)

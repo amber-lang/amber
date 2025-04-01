@@ -19,7 +19,7 @@ pub struct TranslateMetadata {
     pub fun_cache: FunctionCache,
     /// A queue of statements that are needed to be evaluated
     /// before current statement in order to be correct.
-    pub stmt_queue: VecDeque<TranslationFragment>,
+    pub stmt_queue: VecDeque<FragmentKind>,
     /// The metadata of the function that is currently being translated.
     pub fun_meta: Option<FunctionMetadata>,
     /// Used to determine the value or array being evaluated.
@@ -58,14 +58,14 @@ impl TranslateMetadata {
     }
 
     #[inline]
-    pub fn push_intermediate_variable(&mut self, name: &str, id: Option<usize>, kind: Type, value: TranslationFragment) -> VarFragment {
+    pub fn push_intermediate_variable(&mut self, name: &str, id: Option<usize>, kind: Type, value: FragmentKind) -> VarFragment {
         let (stmt, var) = gen_intermediate_variable(name, id, kind, false, None, "=", value);
         self.stmt_queue.push_back(stmt);
         var
     }
 
     #[inline]
-    pub fn push_intermediate_variable_lazy(&mut self, name: &str, id: Option<usize>, kind: Type, value: TranslationFragment) -> VarFragment {
+    pub fn push_intermediate_variable_lazy(&mut self, name: &str, id: Option<usize>, kind: Type, value: FragmentKind) -> VarFragment {
         let (stmt, var) = gen_intermediate_variable_lazy(name, id, kind, false, None, "=", value);
         self.stmt_queue.push_back(stmt);
         var

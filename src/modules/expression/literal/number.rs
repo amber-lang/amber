@@ -43,7 +43,7 @@ impl SyntaxModule<ParserMetadata> for Number {
 }
 
 impl TranslateModule for Number {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         RawFragment::new(&self.value.to_string()).to_frag()
     }
 }

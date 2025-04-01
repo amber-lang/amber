@@ -49,7 +49,7 @@ impl SyntaxModule<ParserMetadata> for Is {
 }
 
 impl TranslateModule for Is {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         if self.expr.get_type() == self.kind {
             fragments!("1")
         } else {

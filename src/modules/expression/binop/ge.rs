@@ -50,7 +50,7 @@ impl SyntaxModule<ParserMetadata> for Ge {
 }
 
 impl TranslateModule for Ge {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Ge, Some(left), Some(right))

@@ -50,7 +50,7 @@ impl SyntaxModule<ParserMetadata> for Neq {
 }
 
 impl TranslateModule for Neq {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta).unquote();
         let right = self.right.translate(meta).unquote();
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {

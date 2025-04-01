@@ -94,14 +94,14 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 }
 
 impl TranslateModule for CommandModifier {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_block {
             meta.silenced = self.is_silent;
             let result = self.block.translate(meta);
             meta.silenced = false;
             result
         } else {
-            TranslationFragment::Empty
+            FragmentKind::Empty
         }
     }
 }

@@ -32,7 +32,7 @@ impl SyntaxModule<ParserMetadata> for Cd {
 }
 
 impl TranslateModule for Cd {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         fragments!(
             "cd ",
             self.value.translate(meta),

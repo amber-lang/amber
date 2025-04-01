@@ -36,11 +36,11 @@ impl SyntaxModule<ParserMetadata> for Text {
 }
 
 impl TranslateModule for Text {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate all interpolations
         let interps = self.interps.iter()
             .map(|item| item.translate(meta).unquote())
-            .collect::<Vec<TranslationFragment>>();
+            .collect::<Vec<FragmentKind>>();
         InterpolableFragment::new(self.strings.clone(), interps, InterpolableRenderType::StringLiteral).to_frag()
     }
 }

@@ -55,7 +55,7 @@ impl SyntaxModule<ParserMetadata> for Return {
 }
 
 impl TranslateModule for Return {
-    fn translate(&self, meta: &mut TranslateMetadata) -> TranslationFragment {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let fun_name = meta.fun_meta.as_ref()
             .map(FunctionMetadata::mangled_name)
             .expect("Function name and return type not set");

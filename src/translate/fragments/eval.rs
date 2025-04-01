@@ -1,4 +1,4 @@
-use super::fragment::{TranslationFragment, TranslationFragmentable};
+use super::fragment::{FragmentKind, FragmentRenderable};
 use crate::utils::TranslateMetadata;
 
 /// This module represents an eval string fragment.
@@ -6,12 +6,12 @@ use crate::utils::TranslateMetadata;
 
 #[derive(Debug, Clone)]
 pub struct EvalFragment {
-    pub fragment: Box<TranslationFragment>,
+    pub fragment: Box<FragmentKind>,
     pub toggle: bool,
 }
 
 impl EvalFragment {
-    pub fn new(fragment: TranslationFragment, toggle: bool) -> Self {
+    pub fn new(fragment: FragmentKind, toggle: bool) -> Self {
         EvalFragment {
             fragment: Box::new(fragment),
             toggle,
@@ -19,7 +19,7 @@ impl EvalFragment {
     }
 }
 
-impl TranslationFragmentable for EvalFragment {
+impl FragmentRenderable for EvalFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let prev = meta.eval_ctx;
         meta.eval_ctx = self.toggle;
@@ -33,7 +33,7 @@ impl TranslationFragmentable for EvalFragment {
         }
     }
 
-    fn to_frag(self) -> TranslationFragment {
-        TranslationFragment::Eval(self)
+    fn to_frag(self) -> FragmentKind {
+        FragmentKind::Eval(self)
     }
 }
