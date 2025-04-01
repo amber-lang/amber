@@ -3,7 +3,6 @@ use crate::{translate::fragments::fragment::FragmentKind, utils::TranslateMetada
 
 /// This module represents a Bash code fragment that is composed of multiple parts.
 /// The sole purpose of this module is to bundle multiple `TranslationFragment` instances into a single fragment.
-
 #[derive(Debug, Clone)]
 pub struct CompoundFragment {
     fragments: Vec<FragmentKind>,

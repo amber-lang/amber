@@ -43,15 +43,12 @@ impl FragmentRenderable for BlockFragment {
         let mut result = vec![];
         for statement in self.statements {
             match statement {
-                FragmentKind::Empty => {
-                    continue
-                }
+                FragmentKind::Empty => (),
                 FragmentKind::Block(block) => {
                     let rendered = block.to_string(meta);
-                    if rendered.is_empty() {
-                        continue;
+                    if !rendered.is_empty() {
+                        result.push(rendered);
                     }
-                    result.push(rendered);
                 }
                 _ => {
                     let statement = statement.to_string(meta);

@@ -4,7 +4,6 @@ use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a region that can be interpolated. Similarily to what Heraclitus returns when parsing a region.
-
 #[derive(Debug, Clone)]
 pub enum InterpolableRenderType {
     /// This should be rendered to Bash's double quoted string

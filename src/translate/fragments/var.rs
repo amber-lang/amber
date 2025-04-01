@@ -3,7 +3,6 @@ use crate::{modules::{expression::expr::{Expr, ExprType}, prelude::RawFragment, 
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a variable expression such as `$var` or `${var}`
-
 #[derive(Debug, Clone)]
 pub enum VarRenderType {
     Name,

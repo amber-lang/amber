@@ -2,7 +2,6 @@ use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a comment fragment in the translation process.
-
 #[derive(Debug, Clone)]
 pub struct CommentFragment {
     pub value: String,

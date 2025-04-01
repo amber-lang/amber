@@ -3,7 +3,6 @@ use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a list of fragments that can be separated by a given separator.
-
 #[derive(Debug, Clone)]
 pub struct ListFragment {
     pub values: Vec<FragmentKind>,
