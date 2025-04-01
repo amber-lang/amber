@@ -7,7 +7,7 @@ use super::{
     list::ListFragment,
     raw::RawFragment,
     subprocess::SubprocessFragment,
-    var::VarFragment
+    var::VarFragment,
 };
 use crate::utils::TranslateMetadata;
 
