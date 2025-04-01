@@ -159,14 +159,20 @@ impl TranslateModule for Statement {
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
         match statement {
-            StatementType::Expr(expr) => match &expr.value {
-                Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
-                _ => {
-                    self.translate_match(meta, statement);
-                    TranslationFragment::Empty
+            StatementType::Expr(expr) => {
+                match &expr.value {
+                    Some(ExprType::Command(cmd)) => {
+                        cmd.translate_command_statement(meta)
+                    },
+                    _ => {
+                        self.translate_match(meta, statement);
+                        TranslationFragment::Empty
+                    }
                 }
             },
-            _ => self.translate_match(meta, statement)
+            _ => {
+                self.translate_match(meta, statement)
+            }
         }
     }
 }
