@@ -25,3 +25,9 @@ impl TranslationFragmentable for CommentFragment {
         TranslationFragment::Comment(self)
     }
 }
+
+impl From<String> for CommentFragment {
+    fn from(value: String) -> Self {
+        Self::new(value.as_str())
+    }
+}
