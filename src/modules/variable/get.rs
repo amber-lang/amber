@@ -15,7 +15,7 @@ pub struct VariableGet {
 
 impl Typed for VariableGet {
     fn get_type(&self) -> Type {
-        if let Some(index) = &*self.index {
+        if let Some(index) = self.index.as_ref() {
             match (&index.value, &self.kind) {
                 (Some(ExprType::Range(_)), _) => self.kind.clone(),
                 (Some(_), Type::Array(item_type)) => *item_type.clone(),
