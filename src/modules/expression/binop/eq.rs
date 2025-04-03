@@ -52,8 +52,8 @@ impl SyntaxModule<ParserMetadata> for Eq {
 
 impl TranslateModule for Eq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let left = self.left.translate(meta).unquote();
-        let right = self.right.translate(meta).unquote();
+        let left = self.left.translate(meta).with_quotes(false);
+        let right = self.right.translate(meta).with_quotes(false);
         // Handle text comparison
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
             SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()

@@ -72,7 +72,7 @@ impl TranslateModule for Range {
             }
         };
         let expr = fragments!("seq ", from, " ", to);
-        SubprocessFragment::new(expr).set_quoted(false).to_frag()
+        SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
 }
 
@@ -109,7 +109,7 @@ impl Range {
             let offset_id = Some(meta.gen_value_id());
             let offset_val = self.from.translate(meta);
             let offset_var = meta.push_intermediate_variable("__slice_offset", offset_id, Type::Num, offset_val).to_frag();
-            let offset_cap = fragments!("$((", offset_var.clone().unquote(), " > 0 ? ", offset_var.unquote(), " : 0))");
+            let offset_cap = fragments!("$((", offset_var.clone().with_quotes(false), " > 0 ? ", offset_var.with_quotes(false), " : 0))");
             meta.push_intermediate_variable("__slice_offset", offset_id, Type::Num, offset_cap).to_frag()
         };
 
@@ -118,7 +118,7 @@ impl Range {
             let length_id = Some(meta.gen_value_id());
             let length_val = translate_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
             let length_var = meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_val).to_frag();
-            let length_cap = fragments!("$((", length_var.clone().unquote(), " > 0 ? ", length_var.unquote(), " : 0))");
+            let length_cap = fragments!("$((", length_var.clone().with_quotes(false), " > 0 ? ", length_var.with_quotes(false), " : 0))");
             meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_cap).to_frag()
         };
 

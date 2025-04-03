@@ -83,7 +83,7 @@ impl TranslateModule for Ternary {
         let expr = fragments!("if [ ", cond, " != 0 ]; then echo ", true_expr, "; else echo ", false_expr, "; fi");
         if is_array {
             let id = meta.gen_value_id();
-            let value = SubprocessFragment::new(expr).set_quoted(false).to_frag();
+            let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
             meta.push_intermediate_variable("__ternary", Some(id), self.true_expr.get_type(), value).to_frag()
         } else {
             SubprocessFragment::new(expr).to_frag()

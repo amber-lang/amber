@@ -29,11 +29,11 @@ pub enum FragmentKind {
 }
 
 impl FragmentKind {
-    pub fn unquote(self) -> Self {
+    pub fn with_quotes(self, value: bool) -> Self {
         match self {
-            FragmentKind::Var(var) => FragmentKind::Var(var.set_quoted(false)),
-            FragmentKind::Interpolable(inter) => FragmentKind::Interpolable(inter.set_quoted(false)),
-            FragmentKind::Subprocess(sub) => FragmentKind::Subprocess(sub.set_quoted(false)),
+            FragmentKind::Var(var) => FragmentKind::Var(var.with_quotes(value)),
+            FragmentKind::Interpolable(inter) => FragmentKind::Interpolable(inter.with_quotes(value)),
+            FragmentKind::Subprocess(sub) => FragmentKind::Subprocess(sub.with_quotes(value)),
             _ => self,
         }
     }

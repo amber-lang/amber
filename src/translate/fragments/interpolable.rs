@@ -30,12 +30,12 @@ impl InterpolableFragment {
         }
     }
 
-    pub fn set_render_type(mut self, render_type: InterpolableRenderType) -> Self {
+    pub fn with_render_type(mut self, render_type: InterpolableRenderType) -> Self {
         self.render_type = render_type;
         self
     }
 
-    pub fn set_quoted(mut self, quoted: bool) -> Self {
+    pub fn with_quotes(mut self, quoted: bool) -> Self {
         self.quoted = quoted;
         self
     }
@@ -47,7 +47,7 @@ impl InterpolableFragment {
             if let Some(translated) = self.interps.pop_front() {
                 // Quotes inside of interpolable strings are not necessary
                 if let FragmentKind::Interpolable(mut interpolable) = translated {
-                    interpolable = interpolable.set_render_type(InterpolableRenderType::GlobalContext);
+                    interpolable = interpolable.with_render_type(InterpolableRenderType::GlobalContext);
                     result.push(interpolable.to_string(meta));
                 } else {
                     result.push(translated.to_string(meta));

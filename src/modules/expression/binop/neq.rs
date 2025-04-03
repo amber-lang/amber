@@ -51,8 +51,8 @@ impl SyntaxModule<ParserMetadata> for Neq {
 
 impl TranslateModule for Neq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let left = self.left.translate(meta).unquote();
-        let right = self.right.translate(meta).unquote();
+        let left = self.left.translate(meta).with_quotes(false);
+        let right = self.right.translate(meta).with_quotes(false);
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
             SubprocessFragment::new(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?")).to_frag()
         } else {

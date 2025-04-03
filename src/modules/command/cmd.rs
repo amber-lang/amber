@@ -56,7 +56,7 @@ impl Command {
     fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> FragmentKind {
         // Translate all interpolations
         let interps = self.interps.iter()
-            .map(|item| item.translate(meta).unquote())
+            .map(|item| item.translate(meta).with_quotes(false))
             .collect::<Vec<FragmentKind>>();
         let failed = self.failed.translate(meta);
 

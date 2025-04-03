@@ -73,7 +73,7 @@ impl VarFragment {
         self
     }
 
-    pub fn set_quoted(mut self, is_quoted: bool) -> Self {
+    pub fn with_quotes(mut self, is_quoted: bool) -> Self {
         self.is_quoted = is_quoted;
         self
     }
@@ -136,12 +136,12 @@ impl VarFragment {
     fn get_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<VarIndexValue>) -> String {
         match (&self.kind, index) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
-                let offset = offset.unquote().to_string(meta);
-                let length = length.unquote().to_string(meta);
+                let offset = offset.with_quotes(false).to_string(meta);
+                let length = length.with_quotes(false).to_string(meta);
                 format!("[@]:{offset}:{length}")
             }
             (_, Some(VarIndexValue::Index(index))) => {
-                let index = index.unquote().to_string(meta);
+                let index = index.with_quotes(false).to_string(meta);
                 format!("[{index}]")
             }
             (Type::Array(_), None) => {

@@ -16,7 +16,7 @@ impl SubprocessFragment {
         }
     }
 
-    pub fn set_quoted(mut self, quoted: bool) -> Self {
+    pub fn with_quotes(mut self, quoted: bool) -> Self {
         self.quoted = quoted;
         self
     }
