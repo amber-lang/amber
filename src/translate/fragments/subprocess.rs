@@ -1,5 +1,5 @@
-use super::fragment::{FragmentKind, FragmentRenderable};
 use crate::utils::TranslateMetadata;
+use super::fragment::{FragmentKind, FragmentRenderable};
 
 // Creates a subprocess fragment that is correctly escaped.
 #[derive(Debug, Clone)]
@@ -27,9 +27,9 @@ impl FragmentRenderable for SubprocessFragment {
         let result = self.fragment.to_string(meta);
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         if meta.eval_ctx {
-            format!("{quote}$(eval \"{}\"){quote}", result)
+            format!("{quote}$(eval \"{result}\"){quote}")
         } else {
-            format!("{quote}$({}){quote}", result)
+            format!("{quote}$({result}){quote}")
         }
     }
 

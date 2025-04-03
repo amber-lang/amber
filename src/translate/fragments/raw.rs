@@ -1,5 +1,4 @@
 use crate::utils::TranslateMetadata;
-
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// This module represents a raw code fragment in Bash.

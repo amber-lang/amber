@@ -1,5 +1,8 @@
 use crate::modules::prelude::*;
-use crate::{modules::{expression::expr::{Expr, ExprType}, prelude::RawFragment, types::Type}, utils::TranslateMetadata};
+use crate::utils::TranslateMetadata;
+use crate::modules::types::Type;
+use crate::modules::prelude::RawFragment;
+use crate::modules::expression::expr::{Expr, ExprType};
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a variable expression such as `$var` or `${var}`

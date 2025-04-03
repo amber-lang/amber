@@ -74,16 +74,16 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let lines_iterator_path = self.get_iterator_lines_path(meta);
+        let iter_path = self.get_iterator_lines_path(meta);
         let iter_name = RawFragment::new(&self.iter_name).to_frag();
 
-        let for_loop_prefix = match lines_iterator_path.is_none() {
-            true => fragments!("for ", iter_name, " in ", self.iter_expr.translate(meta), "; do"),
-            false => fragments!("while IFS= read -r ", iter_name, "; do"),
+        let for_loop_prefix = match iter_path.is_some() {
+            true => fragments!("while IFS= read -r ", iter_name, "; do"),
+            false => fragments!("for ", iter_name, " in ", self.iter_expr.translate(meta), "; do"),
         };
-        let for_loop_suffix = match lines_iterator_path.is_none() {
-            true => fragments!("done"),
-            false => fragments!("done <", lines_iterator_path.unwrap()),
+        let for_loop_suffix = match iter_path.is_some() {
+            true => fragments!("done <", iter_path.unwrap()),
+            false => fragments!("done"),
         };
 
         match self.iter_index.as_ref() {
