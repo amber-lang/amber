@@ -1,7 +1,6 @@
 use super::{
     block::BlockFragment,
     comment::CommentFragment,
-    compound::CompoundFragment,
     eval::EvalFragment,
     interpolable::InterpolableFragment,
     list::ListFragment,
@@ -21,7 +20,6 @@ pub enum FragmentKind {
     Raw(RawFragment),
     Var(VarFragment),
     Block(BlockFragment),
-    Compound(CompoundFragment),
     Interpolable(InterpolableFragment),
     List(ListFragment),
     Eval(EvalFragment),
@@ -46,7 +44,6 @@ impl FragmentKind {
             FragmentKind::Comment(_) => true,
             FragmentKind::Block(block) => block.is_empty_logic(),
             FragmentKind::List(list) => list.is_empty_logic(),
-            FragmentKind::Compound(compound) => compound.is_empty_logic(),
             _ => false,
         }
     }
@@ -58,7 +55,6 @@ impl FragmentRenderable for FragmentKind {
             FragmentKind::Raw(raw) => raw.to_string(meta),
             FragmentKind::Var(var) => var.to_string(meta),
             FragmentKind::Block(block) => block.to_string(meta),
-            FragmentKind::Compound(statement) => statement.to_string(meta),
             FragmentKind::Interpolable(interpolable) => interpolable.to_string(meta),
             FragmentKind::List(list) => list.to_string(meta),
             FragmentKind::Eval(eval) => eval.to_string(meta),

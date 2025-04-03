@@ -1,5 +1,4 @@
 pub mod block;
-pub mod compound;
 pub mod fragment;
 pub mod raw;
 pub mod var;
@@ -12,7 +11,7 @@ pub mod comment;
 #[macro_export]
 macro_rules! fragments {
     ($($token:expr),+) => {
-        CompoundFragment::new(vec![
+        ListFragment::new(vec![
             $(fragments!(@internal $token)),*
         ]).to_frag()
     };

@@ -1,20 +1,30 @@
 use crate::utils::TranslateMetadata;
-
 use super::fragment::{FragmentKind, FragmentRenderable};
+
+#[derive(Debug, Clone)]
+enum ListFragmentSeparator {
+    Space,
+    Empty
+}
 
 /// Represents a list of fragments that can be separated by a given separator.
 #[derive(Debug, Clone)]
 pub struct ListFragment {
     pub values: Vec<FragmentKind>,
-    pub separator: String,
+    separator: ListFragmentSeparator,
 }
 
 impl ListFragment {
-    pub fn new(value: Vec<FragmentKind>, separator: &str) -> Self {
+    pub fn new(value: Vec<FragmentKind>) -> Self {
         ListFragment {
             values: value,
-            separator: separator.to_string(),
+            separator: ListFragmentSeparator::Empty,
         }
+    }
+
+    pub fn with_spaces(mut self) -> Self {
+        self.separator = ListFragmentSeparator::Space;
+        self
     }
 
     pub fn is_empty_logic(&self) -> bool {
@@ -24,7 +34,14 @@ impl ListFragment {
 
 impl FragmentRenderable for ListFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-        self.values.into_iter().map(|x| x.to_string(meta)).collect::<Vec<String>>().join(&self.separator)
+        let sep: &'static str = match self.separator {
+            ListFragmentSeparator::Space => " ",
+            ListFragmentSeparator::Empty => "",
+        };
+        self.values.into_iter()
+            .map(|x| x.to_string(meta))
+            .collect::<Vec<String>>()
+            .join(sep)
     }
 
     fn to_frag(self) -> FragmentKind {

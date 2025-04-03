@@ -53,7 +53,7 @@ pub fn gen_intermediate_variable(
         }
         result
     };
-    let stmt = CompoundFragment::new(frags).to_frag();
+    let stmt = ListFragment::new(frags).to_frag();
     (EvalFragment::new(stmt, is_ref).to_frag(), variable)
 }
 

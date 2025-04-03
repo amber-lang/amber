@@ -139,7 +139,7 @@ impl TranslateModule for FunctionInvocation {
             _ if *is_ref => panic!("Reference value accepts only variables"),
             var => var
         }).collect::<Vec<FragmentKind>>();
-        let args = ListFragment::new(args, " ").to_frag();
+        let args = ListFragment::new(args).with_spaces().to_frag();
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
