@@ -17,7 +17,7 @@ impl CommentFragment {
 
 impl FragmentRenderable for CommentFragment {
     fn to_string(self, _meta: &mut TranslateMetadata) -> String {
-        "# ".to_string() + &self.value
+        format!("# {}", self.value)
     }
 
     fn to_frag(self) -> FragmentKind {

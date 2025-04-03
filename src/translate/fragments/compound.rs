@@ -9,8 +9,8 @@ pub struct CompoundFragment {
 }
 
 impl CompoundFragment {
-    pub fn new(frags: Vec<FragmentKind>) -> Self {
-        CompoundFragment { fragments: frags }
+    pub fn new(fragments: Vec<FragmentKind>) -> Self {
+        CompoundFragment { fragments }
     }
 
     pub fn is_empty_logic(&self) -> bool {
