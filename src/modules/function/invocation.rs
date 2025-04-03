@@ -134,8 +134,8 @@ impl TranslateModule for FunctionInvocation {
         let silent = meta.gen_silent().to_frag();
 
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
-            FragmentKind::Var(var) if *is_ref => var.set_render_type(VarRenderType::BashRef).to_frag(),
-            FragmentKind::Var(var) if var.kind.is_array() => fragments!(var.set_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
+            FragmentKind::Var(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
+            FragmentKind::Var(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
             _ if *is_ref => panic!("Reference value accepts only variables"),
             var => var
         }).collect::<Vec<FragmentKind>>();

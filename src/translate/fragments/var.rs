@@ -66,12 +66,12 @@ impl VarFragment {
         self
     }
 
-    pub fn set_get_length(mut self) -> Self {
-        self.is_length = true;
+    pub fn with_length_getter(mut self, value: bool) -> Self {
+        self.is_length = value;
         self
     }
 
-    pub fn set_render_type(mut self, render_type: VarRenderType) -> Self {
+    pub fn with_render_type(mut self, render_type: VarRenderType) -> Self {
         self.render_type = render_type;
         self
     }
