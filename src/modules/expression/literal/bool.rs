@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
+use crate::raw_fragment;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 
@@ -32,7 +32,7 @@ impl SyntaxModule<ParserMetadata> for Bool {
 
 impl TranslateModule for Bool {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!(raw: "{}", if self.value { 1 } else { 0 })
+        raw_fragment!("{}", if self.value { 1 } else { 0 })
     }
 }
 

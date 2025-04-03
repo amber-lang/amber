@@ -1,7 +1,7 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
+use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use itertools::izip;
 use crate::modules::command::modifier::CommandModifier;
@@ -128,7 +128,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let name = fragments!(raw: "{}__{}_v{}", self.name, self.id, self.variant_id);
+        let name = raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();

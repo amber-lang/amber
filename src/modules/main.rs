@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
+use crate::raw_fragment;
 use crate::modules::types::Type;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
@@ -70,7 +70,7 @@ impl TranslateModule for Main {
             let dollar = meta.gen_dollar();
             let args = self.args.clone().map_or_else(
                 || FragmentKind::Empty,
-                |name| fragments!(raw: "declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                |name| raw_fragment!("declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
             // Temporarily decrease the indentation level to counteract
             // the indentation applied by the block translation.  Unlike

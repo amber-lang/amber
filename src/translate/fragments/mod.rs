@@ -18,13 +18,17 @@ macro_rules! fragments {
     ($token:expr) => {
         fragments!(@internal $token)
     };
-    (raw: $($args:expr),+) => {
-        RawFragment::new(&format!($($args),+)).to_frag()
-    };
     (@internal $val:literal) => {
         RawFragment::new($val).to_frag()
     };
     (@internal $val:expr) => {
         $val
+    };
+}
+
+#[macro_export]
+macro_rules! raw_fragment {
+    ($($args:expr),+) => {
+        RawFragment::new(&format!($($args),+)).to_frag()
     };
 }

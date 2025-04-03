@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::fragments;
+use crate::{fragments, raw_fragment};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::FragmentKind;
@@ -76,13 +76,13 @@ impl TranslateModule for Fail {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let translate = self.code.is_empty()
             .then(|| self.expr.translate(meta))
-            .unwrap_or_else(|| fragments!(raw: "{}", &self.code));
+            .unwrap_or_else(|| raw_fragment!("{}", &self.code));
         if self.is_main {
             fragments!("exit ", translate)
         } else {
             // Clean the return value if the function fails
             let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-            let stmt = fragments!(raw: "{}={}", fun_meta.mangled_name(), fun_meta.default_return());
+            let stmt = raw_fragment!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
             meta.stmt_queue.push_back(stmt);
             fragments!("return ", translate)
         }

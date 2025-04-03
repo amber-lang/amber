@@ -1,4 +1,5 @@
 use crate::modules::prelude::*;
+use crate::raw_fragment;
 use heraclitus_compiler::prelude::*;
 use crate::{fragments, modules::types::Type, utils::ParserMetadata};
 
@@ -37,19 +38,19 @@ pub fn gen_intermediate_variable(
     let frags = {
         let mut result = vec![];
         match is_ref {
-            true => result.push(fragments!(raw: "${{{}}}", variable.get_name())),
-            false => result.push(fragments!(raw: "{}", variable.get_name())),
+            true => result.push(raw_fragment!("${{{}}}", variable.get_name())),
+            false => result.push(raw_fragment!("{}", variable.get_name())),
         }
         if let Some(index) = index {
             result.push(fragments!("[", index, "]"));
         }
-        result.push(fragments!(raw: "{}", op));
+        result.push(raw_fragment!("{}", op));
         if is_array {
-            result.push(fragments!(raw: "("));
+            result.push(raw_fragment!("("));
         }
         result.push(value);
         if is_array {
-            result.push(fragments!(raw: ")"));
+            result.push(raw_fragment!(")"));
         }
         result
     };

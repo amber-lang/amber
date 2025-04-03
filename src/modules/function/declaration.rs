@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use crate::raw_fragment;
 use std::{env, fs};
 use std::ffi::OsStr;
 use std::path::Path;
@@ -40,8 +41,8 @@ impl FunctionDeclaration {
             let mut result = vec![];
             for (index, (name, kind, is_ref)) in izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate() {
                 match (is_ref, kind) {
-                    (false, Type::Array(_)) => result.push(fragments!(raw: "local {name}=(\"${{!{}}}\")", index + 1)),
-                    _ => result.push(fragments!(raw: "local {name}=${}", index + 1)),
+                    (false, Type::Array(_)) => result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1)),
+                    _ => result.push(raw_fragment!("local {name}=${}", index + 1)),
                 }
             }
             Some(BlockFragment::new(result, true).to_frag())
@@ -248,7 +249,7 @@ impl TranslateModule for FunctionDeclaration {
         for (index, function) in blocks.iter().enumerate() {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
-            let name = fragments!(raw: "{}__{}_v{}", self.name, self.id, index);
+            let name = raw_fragment!("{}__{}_v{}", self.name, self.id, index);
             result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);

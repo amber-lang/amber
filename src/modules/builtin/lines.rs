@@ -1,4 +1,5 @@
 use crate::fragments;
+use crate::raw_fragment;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
@@ -56,8 +57,8 @@ impl TranslateModule for LinesInvocation {
         let id = meta.gen_value_id();
         let value = meta.push_intermediate_variable_lazy("__array", Some(id), Type::array_of(Type::Text), FragmentKind::Empty);
         meta.stmt_queue.extend([
-            fragments!(raw: "while IFS= read -r {temp}; do"),
-            fragments!(raw: "{indent}{}+=(\"${}\")", value.get_name(), temp),
+            raw_fragment!("while IFS= read -r {temp}; do"),
+            raw_fragment!("{indent}{}+=(\"${}\")", value.get_name(), temp),
             fragments!("done <", path),
         ]);
         value.to_frag()

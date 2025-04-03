@@ -74,7 +74,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let iter_path = self.get_iterator_lines_path(meta);
+        let iter_path = self.translate_path(meta);
         let iter_name = RawFragment::new(&self.iter_name).to_frag();
 
         let for_loop_prefix = match iter_path.is_some() {
@@ -109,7 +109,7 @@ impl TranslateModule for IterLoop {
 }
 
 impl IterLoop {
-    fn get_iterator_lines_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
+    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
         if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
             Some(value.translate_path(meta))
         } else {
