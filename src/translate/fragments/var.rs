@@ -91,21 +91,22 @@ impl VarFragment {
     // Returns the variable name in the bash context Ex. "varname"
     pub fn render_bash_reference(self, meta: &mut TranslateMetadata) -> String {
         let dollar = meta.gen_dollar();
-        let name = self.get_name();
+        let mut name = self.get_name();
         // Dereference variable if it's a reference and is passed by reference
-        let result = if self.is_ref { format!("{dollar}{name}") } else { name };
+        if self.is_ref {
+            name = format!("{dollar}{name}");
+        }
 
-        if !self.is_quoted {
-            result
+        return if self.is_quoted {
+            let quote = meta.gen_quote();
+            format!("{quote}{name}{quote}")
         } else {
-            meta.gen_quote().to_string() + &result + meta.gen_quote()
+            name
         }
     }
 
     // Returns the variable value in the bash context Ex. "$varname" or "${varname[@]}"
     pub fn render_bash_value(mut self, meta: &mut TranslateMetadata) -> String {
-        let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-        let dollar = meta.gen_dollar();
         let name = self.get_name();
         let index = self.index.take();
 
@@ -116,14 +117,9 @@ impl VarFragment {
             return self.render_deref_variable(meta, prefix, &name, &suffix);
         }
 
-        match self.kind {
-            Type::Text | Type::Array(_) => {
-                format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
-            }
-            _ => {
-                format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
-            }
-        }
+        let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+        let dollar = meta.gen_dollar();
+        format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
     }
 
     // Get variable prefix ${PREFIX:varname:suffix}
