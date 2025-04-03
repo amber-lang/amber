@@ -53,8 +53,9 @@ impl TranslateModule for Len {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
         let id = meta.gen_value_id();
-        let var_fragment = meta.push_intermediate_variable_lazy("__length", Some(id), Type::Num, value).with_length_getter(true);
-        var_fragment.to_frag()
+        meta.push_intermediate_variable_lazy("__length", Some(id), Type::Num, value)
+            .with_length_getter(true)
+            .to_frag()
     }
 }
 

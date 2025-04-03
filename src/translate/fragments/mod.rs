@@ -29,6 +29,6 @@ macro_rules! fragments {
 #[macro_export]
 macro_rules! raw_fragment {
     ($($args:expr),+) => {
-        RawFragment::new(&format!($($args),+)).to_frag()
+        RawFragment::from(format!($($args),+)).to_frag()
     };
 }

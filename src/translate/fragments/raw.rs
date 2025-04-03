@@ -9,6 +9,12 @@ pub struct RawFragment {
     pub value: String,
 }
 
+impl From<String> for RawFragment {
+    fn from(value: String) -> Self {
+        RawFragment { value }
+    }
+}
+
 impl RawFragment {
     pub fn new(value: &str) -> Self {
         RawFragment {

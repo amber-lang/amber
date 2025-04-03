@@ -63,7 +63,7 @@ pub fn translate_computation(
                 ArithOp::Or => "||"
             };
             let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
-            let operator = RawFragment::new(&format!(" '{op}' ")).to_frag();
+            let operator = RawFragment::from(format!(" '{op}' ")).to_frag();
             let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed '", sed_regex, "'");
             SubprocessFragment::new(value).to_frag()
         }

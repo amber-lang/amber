@@ -19,7 +19,7 @@ impl SyntaxModule<ParserMetadata> for Main {
     fn new() -> Self {
         Self {
             args: None,
-            block: Block::new().no_indent(),
+            block: Block::new().with_no_indent(),
             is_skipped: false
         }
     }

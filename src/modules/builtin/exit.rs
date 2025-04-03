@@ -41,11 +41,10 @@ impl SyntaxModule<ParserMetadata> for Exit {
 
 impl TranslateModule for Exit {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let exit_code = self.code.as_ref().map(|expr| expr.translate(meta));
-        fragments!(
-            "exit ",
-            exit_code.unwrap_or(fragments!("0"))
-        )
+        let exit_code = self.code.as_ref()
+            .map(|expr| expr.translate(meta))
+            .unwrap_or(fragments!("0"));
+        fragments!("exit ", exit_code)
     }
 }
 

@@ -74,20 +74,22 @@ impl Command {
         swap(&mut is_silent, &mut meta.silenced);
 
         if is_statement {
-            return if let FragmentKind::Empty = failed { translation } else {
+            if let FragmentKind::Empty = failed {
+                translation
+            } else {
                 meta.stmt_queue.push_back(translation);
                 failed
             }
-        }
-
-        if let FragmentKind::Empty = failed {
-            SubprocessFragment::new(translation).to_frag()
         } else {
-            let id = meta.gen_value_id();
-            let value = SubprocessFragment::new(translation).to_frag();
-            let variable = meta.push_intermediate_variable("__command", Some(id), Type::Text, value);
-            meta.stmt_queue.push_back(failed);
-            variable.to_frag()
+            if let FragmentKind::Empty = failed {
+                SubprocessFragment::new(translation).to_frag()
+            } else {
+                let id = meta.gen_value_id();
+                let value = SubprocessFragment::new(translation).to_frag();
+                let variable = meta.push_intermediate_variable("__command", Some(id), Type::Text, value);
+                meta.stmt_queue.push_back(failed);
+                variable.to_frag()
+            }
         }
     }
 

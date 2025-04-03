@@ -59,9 +59,9 @@ impl TranslateModule for Range {
         let from = self.from.translate(meta);
         let to = if let Some(to) = self.to.get_integer_value() {
             if self.neq {
-                RawFragment::new(&(to - 1).to_string()).to_frag()
+                RawFragment::from((to - 1).to_string()).to_frag()
             } else {
-                RawFragment::new(&to.to_string()).to_frag()
+                RawFragment::from(to.to_string()).to_frag()
             }
         } else {
             let to = self.to.translate(meta);
@@ -89,8 +89,8 @@ impl Range {
                 // Cap the slice length at zero.
                 let length = max(to - offset, 0);
                 return (
-                    RawFragment::new(&offset.to_string()).to_frag(),
-                    RawFragment::new(&length.to_string()).to_frag()
+                    RawFragment::from(offset.to_string()).to_frag(),
+                    RawFragment::from(length.to_string()).to_frag()
                 );
             }
         }

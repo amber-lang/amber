@@ -32,6 +32,13 @@ impl Typed for FunctionInvocation {
     }
 }
 
+fn is_ref(expr: &Expr) -> bool {
+    match &expr.value {
+        Some(ExprType::VariableGet(var)) => !var.is_variable_modified(),
+        _ => false,
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     syntax_name!("Function Invocation");
 
@@ -92,11 +99,8 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 }
             }
 
-            let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-            let var_refs = self.args.iter().map(|e| match &e.value {
-                Some(ExprType::VariableGet(var)) => !var.is_variable_modified(),
-                _ => false,
-            }).collect::<Vec<bool>>();
+            let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
+            let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
             self.refs.clone_from(&function_unit.arg_refs);
             (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
 

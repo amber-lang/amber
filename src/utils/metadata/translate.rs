@@ -58,14 +58,26 @@ impl TranslateMetadata {
     }
 
     #[inline]
-    pub fn push_intermediate_variable(&mut self, name: &str, id: Option<usize>, kind: Type, value: FragmentKind) -> VarFragment {
+    pub fn push_intermediate_variable(
+        &mut self,
+        name: &str,
+        id: Option<usize>,
+        kind: Type,
+        value: FragmentKind,
+    ) -> VarFragment {
         let (stmt, var) = gen_intermediate_variable(name, id, kind, false, None, "=", value);
         self.stmt_queue.push_back(stmt);
         var
     }
 
     #[inline]
-    pub fn push_intermediate_variable_lazy(&mut self, name: &str, id: Option<usize>, kind: Type, value: FragmentKind) -> VarFragment {
+    pub fn push_intermediate_variable_lazy(
+        &mut self,
+        name: &str,
+        id: Option<usize>,
+        kind: Type,
+        value: FragmentKind,
+    ) -> VarFragment {
         let (stmt, var) = gen_intermediate_variable_lazy(name, id, kind, false, None, "=", value);
         self.stmt_queue.push_back(stmt);
         var
@@ -86,7 +98,8 @@ impl TranslateMetadata {
     }
 
     pub fn gen_silent(&self) -> RawFragment {
-        RawFragment::new(if self.silenced { " > /dev/null 2>&1" } else { "" })
+        let expr = if self.silenced { " >/dev/null 2>&1" } else { "" };
+        RawFragment::new(expr)
     }
 
     // Returns the appropriate amount of quotes with escape symbols.

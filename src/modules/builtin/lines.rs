@@ -67,11 +67,10 @@ impl TranslateModule for LinesInvocation {
 
 impl LinesInvocation {
     pub fn translate_path(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let path = (*self.path)
+        (*self.path)
             .as_ref()
             .map(|p| p.translate(meta))
-            .expect("Cannot read lines without provided path in iterator loop");
-        path
+            .expect("Cannot read lines without provided path in iterator loop")
     }
 }
 

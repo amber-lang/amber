@@ -26,10 +26,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
 
 impl TranslateModule for Echo {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!(
-            "echo ",
-            self.value.translate(meta)
-        )
+        fragments!("echo ", self.value.translate(meta))
     }
 }
 

@@ -109,22 +109,21 @@ impl VarFragment {
     pub fn render_bash_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
         let index = self.index.take();
-
-        let prefix = self.get_variable_prefix(self.is_length);
+        let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index);
 
         if self.is_ref {
-            return self.render_deref_variable(meta, prefix, &name, &suffix);
+            self.render_deref_variable(meta, prefix, &name, &suffix)
+        } else {
+            let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+            let dollar = meta.gen_dollar();
+            format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
         }
-
-        let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-        let dollar = meta.gen_dollar();
-        format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
     }
 
     // Get variable prefix ${PREFIX:varname:suffix}
-    fn get_variable_prefix(&self, is_length: bool) -> &'static str {
-        if is_length {
+    fn get_variable_prefix(&self) -> &'static str {
+        if self.is_length {
             "#"
         } else {
             ""
@@ -164,8 +163,8 @@ impl VarFragment {
         let eval_value = format!("{prefix}${{{name}}}{suffix}");
         // TODO: Check if we can just `{name}_deref` without `__` and/or id.
         let var_name = format!("__{name}_deref_{id}");
-        meta.stmt_queue.push_back(RawFragment::new(
-            &format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
+        meta.stmt_queue.push_back(RawFragment::from(
+            format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
         ).to_frag());
 
         if self.kind.is_array() {

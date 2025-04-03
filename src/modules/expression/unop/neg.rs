@@ -65,7 +65,7 @@ impl Neg {
 
     pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if let Some(expr) = self.get_integer_value() {
-            RawFragment::new(&expr.to_string()).to_frag()
+            RawFragment::from(expr.to_string()).to_frag()
         } else {
             self.translate(meta)
         }

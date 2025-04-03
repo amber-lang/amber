@@ -10,7 +10,7 @@ use super::statement::stmt::Statement;
 pub struct Block {
     pub statements: Vec<Statement>,
     pub should_indent: bool,
-    pub translate_needs_noop: bool,
+    pub needs_noop: bool,
 }
 
 impl Block {
@@ -24,12 +24,12 @@ impl Block {
         self.statements.push(statement);
     }
 
-    pub fn needs_noop(mut self) -> Self {
-        self.translate_needs_noop = true;
+    pub fn with_needs_noop(mut self) -> Self {
+        self.needs_noop = true;
         self
     }
 
-    pub fn no_indent(mut self) -> Self {
+    pub fn with_no_indent(mut self) -> Self {
         self.should_indent = false;
         self
     }
@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Block {
         Block {
             statements: vec![],
             should_indent: true,
-            translate_needs_noop: false,
+            needs_noop: false,
         }
     }
 
@@ -85,7 +85,7 @@ impl TranslateModule for Block {
                 statements.push(statement);
             }
             BlockFragment::new(statements, self.should_indent)
-                .with_needs_noop(self.translate_needs_noop)
+                .with_needs_noop(self.needs_noop)
                 .to_frag()
         };
         // Restore the old statement queue

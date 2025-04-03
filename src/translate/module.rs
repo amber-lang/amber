@@ -1,5 +1,5 @@
-use crate::{modules::prelude::FragmentKind, utils::TranslateMetadata};
-
+use crate::modules::prelude::FragmentKind;
+use crate::utils::TranslateMetadata;
 
 pub trait TranslateModule {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind;

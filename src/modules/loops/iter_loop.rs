@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
     fn new() -> Self {
         IterLoop {
-            block: Block::new().needs_noop(),
+            block: Block::new().with_needs_noop(),
             iter_expr: Expr::new(),
             iter_index: None,
             iter_name: String::new(),
@@ -75,7 +75,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let iter_path = self.translate_path(meta);
-        let iter_name = RawFragment::new(&self.iter_name).to_frag();
+        let iter_name = RawFragment::from(self.iter_name.clone()).to_frag();
 
         let for_loop_prefix = match iter_path.is_some() {
             true => fragments!("while IFS= read -r ", iter_name, "; do"),
@@ -90,10 +90,10 @@ impl TranslateModule for IterLoop {
             Some(index) => {
                 let indent = TranslateMetadata::single_indent();
                 BlockFragment::new(vec![
-                    RawFragment::new(&format!("{index}=0;")).to_frag(),
+                    RawFragment::from(format!("{index}=0;")).to_frag(),
                     for_loop_prefix,
                     self.block.translate(meta),
-                    RawFragment::new(&format!("{indent}(( {index}++ )) || true")).to_frag(),
+                    RawFragment::from(format!("{indent}(( {index}++ )) || true")).to_frag(),
                     for_loop_suffix,
                 ], false).to_frag()
             },

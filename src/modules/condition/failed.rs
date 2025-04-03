@@ -75,17 +75,17 @@ impl TranslateModule for Failed {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
             let block = self.block.translate(meta);
-            let ret = if self.is_main { "exit $__status" } else { "return $__status" };
             // the condition of '$?' clears the status code thus we need to store it in a variable
             if self.is_question_mark {
                 // Set default return value if failure happened in a function
                 let clear_return = if !self.is_main {
                     let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
                     let statement = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
-                    RawFragment::new(&statement).to_frag()
+                    RawFragment::from(statement).to_frag()
                 } else {
                     FragmentKind::Empty
                 };
+                let ret = if self.is_main { "exit $__status" } else { "return $__status" };
                 let ret = RawFragment::new(ret).to_frag();
                 return BlockFragment::new(vec![
                     fragments!("__status=$?;"),
@@ -99,19 +99,20 @@ impl TranslateModule for Failed {
             }
             match &block {
                 FragmentKind::Empty => {
-                    return fragments!("__status=$?")
+                    fragments!("__status=$?")
                 },
                 FragmentKind::Block(block) if block.statements.is_empty() => {
-                    return fragments!("__status=$?")
+                    fragments!("__status=$?")
                 },
-                _ => {}
+                _ => {
+                    BlockFragment::new(vec![
+                        fragments!("__status=$?"),
+                        fragments!("if [ $__status != 0 ]; then"),
+                        block,
+                        fragments!("fi"),
+                    ], false).to_frag()
+                }
             }
-            BlockFragment::new(vec![
-                fragments!("__status=$?"),
-                fragments!("if [ $__status != 0 ]; then"),
-                block,
-                fragments!("fi"),
-            ], false).to_frag()
         } else {
             FragmentKind::Empty
         }
