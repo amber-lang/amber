@@ -1,12 +1,12 @@
 pub mod block;
+pub mod comment;
+pub mod eval;
 pub mod fragment;
-pub mod raw;
-pub mod var;
 pub mod interpolable;
 pub mod list;
-pub mod eval;
+pub mod raw;
 pub mod subprocess;
-pub mod comment;
+pub mod var;
 
 #[macro_export]
 macro_rules! fragments {

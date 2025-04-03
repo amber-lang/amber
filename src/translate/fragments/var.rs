@@ -8,15 +8,15 @@ use super::fragment::{FragmentKind, FragmentRenderable};
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone)]
 pub enum VarRenderType {
-    Name,
+    NameOf,
     BashRef,
     BashValue,
 }
 
 #[derive(Debug, Clone)]
 pub enum VarIndexValue {
+    Index(FragmentKind),
     Range(FragmentKind, FragmentKind),
-    Index(FragmentKind)
 }
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ pub struct VarFragment {
     pub is_length: bool,
     pub is_quoted: bool,
     pub render_type: VarRenderType,
-    pub index: Box<Option<VarIndexValue>>,
+    pub index: Option<Box<VarIndexValue>>,
 }
 
 impl VarFragment {
@@ -41,7 +41,7 @@ impl VarFragment {
             is_quoted: true,
             is_length: false,
             render_type: VarRenderType::BashValue,
-            index: Box::new(None),
+            index: None,
         }
     }
 
@@ -61,7 +61,7 @@ impl VarFragment {
                     VarIndexValue::Index(index)
                 }
             };
-            self.index = Box::new(Some(index));
+            self.index = Some(Box::new(index));
         }
         self
     }
@@ -136,8 +136,8 @@ impl VarFragment {
     }
 
     // Get variable suffix ${prefix:varname:SUFFIX}
-    fn get_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<VarIndexValue>) -> String {
-        match (&self.kind, index) {
+    fn get_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<Box<VarIndexValue>>) -> String {
+        match (&self.kind, index.map(|var| *var)) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
                 let offset = offset.with_quotes(false).to_string(meta);
                 let length = length.with_quotes(false).to_string(meta);
@@ -183,7 +183,7 @@ impl VarFragment {
 impl FragmentRenderable for VarFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
-            VarRenderType::Name => self.get_name(),
+            VarRenderType::NameOf => self.get_name(),
             VarRenderType::BashRef => self.render_bash_reference(meta),
             VarRenderType::BashValue => self.render_bash_value(meta),
         }
