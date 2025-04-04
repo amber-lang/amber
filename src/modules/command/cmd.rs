@@ -80,16 +80,14 @@ impl Command {
                 meta.stmt_queue.push_back(translation);
                 failed
             }
+        } else if let FragmentKind::Empty = failed {
+            SubprocessFragment::new(translation).to_frag()
         } else {
-            if let FragmentKind::Empty = failed {
-                SubprocessFragment::new(translation).to_frag()
-            } else {
-                let id = meta.gen_value_id();
-                let value = SubprocessFragment::new(translation).to_frag();
-                let variable = meta.push_intermediate_variable("__command", Some(id), Type::Text, value);
-                meta.stmt_queue.push_back(failed);
-                variable.to_frag()
-            }
+            let id = meta.gen_value_id();
+            let value = SubprocessFragment::new(translation).to_frag();
+            let variable = meta.push_intermediate_variable("__command", Some(id), Type::Text, value);
+            meta.stmt_queue.push_back(failed);
+            variable.to_frag()
         }
     }
 

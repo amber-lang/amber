@@ -97,7 +97,7 @@ impl VarFragment {
             name = format!("{dollar}{name}");
         }
 
-        return if self.is_quoted {
+        if self.is_quoted {
             let quote = meta.gen_quote();
             format!("{quote}{name}{quote}")
         } else {
