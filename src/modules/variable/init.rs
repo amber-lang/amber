@@ -1,14 +1,22 @@
-use heraclitus_compiler::prelude::*;
-use crate::{modules::prelude::*, translate::gen_intermediate_variable};
-use crate::modules::types::Typed;
+use super::{handle_identifier_name, variable_name_extensions};
+use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
-use super::{variable_name_extensions, handle_identifier_name};
+use crate::modules::types::Typed;
+use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
+
+#[derive(Debug, Clone)]
+pub struct VariableDefinition {
+    name: String,
+    tok: Option<Token>,
+    global_id: Option<usize>,
+}
 
 #[derive(Debug, Clone)]
 pub struct VariableInit {
-    name: String,
+    definitions: Vec<VariableDefinition>,
     expr: Box<Expr>,
-    global_id: Option<usize>,
+    is_global_ctx: bool,
     is_fun_ctx: bool,
     is_const: bool,
 }
@@ -17,10 +25,10 @@ impl VariableInit {
     fn handle_add_variable(
         &mut self,
         meta: &mut ParserMetadata,
-        tok: Option<Token>
+        def: &mut VariableDefinition,
     ) -> SyntaxResult {
-        handle_identifier_name(meta, &self.name, tok)?;
-        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
+        handle_identifier_name(meta, &def.name, def.tok.clone())?;
+        def.global_id = meta.add_var(&def.name, self.expr.get_type(), self.is_const);
         Ok(())
     }
 }
@@ -30,39 +38,161 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 
     fn new() -> Self {
         VariableInit {
-            name: String::new(),
+            definitions: vec![],
             expr: Box::new(Expr::new()),
-            global_id: None,
+            is_global_ctx: false,
             is_fun_ctx: false,
-            is_const: false
+            is_const: false,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let keyword = token_by(meta, |word| ["let", "const"].contains(&word.as_str()))?;
         self.is_const = keyword == "const";
-        // Get the variable name
-        let tok = meta.get_current_token();
-        self.name = variable(meta, variable_name_extensions())?;
-        context!({
-            token(meta, "=")?;
-            syntax(meta, &mut *self.expr)?;
-            // Add a variable to the memory
-            self.handle_add_variable(meta, tok)?;
-            self.is_fun_ctx = meta.context.is_fun_ctx;
-            Ok(())
-        }, |position| {
-            error_pos!(meta, position, format!("Expected '=' after variable name '{}'", self.name))
-        })
+
+        let mut definitions: Vec<VariableDefinition> = vec![];
+        let mut is_destructured = false;
+
+        match token(meta, "[") {
+            Ok(_) => {
+                is_destructured = true;
+                let mut idx = 0;
+                loop {
+                    if token(meta, "]").is_ok() {
+                        break;
+                    }
+                    if idx > 0 {
+                        token(meta, ",")?;
+                    }
+                    let tok = meta.get_current_token();
+                    let name = variable(meta, variable_name_extensions())?;
+                    definitions.push(VariableDefinition {
+                        name: name.clone(),
+                        tok,
+                        global_id: None,
+                    });
+                    idx += 1;
+                }
+            }
+            Err(_) => {
+                let tok = meta.get_current_token();
+                let name = variable(meta, variable_name_extensions())?;
+                definitions.push(VariableDefinition {
+                    name: name.clone(),
+                    tok,
+                    global_id: None,
+                });
+            }
+        }
+
+        context!(
+            {
+                token(meta, "=")?;
+                syntax(meta, &mut *self.expr)?;
+
+                if is_destructured && !self.expr.get_type().is_array() {
+                    panic!("Expected array type for destructured variable");
+                }
+
+                for mut def in &mut definitions {
+                    self.handle_add_variable(meta, &mut def)?;
+                }
+
+                self.is_fun_ctx = meta.context.is_fun_ctx;
+                self.definitions = definitions.clone();
+                Ok(())
+            },
+            |position| {
+                error_pos!(
+                    meta,
+                    position,
+                    format!("Expected '=' after variable definition")
+                )
+            }
+        )
     }
 }
 
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
-        let (stmt, _var) = gen_intermediate_variable(&self.name, self.global_id, self.expr.get_type(), false, None, "=", expr);
+        let (stmt, _var) = gen_intermediate_variable(
+            &self.name,
+            self.global_id,
+            self.expr.get_type(),
+            false,
+            None,
+            "=",
+            expr,
+        );
         stmt
     }
+
+    /*
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        let mut expr = self.expr.translate(meta);
+
+        if self.expr.get_type().is_array() {
+            expr = format!("({expr})");
+        }
+
+        let mut idx = 0;
+        let is_destructured = self.definitions.len() > 1;
+        let mut out = String::new();
+
+        let reference = if is_destructured {
+            if self.is_global_ctx {
+                Some(format!(
+                    "__ref_{}_{}",
+                    // all ids
+                    self.definitions
+                        .iter()
+                        .map(|x| x.global_id.unwrap())
+                        .join("i_i"),
+                    // all names
+                    self.definitions.iter().map(|x| x.name.clone()).join("_")
+                ))
+            } else {
+                Some(format!(
+                    "__ref_{}",
+                    // all names
+                    self.definitions.iter().map(|x| x.name.clone()).join("n_n")
+                ))
+            }
+        } else {
+            None
+        };
+
+        if reference.is_some() {
+            out += &format!(
+                "{}{}={};\n",
+                if self.is_fun_ctx { "local " } else { "" },
+                reference.clone().unwrap(),
+                expr
+            );
+        }
+
+        for def in &self.definitions {
+            let expr = if is_destructured {
+                format!("${{{}[{}]}};\n", reference.clone().unwrap(), idx)
+            } else {
+                format!("{}", expr)
+            };
+
+            if let Some(id) = def.global_id {
+                out.push_str(format!("__{id}_{name}={expr}", name = def.name).as_str());
+            } else if self.is_fun_ctx {
+                out.push_str(format!("local {name}={expr}", name = def.name).as_str())
+            } else {
+                out.push_str(format!("{name}={expr}", name = def.name).as_str())
+            }
+
+            idx += 1;
+        }
+
+        out
+    }
+    */
 }
 
 impl DocumentationModule for VariableInit {
