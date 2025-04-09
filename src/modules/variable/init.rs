@@ -98,6 +98,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
                     self.handle_add_variable(meta, &mut def)?;
                 }
 
+                self.is_global_ctx = definitions.iter().any(|x| x.global_id.is_some());
                 self.is_fun_ctx = meta.context.is_fun_ctx;
                 self.definitions = definitions.clone();
                 Ok(())
