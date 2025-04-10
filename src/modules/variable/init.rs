@@ -18,6 +18,7 @@ pub struct VariableInit {
     expr: Box<Expr>,
     is_global_ctx: bool,
     is_fun_ctx: bool,
+    is_destructured: bool,
     is_const: bool,
 }
 
@@ -42,6 +43,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             expr: Box::new(Expr::new()),
             is_global_ctx: false,
             is_fun_ctx: false,
+            is_destructured: false,
             is_const: false,
         }
     }
@@ -51,11 +53,10 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         self.is_const = keyword == "const";
 
         let mut definitions: Vec<VariableDefinition> = vec![];
-        let mut is_destructured = false;
 
         match token(meta, "[") {
             Ok(_) => {
-                is_destructured = true;
+                self.is_destructured = true;
                 let mut idx = 0;
                 loop {
                     if token(meta, "]").is_ok() {
@@ -85,12 +86,16 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             }
         }
 
+        if definitions.is_empty() {
+            panic!("Expected at least one variable definition");
+        }
+
         context!(
             {
                 token(meta, "=")?;
                 syntax(meta, &mut *self.expr)?;
 
-                if is_destructured && !self.expr.get_type().is_array() {
+                if self.is_destructured && !self.expr.get_type().is_array() {
                     panic!("Expected array type for destructured variable");
                 }
 
@@ -137,10 +142,9 @@ impl TranslateModule for VariableInit {
             expr = format!("({expr})");
         }
 
-        let is_destructured = self.definitions.len() > 1;
         let mut out = String::new();
 
-        let reference = if is_destructured {
+        let reference = if self.is_destructured {
             if self.is_global_ctx {
                 Some(format!(
                     "__ref_{}_{}",
@@ -173,7 +177,7 @@ impl TranslateModule for VariableInit {
         }
 
         for (idx, def) in self.definitions.iter().enumerate() {
-            let expr = if is_destructured {
+            let expr = if self.is_destructured {
                 format!("${{{}[{}]}};\n", reference.clone().unwrap(), idx)
             } else {
                 expr.clone()
