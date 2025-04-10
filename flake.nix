@@ -38,7 +38,10 @@
         formatter = pkgs.nixpkgs-fmt;
         packages.default = naersk-lib.buildPackage {
           src = ./.;
-          nativeBuildInputs = [ pkgs.makeWrapper ];
+          nativeBuildInputs = [ pkgs.makeWrapper pkgs.cargo-edit ];
+          postConfigure = ''
+            cargo set-version "$version-nix-${self.shortRev or "dirty"}"
+          '';
           postInstall = ''
             wrapProgram "$out/bin/amber" --prefix PATH : ${nixpkgs.lib.makeBinPath [ pkgs.bc ]}
           '';

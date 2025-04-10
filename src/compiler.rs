@@ -1,4 +1,5 @@
 extern crate chrono;
+use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::prelude::{BlockFragment, FragmentRenderable};
@@ -201,7 +202,7 @@ impl AmberCompiler {
 
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let header = include_str!("header.sh")
-            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+            .replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
             .replace("{{ date }}", now.as_str());
         Ok(format!("{}{}", header, result))
     }
