@@ -1,10 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::fragments;
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::utils::function_metadata::FunctionMetadata;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct Return {
@@ -56,17 +55,13 @@ impl SyntaxModule<ParserMetadata> for Return {
 }
 
 impl TranslateModule for Return {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let fun_name = meta.fun_meta.as_ref()
             .map(FunctionMetadata::mangled_name)
             .expect("Function name and return type not set");
-        let result = self.expr.translate_eval(meta, false);
-        let result = matches!(self.expr.get_type(), Type::Array(_))
-            .then(|| format!("({result})"))
-            .unwrap_or(result);
-        let stmt = format!("{}={}", fun_name, result);
-        meta.stmt_queue.push_back(stmt);
-        "return 0".to_string()
+        let result = self.expr.translate(meta);
+        meta.push_intermediate_variable(&fun_name, None, self.expr.get_type(), result);
+        fragments!("return 0")
     }
 }
 

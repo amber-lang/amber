@@ -1,10 +1,10 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::fragments;
 use crate::modules::expression::binop::get_binop_position_info;
 use crate::modules::types::{Type, Typed};
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::TernOp;
 
 #[derive(Debug, Clone)]
@@ -75,11 +75,19 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 }
 
 impl TranslateModule for Ternary {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let is_array = self.true_expr.get_type().is_array();
         let cond = self.cond.translate(meta);
         let true_expr = self.true_expr.translate(meta);
         let false_expr = self.false_expr.translate(meta);
-        meta.gen_subprocess(&format!("if [ {} != 0 ]; then echo {}; else echo {}; fi", cond, true_expr, false_expr))
+        let expr = fragments!("if [ ", cond, " != 0 ]; then echo ", true_expr, "; else echo ", false_expr, "; fi");
+        if is_array {
+            let id = meta.gen_value_id();
+            let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
+            meta.push_intermediate_variable("__ternary", Some(id), self.true_expr.get_type(), value).to_frag()
+        } else {
+            SubprocessFragment::new(expr).to_frag()
+        }
     }
 }
 

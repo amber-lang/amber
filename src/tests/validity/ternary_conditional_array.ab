@@ -1,0 +1,9 @@
+// Output
+// 4 5 6
+
+let age = 25
+let arr = age > 25
+    then [1, 2, 3]
+    else [4, 5, 6]
+
+echo arr

@@ -1,9 +1,7 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::{docs::module::DocumentationModule, translate::module::TranslateModule};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
-use crate::utils::metadata::ParserMetadata;
-use crate::utils::TranslateMetadata;
 use crate::modules::types::{Type, Typed};
 
 use super::TypeOp;
@@ -56,14 +54,6 @@ impl SyntaxModule<ParserMetadata> for Cast {
             let message = Message::new_warn_at_position(meta, pos)
                 .message(format!("Casting a value of type '{l_type}' value to a '{r_type}' is not recommended"))
                 .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
-            let (l_type, r_type) = match (l_type, r_type) {
-                (Type::Failable(l), Type::Failable(r)) => (*l, *r),
-                (Type::Failable(_), _) | (_, Type::Failable(_)) => {
-                    meta.add_message(message);
-                    return Ok(());
-                },
-                types => types
-            };
             match (l_type, r_type) {
                 (Type::Array(left), Type::Array(right)) => {
                     if *left != *right && !matches!(*left, Type::Bool | Type::Num) && !matches!(*right, Type::Bool | Type::Num) {
@@ -80,7 +70,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
 }
 
 impl TranslateModule for Cast {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         self.expr.translate(meta)
     }
 }

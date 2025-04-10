@@ -1,5 +1,5 @@
 // Output
-// Failable functions must return a Failable type
+// Failable functions must have a '?' after the type name
 
 pub fun test(): Null {
     fail 1

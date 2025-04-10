@@ -1,10 +1,8 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
+use crate::{error_type_match, fragments, handle_binop};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
@@ -59,19 +57,17 @@ impl SyntaxModule<ParserMetadata> for Add {
 }
 
 impl TranslateModule for Add {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let left = self.left.translate_eval(meta, false);
-        let right = self.right.translate_eval(meta, false);
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let left = self.left.translate(meta);
+        let right = self.right.translate(meta);
         match self.kind {
             Type::Array(_) => {
-                let quote = meta.gen_quote();
-                let dollar = meta.gen_dollar();
                 let id = meta.gen_value_id();
-                let name = format!("__AMBER_ARRAY_ADD_{id}");
-                meta.stmt_queue.push_back(format!("{name}=({left} {right})"));
-                format!("{quote}{dollar}{{{name}[@]}}{quote}")
+                let value = fragments!(left, " ", right);
+                let var = meta.push_intermediate_variable_lazy("__array_add", Some(id), self.kind.clone(), value);
+                var.to_frag()
             },
-            Type::Text => format!("{}{}", left, right),
+            Type::Text => fragments!(left, right),
             _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
         }
     }

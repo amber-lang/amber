@@ -1,11 +1,13 @@
 use std::collections::HashSet;
+use crate::raw_fragment;
 use std::{env, fs};
 use std::ffi::OsStr;
 use std::path::Path;
 
+use crate::fragments;
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
-use crate::docs::module::DocumentationModule;
 use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
@@ -14,8 +16,6 @@ use crate::utils::cc_flags::get_ccflag_by_name;
 use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::declaration_utils::*;
@@ -36,23 +36,16 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<String> {
+    fn set_args_as_variables(&self, _meta: &mut TranslateMetadata, function: &FunctionInstance, arg_refs: &[bool]) -> Option<FragmentKind> {
         if !self.arg_names.is_empty() {
-            meta.increase_indent();
             let mut result = vec![];
             for (index, (name, kind, is_ref)) in izip!(self.arg_names.clone(), &function.args, arg_refs).enumerate() {
-                let indent = meta.gen_indent();
                 match (is_ref, kind) {
-                    (false, Type::Array(_)) => result.push(format!("{indent}local {name}=(\"${{!{}}}\")", index + 1)),
-                    (true, Type::Array(_)) => {
-                        result.push(format!("{indent}local __AMBER_ARRAY_{name}=\"${}[@]\"", index + 1));
-                        result.push(format!("{indent}local {name}=${}", index + 1))
-                    },
-                    _ => result.push(format!("{indent}local {name}=${}", index + 1))
+                    (false, Type::Array(_)) => result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1)),
+                    _ => result.push(raw_fragment!("local {name}=${}", index + 1)),
                 }
             }
-            meta.decrease_indent();
-            Some(result.join("\n"))
+            Some(BlockFragment::new(result, true).to_frag())
         } else { None }
     }
 
@@ -155,6 +148,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             meta.with_context_fn(Context::set_cc_flags, flags, |meta| {
                 // Get the arguments
                 token(meta, "(")?;
+                let mut seen_argument_names = HashSet::new();
                 loop {
                     if token(meta, ")").is_ok() {
                         break
@@ -162,6 +156,12 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     let is_ref = token(meta, "ref").is_ok();
                     let name_token = meta.get_current_token();
                     let name = variable(meta, variable_name_extensions())?;
+
+                    // Check for duplicate argument name
+                    if !seen_argument_names.insert(name.clone()) {
+                        return error!(meta, name_token, format!("Argument '{name}' is already defined"));
+                    }
+
                     // Optionally parse the argument type
                     let mut arg_type = Type::Generic;
                     match token(meta, ":") {
@@ -176,9 +176,6 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                             self.arg_names.push(name.clone());
                             self.arg_types.push(Type::Generic);
                         }
-                    }
-                    if let Type::Failable(_) = arg_type {
-                        return error!(meta, name_token, "Failable types cannot be used as arguments");
                     }
                     match token(meta, "=") {
                         Ok(_) => {
@@ -205,22 +202,31 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     };
                 }
                 let mut returns_tok = None;
+                let mut declared_failable = false;
                 // Optionally parse the return type
                 match token(meta, ":") {
                     Ok(_) => {
                         returns_tok = meta.get_current_token();
-                        self.returns = parse_type(meta)?
+                        self.returns = parse_type(meta)?;
+                        if token(meta, "?").is_ok() {
+                            declared_failable = true;
+                        }
                     },
                     Err(_) => self.returns = Type::Generic
                 }
                 // Parse the body
                 token(meta, "{")?;
                 let (index_begin, index_end, is_failable) = skip_function_body(meta);
-                if is_failable && !matches!(self.returns, Type::Failable(_) | Type::Generic) {
-                    return error!(meta, returns_tok, "Failable functions must return a Failable type");
-                } else if !is_failable && matches!(self.returns, Type::Failable(_)) {
-                    return error!(meta, returns_tok, "Non-failable functions cannot return a Failable type");
+                if self.returns == Type::Generic {
+                    declared_failable = is_failable;
                 }
+                if is_failable && !declared_failable {
+                    return error!(meta, returns_tok, "Failable functions must have a '?' after the type name");
+                }
+                if !is_failable && declared_failable {
+                    return error!(meta, returns_tok, "Infallible functions must not have a '?' after the type name");
+                }
+
                 // Create a new context with the function body
                 let expr = meta.context.expr[index_begin..index_end].to_vec();
                 let ctx = meta.context.clone().function_invocation(expr);
@@ -248,7 +254,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
 }
 
 impl TranslateModule for FunctionDeclaration {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_meta.clone();
@@ -256,18 +262,18 @@ impl TranslateModule for FunctionDeclaration {
         for (index, function) in blocks.iter().enumerate() {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
-            let name = format!("{}__{}_v{}", self.name, self.id, index);
-            result.push(format!("{name}() {{"));
+            let name = raw_fragment!("{}__{}_v{}", self.name, self.id, index);
+            result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);
             }
             result.push(function.block.translate(meta));
-            result.push(meta.gen_indent() + "}");
+            result.push(fragments!("}\n"));
         }
         // Restore the function name
         meta.fun_meta = prev_fun_meta;
         // Return the translation
-        result.join("\n")
+        BlockFragment::new(result, false).to_frag()
     }
 }
 
@@ -286,8 +292,9 @@ impl DocumentationModule for FunctionDeclaration {
             for reference in references {
                 result.push(reference);
             }
-            result.push("\n".to_string());
+            result.push("".to_string());
         }
+        result.push("".to_string());
         result.join("\n")
     }
 }
@@ -317,13 +324,24 @@ impl FunctionDeclaration {
             result.push(String::from("```\n"));
             if test_path.exists() && test_path.is_dir() {
                 if let Ok(entries) = fs::read_dir(test_path) {
-                    let pattern = format!("{}*.ab", self.name);
-                    let pattern = glob::Pattern::new(&pattern).unwrap();
+                    let pattern1 = {
+                        let pattern = format!("{}*.ab", self.name);
+                        glob::Pattern::new(&pattern).unwrap()
+                    };
+                    let pattern2 = {
+                        let pattern = format!("{}_{}*.ab", lib_name, self.name);
+                        glob::Pattern::new(&pattern).unwrap()
+                    };
                     for entry in entries.flatten() {
                         let path = entry.path();
                         if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
-                            if pattern.matches(file_name) {
-                                references.push(format!("* [{}](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib/{})", file_name, file_name));
+                            if pattern1.matches(file_name) || pattern2.matches(file_name) {
+                                references.push(format!(
+                                    "* [{}](https://github.com/amber-lang/amber/blob/{}/src/tests/stdlib/{})",
+                                    file_name,
+                                    env!("CARGO_PKG_VERSION"),
+                                    file_name,
+                                ));
                             }
                         }
                     }
