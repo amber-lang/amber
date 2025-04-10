@@ -1,11 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{ArithOp, translate_computation};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use super::{strip_text_quotes, BinOp};
+use super::BinOp;
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
@@ -52,14 +51,12 @@ impl SyntaxModule<ParserMetadata> for Eq {
 }
 
 impl TranslateModule for Eq {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let mut left = self.left.translate(meta);
-        let mut right = self.right.translate(meta);
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let left = self.left.translate(meta).with_quotes(false);
+        let right = self.right.translate(meta).with_quotes(false);
         // Handle text comparison
         if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
-            strip_text_quotes(&mut left);
-            strip_text_quotes(&mut right);
-            meta.gen_subprocess(&format!("[ \"_{left}\" != \"_{right}\" ]; echo $?"))
+            SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
         } else {
             translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
         }

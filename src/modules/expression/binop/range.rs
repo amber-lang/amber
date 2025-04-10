@@ -1,20 +1,18 @@
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::binop::BinOp;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::ParserMetadata;
-use crate::utils::TranslateMetadata;
 use crate::{error_type_match, handle_binop};
 use heraclitus_compiler::prelude::*;
 use std::cmp::max;
 
 #[derive(Debug, Clone)]
 pub struct Range {
-    from: Box<Expr>,
-    to: Box<Expr>,
-    neq: bool
+    pub from: Box<Expr>,
+    pub to: Box<Expr>,
+    pub neq: bool
 }
 
 impl Typed for Range {
@@ -57,29 +55,29 @@ impl SyntaxModule<ParserMetadata> for Range {
 }
 
 impl TranslateModule for Range {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let from = self.from.translate(meta);
         let to = if let Some(to) = self.to.get_integer_value() {
             if self.neq {
-                (to - 1).to_string()
+                RawFragment::from((to - 1).to_string()).to_frag()
             } else {
-                to.to_string()
+                RawFragment::from(to.to_string()).to_frag()
             }
         } else {
             let to = self.to.translate(meta);
             if self.neq {
-                translate_computation(meta, ArithOp::Sub, Some(to), Some("1".to_string()))
+                translate_computation(meta, ArithOp::Sub, Some(to), Some(fragments!("1")))
             } else {
                 to
             }
         };
-        let stmt = format!("seq {} {}", from, to);
-        meta.gen_subprocess(&stmt)
+        let expr = fragments!("seq ", from, " ", to);
+        SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
 }
 
 impl Range {
-    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> (String, String) {
+    pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> (FragmentKind, FragmentKind) {
         if let Some(from) = self.from.get_integer_value() {
             if let Some(mut to) = self.to.get_integer_value() {
                 // Make the upper bound exclusive.
@@ -90,29 +88,41 @@ impl Range {
                 let offset = max(from, 0);
                 // Cap the slice length at zero.
                 let length = max(to - offset, 0);
-                return (offset.to_string(), length.to_string());
+                return (
+                    RawFragment::from(offset.to_string()).to_frag(),
+                    RawFragment::from(length.to_string()).to_frag()
+                );
             }
         }
-        let local = if meta.fun_meta.is_some() { "local " } else { "" };
         // Make the upper bound exclusive.
-        let upper_name = format!("__SLICE_UPPER_{}", meta.gen_value_id());
-        let mut upper_val = self.to.translate(meta);
-        if !self.neq {
-            upper_val = translate_computation(meta, ArithOp::Add, Some(upper_val), Some("1".to_string()));
-        }
-        meta.stmt_queue.push_back(format!("{local}{upper_name}={upper_val}"));
+        let upper = {
+            let mut upper_val = self.to.translate(meta);
+            if !self.neq {
+                upper_val = translate_computation(meta, ArithOp::Add, Some(upper_val), Some(fragments!("1")));
+            }
+            let upper_id = Some(meta.gen_value_id());
+            meta.push_intermediate_variable("__slice_upper", upper_id, Type::Num, upper_val).to_frag()
+        };
+
         // Cap the lower bound at zero.
-        let offset_name = format!("__SLICE_OFFSET_{}", meta.gen_value_id());
-        let offset_val = self.from.translate(meta);
-        meta.stmt_queue.push_back(format!("{local}{offset_name}={offset_val}"));
-        meta.stmt_queue.push_back(format!("{offset_name}=$(({offset_name} > 0 ? {offset_name} : 0))"));
-        let offset_val = format!("${offset_name}");
+        let offset = {
+            let offset_id = Some(meta.gen_value_id());
+            let offset_val = self.from.translate(meta);
+            let offset_var = meta.push_intermediate_variable("__slice_offset", offset_id, Type::Num, offset_val).to_frag();
+            let offset_cap = fragments!("$((", offset_var.clone().with_quotes(false), " > 0 ? ", offset_var.with_quotes(false), " : 0))");
+            meta.push_intermediate_variable("__slice_offset", offset_id, Type::Num, offset_cap).to_frag()
+        };
+
         // Cap the slice length at zero.
-        let length_name = format!("__SLICE_LENGTH_{}", meta.gen_value_id());
-        let length_val = translate_computation(meta, ArithOp::Sub, Some(upper_val), Some(offset_val));
-        meta.stmt_queue.push_back(format!("{local}{length_name}={length_val}"));
-        meta.stmt_queue.push_back(format!("{length_name}=$(({length_name} > 0 ? {length_name} : 0))"));
-        (format!("${offset_name}"), format!("${length_name}"))
+        let length = {
+            let length_id = Some(meta.gen_value_id());
+            let length_val = translate_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
+            let length_var = meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_val).to_frag();
+            let length_cap = fragments!("$((", length_var.clone().with_quotes(false), " > 0 ? ", length_var.with_quotes(false), " : 0))");
+            meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_cap).to_frag()
+        };
+
+        (offset, length)
     }
 }
 

@@ -1,0 +1,20 @@
+// Output
+// John
+// 1
+// 2
+// 3
+
+fun bar(ref val, ref arr) {
+    echo val
+    for i in arr {
+        echo i
+    }
+}
+
+fun foo(ref value, ref array) {
+    bar(value, array)
+}
+
+let name = "John"
+let array = [1, 2, 3]
+foo(name, array)

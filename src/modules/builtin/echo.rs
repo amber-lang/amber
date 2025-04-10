@@ -1,12 +1,11 @@
-use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::prelude::*;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Echo {
-    value: Box<Expr>
+    value: Box<Expr>,
 }
 
 impl SyntaxModule<ParserMetadata> for Echo {
@@ -14,7 +13,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
 
     fn new() -> Self {
         Echo {
-            value: Box::new(Expr::new())
+            value: Box::new(Expr::new()),
         }
     }
 
@@ -26,9 +25,8 @@ impl SyntaxModule<ParserMetadata> for Echo {
 }
 
 impl TranslateModule for Echo {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let value = self.value.translate(meta);
-        format!("echo {}", value)
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("echo ", self.value.translate(meta))
     }
 }
 

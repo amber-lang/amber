@@ -1,13 +1,11 @@
 use std::fs;
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -189,8 +187,8 @@ impl SyntaxModule<ParserMetadata> for Import {
 }
 
 impl TranslateModule for Import {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        FragmentKind::Empty
     }
 }
 

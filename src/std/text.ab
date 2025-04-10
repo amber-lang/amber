@@ -214,7 +214,7 @@ pub fun capitalized(text: Text): Text {
         if status == 0 {
             return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
         }
-        const first_letter = uppercase(char_at(text, 0)) 
+        const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
     }
 }

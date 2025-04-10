@@ -1,5 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::{ParserMetadata, TranslateMetadata}};
+use crate::modules::prelude::*;
+use crate::docs::module::DocumentationModule;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
@@ -41,8 +43,8 @@ impl SyntaxModule<ParserMetadata> for Number {
 }
 
 impl TranslateModule for Number {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        self.value.to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        RawFragment::from(self.value.to_string()).to_frag()
     }
 }
 

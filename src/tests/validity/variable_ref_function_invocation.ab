@@ -1,5 +1,5 @@
 // Output
-// "sram"
+// sram
 
 fun reversed(input: Text): Text {
     return trust $ echo {input} | rev $
