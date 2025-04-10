@@ -94,8 +94,8 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
                     panic!("Expected array type for destructured variable");
                 }
 
-                for mut def in &mut definitions {
-                    self.handle_add_variable(meta, &mut def)?;
+                for def in &mut definitions {
+                    self.handle_add_variable(meta, def)?;
                 }
 
                 self.is_global_ctx = definitions.iter().any(|x| x.global_id.is_some());
@@ -137,7 +137,6 @@ impl TranslateModule for VariableInit {
             expr = format!("({expr})");
         }
 
-        let mut idx = 0;
         let is_destructured = self.definitions.len() > 1;
         let mut out = String::new();
 
@@ -173,11 +172,11 @@ impl TranslateModule for VariableInit {
             );
         }
 
-        for def in &self.definitions {
+        for (idx, def) in self.definitions.iter().enumerate() {
             let expr = if is_destructured {
                 format!("${{{}[{}]}};\n", reference.clone().unwrap(), idx)
             } else {
-                format!("{}", expr)
+                expr.clone()
             };
 
             if let Some(id) = def.global_id {
@@ -187,8 +186,6 @@ impl TranslateModule for VariableInit {
             } else {
                 out.push_str(format!("{name}={expr}", name = def.name).as_str())
             }
-
-            idx += 1;
         }
 
         out

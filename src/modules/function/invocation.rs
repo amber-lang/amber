@@ -1,15 +1,17 @@
 use std::mem::swap;
 
-use heraclitus_compiler::prelude::*;
-use crate::{fragments, raw_fragment};
-use crate::modules::prelude::*;
-use itertools::izip;
+use super::invocation_utils::*;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
+use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::modules::expression::expr::{Expr, ExprType};
-use super::invocation_utils::*;
+use crate::translate::module::TranslateModule;
+use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
+use itertools::izip;
 
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
@@ -23,7 +25,7 @@ pub struct FunctionInvocation {
     col: usize,
     failed: Failed,
     modifier: CommandModifier,
-    is_failable: bool
+    is_failable: bool,
 }
 
 impl Typed for FunctionInvocation {
@@ -54,7 +56,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             col: 0,
             failed: Failed::new(),
             modifier: CommandModifier::new().parse_expr(),
-            is_failable: false
+            is_failable: false,
         }
     }
 
@@ -72,7 +74,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
             loop {
                 if token(meta, ")").is_ok() {
-                    break
+                    break;
                 }
                 let mut arg = Expr::new();
                 syntax(meta, &mut arg)?;
@@ -93,7 +95,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 if actual_arg_count >= expected_arg_count - optional_count {
                     let missing = expected_arg_count - actual_arg_count;
                     let provided_optional = optional_count - missing;
-                    for exp in function_unit.arg_optionals.iter().skip(provided_optional){
+                    for exp in function_unit.arg_optionals.iter().skip(provided_optional) {
                         self.args.push(exp.clone());
                     }
                 }
@@ -102,21 +104,31 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
             let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
             self.refs.clone_from(&function_unit.arg_refs);
-            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
+            (self.kind, self.variant_id) = handle_function_parameters(
+                meta,
+                self.id,
+                function_unit.clone(),
+                &types,
+                &var_names,
+                tok.clone(),
+            )?;
 
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
                 match syntax(meta, &mut self.failed) {
                     Ok(_) => (),
-                    Err(Failure::Quiet(_)) => return error!(meta, tok => {
-                        message: "This function can fail. Please handle the failure",
-                        comment: "You can use '?' in the end to propagate the failure"
-                    }),
-                    Err(err) => return Err(err)
+                    Err(Failure::Quiet(_)) => {
+                        return error!(meta, tok => {
+                            message: "This function can fail. Please handle the failure",
+                            comment: "You can use '?' in the end to propagate the failure"
+                        })
+                    }
+                    Err(err) => return Err(err),
                 }
             } else {
                 let tok = meta.get_current_token();
-                if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str())) {
+                if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str()))
+                {
                     let message = Message::new_warn_at_token(meta, tok)
                         .message("This function cannot fail")
                         .comment(format!("You can remove the '{symbol}' in the end"));
@@ -135,28 +147,44 @@ impl TranslateModule for FunctionInvocation {
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
 
-        let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
-            FragmentKind::Var(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
-            FragmentKind::Var(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
-            _ if *is_ref => panic!("Reference value accepts only variables"),
-            var => var
-        }).collect::<Vec<FragmentKind>>();
+        let args = izip!(self.args.iter(), self.refs.iter())
+            .map(|(arg, is_ref)| match arg.translate(meta) {
+                FragmentKind::Var(var) if *is_ref => {
+                    var.with_render_type(VarRenderType::BashRef).to_frag()
+                }
+                FragmentKind::Var(var) if var.kind.is_array() => fragments!(
+                    var.with_render_type(VarRenderType::BashRef)
+                        .to_frag()
+                        .with_quotes(false),
+                    "[@]"
+                ),
+                _ if *is_ref => panic!("Reference value accepts only variables"),
+                var => var,
+            })
+            .collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args).with_spaces().to_frag();
-        meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
+        meta.stmt_queue
+            .push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
             let failed = self.failed.translate(meta);
             meta.stmt_queue.push_back(failed);
         }
-        if self.kind != Type::Null {
-            let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-            let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-            let parsed_invocation_return = VarFragment::new(invocation_return, self.kind.clone(), false, None).to_frag();
-            let variable = meta.push_intermediate_variable(invocation_instance, None, self.kind.clone(), parsed_invocation_return);
-            variable.to_frag()
-        } else {
-            fragments!("''")
-        }
+        meta.stmt_queue.push_back(format!(
+            "__AF_{}{}_v{}__{}_{}={}",
+            self.name,
+            self.id,
+            self.variant_id,
+            self.line,
+            self.col,
+            if matches!(self.kind, Type::Array(_)) {
+                // If the function returns an array we have to store the intermediate result in a variable that is of type array
+                format!("({})", parsed_invocation_return)
+            } else {
+                parsed_invocation_return
+            }
+        ));
+        self.get_variable(meta, invocation_instance, false)
     }
 }
 
