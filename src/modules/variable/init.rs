@@ -1,7 +1,13 @@
 use super::{handle_identifier_name, variable_name_extensions};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
-use crate::modules::types::Typed;
+use crate::modules::prelude::{
+    BlockFragment, FragmentKind, RawFragment, TranslateModule, VarFragment,
+};
+use crate::modules::types::{Type, Typed};
+use crate::translate::fragments::var::VarIndexValue;
+use crate::translate::gen_intermediate_variable;
+use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 
@@ -122,79 +128,64 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
-        let (stmt, _var) = gen_intermediate_variable(
-            &self.name,
-            self.global_id,
-            self.expr.get_type(),
-            false,
-            None,
-            "=",
-            expr,
-        );
-        stmt
-    }
 
-    /*
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let mut expr = self.expr.translate(meta);
-
-        if self.expr.get_type().is_array() {
-            expr = format!("({expr})");
+        if !self.is_destructured {
+            let definition = self.definitions[0].clone();
+            let (stmt, _var) = gen_intermediate_variable(&definition.name, definition.global_id, self.expr.get_type(), false, None, "=", expr);
+            return stmt;
         }
 
-        let mut out = String::new();
+        // TODO: Add warning when the count of definitions is not equal to the count of elements in the array, or the size of the array is unknown.
 
-        let reference = if self.is_destructured {
-            if self.is_global_ctx {
-                Some(format!(
-                    "__ref_{}_{}",
-                    // all ids
-                    self.definitions
-                        .iter()
-                        .map(|x| x.global_id.unwrap())
-                        .join("i_i"),
-                    // all names
-                    self.definitions.iter().map(|x| x.name.clone()).join("_")
-                ))
-            } else {
-                Some(format!(
-                    "__ref_{}",
-                    // all names
-                    self.definitions.iter().map(|x| x.name.clone()).join("n_n")
-                ))
-            }
+        let mut block = BlockFragment::new(vec![], false);
+
+        let reference = if self.is_global_ctx {
+            format!(
+                "__ref_{}_{}",
+                // all ids
+                self.definitions
+                    .iter()
+                    .map(|x| x.global_id.unwrap())
+                    .join("i_i"),
+                // all names
+                self.definitions.iter().map(|x| x.name.clone()).join("_")
+            )
         } else {
-            None
+            format!(
+                "__ref_{}",
+                // all names
+                self.definitions.iter().map(|x| x.name.clone()).join("n_n")
+            )
         };
 
-        if reference.is_some() {
-            out += &format!(
-                "{}{}={};\n",
-                if self.is_fun_ctx { "local " } else { "" },
-                reference.clone().unwrap(),
-                expr
-            );
-        }
+        let (ref_stmt, _var) = gen_intermediate_variable(&reference, None, self.expr.get_type(), false, None, "=", expr);
+        block.append(ref_stmt);
+
+        let sub_type = match self.expr.clone().kind.clone() {
+            Type::Array(expr) => expr,
+            _ => Box::new(Type::Generic),
+        };
 
         for (idx, def) in self.definitions.iter().enumerate() {
-            let expr = if self.is_destructured {
-                format!("${{{}[{}]}};\n", reference.clone().unwrap(), idx)
-            } else {
-                expr.clone()
-            };
+            let index = VarIndexValue::Index(FragmentKind::Raw(RawFragment::from(idx.to_string())));
 
-            if let Some(id) = def.global_id {
-                out.push_str(format!("__{id}_{name}={expr}", name = def.name).as_str());
-            } else if self.is_fun_ctx {
-                out.push_str(format!("local {name}={expr}", name = def.name).as_str())
-            } else {
-                out.push_str(format!("{name}={expr}", name = def.name).as_str())
-            }
+            let mut var_fragment = VarFragment::new(&reference, *sub_type.clone(), false, None);
+            var_fragment.index = Some(Box::new(index));
+
+            let (stmt, _var) = gen_intermediate_variable(
+                &def.name,
+                def.global_id,
+                *sub_type.clone(),
+                false,
+                None,
+                "=",
+                FragmentKind::Var(var_fragment),
+            );
+            block.append(stmt);
         }
 
-        out
+        FragmentKind::Block(block)
     }
-    */
 }
 
 impl DocumentationModule for VariableInit {
