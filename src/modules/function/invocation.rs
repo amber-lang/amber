@@ -136,8 +136,8 @@ impl TranslateModule for FunctionInvocation {
         let silent = meta.gen_silent().to_frag();
 
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
-            FragmentKind::Var(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
-            FragmentKind::Var(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
+            FragmentKind::VarExpr(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
+            FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
             _ if *is_ref => panic!("Reference value accepts only variables"),
             var => var
         }).collect::<Vec<FragmentKind>>();
@@ -151,7 +151,7 @@ impl TranslateModule for FunctionInvocation {
         if self.kind != Type::Null {
             let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
             let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-            let parsed_invocation_return = VarFragment::new(invocation_return, self.kind.clone(), false, None).to_frag();
+            let parsed_invocation_return = VarExprFragment::new(invocation_return, self.kind.clone(), false, None).to_frag();
             let variable = meta.push_intermediate_variable(invocation_instance, None, self.kind.clone(), parsed_invocation_return);
             variable.to_frag()
         } else {

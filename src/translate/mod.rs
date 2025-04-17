@@ -32,9 +32,9 @@ pub fn gen_intermediate_variable(
     index: Option<FragmentKind>,
     op: &str,
     value: FragmentKind
-) -> (FragmentKind, VarFragment) {
+) -> (FragmentKind, VarExprFragment) {
     let is_array = kind.is_array();
-    let variable = VarFragment::new(name, kind, is_ref, id);
+    let variable = VarExprFragment::new(name, kind, is_ref, id);
     let frags = {
         let mut result = vec![];
         match is_ref {
@@ -67,10 +67,10 @@ pub fn gen_intermediate_variable_lazy(
     index: Option<FragmentKind>,
     op: &str,
     value: FragmentKind
-) -> (FragmentKind, VarFragment) {
+) -> (FragmentKind, VarExprFragment) {
     match value {
         // If the value is already variable, then we don't need to assign it to a new variable.
-        FragmentKind::Var(var) => {
+        FragmentKind::VarExpr(var) => {
             (FragmentKind::Empty, var)
         },
         _ => {

@@ -4,6 +4,7 @@ use crate::modules::types::Type;
 use crate::modules::prelude::RawFragment;
 use crate::modules::expression::expr::{Expr, ExprType};
 use super::fragment::{FragmentKind, FragmentRenderable};
+use super::get_variable_name;
 
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone)]
@@ -20,7 +21,7 @@ pub enum VarIndexValue {
 }
 
 #[derive(Debug, Clone)]
-pub struct VarFragment {
+pub struct VarExprFragment {
     pub name: String,
     pub global_id: Option<usize>,
     pub kind: Type,
@@ -31,9 +32,9 @@ pub struct VarFragment {
     pub index: Option<Box<VarIndexValue>>,
 }
 
-impl VarFragment {
+impl VarExprFragment {
     pub fn new(name: &str, kind: Type, is_ref: bool, global_id: Option<usize>) -> Self {
-        VarFragment {
+        VarExprFragment {
             name: name.to_string(),
             global_id,
             kind,
@@ -82,10 +83,7 @@ impl VarFragment {
     }
 
     pub fn get_name(&self) -> String {
-        match self.global_id {
-            Some(id) => format!("__{id}_{}", self.name.trim_start_matches("__")),
-            None => self.name.to_string()
-        }
+        get_variable_name(&self.name, self.global_id)
     }
 
     // Returns the variable name in the bash context Ex. "varname"
@@ -175,7 +173,7 @@ impl VarFragment {
     }
 }
 
-impl FragmentRenderable for VarFragment {
+impl FragmentRenderable for VarExprFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
             VarRenderType::NameOf => self.get_name(),
@@ -185,6 +183,6 @@ impl FragmentRenderable for VarFragment {
     }
 
     fn to_frag(self) -> FragmentKind {
-        FragmentKind::Var(self)
+        FragmentKind::VarExpr(self)
     }
 }

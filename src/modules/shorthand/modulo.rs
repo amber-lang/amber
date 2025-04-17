@@ -51,7 +51,7 @@ impl SyntaxModule<ParserMetadata> for ShorthandModulo {
 impl TranslateModule for ShorthandModulo {
     //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let var = VarFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
+        let var = VarExprFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
         let expr = self.expr.translate_eval(meta, self.is_ref);
         let expr = translate_computation_eval(meta, ArithOp::Modulo, Some(var.to_frag()), Some(expr), self.is_ref);
         let (stmt, _var) = gen_intermediate_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);

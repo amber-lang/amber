@@ -64,7 +64,7 @@ impl TranslateMetadata {
         id: Option<usize>,
         kind: Type,
         value: FragmentKind,
-    ) -> VarFragment {
+    ) -> VarExprFragment {
         let (stmt, var) = gen_intermediate_variable(name, id, kind, false, None, "=", value);
         self.stmt_queue.push_back(stmt);
         var
@@ -77,7 +77,7 @@ impl TranslateMetadata {
         id: Option<usize>,
         kind: Type,
         value: FragmentKind,
-    ) -> VarFragment {
+    ) -> VarExprFragment {
         let (stmt, var) = gen_intermediate_variable_lazy(name, id, kind, false, None, "=", value);
         self.stmt_queue.push_back(stmt);
         var
