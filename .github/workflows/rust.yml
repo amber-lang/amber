@@ -127,6 +127,23 @@ jobs:
           cargo test --all-targets --all-features
           docker stop test_container -t 0
           docker rm --force test_container
+  macos-test:
+    name: Rust tests on a native macOS Bash
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            ./target/deps
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Run tests
+        run: |
+          cargo test --all-targets --all-features
   clippy:
     name: Clippy tests
     runs-on: ubuntu-latest
