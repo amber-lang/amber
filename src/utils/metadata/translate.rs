@@ -4,7 +4,6 @@ use std::collections::VecDeque;
 use super::ParserMetadata;
 use crate::compiler::CompilerOptions;
 use crate::modules::prelude::*;
-use crate::modules::types::Type;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;

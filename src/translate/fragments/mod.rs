@@ -47,7 +47,7 @@ macro_rules! eval_context {
 }
 
 // Returns a variable name that should be rendered
-pub(self) fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
+pub fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
     match global_id {
         Some(id) => format!("__{id}_{}", name.trim_start_matches("__")),
         None => name.to_string()

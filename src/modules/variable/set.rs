@@ -72,7 +72,7 @@ impl TranslateModule for VariableSet {
             global_id: self.global_id,
             kind: self.expr.get_type(),
             is_ref: self.is_ref,
-            index: index.map(|idx| Box::new(idx)),
+            index: index.map(Box::new),
             value: Box::new(expr),
             ..Default::default()
         }.to_frag()
