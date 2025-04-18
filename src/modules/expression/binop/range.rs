@@ -143,7 +143,6 @@ impl Range {
                 ..Default::default()
             }).to_frag();
             let length_cap = fragments!("$((", length_var.clone().with_quotes(false), " > 0 ? ", length_var.with_quotes(false), " : 0))");
-            // meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_cap).to_frag();
             meta.push_intermediate_variable(VarStmtFragment {
                 name: "__slice_length".to_string(),
                 global_id: length_id,
