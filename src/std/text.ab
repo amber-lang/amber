@@ -2,7 +2,7 @@
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid GH-646
     let result = ""
-    trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    trust $ {nameof result}="\$\{{nameof source}//\$\{{nameof search}}/\$\{{nameof replace}}}" $
     return result
 }
 
