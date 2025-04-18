@@ -85,7 +85,13 @@ impl Command {
         } else {
             let id = meta.gen_value_id();
             let value = SubprocessFragment::new(translation).to_frag();
-            let variable = meta.push_intermediate_variable("__command", Some(id), Type::Text, value);
+            let variable = meta.push_intermediate_variable(VarStmtFragment {
+                name: "__command".to_string(),
+                global_id: Some(id),
+                kind: Type::Text,
+                value: Box::new(value),
+                ..Default::default()
+            });
             meta.stmt_queue.push_back(failed);
             variable.to_frag()
         }

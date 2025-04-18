@@ -149,11 +149,15 @@ impl TranslateModule for FunctionInvocation {
             meta.stmt_queue.push_back(failed);
         }
         if self.kind != Type::Null {
-            let invocation_return = &format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-            let invocation_instance = &format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-            let parsed_invocation_return = VarExprFragment::new(invocation_return, self.kind.clone(), false, None).to_frag();
-            let variable = meta.push_intermediate_variable(invocation_instance, None, self.kind.clone(), parsed_invocation_return);
-            variable.to_frag()
+            let invocation_return = format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
+            let invocation_instance = format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+            let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone(), false, None).to_frag();
+            meta.push_intermediate_variable(VarStmtFragment {
+                name: invocation_instance,
+                kind: self.kind.clone(),
+                value: Box::new(parsed_invocation_return),
+                ..Default::default()
+            }).to_frag()
         } else {
             fragments!("''")
         }

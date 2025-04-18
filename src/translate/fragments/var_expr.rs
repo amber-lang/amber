@@ -5,6 +5,7 @@ use crate::modules::prelude::RawFragment;
 use crate::modules::expression::expr::{Expr, ExprType};
 use super::fragment::{FragmentKind, FragmentRenderable};
 use super::get_variable_name;
+use super::var_stmt::VarStmtFragment;
 
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone)]
@@ -32,6 +33,21 @@ pub struct VarExprFragment {
     pub index: Option<Box<VarIndexValue>>,
 }
 
+impl Default for VarExprFragment {
+    fn default() -> Self {
+        VarExprFragment {
+            name: String::new(),
+            global_id: None,
+            kind: Type::Generic,
+            is_ref: false,
+            is_length: false,
+            is_quoted: true,
+            render_type: VarRenderType::BashValue,
+            index: None,
+        }
+    }
+}
+
 impl VarExprFragment {
     pub fn new(name: &str, kind: Type, is_ref: bool, global_id: Option<usize>) -> Self {
         VarExprFragment {
@@ -39,10 +55,17 @@ impl VarExprFragment {
             global_id,
             kind,
             is_ref,
-            is_quoted: true,
-            is_length: false,
-            render_type: VarRenderType::BashValue,
-            index: None,
+            ..Default::default()
+        }
+    }
+
+    pub fn from_stmt(stmt: &VarStmtFragment) -> Self {
+        VarExprFragment {
+            name: stmt.name.clone(),
+            global_id: stmt.global_id,
+            kind: stmt.kind.clone(),
+            is_ref: stmt.is_ref,
+            ..Default::default()
         }
     }
 

@@ -6,7 +6,6 @@ use crate::compiler::CompilerOptions;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::translate::compute::ArithType;
-use crate::translate::{gen_intermediate_variable, gen_intermediate_variable_lazy};
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 
@@ -58,29 +57,11 @@ impl TranslateMetadata {
     }
 
     #[inline]
-    pub fn push_intermediate_variable(
-        &mut self,
-        name: &str,
-        id: Option<usize>,
-        kind: Type,
-        value: FragmentKind,
-    ) -> VarExprFragment {
-        let (stmt, var) = gen_intermediate_variable(name, id, kind, false, None, "=", value);
-        self.stmt_queue.push_back(stmt);
-        var
-    }
-
-    #[inline]
-    pub fn push_intermediate_variable_lazy(
-        &mut self,
-        name: &str,
-        id: Option<usize>,
-        kind: Type,
-        value: FragmentKind,
-    ) -> VarExprFragment {
-        let (stmt, var) = gen_intermediate_variable_lazy(name, id, kind, false, None, "=", value);
-        self.stmt_queue.push_back(stmt);
-        var
+    /// Create an intermediate variable and return it's variable expression
+    pub fn push_intermediate_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
+        let expr = VarExprFragment::from_stmt(&statement);
+        self.stmt_queue.push_back(statement.to_frag());
+        expr
     }
 
     pub fn increase_indent(&mut self) {

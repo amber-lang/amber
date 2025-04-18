@@ -96,30 +96,61 @@ impl Range {
         }
         // Make the upper bound exclusive.
         let upper = {
+            let upper_id = Some(meta.gen_value_id());
             let mut upper_val = self.to.translate(meta);
             if !self.neq {
                 upper_val = translate_computation(meta, ArithOp::Add, Some(upper_val), Some(fragments!("1")));
             }
-            let upper_id = Some(meta.gen_value_id());
-            meta.push_intermediate_variable("__slice_upper", upper_id, Type::Num, upper_val).to_frag()
+            meta.push_intermediate_variable(VarStmtFragment {
+                name: "__slice_upper".to_string(),
+                global_id: upper_id,
+                kind: Type::Num,
+                value: Box::new(upper_val),
+                ..Default::default()
+            }).to_frag()
         };
 
         // Cap the lower bound at zero.
         let offset = {
             let offset_id = Some(meta.gen_value_id());
             let offset_val = self.from.translate(meta);
-            let offset_var = meta.push_intermediate_variable("__slice_offset", offset_id, Type::Num, offset_val).to_frag();
+            let offset_var = meta.push_intermediate_variable(VarStmtFragment {
+                name: "__slice_offset".to_string(),
+                global_id: offset_id,
+                kind: Type::Num,
+                value: Box::new(offset_val),
+                ..Default::default()
+            }).to_frag();
             let offset_cap = fragments!("$((", offset_var.clone().with_quotes(false), " > 0 ? ", offset_var.with_quotes(false), " : 0))");
-            meta.push_intermediate_variable("__slice_offset", offset_id, Type::Num, offset_cap).to_frag()
+            meta.push_intermediate_variable(VarStmtFragment {
+                name: "__slice_offset".to_string(),
+                global_id: offset_id,
+                kind: Type::Num,
+                value: Box::new(offset_cap),
+                ..Default::default()
+            }).to_frag()
         };
 
         // Cap the slice length at zero.
         let length = {
             let length_id = Some(meta.gen_value_id());
             let length_val = translate_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
-            let length_var = meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_val).to_frag();
+            let length_var = meta.push_intermediate_variable(VarStmtFragment {
+                name: "__slice_length".to_string(),
+                global_id: length_id,
+                kind: Type::Num,
+                value: Box::new(length_val),
+                ..Default::default()
+            }).to_frag();
             let length_cap = fragments!("$((", length_var.clone().with_quotes(false), " > 0 ? ", length_var.with_quotes(false), " : 0))");
-            meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_cap).to_frag()
+            // meta.push_intermediate_variable("__slice_length", length_id, Type::Num, length_cap).to_frag();
+            meta.push_intermediate_variable(VarStmtFragment {
+                name: "__slice_length".to_string(),
+                global_id: length_id,
+                kind: Type::Num,
+                value: Box::new(length_cap),
+                ..Default::default()
+            }).to_frag()
         };
 
         (offset, length)

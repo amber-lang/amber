@@ -1,6 +1,5 @@
 pub mod block;
 pub mod comment;
-pub mod eval;
 pub mod fragment;
 pub mod interpolable;
 pub mod list;
@@ -31,6 +30,19 @@ macro_rules! fragments {
 macro_rules! raw_fragment {
     ($($args:expr),+) => {
         RawFragment::from(format!($($args),+)).to_frag()
+    };
+}
+
+#[macro_export]
+macro_rules! eval_context {
+    ($meta:expr, $value:expr, $body:block) => {
+        {
+            let temp = $meta.eval_ctx;
+            $meta.eval_ctx = $value;
+            let result = $body;
+            $meta.eval_ctx = temp;
+            result
+        }
     };
 }
 

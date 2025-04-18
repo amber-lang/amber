@@ -6,7 +6,6 @@ use crate::modules::variable::{handle_variable_reference, prevent_constant_mutat
 use crate::translate::compute::translate_computation_eval;
 use crate::translate::compute::ArithOp;
 use crate::modules::types::{Type, Typed};
-use crate::translate::gen_intermediate_variable;
 
 #[derive(Debug, Clone)]
 pub struct ShorthandMul {
@@ -54,8 +53,14 @@ impl TranslateModule for ShorthandMul {
         let var = VarExprFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
         let expr = self.expr.translate_eval(meta, self.is_ref);
         let expr = translate_computation_eval(meta, ArithOp::Mul, Some(var.to_frag()), Some(expr), self.is_ref);
-        let (stmt, _var) = gen_intermediate_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);
-        stmt
+        VarStmtFragment {
+            name: self.var.clone(),
+            global_id: self.global_id,
+            kind: self.kind.clone(),
+            is_ref: self.is_ref,
+            value: Box::new(expr),
+            ..Default::default()
+        }.to_frag()
     }
 }
 
