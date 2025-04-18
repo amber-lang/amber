@@ -61,6 +61,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
         bash_docker_image:
           - "bash:5.2"
           - "bash:5.1"
@@ -73,6 +76,23 @@ jobs:
           - "bash:3.2"
         sed:
           - GNU_sed
+        exclude:
+        - os: macos-latest
+          bash_docker_image: "bash:5.2"
+        - os: macos-latest
+          bash_docker_image: "bash:5.1"
+        - os: macos-latest
+          bash_docker_image: "bash:5.0"
+        - os: macos-latest
+          bash_docker_image: "bash:4.4"
+        - os: macos-latest
+          bash_docker_image: "bash:4.3"
+        - os: macos-latest
+          bash_docker_image: "bash:4.2"
+        - os: macos-latest
+          bash_docker_image: "bash:4.1"
+        - os: macos-latest
+          bash_docker_image: "bash:4.0"
         # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
         # include:
         #   - sed: BusyBox_sed
