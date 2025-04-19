@@ -1,6 +1,6 @@
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 pub fun replace(source, search, replace) {
-    // Here we use a command to avoid GH-646
+    // Here we use a command to avoid #646
     let result = ""
     trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
     return result
@@ -8,7 +8,7 @@ pub fun replace(source, search, replace) {
 
 /// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
-    // Here we use a command to avoid GH-646
+    // Here we use a command to avoid #646
     let result = ""
     trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
     return result
