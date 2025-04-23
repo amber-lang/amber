@@ -60,13 +60,9 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
-        VarStmtFragment {
-            name: self.name.clone(),
-            global_id: self.global_id,
-            kind: self.expr.get_type(),
-            value: Box::new(expr),
-            ..Default::default()
-        }.to_frag()
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .to_frag()
     }
 }
 

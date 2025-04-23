@@ -87,13 +87,8 @@ impl TranslateModule for Array {
         let id = meta.gen_value_id();
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args).with_spaces().to_frag();
-        meta.push_intermediate_variable(VarStmtFragment {
-            name: "__array".to_string(),
-            global_id: Some(id),
-            kind: self.kind.clone(),
-            value: Box::new(args),
-            ..Default::default()
-        }).to_frag()
+        let var_stmt = VarStmtFragment::new("__array", self.kind.clone(), args).with_global_id(id);
+        meta.push_intermediate_variable(var_stmt).to_frag()
     }
 }
 

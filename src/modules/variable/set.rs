@@ -67,15 +67,11 @@ impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let index = self.index.as_ref().map(|v| v.translate(meta));
         let expr = self.expr.translate(meta);
-        VarStmtFragment {
-            name: self.name.clone(),
-            global_id: self.global_id,
-            kind: self.expr.get_type(),
-            is_ref: self.is_ref,
-            index: index.map(Box::new),
-            value: Box::new(expr),
-            ..Default::default()
-        }.to_frag()
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .with_index(index)
+            .to_frag()
     }
 }
 

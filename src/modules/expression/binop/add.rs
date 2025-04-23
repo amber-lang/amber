@@ -64,13 +64,8 @@ impl TranslateModule for Add {
             Type::Array(_) => {
                 let id = meta.gen_value_id();
                 let value = fragments!(left, " ", right);
-                meta.push_intermediate_variable(VarStmtFragment {
-                    name: "__array_add".to_string(),
-                    global_id: Some(id),
-                    kind: self.kind.clone(),
-                    value: Box::new(value),
-                    ..Default::default()
-                }).to_frag()
+                let var_stmt = VarStmtFragment::new("__array_add", self.kind.clone(), value).with_global_id(id);
+                meta.push_intermediate_variable(var_stmt).to_frag()
             },
             Type::Text => fragments!(left, right),
             _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))

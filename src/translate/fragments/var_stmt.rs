@@ -30,6 +30,35 @@ impl Default for VarStmtFragment {
 }
 
 impl VarStmtFragment {
+    pub fn new(name: &str, kind: Type, value: FragmentKind) -> Self {
+        Self {
+            name: name.to_string(),
+            kind,
+            value: Box::new(value),
+            ..Default::default()
+        }
+    }
+
+    pub fn with_global_id<T: Into<Option<usize>>>(mut self, id: T) -> Self {
+        self.global_id = id.into();
+        self
+    }
+
+    pub fn with_ref(mut self, is_ref: bool) -> Self {
+        self.is_ref = is_ref;
+        self
+    }
+
+    pub fn with_index<T: Into<Option<FragmentKind>>>(mut self, index: T) -> Self {
+        self.index = index.into().map(Box::new);
+        self
+    }
+
+    pub fn with_operator(mut self, op: &str) -> Self {
+        self.operator = op.to_string();
+        self
+    }
+
     fn render_variable_name(&self) -> String {
         let variable = get_variable_name(&self.name, self.global_id);
 

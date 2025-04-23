@@ -53,14 +53,10 @@ impl TranslateModule for ShorthandModulo {
         let var = VarExprFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
         let expr = self.expr.translate_eval(meta, self.is_ref);
         let expr = translate_computation_eval(meta, ArithOp::Modulo, Some(var.to_frag()), Some(expr), self.is_ref);
-        VarStmtFragment {
-            name: self.var.clone(),
-            global_id: self.global_id,
-            kind: self.kind.clone(),
-            is_ref: self.is_ref,
-            value: Box::new(expr),
-            ..Default::default()
-        }.to_frag()
+        VarStmtFragment::new(&self.var, self.kind.clone(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .to_frag()
     }
 }
 

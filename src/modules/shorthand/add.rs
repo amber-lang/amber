@@ -60,28 +60,20 @@ impl TranslateModule for ShorthandAdd {
         match self.kind {
             Type::Text | Type::Array(_) => {
                 let expr = self.expr.translate_eval(meta, self.is_ref);
-                VarStmtFragment {
-                    name: self.var.clone(),
-                    global_id: self.global_id,
-                    kind: self.kind.clone(),
-                    is_ref: self.is_ref,
-                    operator: "+=".to_string(),
-                    value: Box::new(expr),
-                    ..Default::default()
-                }.to_frag()
+                VarStmtFragment::new(&self.var, self.kind.clone(), expr)
+                    .with_global_id(self.global_id)
+                    .with_ref(self.is_ref)
+                    .with_operator("+=")
+                    .to_frag()
             }
             _ => {
                 let expr = self.expr.translate_eval(meta, self.is_ref);
                 let expr = translate_computation_eval(meta, ArithOp::Add, Some(var.to_frag()), Some(expr), self.is_ref);
-                VarStmtFragment {
-                    name: self.var.clone(),
-                    global_id: self.global_id,
-                    kind: self.kind.clone(),
-                    is_ref: self.is_ref,
-                    operator: "=".to_string(),
-                    value: Box::new(expr),
-                    ..Default::default()
-                }.to_frag()
+                VarStmtFragment::new(&self.var, self.kind.clone(), expr)
+                    .with_global_id(self.global_id)
+                    .with_ref(self.is_ref)
+                    .with_operator("=")
+                    .to_frag()
             }
         }
     }
