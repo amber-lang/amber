@@ -49,14 +49,22 @@ impl Default for VarExprFragment {
 }
 
 impl VarExprFragment {
-    pub fn new(name: &str, kind: Type, is_ref: bool, global_id: Option<usize>) -> Self {
+    pub fn new(name: &str, kind: Type) -> Self {
         VarExprFragment {
             name: name.to_string(),
-            global_id,
             kind,
-            is_ref,
             ..Default::default()
         }
+    }
+
+    pub fn with_global_id<T: Into<Option<usize>>>(mut self, id: T) -> Self {
+        self.global_id = id.into();
+        self
+    }
+
+    pub fn with_ref(mut self, is_ref: bool) -> Self {
+        self.is_ref = is_ref;
+        self
     }
 
     pub fn from_stmt(stmt: &VarStmtFragment) -> Self {

@@ -50,13 +50,9 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 impl TranslateModule for ShorthandAdd {
     //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let var = VarExprFragment {
-            name: self.var.clone(),
-            global_id: self.global_id,
-            kind: self.kind.clone(),
-            is_ref: self.is_ref,
-            ..Default::default()
-        };
+        let var = VarExprFragment::new(&self.var, self.kind.clone())
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref);
         match self.kind {
             Type::Text | Type::Array(_) => {
                 let expr = self.expr.translate_eval(meta, self.is_ref);

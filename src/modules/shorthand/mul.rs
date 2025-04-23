@@ -50,7 +50,9 @@ impl SyntaxModule<ParserMetadata> for ShorthandMul {
 impl TranslateModule for ShorthandMul {
     //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let var = VarExprFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
+        let var = VarExprFragment::new(&self.var, self.kind.clone())
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref);
         let expr = self.expr.translate_eval(meta, self.is_ref);
         let expr = translate_computation_eval(meta, ArithOp::Mul, Some(var.to_frag()), Some(expr), self.is_ref);
         VarStmtFragment::new(&self.var, self.kind.clone(), expr)

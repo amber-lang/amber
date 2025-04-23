@@ -46,7 +46,8 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 
 impl TranslateModule for Nameof {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        VarExprFragment::new(&self.name, Type::Text, false, self.global_id)
+        VarExprFragment::new(&self.name, Type::Text)
+            .with_global_id(self.global_id)
             .with_render_type(VarRenderType::NameOf)
             .to_frag()
     }
