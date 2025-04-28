@@ -1,0 +1,25 @@
+import { parse_number } from "std/text"
+import { bash_version_less_than } from "std/env"
+
+// Output
+// Larger than 99: 1
+// Smaller than 0: 0
+// Major higher: 1
+// Minor higher: 1
+// Exact version: 0
+// Minor lower: 0
+// Major lower: 0
+
+main {
+    echo "Larger than 99: {bash_version_less_than(99, 0)}"
+    echo "Smaller than 0: {bash_version_less_than(0, 0)}"
+
+    let major = parse_number($ echo "\$\{BASH_VERSINFO[0]}" $?)?
+    let minor = parse_number($ echo "\$\{BASH_VERSINFO[1]}" $?)?
+
+    echo "Major higher: {bash_version_less_than(major + 1, 0)}"
+    echo "Minor higher: {bash_version_less_than(major, minor + 1)}"
+    echo "Exact version: {bash_version_less_than(major, minor)}"
+    echo "Minor lower: {bash_version_less_than(major, minor - 1)}"
+    echo "Major lower: {bash_version_less_than(major - 1, 0)}"
+}
