@@ -15,6 +15,8 @@ pub struct VarStmtFragment {
     pub value: Box<FragmentKind>,
 }
 
+// Represents Bash variable operation such as `=`, `+=`, etc.
+
 impl Default for VarStmtFragment {
     fn default() -> Self {
         Self {

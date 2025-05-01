@@ -33,6 +33,8 @@ pub struct VarExprFragment {
     pub index: Option<Box<VarIndexValue>>,
 }
 
+// Represents variable that resolves to a value. Prefixed with `$`.
+
 impl Default for VarExprFragment {
     fn default() -> Self {
         VarExprFragment {
