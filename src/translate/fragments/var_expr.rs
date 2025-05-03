@@ -4,6 +4,8 @@ use crate::modules::types::Type;
 use crate::modules::prelude::RawFragment;
 use crate::modules::expression::expr::{Expr, ExprType};
 use super::fragment::{FragmentKind, FragmentRenderable};
+use super::get_variable_name;
+use super::var_stmt::VarStmtFragment;
 
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone)]
@@ -20,7 +22,7 @@ pub enum VarIndexValue {
 }
 
 #[derive(Debug, Clone)]
-pub struct VarFragment {
+pub struct VarExprFragment {
     pub name: String,
     pub global_id: Option<usize>,
     pub kind: Type,
@@ -31,17 +33,49 @@ pub struct VarFragment {
     pub index: Option<Box<VarIndexValue>>,
 }
 
-impl VarFragment {
-    pub fn new(name: &str, kind: Type, is_ref: bool, global_id: Option<usize>) -> Self {
-        VarFragment {
-            name: name.to_string(),
-            global_id,
-            kind,
-            is_ref,
-            is_quoted: true,
+// Represents variable that resolves to a value. Prefixed with `$`.
+
+impl Default for VarExprFragment {
+    fn default() -> Self {
+        VarExprFragment {
+            name: String::new(),
+            global_id: None,
+            kind: Type::Generic,
+            is_ref: false,
             is_length: false,
+            is_quoted: true,
             render_type: VarRenderType::BashValue,
             index: None,
+        }
+    }
+}
+
+impl VarExprFragment {
+    pub fn new(name: &str, kind: Type) -> Self {
+        VarExprFragment {
+            name: name.to_string(),
+            kind,
+            ..Default::default()
+        }
+    }
+
+    pub fn with_global_id<T: Into<Option<usize>>>(mut self, id: T) -> Self {
+        self.global_id = id.into();
+        self
+    }
+
+    pub fn with_ref(mut self, is_ref: bool) -> Self {
+        self.is_ref = is_ref;
+        self
+    }
+
+    pub fn from_stmt(stmt: &VarStmtFragment) -> Self {
+        VarExprFragment {
+            name: stmt.name.clone(),
+            global_id: stmt.global_id,
+            kind: stmt.kind.clone(),
+            is_ref: stmt.is_ref,
+            ..Default::default()
         }
     }
 
@@ -82,10 +116,7 @@ impl VarFragment {
     }
 
     pub fn get_name(&self) -> String {
-        match self.global_id {
-            Some(id) => format!("__{id}_{}", self.name.trim_start_matches("__")),
-            None => self.name.to_string()
-        }
+        get_variable_name(&self.name, self.global_id)
     }
 
     // Returns the variable name in the bash context Ex. "varname"
@@ -175,7 +206,7 @@ impl VarFragment {
     }
 }
 
-impl FragmentRenderable for VarFragment {
+impl FragmentRenderable for VarExprFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
             VarRenderType::NameOf => self.get_name(),
@@ -185,6 +216,6 @@ impl FragmentRenderable for VarFragment {
     }
 
     fn to_frag(self) -> FragmentKind {
-        FragmentKind::Var(self)
+        FragmentKind::VarExpr(self)
     }
 }
