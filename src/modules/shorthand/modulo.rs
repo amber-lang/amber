@@ -6,7 +6,6 @@ use crate::modules::variable::{handle_variable_reference, prevent_constant_mutat
 use crate::translate::compute::translate_computation_eval;
 use crate::translate::compute::ArithOp;
 use crate::modules::types::{Type, Typed};
-use crate::translate::gen_intermediate_variable;
 
 #[derive(Debug, Clone)]
 pub struct ShorthandModulo {
@@ -51,11 +50,15 @@ impl SyntaxModule<ParserMetadata> for ShorthandModulo {
 impl TranslateModule for ShorthandModulo {
     //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let var = VarFragment::new(&self.var, self.kind.clone(), self.is_ref, self.global_id);
+        let var = VarExprFragment::new(&self.var, self.kind.clone())
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref);
         let expr = self.expr.translate_eval(meta, self.is_ref);
         let expr = translate_computation_eval(meta, ArithOp::Modulo, Some(var.to_frag()), Some(expr), self.is_ref);
-        let (stmt, _var) = gen_intermediate_variable(&self.var, self.global_id, self.kind.clone(), self.is_ref, None, "=", expr);
-        stmt
+        VarStmtFragment::new(&self.var, self.kind.clone(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .to_frag()
     }
 }
 

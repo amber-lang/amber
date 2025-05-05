@@ -1,7 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::translate::gen_intermediate_variable;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
@@ -66,11 +65,13 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 
 impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let name = self.name.clone();
         let index = self.index.as_ref().map(|v| v.translate(meta));
         let expr = self.expr.translate(meta);
-        let (stmt, _var) = gen_intermediate_variable(&name, self.global_id, self.expr.get_type(), self.is_ref, index, "=", expr);
-        stmt
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .with_index(index)
+            .to_frag()
     }
 }
 

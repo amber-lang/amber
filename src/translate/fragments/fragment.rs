@@ -1,12 +1,12 @@
 use super::{
     block::BlockFragment,
     comment::CommentFragment,
-    eval::EvalFragment,
     interpolable::InterpolableFragment,
     list::ListFragment,
     raw::RawFragment,
     subprocess::SubprocessFragment,
-    var::VarFragment,
+    var_expr::VarExprFragment,
+    var_stmt::VarStmtFragment,
 };
 use crate::utils::TranslateMetadata;
 
@@ -18,11 +18,11 @@ pub trait FragmentRenderable {
 #[derive(Debug, Clone)]
 pub enum FragmentKind {
     Raw(RawFragment),
-    Var(VarFragment),
+    VarExpr(VarExprFragment),
+    VarStmt(VarStmtFragment),
     Block(BlockFragment),
     Interpolable(InterpolableFragment),
     List(ListFragment),
-    Eval(EvalFragment),
     Subprocess(SubprocessFragment),
     Comment(CommentFragment),
     Empty
@@ -31,7 +31,7 @@ pub enum FragmentKind {
 impl FragmentKind {
     pub fn with_quotes(self, value: bool) -> Self {
         match self {
-            FragmentKind::Var(var) => FragmentKind::Var(var.with_quotes(value)),
+            FragmentKind::VarExpr(var) => FragmentKind::VarExpr(var.with_quotes(value)),
             FragmentKind::Interpolable(inter) => FragmentKind::Interpolable(inter.with_quotes(value)),
             FragmentKind::Subprocess(sub) => FragmentKind::Subprocess(sub.with_quotes(value)),
             _ => self,
@@ -53,11 +53,11 @@ impl FragmentRenderable for FragmentKind {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self {
             FragmentKind::Raw(raw) => raw.to_string(meta),
-            FragmentKind::Var(var) => var.to_string(meta),
+            FragmentKind::VarExpr(var) => var.to_string(meta),
+            FragmentKind::VarStmt(var) => var.to_string(meta),
             FragmentKind::Block(block) => block.to_string(meta),
             FragmentKind::Interpolable(interpolable) => interpolable.to_string(meta),
             FragmentKind::List(list) => list.to_string(meta),
-            FragmentKind::Eval(eval) => eval.to_string(meta),
             FragmentKind::Subprocess(subprocess) => subprocess.to_string(meta),
             FragmentKind::Comment(comment) => comment.to_string(meta),
             FragmentKind::Empty => String::new(),
