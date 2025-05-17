@@ -1,7 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::fragments;
-use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{ArithOp, translate_computation};
 use super::BinOp;
@@ -45,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Eq {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "equate", self.left, self.right)?;
+        Self::typecheck_equality(meta, "equate", &self.left, &self.right)?;
         Ok(())
     }
 }

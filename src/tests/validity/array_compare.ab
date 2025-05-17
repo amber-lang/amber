@@ -1,0 +1,4 @@
+let left = [51, 34, 23]
+let right = [9, 34, 23]
+let result = left >= right
+echo result

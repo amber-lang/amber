@@ -1,5 +1,4 @@
 use crate::docs::module::DocumentationModule;
-use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
 use crate::modules::prelude::{RawFragment, FragmentKind, FragmentRenderable};
@@ -43,10 +42,7 @@ impl SyntaxModule<ParserMetadata> for Neg {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if !matches!(self.expr.get_type(), Type::Num) {
-            let msg = self.expr.get_error_message(meta);
-            return error_type_match!(meta, msg, "arithmetically negate", (self.expr), [Num])
-        }
+        Self::typecheck_allowed_types(meta, "arithmetically negate", &self.expr, &[Type::Num])?;
         Ok(())
     }
 }

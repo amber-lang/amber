@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{error_type_match, fragments, handle_binop};
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::modules::types::{Typed, Type};
@@ -47,10 +47,10 @@ impl SyntaxModule<ParserMetadata> for Add {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.kind = handle_binop!(meta, "add", self.left, self.right, [
-            Num,
-            Text,
-            Array
+        self.kind = Self::typecheck_allowed_types(meta, "add", &self.left, &self.right, &[
+            Type::Num,
+            Type::Text,
+            Type::array_of(Type::Generic)
         ])?;
         Ok(())
     }

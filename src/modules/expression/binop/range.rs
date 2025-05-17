@@ -4,7 +4,6 @@ use crate::modules::expression::binop::BinOp;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_computation, ArithOp};
-use crate::{error_type_match, handle_binop};
 use heraclitus_compiler::prelude::*;
 use std::cmp::max;
 
@@ -49,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Range {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "apply range operator for", self.from, self.to, [Num])?;
+        Self::typecheck_allowed_types(meta, "apply range operator for", &self.from, &self.to, &[Type::Num])?;
         Ok(())
     }
 }

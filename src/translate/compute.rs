@@ -1,5 +1,3 @@
-use crate::{modules::prelude::{FragmentKind, FragmentRenderable}, utils::TranslateMetadata};
-
 use crate::modules::prelude::*;
 use crate::fragments;
 
@@ -29,7 +27,7 @@ pub enum ArithOp {
 
 pub fn translate_computation(
     meta: &TranslateMetadata,
-    operation: ArithOp,
+    operator: ArithOp,
     left: Option<FragmentKind>,
     right: Option<FragmentKind>
 ) -> FragmentKind {
@@ -42,7 +40,7 @@ pub fn translate_computation(
             let mut math_lib_flag = true;
             // Removes trailing zeros from the expression
             let sed_regex = RawFragment::new("/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//").to_frag();
-            let op = match operation {
+            let op = match operator {
                 ArithOp::Add => "+",
                 ArithOp::Sub => "-",
                 ArithOp::Mul => "*",
@@ -72,14 +70,14 @@ pub fn translate_computation(
 
 pub fn translate_computation_eval(
     meta: &mut TranslateMetadata,
-    operation: ArithOp,
+    operator: ArithOp,
     left: Option<FragmentKind>,
     right: Option<FragmentKind>,
     is_eval: bool,
 ) -> FragmentKind {
     let old_eval = meta.eval_ctx;
     meta.eval_ctx = is_eval;
-    let result = translate_computation(meta, operation, left, right);
+    let result = translate_computation(meta, operator, left, right);
     meta.eval_ctx = old_eval;
     result
 }

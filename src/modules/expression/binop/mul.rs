@@ -1,6 +1,5 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{handle_binop, error_type_match};
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
@@ -45,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "multiply", self.left, self.right, [Num])?;
+        Self::typecheck_allowed_types(meta, "multiply", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }

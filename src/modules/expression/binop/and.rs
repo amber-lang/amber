@@ -1,6 +1,5 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::modules::types::{Typed, Type};
@@ -46,7 +45,7 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "conjoin", self.left, self.right)?;
+        Self::typecheck_equality(meta, "conjoin", &self.left, &self.right)?;
         Ok(())
     }
 }

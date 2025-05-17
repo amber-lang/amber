@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
+use crate::translate::compare::{translate_comparison, ComparisonOperator};
 use crate::translate::compute::{ArithOp, translate_computation};
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
@@ -44,16 +44,20 @@ impl SyntaxModule<ParserMetadata> for Le {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "compare", self.left, self.right, [Num])?;
+        Self::typecheck_allowed_types(meta, "compare", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Le {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Le, Some(left), Some(right))
+        if self.left.get_type() == Type::array_of(Type::Num) {
+            translate_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)
+        } else {
+            let left = self.left.translate(meta);
+            let right = self.right.translate(meta);
+            translate_computation(meta, ArithOp::Le, Some(left), Some(right))
+        }
     }
 }
 

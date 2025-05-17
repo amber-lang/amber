@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::utils::ParserMetadata;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -35,6 +36,17 @@ impl Type {
 
     pub fn is_array(&self) -> bool {
         matches!(self, Type::Array(_))
+    }
+
+    pub fn pretty_disjunction(types: &[Self]) -> String {
+        let mut all_types = types.iter().map(|kind| kind.to_string()).collect_vec();
+        let last_item = all_types.pop();
+        let comma_separated = all_types.iter().join(", ");
+        if let Some(last) = last_item {
+            [comma_separated, last].join(" or ")
+        } else {
+            comma_separated
+        }
     }
 }
 
