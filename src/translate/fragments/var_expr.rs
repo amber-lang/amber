@@ -32,6 +32,8 @@ pub struct VarExprFragment {
     pub is_ref: bool,
     // Bash's length getter `${#var}`
     pub is_length: bool,
+    // Bash's default value `${var:-default}`
+    pub default_value: Option<Box<FragmentKind>>,
     // Quotes around this expression
     pub is_quoted: bool,
     // Bash's `${array[*]}` expansion
@@ -55,6 +57,7 @@ impl Default for VarExprFragment {
             is_quoted: true,
             render_type: VarRenderType::BashValue,
             index: None,
+            default_value: None,
         }
     }
 }
@@ -78,6 +81,7 @@ impl VarExprFragment {
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_star_expansion(mut self, is_star_expansion: bool) -> Self {
         self.is_star_expansion = is_star_expansion;
         self
@@ -93,8 +97,8 @@ impl VarExprFragment {
         }
     }
 
-    pub fn with_index(mut self, meta: &mut TranslateMetadata, index: Option<Expr>) -> Self {
-        if let Some(index) = index {
+    pub fn with_index_by_expr<T: Into<Option<Expr>>>(mut self, meta: &mut TranslateMetadata, index: T) -> Self {
+        if let Some(index) = index.into() {
             let index = match index.value {
                 Some(ExprType::Range(range)) => {
                     let (offset, length) = range.get_array_index(meta);
@@ -111,6 +115,16 @@ impl VarExprFragment {
             };
             self.index = Some(Box::new(index));
         }
+        self
+    }
+
+    pub fn with_index_by_value<T: Into<Option<VarIndexValue>>>(mut self, index: T) -> Self {
+        self.index = index.into().map(Box::new);
+        self
+    }
+
+    pub fn with_default_value<T: Into<Option<FragmentKind>>>(mut self, default_value: T) -> Self {
+        self.default_value = default_value.into().map(Box::new);
         self
     }
 
@@ -154,8 +168,9 @@ impl VarExprFragment {
     pub fn render_bash_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
         let index = self.index.take();
+        let default_value = self.default_value.take();
         let prefix = self.get_variable_prefix();
-        let suffix = self.get_variable_suffix(meta, index);
+        let suffix = self.get_variable_suffix(meta, index, default_value);
 
         if self.is_ref {
             self.render_deref_variable(meta, prefix, &name, &suffix)
@@ -166,7 +181,7 @@ impl VarExprFragment {
         }
     }
 
-    // Get variable prefix ${PREFIX:varname:suffix}
+    // Get variable prefix ${PREFIX-varname-suffix}
     fn get_variable_prefix(&self) -> &'static str {
         if self.is_length {
             "#"
@@ -175,26 +190,38 @@ impl VarExprFragment {
         }
     }
 
-    // Get variable suffix ${prefix:varname:SUFFIX}
-    fn get_variable_suffix(&self, meta: &mut TranslateMetadata, index: Option<Box<VarIndexValue>>) -> String {
+    // Get variable suffix ${prefix-varname-SUFFIX}
+    fn get_variable_suffix(
+        &self,
+        meta: &mut TranslateMetadata,
+        index: Option<Box<VarIndexValue>>,
+        default_value: Option<Box<FragmentKind>>
+    ) -> String {
+        let default_value = default_value
+            .map(|value| value.to_string(meta))
+            .map(|value| format!(":-{value}"))
+            .unwrap_or_default();
         match (&self.kind, index.map(|var| *var)) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
+                if self.default_value.is_some() {
+                    panic!("It's impossible to render default value when slicing");
+                }
                 let offset = offset.with_quotes(false).to_string(meta);
                 let length = length.with_quotes(false).to_string(meta);
                 format!("[@]:{offset}:{length}")
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
-                format!("[{index}]")
+                format!("[{index}]{default_value}")
             }
             (Type::Array(_), None) if self.is_star_expansion => {
-                String::from("[*]")
+                format!("[*]{default_value}")
             }
             (Type::Array(_), None) => {
-                String::from("[@]")
+                format!("[@]{default_value}")
             }
             _ => {
-                String::new()
+                default_value
             }
         }
     }
