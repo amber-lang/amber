@@ -2,7 +2,8 @@ name: Build test Amber Snap
 on:
   push:
     branches:
-      - master
+      - main
+      - staging
   workflow_dispatch:
 
 jobs:
