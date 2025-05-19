@@ -1,7 +1,9 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::fragments;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Break;
@@ -25,8 +27,8 @@ impl SyntaxModule<ParserMetadata> for Break {
 }
 
 impl TranslateModule for Break {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "break".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("break")
     }
 }
 

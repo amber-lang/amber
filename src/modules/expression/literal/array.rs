@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{try_parse_type, Type, Typed}}, utils::metadata::ParserMetadata};
-use crate::translate::module::TranslateModule;
-use crate::utils::TranslateMetadata;
+use crate::modules::expression::expr::Expr;
+use crate::modules::types::{try_parse_type, Type, Typed};
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Array {
@@ -83,13 +83,12 @@ impl SyntaxModule<ParserMetadata> for Array {
 }
 
 impl TranslateModule for Array {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = format!("__AMBER_ARRAY_{}", meta.gen_value_id());
-        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<String>>().join(" ");
-        let quote = meta.gen_quote();
-        let dollar = meta.gen_dollar();
-        meta.stmt_queue.push_back(format!("{name}=({args})"));
-        format!("{quote}{dollar}{{{name}[@]}}{quote}")
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let id = meta.gen_value_id();
+        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
+        let args = ListFragment::new(args).with_spaces().to_frag();
+        let var_stmt = VarStmtFragment::new("__array", self.kind.clone(), args).with_global_id(id);
+        meta.push_intermediate_variable(var_stmt).to_frag()
     }
 }
 

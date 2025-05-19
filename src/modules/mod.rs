@@ -11,6 +11,7 @@ pub mod types;
 pub mod imports;
 pub mod main;
 pub mod builtin;
+pub mod prelude;
 
 #[macro_export]
 macro_rules! handle_types {
@@ -31,7 +32,7 @@ macro_rules! handle_types {
             }
         }
 
-        fn translate_match(&self, meta: &mut TranslateMetadata, module: &$enum_name) -> String {
+        fn translate_match(&self, meta: &mut TranslateMetadata, module: &$enum_name) -> FragmentKind {
             match module {
                 $(
                     $enum_name::$item(module) => module.translate(meta)

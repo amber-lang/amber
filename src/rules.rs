@@ -47,7 +47,7 @@ pub fn get_rules() -> Rules {
         reg!(comment as "comment" => {
             begin: "//",
             end: "\n",
-            allow_left_open: true
+            allow_unclosed_region: true
         }),
         reg!(interp as "interpolation" => {
             begin: "{",

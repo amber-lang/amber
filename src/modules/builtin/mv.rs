@@ -1,13 +1,12 @@
 use std::mem::swap;
 
-use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::Expr;
-use crate::modules::condition::failed::Failed;
-use crate::translate::module::TranslateModule;
-use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Type, Typed};
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
+use crate::modules::condition::failed::Failed;
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Mv {
@@ -58,15 +57,18 @@ impl SyntaxModule<ParserMetadata> for Mv {
 }
 
 impl TranslateModule for Mv {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let source = self.source.translate(meta);
         let destination = self.destination.translate(meta);
         let failed = self.failed.translate(meta);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
-        let silent = meta.gen_silent();
+        let silent = meta.gen_silent().to_frag();
         swap(&mut is_silent, &mut meta.silenced);
-        format!("mv {source} {destination}{silent}\n{failed}").trim_end().to_string()
+        BlockFragment::new(vec![
+            fragments!("mv ", source, " ", destination, silent),
+            failed,
+        ], false).to_frag()
     }
 }
 

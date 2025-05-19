@@ -1,14 +1,20 @@
-/// Replaces all occurences of a pattern in the content with the provided replace text.
+/// Replaces all occurrences of a pattern in the content with the provided replace text.
 pub fun replace(source, search, replace) {
-    return "\$\{source//{search}/{replace}}"
+    // Here we use a command to avoid GH-646
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    return result
 }
 
-/// Replaces the first occurence of a pattern in the content with the provided replace text.
+/// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
-    return "\$\{source/{search}/{replace}}"
+    // Here we use a command to avoid GH-646
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    return result
 }
 
-/// Replaces all occurences of a regex pattern in the content with the provided replace text.
+/// Replaces all occurrences of a regex pattern in the content with the provided replace text.
 ///
 /// Function uses `sed`
 pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
@@ -19,7 +25,7 @@ pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option; use that if the version information
             // contains "GNU sed".
-            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+            $ re='Copyright.+Free Software Foundation'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
             let flag = status == 0 then "-r" else "-E"
             return $ echo "{source}" | sed "{flag}" -e "s/{search}/{replace}/g" $
         } else {
@@ -214,7 +220,7 @@ pub fun capitalized(text: Text): Text {
         if status == 0 {
             return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
         }
-        const first_letter = uppercase(char_at(text, 0)) 
+        const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
     }
 }

@@ -1,6 +1,8 @@
 extern crate chrono;
+use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
+use crate::modules::prelude::{BlockFragment, FragmentRenderable};
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -165,9 +167,9 @@ impl AmberCompiler {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
-        let mut result = vec![];
+        let mut result = BlockFragment::new(Vec::new(), false);
         for (_path, block) in ast_forest {
-            result.push(block.translate(&mut meta_translate));
+            result.append(block.translate(&mut meta_translate));
         }
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
@@ -178,7 +180,7 @@ impl AmberCompiler {
             );
         }
 
-        let mut result = result.join("\n") + "\n";
+        let mut result = result.to_string(&mut meta_translate);
 
         let filters = self.options.no_proc.iter()
             .map(|x| WildMatchPattern::new(x))
@@ -220,7 +222,6 @@ impl AmberCompiler {
         
         let footer = footer_template
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
-            .replace("{{ date }}", now.as_str());
         
         Ok(format!("{}\n{}\n{}", header, result, footer))
     }
@@ -349,10 +350,19 @@ impl AmberCompiler {
         return None;
     }
 
+    /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
     fn find_bash() -> Option<Command> {
-        let mut command = Command::new("/usr/bin/env");
-        command.arg("bash");
-        Some(command)
+        if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
+            let mut command = Command::new("docker");
+            let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
+            let args: Vec<&str> = args_string.split_whitespace().collect();
+            command.args(args);
+            Some(command)
+        } else {
+            let mut command = Command::new("/usr/bin/env");
+            command.arg("bash");
+            Some(command)
+        }
     }
 }

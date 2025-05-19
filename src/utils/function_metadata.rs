@@ -16,7 +16,7 @@ impl FunctionMetadata {
     }
 
     pub fn mangled_name(&self) -> String {
-        format!("__AF_{}{}_v{}", self.name, self.id, self.variant)
+        format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
     }
 
     pub fn default_return(&self) -> &'static str {

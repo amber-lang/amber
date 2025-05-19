@@ -14,6 +14,11 @@ pub enum Type {
 }
 
 impl Type {
+    #[inline]
+    pub fn array_of(kind: Type) -> Self {
+        Self::Array(Box::new(kind))
+    }
+
     pub fn is_subset_of(&self, other: &Type) -> bool {
         match (self, other) {
             (_, Type::Generic) => true,

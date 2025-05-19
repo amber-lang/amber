@@ -1,8 +1,8 @@
 use heraclitus_compiler::prelude::*;
-
 use crate::utils::ParserMetadata;
 
 pub mod module;
+pub mod fragments;
 pub mod compute;
 
 pub fn check_all_blocks(meta: &ParserMetadata) -> SyntaxResult {
