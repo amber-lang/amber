@@ -172,7 +172,7 @@ fn test_remove_unused_variables_in_list() {
 
 #[test]
 fn test_remove_unused_variables_array_indexing() {
-    let array_stmt = VarStmtFragment::new("array", Type::Array(Box::new(Type::Num)), raw_fragment!("1 2 3 4 5"));
+    let array_stmt = VarStmtFragment::new("array", Type::array_of(Type::Num), raw_fragment!("1 2 3 4 5"));
     let index_stmt = VarStmtFragment::new("index", Type::Num, raw_fragment!("2"));
     let unused_stmt = VarStmtFragment::new("unused", Type::Num, raw_fragment!("0"));
 
@@ -227,7 +227,7 @@ fn test_remove_unused_variables_multiple_references() {
 }
 
 #[test]
-fn test_complex_nested_scope_transitive() {
+fn test_nested_scope_transitive() {
     let outer_var_stmt = VarStmtFragment::new("outer_var", Type::Num, raw_fragment!("10"));
     let outer_var_expr = VarExprFragment::from_stmt(&outer_var_stmt);
     let outer_unused_stmt = VarStmtFragment::new("outer_unused", Type::Num, raw_fragment!("20"));
@@ -254,7 +254,7 @@ fn test_complex_nested_scope_transitive() {
     assert_eq!(block.statements.len(), 2);
     assert_eq!(unwrap_fragment!(block.statements[0].clone(), VarStmt).get_name(), "outer_var");
     let inner_block = unwrap_fragment!(block.statements[1].clone(), Block);
-    assert_eq!(inner_block.statements.len(), 1);
+    assert_eq!(inner_block.statements.len(), 2);
     assert_eq!(unwrap_fragment!(inner_block.statements[0].clone(), VarStmt).get_name(), "inner_var");
     assert_eq!(unwrap_fragment!(inner_block.statements[1].clone(), VarExpr).get_name(), "inner_var");
 }
