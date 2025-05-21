@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_parsed: false,
             is_question_mark: false,
             is_main: false,
-            block: Box::new(Block::new())
+            block: Box::new(Block::new().with_needs_noop().with_condition())
         }
     }
 
@@ -83,7 +83,8 @@ impl TranslateModule for Failed {
                 // Set default return value if failure happened in a function
                 let clear_return = if !self.is_main {
                     let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-                    let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return());
+                    let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
+                        .with_optimization_when_unused(false);
                     stmt.to_frag()
                 } else {
                     FragmentKind::Empty

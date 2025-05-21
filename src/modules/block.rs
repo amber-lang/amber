@@ -11,12 +11,19 @@ pub struct Block {
     pub statements: Vec<Statement>,
     pub should_indent: bool,
     pub needs_noop: bool,
+    pub is_conditional: bool,
 }
 
 impl Block {
     // Get whether this block is empty
     pub fn is_empty(&self) -> bool {
         self.statements.is_empty()
+    }
+
+
+    pub fn with_condition(mut self) -> Self {
+        self.is_conditional = true;
+        self
     }
 
     // Push a parsed statement into the block
@@ -43,6 +50,7 @@ impl SyntaxModule<ParserMetadata> for Block {
             statements: vec![],
             should_indent: true,
             needs_noop: false,
+            is_conditional: false,
         }
     }
 
@@ -86,6 +94,7 @@ impl TranslateModule for Block {
             }
             BlockFragment::new(statements, self.should_indent)
                 .with_needs_noop(self.needs_noop)
+                .with_condition(self.is_conditional)
                 .to_frag()
         };
         // Restore the old statement queue

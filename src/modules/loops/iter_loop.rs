@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
     fn new() -> Self {
         IterLoop {
-            block: Block::new().with_needs_noop(),
+            block: Block::new().with_needs_noop().with_condition(),
             iter_expr: Expr::new(),
             iter_index: None,
             iter_name: String::new(),

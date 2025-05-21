@@ -1,6 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{docs::module::DocumentationModule, fragments, modules::{prelude::FragmentKind, types::{Type, Typed}}};
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::FragmentKind;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
@@ -28,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for Status {
 
 impl TranslateModule for Status {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("$__status")
+        VarExprFragment::new("__status", Type::Num).to_frag()
     }
 }
 

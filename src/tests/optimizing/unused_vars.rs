@@ -2,7 +2,7 @@ use crate::translate::fragments::var_expr::VarIndexValue;
 use crate::raw_fragment;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
-use crate::optimizer::var::remove_unused_variables;
+use crate::optimizer::unused_var::remove_unused_variables;
 
 macro_rules! unwrap_fragment {
     ($expr:expr, $kind:ident) => {{

@@ -9,6 +9,7 @@ pub struct BlockFragment {
     pub statements: Vec<FragmentKind>,
     pub increase_indent: bool,
     pub needs_noop: bool,
+    pub is_conditional: bool,
 }
 
 impl BlockFragment {
@@ -17,11 +18,17 @@ impl BlockFragment {
             statements,
             increase_indent,
             needs_noop: false,
+            is_conditional: false,
         }
     }
 
     pub fn with_needs_noop(mut self, needs_noop: bool) -> Self {
         self.needs_noop = needs_noop;
+        self
+    }
+
+    pub fn with_condition(mut self, is_conditional: bool) -> Self {
+        self.is_conditional = is_conditional;
         self
     }
 
