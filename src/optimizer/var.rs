@@ -10,6 +10,7 @@ enum UsageType {
     Relative(VarExprName, VarStmtName),
 }
 
+#[derive(Debug, Default)]
 pub struct UnusedVariablesMetadata {
     used_vars: Vec<UsageType>
 }
@@ -33,14 +34,6 @@ impl UnusedVariablesMetadata {
     }
 }
 
-impl Default for UnusedVariablesMetadata {
-    fn default() -> Self {
-        Self {
-            used_vars: Vec::new()
-        }
-    }
-}
-
 pub fn remove_unused_variables(ast: &mut FragmentKind) {
     let mut meta = UnusedVariablesMetadata::default();
     find_unused_variables(ast, &mut meta, None);
@@ -48,19 +41,16 @@ pub fn remove_unused_variables(ast: &mut FragmentKind) {
 }
 
 fn remove_non_existing_variables(ast: &mut FragmentKind, meta: &mut UnusedVariablesMetadata) {
-    match ast {
-        FragmentKind::Block(block) => {
-            for statement in block.statements.iter_mut() {
-                remove_non_existing_variables(statement, meta);
-            }
-            block.statements.retain(|statement| {
-                if let FragmentKind::VarStmt(var_stmt) = statement {
-                    return meta.is_used(var_stmt.get_name());
-                }
-                true
-            });
+    if let FragmentKind::Block(block) = ast {
+        for statement in block.statements.iter_mut() {
+            remove_non_existing_variables(statement, meta);
         }
-        _ => {}
+        block.statements.retain(|statement| {
+            if let FragmentKind::VarStmt(var_stmt) = statement {
+                return meta.is_used(var_stmt.get_name());
+            }
+            true
+        });
     }
 }
 
