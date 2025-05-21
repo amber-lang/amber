@@ -1,4 +1,6 @@
+use crate::modules::prelude::*;
 use crate::modules::types::Type;
+use crate::raw_fragment;
 
 #[derive(Clone)]
 pub struct FunctionMetadata {
@@ -19,11 +21,15 @@ impl FunctionMetadata {
         format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
     }
 
-    pub fn default_return(&self) -> &'static str {
+    pub fn get_type(&self) -> Type {
+        self.returns.clone()
+    }
+
+    pub fn default_return(&self) -> FragmentKind {
         if self.returns.is_array() {
-            "()"
+            raw_fragment!("")
         } else {
-            "''"
+            raw_fragment!("''")
         }
     }
 }

@@ -1,8 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
+use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::Statement;
+use crate::modules::types::Type;
 
 #[derive(Debug, Clone)]
 pub struct Failed {
@@ -76,20 +77,22 @@ impl TranslateModule for Failed {
         if self.is_parsed {
             let block = self.block.translate(meta);
             // the condition of '$?' clears the status code thus we need to store it in a variable
+            let status_variable_stmt = VarStmtFragment::new("__status", Type::Num, fragments!("$?"));
+            let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
             if self.is_question_mark {
                 // Set default return value if failure happened in a function
                 let clear_return = if !self.is_main {
                     let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-                    let statement = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
-                    RawFragment::from(statement).to_frag()
+                    let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return());
+                    stmt.to_frag()
                 } else {
                     FragmentKind::Empty
                 };
-                let ret = if self.is_main { "exit $__status" } else { "return $__status" };
-                let ret = RawFragment::new(ret).to_frag();
+                let ret = if self.is_main { "exit" } else { "return" };
+                let ret = fragments!(raw_fragment!("{ret} "), status_variable_expr.clone().to_frag());
                 return BlockFragment::new(vec![
-                    fragments!("__status=$?;"),
-                    fragments!("if [ $__status != 0 ]; then"),
+                    status_variable_stmt.to_frag(),
+                    fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
                     BlockFragment::new(vec![
                         clear_return,
                         ret,
@@ -99,15 +102,15 @@ impl TranslateModule for Failed {
             }
             match &block {
                 FragmentKind::Empty => {
-                    fragments!("__status=$?")
+                    status_variable_stmt.to_frag()
                 },
                 FragmentKind::Block(block) if block.statements.is_empty() => {
-                    fragments!("__status=$?")
+                    status_variable_stmt.to_frag()
                 },
                 _ => {
                     BlockFragment::new(vec![
-                        fragments!("__status=$?"),
-                        fragments!("if [ $__status != 0 ]; then"),
+                        status_variable_stmt.to_frag(),
+                        fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
                         block,
                         fragments!("fi"),
                     ], false).to_frag()

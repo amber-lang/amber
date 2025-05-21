@@ -10,6 +10,7 @@ use std::process::{Command, Stdio};
 pub mod cli;
 pub mod extra;
 pub mod postprocessor;
+pub mod optimizing;
 mod stdlib;
 mod validity;
 mod erroring;

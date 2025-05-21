@@ -61,7 +61,7 @@ impl VarStmtFragment {
         self
     }
 
-    fn render_variable_name(&self) -> String {
+    pub fn get_name(&self) -> String {
         let variable = get_variable_name(&self.name, self.global_id);
 
         if self.is_ref {
@@ -73,7 +73,7 @@ impl VarStmtFragment {
 
     fn render_variable_statement(self, meta: &mut TranslateMetadata) -> String {
         let mut frags = vec![];
-        frags.push(self.render_variable_name());
+        frags.push(self.get_name());
         frags.extend(self.index.map(|index| format!("[{}]", index.to_string(meta))));
         frags.push(self.operator);
         if self.kind.is_array() {
