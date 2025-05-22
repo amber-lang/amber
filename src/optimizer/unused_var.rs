@@ -46,7 +46,9 @@ impl UnusedVariablesMetadata {
                     if transitive_variables.contains(var_stmt) && dependencies.contains(var_stmt) {
                         continue;
                     }
+                    // If this statement is later used in a conditional block
                     if cond_blocks > 0 {
+                        // Don't track variables in conditional blocks
                         if dependencies_in_transitive {
                             return true;
                         }
