@@ -115,6 +115,22 @@ pub fn translate_version_comparison(
     let (op, eq) = operator.get_bash_lexical_operators();
     let (inv_op, ..) = operator.get_opposite_operator().get_bash_lexical_operators();
     let pretty_op = operator.to_string();
+
+    // If statement that compares two values of the arrays
+    let if_stmt = BlockFragment::new(vec![
+        fragments!("if (( ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " )); then"),
+        BlockFragment::new(vec![
+            fragments!("echo 1"),
+            fragments!("exit"),
+        ], true).to_frag(),
+        fragments!("elif (( ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " )); then"),
+        BlockFragment::new(vec![
+            fragments!("echo 0"),
+            fragments!("exit"),
+        ], true).to_frag(),
+        fragments!("fi"),
+    ], false);
+
     // Create a for loop to iterate over the elements of the longest array
     let block = BlockFragment::new(vec![
         CommentFragment::new(&format!("Compare if left array {pretty_op} right array")).to_frag(),
@@ -123,17 +139,7 @@ pub fn translate_version_comparison(
         BlockFragment::new(vec![
             left_helper_stmt.to_frag(),
             right_helper_stmt.to_frag(),
-            fragments!("if (( ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " )); then"),
-            BlockFragment::new(vec![
-                fragments!("echo 1"),
-                fragments!("exit"),
-            ], true).to_frag(),
-            fragments!("elif (( ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " )); then"),
-            BlockFragment::new(vec![
-                fragments!("echo 0"),
-                fragments!("exit"),
-            ], true).to_frag(),
-            fragments!("fi"),
+            if_stmt.to_frag(),
         ], true).to_frag(),
         fragments!("done"),
         fragments!("echo ", if eq.is_some() { raw_fragment!("1") } else { raw_fragment!("0") }, "\n"),
