@@ -141,19 +141,3 @@ pub fn translate_version_comparison(
     let var_stmt = VarStmtFragment::new("__comp", Type::Bool, SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag());
     meta.push_intermediate_variable(var_stmt).to_frag()
 }
-
-// $(
-//     (( "${#a[@]}" > "${#b[@]}" )) && len="${#a[@]}" || len="${#b[@]}"
-//     for (( i=0; i<len; i++ )); do
-//         __left=${a[i]:-0}
-//         __right=${b[i]:-0}
-//         if (( __left < __right )); then
-//             echo 1
-//             exit
-//         elif (( __left > __right )); then
-//             echo 0
-//             exit
-//         fi
-//     done
-//     echo 0
-// )
