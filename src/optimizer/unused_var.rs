@@ -42,10 +42,14 @@ impl UnusedVariablesMetadata {
                     return true;
                 }
                 UsageType::Statement(var_stmt, dependencies) => {
+                    let dependencies_in_transitive = transitive_variables.iter().any(|t_var| dependencies.contains(t_var));
                     if transitive_variables.contains(var_stmt) && dependencies.contains(var_stmt) {
                         continue;
                     }
                     if cond_blocks > 0 {
+                        if dependencies_in_transitive {
+                            return true;
+                        }
                         continue;
                     }
                     // Variable statement is being overwritten
@@ -53,7 +57,7 @@ impl UnusedVariablesMetadata {
                         transitive_variables.remove(&value);
                     }
                     // If dependencies are used by this variable then this variable is also used
-                    if transitive_variables.iter().any(|t_var| dependencies.contains(t_var)) {
+                    if dependencies_in_transitive {
                         transitive_variables.insert(var_stmt.clone());
                     }
                 },
