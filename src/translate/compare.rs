@@ -118,8 +118,8 @@ pub fn translate_array_lexical_comparison(
     // Compare lengths of arrays and choose the longest one
     let (len_stmt, len_expr) = create_variable_with_greater_value("__len_comp", left.clone(), right.clone());
     // Iterator variables that will be used in the for loop
-    let (left_helper_stmt, left_helper_expr) = create_indexed_variable_with_default_fallback("__left", "i", left);
-    let (right_helper_stmt, right_helper_expr) = create_indexed_variable_with_default_fallback("__right", "i", right);
+    let (left_helper_stmt, left_helper_expr) = create_indexed_variable_with_default_fallback("__left", "__i", left);
+    let (right_helper_stmt, right_helper_expr) = create_indexed_variable_with_default_fallback("__right", "__i", right);
     // Get the operator and its opposite for the if statement
     let (op, eq) = operator.get_bash_lexical_operators();
     let (inv_op, ..) = operator.get_opposite_operator().get_bash_lexical_operators();
@@ -142,7 +142,7 @@ pub fn translate_array_lexical_comparison(
     let block = BlockFragment::new(vec![
         CommentFragment::new(&format!("Compare if left array {pretty_op} right array")).to_frag(),
         len_stmt.to_frag(),
-        fragments!("for (( i=0; i<", len_expr.to_frag(), "; i++ )); do"),
+        fragments!("for (( __i=0; __i<", len_expr.to_frag(), "; __i++ )); do"),
         BlockFragment::new(vec![
             left_helper_stmt.to_frag(),
             right_helper_stmt.to_frag(),
