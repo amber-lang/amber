@@ -49,13 +49,13 @@ pub fn translate_lexical_comparison(
 ) -> FragmentKind {
     let left = {
         let left_stmt = VarStmtFragment::new("__left_comp", left.get_type(), left.translate(meta));
-        let left_expr = VarExprFragment::from_stmt(&left_stmt).with_star_expansion(true).to_frag();
+        let left_expr = VarExprFragment::from_stmt(&left_stmt).with_array_to_string(true).to_frag();
         meta.stmt_queue.push_back(left_stmt.to_frag());
         left_expr
     };
     let right = {
         let right_stmt = VarStmtFragment::new("__right_comp", right.get_type(), right.translate(meta));
-        let right_expr = VarExprFragment::from_stmt(&right_stmt).with_star_expansion(true).to_frag();
+        let right_expr = VarExprFragment::from_stmt(&right_stmt).with_array_to_string(true).to_frag();
         meta.stmt_queue.push_back(right_stmt.to_frag());
         right_expr
     };

@@ -37,7 +37,7 @@ pub struct VarExprFragment {
     // Quotes around this expression
     pub is_quoted: bool,
     // Bash's `${array[*]}` expansion
-    pub is_star_expansion: bool,
+    pub is_array_to_string: bool,
     pub render_type: VarRenderType,
     // Amber's array subscript like `arr[0]` or `arr[1..5]`
     pub index: Option<Box<VarIndexValue>>,
@@ -53,7 +53,7 @@ impl Default for VarExprFragment {
             kind: Type::Generic,
             is_ref: false,
             is_length: false,
-            is_star_expansion: false,
+            is_array_to_string: false,
             is_quoted: true,
             render_type: VarRenderType::BashValue,
             index: None,
@@ -81,9 +81,8 @@ impl VarExprFragment {
         self
     }
 
-    #[allow(dead_code)]
-    pub fn with_star_expansion(mut self, is_star_expansion: bool) -> Self {
-        self.is_star_expansion = is_star_expansion;
+    pub fn with_array_to_string(mut self, is_array_to_string: bool) -> Self {
+        self.is_array_to_string = is_array_to_string;
         self
     }
 
@@ -214,7 +213,7 @@ impl VarExprFragment {
                 let index = index.with_quotes(false).to_string(meta);
                 format!("[{index}]{default_value}")
             }
-            (Type::Array(_), None) if self.is_star_expansion => {
+            (Type::Array(_), None) if self.is_array_to_string => {
                 format!("[*]{default_value}")
             }
             (Type::Array(_), None) => {
