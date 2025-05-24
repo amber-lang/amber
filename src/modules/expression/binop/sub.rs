@@ -44,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Sub {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "subtract", &self.left, &self.right, &[Type::Num])?;
+        Self::typecheck_allowed_types(meta, "subtraction", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }

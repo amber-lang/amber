@@ -44,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Gt {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "compare", &self.left, &self.right, &[
+        Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
             Type::Num,
             Type::Text,
             Type::array_of(Type::Num),

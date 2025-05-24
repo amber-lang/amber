@@ -45,7 +45,7 @@ impl SyntaxModule<ParserMetadata> for And {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_equality(meta, "conjoin", &self.left, &self.right)?;
+        Self::typecheck_equality(meta, &self.left, &self.right)?;
         Ok(())
     }
 }

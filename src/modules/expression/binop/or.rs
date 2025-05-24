@@ -44,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Or {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_equality(meta, "disjoin", &self.left, &self.right)?;
+        Self::typecheck_equality(meta, &self.left, &self.right)?;
         Ok(())
     }
 }

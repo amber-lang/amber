@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Neg {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "arithmetically negate", &self.expr, &[Type::Num])?;
+        Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num])?;
         Ok(())
     }
 }

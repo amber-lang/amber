@@ -48,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Range {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "apply range operator for", &self.from, &self.to, &[Type::Num])?;
+        Self::typecheck_allowed_types(meta, "range operator", &self.from, &self.to, &[Type::Num])?;
         Ok(())
     }
 }

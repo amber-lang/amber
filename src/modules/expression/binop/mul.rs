@@ -44,7 +44,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "multiply", &self.left, &self.right, &[Type::Num])?;
+        Self::typecheck_allowed_types(meta, "multiplication", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }

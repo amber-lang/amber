@@ -20,9 +20,10 @@ pub fn shorthand_typecheck_allowed_types(
     let rhs_match = allowed_types.iter().any(|types| rhs_type.is_allowed_in(types));
     if !rhs_match || rhs_type != *var_type {
         let message = rhs.get_error_message(meta);
-        let msg = format!("Cannot {operator} value of type '{var_type}' with value of type '{rhs_type}'");
-        let pretty_types = Type::pretty_disjunction(allowed_types);
-        let comment = format!("You can only {operator} values of type {pretty_types} together.");
+        let msg = format!("Cannot perform {operator} on value of type '{var_type}' and value of type '{rhs_type}'");
+        let pretty_types = Type::pretty_join(allowed_types, "and");
+        let sentence = if allowed_types.len() == 1 { "Allowed type is" } else { "Allowed types are" };
+        let comment = format!("{sentence} {pretty_types}.");
         Err(Failure::Loud(message.message(msg).comment(comment)))
     } else {
         Ok(rhs_type)

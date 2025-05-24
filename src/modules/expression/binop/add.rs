@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Add {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.kind = Self::typecheck_allowed_types(meta, "add", &self.left, &self.right, &[
+        self.kind = Self::typecheck_allowed_types(meta, "addition", &self.left, &self.right, &[
             Type::Num,
             Type::Text,
             Type::array_of(Type::Generic)
