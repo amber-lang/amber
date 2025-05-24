@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compare::{translate_lexical_comparison, translate_version_comparison, ComparisonOperator};
+use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
 use crate::translate::compute::{ArithOp, translate_computation};
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
@@ -57,7 +57,7 @@ impl SyntaxModule<ParserMetadata> for Gt {
 impl TranslateModule for Gt {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.left.get_type() == Type::array_of(Type::Num) {
-            translate_version_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
+            translate_array_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
         } else if [Type::Text, Type::array_of(Type::Text)].contains(&self.left.get_type()) {
             translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
         } else {
