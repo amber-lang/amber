@@ -79,18 +79,33 @@ fn create_variable_length_getter(
     var_expr
 }
 
-fn create_variable_with_greater_value(
+fn create_variable_with_smaller_number(
     name: &str,
     left: VarExprFragment,
     right: VarExprFragment
 ) -> (VarStmtFragment, VarExprFragment) {
     let value = SubprocessFragment::new(
-        fragments!("(( ", left.clone().to_frag(), " > ", right.clone().to_frag(), "))",
+        fragments!("(( ", left.clone().to_frag(), " < ", right.clone().to_frag(), "))",
             " && echo ", left.clone().to_frag(),
             " || echo ", right.clone().to_frag())).to_frag();
     let len_stmt = VarStmtFragment::new(name, Type::Num, value);
     let len_expr = VarExprFragment::from_stmt(&len_stmt).with_render_type(VarRenderType::NameOf);
     (len_stmt, len_expr)
+}
+
+fn compare_array_lengths(
+    left_len: VarExprFragment,
+    right_len: VarExprFragment,
+    operator: ComparisonOperator
+) -> FragmentKind {
+    let (op, eq) = operator.get_bash_lexical_operators();
+    let comparison_fragment = fragments!(left_len.clone().to_frag(), op, right_len.clone().to_frag());
+    let full_comparison_fragment = if eq.is_some() {
+        fragments!("(( ", left_len.clone().to_frag(), " == ", right_len.clone().to_frag(), " || ", comparison_fragment, " ))")
+    } else {
+        fragments!("(( ", comparison_fragment, " ))")
+    };
+    fragments!(full_comparison_fragment, " && echo 1 || echo 0").to_frag()
 }
 
 fn create_indexed_variable_with_default_fallback(
@@ -116,14 +131,16 @@ pub fn translate_array_lexical_comparison(
     let left_expr_length = create_variable_length_getter(meta, "__left_comp", left);
     let right_expr_length = create_variable_length_getter(meta, "__right_comp", right);
     // Compare lengths of arrays and choose the longest one
-    let (len_stmt, len_expr) = create_variable_with_greater_value("__len_comp", left_expr_length.clone(), right_expr_length.clone());
+    let (len_stmt, len_expr) = create_variable_with_smaller_number("__len_comp", left_expr_length.clone(), right_expr_length.clone());
     // Iterator variables that will be used in the for loop
-    let (left_helper_stmt, left_helper_expr) = create_indexed_variable_with_default_fallback("__left", "__i", left_expr_length);
-    let (right_helper_stmt, right_helper_expr) = create_indexed_variable_with_default_fallback("__right", "__i", right_expr_length);
+    let (left_helper_stmt, left_helper_expr) = create_indexed_variable_with_default_fallback("__left", "__i", left_expr_length.clone());
+    let (right_helper_stmt, right_helper_expr) = create_indexed_variable_with_default_fallback("__right", "__i", right_expr_length.clone());
     // Get the operator and its opposite for the if statement
-    let (op, eq) = operator.get_bash_lexical_operators();
+    let (op, _) = operator.get_bash_lexical_operators();
     let (inv_op, ..) = operator.get_opposite_operator().get_bash_lexical_operators();
     let pretty_op = operator.to_string();
+    // Get the return value when intersection of both left and right values are equal
+    let compared_array_lengths = compare_array_lengths(left_expr_length, right_expr_length, operator);
     // If statement that compares two values of the arrays
     let if_stmt = BlockFragment::new(vec![
         fragments!("if (( ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " )); then"),
@@ -149,7 +166,7 @@ pub fn translate_array_lexical_comparison(
             if_stmt.to_frag(),
         ], true).to_frag(),
         fragments!("done"),
-        fragments!("echo ", if eq.is_some() { raw_fragment!("1") } else { raw_fragment!("0") }, "\n"),
+        fragments!(compared_array_lengths, "\n"),
     ], true);
     let var_stmt = VarStmtFragment::new("__comp", Type::Bool, SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag());
     meta.push_intermediate_variable(var_stmt).to_frag()
