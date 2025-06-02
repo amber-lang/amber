@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, VecDeque};
 use amber_meta::ContextManager;
 
 use crate::modules::prelude::*;
@@ -18,7 +18,7 @@ enum CondBlockBehavior {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-enum UsageType {
+enum SymbolType {
     Expression(VarExprName),
     Statement(VarStmtName, Vec<VarExprName>),
     ConditionalBlock(CondBlockBehavior),
@@ -26,7 +26,7 @@ enum UsageType {
 
 #[derive(Debug, Default, ContextManager)]
 pub struct UnusedVariablesMetadata {
-    used_vars: VecDeque<UsageType>,
+    symbols: VecDeque<SymbolType>,
     dependent_variables: Vec<VarExprName>,
     #[context]
     pub is_var_rhs_ctx: bool,
@@ -34,41 +34,36 @@ pub struct UnusedVariablesMetadata {
 
 impl UnusedVariablesMetadata {
     pub fn is_var_used(&self, name: VarStmtName) -> bool {
-        let mut transitive_variables = HashSet::from([name.clone()]);
-        let mut cond_blocks = 0;
-        for usage_type in self.used_vars.iter() {
-            match usage_type {
-                UsageType::Expression(var_expr) => if transitive_variables.contains(var_expr) {
+        let mut transitive_variables = HashMap::from([(name.clone(), vec![0 as usize])]);
+        let mut cond_block_scope: usize = 0;
+        for symbol_type in self.symbols.iter() {
+            match symbol_type {
+                SymbolType::Expression(var_expr) => if transitive_variables.contains_key(var_expr) {
                     return true;
                 }
-                UsageType::Statement(var_stmt, dependencies) => {
-                    let dependencies_in_transitive = transitive_variables.iter().any(|t_var| dependencies.contains(t_var));
-                    if transitive_variables.contains(var_stmt) && dependencies.contains(var_stmt) {
+                SymbolType::Statement(var_stmt, dependencies) => {
+                    let dependencies_in_transitive = dependencies.iter().any(|dep| transitive_variables.contains_key(dep));
+                    // Case when the same variable is self declared (`a=$a`)
+                    if transitive_variables.contains_key(var_stmt) && dependencies.contains(var_stmt) {
                         continue;
                     }
-                    // If this statement is later used in a conditional block
-                    if cond_blocks > 0 {
-                        // Don't track variables in conditional blocks
-                        if dependencies_in_transitive {
-                            return true;
-                        }
-                        continue;
-                    }
-                    // Variable statement is being overwritten
-                    if let Some(value) = transitive_variables.iter().find(|var| *var == var_stmt).cloned() {
-                        transitive_variables.remove(&value);
+                    // Variable statement is being reassigned with some unknown value
+                    if let Some(scopes) = transitive_variables.get_mut(var_stmt) {
+                        scopes.retain(|&scope| scope != cond_block_scope);
                     }
                     // If dependencies are used by this variable then this variable is also used
                     if dependencies_in_transitive {
-                        transitive_variables.insert(var_stmt.clone());
+                        transitive_variables.entry(var_stmt.clone()).or_insert(vec![cond_block_scope]);
                     }
+                    // Remove relations to variables that arent used
+                    transitive_variables.retain(|_key, field| !field.is_empty());
                 },
-                UsageType::ConditionalBlock(CondBlockBehavior::Begin) => {
-                    cond_blocks += 1;
+                SymbolType::ConditionalBlock(CondBlockBehavior::Begin) => {
+                    cond_block_scope += 1;
                 },
-                UsageType::ConditionalBlock(CondBlockBehavior::End) => {
-                    if cond_blocks > 0 {
-                        cond_blocks -= 1;
+                SymbolType::ConditionalBlock(CondBlockBehavior::End) => {
+                    if cond_block_scope > 0 {
+                        cond_block_scope -= 1;
                     }
                 }
             }
@@ -76,10 +71,11 @@ impl UnusedVariablesMetadata {
         false
     }
 
+    // Remove all symbols until the first variable statement with the given name
     pub fn move_to_var_stmt_init(&mut self, name: &VarStmtName) {
         let mut found = false;
-        self.used_vars.retain(|usage_type| {
-            if let UsageType::Statement(var_stmt, ..) = usage_type {
+        self.symbols.retain(|usage_type| {
+            if let SymbolType::Statement(var_stmt, ..) = usage_type {
                 if !found && var_stmt == name {
                     found = true;
                     return false;
@@ -131,13 +127,13 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
     match ast {
         FragmentKind::Block(block) => {
             if block.is_conditional {
-                meta.used_vars.push_back(UsageType::ConditionalBlock(CondBlockBehavior::Begin));
+                meta.symbols.push_back(SymbolType::ConditionalBlock(CondBlockBehavior::Begin));
             }
             for statement in block.statements.iter() {
                 find_unused_variables(statement, meta);
             }
             if block.is_conditional {
-                meta.used_vars.push_back(UsageType::ConditionalBlock(CondBlockBehavior::End));
+                meta.symbols.push_back(SymbolType::ConditionalBlock(CondBlockBehavior::End));
             }
         }
         FragmentKind::List(list) => {
@@ -157,7 +153,7 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                     Ok(())
                 }).unwrap();
                 let dependencies = meta.dependent_variables.drain(..).collect();
-                meta.used_vars.push_back(UsageType::Statement(var_stmt.get_name(), dependencies));
+                meta.symbols.push_back(SymbolType::Statement(var_stmt.get_name(), dependencies));
             } else {
                 find_unused_variables(&var_stmt.value, meta);
             }
@@ -167,7 +163,7 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
             if meta.is_var_rhs_ctx {
                 meta.dependent_variables.push(var_expr.get_name());
             } else {
-                meta.used_vars.push_back(UsageType::Expression(var_expr.get_name()));
+                meta.symbols.push_back(SymbolType::Expression(var_expr.get_name()));
             }
             if let Some(index) = &var_expr.index {
                 match index.as_ref() {
