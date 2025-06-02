@@ -13,17 +13,48 @@ macro_rules! unwrap_fragment {
     }};
 }
 
+macro_rules! bash_code {
+    // Base case
+    (@acc [$($elems:expr),*]) => {
+        vec![$($elems),*]
+    };
+    // Variable assignments
+    (@acc [$($elems:expr),*] $a:ident = $b:ident; $($rest:tt)*) => {{
+        let value = VarExprFragment::new(stringify!($b), Type::Generic).to_frag();
+        let variable = VarStmtFragment::new(stringify!($a), Type::Generic, value).to_frag();
+        bash_code!(@acc [$($elems,)* variable] $($rest)*)
+    }};
+    (@acc [$($elems:expr),*] $a:ident = $b:literal; $($rest:tt)*) => {{
+        let variable = VarStmtFragment::new(stringify!($a), Type::Generic, raw_fragment!(stringify!($b))).to_frag();
+        bash_code!(@acc [$($elems,)* variable] $($rest)*)
+    }};
+    // Blocks
+    (@acc [$($elems:expr),*] if { $($cond_block:tt)* } $($rest:tt)*) => {
+        bash_code!(@acc [$($elems,)* BlockFragment::new(bash_code!({ $($cond_block)* }), true).with_condition(true).to_frag()] $($rest)*)
+    };
+    (@acc [$($elems:expr),*] { $($cond_block:tt)* } $($rest:tt)*) => {
+        bash_code!(@acc [$($elems,)* BlockFragment::new(bash_code!({ $($cond_block)* }), true).to_frag()] $($rest)*)
+    };
+    // Other syntax
+    (@acc [$($elems:expr),*] syntax($expr:expr); $($rest:tt)*) => {
+        bash_code!(@acc [$($elems,)* $expr] $($rest)*)
+    };
+    // Variable expression
+    (@acc [$($elems:expr),*] $var:ident; $($rest:tt)*) => {
+        bash_code!(@acc [$($elems,)* VarExprFragment::new(stringify!($var), Type::Generic).to_frag()] $($rest)*)
+    };
+    ({ $($tokens:tt)* }) => {
+        bash_code!(@acc [] $($tokens)*)
+    };
+}
+
 #[test]
 fn test_remove_unused_variables_simple() {
-    let a_stmt = VarStmtFragment::new("a", Type::Num, raw_fragment!("some value"));
-    let b_stmt = VarStmtFragment::new("b", Type::Num, raw_fragment!("another value"));
-    let a_expr = VarExprFragment::from_stmt(&a_stmt);
-
-    let mut ast = BlockFragment::new(vec![
-        a_stmt.to_frag(),
-        b_stmt.to_frag(),
-        a_expr.to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        a = "some value";
+        b = "another value";
+        a;
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -35,25 +66,19 @@ fn test_remove_unused_variables_simple() {
 
 #[test]
 fn test_remove_unused_variables_nested_blocks() {
-    let outer_a_stmt = VarStmtFragment::new("outer_a", Type::Num, raw_fragment!("10"));
-    let outer_b_stmt = VarStmtFragment::new("outer_b", Type::Num, raw_fragment!("20"));
-    let inner_a_stmt = VarStmtFragment::new("inner_a", Type::Num, raw_fragment!("30"));
-    let inner_b_stmt = VarStmtFragment::new("inner_b", Type::Num, raw_fragment!("40"));
-
-    let outer_a_expr = VarExprFragment::from_stmt(&outer_a_stmt);
-    let inner_a_expr = VarExprFragment::from_stmt(&inner_a_stmt);
-
     // Create outer block containing inner block
-    let mut ast = BlockFragment::new(vec![
-        outer_a_stmt.to_frag(),
-        outer_b_stmt.to_frag(),
-        BlockFragment::new(vec![
-            inner_a_stmt.to_frag(),
-            inner_b_stmt.to_frag(),
-            inner_a_expr.to_frag(),
-            outer_a_expr.clone().to_frag(),
-        ], true).to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        outer_a = 10;
+        outer_b = 20;
+        {
+            inner_a = 30;
+            inner_b = 40;
+            inner_a;
+            outer_a;
+        }
+    }), true).to_frag();
+
+    dbg!(ast.clone());
 
     remove_unused_variables(&mut ast);
 
@@ -72,23 +97,18 @@ fn test_remove_unused_variables_nested_blocks() {
 
 #[test]
 fn test_remove_unused_variables_interpolable() {
-    let a_stmt = VarStmtFragment::new("a", Type::Num, raw_fragment!("10"));
-    let b_stmt = VarStmtFragment::new("b", Type::Num, raw_fragment!("20"));
-    let c_stmt = VarStmtFragment::new("c", Type::Num, raw_fragment!("30"));
-
-    let b_expr = VarExprFragment::from_stmt(&b_stmt);
     let interp = InterpolableFragment::new(
         vec!["text with ".to_string(), " interpolated".to_string()],
-        vec![b_expr.to_frag()],
+        vec![VarExprFragment::new("b", Type::Generic).to_frag()],
         InterpolableRenderType::StringLiteral
     );
 
-    let mut ast = BlockFragment::new(vec![
-        a_stmt.to_frag(),
-        b_stmt.to_frag(),
-        c_stmt.to_frag(),
-        interp.to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 10;
+        b = 20;
+        c = 30;
+        syntax(interp.to_frag());
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -100,17 +120,15 @@ fn test_remove_unused_variables_interpolable() {
 
 #[test]
 fn test_remove_unused_variables_subprocess() {
-    let a_stmt = VarStmtFragment::new("a", Type::Num, raw_fragment!("10"));
-    let b_stmt = VarStmtFragment::new("b", Type::Num, raw_fragment!("20"));
+    let subprocess = SubprocessFragment::new(
+        VarExprFragment::new("a", Type::Generic).to_frag()
+    );
 
-    let a_expr = VarExprFragment::from_stmt(&a_stmt);
-    let subprocess = SubprocessFragment::new(a_expr.to_frag());
-
-    let mut ast = BlockFragment::new(vec![
-        a_stmt.to_frag(),
-        b_stmt.to_frag(),
-        subprocess.to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 10;
+        b = 20;
+        syntax(subprocess.to_frag());
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -122,19 +140,11 @@ fn test_remove_unused_variables_subprocess() {
 
 #[test]
 fn test_remove_unused_variables_transitive() {
-    let a_stmt = VarStmtFragment::new("a", Type::Num, raw_fragment!("10"));
-    let a_expr = VarExprFragment::from_stmt(&a_stmt);
-
-    let b_stmt = VarStmtFragment::new("b", Type::Num, a_expr.to_frag());
-    let b_expr = VarExprFragment::from_stmt(&b_stmt);
-
-    let c_stmt = VarStmtFragment::new("c", Type::Num, b_expr.to_frag());
-
-    let mut ast = BlockFragment::new(vec![
-        a_stmt.to_frag(),
-        b_stmt.to_frag(),
-        c_stmt.to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 10;
+        b = a;
+        c = b;
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -144,22 +154,17 @@ fn test_remove_unused_variables_transitive() {
 
 #[test]
 fn test_remove_unused_variables_in_list() {
-    let a_stmt = VarStmtFragment::new("a", Type::Num, raw_fragment!("10"));
-    let b_stmt = VarStmtFragment::new("b", Type::Num, raw_fragment!("20"));
-    let c_stmt = VarStmtFragment::new("c", Type::Num, raw_fragment!("30"));
+    let list = ListFragment::new(vec![
+        VarExprFragment::new("a", Type::Generic).to_frag(),
+        VarExprFragment::new("b", Type::Generic).to_frag(),
+    ]).with_spaces();
 
-    let a_expr = VarExprFragment::from_stmt(&a_stmt);
-    let b_expr = VarExprFragment::from_stmt(&b_stmt);
-
-    let mut ast = BlockFragment::new(vec![
-        a_stmt.to_frag(),
-        b_stmt.to_frag(),
-        c_stmt.to_frag(),
-        ListFragment::new(vec![
-            a_expr.to_frag(),
-            b_expr.to_frag(),
-        ]).with_spaces().to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 10;
+        b = 20;
+        c = 30;
+        syntax(list.to_frag());
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -174,7 +179,6 @@ fn test_remove_unused_variables_in_list() {
 fn test_remove_unused_variables_array_indexing() {
     let array_stmt = VarStmtFragment::new("array", Type::array_of(Type::Num), raw_fragment!("1 2 3 4 5"));
     let index_stmt = VarStmtFragment::new("index", Type::Num, raw_fragment!("2"));
-    let unused_stmt = VarStmtFragment::new("unused", Type::Num, raw_fragment!("0"));
 
     let index_expr = VarExprFragment::from_stmt(&index_stmt);
     let mut array_expr = VarExprFragment::from_stmt(&array_stmt);
@@ -182,12 +186,12 @@ fn test_remove_unused_variables_array_indexing() {
     // TODO: Replece this with `with_index_by_value` when #702 gets merged
     array_expr.index = Some(Box::new(VarIndexValue::Index(index_expr.to_frag())));
 
-    let mut ast = BlockFragment::new(vec![
-        array_stmt.to_frag(),
-        index_stmt.to_frag(),
-        unused_stmt.to_frag(),
-        array_expr.to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        syntax(array_stmt.to_frag());
+        syntax(index_stmt.to_frag());
+        unused = 0;
+        syntax(array_expr.to_frag());
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -200,20 +204,13 @@ fn test_remove_unused_variables_array_indexing() {
 
 #[test]
 fn test_remove_unused_variables_multiple_references() {
-    let a_stmt = VarStmtFragment::new("a", Type::Num, raw_fragment!("10"));
-    let b_stmt = VarStmtFragment::new("b", Type::Num, raw_fragment!("20"));
-
-    let a_expr1 = VarExprFragment::from_stmt(&a_stmt);
-    let a_expr2 = VarExprFragment::from_stmt(&a_stmt);
-    let a_expr3 = VarExprFragment::from_stmt(&a_stmt);
-
-    let mut ast = BlockFragment::new(vec![
-        a_stmt.to_frag(),
-        b_stmt.to_frag(),
-        a_expr1.to_frag(),
-        a_expr2.to_frag(),
-        a_expr3.to_frag(),
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 10;
+        b = 20;
+        a;
+        a;
+        a;
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
@@ -228,33 +225,51 @@ fn test_remove_unused_variables_multiple_references() {
 
 #[test]
 fn test_nested_scope_transitive() {
-    let outer_var_stmt = VarStmtFragment::new("outer_var", Type::Num, raw_fragment!("10"));
-    let outer_var_expr = VarExprFragment::from_stmt(&outer_var_stmt);
-    let outer_unused_stmt = VarStmtFragment::new("outer_unused", Type::Num, raw_fragment!("20"));
-    let outer_unused_expr = VarExprFragment::from_stmt(&outer_unused_stmt);
-
-    let inner_var_stmt = VarStmtFragment::new("inner_var", Type::Num, outer_var_expr.to_frag());
-    let inner_unused_stmt = VarStmtFragment::new("inner_unused", Type::Num, outer_unused_expr.to_frag());
-    let inner_var_expr = VarExprFragment::from_stmt(&inner_var_stmt);
-
     // Build the complete AST
-    let mut ast = BlockFragment::new(vec![
-        outer_var_stmt.to_frag(),
-        outer_unused_stmt.to_frag(),
-        BlockFragment::new(vec![
-            inner_var_stmt.to_frag(),
-            inner_unused_stmt.to_frag(),
-            inner_var_expr.to_frag(),
-        ], true).to_frag()
-    ], true).to_frag();
+    let mut ast = BlockFragment::new(bash_code!({
+        outer = 10;
+        outer_unused = 20;
+        {
+            inner = outer;
+            inner_unused = outer_unused;
+            inner;
+        }
+    }), true).to_frag();
 
     remove_unused_variables(&mut ast);
 
     let block = unwrap_fragment!(ast, Block);
     assert_eq!(block.statements.len(), 2);
-    assert_eq!(unwrap_fragment!(block.statements[0].clone(), VarStmt).get_name(), "outer_var");
+    assert_eq!(unwrap_fragment!(block.statements[0].clone(), VarStmt).get_name(), "outer");
     let inner_block = unwrap_fragment!(block.statements[1].clone(), Block);
     assert_eq!(inner_block.statements.len(), 2);
-    assert_eq!(unwrap_fragment!(inner_block.statements[0].clone(), VarStmt).get_name(), "inner_var");
-    assert_eq!(unwrap_fragment!(inner_block.statements[1].clone(), VarExpr).get_name(), "inner_var");
+    assert_eq!(unwrap_fragment!(inner_block.statements[0].clone(), VarStmt).get_name(), "inner");
+    assert_eq!(unwrap_fragment!(inner_block.statements[1].clone(), VarExpr).get_name(), "inner");
+}
+
+#[test]
+fn test_nested_conditional_scope_transitive() {
+    // Build the complete AST
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 10;
+        b = a;
+        if {
+            b = a;
+            b = 24;
+        }
+        b;
+    }), true).to_frag();
+
+    remove_unused_variables(&mut ast);
+
+    let block = unwrap_fragment!(ast, Block);
+    dbg!(block.clone());
+    assert_eq!(block.statements.len(), 4);
+    assert_eq!(unwrap_fragment!(block.statements[0].clone(), VarStmt).get_name(), "a");
+    assert_eq!(unwrap_fragment!(block.statements[1].clone(), VarStmt).get_name(), "b");
+    let inner_block = unwrap_fragment!(block.statements[2].clone(), Block);
+    let inner_var = unwrap_fragment!(inner_block.statements[0].clone(), VarStmt);
+    assert_eq!(inner_var.get_name(), "b");
+    assert_eq!(unwrap_fragment!(*inner_var.value, Raw).value, "24");
+    assert_eq!(unwrap_fragment!(block.statements[3].clone(), VarExpr).get_name(), "b");
 }
