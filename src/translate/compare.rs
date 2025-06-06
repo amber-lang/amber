@@ -24,10 +24,10 @@ impl ComparisonOperator {
 
     fn get_opposite_operator(&self) -> ComparisonOperator {
         match self {
-            ComparisonOperator::Gt => ComparisonOperator::Lt,
-            ComparisonOperator::Ge => ComparisonOperator::Le,
-            ComparisonOperator::Lt => ComparisonOperator::Gt,
-            ComparisonOperator::Le => ComparisonOperator::Ge
+            ComparisonOperator::Gt => ComparisonOperator::Le,
+            ComparisonOperator::Ge => ComparisonOperator::Lt,
+            ComparisonOperator::Lt => ComparisonOperator::Ge,
+            ComparisonOperator::Le => ComparisonOperator::Gt
         }
     }
 
