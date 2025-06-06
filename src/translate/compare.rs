@@ -100,8 +100,8 @@ fn compare_array_lengths(
 ) -> FragmentKind {
     let (op, eq) = operator.get_bash_lexical_operators();
     let comparison_fragment = fragments!(left_len.clone().to_frag(), op, right_len.clone().to_frag());
-    let full_comparison_fragment = if eq.is_some() {
-        fragments!("(( ", left_len.clone().to_frag(), " == ", right_len.clone().to_frag(), " || ", comparison_fragment, " ))")
+    let full_comparison_fragment = if let Some(eq) = eq {
+        fragments!("(( ", left_len.clone().to_frag(), eq, right_len.clone().to_frag(), " || ", comparison_fragment, " ))")
     } else {
         fragments!("(( ", comparison_fragment, " ))")
     };
