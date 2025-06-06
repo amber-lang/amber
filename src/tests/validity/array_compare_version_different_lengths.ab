@@ -4,11 +4,6 @@
 // Gt: 1
 // Le: 0
 // Lt: 0
-// Ge and Le (equality)
-// Ge: 1
-// Gt: 0
-// Le: 1
-// Lt: 0
 // Lt and Le
 // Ge: 0
 // Gt: 0
