@@ -1,5 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
+use crate::utils::pluralize;
 use super::expression::expr::Expr;
 use super::types::{Type, Typed};
 
@@ -22,7 +23,7 @@ pub fn shorthand_typecheck_allowed_types(
         let message = rhs.get_error_message(meta);
         let msg = format!("Cannot perform {operator} on value of type '{var_type}' and value of type '{rhs_type}'");
         let pretty_types = Type::pretty_join(allowed_types, "and");
-        let sentence = if allowed_types.len() == 1 { "Allowed type is" } else { "Allowed types are" };
+        let sentence = pluralize(allowed_types.len(), "Allowed type is", "Allowed types are");
         let comment = format!("{sentence} {pretty_types}.");
         Err(Failure::Loud(message.message(msg).comment(comment)))
     } else {

@@ -7,3 +7,11 @@ pub mod import_cache;
 pub mod metadata;
 
 pub use metadata::*;
+
+pub fn pluralize<'a>(amount: usize, single: &'a str, multiple: &'a str) -> &'a str {
+    if amount > 1 {
+        multiple
+    } else {
+        single
+    }
+}
