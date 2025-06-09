@@ -74,9 +74,11 @@ impl SyntaxModule<ParserMetadata> for Fail {
 
 impl TranslateModule for Fail {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let translate = self.code.is_empty()
-            .then(|| self.expr.translate(meta))
-            .unwrap_or_else(|| raw_fragment!("{}", &self.code));
+        let translate = if self.code.is_empty() {
+            self.expr.translate(meta)
+        } else {
+            raw_fragment!("{}", &self.code)
+        };
         if self.is_main {
             fragments!("exit ", translate)
         } else {
