@@ -16,9 +16,9 @@ impl ComparisonOperator {
     fn get_bash_lexical_operators(&self) -> (FragmentKind, Option<FragmentKind>) {
         match self {
             ComparisonOperator::Gt => (raw_fragment!(" > "), None),
-            ComparisonOperator::Ge => (raw_fragment!(" > "), Some(raw_fragment!(" = "))),
+            ComparisonOperator::Ge => (raw_fragment!(" > "), Some(raw_fragment!(" == "))),
             ComparisonOperator::Lt => (raw_fragment!(" < "), None),
-            ComparisonOperator::Le => (raw_fragment!(" < "), Some(raw_fragment!(" = ")))
+            ComparisonOperator::Le => (raw_fragment!(" < "), Some(raw_fragment!(" == ")))
         }
     }
 
