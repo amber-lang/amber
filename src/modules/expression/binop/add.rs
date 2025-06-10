@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{error_type_match, fragments, handle_binop};
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::modules::types::{Typed, Type};
@@ -47,10 +47,10 @@ impl SyntaxModule<ParserMetadata> for Add {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.kind = handle_binop!(meta, "add", self.left, self.right, [
-            Num,
-            Text,
-            Array
+        self.kind = Self::typecheck_allowed_types(meta, "addition", &self.left, &self.right, &[
+            Type::Num,
+            Type::Text,
+            Type::array_of(Type::Generic)
         ])?;
         Ok(())
     }
@@ -64,8 +64,8 @@ impl TranslateModule for Add {
             Type::Array(_) => {
                 let id = meta.gen_value_id();
                 let value = fragments!(left, " ", right);
-                let var = meta.push_intermediate_variable_lazy("__array_add", Some(id), self.kind.clone(), value);
-                var.to_frag()
+                let var_stmt = VarStmtFragment::new("__array_add", self.kind.clone(), value).with_global_id(id);
+                meta.push_intermediate_variable(var_stmt).to_frag()
             },
             Type::Text => fragments!(left, right),
             _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
