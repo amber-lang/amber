@@ -34,7 +34,7 @@ pub struct UnusedVariablesMetadata {
 
 impl UnusedVariablesMetadata {
     pub fn is_var_used(&self, name: VarStmtName) -> bool {
-        let mut transitive_variables = HashMap::from([(name.clone(), vec![0 as usize])]);
+        let mut transitive_variables = HashMap::from([(name.clone(), vec![0_usize])]);
         let mut cond_block_scope: usize = 0;
         for symbol_type in self.symbols.iter() {
             match symbol_type {
@@ -62,9 +62,7 @@ impl UnusedVariablesMetadata {
                     cond_block_scope += 1;
                 },
                 SymbolType::ConditionalBlock(CondBlockBehavior::End) => {
-                    if cond_block_scope > 0 {
-                        cond_block_scope -= 1;
-                    }
+                    cond_block_scope = cond_block_scope.saturating_sub(1);
                 }
             }
         }
