@@ -1,16 +1,34 @@
+// We cannot import `bash_version` from `env.ab` because it imports `text.ab` making a circular dependency.
+// This is a workaround to avoid that issue and the import system should be improved in the future.
+#[allow_absurd_cast]
+fun bash_version(): [Num] {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Num
+    let patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Num
+    return [major, minor, patch]
+}
+
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 pub fun replace(source, search, replace) {
-    // Here we use a command to avoid GH-646
+    // Here we use a command to avoid #646
     let result = ""
-    trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    if bash_version() > [4,2] {
+        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    } else {
+        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+    }
     return result
 }
 
 /// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
-    // Here we use a command to avoid GH-646
+    // Here we use a command to avoid #646
     let result = ""
-    trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    if bash_version() > [4,2] {
+        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    } else {
+        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+    }
     return result
 }
 

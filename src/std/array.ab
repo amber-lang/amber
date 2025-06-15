@@ -49,10 +49,10 @@ pub fun array_remove_at(ref array: [], index: Num): Null {
     array = array[0..index] + array[offset..length]
 }
 
-/// Removes an element at the index from the array, and returns it; if the
-/// index is negative or beyond the end, the return value is undefined, but
-/// the array will be unchanged.
+/// Removes an element at the index from the array, and returns it
 pub fun array_extract_at(ref array, index) {
+    if index < 0 or index >= len(array):
+        fail 1
     let element = array[index]
     let offset = index + 1
     let length = len(array)

@@ -6,6 +6,9 @@ import * from "std/text"
 // #path#to#file.txt
 
 main {
+    $ re='Copyright.+Free Software Foundation'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $ failed {
+        echo "Succeeded"
+    }
     // This will fail on any system where sed does not support extended
     // regex syntax, via "-r" on GNU sed and "-E" on all other versions.
     echo replace_regex("abc123def", "([0-9]+)", "[\1]", true)

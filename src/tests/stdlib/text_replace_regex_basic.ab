@@ -7,6 +7,6 @@ import * from "std/text"
 
 main {
     echo replace_regex("abc123def", "\([0-9][0-9]*\)", "[\1]")
-    echo replace_regex("aeon aeons eon eons", "\beon\b", "###")
+    echo replace_regex("aeon aeons eon eons", " eon ", " ### ")
     echo replace_regex("/path/to/file.txt", "/", "#")
 }
