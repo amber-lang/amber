@@ -1,6 +1,5 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::{handle_binop, error_type_match};
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::ArithOp;
 use crate::translate::compute::translate_computation;
@@ -46,7 +45,7 @@ impl SyntaxModule<ParserMetadata> for Div {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "divide", self.left, self.right, [Num])?;
+        Self::typecheck_allowed_types(meta, "division", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }

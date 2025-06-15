@@ -6,7 +6,7 @@ use crate::modules::prelude::{BlockFragment, FragmentRenderable};
 use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
 use crate::rules;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
@@ -271,7 +271,7 @@ impl AmberCompiler {
             }
         }
         if !paths.is_empty() {
-            let files = if paths.len() > 1 { "Files" } else { "File" };
+            let files = pluralize(paths.len(), "File", "Files");
             let message = once(format!("{files} generated at:")).chain(paths).join("\n");
             Message::new_info_msg(message).show();
         }

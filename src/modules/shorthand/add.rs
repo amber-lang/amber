@@ -1,11 +1,12 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::error_type_match;
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
 use crate::translate::{compute::ArithOp, module::TranslateModule};
-use crate::modules::types::{Type, Typed};
+use crate::modules::types::Type;
+
+use super::shorthand_typecheck_allowed_types;
 
 #[derive(Debug, Clone)]
 pub struct ShorthandAdd {
@@ -39,16 +40,16 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
-        if self.kind != self.expr.get_type() || !matches!(self.kind, Type::Num | Type::Text | Type::Array(_)) {
-            let msg = self.expr.get_error_message(meta);
-            return error_type_match!(meta, msg, "add", self.expr, [Num, Text, Array]);
-        }
+        shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
+            Type::Num,
+            Type::Text,
+            Type::array_of(Type::Generic)
+        ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for ShorthandAdd {
-    //noinspection DuplicatedCode
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let var = VarExprFragment::new(&self.var, self.kind.clone())
             .with_global_id(self.global_id)

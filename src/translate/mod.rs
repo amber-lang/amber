@@ -4,6 +4,7 @@ use crate::utils::ParserMetadata;
 pub mod module;
 pub mod fragments;
 pub mod compute;
+pub mod compare;
 
 pub fn check_all_blocks(meta: &ParserMetadata) -> SyntaxResult {
     let mut stack = 0;
