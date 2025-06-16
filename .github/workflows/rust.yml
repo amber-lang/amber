@@ -45,8 +45,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Build binary
         run: |
-          # the binary will be used by the cargo test
-          cargo build
+          cargo build # the binary will be used by the cargo test
           cargo test --no-run --all-targets --all-features
       - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
         run: tar -cvzf target.tgz target/
@@ -145,6 +144,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
         run: |
+          cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
   clippy:
     name: Clippy tests
