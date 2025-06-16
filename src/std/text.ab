@@ -12,7 +12,7 @@ fun bash_version(): [Num] {
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() > [4,3] {
+    if bash_version() >= [4,3] {
         trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
