@@ -24,7 +24,7 @@ pub fun replace(source, search, replace) {
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() > [4,3] {
+    if bash_version() >= [4,3] {
         trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
