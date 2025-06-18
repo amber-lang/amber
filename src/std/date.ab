@@ -5,24 +5,22 @@
 /// For more info about format type "man date" in your shell or see <https://www.gnu.org/software/coreutils/date>.
 ///
 /// Format includes the following patterns:
-/// ```
-/// %%     a literal %
-/// %a     locale's abbreviated weekday name (e.g., Sun)
-/// %A     locale's full weekday name (e.g., Sunday)
-/// %b     locale's abbreviated month name (e.g., Jan)
-/// %B     locale's full month name (e.g., January)
-/// %d     day of month (e.g., 01)
-/// %D     date; same as %m/%d/%y
-/// %F     full date; like %+4Y-%m-%d
-/// %H     hour (00..23)
-/// %I     hour (01..12)
-/// %m     month (01..12)
-/// %M     minute (00..59)
-/// %N     nanoseconds (000000000..999999999)
-/// %p     locale's equivalent of either AM or PM; blank if unknown
-/// %T     time; same as %H:%M:%S
-/// %Y     year
-/// ```
+/// - `%%` - a literal %
+/// - `%a` - locale's abbreviated weekday name (e.g., Sun)
+/// - `%A` - locale's full weekday name (e.g., Sunday)
+/// - `%b` - locale's abbreviated month name (e.g., Jan)
+/// - `%B` - locale's full month name (e.g., January)
+/// - `%d` - day of month (e.g., 01)
+/// - `%D` - date; same as %m/%d/%y
+/// - `%F` - full date; like %+4Y-%m-%d
+/// - `%H` - hour (00..23)
+/// - `%I` - hour (01..12)
+/// - `%m` - month (01..12)
+/// - `%M` - minute (00..59)
+/// - `%N` - nanoseconds (000000000..999999999)
+/// - `%p` - locale's equivalent of either AM or PM; blank if unknown
+/// - `%T` - time; same as %H:%M:%S
+/// - `%Y` - year
 pub fun date_format_posix(date: Num, format: Text = "%F %T", utc: Bool = false): Text? {
     let utc_flag = utc then "-u" else ""
     // Case if this is a GNU date command
