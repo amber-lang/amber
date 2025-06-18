@@ -53,8 +53,8 @@ pub fun date_now(): Num {
 
 /// Adds a value to a date passed in the unix epoch format.
 /// Example : `date_add(date, 3, "days")`
-//
-// Available units:
+///
+/// Available units:
 /// - years
 /// - months
 /// - days
