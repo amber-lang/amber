@@ -75,8 +75,8 @@ pub fun date_add(date: Num, amount: Num, unit: Text): Num? {
 
 /// Subtracts a value from a date passed in the unix epoch format.
 /// Example : `date_sub(date, 5, "hours")`
-//
-// Available units:
+///
+/// Available units:
 /// - years
 /// - months
 /// - days
