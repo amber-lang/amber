@@ -1,4 +1,4 @@
-// All dates are internally stored as miliseconds since the Epoch (1970-01-01 00:00 UTC).
+/// All dates are internally stored as miliseconds since the Epoch (1970-01-01 00:00 UTC).
 
 /// Transform date from unix epoch to a human-readable format described by a posix format string.
 /// If no format is specified, "%F %T" is used.
@@ -32,7 +32,7 @@ pub fun date_format_posix(date: Num, format: Text = "%F %T", utc: Bool = false):
     }
 }
 
-/// Transforms date from one format to another.
+/// Transforms date from a format described by a posix format string to a unix epoch format (seconds since the Epoch (1970-01-01 00:00 UTC)).
 /// If no format is specified, "%F %T" format is used.
 /// For more info about format type "man date" on your shell or go to <https://www.gnu.org/software/coreutils/date>.
 #[allow_absurd_cast]
