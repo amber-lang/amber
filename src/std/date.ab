@@ -49,7 +49,7 @@ pub fun date_now(): Num {
     return trust $ date +%s $ as Num
 }
 
-/// Adds a value to a date passed in the unix epoch format.
+/// Adds a value to a date passed in the unix epoch format in miliseconds.
 /// Example : `date_add(date, 3, "days")`
 ///
 /// Available units:
@@ -71,7 +71,7 @@ pub fun date_add(date: Num, amount: Num, unit: Text): Num? {
     }
 }
 
-/// Subtracts a value from a date passed in the unix epoch format.
+/// Subtracts a value from a date passed in the unix epoch format in miliseconds.
 /// Example : `date_sub(date, 5, "hours")`
 ///
 /// Available units:
