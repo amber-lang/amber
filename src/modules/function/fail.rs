@@ -84,8 +84,9 @@ impl TranslateModule for Fail {
         } else {
             // Clean the return value if the function fails
             let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-            let stmt = raw_fragment!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
-            meta.stmt_queue.push_back(stmt);
+            let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
+                .with_optimization_when_unused(false);
+            meta.stmt_queue.push_back(stmt.to_frag());
             fragments!("return ", translate)
         }
     }

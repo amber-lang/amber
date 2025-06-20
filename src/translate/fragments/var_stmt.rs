@@ -11,6 +11,7 @@ pub struct VarStmtFragment {
     pub index: Option<Box<FragmentKind>>,
     pub kind: Type,
     pub is_ref: bool,
+    pub optimize_unused: bool,
     pub operator: String,
     pub value: Box<FragmentKind>,
 }
@@ -25,6 +26,7 @@ impl Default for VarStmtFragment {
             index: None,
             kind: Type::Generic,
             is_ref: false,
+            optimize_unused: true,
             operator: "=".to_string(),
             value: Box::new(FragmentKind::Empty),
         }
@@ -61,8 +63,17 @@ impl VarStmtFragment {
         self
     }
 
-    fn render_variable_name(&self) -> String {
-        let variable = get_variable_name(&self.name, self.global_id);
+    pub fn with_optimization_when_unused(mut self, optimize: bool) -> Self {
+        self.optimize_unused = optimize;
+        self
+    }
+
+    pub fn get_name(&self) -> String {
+        get_variable_name(&self.name, self.global_id)
+    }
+
+    pub fn render_variable_name(&self) -> String {
+        let variable = self.get_name();
 
         if self.is_ref {
             format!("${{{}}}", variable)

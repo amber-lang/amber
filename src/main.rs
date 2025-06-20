@@ -5,6 +5,7 @@ mod rules;
 mod stdlib;
 mod translate;
 mod utils;
+mod optimizer;
 
 pub mod built_info {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));

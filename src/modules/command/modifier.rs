@@ -85,6 +85,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             return self.use_modifiers(meta, |this, meta| {
                 token(meta, "{")?;
                 syntax(meta, &mut *this.block)?;
+                this.block.should_indent = false;
                 token(meta, "}")?;
                 Ok(())
             })

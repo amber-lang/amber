@@ -60,7 +60,8 @@ impl TranslateModule for Return {
             .map(FunctionMetadata::mangled_name)
             .expect("Function name and return type not set");
         let result = self.expr.translate(meta);
-        let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result);
+        let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
+            .with_optimization_when_unused(false);
         meta.stmt_queue.push_back(var_stmt.to_frag());
         fragments!("return 0")
     }

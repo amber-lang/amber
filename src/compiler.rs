@@ -3,6 +3,7 @@ use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
@@ -27,6 +28,7 @@ pub mod postprocessor;
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
 const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
+const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
@@ -178,6 +180,11 @@ impl AmberCompiler {
                 "Translate".magenta(),
                 time.elapsed().as_millis()
             );
+        }
+
+        let mut result = result.to_frag();
+        if !Self::env_flag_set(AMBER_NO_OPTIMIZE) {
+            optimize_fragments(&mut result);
         }
 
         let mut result = result.to_string(&mut meta_translate);

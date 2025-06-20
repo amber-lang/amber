@@ -14,7 +14,7 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 
     fn new() -> Self {
         InfiniteLoop {
-            block: Block::new().with_needs_noop(),
+            block: Block::new().with_needs_noop().with_condition(),
         }
     }
 
