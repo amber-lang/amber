@@ -273,3 +273,36 @@ fn test_nested_conditional_scope_transitive() {
     assert_eq!(unwrap_fragment!(*inner_var.value, Raw).value, "24");
     assert_eq!(unwrap_fragment!(block.statements[3].clone(), VarExpr).get_name(), "b");
 }
+
+#[test]
+fn test_nested_conditional_scope_transitive_single_assignment() {
+    // Build the complete AST
+    let mut ast = BlockFragment::new(bash_code!({
+        a = 12;
+        a = 10;
+        b = a;
+        c = a;
+        if {
+            c = b;
+        }
+        c;
+    }), true).to_frag();
+
+    remove_unused_variables(&mut ast);
+
+    let block = unwrap_fragment!(ast, Block);
+    assert_eq!(block.statements.len(), 5);
+
+    let first_var = unwrap_fragment!(block.statements[0].clone(), VarStmt);
+    assert_eq!(first_var.get_name(), "a");
+    assert_eq!(unwrap_fragment!(*first_var.value, Raw).value, "10");
+
+    assert_eq!(unwrap_fragment!(block.statements[1].clone(), VarStmt).get_name(), "b");
+    assert_eq!(unwrap_fragment!(block.statements[2].clone(), VarStmt).get_name(), "c");
+
+    let inner_block = unwrap_fragment!(block.statements[3].clone(), Block);
+    assert_eq!(inner_block.statements.len(), 1);
+    unwrap_fragment!(inner_block.statements[0].clone(), VarStmt);
+
+    assert_eq!(unwrap_fragment!(block.statements[4].clone(), VarExpr).get_name(), "c");
+}

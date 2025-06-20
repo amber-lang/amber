@@ -42,7 +42,6 @@ impl UnusedVariablesMetadata {
                     return true;
                 }
                 SymbolType::Statement(var_stmt, dependencies) => {
-                    let dependencies_in_transitive = dependencies.iter().any(|dep| transitive_variables.contains_key(dep));
                     // Case when the same variable is self declared (`a=$a`)
                     if transitive_variables.contains_key(var_stmt) && dependencies.contains(var_stmt) {
                         continue;
@@ -52,8 +51,10 @@ impl UnusedVariablesMetadata {
                         scopes.retain(|&scope| scope != cond_block_scope);
                     }
                     // If dependencies are used by this variable then this variable is also used
-                    if dependencies_in_transitive {
-                        transitive_variables.entry(var_stmt.clone()).or_insert(vec![cond_block_scope]);
+                    if dependencies.iter().any(|dep| transitive_variables.contains_key(dep)) {
+                        transitive_variables.entry(var_stmt.clone())
+                            .or_insert(Vec::new())
+                            .push(cond_block_scope);
                     }
                     // Remove relations to variables that arent used
                     transitive_variables.retain(|_key, field| !field.is_empty());
