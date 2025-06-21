@@ -34,8 +34,8 @@ pub fun replace_one(source, search, replace) {
 
 fun is_gnu_sed(): Bool {
     trust $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-    // We currently ignore the possibility that this can be alpine (busybox) sed
-    // which contains "This is not GNU sed version"
+    // We can't match agains a word "GNU" because
+    // alpine's busybox sed returns "This is not GNU sed version"
     return status == 0
 }
 

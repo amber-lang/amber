@@ -5,7 +5,7 @@ main {
         echo "\$ match failed"
     }
     if match_regex("to be", "to be|not to be") {
-        echo "A pipe (|) should be treated as a literal character in POSIX Standards BRE. Actually not."
+        echo "A pipe (|) should be treated as a literal character in POSIX Standards BRE."
     }
 
     echo "Succeeded"
