@@ -32,21 +32,36 @@ pub fun replace_one(source, search, replace) {
     return result
 }
 
-/// Replaces all occurrences of a regex pattern in the content with the provided replace text.
+fun is_gnu_sed(): Bool {
+    trust $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+    // We currently ignore the possibility that this can be alpine (busybox) sed
+    // which contains "This is not GNU sed version"
+    return status == 0
+}
+
+/// Replaces all occurences of a regex pattern in the content with the provided replace text.
 ///
 /// Function uses `sed`
 pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
     trust {
+        const is_gnu_sed = is_gnu_sed()
         search = replace(search, "/", "\/")
         replace = replace(replace, "/", "\/")
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
-            // but only via the "-r" option; use that if the version information
-            // contains "GNU sed".
-            $ re='Copyright.+Free Software Foundation'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-            let flag = status == 0 then "-r" else "-E"
-            return $ echo "{source}" | sed "{flag}" -e "s/{search}/{replace}/g" $
+            // but only via the "-r" option
+            if is_gnu_sed {
+                // '\b' is not in POSIX standards. Disable it
+                search = replace(search, "\\b", "\\\b")
+                return $ echo "{source}" | sed -r -e "s/{search}/{replace}/g" $
+            } else {
+                return $ echo "{source}" | sed -E -e "s/{search}/{replace}/g" $
+            }
         } else {
+            if is_gnu_sed {
+                // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
+                search = replace(search, "\|", "|")
+            }
             return $ echo "{source}" | sed -e "s/{search}/{replace}/g" $
         }
     }
@@ -151,16 +166,24 @@ pub fun text_contains_all(text: Text, terms: [Text]): Bool {
 /// Function uses `sed`
 pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
     trust {
+        const is_gnu_sed = is_gnu_sed()
         search = replace(search, "/", "\/")
         let output = ""
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
-            // but only via the "-r" option; use that if the version information
-            // contains "GNU sed".
-            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-            let flag = status == 0 then "-r" else "-E"
-            output = $ echo "{source}" | sed "{flag}" -ne "/{search}/p" $
+            // but only via the "-r" option
+            if is_gnu_sed {
+                // '\b' is not in POSIX standards. Disable it
+                search = replace(search, "\b", "\\b")
+                output = $ echo "{source}" | sed -r -ne "/{search}/p" $
+            } else {
+                output = $ echo "{source}" | sed -E -ne "/{search}/p" $
+            }
         } else {
+            if is_gnu_sed {
+                // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
+                search = replace(search, "\|", "|")
+            }
             output = $ echo "{source}" | sed -ne "/{search}/p" $
         }
         if output != "" {
