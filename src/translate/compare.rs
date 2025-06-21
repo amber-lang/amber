@@ -85,9 +85,9 @@ fn create_variable_with_smaller_number(
     right: VarExprFragment
 ) -> (VarStmtFragment, VarExprFragment) {
     let value = SubprocessFragment::new(
-        fragments!("(( ", left.clone().to_frag(), " < ", right.clone().to_frag(), "))",
-            " && echo ", left.clone().to_frag(),
-            " || echo ", right.clone().to_frag())).to_frag();
+        fragments!(" (( ", left.clone().to_frag(), " < ", right.clone().to_frag(), " )) ",
+            "&& echo ", left.clone().to_frag(),
+            "|| echo ", right.clone().to_frag())).to_frag();
     let len_stmt = VarStmtFragment::new(name, Type::Num, value);
     let len_expr = VarExprFragment::from_stmt(&len_stmt).with_render_type(VarRenderType::NameOf);
     (len_stmt, len_expr)
