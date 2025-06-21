@@ -1,29 +1,27 @@
 import * from "std/text"
 
-main {
-    // This will fail on any system where sed does not support extended
-    // regex syntax, via "-r" on GNU sed and "-E" on all other versions.
-    if replace_regex("aaa", "a+", "", true) != "" {
-        echo "One or more matching failed"
-    }
-    if replace_regex("abc", "[ab]", "c", true) != "ccc" {
-        echo "Single character bracket expression failed"
-    }
-    if replace_regex("E", "[A-Z]", "E", true) != "E" {
-        echo "Range bracket expression failed"
-    }
-    if replace_regex("abc123def", "([0-9]+)", "[\1]", true) != "abc[123]def" {
-        echo "Combination of bracket exp and one or more failed"
-    }
-    if replace_regex("aeon aeons eon eons", "\beon\b", "###", true) == "aeon aeons ### eons" {
-        echo "Word boundary is handled, but it should not because it is not POSIX standard"
-    }
-    if replace_regex("/path/to/file.txt", "/", "#", true) != "#path#to#file.txt" {
-        echo "Replacing forward slash failed"
-    }
-    if replace_regex(".tar.gz", "\.(tar\.gz|tgz)$", "", true) != "" {
-        echo "A pipe (|) should be treated as OR in POSIX Standards ERE. Actually not."
-    }
+// Output
+// z
+// ccc
+// E
+// abc[123]def
+// aeon aeons eon eons
+// #path#to#file.txt
+// Succeeded
 
-    echo "Succeeded"
+main {
+    // One or more matching
+    echo replace_regex("aaa", "a+", "z", true)
+    // Single character bracket expression
+    echo replace_regex("abc", "[ab]", "c", true)
+    // Range bracket expression
+    echo replace_regex("E", "[A-Z]", "E", true)
+    // Combination of bracket exp, caupturing group and one or more
+    echo replace_regex("abc123def", "([0-9]+)", "[\1]", true)
+    // Word boundary should not be handled, because it is not POSIX standard
+    echo replace_regex("aeon aeons eon eons", "\beon\b", "###", true)
+    // Replacing forward slash
+    echo replace_regex("/path/to/file.txt", "/", "#", true)
+    // A pipe (|) should be treated as OR in POSIX Standards ERE.
+    echo replace_regex(".tar.gz", "\.(tar\.gz|tgz)$", "Succeeded", true)
 }

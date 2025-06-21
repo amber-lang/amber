@@ -1,12 +1,12 @@
 import { match_regex } from "std/text"
 
-main {
-    if not match_regex("Hello World", "World$") {
-        echo "\$ match failed"
-    }
-    if match_regex("to be", "to be|not to be") {
-        echo "A pipe (|) should be treated as a literal character in POSIX Standards BRE."
-    }
+// Output
+// Succeeded
+// Succeeded
 
-    echo "Succeeded"
+main {
+    // $ end of string
+    echo match_regex("Hello World", " World$") then "Succeeded" else ""
+    // A pipe (|) should be treated as a literal character in POSIX Standards BRE.
+    echo match_regex("to be", "to be|not to be") then "" else "Succeeded"
 }

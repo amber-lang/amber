@@ -1,22 +1,20 @@
 import * from "std/text"
 
-main {
-    if replace_regex("aeon aeons eon eons", " eon ", " ### ") != "aeon aeons ### eons" {
-        echo "expected: aeon aeons ### eons"
-        echo "actual: {replace_regex("aeon aeons eon eons", " eon ", "###")}"
-    }
-    if replace_regex("abc123def", "\([0-9][0-9]*\)", "[\1]") != "abc[123]def" {
-        echo "Combination of bracket exp and one or more failed"
-    }
-    if replace_regex("foo", "foo$", "###") != "###" {
-        echo "Ending position of the string failed"
-    }
-    if replace_regex(".tar.gz", "\.\(tar\.gz\|tgz\)$", "") == "" {
-        echo "A pipe (|) should be treated as a literal character in POSIX Standards BRE. Actually not."
-    }
-    if replace_regex("/path/to/file.txt", "/", "#") != "#path#to#file.txt" {
-        echo "Replacing forward slash failed"
-    }
+// Output
+// aeon aeons ### eons
+// abc[123]def
+// ###
+// .tar.gz
+// #path#to#file.txt
 
-    echo "Succeeded"
+main {
+    echo replace_regex("aeon aeons eon eons", " eon ", " ### ")
+    // Combination of bracket exp and one or more
+    echo replace_regex("abc123def", "\([0-9][0-9]*\)", "[\1]")
+    // Ending position of the string
+    echo replace_regex("foo", "foo$", "###")
+    // A pipe (|) should be treated as a literal character in POSIX Standards BRE.
+    echo replace_regex(".tar.gz", "\.\(tar\.gz\|tgz\)$", "Succeeded")
+    // Replacing forward slash failed
+    echo replace_regex("/path/to/file.txt", "/", "#")
 }
