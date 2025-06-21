@@ -54,6 +54,31 @@ pub fun dir_create(path: Text): Null {
     }
 }
 
+/// Determine whether mktemp is OSX's.
+fun is_osx_mktemp(): Bool {
+    // OSX's mktemp does not have --version
+    const path = silent $ mktemp --version $ failed {
+        return true
+    }
+    return false
+}
+
+/// Create a temporary directory and return the path.
+/// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
+pub fun temp_dir_create(template: Text = "tmp.XXXXXXXXXX"): Text? {
+    if template == "" {
+        echo "The template cannot be an empty string!"
+        fail 1
+    }
+    if not is_osx_mktemp() {
+        return $ mktemp -d -p "\$TMPDIR" -t {template} $?
+    } else {
+        // usage: mktemp [-d] [-p tmpdir] [-q] [-t prefix] [-u] template ...
+        //        mktemp [-d] [-p tmpdir] [-q] [-u] -t prefix
+        return $ mktemp -d -p "\$TMPDIR" {template} $?
+    }
+}
+
 /// Changes the permission bits of a file.
 ///
 /// If the file doesn't exist, it returns `false` and prints a message.
