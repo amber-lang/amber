@@ -62,6 +62,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
                 },
                 (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => meta.add_message(message),
                 (Type::Text, Type::Num) => { meta.add_message(message) },
+                (Type::Text, Type::Bool) => { meta.add_message(message) },
                 _ => {}
             }
         }
