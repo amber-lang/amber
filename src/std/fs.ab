@@ -71,11 +71,21 @@ pub fun temp_dir_create(template: Text = "tmp.XXXXXXXXXX"): Text? {
         fail 1
     }
     if not is_osx_mktemp() {
-        return $ mktemp -d -p "\$TMPDIR" -t {template} $?
+        const filename = $ mktemp -d -p "\$TMPDIR" -t {template} $?
+        if len(filename) == 0 {
+            echo "Failed to make a temporary directory"
+            fail 1
+        }
+        return filename
     } else {
         // usage: mktemp [-d] [-p tmpdir] [-q] [-t prefix] [-u] template ...
         //        mktemp [-d] [-p tmpdir] [-q] [-u] -t prefix
-        return $ mktemp -d -p "\$TMPDIR" {template} $?
+        const filename = $ mktemp -d -p "\$TMPDIR" {template} $?
+        if len(filename) == 0 {
+            echo "Failed to make a temporary directory"
+            fail 1
+        }
+        return filename
     }
 }
 
