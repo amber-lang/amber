@@ -1,10 +1,10 @@
-import { file_chmod } from "std/fs"
+import { file_chmod, temp_dir_create } from "std/fs"
 
 // Output
 // created
 
 main {
-    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    let tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ touch {tmpdir}/amber-symbolic $
     if file_chmod("{tmpdir}/amber-symbolic", "+x") {
         echo "created"

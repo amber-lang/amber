@@ -1,12 +1,11 @@
-import { symlink_create } from "std/fs"
+import { symlink_create, temp_dir_create } from "std/fs"
 
 main {
-    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ touch {tmpdir}/amber-symbolic $
     if symlink_create("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
         echo "Succeeded"
     } else {
         echo "failed"
     }
-    trust $ rm -fr {tmpdir} $
 } 

@@ -15,7 +15,7 @@ fun compare(actual: [Text], expected: [Text]): Bool {
 }
 
 main {
-    let tmpdir = trust $ mktemp -d $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
         $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
         $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
@@ -40,6 +40,4 @@ main {
         echo "Expected: {expected}"
         echo "Actual: {actual}"
     }
-
-    trust $ rm -rf {tmpdir} $
 }

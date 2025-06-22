@@ -1,7 +1,7 @@
 import * from "std/fs"
 
 main {
-    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ touch {tmpdir}/a $
     trust mv "{tmpdir}/a" "{tmpdir}/b"
     if file_exists("{tmpdir}/b") {
@@ -9,5 +9,4 @@ main {
     } else {
         echo "Not Found"
     }
-    trust $ rm -rf {tmpdir} $
 }
