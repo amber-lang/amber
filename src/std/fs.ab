@@ -65,28 +65,40 @@ fun is_osx_mktemp(): Bool {
 
 /// Create a temporary directory and return the path.
 /// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
-pub fun temp_dir_create(template: Text = "tmp.XXXXXXXXXX"): Text? {
+pub fun temp_dir_create(
+        template: Text = "tmp.XXXXXXXXXX",
+        auto_delete: Bool = false,
+        force_delete: Bool = false
+    ): Text? {
     if template == "" {
         echo "The template cannot be an empty string!"
         fail 1
     }
+
+    let filename = ""
     if not is_osx_mktemp() {
-        const filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
-        if len(filename) == 0 {
-            echo "Failed to make a temporary directory"
-            fail 1
-        }
-        return filename
+        filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
     } else {
         // usage: mktemp [-d] [-p tmpdir] [-q] [-t prefix] [-u] template ...
         //        mktemp [-d] [-p tmpdir] [-q] [-u] -t prefix
-        const filename = $ mktemp -d -p "\$TMPDIR" "{template}" $?
-        if len(filename) == 0 {
-            echo "Failed to make a temporary directory"
-            fail 1
-        }
-        return filename
+        filename = $ mktemp -d -p "\$TMPDIR" "{template}" $?
     }
+    if filename == "" {
+        echo "Failed to make a temporary directory"
+        fail 1
+    }
+    if auto_delete {
+        if force_delete {
+            $ trap 'rm -rf {filename}' EXIT $ failed {
+                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+            }
+        } else {
+            $ trap 'rmdir {filename}' EXIT $ failed {
+                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+            }
+        }
+    }
+    return filename
 }
 
 /// Changes the permission bits of a file.
