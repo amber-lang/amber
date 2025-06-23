@@ -208,10 +208,29 @@ impl AmberCompiler {
         }
 
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        let header = include_str!("header.sh")
-            .replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+        
+        let header_template = 
+            if let Ok(dynamic) = env::var("AMBER_HEADER") {
+                fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from {dynamic}").as_str())
+            } else {
+                include_str!("header.sh").to_string()
+            };
+        
+        let footer_template = 
+            if let Ok(dynamic) = env::var("AMBER_FOOTER") {
+                fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic footer file from {dynamic}").as_str())
+            } else {
+                String::new()
+            };
+        
+        let header = header_template
+            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
             .replace("{{ date }}", now.as_str());
-        Ok(format!("{}{}", header, result))
+        
+        let footer = footer_template
+            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+        
+        Ok(format!("{}\n{}\n{}", header, result, footer))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
