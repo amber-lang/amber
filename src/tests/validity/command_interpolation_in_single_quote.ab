@@ -1,0 +1,29 @@
+// Output
+// Succeeded
+// no single quotes
+// no single quotes
+// no single quotes
+// 'single quotes'
+// no double quotes
+// no double quotes
+// no double quotes
+// "double quotes"
+
+main {
+    const txt = "Succeeded"
+    trust $ echo {txt} $
+
+    const s = "single quotes"
+    const s2 = "'{s}'"
+    trust $ echo 'no {s}' $
+    trust $ echo 'no {s2}' $
+    trust $ echo no '{s2}' $
+    trust $ echo "{s2}" $
+
+    const d = "double quotes"
+    const d2 = "\"{d}\""
+    trust $ echo "no {d}" $
+    trust $ echo "no {d2}" $
+    trust $ echo no "{d2}" $
+    trust $ echo '{d2}' $
+}
