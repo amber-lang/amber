@@ -17,7 +17,7 @@ pub struct Neg {
 
 impl Typed for Neg {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.expr.get_type()
     }
 }
 
@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Neg {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num])?;
+        Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num, Type::Int])?;
         Ok(())
     }
 }

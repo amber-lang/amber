@@ -5,50 +5,46 @@ use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
-pub struct Number {
+pub struct Integer {
     value: String
 }
 
-impl Typed for Number {
+impl Typed for Integer {
     fn get_type(&self) -> Type {
-        Type::Num
+        Type::Int
     }
 }
 
-impl SyntaxModule<ParserMetadata> for Number {
-    syntax_name!("Number");
+impl SyntaxModule<ParserMetadata> for Integer {
+    syntax_name!("Integer");
 
     fn new() -> Self {
-        Number {
+        Integer {
             value: String::new()
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Ok(value) = integer(meta, vec![]) {
-            self.value.push_str(&value);
-        }
-        let sym = token(meta, ".")?;
-        self.value.push_str(&sym);
-        self.value.push_str(&integer(meta, vec![])?);
+        let int = integer(meta, vec![])?;
+        self.value.push_str(&int);
         Ok(())
     }
 }
 
-impl TranslateModule for Number {
+impl TranslateModule for Integer {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         RawFragment::from(self.value.to_string()).to_frag()
     }
 }
 
-impl Number {
+impl Integer {
     pub fn get_integer_value(&self) -> Option<isize> {
         let value = self.value.parse().unwrap_or_default();
         Some(value)
     }
 }
 
-impl DocumentationModule for Number {
+impl DocumentationModule for Integer {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }

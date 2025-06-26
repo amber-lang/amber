@@ -14,6 +14,7 @@ use crate::modules::types::parse_type;
 use super::literal::{
     bool::Bool,
     number::Number,
+    integer::Integer,
     text::Text,
     array::Array,
     null::Null,
@@ -55,6 +56,7 @@ use crate::{document_expression, parse_expr, parse_expr_group, translate_express
 pub enum ExprType {
     Bool(Bool),
     Number(Number),
+    Integer(Integer),
     Text(Text),
     Parentheses(Parentheses),
     VariableGet(VariableGet),
@@ -147,7 +149,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
             unops @ UnOp => [ Neg, Not, Len ],
             literals @ Literal => [
                 // Literals
-                Parentheses, Bool, Number, Text,
+                Parentheses, Bool, Number, Integer, Text,
                 Array, Null, Status, Nameof,
                 // Builtin invocation
                 LinesInvocation,
@@ -178,7 +180,7 @@ impl TranslateModule for Expr {
             // Unary operators
             Not, Neg, Nameof, Len,
             // Literals
-            Parentheses, Bool, Number, Text,
+            Parentheses, Bool, Number, Integer, Text,
             Array, Null, Status,
             // Builtin invocation
             LinesInvocation,
@@ -206,7 +208,7 @@ impl DocumentationModule for Expr {
             // Unary operators
             Not, Neg, Nameof, Len,
             // Literals
-            Parentheses, Bool, Number, Text,
+            Parentheses, Bool, Number, Integer, Text,
             Array, Null, Status,
             // Builtin invocation
             LinesInvocation,

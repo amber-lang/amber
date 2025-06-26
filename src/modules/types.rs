@@ -10,6 +10,7 @@ pub enum Type {
     Text,
     Bool,
     Num,
+    Int,
     Array(Box<Type>),
     Generic
 }
@@ -60,6 +61,7 @@ impl Display for Type {
             Type::Text => write!(f, "Text"),
             Type::Bool => write!(f, "Bool"),
             Type::Num => write!(f, "Num"),
+            Type::Int => write!(f, "Int"),
             Type::Null => write!(f, "Null"),
             Type::Array(t) => if **t == Type::Generic {
                     write!(f, "[]")
@@ -100,6 +102,10 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                     meta.increment_index();
                     Ok(Type::Num)
                 },
+                "Int" => {
+                    meta.increment_index();
+                    Ok(Type::Int)
+                },
                 "Null" => {
                     meta.increment_index();
                     Ok(Type::Null)
@@ -127,7 +133,7 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                 text @ ("String" | "Char") => {
                     error!(meta, tok, format!("'{text}' is not a valid data type. Did you mean 'Text'?"))
                 },
-                number @ ("Number" | "Int" | "Float" | "Double") => {
+                number @ ("Number" | "Float" | "Double") => {
                     error!(meta, tok, format!("'{number}' is not a valid data type. Did you mean 'Num'?"))
                 },
                 "Boolean" => {
