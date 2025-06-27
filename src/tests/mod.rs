@@ -47,7 +47,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
         }
         TestOutcomeTarget::Failure => match evaluated {
             Ok(stdout) => {
-                panic!("Expected error, got: {}", stdout)
+                panic!("Expected error, got: {stdout}")
             }
             Err(err) => {
                 let message = err.message.expect("Error message expected");
