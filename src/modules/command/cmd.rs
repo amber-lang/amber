@@ -3,7 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::expression::literal::bool;
 use crate::modules::condition::failed::Failed;
 use crate::modules::expression::expr::Expr;
-use crate::modules::expression::literal::parse_interpolated_region;
+use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
 use super::modifier::CommandModifier;
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
@@ -39,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for Command {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
             let tok = meta.get_current_token();
-            (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
+            (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Command)?;
             self.failed.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
             match syntax(meta, &mut self.failed) {
                 Ok(_) => Ok(()),
