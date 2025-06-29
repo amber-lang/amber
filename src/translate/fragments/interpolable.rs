@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
 
-/// Represents a region that can be interpolated. Similarily to what Heraclitus returns when parsing a region.
+/// Represents a region that can be interpolated. Similarly to what Heraclitus returns when parsing a region.
 #[derive(Debug, Clone)]
 pub enum InterpolableRenderType {
     /// This should be rendered to Bash's double quoted string
@@ -58,55 +58,26 @@ impl InterpolableFragment {
     }
 
     fn translate_escaped_string(&self, string: String) -> String {
-        let mut chars = string.chars().peekable();
+        let chars = string.chars().peekable();
         let mut result = String::new();
-        while let Some(c) = chars.next() {
+        for c in chars {
             match c {
                 '"' => match self.render_type {
                     InterpolableRenderType::StringLiteral => result += r#"\""#,
                     InterpolableRenderType::GlobalContext => result += r#"""#,
                 }
                 '$' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r"$",
-                    InterpolableRenderType::GlobalContext => result += r"\$",
+                    InterpolableRenderType::StringLiteral => result += r"\$",
+                    InterpolableRenderType::GlobalContext => result += r"$",
                 }
                 '`' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r"`",
-                    InterpolableRenderType::GlobalContext => result += r"\`",
+                    InterpolableRenderType::StringLiteral => result += r"\`",
+                    InterpolableRenderType::GlobalContext => result += r"`",
                 }
-                '!' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r#""'!'""#,
-                    InterpolableRenderType::GlobalContext => result += r"!",
+                '\\' => match self.render_type {
+                    InterpolableRenderType::StringLiteral => result += r"\\",
+                    InterpolableRenderType::GlobalContext => result += r"\",
                 }
-                '\\' => {
-                    // Escape symbols
-                    match chars.peek() {
-                        Some('\n') => {}
-                        Some('n') => result.push('\n'),
-                        Some('t') => result.push('\t'),
-                        Some('r') => result.push('\r'),
-                        Some('0') => result.push('\0'),
-                        Some('{') => result.push('{'),
-                        Some('$') => result.push('$'),
-                        Some('\'') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += r#"'"#,
-                            InterpolableRenderType::GlobalContext => result += r#"\'"#,
-                        }
-                        Some('"') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += r#"\""#,
-                            InterpolableRenderType::GlobalContext => result += r#"""#,
-                        }
-                        Some('\\') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += r#"\\"#,
-                            InterpolableRenderType::GlobalContext => result += r#"\"#,
-                        }
-                        _ => {
-                            result.push(c);
-                            continue;
-                        }
-                    }
-                    chars.next();
-                },
                 _ => result.push(c)
             }
         }

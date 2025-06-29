@@ -4,8 +4,7 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
-
-use super::parse_interpolated_region;
+use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
 
 #[derive(Debug, Clone)]
 pub struct Text {
@@ -30,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for Text {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        (self.strings, self.interps) = parse_interpolated_region(meta, '"')?;
+        (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Text)?;
         Ok(())
     }
 }
