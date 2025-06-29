@@ -5,9 +5,7 @@ use crate::modules::expression::expr::Expr;
 /// Represents a literal text or a command.
 #[derive(Debug, Clone, PartialEq)]
 pub enum InterpolatedRegionType {
-    ///
     Text,
-    ///
     Command,
 }
 
