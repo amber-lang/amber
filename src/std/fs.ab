@@ -83,7 +83,7 @@ pub fun file_chown(path: Text, user: Text): Bool {
 /// Escapes all characters in the passed-in glob except "*", "?" and "/",
 /// to prevent injection attacks.
 fun escape_non_glob_chars(path: Text): Text {
-    return replace_regex(path, "\([^*?/]\)", "\\\\\1")
+    return replace_regex(path, "\([^*?/]\)", "\\\\\\\\\\1")
 }
 
 /// Finds all files or directories matching multiple file globs. When
@@ -101,9 +101,9 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
         }
         combined = join(items, " ")
     }
-    let files = $ eval "for file in {combined}; do
-        [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"
-    done" $?
+    let files = $ for file in {combined}; do
+        [ -e "\$file" ] && echo "\$file"
+    done $?
     return split(files, "\n")
 }
 
