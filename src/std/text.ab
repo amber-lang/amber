@@ -261,14 +261,14 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 pub fun slice(text: Text, index: Int, length: Int = 0): Text {
     if length == 0: length = len(text) - index
     if length <= 0: return ""
-    return trust $ printf "%.{length}s" "\$\{text:{index}}" $
+    return trust $ printf "%.{length}s" "\$\{text: {index}}" $
 }
 
 /// Returns the character from `text` at the specified `index` (0-based).
 ///
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 pub fun char_at(text: Text, index: Int): Text {
-    return trust $ printf "%.1s" "\$\{text:{index}}" $
+    return trust $ printf "%.1s" "\$\{text: {index}}" $
 }
 
 /// Capitalize the first letter of the given `text`.
