@@ -66,11 +66,11 @@ impl Command {
         let translation = InterpolableFragment::new(
             self.strings.clone(),
             interps,
-            InterpolableRenderType::GlobalContext
+            InterpolableRenderType::StringLiteral
         ).to_frag();
 
         let silent = meta.gen_silent().to_frag();
-        let translation = fragments!(translation, silent);
+        let translation = fragments!("eval ", translation, silent);
         swap(&mut is_silent, &mut meta.silenced);
 
         if is_statement {
