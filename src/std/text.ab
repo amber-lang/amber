@@ -231,7 +231,7 @@ pub fun capitalized(text: Text): Text {
         }
         const bash_version = $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
         if bash_version >= 4 {
-            return $ echo \"\$\{text^}\" $
+            return $ echo "\$\{{nameof text}^}" $
         }
         // GNU sed supports \U
         $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
