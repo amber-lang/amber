@@ -229,7 +229,7 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        const bash_version = $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
+        const bash_version = $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
         if bash_version >= 4 {
             return $ echo "\$\{{nameof text}^}" $
         }
