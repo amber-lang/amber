@@ -76,7 +76,7 @@ impl VarStmtFragment {
         let variable = self.get_name();
 
         if self.is_ref {
-            format!("${{{}}}", variable)
+            format!("${{{variable}}}")
         } else {
             variable.to_string()
         }
