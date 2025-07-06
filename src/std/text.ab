@@ -56,8 +56,8 @@ fun sed_version(): Int {
 pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
     trust {
         const sed_version = sed_version()
-        search = replace(search, "/", "\/")
-        replace = replace(replace, "/", "\/")
+        search = replace(search, "/", "\\/")
+        replace = replace(replace, "/", "\\/")
         if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
             // '\b' is supported but not in POSIX standards. Disable it
             search = replace(search, "\\b", "\\\b")
