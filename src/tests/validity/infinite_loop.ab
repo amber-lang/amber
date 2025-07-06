@@ -5,7 +5,7 @@ main {
         if a == 5 {
             continue
         }
-        $ printf \"{a} \" $?
+        $ printf "{a} " $?
         if a == 10 {
             break
         }

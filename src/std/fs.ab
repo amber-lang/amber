@@ -131,7 +131,7 @@ fun escape_non_glob_chars(path: Text): Text {
 
 /// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
-/// `glob` function.
+/// `file_glob` function.
 pub fun file_glob_all(paths: [Text]): [Text]? {
     let combined = ""
     if len(paths) == 1 {
@@ -144,7 +144,7 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
         }
         combined = join(items, " ")
     }
-    let files = $ eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done" $?
+    let files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && echo \\"\\\$file\\"; done" $?
     return split(files, "\n")
 }
 

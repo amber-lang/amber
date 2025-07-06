@@ -13,9 +13,9 @@ pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
     if bash_version() >= [4,3] {
-        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
     }
     return result
 }
@@ -25,9 +25,9 @@ pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
     if bash_version() >= [4,3] {
-        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
     }
     return result
 }
@@ -279,7 +279,7 @@ pub fun capitalized(text: Text): Text {
             return text
         }
         if bash_version() >= [4] {
-            return $ echo \"\$\{{nameof text}^}\" $
+            return $ echo "\$\{{nameof text}^}" $
         }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
