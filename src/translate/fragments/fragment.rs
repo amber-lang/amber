@@ -15,7 +15,7 @@ pub trait FragmentRenderable {
     fn to_frag(self) -> FragmentKind;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum FragmentKind {
     Raw(RawFragment),
     VarExpr(VarExprFragment),
@@ -26,13 +26,8 @@ pub enum FragmentKind {
     Subprocess(SubprocessFragment),
     Arithmetic(ArithmeticFragment),
     Comment(CommentFragment),
+    #[default]
     Empty
-}
-
-impl Default for FragmentKind {
-    fn default() -> Self {
-        FragmentKind::Empty
-    }
 }
 
 impl FragmentKind {

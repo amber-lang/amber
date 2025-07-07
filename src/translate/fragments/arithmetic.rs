@@ -55,7 +55,7 @@ impl FragmentRenderable for ArithmeticFragment {
         let left = self.left.unwrap_or_default().to_string(meta);
         let right = self.right.unwrap_or_default().to_string(meta);
         let quote = if self.quoted { meta.gen_quote() } else { "" };
-        let expr = [left, op, right].iter().filter(|x| x.len() > 0).join(" ");
+        let expr = [left, op, right].iter().filter(|x| !x.is_empty()).join(" ");
         format!("{quote}$(( {expr} )){quote}")
     }
 
