@@ -1,7 +1,6 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::FragmentKind;
+use crate::modules::prelude::*;
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
-use crate::translate::{compute::{translate_computation, ArithOp}, module::TranslateModule};
 use crate::modules::types::{Type, Typed};
 use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
@@ -47,7 +46,7 @@ impl SyntaxModule<ParserMetadata> for Not {
 impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
-        translate_computation(meta, ArithOp::Not, None, Some(expr))
+        ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
     }
 }
 

@@ -24,6 +24,7 @@ impl Type {
     pub fn is_subset_of(&self, other: &Type) -> bool {
         match (self, other) {
             (_, Type::Generic) => true,
+            (Type::Int, Type::Num) => true,
             (Type::Array(current), Type::Array(other)) => {
                 **current != Type::Generic && **other == Type::Generic
             },

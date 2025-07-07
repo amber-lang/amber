@@ -1,9 +1,9 @@
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
-use crate::modules::prelude::{RawFragment, FragmentKind, FragmentRenderable};
+use crate::modules::prelude::{ArithmeticFragment, FragmentKind, FragmentRenderable, RawFragment};
 use crate::modules::types::{Type, Typed};
-use crate::translate::compute::{translate_computation, ArithOp};
+use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
@@ -50,7 +50,11 @@ impl SyntaxModule<ParserMetadata> for Neg {
 impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
-        translate_computation(meta, ArithOp::Neg, None, Some(expr))
+        match self.expr.get_type() {
+            Type::Int => ArithmeticFragment::new(None, ArithOp::Neg, expr).to_frag(),
+            _ => translate_float_computation(meta, ArithOp::Neg, None, Some(expr))
+        }
+
     }
 }
 

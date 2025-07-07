@@ -39,6 +39,7 @@ impl FragmentRenderable for ListFragment {
             ListFragmentSeparator::Empty => "",
         };
         self.values.into_iter()
+            .filter(|x| !matches!(x, FragmentKind::Empty))
             .map(|x| x.to_string(meta))
             .collect::<Vec<String>>()
             .join(sep)

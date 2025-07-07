@@ -107,6 +107,7 @@ impl Expr {
     pub fn get_integer_value(&self) -> Option<isize> {
         match &self.value {
             Some(ExprType::Number(value)) => value.get_integer_value(),
+            Some(ExprType::Integer(value)) => value.value.parse().ok(),
             Some(ExprType::Neg(value)) => value.get_integer_value(),
             _ => None,
         }

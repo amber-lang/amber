@@ -1,8 +1,9 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
+use crate::translate::compare::translate_array_equality;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{ArithOp, translate_computation};
+use crate::translate::compute::{ArithOp, translate_float_computation};
 use super::BinOp;
 use crate::modules::types::{Typed, Type};
 
@@ -53,11 +54,17 @@ impl TranslateModule for Eq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta).with_quotes(false);
         let right = self.right.translate(meta).with_quotes(false);
-        // Handle text comparison
-        if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
-            SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
-        } else {
-            translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
+        match self.left.get_type() {
+            Type::Int => ArithmeticFragment::new(left, ArithOp::Eq, right).to_frag(),
+            Type::Num => translate_float_computation(meta, ArithOp::Eq, Some(left), Some(right)),
+            Type::Array(_) => {
+                if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
+                    translate_array_equality(left, right, false)
+                } else {
+                    panic!("Array equality requires both operands to be variables")
+                }
+            }
+            _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?")).to_frag()
         }
     }
 }

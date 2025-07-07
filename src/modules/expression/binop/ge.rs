@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{translate_computation, ArithOp};
+use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
@@ -47,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Ge {
         Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
             Type::Num,
             Type::Text,
-            Type::array_of(Type::Num),
+            Type::array_of(Type::Int),
             Type::array_of(Type::Text),
         ])?;
         Ok(())
@@ -56,15 +56,42 @@ impl SyntaxModule<ParserMetadata> for Ge {
 
 impl TranslateModule for Ge {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if self.left.get_type() == Type::array_of(Type::Num) {
-            translate_array_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
-        } else if [Type::Text, Type::array_of(Type::Text)].contains(&self.left.get_type()) {
-            translate_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
-        } else {
-            let left = self.left.translate(meta);
-            let right = self.right.translate(meta);
-            translate_computation(meta, ArithOp::Ge, Some(left), Some(right))
+        match self.left.get_type() {
+            Type::Int => {
+                let left = self.left.translate(meta).with_quotes(false);
+                let right = self.right.translate(meta).with_quotes(false);
+                ArithmeticFragment::new(left, ArithOp::Ge, right).to_frag()
+            }
+            Type::Num => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                translate_float_computation(meta, ArithOp::Ge, Some(left), Some(right))
+            }
+            Type::Array(inner_type) => match *inner_type {
+                Type::Int => {
+                    translate_array_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right, Type::Int)
+                }
+                Type::Text => {
+                    translate_array_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right, Type::Text)
+                }
+                _ => {
+                    panic!("Unsupported array type in greater equal comparison")
+                }
+            }
+            Type::Text => {
+                translate_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
+            }
+            _ => panic!("Unsupported type in greater equal comparison")
         }
+        // if self.left.get_type() == Type::array_of(Type::Num) {
+        //     translate_array_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
+        // } else if [Type::Text, Type::array_of(Type::Text)].contains(&self.left.get_type()) {
+        //     translate_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
+        // } else {
+        //     let left = self.left.translate(meta);
+        //     let right = self.right.translate(meta);
+        //     translate_float_computation(meta, ArithOp::Ge, Some(left), Some(right))
+        // }
     }
 }
 

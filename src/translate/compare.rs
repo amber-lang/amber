@@ -126,7 +126,8 @@ pub fn translate_array_lexical_comparison(
     meta: &mut TranslateMetadata,
     operator: ComparisonOperator,
     left: &Expr,
-    right: &Expr
+    right: &Expr,
+    kind: Type
 ) -> FragmentKind {
     let left_expr_length = create_variable_length_getter(meta, "__left_comp", left);
     let right_expr_length = create_variable_length_getter(meta, "__right_comp", right);
@@ -143,12 +144,20 @@ pub fn translate_array_lexical_comparison(
     let compared_array_lengths = compare_array_lengths(left_expr_length, right_expr_length, operator);
     // If statement that compares two values of the arrays
     let if_stmt = BlockFragment::new(vec![
-        fragments!("if (( ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " )); then"),
+        if kind == Type::Int {
+            fragments!("if (( ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " )); then")
+        } else {
+            fragments!("if [[ ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " ]]; then")
+        },
         BlockFragment::new(vec![
             fragments!("echo 1"),
             fragments!("exit"),
         ], true).to_frag(),
-        fragments!("elif (( ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " )); then"),
+        if kind == Type::Int {
+            fragments!("elif (( ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " )); then")
+        } else {
+            fragments!("elif [[ ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " ]]; then")
+        },
         BlockFragment::new(vec![
             fragments!("echo 0"),
             fragments!("exit"),
@@ -170,4 +179,24 @@ pub fn translate_array_lexical_comparison(
     ], true);
     let var_stmt = VarStmtFragment::new("__comp", Type::Bool, SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag());
     meta.push_intermediate_variable(var_stmt).to_frag()
+}
+
+pub fn translate_array_equality(
+    left: VarExprFragment,
+    right: VarExprFragment,
+    negative: bool
+) -> FragmentKind {
+    let left_arr = left.clone().to_frag();
+    let left_len = left.clone().with_length_getter(true).to_frag();
+    let right_len = right.clone().with_length_getter(true).to_frag();
+    let left_index = left.with_index_by_value(VarIndexValue::Index(raw_fragment!("i"))).to_frag();
+    let right_index = right.with_index_by_value(VarIndexValue::Index(raw_fragment!("i"))).to_frag();
+    let false_val = if negative { "1" } else { "0" };
+    let true_val = if negative { "0" } else { "1" };
+    let block = BlockFragment::new(vec![
+        fragments!("(( ", left_len, " != ", right_len, " )) && echo ", raw_fragment!("{false_val}"), " && exit"),
+        fragments!("for i in ", left_arr, "; do [[ ", left_index, " != ", right_index, " ]] && echo ", raw_fragment!("{false_val}"), " && exit; done"),
+        fragments!("echo ", raw_fragment!("{true_val}"), "\n")
+    ], true);
+    SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag()
 }

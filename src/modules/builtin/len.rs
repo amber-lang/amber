@@ -13,7 +13,7 @@ pub struct Len {
 
 impl Typed for Len {
     fn get_type(&self) -> Type {
-        Type::Num
+        Type::Int
     }
 }
 

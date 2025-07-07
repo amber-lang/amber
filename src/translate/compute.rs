@@ -7,6 +7,7 @@ pub enum ArithType {
     BcSed
 }
 
+#[derive(Debug, Clone)]
 pub enum ArithOp {
     Add,
     Sub,
@@ -25,7 +26,7 @@ pub enum ArithOp {
     Or
 }
 
-pub fn translate_computation(
+pub fn translate_float_computation(
     meta: &TranslateMetadata,
     operator: ArithOp,
     left: Option<FragmentKind>,
@@ -77,7 +78,7 @@ pub fn translate_computation_eval(
 ) -> FragmentKind {
     let old_eval = meta.eval_ctx;
     meta.eval_ctx = is_eval;
-    let result = translate_computation(meta, operator, left, right);
+    let result = translate_float_computation(meta, operator, left, right);
     meta.eval_ctx = old_eval;
     result
 }

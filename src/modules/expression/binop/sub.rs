@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::translate::compute::{ArithOp, translate_computation};
+use crate::translate::compute::{ArithOp, translate_float_computation};
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
 
@@ -53,7 +53,7 @@ impl TranslateModule for Sub {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Sub, Some(left), Some(right))
+        translate_float_computation(meta, ArithOp::Sub, Some(left), Some(right))
     }
 }
 

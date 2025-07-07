@@ -6,7 +6,7 @@ use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
 pub struct Integer {
-    value: String
+    pub value: String
 }
 
 impl Typed for Integer {
@@ -34,13 +34,6 @@ impl SyntaxModule<ParserMetadata> for Integer {
 impl TranslateModule for Integer {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         RawFragment::from(self.value.to_string()).to_frag()
-    }
-}
-
-impl Integer {
-    pub fn get_integer_value(&self) -> Option<isize> {
-        let value = self.value.parse().unwrap_or_default();
-        Some(value)
     }
 }
 

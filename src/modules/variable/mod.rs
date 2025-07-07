@@ -117,10 +117,10 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<O
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
         if !allow_index_accessor(&index, range) {
-            let expected = if range { "number or range" } else { "number (and not a range)" };
+            let expected = if range { "integer or range" } else { "integer (and not a range)" };
             let side = if range { "right" } else { "left" };
-            let message = format!("Index accessor must be a {} for {} side of operation", expected, side);
-            let comment = format!("The index accessor must be a {} not a {}", expected, index.get_type());
+            let message = format!("Index accessor must be an {} for {} side of operation", expected, side);
+            let comment = format!("The index accessor must be an {} not a {}", expected, index.get_type());
             return error!(meta, tok => { message: message, comment: comment });
         }
         token(meta, "]")?;
@@ -131,7 +131,7 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<O
 
 fn allow_index_accessor(index: &Expr, range: bool) -> bool {
     match (&index.kind, &index.value) {
-        (Type::Num, _) => true,
+        (Type::Int, _) => true,
         (Type::Array(_), Some(ExprType::Range(_))) => range,
         _ => false,
     }

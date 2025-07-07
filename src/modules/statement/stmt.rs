@@ -88,14 +88,14 @@ impl Statement {
         InfiniteLoop, IterLoop, Break, Continue,
         // Conditions
         IfChain, IfCondition,
+        // Command
+        CommandModifier, Echo, Mv, Cd, Exit,
         // Variables
         VariableInit, VariableSet,
         // Short hand
         ShorthandAdd, ShorthandSub,
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
-        // Command
-        CommandModifier, Echo, Mv, Cd, Exit,
         // Comment doc
         CommentDoc, Comment,
         // Expression

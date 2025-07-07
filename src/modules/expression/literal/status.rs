@@ -11,7 +11,7 @@ pub struct Status;
 
 impl Typed for Status {
     fn get_type(&self) -> Type {
-        Type::Num
+        Type::Int
     }
 }
 
@@ -30,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for Status {
 
 impl TranslateModule for Status {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        VarExprFragment::new("__status", Type::Num).to_frag()
+        VarExprFragment::new("__status", Type::Int).to_frag()
     }
 }
 
