@@ -211,7 +211,7 @@ impl AmberCompiler {
         let header = include_str!("header.sh")
             .replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
             .replace("{{ date }}", now.as_str());
-        Ok(format!("{}{}", header, result))
+        Ok(format!("{header}{result}"))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {

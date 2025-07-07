@@ -67,7 +67,7 @@ impl Display for Type {
             Type::Array(t) => if **t == Type::Generic {
                     write!(f, "[]")
                 } else {
-                    write!(f, "[{}]", t)
+                    write!(f, "[{t}]")
                 },
             Type::Generic => write!(f, "Generic")
         }

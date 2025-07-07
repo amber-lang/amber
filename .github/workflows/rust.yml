@@ -76,10 +76,9 @@ jobs:
           - "bash:3.2"
         sed:
           - GNU_sed
-        # Uncomment the next matrix when https://github.com/amber-lang/amber/issues/617 is resolved
-        # include:
-        #   - sed: BusyBox_sed
-        #     bash_version: "bash:latest"
+        include:
+          - sed: BusyBox_sed
+            bash_docker_image: "bash:latest"
     steps:
       - uses: actions/checkout@v4
       - uses: awalsh128/cache-apt-pkgs-action@latest

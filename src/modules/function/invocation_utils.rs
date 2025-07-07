@@ -29,7 +29,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     if fun.arg_names.len() != args.len() {
         let max_args = fun.arg_names.len();
         let min_args = fun.arg_names.len() - fun.arg_optionals.len();
-        let opt_argument = if max_args > min_args {&format!(" ({} optional)",max_args)} else {""};
+        let opt_argument = if max_args > min_args {&format!(" ({max_args} optional)")} else {""};
         // Determine the correct grammar
         let txt_arguments = pluralize(min_args, "argument", "arguments");
         let txt_given = pluralize(args.len(), "was given", "were given");
@@ -79,7 +79,7 @@ pub fn handle_function_reference(meta: &ParserMetadata, tok: Option<Token>, name
     match meta.get_fun_declaration(name) {
         Some(fun_decl) => Ok(fun_decl.id),
         None => {
-            let message = format!("Function '{}' does not exist", name);
+            let message = format!("Function '{name}' does not exist");
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_function(meta, name) {
                 error!(meta, tok, message, comment)

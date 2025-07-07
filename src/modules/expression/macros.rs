@@ -89,7 +89,7 @@ macro_rules! parse_expr_group {
         Ok(node)
     }};
 
-    // Group type that handles Literals. Use this group as the last one in the precedence order
+    // Group type that handles Unary Operators.
     (@internal ({$cur:ident, $prev:ident}, $meta:expr, UnOp => [$($cur_modules:ident),+])) => {{
         let start_index = $meta.get_index();
         $({

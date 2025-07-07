@@ -18,7 +18,7 @@ impl HelperVisitor {
     }
 
     fn make_function(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("set_{}", name);
+        let concat = format!("set_{name}");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value and returns the previous value.

@@ -219,7 +219,7 @@ fn write_output(output: PathBuf, code: String) {
     } else {
         match fs::File::create(&output) {
             Ok(mut file) => {
-                write!(file, "{}", code).unwrap();
+                write!(file, "{code}").unwrap();
                 set_file_permission(&file, output);
             }
             Err(err) => {
