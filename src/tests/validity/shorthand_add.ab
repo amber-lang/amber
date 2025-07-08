@@ -1,6 +1,16 @@
 // Output
 // 64
+// 50.25
+// 99.1
 
 let x = 16
 x += 48
 echo x
+
+let y = 32.75
+y += 17.5
+echo y
+
+let z = 64.10
+z += 35
+echo z
