@@ -25,8 +25,10 @@ impl Type {
         match (self, other) {
             (_, Type::Generic) => true,
             (Type::Int, Type::Num) => true,
-            (Type::Array(current), Type::Array(other)) => {
-                **current != Type::Generic && **other == Type::Generic
+            (Type::Array(current), Type::Array(other)) => match (&**current, &**other) {
+                (current, Type::Generic) if *current != Type::Generic => true,
+                (Type::Int, Type::Num) => true,
+                _ => false
             },
             _ => false
         }
