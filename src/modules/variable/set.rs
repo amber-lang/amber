@@ -49,7 +49,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         if self.index.is_some() {
             // Check if the assigned value is compatible with the array
             if let Type::Array(kind) = variable.kind.clone() {
-                if !self.expr.get_type().is_allowed_in(&*kind) {
+                if !self.expr.get_type().is_allowed_in(&kind) {
                     let right_type = self.expr.get_type();
                     return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
