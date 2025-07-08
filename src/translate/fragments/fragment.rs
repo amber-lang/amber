@@ -26,8 +26,7 @@ pub enum FragmentKind {
     Subprocess(SubprocessFragment),
     Arithmetic(ArithmeticFragment),
     Comment(CommentFragment),
-    #[default]
-    Empty
+    #[default] Empty
 }
 
 impl FragmentKind {

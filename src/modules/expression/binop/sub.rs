@@ -9,12 +9,13 @@ use super::BinOp;
 #[derive(Debug, Clone)]
 pub struct Sub {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Sub {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.kind.clone()
     }
 }
 
@@ -39,12 +40,13 @@ impl SyntaxModule<ParserMetadata> for Sub {
     fn new() -> Self {
         Sub {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
+            kind: Type::Generic
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "subtraction", &self.left, &self.right, &[Type::Num])?;
+        self.kind = Self::typecheck_allowed_types(meta, "subtraction", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }

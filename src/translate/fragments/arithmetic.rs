@@ -51,12 +51,13 @@ impl ArithmeticFragment {
 
 impl FragmentRenderable for ArithmeticFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
+        let dollar = meta.gen_dollar();
         let op = self.operator_to_string().to_string();
         let left = self.left.unwrap_or_default().to_string(meta);
         let right = self.right.unwrap_or_default().to_string(meta);
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         let expr = [left, op, right].iter().filter(|x| !x.is_empty()).join(" ");
-        format!("{quote}$(( {expr} )){quote}")
+        format!("{quote}{dollar}(( {expr} )){quote}")
     }
 
     fn to_frag(self) -> FragmentKind {

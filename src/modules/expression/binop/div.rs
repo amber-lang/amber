@@ -16,7 +16,7 @@ pub struct Div {
 
 impl Typed for Div {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.kind.clone()
     }
 }
 

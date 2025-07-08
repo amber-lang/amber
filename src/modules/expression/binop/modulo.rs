@@ -8,12 +8,13 @@ use super::BinOp;
 #[derive(Debug, Clone)]
 pub struct Modulo {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Modulo {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.kind.clone()
     }
 }
 
@@ -38,12 +39,13 @@ impl SyntaxModule<ParserMetadata> for Modulo {
     fn new() -> Self {
         Modulo {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
+            kind: Type::Generic
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "modulo", &self.left, &self.right, &[Type::Num])?;
+        self.kind = Self::typecheck_allowed_types(meta, "modulo", &self.left, &self.right, &[Type::Num, Type::Int])?;
         Ok(())
     }
 }

@@ -16,7 +16,7 @@ pub struct Range {
 
 impl Typed for Range {
     fn get_type(&self) -> Type {
-        Type::Array(Box::new(Type::Num))
+        Type::Array(Box::new(Type::Int))
     }
 }
 

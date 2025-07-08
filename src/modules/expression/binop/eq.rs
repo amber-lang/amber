@@ -64,7 +64,7 @@ impl TranslateModule for Eq {
                     panic!("Array equality requires both operands to be variables")
                 }
             }
-            _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?")).to_frag()
+            _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
         }
     }
 }
