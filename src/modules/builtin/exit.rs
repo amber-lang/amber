@@ -26,11 +26,11 @@ impl SyntaxModule<ParserMetadata> for Exit {
 
         if let Some(ref code_expr) = self.code {
             let code_type = code_expr.get_type();
-            if code_type != Type::Num {
+            if code_type != Type::Int {
                 let position = code_expr.get_position(meta);
                 return error_pos!(meta, position => {
-                    message: "Builtin function `exit` can only be used with values of type Num",
-                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Num)
+                    message: "Builtin function `exit` can only be used with values of type Int",
+                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Int)
                 });
             }
         }
