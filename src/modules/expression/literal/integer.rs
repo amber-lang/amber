@@ -25,6 +25,9 @@ impl SyntaxModule<ParserMetadata> for Integer {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Ok(sym) = token(meta, "-") {
+            self.value.push_str(&sym);
+        }
         let int = integer(meta, vec![])?;
         self.value.push_str(&int);
         Ok(())

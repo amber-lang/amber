@@ -28,6 +28,12 @@ impl UnOp for Neg {
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "-")?;
+        // Let the number be parsed with a minus sign instead of a negation operator.
+        // This allows numbers to parse as `-42` instead of `$(( - 42 ))`
+        if meta.get_current_token().map(|tok| tok.word.parse::<usize>().is_ok()).unwrap_or(false) {
+            meta.set_index(meta.get_index().saturating_sub(1));
+            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
+        }
         Ok(())
     }
 }
@@ -54,7 +60,6 @@ impl TranslateModule for Neg {
             Type::Int => ArithmeticFragment::new(None, ArithOp::Neg, expr).to_frag(),
             _ => translate_float_computation(meta, ArithOp::Neg, None, Some(expr))
         }
-
     }
 }
 
