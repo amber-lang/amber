@@ -119,8 +119,8 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<O
         if !allow_index_accessor(&index, range) {
             let expected = if range { "integer or range" } else { "integer (and not a range)" };
             let side = if range { "right" } else { "left" };
-            let message = format!("Index accessor must be a {expected} for {side} side of operation");
-            let comment = format!("The index accessor must be a {} not a {}", expected, index.get_type());
+            let message = format!("Index accessor must be an {expected} for {side} side of operation");
+            let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
             return error!(meta, tok => { message: message, comment: comment });
         }
         token(meta, "]")?;
