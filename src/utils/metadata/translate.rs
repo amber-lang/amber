@@ -57,9 +57,10 @@ impl TranslateMetadata {
 
     #[inline]
     /// Create an intermediate variable and return it's variable expression
-    pub fn push_intermediate_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
-        let expr = VarExprFragment::from_stmt(&statement);
-        self.stmt_queue.push_back(statement.to_frag());
+    pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
+        let stmt = statement.with_ephemeral(true);
+        let expr = VarExprFragment::from_stmt(&stmt);
+        self.stmt_queue.push_back(stmt.to_frag());
         expr
     }
 

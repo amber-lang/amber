@@ -169,5 +169,5 @@ pub fn translate_array_lexical_comparison(
         fragments!(compared_array_lengths, "\n"),
     ], true);
     let var_stmt = VarStmtFragment::new("__comp", Type::Bool, SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag());
-    meta.push_intermediate_variable(var_stmt).to_frag()
+    meta.push_ephemeral_variable(var_stmt).to_frag()
 }

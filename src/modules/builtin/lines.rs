@@ -56,7 +56,7 @@ impl TranslateModule for LinesInvocation {
         let indent = TranslateMetadata::single_indent();
         let id = meta.gen_value_id();
         let var_stmt = VarStmtFragment::new("__array", Type::array_of(Type::Text), FragmentKind::Empty).with_global_id(id);
-        let var_expr = meta.push_intermediate_variable(var_stmt);
+        let var_expr = meta.push_ephemeral_variable(var_stmt);
         meta.stmt_queue.extend([
             raw_fragment!("while IFS= read -r {temp}; do"),
             raw_fragment!("{indent}{}+=(\"${}\")", var_expr.get_name(), temp),
