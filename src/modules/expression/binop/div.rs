@@ -61,7 +61,8 @@ impl TranslateModule for Div {
         let right = self.right.translate(meta);
         match self.kind {
             Type::Int => ArithmeticFragment::new(left, ArithOp::Div, right).to_frag(),
-            _ => translate_float_computation(meta, ArithOp::Div, Some(left), Some(right))
+            Type::Num => translate_float_computation(meta, ArithOp::Div, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in division operation", self.kind),
         }
     }
 }

@@ -58,7 +58,11 @@ impl TranslateModule for Sub {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_float_computation(meta, ArithOp::Sub, Some(left), Some(right))
+        match self.kind {
+            Type::Int => FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Sub, right)),
+            Type::Num => translate_float_computation(meta, ArithOp::Sub, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in subtraction operation", self.kind),
+        }
     }
 }
 

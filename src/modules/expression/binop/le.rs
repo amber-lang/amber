@@ -75,14 +75,12 @@ impl TranslateModule for Le {
                 Type::Text => {
                     translate_array_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right, Type::Text)
                 }
-                _ => {
-                    panic!("Unsupported array type in greater equal comparison")
-                }
+                _ => unreachable!("Unsupported array type {} in less equal comparison", self.left.get_type())
             }
             Type::Text => {
                 translate_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)
             }
-            _ => panic!("Unsupported type in greater equal comparison")
+            _ => unreachable!("Unsupported type {} in less equal comparison", self.left.get_type())
         }
     }
 }

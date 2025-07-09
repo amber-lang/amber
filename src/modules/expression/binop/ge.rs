@@ -75,24 +75,13 @@ impl TranslateModule for Ge {
                 Type::Text => {
                     translate_array_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right, Type::Text)
                 }
-                _ => {
-                    panic!("Unsupported array type in greater equal comparison")
-                }
+                _ => unreachable!("Unsupported array type {} in greater equal comparison", self.left.get_type())
             }
             Type::Text => {
                 translate_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
             }
-            _ => panic!("Unsupported type in greater equal comparison")
+            _ => unreachable!("Unsupported type {} in greater equal comparison", self.left.get_type())
         }
-        // if self.left.get_type() == Type::array_of(Type::Num) {
-        //     translate_array_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
-        // } else if [Type::Text, Type::array_of(Type::Text)].contains(&self.left.get_type()) {
-        //     translate_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
-        // } else {
-        //     let left = self.left.translate(meta);
-        //     let right = self.right.translate(meta);
-        //     translate_float_computation(meta, ArithOp::Ge, Some(left), Some(right))
-        // }
     }
 }
 

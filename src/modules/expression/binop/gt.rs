@@ -75,14 +75,12 @@ impl TranslateModule for Gt {
                 Type::Text => {
                     translate_array_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right, Type::Text)
                 }
-                _ => {
-                    panic!("Unsupported array type in greater equal comparison")
-                }
+                _ => unreachable!("Unsupported array type {} in greater than comparison", self.left.get_type())
             }
             Type::Text => {
                 translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
             }
-            _ => panic!("Unsupported type in greater equal comparison")
+            _ => unreachable!("Unsupported type {} in greater than comparison", self.left.get_type())
         }
     }
 }

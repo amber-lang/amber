@@ -70,7 +70,8 @@ impl TranslateModule for Add {
             },
             Type::Text => fragments!(left, right),
             Type::Int => ArithmeticFragment::new(left, ArithOp::Add, right).to_frag(),
-            _ => translate_float_computation(meta, ArithOp::Add, Some(left), Some(right))
+            Type::Num => translate_float_computation(meta, ArithOp::Add, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in addition operation", self.kind)
         }
     }
 }

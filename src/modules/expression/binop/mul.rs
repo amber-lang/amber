@@ -58,7 +58,11 @@ impl TranslateModule for Mul {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_float_computation(meta, ArithOp::Mul, Some(left), Some(right))
+        match self.kind {
+            Type::Int => FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Mul, right)),
+            Type::Num => translate_float_computation(meta, ArithOp::Mul, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in multiplication operation", self.kind)
+        }
     }
 }
 
