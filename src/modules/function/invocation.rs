@@ -61,6 +61,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 (self.line, self.col) = tok.pos;
             }
             self.name = variable(meta, variable_name_extensions())?;
+            self.failed.fun_name = Some(self.name.clone());
             // Get the arguments
             token(meta, "(")?;
             self.id = handle_function_reference(meta, tok.clone(), &self.name)?;

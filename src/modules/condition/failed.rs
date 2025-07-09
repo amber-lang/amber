@@ -7,9 +7,10 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 #[derive(Debug, Clone)]
 pub struct Failed {
     pub is_parsed: bool,
-    is_question_mark: bool,
-    is_main: bool,
-    block: Box<Block>
+    pub is_question_mark: bool,
+    pub is_main: bool,
+    pub fun_name: Option<String>,
+    pub block: Box<Block>
 }
 
 impl SyntaxModule<ParserMetadata> for Failed {
@@ -20,6 +21,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_parsed: false,
             is_question_mark: false,
             is_main: false,
+            fun_name: None,
             block: Box::new(Block::new())
         }
     }
@@ -61,7 +63,12 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
-                    return error!(meta, tok, format!("The function '{}' requires a 'failed' block or statement to handle errors", meta.get_token_at(meta.get_index() - 4).unwrap().word))
+                    if let Some(fun_name) = self.fun_name.as_ref() {
+                        return error!(meta, tok, format!("The function '{fun_name}' requires a 'failed' block or statement to handle errors"))
+                    } else {
+                        return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    }
+
                 }
             }
         }
