@@ -10,7 +10,7 @@ pub struct Failed {
     pub is_parsed: bool,
     pub is_question_mark: bool,
     pub is_main: bool,
-    pub fun_name: Option<String>,
+    pub function: Option<Token>,
     pub block: Box<Block>
 }
 
@@ -22,7 +22,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_parsed: false,
             is_question_mark: false,
             is_main: false,
-            fun_name: None,
+            function: None,
             block: Box::new(Block::new().with_needs_noop().with_condition())
         }
     }
@@ -64,9 +64,15 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
-                    return match self.fun_name.as_ref() {
-                        Some(fun_name) => error!(meta, tok, format!("The function '{fun_name}' requires a 'failed' block or statement to handle errors")),
-                        _ => error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    return match self.function.as_ref() {
+                        Some(tok) => error!(meta, Some(tok.clone()),
+                            format!("The function '{}' requires a 'failed' block or statement to handle errors", tok.word),
+                            "You can use '?' operator to handle errors in the main block or function body"
+                        ),
+                        _ => error!(meta, tok,
+                            "Failed expression must be followed by a block or statement",
+                            "You can use '?' operator to handle errors in the main block or function body"
+                        )
                     }
                 }
             }
