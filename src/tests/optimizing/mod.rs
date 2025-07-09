@@ -1,4 +1,5 @@
 pub mod unused_vars;
+pub mod ephemeral_vars;
 
 #[macro_export]
 macro_rules! bash_code {
@@ -14,6 +15,16 @@ macro_rules! bash_code {
     }};
     (@acc [$($elems:expr),*] $a:ident = $b:literal; $($rest:tt)*) => {{
         let variable = VarStmtFragment::new(stringify!($a), Type::Generic, raw_fragment!(stringify!($b))).to_frag();
+        bash_code!(@acc [$($elems,)* variable] $($rest)*)
+    }};
+    // Ephemeral variable assignments
+    (@acc [$($elems:expr),*] <ephemeral> $a:ident = $b:ident; $($rest:tt)*) => {{
+        let value = VarExprFragment::new(stringify!($b), Type::Generic).to_frag();
+        let variable = VarStmtFragment::new(stringify!($a), Type::Generic, value).with_ephemeral(true).to_frag();
+        bash_code!(@acc [$($elems,)* variable] $($rest)*)
+    }};
+    (@acc [$($elems:expr),*] <ephemeral> $a:ident = $b:literal; $($rest:tt)*) => {{
+        let variable = VarStmtFragment::new(stringify!($a), Type::Generic, raw_fragment!(stringify!($b))).with_ephemeral(true).to_frag();
         bash_code!(@acc [$($elems,)* variable] $($rest)*)
     }};
     // Blocks

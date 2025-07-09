@@ -1,17 +1,8 @@
 use crate::translate::fragments::var_expr::VarIndexValue;
-use crate::{raw_fragment, bash_code};
+use crate::{raw_fragment, bash_code, unwrap_fragment};
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::optimizer::unused_vars::remove_unused_variables;
-
-macro_rules! unwrap_fragment {
-    ($expr:expr, $kind:ident) => {{
-        match $expr {
-            FragmentKind::$kind(fragment) => fragment,
-            _ => panic!("Expected FragmentKind::{}", stringify!($kind)),
-        }
-    }};
-}
 
 #[test]
 fn test_remove_unused_variables_simple() {
