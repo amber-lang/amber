@@ -1,0 +1,12 @@
+import * from "std/env"
+
+main {
+    trust $ echo "Y" > /tmp/test_confirm $
+    trust $ exec 0< /tmp/test_confirm $
+    if input_confirm("Yes"): echo "Confirm Yes"
+    trust $ echo "N" > /tmp/test_confirm $
+    if not input_confirm("No"): echo "Confirm No"
+    trust $ echo "" > /tmp/test_confirm $
+    if input_confirm("Default", true): echo "Confirm Default"
+    trust $ rm /tmp/test_confirm $
+}

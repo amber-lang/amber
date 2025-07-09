@@ -1,0 +1,26 @@
+import * from "std/fs"
+
+// Output
+// FAILED
+
+main {
+    let tmpdir = trust $ mktemp -d $
+    trust {
+        $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/file.txt $
+        $ touch {tmpdir}/file1.txt $
+        $ touch {tmpdir}/file2.txt $
+        $ touch {tmpdir}/file99.txt $
+        $ touch {tmpdir}/other.csv $
+    }
+
+    let files = file_glob("{tmpdir}/missing*") failed {
+        echo "FAILED"
+    }
+    for file in files {
+        echo "[{file}]"
+    }
+
+    trust $ rm -rf {tmpdir} $
+}

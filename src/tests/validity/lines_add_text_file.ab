@@ -1,0 +1,19 @@
+// Output
+// [one]
+// [two three four]
+// []
+// [five]
+// [  six  ]
+
+main {
+    let tmpdir = trust $ mktemp -d $
+    trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
+
+    // Inefficient for large files.
+    let lines = ["one", "two three four"] + lines("{tmpdir}/numbers2.txt")
+    for line in lines {
+        echo "[{line}]"
+    }
+
+    trust $ rm -rf {tmpdir} $
+}

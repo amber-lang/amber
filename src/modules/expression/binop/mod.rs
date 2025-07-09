@@ -1,5 +1,7 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::ParserMetadata;
+use crate::utils::pluralize;
 use super::super::expression::expr::Expr;
 
 pub mod add;
@@ -21,49 +23,51 @@ pub trait BinOp: SyntaxModule<ParserMetadata> {
     fn set_left(&mut self, left: Expr);
     fn set_right(&mut self, right: Expr);
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult;
-}
 
-#[macro_export]
-macro_rules! handle_binop {
-    (@internal type: Array) => {
-        Type::Array(_)
-    };
-
-    (@internal type: $type:ident) => {
-        Type::$type
-    };
-
-    ($meta:expr, $op_name:expr, $left:expr, $right:expr, [$($type_match:ident),+]) => {{
-        let left_match = matches!($left.get_type(), $(handle_binop!(@internal type: $type_match))|*);
-        let right_match = matches!($right.get_type(), $(handle_binop!(@internal type: $type_match))|*);
-        if !left_match || !right_match || $left.get_type() != $right.get_type() {
-            let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
-            let message = Message::new_err_at_position($meta, pos);
-            error_type_match!($meta, message, $op_name, $left, $right, [$($type_match),+])
+    fn typecheck_allowed_types(
+        meta: &mut ParserMetadata,
+        operator: &str,
+        left: &Expr,
+        right: &Expr,
+        allowed_types: &[Type],
+    ) -> Result<Type, Failure> {
+        let left_type = left.get_type();
+        let right_type = right.get_type();
+        let left_match = allowed_types.iter().any(|types| left_type.is_allowed_in(types));
+        let right_match = allowed_types.iter().any(|types| right_type.is_allowed_in(types));
+        if !left_match || !right_match {
+            let pretty_types = Type::pretty_join(allowed_types, "and");
+            let comment = pluralize(allowed_types.len(), "Allowed type is", "Allowed types are");
+            let pos = get_binop_position_info(meta, left, right);
+            let message = Message::new_err_at_position(meta, pos)
+                .message(format!("Cannot perform {operator} on value of type '{left_type}' and value of type '{right_type}'"))
+                .comment(format!("{comment} {pretty_types}."));
+            Err(Failure::Loud(message))
         } else {
-            Ok($left.get_type())
+            Self::typecheck_equality(meta, left, right)
         }
-    }};
+    }
 
-    ($meta:expr, $op_name:expr, $left:expr, $right:expr) => {{
-        if $left.get_type() != $right.get_type() {
-            let pos = $crate::modules::expression::binop::get_binop_position_info($meta, &$left, &$right);
-            let message = Message::new_err_at_position($meta, pos);
-            error_type_match!($meta, message, $op_name, $left, $right)
+    fn typecheck_equality(
+        meta: &mut ParserMetadata,
+        left: &Expr,
+        right: &Expr,
+    ) -> Result<Type, Failure> {
+        let left_type = left.get_type();
+        let right_type = right.get_type();
+        if left_type != right_type {
+            let pos = get_binop_position_info(meta, left, right);
+            let message = Message::new_err_at_position(meta, pos)
+                .message(format!("Expected both operands to be of the same type, but got '{left_type}' and '{right_type}'."));
+            Err(Failure::Loud(message))
         } else {
-            Ok($left.get_type())
+            Ok(left_type)
         }
-    }};
+    }
 }
 
 pub fn get_binop_position_info(meta: &ParserMetadata, left: &Expr, right: &Expr) -> PositionInfo {
     let begin = meta.get_token_at(left.pos.0);
     let end = meta.get_token_at(right.pos.1);
     PositionInfo::from_between_tokens(meta, begin, end)
-}
-
-pub fn strip_text_quotes(text: &mut String) {
-    if text.starts_with('"') && text.ends_with('"') {
-        *text = text[1..text.len() - 1].to_string();
-    }
 }

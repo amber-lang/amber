@@ -1,0 +1,7 @@
+import { text_contains } from "std/text"
+
+main {
+    if text_contains("Hello World", "World") {
+        echo "Succeeded"
+    }
+} 

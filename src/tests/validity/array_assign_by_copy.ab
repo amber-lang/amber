@@ -1,0 +1,12 @@
+// Output
+// 1 2 42 4 5
+// 1 2 3 4 5
+
+fun test(a) {
+    a[2] = 42
+    echo a
+}
+
+let a = [1, 2, 3, 4, 5]
+test(a)
+echo a

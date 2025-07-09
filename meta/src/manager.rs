@@ -18,7 +18,7 @@ impl ManagerVisitor {
     }
 
     fn make_with(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("with_{}", name);
+        let concat = format!("with_{name}");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value (which must implement the `Copy` and
@@ -39,7 +39,7 @@ impl ManagerVisitor {
     }
 
     fn make_with_ref(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("with_{}_ref", name);
+        let concat = format!("with_{name}_ref");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value by swapping the references, and
@@ -59,7 +59,7 @@ impl ManagerVisitor {
     }
 
     fn make_with_fn(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("with_{}_fn", name);
+        let concat = format!("with_{name}_fn");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value on the encapsulated struct using

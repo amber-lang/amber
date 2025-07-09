@@ -1,0 +1,16 @@
+// Output
+// Value at 0: "zero"
+// Value at 1: "one"
+// Value at 2: "two"
+// Value at 3: "three"
+// Value at 4: ""
+
+main {
+    // Do not use loop; we want to test compile time arithmetic.
+    let array = ["zero", "one", "two", "three"]
+    echo "Value at 0: \"{array[0]}\""
+    echo "Value at 1: \"{array[1]}\""
+    echo "Value at 2: \"{array[2]}\""
+    echo "Value at 3: \"{array[3]}\""
+    echo "Value at 4: \"{array[4]}\""
+}

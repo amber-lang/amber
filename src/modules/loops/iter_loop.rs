@@ -1,12 +1,15 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::prelude::{RawFragment, FragmentKind};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::context::Context;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
+use crate::fragments;
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct IterLoop {
@@ -22,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
     fn new() -> Self {
         IterLoop {
-            block: Block::new(),
+            block: Block::new().with_needs_noop().with_condition(),
             iter_expr: Expr::new(),
             iter_index: None,
             iter_name: String::new(),
@@ -49,9 +52,9 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             token(meta, "{")?;
             // Create iterator variable
             meta.with_push_scope(|meta| {
-                meta.add_var(&self.iter_name, self.iter_type.clone());
+                meta.add_var(&self.iter_name, self.iter_type.clone(), false);
                 if let Some(index) = self.iter_index.as_ref() {
-                    meta.add_var(index, Type::Num);
+                    meta.add_var(index, Type::Num, false);
                 }
                 // Save loop context state and set it to true
                 meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
@@ -70,32 +73,47 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 }
 
 impl TranslateModule for IterLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = &self.iter_name;
-        let expr = self.iter_expr.translate(meta);
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let iter_path = self.translate_path(meta);
+        let iter_name = RawFragment::from(self.iter_name.clone()).to_frag();
+
+        let for_loop_prefix = match iter_path.is_some() {
+            true => fragments!("while IFS= read -r ", iter_name, "; do"),
+            false => fragments!("for ", iter_name, " in ", self.iter_expr.translate(meta), "; do"),
+        };
+        let for_loop_suffix = match iter_path.is_some() {
+            true => fragments!("done <", iter_path.unwrap()),
+            false => fragments!("done"),
+        };
+
         match self.iter_index.as_ref() {
             Some(index) => {
-                // Create an indentation for the index increment
-                meta.increase_indent();
-                let indent = meta.gen_indent();
-                meta.decrease_indent();
-                [
-                    format!("{index}=0;"),
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
+                let indent = TranslateMetadata::single_indent();
+                BlockFragment::new(vec![
+                    RawFragment::from(format!("{index}=0;")).to_frag(),
+                    for_loop_prefix,
                     self.block.translate(meta),
-                    format!("{indent}(( {index}++ )) || true"),
-                    "done".to_string(),
-                ].join("\n")
+                    RawFragment::from(format!("{indent}(( {index}++ )) || true")).to_frag(),
+                    for_loop_suffix,
+                ], false).to_frag()
             },
             None => {
-                [
-                    format!("for {name} in {expr}"),
-                    "do".to_string(),
+                BlockFragment::new(vec![
+                    for_loop_prefix,
                     self.block.translate(meta),
-                    "done".to_string(),
-                ].join("\n")
+                    for_loop_suffix,
+                ], false).to_frag()
             },
+        }
+    }
+}
+
+impl IterLoop {
+    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
+        if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
+            Some(value.translate_path(meta))
+        } else {
+            None
         }
     }
 }

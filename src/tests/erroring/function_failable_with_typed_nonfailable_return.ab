@@ -1,0 +1,7 @@
+// Output
+// Failable functions must have a '?' after the type name
+
+pub fun test(): Null {
+    fail 1
+}
+echo test() failed: echo "Failed"

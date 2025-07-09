@@ -1,4 +1,4 @@
-import * from "test_files/is_even.ab"
+import * from "src/tests/validity/test_files/is_even.ab"
 
 // Output
 // even

@@ -1,0 +1,7 @@
+// Output
+// Infallible functions must not have a '?' after the type name
+
+pub fun test(): Null? {
+    echo "Hello, World!"
+}
+echo test() failed: echo "Failed"

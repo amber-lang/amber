@@ -1,10 +1,10 @@
-import { has_failed, input } from "std/env"
-import { chars } from "std/text"
-import { includes } from "std/array"
-import { file_exist } from "std/fs"
+import { has_failed, input_prompt } from "std/env"
+import { split_chars } from "std/text"
+import { array_contains } from "std/array"
+import { file_exists } from "std/fs"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
-let name = "AmberNative"
+let name = "amber"
 let target = "amber"
 let archive = "amber.tar.xz"
 let agent = has_failed("uname -a")
@@ -14,7 +14,7 @@ let agent = has_failed("uname -a")
 echo ""
 
 fun get_latest_release_tag() {
-    let tag_url = "https://api.github.com/repos/Ph0enixKM/{name}/releases/latest"
+    let tag_url = "https://api.github.com/repos/amber-lang/{name}/releases/latest"
     let tag_json = $ curl -sL "{tag_url}" $?
     // Get the tag name from the JSON
     let tag = $ echo "\${nameof tag_json}" \
@@ -28,7 +28,7 @@ main(args) {
     let os = get_os()
     let arch = get_arch()
 
-    let user_only_install = includes(args, "--user")
+    let user_only_install = array_contains(args, "--user")
     let place = get_place(user_only_install)
     let bins_folder = get_bins_folder(user_only_install)
 
@@ -79,7 +79,7 @@ main(args) {
     }
 
     // Set the download link
-    let url = "https://github.com/Ph0enixKM/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
+    let url = "https://github.com/amber-lang/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
 
     // Download amber
     silent $ curl -L -o "{archive}" "{url}" $ failed {
@@ -116,7 +116,7 @@ main(args) {
     }
 
     // Delete the previous symbolic link
-    if file_exist("{bins_folder}/{target}") {
+    if file_exists("{bins_folder}/{target}") {
         $ {sudo} rm "{bins_folder}/{target}" $ failed {
             echo "Failed to remove the previous amber symbol link."
             echo "Please make sure that root user can access {bins_folder} directory."
@@ -131,7 +131,7 @@ main(args) {
         exit 1
     }
 
-    let nickname = input("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    let nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
     if (nickname != "no") {
         // Send feedback to the server
         trust silent $ curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" $

@@ -1,8 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
+use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
@@ -12,16 +13,6 @@ pub struct VariableSet {
     global_id: Option<usize>,
     index: Option<Expr>,
     is_ref: bool
-}
-
-impl VariableSet {
-    fn translate_eval_if_ref(&self, expr: &Expr, meta: &mut TranslateMetadata) -> String {
-        if self.is_ref {
-            expr.translate_eval(meta, true)
-        } else {
-            expr.translate(meta)
-        }
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -40,12 +31,13 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        self.index = handle_index_accessor(meta)?;
+        self.index = handle_index_accessor(meta, false)?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
-        let variable = handle_variable_reference(meta, tok.clone(), &self.name)?;
+        let variable = handle_variable_reference(meta, &tok, &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
+        prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
         // Typecheck the variable
         let left_type = variable.kind.clone();
         let right_type = self.expr.get_type();
@@ -72,23 +64,14 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 }
 
 impl TranslateModule for VariableSet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
-        let index = self.index.as_ref()
-            .map(|index| self.translate_eval_if_ref(index, meta))
-            .map(|index| format!("[{index}]"))
-            .unwrap_or_default();
-        let mut expr = self.translate_eval_if_ref(self.expr.as_ref(), meta);
-        if let Type::Array(_) = self.expr.get_type() {
-            expr = format!("({expr})");
-        }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}{index}={expr}")
-        } else if self.is_ref {
-            format!("eval \"${{{name}}}{index}={expr}\"")
-        } else {
-            format!("{name}{index}={expr}")
-        }
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let index = self.index.as_ref().map(|v| v.translate(meta));
+        let expr = self.expr.translate(meta);
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .with_index(index)
+            .to_frag()
     }
 }
 

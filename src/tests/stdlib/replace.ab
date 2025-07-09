@@ -1,8 +1,0 @@
-import * from "std/text"
-
-// Output
-// apple apple
-
-main {
-    echo replace("banana banana", "banana", "apple")
-}

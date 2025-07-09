@@ -1,8 +1,0 @@
-import * from "std/text"
-
-// Output
-// HELLO WORLD
-
-main {
-    echo upper("hello world")
-} 

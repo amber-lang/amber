@@ -1,19 +1,24 @@
 extern crate chrono;
+use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
+use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::{rules, Cli};
+use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
+use crate::rules;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use wildmatch::WildMatchPattern;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::{ErrorKind, Write};
+use std::iter::once;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::time::Instant;
@@ -23,21 +28,38 @@ pub mod postprocessor;
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
 const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
+const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
+
+pub struct CompilerOptions {
+    pub no_proc: Vec<String>,
+    pub minify: bool,
+}
+
+impl Default for CompilerOptions {
+    fn default() -> Self {
+        let no_proc = vec![String::from("*")];
+        Self { no_proc, minify: false }
+    }
+}
+
+impl CompilerOptions {
+    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+        let no_proc = no_proc.to_owned();
+        Self { no_proc, minify }
+    }
+}
 
 pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
-    pub cli_opts: Cli,
+    pub options: CompilerOptions,
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>, cli_opts: Cli) -> AmberCompiler {
-        AmberCompiler {
-            cc: Compiler::new("Amber", rules::get_rules()),
-            path,
-            cli_opts,
-        }
-        .load_code(AmberCompiler::comment_shebang(code))
+    pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
+        let cc = Compiler::new("Amber", rules::get_rules());
+        let compiler = AmberCompiler { cc, path, options };
+        compiler.load_code(AmberCompiler::comment_shebang(code))
     }
 
     fn comment_shebang(code: String) -> String {
@@ -91,14 +113,9 @@ impl AmberCompiler {
         }
     }
 
-    pub fn parse(
-        &self,
-        tokens: Vec<Token>,
-        is_docs_gen: bool,
-    ) -> Result<(Block, ParserMetadata), Message> {
+    pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
         let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
         let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
-        meta.is_docs_gen = is_docs_gen;
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
@@ -150,11 +167,11 @@ impl AmberCompiler {
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
-        let mut meta_translate = TranslateMetadata::new(meta, &self.cli_opts);
+        let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
-        let mut result = vec![];
+        let mut result = BlockFragment::new(Vec::new(), false);
         for (_path, block) in ast_forest {
-            result.push(block.translate(&mut meta_translate));
+            result.append(block.translate(&mut meta_translate));
         }
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
@@ -165,9 +182,14 @@ impl AmberCompiler {
             );
         }
 
-        let mut result = result.join("\n") + "\n";
+        let mut result = result.to_frag();
+        if !Self::env_flag_set(AMBER_NO_OPTIMIZE) {
+            optimize_fragments(&mut result);
+        }
 
-        let filters = self.cli_opts.no_proc.iter()
+        let mut result = result.to_string(&mut meta_translate);
+
+        let filters = self.options.no_proc.iter()
             .map(|x| WildMatchPattern::new(x))
             .collect();
         let postprocessors = PostProcessor::filter_default(filters);
@@ -185,17 +207,14 @@ impl AmberCompiler {
             };
         }
 
+        let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let header = include_str!("header.sh")
-            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
-            .replace("{{ date }}", Local::now()
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string()
-                .as_str()
-            );
-        Ok(format!("{}{}", header, result))
+            .replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+            .replace("{{ date }}", now.as_str());
+        Ok(format!("{header}{result}"))
     }
 
-    pub fn document(&self, block: Block, meta: ParserMetadata, output: String) {
+    pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
         let base_path = meta.get_path()
             .map(PathBuf::from)
             .expect("Input file must exist in docs generation");
@@ -219,51 +238,62 @@ impl AmberCompiler {
                     Ok(path) => path,
                     Err(_) => continue,
                 };
-
                 if !dep_path.starts_with(&base_dir) {
                     continue;
                 }
-
                 dep_path
             };
             let document = block.document(&meta);
-            // Save to file; replace the base directory if the output
-            // path is absolute, otherwise append the output path.
-            let dir_path = {
-                let file_path = dep_path.strip_prefix(&base_dir).unwrap();
-                let file_dir = file_path.parent().unwrap();
-                base_dir.join(&output).join(file_dir)
-            };
-            if let Err(err) = fs::create_dir_all(dir_path.clone()) {
-                Message::new_err_msg(format!(
-                    "Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display()
-                ))
-                .comment(err.to_string())
-                .show();
-                std::process::exit(1);
+            // Check if an output directory was specified.
+            if let Some(output) = &output {
+                // Save to file; replace the base directory if the output
+                // path is absolute, otherwise append the output path.
+                let dir_path = {
+                    let file_path = dep_path.strip_prefix(&base_dir).unwrap();
+                    let file_dir = file_path.parent().unwrap();
+                    base_dir.join(output).join(file_dir)
+                };
+                if let Err(err) = fs::create_dir_all(dir_path.clone()) {
+                    let message = format!("Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display());
+                    Message::new_err_msg(message)
+                        .comment(err.to_string())
+                        .show();
+                    std::process::exit(1);
+                }
+                let filename = dep_path.file_stem().unwrap().to_string_lossy();
+                let path = dir_path.join(format!("{filename}.md"));
+                let mut file = File::create(path.clone()).unwrap();
+                file.write_all(document.as_bytes()).unwrap();
+                paths.push(String::from(path.to_string_lossy()));
+            } else {
+                // Write to standard output.
+                std::io::stdout().write_all(document.as_bytes()).unwrap();
             }
-            let filename = dep_path.file_stem().unwrap().to_string_lossy();
-            let path = dir_path.join(format!("{filename}.md"));
-            let mut file = File::create(path.clone()).unwrap();
-            file.write_all(document.as_bytes()).unwrap();
-            paths.push(String::from(path.to_string_lossy()));
         }
-        let file_text = if paths.len() > 1 { "Files" } else { "File" };
-        Message::new_info_msg(format!("{file_text} generated at:\n{}", paths.join("\n")))
-            .show();
+        if !paths.is_empty() {
+            let files = pluralize(paths.len(), "File", "Files");
+            let message = once(format!("{files} generated at:")).chain(paths).join("\n");
+            Message::new_info_msg(message).show();
+        }
     }
 
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         let tokens = self.tokenize()?;
-        let (block, meta) = self.parse(tokens, false)?;
+        let (block, meta) = self.parse(tokens)?;
         let messages = meta.messages.clone();
         let code = self.translate(block, meta)?;
         Ok((messages, code))
     }
 
-    pub fn execute(code: String, flags: &[String]) -> Result<ExitStatus, std::io::Error> {
+    pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         if let Some(mut command) = Self::find_bash() {
-            let code = format!("set -- {};\n{}", flags.join(" "), code);
+            if !args.is_empty() {
+                let args = args.into_iter()
+                    .map(|arg| arg.replace("\"", "\\\""))
+                    .map(|arg| format!("\"{arg}\""))
+                    .collect::<Vec<String>>();
+                code = format!("set -- {}\n{}", args.join(" "), code);
+            }
             command.arg("-c").arg(code).spawn()?.wait()
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find Bash");
@@ -271,16 +301,17 @@ impl AmberCompiler {
         }
     }
 
-    pub fn generate_docs(&self, output: String) -> Result<(), Message> {
+    pub fn generate_docs(&self, output: Option<String>, usage: bool) -> Result<(), Message> {
         let tokens = self.tokenize()?;
-        let (block, meta) = self.parse(tokens, true)?;
+        let (block, mut meta) = self.parse(tokens)?;
+        meta.doc_usage = usage;
         self.document(block, meta, output);
         Ok(())
     }
 
     #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
-        self.cli_opts.no_proc = vec!["*".into()];
+        self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(_, code)| {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
@@ -307,10 +338,19 @@ impl AmberCompiler {
         return None;
     }
 
+    /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
     fn find_bash() -> Option<Command> {
-        let mut command = Command::new("/usr/bin/env");
-        command.arg("bash");
-        Some(command)
+        if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
+            let mut command = Command::new("docker");
+            let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
+            let args: Vec<&str> = args_string.split_whitespace().collect();
+            command.args(args);
+            Some(command)
+        } else {
+            let mut command = Command::new("/usr/bin/env");
+            command.arg("bash");
+            Some(command)
+        }
     }
 }

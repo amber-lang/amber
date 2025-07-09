@@ -1,0 +1,8 @@
+import * from "std/env"
+
+// Output
+// \x1b[3mHello Amber!\x1b[0m
+
+main {
+    echo italic("Hello Amber!")
+} 

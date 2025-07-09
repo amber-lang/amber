@@ -1,0 +1,10 @@
+// Output
+// Hello World
+// 1 2 3
+
+fun echo_var(arg: [] = [1, 2, 3]): Null {
+    echo arg
+}
+
+echo_var(["Hello", "World"])
+echo_var()

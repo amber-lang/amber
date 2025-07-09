@@ -3,7 +3,7 @@ use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
-use crate::utils::ParserMetadata;
+use crate::utils::{pluralize, ParserMetadata};
 use crate::utils::context::FunctionDecl;
 
 // Convert a number to an ordinal number
@@ -29,10 +29,10 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     if fun.arg_names.len() != args.len() {
         let max_args = fun.arg_names.len();
         let min_args = fun.arg_names.len() - fun.arg_optionals.len();
-        let opt_argument = if max_args > min_args {&format!(" ({} optional)",max_args)} else {""};
+        let opt_argument = if max_args > min_args {&format!(" ({max_args} optional)")} else {""};
         // Determine the correct grammar
-        let txt_arguments = if min_args == 1 { "argument" } else { "arguments" };
-        let txt_given = if args.len() == 1 { "was given" } else { "were given" };
+        let txt_arguments = pluralize(min_args, "argument", "arguments");
+        let txt_given = pluralize(args.len(), "was given", "were given");
         // Return an error
         return error!(meta, tok, format!("Function '{}' expects {} {txt_arguments}{opt_argument}, but {} {txt_given}", fun.name, min_args, args.len()))
     }
@@ -47,7 +47,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
         }
     }
     let mut context = meta.fun_cache.get_context(fun.id).unwrap().clone();
-    let mut block = Block::new();
+    let mut block = Block::new().with_needs_noop();
     // Swap the contexts to use the function context
     meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
@@ -67,7 +67,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     })?;
     // Set the new return type or null if nothing was returned
     if let Type::Generic = fun.returns {
-        fun.returns = context.fun_ret_type.clone().unwrap_or_else(|| Type::Null);
+        fun.returns = context.fun_ret_type.clone().unwrap_or(Type::Null);
     };
     // Set the new argument types
     fun.arg_types = args.to_vec();
@@ -79,7 +79,7 @@ pub fn handle_function_reference(meta: &ParserMetadata, tok: Option<Token>, name
     match meta.get_fun_declaration(name) {
         Some(fun_decl) => Ok(fun_decl.id),
         None => {
-            let message = format!("Function '{}' does not exist", name);
+            let message = format!("Function '{name}' does not exist");
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_function(meta, name) {
                 error!(meta, tok, message, comment)

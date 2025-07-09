@@ -1,0 +1,8 @@
+import * from "std/text"
+
+// Output
+// dlrow olleh
+
+main {
+    echo reversed("hello world")
+} 

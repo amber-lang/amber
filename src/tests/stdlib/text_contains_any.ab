@@ -1,0 +1,21 @@
+import { text_contains_any } from "std/text"
+
+// Output
+// Empty: 0
+// None: 0
+// Left: 1
+// Right: 1
+// Both: 1
+
+fun test_multiple(label, text, terms) {
+    let result = text_contains_any(text, terms)
+    echo "{label}: {result}"
+}
+
+main {
+    test_multiple("Empty", "Hello World", [Text])
+    test_multiple("None", "Hello World", ["Other", "Other"])
+    test_multiple("Left", "Hello World", ["Hello", "Other"])
+    test_multiple("Right", "Hello World", ["Other", "World"])
+    test_multiple("Both", "Hello World", ["Hello", "World"])
+}
