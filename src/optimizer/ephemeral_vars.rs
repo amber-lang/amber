@@ -17,55 +17,49 @@ enum VariableAction {
 // 2. (eph1 = 5; eph2 = eph1; var = eph2) -> (var = 5)
 
 pub fn remove_ephemeral_variables(ast: &mut FragmentKind) {
-    match ast {
-        FragmentKind::Block(block) => {
-            let mut state = vec![None; block.statements.len()];
+    if let FragmentKind::Block(block) = ast {
+        let mut state = vec![None; block.statements.len()];
 
-            let mut i = 0;
-            for window in block.statements.windows(2) {
-                if let (FragmentKind::VarStmt(first), FragmentKind::VarStmt(second)) = (&window[0], &window[1]) {
-                    if let FragmentKind::VarExpr(expression) = second.value.as_ref() {
-                        if first.is_ephemeral && first.get_name() == expression.get_name() {
-                            match state[i].take() {
-                                Some(VariableAction::Reassign(expr)) => {
-                                    state[i] = Some(VariableAction::Remove);
-                                    state[i + 1] = Some(VariableAction::Reassign(expr.clone()));
-                                },
-                                _ => {
-                                    state[i] = Some(VariableAction::Remove);
-                                    state[i + 1] = Some(VariableAction::Reassign(first.value.clone()));
-                                }
+        let mut i = 0;
+        for window in block.statements.windows(2) {
+            if let (FragmentKind::VarStmt(first), FragmentKind::VarStmt(second)) = (&window[0], &window[1]) {
+                if let FragmentKind::VarExpr(expression) = second.value.as_ref() {
+                    if first.is_ephemeral && first.get_name() == expression.get_name() {
+                        match state[i].take() {
+                            Some(VariableAction::Reassign(expr)) => {
+                                state[i] = Some(VariableAction::Remove);
+                                state[i + 1] = Some(VariableAction::Reassign(expr.clone()));
+                            },
+                            _ => {
+                                state[i] = Some(VariableAction::Remove);
+                                state[i + 1] = Some(VariableAction::Reassign(first.value.clone()));
                             }
-                            continue;
                         }
+                        continue;
                     }
                 }
-                i += 1;
             }
+            i += 1;
+        }
 
-            let mut i = 0;
-            // Reassign the variables
-            for stmt in block.statements.iter_mut() {
-                if let FragmentKind::VarStmt(var_stmt) = stmt {
-                    match state[i].take() {
-                        Some(VariableAction::Reassign(expr)) => {
-                            var_stmt.value = expr;
-                        }
-                        other => {
-                            state[i] = other;
-                        }
+        // Reassign the variables
+        for (i, stmt) in block.statements.iter_mut().enumerate() {
+            if let FragmentKind::VarStmt(var_stmt) = stmt {
+                match state[i].take() {
+                    Some(VariableAction::Reassign(expr)) => {
+                        var_stmt.value = expr;
+                    }
+                    other => {
+                        state[i] = other;
                     }
                 }
-                i += 1;
             }
+        }
 
-            // Remove the variables
-            let i = 0;
-            block.statements.retain_mut(|_| !matches!(state[i].take(), Some(VariableAction::Remove)));
-            for item in &mut block.statements {
-                remove_ephemeral_variables(item);
-            }
-        },
-        _ => {}
+        // Remove the variables
+        block.statements.retain_mut(|_| !matches!(state[i].take(), Some(VariableAction::Remove)));
+        for item in &mut block.statements {
+            remove_ephemeral_variables(item);
+        }
     }
 }
