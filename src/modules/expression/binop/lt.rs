@@ -46,6 +46,7 @@ impl SyntaxModule<ParserMetadata> for Lt {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
             Type::Num,
+            Type::Int,
             Type::Text,
             Type::array_of(Type::Int),
             Type::array_of(Type::Text),

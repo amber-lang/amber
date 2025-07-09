@@ -40,7 +40,10 @@ impl SyntaxModule<ParserMetadata> for ShorthandMul {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
-        shorthand_typecheck_allowed_types(meta, "multiply", &self.kind, &self.expr, &[Type::Num])?;
+        shorthand_typecheck_allowed_types(meta, "multiply", &self.kind, &self.expr, &[
+            Type::Num,
+            Type::Int,
+        ])?;
         Ok(())
     }
 }

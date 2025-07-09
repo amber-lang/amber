@@ -49,7 +49,7 @@ impl SyntaxModule<ParserMetadata> for Div {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.kind = Self::typecheck_allowed_types(meta, "division", &self.left, &self.right, &[
             Type::Num,
-            Type::Int
+            Type::Int,
         ])?;
         Ok(())
     }

@@ -51,7 +51,7 @@ impl SyntaxModule<ParserMetadata> for Add {
             Type::Num,
             Type::Int,
             Type::Text,
-            Type::array_of(Type::Generic)
+            Type::array_of(Type::Generic),
         ])?;
         Ok(())
     }

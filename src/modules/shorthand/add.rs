@@ -42,8 +42,9 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
         syntax(meta, &mut *self.expr)?;
         shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
             Type::Num,
+            Type::Int,
             Type::Text,
-            Type::array_of(Type::Generic)
+            Type::array_of(Type::Generic),
         ])?;
         Ok(())
     }
