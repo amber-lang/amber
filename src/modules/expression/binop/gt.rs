@@ -1,10 +1,8 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
+use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
 use crate::translate::compute::{ArithOp, translate_computation};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
 
@@ -46,16 +44,27 @@ impl SyntaxModule<ParserMetadata> for Gt {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "compare", self.left, self.right, [Num])?;
+        Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
+            Type::Num,
+            Type::Text,
+            Type::array_of(Type::Num),
+            Type::array_of(Type::Text),
+        ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Gt {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Gt, Some(left), Some(right))
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        if self.left.get_type() == Type::array_of(Type::Num) {
+            translate_array_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
+        } else if [Type::Text, Type::array_of(Type::Text)].contains(&self.left.get_type()) {
+            translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
+        } else {
+            let left = self.left.translate(meta);
+            let right = self.right.translate(meta);
+            translate_computation(meta, ArithOp::Gt, Some(left), Some(right))
+        }
     }
 }
 

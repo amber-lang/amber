@@ -1,9 +1,10 @@
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::types::{Type, Typed};
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use crate::utils::context::VariableDecl;
+use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
-use crate::utils::{metadata::ParserMetadata, context::VariableDecl, cc_flags::{get_ccflag_name, CCFlags}};
 use similar_string::find_best_similarity;
-use crate::modules::types::{Typed, Type};
-
-use super::expression::expr::Expr;
 
 pub mod init;
 pub mod set;
@@ -18,7 +19,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Literals
         "true", "false", "null",
         // Variable keywords
-        "let", "as", "is",
+        "let", "as", "is", "const",
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
@@ -38,19 +39,27 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 }
 
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
+pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var(name) {
         Some(variable_unit) => Ok(variable_unit.clone()),
         None => {
-            let message = format!("Variable '{}' does not exist", name);
+            let message = format!("Variable '{name}' does not exist");
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_variable(meta, name) {
-                error!(meta, tok, message, comment)
+                error!(meta, tok.clone(), message, comment)
             } else {
-                error!(meta, tok, message)
+                error!(meta, tok.clone(), message)
             }
         }
+    }
+}
+
+pub fn prevent_constant_mutation(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str, is_const: bool) -> SyntaxResult {
+    if is_const {
+        error!(meta, tok.clone(), format!("Cannot reassign constant '{name}'"))
+    } else {
+        Ok(())
     }
 }
 
@@ -102,19 +111,28 @@ fn is_camel_case(name: &str) -> bool {
     false
 }
 
-pub fn handle_index_accessor(meta: &mut ParserMetadata) -> Result<Option<Expr>, Failure> {
+pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<Option<Expr>, Failure> {
     if token(meta, "[").is_ok() {
         let tok = meta.get_current_token();
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
-        if index.get_type() != Type::Num {
-            return error!(meta, tok => {
-                message: format!("Index accessor must be a number"),
-                comment: format!("The index accessor must be a number, not a {}", index.get_type())
-            })
+        if !allow_index_accessor(&index, range) {
+            let expected = if range { "number or range" } else { "number (and not a range)" };
+            let side = if range { "right" } else { "left" };
+            let message = format!("Index accessor must be a {expected} for {side} side of operation");
+            let comment = format!("The index accessor must be a {} not a {}", expected, index.get_type());
+            return error!(meta, tok => { message: message, comment: comment });
         }
         token(meta, "]")?;
         return Ok(Some(index));
     }
     Ok(None)
+}
+
+fn allow_index_accessor(index: &Expr, range: bool) -> bool {
+    match (&index.kind, &index.value) {
+        (Type::Num, _) => true,
+        (Type::Array(_), Some(ExprType::Range(_))) => range,
+        _ => false,
+    }
 }

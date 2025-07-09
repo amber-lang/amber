@@ -1,8 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use crate::{fragments, raw_fragment};
+use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::Statement;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use crate::modules::types::Type;
 
 #[derive(Debug, Clone)]
 pub struct Failed {
@@ -20,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_parsed: false,
             is_question_mark: false,
             is_main: false,
-            block: Box::new(Block::new())
+            block: Box::new(Block::new().with_needs_noop().with_condition())
         }
     }
 
@@ -72,38 +73,52 @@ impl SyntaxModule<ParserMetadata> for Failed {
 }
 
 impl TranslateModule for Failed {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
             let block = self.block.translate(meta);
-            let ret = if self.is_main { "exit $__AS" } else { "return $__AS" };
             // the condition of '$?' clears the status code thus we need to store it in a variable
+            let status_variable_stmt = VarStmtFragment::new("__status", Type::Num, fragments!("$?"));
+            let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
             if self.is_question_mark {
-                // if the failed expression is in the main block we need to clear the return value
+                // Set default return value if failure happened in a function
                 let clear_return = if !self.is_main {
                     let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-                    format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return())
+                    let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
+                        .with_optimization_when_unused(false);
+                    stmt.to_frag()
                 } else {
-                    String::new()
+                    FragmentKind::Empty
                 };
-                [
-                    "__AS=$?;",
-                    "if [ $__AS != 0 ]; then",
-                    &clear_return,
-                    ret,
-                    "fi",
-                ].join("\n")
-            } else if &block == ":" {
-                "__AS=$?".into()
-            } else {
-                [
-                    "__AS=$?;",
-                    "if [ $__AS != 0 ]; then",
-                    &block,
-                    "fi",
-                ].join("\n")
+                let ret = if self.is_main { "exit" } else { "return" };
+                let ret = fragments!(raw_fragment!("{ret} "), status_variable_expr.clone().to_frag());
+                return BlockFragment::new(vec![
+                    status_variable_stmt.to_frag(),
+                    fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
+                    BlockFragment::new(vec![
+                        clear_return,
+                        ret,
+                    ], true).to_frag(),
+                    fragments!("fi"),
+                ], false).to_frag()
+            }
+            match &block {
+                FragmentKind::Empty => {
+                    status_variable_stmt.to_frag()
+                },
+                FragmentKind::Block(block) if block.statements.is_empty() => {
+                    status_variable_stmt.to_frag()
+                },
+                _ => {
+                    BlockFragment::new(vec![
+                        status_variable_stmt.to_frag(),
+                        fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
+                        block,
+                        fragments!("fi"),
+                    ], false).to_frag()
+                }
             }
         } else {
-            String::new()
+            FragmentKind::Empty
         }
     }
 }

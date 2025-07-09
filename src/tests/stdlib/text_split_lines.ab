@@ -1,0 +1,11 @@
+import { split_lines } from "std/text"
+
+// Output
+// line: hello
+// line: world
+
+main {
+    for line in split_lines("hello\nworld") {
+        echo "line: " + line
+    }
+} 

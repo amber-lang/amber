@@ -1,0 +1,9 @@
+// Output
+// You should be able to see this message
+
+fun foo(val) {
+    echo val
+}
+
+let property = 25
+foo(property > 10 then "You should be able to see this message" else "This should never happen")

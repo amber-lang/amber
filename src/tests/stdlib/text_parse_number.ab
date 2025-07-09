@@ -1,0 +1,8 @@
+import * from "std/text"
+
+// Output
+// 123
+
+main {
+    echo parse_number("123")?
+} 

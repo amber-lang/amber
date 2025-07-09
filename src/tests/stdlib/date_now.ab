@@ -1,0 +1,6 @@
+import * from "std/date"
+
+main {
+    let posix_now = trust $ date +%s $ as Num
+    if date_now() == posix_now: echo "Succeeded"
+}

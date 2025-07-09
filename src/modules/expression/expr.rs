@@ -3,6 +3,7 @@ use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::len::Len;
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
+use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Typed, Type};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -46,6 +47,7 @@ use super::parentheses::Parentheses;
 use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
+use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::builtin::nameof::Nameof;
 use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
 
@@ -72,6 +74,7 @@ pub enum ExprType {
     Neq(Neq),
     Not(Not),
     Ternary(Ternary),
+    LinesInvocation(LinesInvocation),
     FunctionInvocation(FunctionInvocation),
     Command(Command),
     Array(Array),
@@ -99,6 +102,14 @@ impl Typed for Expr {
 }
 
 impl Expr {
+    pub fn get_integer_value(&self) -> Option<isize> {
+        match &self.value {
+            Some(ExprType::Number(value)) => value.get_integer_value(),
+            Some(ExprType::Neg(value)) => value.get_integer_value(),
+            _ => None,
+        }
+    }
+
     pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
         let begin = meta.get_token_at(self.pos.0);
         let end = meta.get_token_at(self.pos.1);
@@ -108,18 +119,6 @@ impl Expr {
     pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
         let pos = self.get_position(meta);
         Message::new_err_at_position(meta, pos)
-    }
-
-    pub fn is_var(&self) -> bool {
-        matches!(self.value, Some(ExprType::VariableGet(_)))
-    }
-
-    // Get the variable name if the expression is a variable access
-    pub fn get_var_translated_name(&self) -> Option<String> {
-        match &self.value {
-            Some(ExprType::VariableGet(var)) => Some(var.get_translated_name()),
-            _ => None
-        }
     }
 }
 
@@ -150,6 +149,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 // Literals
                 Parentheses, Bool, Number, Text,
                 Array, Null, Status, Nameof,
+                // Builtin invocation
+                LinesInvocation,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -162,7 +163,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
 }
 
 impl TranslateModule for Expr {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         translate_expression!(meta, self.value.as_ref().unwrap(), [
             // Ternary conditional
             Ternary,
@@ -179,6 +180,8 @@ impl TranslateModule for Expr {
             // Literals
             Parentheses, Bool, Number, Text,
             Array, Null, Status,
+            // Builtin invocation
+            LinesInvocation,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access
@@ -205,6 +208,8 @@ impl DocumentationModule for Expr {
             // Literals
             Parentheses, Bool, Number, Text,
             Array, Null, Status,
+            // Builtin invocation
+            LinesInvocation,
             // Function invocation
             FunctionInvocation, Command,
             // Variable access

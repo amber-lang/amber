@@ -1,0 +1,30 @@
+// Output
+// Value at -5: ""
+// Value at -4: "zero"
+// Value at -3: "one"
+// Value at -2: "two"
+// Value at -1: "three"
+
+// Replace this with builtin if/when we get around to writing one.
+#[allow_absurd_cast]
+fun bash_version(): Num {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Num
+    return (major * 100) + minor
+}
+
+fun test_index(ref byref) {
+    for index in -5..=-1 {
+        echo "Value at {index}: \"{byref[index]}\""
+    }
+}
+
+main {
+    if bash_version() >= 402 {
+        let array = ["zero", "one", "two", "three"]
+        test_index(array)
+    } else {
+        // Negative indexing is not supported before Bash 4.2.
+        echo "Succeeded"
+    }
+}

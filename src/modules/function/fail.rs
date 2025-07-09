@@ -1,6 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
+use crate::{fragments, raw_fragment};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -70,18 +73,21 @@ impl SyntaxModule<ParserMetadata> for Fail {
 }
 
 impl TranslateModule for Fail {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let translate = self.code.is_empty()
-            .then(|| self.expr.translate(meta))
-            .unwrap_or_else(|| self.code.clone());
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let translate = if self.code.is_empty() {
+            self.expr.translate(meta)
+        } else {
+            raw_fragment!("{}", &self.code)
+        };
         if self.is_main {
-            format!("exit {translate}")
+            fragments!("exit ", translate)
         } else {
             // Clean the return value if the function fails
             let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-            let stmt = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
-            meta.stmt_queue.push_back(stmt);
-            format!("return {translate}")
+            let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
+                .with_optimization_when_unused(false);
+            meta.stmt_queue.push_back(stmt.to_frag());
+            fragments!("return ", translate)
         }
     }
 }

@@ -1,8 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::Statement;
 
@@ -28,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
         token(meta, "{")?;
         loop {
             let mut cond = Expr::new();
-            let mut block = Block::new();
+            let mut block = Block::new().with_needs_noop().with_condition();
             // Handle comments and empty lines
             if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
                 continue
@@ -37,7 +36,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             if token(meta, "else").is_ok() {
                 match token(meta, "{") {
                     Ok(_) => {
-                        let mut false_block = Box::new(Block::new());
+                        let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
                         syntax(meta, &mut *false_block)?;
                         self.false_block = Some(false_block);
                         token(meta, "}")?;
@@ -46,7 +45,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                         let mut statement = Statement::new();
                         token(meta, ":")?;
                         syntax(meta, &mut statement)?;
-                        self.false_block = Some(Box::new(Block::new()));
+                        self.false_block = Some(Box::new(Block::new().with_needs_noop().with_condition()));
                         self.false_block.as_mut().unwrap().push_statement(statement);
                     }
                 }
@@ -77,25 +76,25 @@ impl SyntaxModule<ParserMetadata> for IfChain {
 }
 
 impl TranslateModule for IfChain {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
         let mut is_first = true;
         for (cond, block) in self.cond_blocks.iter() {
             if is_first {
-                result.push(format!("if [ {} != 0 ]; then", cond.translate(meta)));
+                result.push(fragments!("if [ ", cond.translate(meta), " != 0 ]; then"));
                 result.push(block.translate(meta));
                 is_first = false;
             } else {
-                result.push(format!("elif [ {} != 0 ]; then", cond.translate(meta)));
+                result.push(fragments!("elif [ ", cond.translate(meta), " != 0 ]; then"));
                 result.push(block.translate(meta));
             }
         }
         if let Some(false_block) = &self.false_block {
-            result.push("else".to_string());
+            result.push(fragments!("else"));
             result.push(false_block.translate(meta));
         }
-        result.push("fi".to_string());
-        result.join("\n")
+        result.push(fragments!("fi"));
+        BlockFragment::new(result, false).to_frag()
     }
 }
 

@@ -1,0 +1,12 @@
+// Regular characters that are escaped should remain escaped (for situations like \x1b, \033, \e, \/, etc.)
+
+// Output
+// \/
+// \p
+// \z
+// \e
+
+echo "\/"
+echo "\p"
+echo "\z"
+echo "\e"

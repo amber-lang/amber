@@ -1,0 +1,22 @@
+import { array_find_all } from "std/array"
+
+// Output
+// Indices of "zero": [0 6]
+// Indices of "one": [1 5]
+// Indices of "two": [2 4]
+// Indices of "three": [3]
+// Indices of "four": []
+
+fun test_search(data: [Text], value: Text): Null {
+    let indices = array_find_all(data, value)
+    echo "Indices of \"{value}\": [{indices}]"
+}
+
+main {
+    let numbers = ["zero", "one", "two", "three", "two", "one", "zero"]
+    test_search(numbers, "zero")
+    test_search(numbers, "one")
+    test_search(numbers, "two")
+    test_search(numbers, "three")
+    test_search(numbers, "four")
+}

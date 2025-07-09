@@ -1,14 +1,11 @@
 use std::fs;
 use heraclitus_compiler::prelude::*;
-use crate::compiler::AmberCompiler;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use crate::Cli;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -88,16 +85,18 @@ impl Import {
         }
     }
 
-    fn handle_import(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
+    fn handle_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
         match meta.import_cache.get_import_pub_funs(Some(self.path.value.clone())) {
             Some(pub_funs) => self.handle_export(meta, pub_funs),
-            None => self.handle_compile_code(meta, imported_code)
+            None => self.handle_compile_code(meta, code)
         }
     }
 
-    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, imported_code: String) -> SyntaxResult {
-        match AmberCompiler::new(imported_code.clone(), Some(self.path.value.clone()), Cli::default()).tokenize() {
+    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+        let options = CompilerOptions::default();
+        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
+        match compiler.tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();
                 // Save snapshot of current file
@@ -145,21 +144,35 @@ impl SyntaxModule<ParserMetadata> for Import {
             Err(_) => {
                 token(meta, "{")?;
                 let mut exports = vec![];
-                loop {
-                    let tok = meta.get_current_token();
-                    let name = variable(meta, variable_name_extensions())?;
-                    let alias = match token(meta, "as") {
-                        Ok(_) => Some(variable(meta, variable_name_extensions())?),
-                        Err(_) => None
-                    };
-                    exports.push((name, alias, tok));
-                    match token(meta, ",") {
-                        Ok(_) => {},
-                        Err(_) => break
+                if token(meta, "}").is_err() {
+                    loop {
+                        let tok = meta.get_current_token();
+                        let name = variable(meta, variable_name_extensions())?;
+                        let alias = match token(meta, "as") {
+                            Ok(_) => Some(variable(meta, variable_name_extensions())?),
+                            Err(_) => None
+                        };
+                        exports.push((name, alias, tok));
+                        if token(meta, "}").is_ok() {
+                            break;
+                        }
+                        match token(meta, ",") {
+                            Ok(_) => {
+                                if token(meta, "}").is_ok() {
+                                    break
+                                }
+                            }
+                            Err(_) => {
+                                return error!(meta, meta.get_current_token(), "Expected ',' or '}' after import");
+                            }
+                        }
                     }
+                } else {
+                    let message = Message::new_warn_at_token(meta, self.token_import.clone())
+                        .message("Empty import statement");
+                    meta.add_message(message);
                 }
                 self.export_defs = exports;
-                token(meta, "}")?;
             }
         }
         token(meta, "from")?;
@@ -167,16 +180,15 @@ impl SyntaxModule<ParserMetadata> for Import {
         syntax(meta, &mut self.path)?;
         // Import code from file or standard library
         self.add_import(meta, &self.path.value.clone())?;
-        let imported_code = self.resolve_import(meta)?;
-
-        self.handle_import(meta, imported_code)?;
+        let code = self.resolve_import(meta)?;
+        self.handle_import(meta, code)?;
         Ok(())
     }
 }
 
 impl TranslateModule for Import {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        FragmentKind::Empty
     }
 }
 

@@ -1,0 +1,7 @@
+import { is_root } from "std/env"
+
+main {
+    if not is_root() {
+        echo "Succeeded"
+    }
+} 

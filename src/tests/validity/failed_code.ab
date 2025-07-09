@@ -1,0 +1,8 @@
+// Output
+// Inside: 127
+// Outside: 127
+
+$ you_do_not_have_this $ failed {
+    echo "Inside: {status}"
+}
+echo "Outside: {status}"

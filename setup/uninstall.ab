@@ -1,4 +1,4 @@
-import { includes } from "std/array"
+import { array_contains } from "std/array"
 import { get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 echo ""
@@ -6,7 +6,7 @@ echo ""
 main(args) {
     let arch = get_arch()
 
-    let user_only_install = includes(args, "--user")
+    let user_only_install = array_contains(args, "--user")
     let place = get_place(user_only_install)
     let bins_folder = get_bins_folder(user_only_install)
 

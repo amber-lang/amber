@@ -1,10 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
 use crate::translate::compute::{ArithOp, translate_computation};
 use crate::modules::expression::expr::Expr;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
 
@@ -46,13 +43,13 @@ impl SyntaxModule<ParserMetadata> for Modulo {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "modulo", self.left, self.right, [Num])?;
+        Self::typecheck_allowed_types(meta, "modulo", &self.left, &self.right, &[Type::Num])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Modulo {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         translate_computation(meta, ArithOp::Modulo, Some(left), Some(right))

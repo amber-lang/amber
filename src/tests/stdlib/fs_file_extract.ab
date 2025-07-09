@@ -1,0 +1,21 @@
+import * from "std/fs"
+import { array_contains } from "std/array"
+
+main {
+    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    cd tmpdir
+    trust $ touch test.txt $
+    silent trust $tar -czf "filename.tar.gz" "{tmpdir}/test.txt"$
+    trust $ rm "test.txt" $
+    let package = tmpdir + "/" + "filename.tar.gz"
+
+    file_extract(package, tmpdir) failed {
+        echo "Error"
+    }
+
+    if dir_exists(tmpdir + "/" + tmpdir) {
+        echo "Succeeded"
+    }
+
+    trust $ rm -rf "{tmpdir}" $
+}
