@@ -61,7 +61,7 @@ impl TranslateModule for Neq {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, true)
                 } else {
-                    unreachable!("Array equality requires both operands to be variables")
+                    unreachable!("Arrays are always represented as variable expressions when used as values")
                 }
             }
             _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?")).to_frag()

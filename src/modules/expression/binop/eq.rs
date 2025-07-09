@@ -61,7 +61,7 @@ impl TranslateModule for Eq {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, false)
                 } else {
-                    panic!("Array equality requires both operands to be variables")
+                    unreachable!("Arrays are always represented as variable expressions when used as values")
                 }
             }
             _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
