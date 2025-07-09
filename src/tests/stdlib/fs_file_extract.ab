@@ -2,20 +2,23 @@ import * from "std/fs"
 import { array_contains } from "std/array"
 
 main {
-    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
-    cd tmpdir
-    trust $ touch test.txt $
-    silent trust $tar -czf "filename.tar.gz" "{tmpdir}/test.txt"$
-    trust $ rm "test.txt" $
-    let package = tmpdir + "/" + "filename.tar.gz"
-
-    file_extract(package, tmpdir) failed {
-        echo "Error"
+    const src_dir = temp_dir_create("amber-test-src-XXXX")?
+    cd src_dir
+    $ touch test.txt $?
+    $ tar -czf "filename.tar.gz" "test.txt" $?
+    let package = "{src_dir}/filename.tar.gz"
+    if not file_exists(package) {
+        echo "Compression falis; {package} does not exists"
     }
 
-    if dir_exists(tmpdir + "/" + tmpdir) {
+    const dist_dir = temp_dir_create("amber-test-dist-XXXX")?
+    file_extract(package, dist_dir)?
+
+    if file_exists("{dist_dir}/test.txt") {
         echo "Succeeded"
+    } else {
+        echo "Extraction fails: {dist_dir}/test.txt does not exist"
     }
 
-    trust $ rm -rf "{tmpdir}" $
+    $ rm -rf {src_dir} {dist_dir} $?
 }
