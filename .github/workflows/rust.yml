@@ -65,6 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         bash_docker_image:
+          - "bash:5.3"
           - "bash:5.2"
           - "bash:5.1"
           - "bash:5.0"
