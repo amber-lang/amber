@@ -64,12 +64,10 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
-                    if let Some(fun_name) = self.fun_name.as_ref() {
-                        return error!(meta, tok, format!("The function '{fun_name}' requires a 'failed' block or statement to handle errors"))
-                    } else {
-                        return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    return match self.fun_name.as_ref() {
+                        Some(fun_name) => error!(meta, tok, format!("The function '{fun_name}' requires a 'failed' block or statement to handle errors")),
+                        _ => error!(meta, tok, "Failed expression must be followed by a block or statement")
                     }
-
                 }
             }
         }
