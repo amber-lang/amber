@@ -13,7 +13,7 @@ use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct IterLoop {
-    block: Block,
+    block: Box<Block>,
     iter_expr: Expr,
     iter_index: Option<String>,
     iter_name: String,
@@ -25,7 +25,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
     fn new() -> Self {
         IterLoop {
-            block: Block::new().with_needs_noop().with_condition(),
+            block: Box::new(Block::new().with_needs_noop().with_condition()),
             iter_expr: Expr::new(),
             iter_index: None,
             iter_name: String::new(),
@@ -59,7 +59,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
                 // Save loop context state and set it to true
                 meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
                     // Parse loop
-                    syntax(meta, &mut self.block)?;
+                    syntax(meta, &mut *self.block)?;
                     token(meta, "}")?;
                     Ok(())
                 })?;

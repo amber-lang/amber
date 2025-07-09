@@ -10,9 +10,9 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Mv {
-    source: Expr,
-    destination: Expr,
-    modifier: CommandModifier,
+    source: Box<Expr>,
+    destination: Box<Expr>,
+    modifier: Box<CommandModifier>,
     failed: Failed,
 }
 
@@ -21,18 +21,18 @@ impl SyntaxModule<ParserMetadata> for Mv {
 
     fn new() -> Self {
         Mv {
-            source: Expr::new(),
-            destination: Expr::new(),
+            source: Box::new(Expr::new()),
+            destination: Box::new(Expr::new()),
             failed: Failed::new(),
-            modifier: CommandModifier::new().parse_expr(),
+            modifier: Box::new(CommandModifier::new().parse_expr()),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        syntax(meta, &mut self.modifier)?;
+        syntax(meta, &mut *self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
             token(meta, "mv")?;
-            syntax(meta, &mut self.source)?;
+            syntax(meta, &mut *self.source)?;
             let mut path_type = self.source.get_type();
             if path_type != Type::Text {
                 let position = self.source.get_position(meta);
@@ -41,7 +41,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
                     comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
                 });
             }
-            syntax(meta, &mut self.destination)?;
+            syntax(meta, &mut *self.destination)?;
             path_type = self.destination.get_type();
             if path_type != Type::Text {
                 let position = self.destination.get_position(meta);
