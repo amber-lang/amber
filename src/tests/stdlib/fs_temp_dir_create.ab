@@ -9,6 +9,7 @@ fun filename(path: Text): Text {
 main {
     const path = temp_dir_create("amber-XXXX")?
     const filename = filename(path)
+    echo "{len(filename)} {len("amber-XXXX")} !=: {len(filename) != len("amber-XXXX")}"
     if {
         not starts_with(filename, "amber-") {
             echo "filename should start with \"amber-\", {filename} given"
