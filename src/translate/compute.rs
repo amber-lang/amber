@@ -7,7 +7,7 @@ pub enum ArithType {
     BcSed
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArithOp {
     Add,
     Sub,
