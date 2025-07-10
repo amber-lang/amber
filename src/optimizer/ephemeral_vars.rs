@@ -14,13 +14,9 @@ use crate::modules::prelude::*;
 
 pub fn remove_ephemeral_variables(ast: &mut FragmentKind) {
     if let FragmentKind::Block(block) = ast {
-        // Keep optimizing until no more changes can be made
-        let mut changed = true;
-        while changed {
-            changed = false;
-
-            let mut i = 0;
-            while i + 1 < block.statements.len() {
+        let mut i = 0;
+        while i < block.statements.len() {
+            if i + 1 < block.statements.len() {
                 let can_optimize = if let (FragmentKind::VarStmt(first), FragmentKind::VarStmt(second)) =
                     (&block.statements[i], &block.statements[i + 1]) {
                     if let FragmentKind::VarExpr(expression) = second.value.as_ref() {
@@ -51,13 +47,13 @@ pub fn remove_ephemeral_variables(ast: &mut FragmentKind) {
 
                     // Remove the first statement
                     block.statements.remove(i);
-                    changed = true;
 
-                    // Don't increment i since we removed a statement
-                } else {
-                    i += 1;
+                    // Don't increment i since we removed a statement and need to check the same position again
+                    // This handles transitive chains correctly in O(n) time
+                    continue;
                 }
             }
+            i += 1;
         }
 
         // Recursively optimize nested blocks
