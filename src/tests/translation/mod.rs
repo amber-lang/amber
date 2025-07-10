@@ -2,7 +2,8 @@ use crate::{compiler::{AmberCompiler, CompilerOptions}, modules::prelude::{Fragm
 
 /// Tests that check shell AST that Amber generates from the source code.
 
-pub mod numbers;
+pub mod number_binop;
+pub mod number_shorthand;
 
 pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<FragmentKind> {
     let options = CompilerOptions::default();

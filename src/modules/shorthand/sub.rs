@@ -54,8 +54,17 @@ impl TranslateModule for ShorthandSub {
         let var = VarExprFragment::new(&self.var, self.kind.clone())
             .with_global_id(self.global_id)
             .with_ref(self.is_ref);
-        let expr = self.expr.translate_eval(meta, self.is_ref);
-        let expr = translate_computation_eval(meta, ArithOp::Sub, Some(var.to_frag()), Some(expr), self.is_ref);
+        let expr = match self.kind {
+            Type::Int => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                ArithmeticFragment::new(var.to_frag(), ArithOp::Sub, expr).to_frag()
+            }
+            Type::Num => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                translate_computation_eval(meta, ArithOp::Sub, Some(var.to_frag()), Some(expr), self.is_ref)
+            }
+            _ => unreachable!("Unsupported type {} in shorthand subtraction operation", self.kind)
+        };
         VarStmtFragment::new(&self.var, self.kind.clone(), expr)
             .with_global_id(self.global_id)
             .with_ref(self.is_ref)
