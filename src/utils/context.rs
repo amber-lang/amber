@@ -44,7 +44,7 @@ pub struct VariableDecl {
     pub is_const: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ScopeUnit {
     pub vars: HashMap<String, VariableDecl>,
     pub funs: HashMap<String, FunctionDecl>,
@@ -53,10 +53,7 @@ pub struct ScopeUnit {
 /// Perform methods just on the scope
 impl ScopeUnit {
     pub fn new() -> ScopeUnit {
-        ScopeUnit {
-            vars: HashMap::new(),
-            funs: HashMap::new(),
-        }
+        ScopeUnit::default()
     }
 
     /* Variables */
