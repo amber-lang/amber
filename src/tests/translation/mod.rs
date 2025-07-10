@@ -1,7 +1,6 @@
 use crate::{compiler::{AmberCompiler, CompilerOptions}, modules::prelude::{FragmentKind, TranslateModule}, utils::TranslateMetadata};
 
-/// Tests that check shell AST that Amber generates from the source code.
-
+/// Tests that check shell AST that Amber generates from the source code.x
 pub mod number_binop;
 pub mod number_shorthand;
 
