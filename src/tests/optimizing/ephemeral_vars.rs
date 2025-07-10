@@ -32,7 +32,7 @@ fn test_remove_ephemeral_variables_transitive() {
     dbg!(&ast);
 
     let block = unwrap_fragment!(ast, Block);
-    assert_eq!(block.statements.len(), 2);
+    assert_eq!(block.statements.len(), 1);
     let variable = unwrap_fragment!(block.statements[0].clone(), VarStmt);
     assert_eq!(variable.get_name(), "c");
     let expr = unwrap_fragment!(*variable.value, Raw);

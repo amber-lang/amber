@@ -1,10 +1,6 @@
 use crate::modules::prelude::*;
 
-#[derive(Debug, Clone)]
-enum VariableAction {
-    Remove,
-    Reassign(Box<FragmentKind>),
-}
+
 
 // This optimizer reduces ephemeral variables to the variables that use them.
 // Ephemeral variable is a variable that is created internally by a compiler
@@ -18,46 +14,53 @@ enum VariableAction {
 
 pub fn remove_ephemeral_variables(ast: &mut FragmentKind) {
     if let FragmentKind::Block(block) = ast {
-        let mut state = vec![None; block.statements.len()];
+        // Keep optimizing until no more changes can be made
+        let mut changed = true;
+        while changed {
+            changed = false;
 
-        let mut i = 0;
-        for window in block.statements.windows(2) {
-            if let (FragmentKind::VarStmt(first), FragmentKind::VarStmt(second)) = (&window[0], &window[1]) {
-                if let FragmentKind::VarExpr(expression) = second.value.as_ref() {
-                    if first.is_ephemeral && first.get_name() == expression.get_name() {
-                        match state[i].take() {
-                            Some(VariableAction::Reassign(expr)) => {
-                                state[i] = Some(VariableAction::Remove);
-                                state[i + 1] = Some(VariableAction::Reassign(expr.clone()));
-                            },
-                            _ => {
-                                state[i] = Some(VariableAction::Remove);
-                                state[i + 1] = Some(VariableAction::Reassign(first.value.clone()));
-                            }
-                        }
-                        continue;
+            let mut i = 0;
+            while i + 1 < block.statements.len() {
+                let can_optimize = if let (FragmentKind::VarStmt(first), FragmentKind::VarStmt(second)) =
+                    (&block.statements[i], &block.statements[i + 1]) {
+                    if let FragmentKind::VarExpr(expression) = second.value.as_ref() {
+                        let is_regular_variable = !expression.is_length
+                            && !expression.is_ref
+                            && !expression.is_array_to_string
+                            && expression.index.is_none();
+                        first.is_ephemeral && first.get_name() == expression.get_name() && is_regular_variable
+                    } else {
+                        false
                     }
+                } else {
+                    false
+                };
+
+                if can_optimize {
+                    // Get the value from the first statement
+                    let value = if let FragmentKind::VarStmt(first) = &block.statements[i] {
+                        first.value.clone()
+                    } else {
+                        panic!("Expected VarStmt");
+                    };
+
+                    // Update the second statement to use the value from the first
+                    if let FragmentKind::VarStmt(second) = &mut block.statements[i + 1] {
+                        second.value = value;
+                    }
+
+                    // Remove the first statement
+                    block.statements.remove(i);
+                    changed = true;
+
+                    // Don't increment i since we removed a statement
+                } else {
+                    i += 1;
                 }
             }
-            i += 1;
         }
 
-        // Reassign the variables
-        for (i, stmt) in block.statements.iter_mut().enumerate() {
-            if let FragmentKind::VarStmt(var_stmt) = stmt {
-                match state[i].take() {
-                    Some(VariableAction::Reassign(expr)) => {
-                        var_stmt.value = expr;
-                    }
-                    other => {
-                        state[i] = other;
-                    }
-                }
-            }
-        }
-
-        // Remove the variables
-        block.statements.retain_mut(|_| !matches!(state[i].take(), Some(VariableAction::Remove)));
+        // Recursively optimize nested blocks
         for item in &mut block.statements {
             remove_ephemeral_variables(item);
         }
