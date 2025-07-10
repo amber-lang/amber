@@ -48,6 +48,7 @@ impl SyntaxModule<ParserMetadata> for Le {
             Type::Num,
             Type::Int,
             Type::Text,
+            Type::array_of(Type::Num),
             Type::array_of(Type::Int),
             Type::array_of(Type::Text),
         ])?;
@@ -68,14 +69,8 @@ impl TranslateModule for Le {
                 let right = self.right.translate(meta);
                 translate_float_computation(meta, ArithOp::Le, Some(left), Some(right))
             }
-            Type::Array(inner_type) => match *inner_type {
-                Type::Int => {
-                    translate_array_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right, Type::Int)
-                }
-                Type::Text => {
-                    translate_array_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right, Type::Text)
-                }
-                _ => unreachable!("Unsupported array type {} in less equal comparison", self.left.get_type())
+            Type::Array(inner_type) => {
+                translate_array_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right, *inner_type)
             }
             Type::Text => {
                 translate_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)

@@ -1,3 +1,4 @@
+use crate::translate::compute::translate_float_computation;
 use crate::{fragments, raw_fragment};
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
@@ -9,16 +10,18 @@ pub enum ComparisonOperator {
     Gt,
     Ge,
     Lt,
-    Le
+    Le,
+    Eq
 }
 
 impl ComparisonOperator {
-    fn get_bash_lexical_operators(&self) -> (FragmentKind, Option<FragmentKind>) {
+    fn get_bash_lexical_operators(&self) -> (ComparisonOperator, Option<ComparisonOperator>) {
         match self {
-            ComparisonOperator::Gt => (raw_fragment!(" > "), None),
-            ComparisonOperator::Ge => (raw_fragment!(" > "), Some(raw_fragment!(" == "))),
-            ComparisonOperator::Lt => (raw_fragment!(" < "), None),
-            ComparisonOperator::Le => (raw_fragment!(" < "), Some(raw_fragment!(" == ")))
+            ComparisonOperator::Gt => (ComparisonOperator::Gt, None),
+            ComparisonOperator::Ge => (ComparisonOperator::Gt, Some(ComparisonOperator::Eq)),
+            ComparisonOperator::Lt => (ComparisonOperator::Lt, None),
+            ComparisonOperator::Le => (ComparisonOperator::Lt, Some(ComparisonOperator::Eq)),
+            ComparisonOperator::Eq => (ComparisonOperator::Eq, None),
         }
     }
 
@@ -27,7 +30,18 @@ impl ComparisonOperator {
             ComparisonOperator::Gt => ComparisonOperator::Le,
             ComparisonOperator::Ge => ComparisonOperator::Lt,
             ComparisonOperator::Lt => ComparisonOperator::Ge,
-            ComparisonOperator::Le => ComparisonOperator::Gt
+            ComparisonOperator::Le => ComparisonOperator::Gt,
+            ComparisonOperator::Eq => ComparisonOperator::Eq,
+        }
+    }
+
+    pub fn to_arith_op(&self) -> ArithOp {
+        match self {
+            ComparisonOperator::Gt => ArithOp::Gt,
+            ComparisonOperator::Ge => ArithOp::Ge,
+            ComparisonOperator::Lt => ArithOp::Lt,
+            ComparisonOperator::Le => ArithOp::Le,
+            ComparisonOperator::Eq => ArithOp::Eq,
         }
     }
 
@@ -36,8 +50,13 @@ impl ComparisonOperator {
             ComparisonOperator::Gt => ">",
             ComparisonOperator::Ge => ">=",
             ComparisonOperator::Lt => "<",
-            ComparisonOperator::Le => "<="
+            ComparisonOperator::Le => "<=",
+            ComparisonOperator::Eq => "==",
         }
+    }
+
+    pub fn to_frag(&self) -> FragmentKind {
+        raw_fragment!(" {} ", self.to_string())
     }
 }
 
@@ -61,9 +80,11 @@ pub fn translate_lexical_comparison(
     };
     let (primary_operator, secondary_operator) = operator.get_bash_lexical_operators();
     let expr = if let Some(secondary_operator) = secondary_operator {
-        fragments!("[[ ", left.clone(), primary_operator, right.clone(), " || ", left, secondary_operator, right, " ]] && echo 1 || echo 0")
+        fragments!("[[ ",
+            left.clone(), primary_operator.to_frag(), right.clone(),
+            " || ", left, secondary_operator.to_frag(), right, " ]] && echo 1 || echo 0")
     } else {
-        fragments!("[[ ", left, primary_operator, right, " ]] && echo 1 || echo 0")
+        fragments!("[[ ", left, primary_operator.to_frag(), right, " ]] && echo 1 || echo 0")
     };
     SubprocessFragment::new(expr).to_frag()
 }
@@ -99,9 +120,9 @@ fn compare_array_lengths(
     operator: ComparisonOperator
 ) -> FragmentKind {
     let (op, eq) = operator.get_bash_lexical_operators();
-    let comparison_fragment = fragments!(left_len.clone().to_frag(), op, right_len.clone().to_frag());
+    let comparison_fragment = fragments!(left_len.clone().to_frag(), op.to_frag(), right_len.clone().to_frag());
     let full_comparison_fragment = if let Some(eq) = eq {
-        fragments!("(( ", left_len.clone().to_frag(), eq, right_len.clone().to_frag(), " || ", comparison_fragment, " ))")
+        fragments!("(( ", left_len.clone().to_frag(), eq.to_frag(), right_len.clone().to_frag(), " || ", comparison_fragment, " ))")
     } else {
         fragments!("(( ", comparison_fragment, " ))")
     };
@@ -142,22 +163,26 @@ pub fn translate_array_lexical_comparison(
     let pretty_op = operator.to_string();
     // Get the return value when intersection of both left and right values are equal
     let compared_array_lengths = compare_array_lengths(left_expr_length, right_expr_length, operator);
+    let if_cond = match kind {
+        Type::Num => fragments!("(( ", translate_float_computation(meta, op.to_arith_op(), Some(left_helper_expr.clone().to_frag()), Some(right_helper_expr.clone().to_frag())), " != 0 ))"),
+        Type::Int => fragments!("(( ", left_helper_expr.clone().to_frag(), op.to_frag(), right_helper_expr.clone().to_frag(), " ))"),
+        Type::Text => fragments!("[[ ", left_helper_expr.clone().to_frag(), op.to_frag(), right_helper_expr.clone().to_frag(), " ]]"),
+        _ => panic!("Unsupported type {} in array lexical comparison", kind)
+    };
+    let elif_cond = match kind {
+        Type::Num => fragments!("(( ", translate_float_computation(meta, inv_op.to_arith_op(), Some(left_helper_expr.to_frag()), Some(right_helper_expr.to_frag())), " != 0 ))"),
+        Type::Int => fragments!("(( ", left_helper_expr.to_frag(), inv_op.to_frag(), right_helper_expr.to_frag(), " ))"),
+        Type::Text => fragments!("[[ ", left_helper_expr.to_frag(), inv_op.to_frag(), right_helper_expr.to_frag(), " ]]"),
+        _ => panic!("Unsupported type {} in array lexical comparison", kind)
+    };
     // If statement that compares two values of the arrays
     let if_stmt = BlockFragment::new(vec![
-        if kind == Type::Int {
-            fragments!("if (( ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " )); then")
-        } else {
-            fragments!("if [[ ", left_helper_expr.clone().to_frag(), op, right_helper_expr.clone().to_frag(), " ]]; then")
-        },
+        fragments!("if ", if_cond, "; then"),
         BlockFragment::new(vec![
             fragments!("echo 1"),
             fragments!("exit"),
         ], true).to_frag(),
-        if kind == Type::Int {
-            fragments!("elif (( ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " )); then")
-        } else {
-            fragments!("elif [[ ", left_helper_expr.to_frag(), inv_op, right_helper_expr.to_frag(), " ]]; then")
-        },
+        fragments!("elif ", elif_cond, "; then"),
         BlockFragment::new(vec![
             fragments!("echo 0"),
             fragments!("exit"),
