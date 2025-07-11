@@ -55,6 +55,7 @@ fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, to
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
+    let tok = meta.get_current_token();
     // Handle full string
     if let Ok(word) = token_by(meta, |word| {
         word.starts_with(letter)
@@ -64,8 +65,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     }) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         // Validate escape sequences in the string content
-        let current_token = meta.get_current_token();
-        validate_escape_sequences(meta, &stripped, current_token);
+        validate_escape_sequences(meta, &stripped, tok);
         strings.push(stripped);
         Ok((strings, interps))
     }
@@ -75,8 +75,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         let start = token_by(meta, |word| word.starts_with(letter))?;
         let start_content = start.chars().skip(1).collect::<String>();
         // Validate escape sequences in the initial string part
-        let current_token = meta.get_current_token();
-        validate_escape_sequences(meta, &start_content, current_token);
+        validate_escape_sequences(meta, &start_content, tok);
         strings.push(start_content);
         // Factor rest of the interpolation
         while let Some(tok) = meta.get_current_token() {
