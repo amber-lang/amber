@@ -37,3 +37,52 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+// Test that invalid escape sequences generate warnings
+#[test]
+fn invalid_escape_sequence_warning() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
+
+    cmd.arg("eval")
+        .arg(r#"echo "\c""#);
+
+    cmd.assert()
+        .success()
+        .stderr(predicate::str::contains("WARN  Invalid escape sequence '\\c'"))
+        .stderr(predicate::str::contains("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\"))
+        .stdout(predicate::str::contains("\\c"));
+
+    Ok(())
+}
+
+// Test that valid escape sequences don't generate warnings
+#[test]
+fn valid_escape_sequence_no_warning() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
+
+    cmd.arg("eval")
+        .arg(r#"echo "\n\t\\""#);
+
+    cmd.assert()
+        .success()
+        .stderr(predicate::str::contains("WARN").not());
+
+    Ok(())
+}
+
+// Test multiple invalid escape sequences
+#[test]
+fn multiple_invalid_escape_sequences() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
+
+    cmd.arg("eval")
+        .arg(r#"echo "\x\y\z""#);
+
+    cmd.assert()
+        .success()
+        .stderr(predicate::str::contains("Invalid escape sequence '\\x'"))
+        .stderr(predicate::str::contains("Invalid escape sequence '\\y'"))
+        .stderr(predicate::str::contains("Invalid escape sequence '\\z'"));
+
+    Ok(())
+}
