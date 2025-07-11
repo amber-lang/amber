@@ -40,12 +40,9 @@ fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, to
                     // Invalid escape sequences
                     _ => {
                         let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
-                        let message = match tok {
-                            Some(token) => Message::new_warn_at_token(meta, Some(token.clone())),
-                            None => Message::new_warn_msg(warning_msg.clone())
-                        }
-                        .message(warning_msg)
-                        .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
+                        let message = Message::new_warn_at_token(meta, tok.cloned())
+                            .message(warning_msg)
+                            .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
                         meta.add_message(message);
                         chars.next(); // consume the invalid escape character
                     }
