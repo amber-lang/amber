@@ -40,39 +40,12 @@ fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, to
                     // Invalid escape sequences
                     _ => {
                         let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
-                        let message = if let Some(token) = tok {
-                            Message::new_warn_at_token(meta, Some(token.clone()))
-                                .message(warning_msg)
-                                .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\")
-                        } else {
-                            Message::new_warn_msg(warning_msg)
-                                .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\")
-                        };
-                        meta.add_message(message);
-                        chars.next(); // consume the invalid escape character
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn validate_escape_sequences_with_token(meta: &mut ParserMetadata, string_content: &str, tok: &Token) {
-    let mut chars = string_content.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '\\' {
-            if let Some(&next_char) = chars.peek() {
-                match next_char {
-                    // Valid escape sequences
-                    'n' | 't' | 'r' | '0' | '{' | '$' | '\'' | '"' | '\\' => {
-                        chars.next(); // consume the valid escape character
-                    }
-                    // Invalid escape sequences
-                    _ => {
-                        let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
-                        let message = Message::new_warn_at_token(meta, Some(tok.clone()))
-                            .message(warning_msg)
-                            .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
+                        let message = match tok {
+                            Some(token) => Message::new_warn_at_token(meta, Some(token.clone())),
+                            None => Message::new_warn_msg(warning_msg.clone())
+                        }
+                        .message(warning_msg)
+                        .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
                         meta.add_message(message);
                         chars.next(); // consume the invalid escape character
                     }
@@ -129,13 +102,13 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                         let trimmed = string_content
                             .chars().take(string_content.chars().count() - 1).collect::<String>();
                         // Validate escape sequences in this string part
-                        validate_escape_sequences_with_token(meta, &trimmed, &tok);
+                        validate_escape_sequences(meta, &trimmed, Some(&tok));
                         // replace the last string
                         strings.push(trimmed);
                         return Ok((strings, interps))
                     } else {
                         // Validate escape sequences in this string part
-                        validate_escape_sequences_with_token(meta, &string_content, &tok);
+                        validate_escape_sequences(meta, &string_content, Some(&tok));
                         strings.push(string_content);
                     }
                 }
