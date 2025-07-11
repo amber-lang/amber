@@ -39,7 +39,7 @@ fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, to
                     }
                     // Invalid escape sequences
                     _ => {
-                        let warning_msg = format!("Invalid escape sequence '\\{}'", next_char);
+                        let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
                         let message = if let Some(token) = tok {
                             Message::new_warn_at_token(meta, Some(token.clone()))
                                 .message(warning_msg)
