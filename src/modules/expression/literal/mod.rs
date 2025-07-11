@@ -27,7 +27,7 @@ fn is_escaped(word: &str, symbol: char) -> bool {
     backslash_count % 2 != 0
 }
 
-fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, tok: Option<Token>) {
+fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, tok: Option<&Token>) {
     let mut chars = string_content.chars().peekable();
     while let Some(c) = chars.next() {
         if c == '\\' {
@@ -40,7 +40,7 @@ fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, to
                     // Invalid escape sequences
                     _ => {
                         let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
-                        let message = Message::new_warn_at_token(meta, tok.clone())
+                        let message = Message::new_warn_at_token(meta, tok.cloned())
                             .message(warning_msg)
                             .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
                         meta.add_message(message);
@@ -65,7 +65,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     }) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         // Validate escape sequences in the string content
-        validate_escape_sequences(meta, &stripped, tok);
+        validate_escape_sequences(meta, &stripped, tok.as_ref());
         strings.push(stripped);
         Ok((strings, interps))
     }
@@ -75,7 +75,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         let start = token_by(meta, |word| word.starts_with(letter))?;
         let start_content = start.chars().skip(1).collect::<String>();
         // Validate escape sequences in the initial string part
-        validate_escape_sequences(meta, &start_content, tok);
+        validate_escape_sequences(meta, &start_content, tok.as_ref());
         strings.push(start_content);
         // Factor rest of the interpolation
         while let Some(tok) = meta.get_current_token() {
@@ -98,13 +98,13 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                         let trimmed = string_content
                             .chars().take(string_content.chars().count() - 1).collect::<String>();
                         // Validate escape sequences in this string part
-                        validate_escape_sequences(meta, &trimmed, Some(tok.clone()));
+                        validate_escape_sequences(meta, &trimmed, Some(&tok));
                         // replace the last string
                         strings.push(trimmed);
                         return Ok((strings, interps))
                     } else {
                         // Validate escape sequences in this string part
-                        validate_escape_sequences(meta, &string_content, Some(tok.clone()));
+                        validate_escape_sequences(meta, &string_content, Some(&tok));
                         strings.push(string_content);
                     }
                 }
