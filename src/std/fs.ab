@@ -57,7 +57,7 @@ pub fun dir_create(path: Text): Null {
 /// Determine whether mktemp is OSX's.
 fun is_osx_mktemp(): Bool {
     // OSX's mktemp does not have --version
-    const path = silent $ mktemp --version $ failed {
+    silent $ mktemp --version $ failed {
         return true
     }
     return false
