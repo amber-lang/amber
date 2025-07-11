@@ -28,10 +28,10 @@ fn is_escaped(word: &str, symbol: char) -> bool {
 }
 
 fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, tok: Option<Token>) {
-    let mut chars = string_content.chars().enumerate().peekable();
-    while let Some((pos, c)) = chars.next() {
+    let mut chars = string_content.chars().peekable();
+    while let Some(c) = chars.next() {
         if c == '\\' {
-            if let Some((_, next_char)) = chars.peek() {
+            if let Some(&next_char) = chars.peek() {
                 match next_char {
                     // Valid escape sequences
                     'n' | 't' | 'r' | '0' | '{' | '$' | '\'' | '"' | '\\' => {
@@ -40,18 +40,9 @@ fn validate_escape_sequences(meta: &mut ParserMetadata, string_content: &str, to
                     // Invalid escape sequences
                     _ => {
                         let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
-                        let message = if let Some(mut token) = tok.clone() {
-                            // Adjust the token position to point to the escape sequence
-                            // The escape sequence starts at pos within the string content
-                            // We need to account for the opening quote (1 character) + the position within content
-                            let escape_pos = token.pos.1 + pos + 1; // +1 for the opening quote
-                            token.pos.1 = escape_pos;
-                            Message::new_warn_at_token(meta, Some(token))
-                        } else {
-                            Message::new_warn_at_token(meta, tok.clone())
-                        }
-                        .message(warning_msg)
-                        .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
+                        let message = Message::new_warn_at_token(meta, tok.clone())
+                            .message(warning_msg)
+                            .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
                         meta.add_message(message);
                         chars.next(); // consume the invalid escape character
                     }
@@ -73,8 +64,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
     }) {
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         // Validate escape sequences in the string content
-        // Get the token that was just matched by token_by
-        let current_token = meta.get_token_at(meta.get_index() - 1);
+        let current_token = meta.get_current_token();
         validate_escape_sequences(meta, &stripped, current_token);
         strings.push(stripped);
         Ok((strings, interps))
@@ -85,7 +75,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         let start = token_by(meta, |word| word.starts_with(letter))?;
         let start_content = start.chars().skip(1).collect::<String>();
         // Validate escape sequences in the initial string part
-        let current_token = meta.get_token_at(meta.get_index() - 1);
+        let current_token = meta.get_current_token();
         validate_escape_sequences(meta, &start_content, current_token);
         strings.push(start_content);
         // Factor rest of the interpolation
