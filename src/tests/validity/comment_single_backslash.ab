@@ -1,0 +1,5 @@
+// Test that comments with single backslash are handled correctly
+// lorem \\
+// ipsum
+
+echo "test"
