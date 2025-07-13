@@ -9,5 +9,4 @@ main {
     if file_chmod("{tmpdir}/amber-symbolic", "+x") {
         echo "created"
     }
-    trust $ rm -rf {tmpdir} $
 } 
