@@ -1,0 +1,9 @@
+// Output
+// hello world
+
+// Test various backslash scenarios in comments
+// lorem \\
+// ipsum
+// Multiple backslashes \\\\
+// Mixed content \\ and text
+echo "hello world"

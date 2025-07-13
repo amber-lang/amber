@@ -17,7 +17,14 @@ impl SyntaxModule<ParserMetadata> for Comment {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let value = token_by(meta, |word| word.starts_with("//"))?;
-        self.value = value.get(2..).unwrap_or("").trim().to_string();
+        let comment_text = value.get(2..).unwrap_or("");
+        
+        // Handle the case where line continuation causes multiple lines to be in one token
+        // We only want the first line as the comment content, ignoring subsequent lines
+        // that were merged due to line continuation
+        let first_line = comment_text.lines().next().unwrap_or("").trim();
+        self.value = first_line.to_string();
+        
         Ok(())
     }
 }
