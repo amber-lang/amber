@@ -4,7 +4,7 @@ use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 /// Represents a region that can be interpolated. Similarily to what Heraclitus returns when parsing a region.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InterpolableRenderType {
     /// This should be rendered to Bash's double quoted string
     StringLiteral,
@@ -12,7 +12,7 @@ pub enum InterpolableRenderType {
     GlobalContext,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InterpolableFragment {
     pub strings: VecDeque<String>,
     pub interps: VecDeque<FragmentKind>,

@@ -15,7 +15,7 @@ pub trait FragmentRenderable {
     fn to_frag(self) -> FragmentKind;
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub enum FragmentKind {
     Raw(RawFragment),
     VarExpr(VarExprFragment),

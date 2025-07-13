@@ -26,6 +26,40 @@ pub enum ArithOp {
     Or
 }
 
+pub fn translate_bc_sed_computation(
+    op: ArithOp,
+    left: FragmentKind,
+    right: FragmentKind
+) -> FragmentKind {
+    let mut math_lib_flag = true;
+    // Removes trailing zeros from the expression
+    let sed_regex = RawFragment::new("/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//").to_frag();
+    let op_str = match op {
+        ArithOp::Add => "+",
+        ArithOp::Sub => "-",
+        ArithOp::Mul => "*",
+        ArithOp::Div => "/",
+        ArithOp::Modulo => {
+            math_lib_flag = false;
+            "%"
+        },
+        ArithOp::Neg => "-",
+        ArithOp::Gt => ">",
+        ArithOp::Ge => ">=",
+        ArithOp::Lt => "<",
+        ArithOp::Le => "<=",
+        ArithOp::Eq => "==",
+        ArithOp::Neq => "!=",
+        ArithOp::Not => "!",
+        ArithOp::And => "&&",
+        ArithOp::Or => "||"
+    };
+    let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
+    let operator = RawFragment::from(format!(" '{op_str}' ")).to_frag();
+    let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed '", sed_regex, "'");
+    SubprocessFragment::new(value).to_frag()
+}
+
 pub fn translate_float_computation(
     meta: &TranslateMetadata,
     operator: ArithOp,
@@ -38,33 +72,7 @@ pub fn translate_float_computation(
                 left.unwrap_or(FragmentKind::Empty),
                 right.unwrap_or(FragmentKind::Empty)
             );
-            let mut math_lib_flag = true;
-            // Removes trailing zeros from the expression
-            let sed_regex = RawFragment::new("/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//").to_frag();
-            let op = match operator {
-                ArithOp::Add => "+",
-                ArithOp::Sub => "-",
-                ArithOp::Mul => "*",
-                ArithOp::Div => "/",
-                ArithOp::Modulo => {
-                    math_lib_flag = false;
-                    "%"
-                },
-                ArithOp::Neg => "-",
-                ArithOp::Gt => ">",
-                ArithOp::Ge => ">=",
-                ArithOp::Lt => "<",
-                ArithOp::Le => "<=",
-                ArithOp::Eq => "==",
-                ArithOp::Neq => "!=",
-                ArithOp::Not => "!",
-                ArithOp::And => "&&",
-                ArithOp::Or => "||"
-            };
-            let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
-            let operator = RawFragment::from(format!(" '{op}' ")).to_frag();
-            let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed '", sed_regex, "'");
-            SubprocessFragment::new(value).to_frag()
+            translate_bc_sed_computation(operator, left, right)
         }
     }
 }

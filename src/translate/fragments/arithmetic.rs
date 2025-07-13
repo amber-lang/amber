@@ -4,7 +4,7 @@ use crate::{translate::compute::ArithOp, utils::TranslateMetadata};
 use super::fragment::{FragmentKind, FragmentRenderable};
 
 // Creates a subprocess fragment that is correctly escaped.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArithmeticFragment {
     pub left: Box<Option<FragmentKind>>,
     pub right: Box<Option<FragmentKind>>,
