@@ -1,7 +1,7 @@
 // Output
 // 1100
 
-fun sum_array(a : [Num] = [Num]): Num {
+fun sum_array(a : [Int] = [Int]): Int {
     let sum = 0
     for n in a {
         sum += n;

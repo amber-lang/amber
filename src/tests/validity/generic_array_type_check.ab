@@ -12,7 +12,7 @@ fun test(arr: []) {
                 echo "Generic"
         }
 
-        if arr is [Num] {
+        if arr is [Int] {
                 echo "Number"
         }
 

@@ -53,15 +53,20 @@ pub trait BinOp: SyntaxModule<ParserMetadata> {
         left: &Expr,
         right: &Expr,
     ) -> Result<Type, Failure> {
-        let left_type = left.get_type();
-        let right_type = right.get_type();
-        if left_type != right_type {
-            let pos = get_binop_position_info(meta, left, right);
-            let message = Message::new_err_at_position(meta, pos)
-                .message(format!("Expected both operands to be of the same type, but got '{left_type}' and '{right_type}'."));
-            Err(Failure::Loud(message))
-        } else {
-            Ok(left_type)
+        match (left.get_type(), right.get_type()) {
+            (Type::Int, Type::Num) | (Type::Num, Type::Int) => {
+                Ok(Type::Num)
+            }
+            (left_type, right_type) => {
+                if left_type != right_type {
+                    let pos = get_binop_position_info(meta, left, right);
+                    let message = Message::new_err_at_position(meta, pos)
+                        .message(format!("Expected both operands to be of the same type, but got '{left_type}' and '{right_type}'."));
+                    Err(Failure::Loud(message))
+                } else {
+                    Ok(left_type)
+                }
+            }
         }
     }
 }

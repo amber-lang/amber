@@ -40,7 +40,10 @@ impl SyntaxModule<ParserMetadata> for ShorthandModulo {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
-        shorthand_typecheck_allowed_types(meta, "modulo", &self.kind, &self.expr, &[Type::Num])?;
+        shorthand_typecheck_allowed_types(meta, "modulo", &self.kind, &self.expr, &[
+            Type::Num,
+            Type::Int
+        ])?;
         Ok(())
     }
 }
@@ -51,8 +54,17 @@ impl TranslateModule for ShorthandModulo {
         let var = VarExprFragment::new(&self.var, self.kind.clone())
             .with_global_id(self.global_id)
             .with_ref(self.is_ref);
-        let expr = self.expr.translate_eval(meta, self.is_ref);
-        let expr = translate_computation_eval(meta, ArithOp::Modulo, Some(var.to_frag()), Some(expr), self.is_ref);
+        let expr = match self.kind {
+            Type::Int => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                ArithmeticFragment::new(var.to_frag(), ArithOp::Modulo, expr).to_frag()
+            }
+            Type::Num => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                translate_computation_eval(meta, ArithOp::Modulo, Some(var.to_frag()), Some(expr), self.is_ref)
+            }
+            _ => unreachable!("Unsupported type {} in shorthand modulo operation", self.kind)
+        };
         VarStmtFragment::new(&self.var, self.kind.clone(), expr)
             .with_global_id(self.global_id)
             .with_ref(self.is_ref)

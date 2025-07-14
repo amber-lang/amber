@@ -1,10 +1,10 @@
 // We cannot import `bash_version` from `env.ab` because it imports `text.ab` making a circular dependency.
 // This is a workaround to avoid that issue and the import system should be improved in the future.
 #[allow_absurd_cast]
-fun bash_version(): [Num] {
-    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
-    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Num
-    let patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Num
+fun bash_version(): [Int] {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
+    let patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Int
     return [major, minor, patch]
 }
 

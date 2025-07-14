@@ -4,7 +4,7 @@ use crate::modules::prelude::*;
 
 use super::get_variable_name;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VarStmtFragment {
     pub name: String,
     pub global_id: Option<usize>,

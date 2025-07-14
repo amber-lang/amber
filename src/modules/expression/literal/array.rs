@@ -60,7 +60,8 @@ impl SyntaxModule<ParserMetadata> for Array {
                         Type::Null => self.kind = Type::Array(Box::new(value.get_type())),
                         Type::Array(ref mut kind) => {
                             if value.get_type() != **kind {
-                                return error!(meta, tok, format!("Expected array value of type '{kind}'"))
+                                let pos = value.get_position(meta);
+                                return error_pos!(meta, pos, format!("Expected array value of type '{kind}'"))
                             }
                         },
                         _ => ()
