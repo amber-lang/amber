@@ -54,9 +54,9 @@ pub fun dir_create(path: Text): Null {
     }
 }
 
-/// Determine whether mktemp is OSX's.
-fun is_osx_mktemp(): Bool {
-    // OSX's mktemp does not have --version
+/// Determine whether mktemp is macOS's.
+fun is_mac_os_mktemp(): Bool {
+    // macOS's mktemp does not have --version
     silent $ mktemp --version $ failed {
         return true
     }
@@ -76,12 +76,12 @@ pub fun temp_dir_create(
     }
 
     let filename = ""
-    if not is_osx_mktemp() {
-        filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
-    } else {
+    if is_mac_os_mktemp() {
         // usage: mktemp [-d] [-p tmpdir] [-q] [-t prefix] [-u] template ...
         //        mktemp [-d] [-p tmpdir] [-q] [-u] -t prefix
         filename = $ mktemp -d -p "\$TMPDIR" "{template}" $?
+    } else {
+        filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
     }
     if filename == "" {
         echo "Failed to make a temporary directory"
