@@ -39,9 +39,9 @@ struct Cli {
     args: Vec<String>,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -78,9 +78,9 @@ struct RunCommand {
     args: Vec<String>,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -91,9 +91,9 @@ struct CheckCommand {
     input: PathBuf,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -107,9 +107,9 @@ struct BuildCommand {
     output: Option<PathBuf>,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 
