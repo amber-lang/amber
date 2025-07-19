@@ -1,9 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
-use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
 

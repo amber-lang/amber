@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::fragments;
 use crate::modules::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,7 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};

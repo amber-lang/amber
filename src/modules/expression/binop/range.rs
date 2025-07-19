@@ -7,13 +7,9 @@ use crate::translate::compute::{translate_float_computation, ArithOp};
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
-use crate::modules::{expression::expr::Expr, types::{Type, Typed}};
 use crate::utils::metadata::ParserMetadata;
-use crate::translate::compute::{translate_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
-use super::BinOp;
 use std::cmp::max;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

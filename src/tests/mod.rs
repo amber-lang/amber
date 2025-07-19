@@ -1,7 +1,6 @@
 use crate::compiler::file_source::{FileMeta, FileSource};
 use crate::compiler::{AmberCompiler, CompilerOptions};
 extern crate test_generator;
-use crate::compiler::{AmberCompiler, CompilerOptions};
 use heraclitus_compiler::prelude::Message;
 use itertools::Itertools;
 use pretty_assertions::assert_eq;
@@ -37,7 +36,7 @@ pub enum TestOutcomeTarget {
 
 fn eval_amber(code: &str) -> Result<String, Message> {
     let options = CompilerOptions::default();
-    let mut compiler = AmberCompiler::new(code.to_string(), None, options);
+    let mut compiler = AmberCompiler::new(code.to_string(), None, options, FileMeta::stream(false));
     compiler.test_eval()
 }
 

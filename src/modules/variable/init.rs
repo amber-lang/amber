@@ -1,9 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Typed, Type};
-use crate::modules::prelude::*;
 use crate::modules::types::Typed;
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use super::{variable_name_extensions, handle_identifier_name};
 

@@ -3,13 +3,9 @@ use std::mem::swap;
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
-use crate::modules::types::{Type, Typed};
-use crate::modules::expression::literal::bool;
-use crate::modules::condition::failed::Failed;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::literal::parse_interpolated_region;
 use super::modifier::CommandModifier;
-use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::fragments;
 

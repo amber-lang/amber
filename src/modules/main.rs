@@ -3,6 +3,7 @@ use crate::raw_fragment;
 use crate::modules::types::Type;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use super::variable::variable_name_extensions;
 

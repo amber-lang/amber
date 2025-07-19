@@ -4,9 +4,8 @@ use crate::modules::variable::{handle_index_accessor, handle_variable_reference,
 use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::{docs::module::DocumentationModule, utils::{ParserMetadata, TranslateMetadata}};
 use crate::translate::module::TranslateModule;
-use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VariableGet {

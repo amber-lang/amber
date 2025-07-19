@@ -1,10 +1,11 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Integer {
     pub value: String
 }

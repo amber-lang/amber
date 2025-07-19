@@ -5,7 +5,6 @@ use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 use crate::raw_fragment;
 use crate::modules::prelude::*;
-use crate::modules::types::{Type, Typed};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bool {
