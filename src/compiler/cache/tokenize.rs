@@ -42,7 +42,9 @@ impl PretokenizedFile {
                     return Ok(None)
                 }
             },
-            _ => unimplemented!()
+            FileSource::Stream => {
+                return Ok(None)
+            }
         }
 
         let cache_filename = Self::get_path(&filename, file_meta);
@@ -85,7 +87,7 @@ impl PretokenizedFile {
                 }
             },
             FileSource::Stream => {
-                // Should not be cached
+                // Should not be even reachable
                 return Ok(());
             },
         };
