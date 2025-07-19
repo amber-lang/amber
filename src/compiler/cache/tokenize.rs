@@ -83,8 +83,11 @@ impl PretokenizedFile {
                 } else {
                     return Err(String::from("Couldn't find stdlib file").into())
                 }
-            }
-            _ => unimplemented!()
+            },
+            FileSource::Stream => {
+                // Should not be cached
+                return Ok(());
+            },
         };
         
         let cache = Self {
