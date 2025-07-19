@@ -1,0 +1,13 @@
+import * from "std/array"
+
+// Output
+// Not Found
+
+main {
+    let array = [Num]
+    if array_contains(array, 0) {
+        echo "Found"
+    } else {
+        echo "Not Found"
+    }
+}

@@ -1,11 +1,12 @@
 [package]
 name = "amber"
-version = "0.3.5-alpha"
+version = "0.4.0-alpha"
 edition = "2021"
 repository = "https://github.com/amber-lang/Amber"
 homepage = "https://amber-lang.com/"
 description = "The Programming Language compiled to Bash."
 rust-version = "1.79"
+build = "build.rs"
 
 [package.metadata.deb]
 maintainer = "Amber-Lang project"
@@ -24,7 +25,7 @@ glob = "0.3"
 heraclitus-compiler = { path = "../heraclitus", features = ["serde"] }
 home = "0.5.9"
 include_dir = "0.7.4"
-indicatif = "0.17.9"
+insta = "1.43.1"
 itertools = "0.13.0"
 rmp-serde = "1.3.0"
 serde = { version = "1.0.215", features = ["derive"] }
@@ -36,6 +37,7 @@ wildmatch = "2.4.0"
 [dev-dependencies]
 assert_cmd = "2.0.14"
 predicates = "3.1.0"
+pretty_assertions = "1.4.1"
 tempfile = "3.10.1"
 tiny_http = "0.12.0"
 
@@ -78,3 +80,4 @@ allow-dirty = ["ci"]
 
 [build-dependencies]
 build-helper = "0.1.1"
+built = { version = "0.7", features = [ "git2" ] }

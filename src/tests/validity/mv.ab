@@ -1,9 +1,10 @@
 import * from "std/fs"
+
 main {
     let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
     trust $ touch {tmpdir}/a $
     trust mv "{tmpdir}/a" "{tmpdir}/b"
-    if file_exist("{tmpdir}/b") {
+    if file_exists("{tmpdir}/b") {
         echo "Succeeded"
     } else {
         echo "Not Found"

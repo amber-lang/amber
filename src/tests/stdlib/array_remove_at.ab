@@ -1,0 +1,25 @@
+import { array_remove_at } from "std/array"
+
+// Output
+// Array after -5: (4) [zero one two three]
+// Array after -4: (4) [zero one two three]
+// Array after -3: (4) [zero one two three]
+// Array after -2: (4) [zero one two three]
+// Array after -1: (4) [zero one two three]
+// Array after 0: (3) [one two three]
+// Array after 1: (3) [zero two three]
+// Array after 2: (3) [zero one three]
+// Array after 3: (3) [zero one two]
+// Array after 4: (4) [zero one two three]
+
+fun test_remove(data: [Text], index: Num): Null {
+    array_remove_at(data, index)
+    echo "Array after {index}: ({len(data)}) [{data}]"
+}
+
+main {
+    let numbers = ["zero", "one", "two", "three"]
+    for index in -5..=4 {
+        test_remove(numbers, index)
+    }
+}

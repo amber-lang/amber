@@ -1,0 +1,32 @@
+// Output
+// Init: 12
+// Looping: 1
+// Looping: 2
+// Looping: 3
+// Middle: 12
+// If: 24
+// End: 12
+// Outer: 42
+
+const x = 42
+
+fun foo() {
+    const x = 12
+    echo "Init: {x}"
+
+    for i in [1, 2, 3] {
+        const x = i
+        echo "Looping: {x}"
+    }
+    echo "Middle: {x}"
+
+    if x >= 12 {
+        const x = 24
+        echo "If: {x}"
+    }
+    echo "End: {x}"
+}
+
+foo()
+
+echo "Outer: {x}"

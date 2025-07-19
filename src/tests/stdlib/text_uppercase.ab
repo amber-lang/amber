@@ -1,0 +1,8 @@
+import * from "std/text"
+
+// Output
+// HELLO WORLD
+
+main {
+    echo uppercase("hello world")
+} 

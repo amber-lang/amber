@@ -1,3 +1,5 @@
+use crate::fragments;
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
@@ -26,8 +28,8 @@ impl SyntaxModule<ParserMetadata> for Continue {
 }
 
 impl TranslateModule for Continue {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "continue".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("continue")
     }
 }
 

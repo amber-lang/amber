@@ -1,0 +1,11 @@
+// Output
+// Cannot pass 1st argument 'array' as a reference to the function 'foo' because it is not a variable
+
+fun foo(ref array) {
+    for i in array {
+        echo i
+    }
+}
+
+let array = [1, 2, 3]
+foo(array[0..2])

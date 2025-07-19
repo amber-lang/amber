@@ -1,0 +1,22 @@
+import { array_find } from "std/array"
+
+// Output
+// Index of "zero": 0
+// Index of "one": 1
+// Index of "two": 2
+// Index of "three": 3
+// Index of "four": -1
+
+fun test_index(data: [Text], value: Text): Null {
+    let index = array_find(data, value)
+    echo "Index of \"{value}\": {index}"
+}
+
+main {
+    let numbers = ["zero", "one", "two", "three", "two", "one", "zero"]
+    test_index(numbers, "zero")
+    test_index(numbers, "one")
+    test_index(numbers, "two")
+    test_index(numbers, "three")
+    test_index(numbers, "four")
+}

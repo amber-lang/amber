@@ -1,5 +1,8 @@
 // Output
 // 1
+// 2
+// 2.5
 
-let a = 10 % 3
-echo a
+echo 10 % 3
+echo 16 % 7 % 5
+echo 16.2 % 8.5 % 5.2

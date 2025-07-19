@@ -1,0 +1,8 @@
+import * from "std/env"
+
+// Output
+// [1;3;97;41mHello Amber![0m
+
+main {
+    echo_error("Hello Amber!", 0)
+} 

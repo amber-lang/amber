@@ -1,0 +1,15 @@
+// Output
+// 2
+// 3.43
+
+fun foo(ref a) {
+    a %= 5
+}
+
+let a = 17
+foo(a)
+echo a
+
+let a = 123.43
+foo(a)
+echo a

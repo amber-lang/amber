@@ -1,0 +1,6 @@
+// Output
+// Argument 'a' is already defined
+
+fun foo(a, a) {
+    return a
+}

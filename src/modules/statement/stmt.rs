@@ -1,8 +1,8 @@
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
-use crate::modules::variable::constinit::ConstInit;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
@@ -73,7 +73,6 @@ pub enum StatementType {
     CommandModifier(CommandModifier),
     Comment(Comment),
     CommentDoc(CommentDoc),
-    ConstInit(ConstInit),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -91,14 +90,14 @@ impl Statement {
         InfiniteLoop, IterLoop, Break, Continue,
         // Conditions
         IfChain, IfCondition,
+        // Command
+        CommandModifier, Echo, Mv, Cd, Exit,
         // Variables
-        VariableInit, VariableSet, ConstInit,
+        VariableInit, VariableSet,
         // Short hand
         ShorthandAdd, ShorthandSub,
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
-        // Command
-        CommandModifier, Echo, Mv, Cd, Exit,
         // Comment doc
         CommentDoc, Comment,
         // Expression
@@ -157,22 +156,26 @@ impl SyntaxModule<ParserMetadata> for Statement {
 }
 
 impl TranslateModule for Statement {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
-        let translated = match statement {
-            StatementType::Expr(expr) => match &expr.value {
-                Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
-                _ => format!("echo {} > /dev/null 2>&1", self.translate_match(meta, statement))
+        match statement {
+            StatementType::Expr(expr) => {
+                match &expr.value {
+                    Some(ExprType::Command(cmd)) => {
+                        cmd.translate_command_statement(meta)
+                    },
+                    _ => {
+                        self.translate_match(meta, statement);
+                        FragmentKind::Empty
+                    }
+                }
             },
-            _ => self.translate_match(meta, statement)
-        };
-        // Get all the required supplemental statements
-        let indentation = meta.gen_indent();
-        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + st.trim_end_matches(';') + ";\n").join("");
-        // Return all the statements
-        statements + &indentation + &translated
+            _ => {
+                self.translate_match(meta, statement)
+            }
+        }
     }
 }
 

@@ -20,7 +20,7 @@ pub struct FunctionCacheEntry {
     pub context: Context
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 // This is a map of all generated functions based on their invocations
 pub struct FunctionCache {
     pub funs: HashMap<usize, FunctionCacheEntry>,
@@ -28,9 +28,7 @@ pub struct FunctionCache {
 
 impl FunctionCache {
     pub fn new() -> FunctionCache {
-        FunctionCache {
-            funs: HashMap::new(),
-        }
+        FunctionCache::default()
     }
 
     /// Adds a new function declaration to the cache

@@ -1,11 +1,9 @@
 use std::mem::swap;
-
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
 use crate::modules::block::Block;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommandModifier {
@@ -89,6 +87,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             return self.use_modifiers(meta, |this, meta| {
                 token(meta, "{")?;
                 syntax(meta, &mut *this.block)?;
+                this.block.should_indent = false;
                 token(meta, "}")?;
                 Ok(())
             })
@@ -98,14 +97,14 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 }
 
 impl TranslateModule for CommandModifier {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_block {
             meta.silenced = self.is_silent;
             let result = self.block.translate(meta);
             meta.silenced = false;
             result
         } else {
-            String::new()
+            FragmentKind::Empty
         }
     }
 }

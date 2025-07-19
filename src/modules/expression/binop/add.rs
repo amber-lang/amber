@@ -2,10 +2,10 @@ use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{translate_computation, ArithOp};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
+use crate::translate::compute::translate_float_computation;
 use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
@@ -50,29 +50,31 @@ impl SyntaxModule<ParserMetadata> for Add {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.kind = handle_binop!(meta, "add", self.left, self.right, [
-            Num,
-            Text,
-            Array
+        self.kind = Self::typecheck_allowed_types(meta, "addition", &self.left, &self.right, &[
+            Type::Num,
+            Type::Int,
+            Type::Text,
+            Type::array_of(Type::Generic),
         ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Add {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let left = self.left.translate_eval(meta, false);
-        let right = self.right.translate_eval(meta, false);
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let left = self.left.translate(meta);
+        let right = self.right.translate(meta);
         match self.kind {
             Type::Array(_) => {
-                let quote = meta.gen_quote();
-                let id = meta.gen_array_id();
-                let name = format!("__AMBER_ARRAY_ADD_{id}");
-                meta.stmt_queue.push_back(format!("{name}=({left} {right})"));
-                format!("{quote}${{{name}[@]}}{quote}")
+                let id = meta.gen_value_id();
+                let value = fragments!(left, " ", right);
+                let var_stmt = VarStmtFragment::new("__array_add", self.kind.clone(), value).with_global_id(id);
+                meta.push_intermediate_variable(var_stmt).to_frag()
             },
-            Type::Text => format!("{}{}", left, right),
-            _ => translate_computation(meta, ArithOp::Add, Some(left), Some(right))
+            Type::Text => fragments!(left, right),
+            Type::Int => ArithmeticFragment::new(left, ArithOp::Add, right).to_frag(),
+            Type::Num => translate_float_computation(meta, ArithOp::Add, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in addition operation", self.kind)
         }
     }
 }

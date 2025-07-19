@@ -1,5 +1,10 @@
 import * from "std/date"
 
+// Output
+// 2009-02-07 09:46:40
+// 1234000000
+
 main {
-	if trust date_posix("", "@1234000000", true) == "2009-02-07T09:46:40UTC": echo "Succeeded"
+    echo date_format_posix(1234000000, "%F %T", true)?
+    echo date_from_posix("2009-02-07 09:46:40", "%F %T", true)?
 }

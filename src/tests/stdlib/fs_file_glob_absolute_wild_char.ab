@@ -1,0 +1,44 @@
+import * from "std/array"
+import * from "std/fs"
+import * from "std/text"
+
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    for file in expected {
+        if not array_contains(actual, file) {
+            return false
+        }
+    }
+    return true
+}
+
+main {
+    let tmpdir = trust $ mktemp -d $
+    trust {
+        $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
+        $ touch {tmpdir}/file.txt $
+        $ touch {tmpdir}/file1.txt $
+        $ touch {tmpdir}/file2.txt $
+        $ touch {tmpdir}/file99.txt $
+        $ touch {tmpdir}/other.csv $
+    }
+
+    let expected = [
+        "{tmpdir}/file1.txt",
+        "{tmpdir}/file2.txt",
+    ]
+    let actual = file_glob("{tmpdir}/file?.txt") failed {
+        echo "FAILED"
+    }
+    if compare(actual, expected) {
+        echo "Succeeded"
+    } else {
+        echo "Expected: {expected}"
+        echo "Actual: {actual}"
+    }
+
+    trust $ rm -rf {tmpdir} $
+}

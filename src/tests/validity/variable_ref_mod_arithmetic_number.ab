@@ -1,0 +1,29 @@
+// Output
+// 2
+// 2
+// 5.2
+// 2.47
+
+fun foo(ref a, b) {
+    a = a % b
+}
+
+fun bar(ref a, b, c) {
+    a = a % b % c
+}
+
+let a = 17
+foo(a, 5)
+echo a
+
+let b = 17
+bar(b, 11, 4)
+echo b
+
+let a = 17.4
+foo(a, 12.2)
+echo a
+
+let b = 17.2
+bar(b, 11.23, 3.5)
+echo b

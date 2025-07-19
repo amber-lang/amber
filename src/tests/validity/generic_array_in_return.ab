@@ -1,8 +1,8 @@
 // Output
 // 1 2 3
 
-fun test(arr: [Num]): [] {
-        return arr
+fun test(arr: [Int]): [] {
+    return arr
 }
 
 echo test([1, 2, 3])

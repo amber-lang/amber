@@ -1,0 +1,154 @@
+---
+source: src/tests/translation.rs
+expression: ast
+---
+Block(
+    BlockFragment {
+        statements: [
+            List(
+                ListFragment {
+                    values: [
+                        Raw(
+                            RawFragment {
+                                value: "echo ",
+                            },
+                        ),
+                        Arithmetic(
+                            ArithmeticFragment {
+                                left: Some(
+                                    Raw(
+                                        RawFragment {
+                                            value: "15",
+                                        },
+                                    ),
+                                ),
+                                right: Some(
+                                    Raw(
+                                        RawFragment {
+                                            value: "45",
+                                        },
+                                    ),
+                                ),
+                                op: Add,
+                                quoted: true,
+                            },
+                        ),
+                    ],
+                    separator: Empty,
+                },
+            ),
+            List(
+                ListFragment {
+                    values: [
+                        Raw(
+                            RawFragment {
+                                value: "echo ",
+                            },
+                        ),
+                        Arithmetic(
+                            ArithmeticFragment {
+                                left: Some(
+                                    Arithmetic(
+                                        ArithmeticFragment {
+                                            left: Some(
+                                                Raw(
+                                                    RawFragment {
+                                                        value: "39",
+                                                    },
+                                                ),
+                                            ),
+                                            right: Some(
+                                                Raw(
+                                                    RawFragment {
+                                                        value: "21",
+                                                    },
+                                                ),
+                                            ),
+                                            op: Add,
+                                            quoted: true,
+                                        },
+                                    ),
+                                ),
+                                right: Some(
+                                    Raw(
+                                        RawFragment {
+                                            value: "80",
+                                        },
+                                    ),
+                                ),
+                                op: Add,
+                                quoted: true,
+                            },
+                        ),
+                    ],
+                    separator: Empty,
+                },
+            ),
+            List(
+                ListFragment {
+                    values: [
+                        Raw(
+                            RawFragment {
+                                value: "echo ",
+                            },
+                        ),
+                        Arithmetic(
+                            ArithmeticFragment {
+                                left: Some(
+                                    Arithmetic(
+                                        ArithmeticFragment {
+                                            left: Some(
+                                                Arithmetic(
+                                                    ArithmeticFragment {
+                                                        left: Some(
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "3",
+                                                                },
+                                                            ),
+                                                        ),
+                                                        right: Some(
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "9",
+                                                                },
+                                                            ),
+                                                        ),
+                                                        op: Add,
+                                                        quoted: true,
+                                                    },
+                                                ),
+                                            ),
+                                            right: Some(
+                                                Raw(
+                                                    RawFragment {
+                                                        value: "648",
+                                                    },
+                                                ),
+                                            ),
+                                            op: Add,
+                                            quoted: true,
+                                        },
+                                    ),
+                                ),
+                                right: Some(
+                                    Raw(
+                                        RawFragment {
+                                            value: "1232",
+                                        },
+                                    ),
+                                ),
+                                op: Add,
+                                quoted: true,
+                            },
+                        ),
+                    ],
+                    separator: Empty,
+                },
+            ),
+        ],
+        increase_indent: true,
+        needs_noop: false,
+        is_conditional: false,
+    },
+)

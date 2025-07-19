@@ -2,14 +2,12 @@ use std::fs;
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::compiler::file_source::{FileMeta, FileSource};
+use crate::modules::prelude::*;
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -162,21 +160,35 @@ impl SyntaxModule<ParserMetadata> for Import {
             Err(_) => {
                 token(meta, "{")?;
                 let mut exports = vec![];
-                loop {
-                    let tok = meta.get_current_token();
-                    let name = variable(meta, variable_name_extensions())?;
-                    let alias = match token(meta, "as") {
-                        Ok(_) => Some(variable(meta, variable_name_extensions())?),
-                        Err(_) => None
-                    };
-                    exports.push((name, alias, tok));
-                    match token(meta, ",") {
-                        Ok(_) => {},
-                        Err(_) => break
+                if token(meta, "}").is_err() {
+                    loop {
+                        let tok = meta.get_current_token();
+                        let name = variable(meta, variable_name_extensions())?;
+                        let alias = match token(meta, "as") {
+                            Ok(_) => Some(variable(meta, variable_name_extensions())?),
+                            Err(_) => None
+                        };
+                        exports.push((name, alias, tok));
+                        if token(meta, "}").is_ok() {
+                            break;
+                        }
+                        match token(meta, ",") {
+                            Ok(_) => {
+                                if token(meta, "}").is_ok() {
+                                    break
+                                }
+                            }
+                            Err(_) => {
+                                return error!(meta, meta.get_current_token(), "Expected ',' or '}' after import");
+                            }
+                        }
                     }
+                } else {
+                    let message = Message::new_warn_at_token(meta, self.token_import.clone())
+                        .message("Empty import statement");
+                    meta.add_message(message);
                 }
                 self.export_defs = exports;
-                token(meta, "}")?;
             }
         }
         token(meta, "from")?;
@@ -191,8 +203,8 @@ impl SyntaxModule<ParserMetadata> for Import {
 }
 
 impl TranslateModule for Import {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        FragmentKind::Empty
     }
 }
 

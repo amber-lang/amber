@@ -1,8 +1,0 @@
-import * from "std/math"
-
-// Output
-// 10
-
-main {
-    echo sum([1, 2, 3, 4])
-} 

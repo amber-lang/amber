@@ -2,12 +2,15 @@ use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::prelude::{RawFragment, FragmentKind};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::context::Context;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
+use crate::fragments;
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IterLoop {
@@ -23,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
     fn new() -> Self {
         IterLoop {
-            block: Block::new(),
+            block: Block::new().with_needs_noop().with_condition(),
             iter_expr: Expr::new(),
             iter_index: None,
             iter_name: String::new(),
@@ -71,40 +74,47 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 }
 
 impl TranslateModule for IterLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let (prefix, suffix) = self.surround_iter(meta);
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let iter_path = self.translate_path(meta);
+        let iter_name = RawFragment::from(self.iter_name.clone()).to_frag();
+
+        let for_loop_prefix = match iter_path.is_some() {
+            true => fragments!("while IFS= read -r ", iter_name, "; do"),
+            false => fragments!("for ", iter_name, " in ", self.iter_expr.translate(meta), "; do"),
+        };
+        let for_loop_suffix = match iter_path.is_some() {
+            true => fragments!("done <", iter_path.unwrap()),
+            false => fragments!("done"),
+        };
+
         match self.iter_index.as_ref() {
             Some(index) => {
                 let indent = TranslateMetadata::single_indent();
-                [
-                    format!("{index}=0;"),
-                    prefix,
+                BlockFragment::new(vec![
+                    RawFragment::from(format!("{index}=0;")).to_frag(),
+                    for_loop_prefix,
                     self.block.translate(meta),
-                    format!("{indent}(( {index}++ )) || true"),
-                    suffix,
-                ].join("\n")
+                    RawFragment::from(format!("{indent}(( {index}++ )) || true")).to_frag(),
+                    for_loop_suffix,
+                ], false).to_frag()
             },
             None => {
-                [
-                    prefix,
+                BlockFragment::new(vec![
+                    for_loop_prefix,
                     self.block.translate(meta),
-                    suffix,
-                ].join("\n")
+                    for_loop_suffix,
+                ], false).to_frag()
             },
         }
     }
 }
 
 impl IterLoop {
-    fn surround_iter(&self, meta: &mut TranslateMetadata) -> (String, String) {
-        let name = &self.iter_name;
+    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
         if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
-            value.surround_iter(meta, name)
+            Some(value.translate_path(meta))
         } else {
-            let expr = self.iter_expr.translate(meta);
-            let prefix = format!("for {name} in {expr}; do");
-            let suffix = String::from("done");
-            (prefix, suffix)
+            None
         }
     }
 }

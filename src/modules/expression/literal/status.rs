@@ -1,6 +1,10 @@
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::ParserMetadata};
+use crate::modules::prelude::*;
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::FragmentKind;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
 
@@ -9,7 +13,7 @@ pub struct Status;
 
 impl Typed for Status {
     fn get_type(&self) -> Type {
-        Type::Num
+        Type::Int
     }
 }
 
@@ -27,8 +31,8 @@ impl SyntaxModule<ParserMetadata> for Status {
 }
 
 impl TranslateModule for Status {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "$__AS".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        VarExprFragment::new("__status", Type::Int).to_frag()
     }
 }
 

@@ -1,12 +1,12 @@
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::block::Block;
 use crate::modules::statement::stmt::{Statement, StatementType};
+use crate::modules::block::Block;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IfCondition {
@@ -36,7 +36,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
     fn new() -> Self {
         IfCondition {
             expr: Box::new(Expr::new()),
-            true_block: Box::new(Block::new()),
+            true_block: Box::new(Block::new().with_needs_noop().with_condition()),
             false_block: None
         }
     }
@@ -62,7 +62,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         if token(meta, "else").is_ok() {
             match token(meta, "{") {
                 Ok(_) => {
-                    let mut false_block = Box::new(Block::new());
+                    let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
                     let tok = meta.get_current_token();
                     syntax(meta, &mut *false_block)?;
                     // Check if the statement is using if chain syntax sugar
@@ -90,16 +90,16 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
 }
 
 impl TranslateModule for IfCondition {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
-        result.push(format!("if [ {} != 0 ]; then", self.expr.translate(meta)));
+        result.push(fragments!("if [ ", self.expr.translate(meta), " != 0 ]; then"));
         result.push(self.true_block.translate(meta));
         if let Some(false_block) = &self.false_block {
-            result.push("else".to_string());
+            result.push(fragments!("else"));
             result.push(false_block.translate(meta));
         }
-        result.push("fi".to_string());
-        result.join("\n")
+        result.push(fragments!("fi"));
+        BlockFragment::new(result, false).to_frag()
     }
 }
 

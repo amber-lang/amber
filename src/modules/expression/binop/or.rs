@@ -4,8 +4,9 @@ use crate::docs::module::DocumentationModule;
 use crate::{handle_binop, error_type_match};
 use crate::translate::compute::{translate_computation, ArithOp};
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::modules::prelude::*;
+use crate::translate::compute::ArithOp;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
@@ -48,16 +49,16 @@ impl SyntaxModule<ParserMetadata> for Or {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "disjoin", self.left, self.right)?;
+        Self::typecheck_equality(meta, &self.left, &self.right)?;
         Ok(())
     }
 }
 
 impl TranslateModule for Or {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Or, Some(left), Some(right))
+        ArithmeticFragment::new(left, ArithOp::Or, right).to_frag()
     }
 }
 

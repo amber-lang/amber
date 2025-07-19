@@ -1,9 +1,10 @@
 use heraclitus_compiler::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use super::{variable_name_extensions, handle_variable_reference, handle_index_accessor};
+use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,16 +14,6 @@ pub struct VariableSet {
     global_id: Option<usize>,
     index: Option<Expr>,
     is_ref: bool
-}
-
-impl VariableSet {
-    fn translate_eval_if_ref(&self, expr: &Expr, meta: &mut TranslateMetadata) -> String {
-        if self.is_ref {
-            expr.translate_eval(meta, true)
-        } else {
-            expr.translate(meta)
-        }
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -41,16 +32,13 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        self.index = handle_index_accessor(meta)?;
+        self.index = handle_index_accessor(meta, false)?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
-        let variable = handle_variable_reference(meta, tok.clone(), &self.name)?;
+        let variable = handle_variable_reference(meta, &tok, &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
-        // Check for constant reassignment
-        if variable.is_const {
-            return error!(meta, tok, format!("Cannot reassign constant"))
-        }
+        prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
         // Typecheck the variable
         let left_type = variable.kind.clone();
         let right_type = self.expr.get_type();
@@ -62,14 +50,14 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         if self.index.is_some() {
             // Check if the assigned value is compatible with the array
             if let Type::Array(kind) = variable.kind.clone() {
-                if *kind != self.expr.get_type() {
+                if !self.expr.get_type().is_allowed_in(&kind) {
                     let right_type = self.expr.get_type();
                     return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
             }
         }
         // Check if the variable is compatible with the assigned value
-        else if variable.kind != self.expr.get_type() {
+        else if !self.expr.get_type().is_allowed_in(&variable.kind) {
             return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{left_type}'"));
         }
         Ok(())
@@ -77,23 +65,14 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 }
 
 impl TranslateModule for VariableSet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
-        let index = self.index.as_ref()
-            .map(|index| self.translate_eval_if_ref(index, meta))
-            .map(|index| format!("[{index}]"))
-            .unwrap_or_default();
-        let mut expr = self.translate_eval_if_ref(self.expr.as_ref(), meta);
-        if let Type::Array(_) = self.expr.get_type() {
-            expr = format!("({expr})");
-        }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}{index}={expr}")
-        } else if self.is_ref {
-            format!("eval \"${{{name}}}{index}={expr}\"")
-        } else {
-            format!("{name}{index}={expr}")
-        }
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let index = self.index.as_ref().map(|v| v.translate(meta));
+        let expr = self.expr.translate(meta);
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .with_index(index)
+            .to_frag()
     }
 }
 
