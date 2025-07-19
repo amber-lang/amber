@@ -4,7 +4,6 @@ use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Exit {

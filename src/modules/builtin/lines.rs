@@ -8,7 +8,6 @@ use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::prelude::*;
-use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LinesInvocation {

@@ -1,5 +1,4 @@
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
