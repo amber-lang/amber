@@ -35,7 +35,9 @@ pub enum TestOutcomeTarget {
 }
 
 fn eval_amber(code: &str) -> Result<String, Message> {
-    let options = CompilerOptions::default();
+    let mut options = CompilerOptions::default();
+    options.no_cache = true;
+    
     let mut compiler = AmberCompiler::new(code.to_string(), None, options, FileMeta::stream(false));
     compiler.test_eval()
 }
