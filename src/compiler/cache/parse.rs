@@ -74,6 +74,10 @@ impl PreparsedFile {
         #[cfg(unix)]
         fs::set_permissions(&filename, Permissions::from_mode(0o700)).map_err(|x| format!("Cannot set perms to {filename:?}: {x}"))?;
 
+        #[cfg(not(unix))] {
+            let _ = hf::hide(&filename);
+        }
+
         Ok(())
     }
     

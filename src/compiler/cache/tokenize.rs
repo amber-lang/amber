@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::compiler::cache::GIT_HASH;
 use crate::compiler::file_source::{FileMeta, FileSource};
+use crate::modules::expression::unop::not;
 use crate::stdlib;
 
 use super::home_cache;
@@ -121,6 +122,10 @@ impl PretokenizedFile {
             #[cfg(unix)]
             fs::set_permissions(&filename, Permissions::from_mode(0o700)).map_err(|x| format!("Cannot set perms to {cache_file:?}: {x}"))?;
             
+            #[cfg(not(unix))] {
+                let _ = hf::hide(&filename);
+            }
+
             Ok(())
         } else {
             Err(String::from("Couldn't get path to saved directory").into())
@@ -141,7 +146,11 @@ impl PretokenizedFile {
             },
             FileSource::File => {
                 let mut filename = filename.clone();
+                let name = filename.file_name().clone().unwrap().to_str().unwrap();
+
+                filename.set_file_name(".".to_string() + name);
                 filename.set_extension(FILE_EXT);
+                
                 Some(filename)
             },
             _ => unimplemented!()
