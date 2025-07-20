@@ -144,8 +144,8 @@ pub fun split_chars(text: Text): [Text] {
 }
 
 /// Checks if some text contains a value.
-pub fun text_contains(text: Text, phrase: Text): Bool {
-  let result = trust $ if [[ "{text}" == *"{phrase}"* ]]; then
+pub fun text_contains(source: Text, search: Text): Bool {
+  let result = trust $ if [[ "{source}" == *"{search}"* ]]; then
     echo 1
   fi $
 
@@ -153,9 +153,9 @@ pub fun text_contains(text: Text, phrase: Text): Bool {
 }
 
 /// Checks if an array value is in the text.
-pub fun text_contains_any(text: Text, terms: [Text]): Bool {
-    for term in terms {
-        if text_contains(text, term) {
+pub fun text_contains_any(source: Text, searches: [Text]): Bool {
+    for search in searches {
+        if text_contains(source, search) {
             return true
         }
     }
@@ -164,9 +164,9 @@ pub fun text_contains_any(text: Text, terms: [Text]): Bool {
 }
 
 /// Checks if all the arrays values are in the string
-pub fun text_contains_all(text: Text, terms: [Text]): Bool {
-    for term in terms {
-        if not text_contains(text, term) {
+pub fun text_contains_all(source: Text, searches: [Text]): Bool {
+    for search in searches {
+        if not text_contains(source, search) {
             return false
         }
     }
