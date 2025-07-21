@@ -5,8 +5,9 @@ use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use super::statement::stmt::Statement;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub statements: Vec<Statement>,
     pub should_indent: bool,

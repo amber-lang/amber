@@ -1,9 +1,11 @@
+use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
-use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Echo {
     value: Box<Expr>,
 }

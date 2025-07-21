@@ -5,9 +5,14 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_float_computation, ArithOp};
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::module::TranslateModule;
+use crate::utils::TranslateMetadata;
 use std::cmp::max;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Range {
     pub from: Box<Expr>,
     pub to: Box<Expr>,

@@ -1,11 +1,13 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::Statement;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IfChain {
     cond_blocks: Vec<(Expr, Block)>,
     false_block: Option<Box<Block>>

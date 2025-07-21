@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
@@ -8,7 +10,7 @@ use crate::modules::types::Type;
 
 use super::shorthand_typecheck_allowed_types;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShorthandAdd {
     var: String,
     expr: Box<Expr>,

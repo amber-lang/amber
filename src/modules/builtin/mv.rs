@@ -1,14 +1,18 @@
 use std::mem::swap;
 
+use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::modules::expression::expr::Expr;
+use crate::modules::condition::failed::Failed;
+use crate::translate::module::TranslateModule;
+use crate::docs::module::DocumentationModule;
+use crate::modules::types::{Type, Typed};
+use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
-use crate::modules::condition::failed::Failed;
-use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
-use crate::modules::types::{Type, Typed};
-use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Mv {
     source: Expr,
     destination: Expr,

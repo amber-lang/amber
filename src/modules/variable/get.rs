@@ -3,8 +3,11 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
 use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::{docs::module::DocumentationModule, utils::{ParserMetadata, TranslateMetadata}};
+use crate::translate::module::TranslateModule;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VariableGet {
     pub name: String,
     kind: Type,

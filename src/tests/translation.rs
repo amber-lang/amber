@@ -1,3 +1,4 @@
+use crate::compiler::file_source::FileMeta;
 /// Tests for Amber scripts that check snapshot of generated AST.
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::{FragmentKind, TranslateModule};
@@ -9,7 +10,7 @@ use std::path::Path;
 
 pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<FragmentKind> {
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.into(), None, options);
+    let compiler = AmberCompiler::new(code.into(), None, options, FileMeta::stream(true));
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
     let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);

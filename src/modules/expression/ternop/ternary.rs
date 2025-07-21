@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::fragments;
@@ -7,7 +8,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::expression::expr::Expr;
 use super::TernOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Box<Expr>,

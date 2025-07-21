@@ -1,8 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportString {
     pub value: String
 }

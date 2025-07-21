@@ -1,11 +1,12 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::statement::stmt::Statement;
 use crate::modules::types::Type;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Failed {
     pub is_parsed: bool,
     is_question_mark: bool,

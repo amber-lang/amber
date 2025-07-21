@@ -1,7 +1,11 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
+use crate::utils::metadata::ParserMetadata;
+use crate::translate::module::TranslateModule;
 use crate::modules::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Comment {
     pub value: String
 }

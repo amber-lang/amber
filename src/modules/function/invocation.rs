@@ -4,6 +4,8 @@ use heraclitus_compiler::prelude::*;
 use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use itertools::izip;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::types::{Type, Typed};
@@ -11,7 +13,7 @@ use crate::modules::variable::variable_name_extensions;
 use crate::modules::expression::expr::{Expr, ExprType};
 use super::invocation_utils::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionInvocation {
     name: String,
     args: Vec<Expr>,

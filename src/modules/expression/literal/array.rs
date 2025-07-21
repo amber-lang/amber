@@ -1,9 +1,11 @@
 use heraclitus_compiler::prelude::*;
-use crate::modules::expression::expr::Expr;
-use crate::modules::types::{try_parse_type, Type, Typed};
+use serde::{Deserialize, Serialize};
+use crate::{docs::module::DocumentationModule, modules::{expression::expr::Expr, types::{try_parse_type, Type, Typed}}, utils::metadata::ParserMetadata};
+use crate::translate::module::TranslateModule;
+use crate::utils::TranslateMetadata;
 use crate::modules::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Array {
     exprs: Vec<Expr>,
     kind: Type

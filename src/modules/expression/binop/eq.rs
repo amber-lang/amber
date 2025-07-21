@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::translate::compare::translate_array_equality;
 use crate::fragments;
@@ -7,7 +9,7 @@ use crate::translate::compute::{ArithOp, translate_float_computation};
 use super::BinOp;
 use crate::modules::types::{Typed, Type};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Eq {
     left: Box<Expr>,
     right: Box<Expr>

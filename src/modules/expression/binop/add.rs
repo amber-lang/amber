@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
@@ -7,7 +9,7 @@ use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Add {
     left: Box<Expr>,
     right: Box<Expr>,

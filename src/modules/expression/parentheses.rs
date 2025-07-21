@@ -1,9 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{prelude::FragmentKind, types::{Type, Typed}}, utils::metadata::ParserMetadata};
+use serde::{Deserialize, Serialize};
+use crate::{docs::module::DocumentationModule, modules::{types::{Type, Typed}, prelude::FragmentKind}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Parentheses {
     value: Box<Expr>,
     kind: Type

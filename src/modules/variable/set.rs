@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
@@ -6,7 +7,7 @@ use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::modules::types::{Typed, Type};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VariableSet {
     name: String,
     expr: Box<Expr>,

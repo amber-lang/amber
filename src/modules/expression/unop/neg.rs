@@ -1,16 +1,12 @@
-use crate::docs::module::DocumentationModule;
-use crate::modules::expression::expr::Expr;
-use crate::modules::expression::unop::UnOp;
-use crate::modules::prelude::{ArithmeticFragment, FragmentKind, FragmentRenderable, RawFragment};
-use crate::modules::types::{Type, Typed};
-use crate::translate::compute::{translate_float_computation, ArithOp};
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::ParserMetadata;
-use crate::utils::TranslateMetadata;
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::{modules::types::{Type, Typed}, translate::{compute::{translate_float_computation, ArithOp}, module::TranslateModule}, utils::{metadata::ParserMetadata, TranslateMetadata}};
+use super::{super::expr::Expr, UnOp};
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::{ArithmeticFragment, FragmentKind, FragmentRenderable, RawFragment};
 use std::ops::Neg as _;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Neg {
     expr: Box<Expr>
 }

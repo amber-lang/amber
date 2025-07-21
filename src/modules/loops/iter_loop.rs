@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::{RawFragment, FragmentKind};
@@ -11,7 +12,7 @@ use crate::modules::block::Block;
 use crate::fragments;
 use crate::modules::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IterLoop {
     block: Block,
     iter_expr: Expr,

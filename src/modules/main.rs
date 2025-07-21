@@ -3,10 +3,11 @@ use crate::raw_fragment;
 use crate::modules::types::Type;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use super::variable::variable_name_extensions;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Main {
     pub args: Option<String>,
     pub block: Block,

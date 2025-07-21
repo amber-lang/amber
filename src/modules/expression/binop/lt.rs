@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
@@ -6,7 +8,7 @@ use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Lt {
     left: Box<Expr>,
     right: Box<Expr>

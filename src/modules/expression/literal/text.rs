@@ -1,13 +1,13 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use serde::{Deserialize, Serialize};
+use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
 use crate::modules::prelude::*;
-use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
 
 use super::parse_interpolated_region;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Text {
     strings: Vec<String>,
     interps: Vec<Expr>,

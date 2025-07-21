@@ -1,4 +1,6 @@
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
@@ -6,7 +8,7 @@ use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 use crate::modules::statement::stmt::{Statement, StatementType};
 use crate::modules::block::Block;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IfCondition {
     expr: Box<Expr>,
     true_block: Box<Block>,

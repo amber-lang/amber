@@ -1,5 +1,6 @@
-extern crate test_generator;
+use crate::compiler::file_source::{FileMeta, FileSource};
 use crate::compiler::{AmberCompiler, CompilerOptions};
+extern crate test_generator;
 use heraclitus_compiler::prelude::Message;
 use itertools::Itertools;
 use pretty_assertions::assert_eq;
@@ -34,8 +35,10 @@ pub enum TestOutcomeTarget {
 }
 
 fn eval_amber(code: &str) -> Result<String, Message> {
-    let options = CompilerOptions::default();
-    let mut compiler = AmberCompiler::new(code.to_string(), None, options);
+    let mut options = CompilerOptions::default();
+    options.no_cache = true;
+    
+    let mut compiler = AmberCompiler::new(code.to_string(), None, options, FileMeta::stream(false));
     compiler.test_eval()
 }
 
@@ -69,8 +72,13 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
 }
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
+    let meta = FileMeta {
+        is_import: false,
+        source: FileSource::Stream
+    };
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.into(), None, options);
+
+    let compiler = AmberCompiler::new(code.into(), None, options, meta);
     let (_, code) = compiler.compile().unwrap();
     code
 }

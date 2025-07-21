@@ -1,3 +1,6 @@
+use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::docs::module::DocumentationModule;
 use crate::fragments;
 use crate::raw_fragment;
 use crate::modules::expression::expr::Expr;
@@ -5,9 +8,8 @@ use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::prelude::*;
-use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LinesInvocation {
     path: Box<Option<Expr>>,
 }

@@ -8,6 +8,9 @@ use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
 use crate::rules;
+use cache::parse::PreparsedFile;
+use cache::tokenize::PretokenizedFile;
+use file_source::FileMeta;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
 use colored::Colorize;
@@ -24,6 +27,8 @@ use std::process::{Command, ExitStatus};
 use std::time::Instant;
 
 pub mod postprocessor;
+pub mod file_source;
+pub mod cache;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
@@ -32,20 +37,25 @@ const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
-    pub minify: bool,
+    pub no_cache: bool,
+    pub minify: bool
 }
 
 impl Default for CompilerOptions {
     fn default() -> Self {
         let no_proc = vec![String::from("*")];
-        Self { no_proc, minify: false }
+        Self { no_proc, no_cache: false, minify: false }
     }
 }
 
 impl CompilerOptions {
-    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+    pub fn from_args(no_proc: &[String], no_cache: bool, minify: bool) -> Self {
         let no_proc = no_proc.to_owned();
-        Self { no_proc, minify }
+        Self {
+            no_proc,
+            no_cache,
+            minify
+        }
     }
 }
 
@@ -53,12 +63,13 @@ pub struct AmberCompiler {
     pub cc: Compiler,
     pub path: Option<String>,
     pub options: CompilerOptions,
+    pub file_meta: FileMeta
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
+    pub fn new(code: String, path: Option<String>, options: CompilerOptions, file_meta: FileMeta) -> AmberCompiler {
         let cc = Compiler::new("Amber", rules::get_rules());
-        let compiler = AmberCompiler { cc, path, options };
+        let compiler = AmberCompiler { cc, path, options, file_meta };
         compiler.load_code(AmberCompiler::comment_shebang(code))
     }
 
@@ -85,6 +96,19 @@ impl AmberCompiler {
 
     pub fn tokenize(&self) -> Result<Vec<Token>, Message> {
         let time = Instant::now();
+        if let Some(cache) = self.load_token_cache()? {
+            if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                println!(
+                    "[{}]\tin\t{}ms\t{pathname}",
+                    "Loaded cache".cyan(),
+                    time.elapsed().as_millis()
+                );
+            }
+            return Ok(cache.tokens)
+        }
+        
+        let time = Instant::now();
         match self.cc.tokenize() {
             Ok(tokens) => {
                 if Self::env_flag_set(AMBER_DEBUG_TIME) {
@@ -95,6 +119,21 @@ impl AmberCompiler {
                         time.elapsed().as_millis()
                     );
                 }
+                let time = Instant::now();
+                if ! self.cache_disabled() {
+                    if let Some(filename) = self.path.clone() {
+                        PretokenizedFile::save(filename, self.file_meta, tokens.clone()).map_err(|x| Message::new_err_msg(format!("Error while saving token cache: {x}")))?;
+                        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                            println!(
+                                "[{}]\tin\t{}ms\t{pathname}",
+                                "Saved cache".cyan(),
+                                time.elapsed().as_millis()
+                            );
+                        }
+                    }
+                }
+
                 Ok(tokens)
             }
             Err((err_type, pos)) => {
@@ -135,6 +174,20 @@ impl AmberCompiler {
                 time.elapsed().as_millis()
             );
         }
+
+        let time = Instant::now();
+        if let Some(path) = self.path.clone() {
+            if let Ok(_) = PreparsedFile::save(&path, block.clone(), &meta) {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    println!(
+                        "[{}]\tin\t{}ms\t{path}",
+                        "Saved cache".blue(),
+                        time.elapsed().as_millis()
+                    );
+                }
+            }
+        }
+        
         // Return result
         match result {
             Ok(()) => Ok((block, meta)),
@@ -277,7 +330,60 @@ impl AmberCompiler {
         }
     }
 
+    pub fn cache_disabled(&self) -> bool {
+        self.options.no_cache
+            || self.file_meta.source.cache_disabled()
+    }
+
+    pub fn load_parse_cache(&self) -> Result<Option<PreparsedFile>, Message> {
+        if self.cache_disabled() {
+            return Ok(None)
+        }
+        
+        if let Some(path) = self.path.clone() {
+            let time = Instant::now();
+            if let Some(cached) = PreparsedFile::load_for(&path).map_err(|err| Message::new_err_msg(err.to_string()))? {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                    println!(
+                        "[{}]\tin\t{}ms\t{pathname}",
+                        "Loaded cache".blue(),
+                        time.elapsed().as_millis()
+                    )
+                }
+                return Ok(Some(cached))
+            }
+        }
+        Ok(None)
+    }
+
+    pub fn load_token_cache(&self) -> Result<Option<PretokenizedFile>, Message> {
+        if self.cache_disabled() {
+            return Ok(None)
+        }
+
+        if let Some(path) = self.path.clone() {
+            let time = Instant::now();
+            if let Some(cached) = PretokenizedFile::load_for(path, self.file_meta).map_err(|err| Message::new_err_msg(err.to_string()))? {
+                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                    let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                    println!(
+                        "[{}]\tin\t{}ms\t{pathname}",
+                        "Loaded cache".cyan(),
+                        time.elapsed().as_millis()
+                    )
+                }
+                return Ok(Some(cached))
+            }
+        }
+
+        Ok(None)
+    }
+
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
+        if let Some(cached) = self.load_parse_cache()? {
+            return Ok(( vec![], self.translate(cached.block, cached.meta)? ))
+        }
         let tokens = self.tokenize()?;
         let (block, meta) = self.parse(tokens)?;
         let messages = meta.messages.clone();

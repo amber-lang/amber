@@ -1,5 +1,7 @@
 use std::fs;
 use heraclitus_compiler::prelude::*;
+use serde::{Deserialize, Serialize};
+use crate::compiler::file_source::{FileMeta, FileSource};
 use crate::modules::prelude::*;
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::block::Block;
@@ -8,14 +10,15 @@ use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
 use super::import_string::ImportString;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Import {
     path: ImportString,
     token_import: Option<Token>,
     token_path: Option<Token>,
     is_all: bool,
     is_pub: bool,
-    export_defs: Vec<(String, Option<String>, Option<Token>)>
+    export_defs: Vec<(String, Option<String>, Option<Token>)>,
+    source: Option<FileSource>
 }
 
 impl Import {
@@ -70,13 +73,19 @@ impl Import {
     fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
         if self.path.value.starts_with("std/") {
             match stdlib::resolve(self.path.value.replace("std/", "")) {
-                Some(v) => Ok(v),
+                Some(v) => {
+                    self.source = Some(FileSource::Stdlib);
+                    Ok(v)
+                },
                 None => error!(meta, self.token_path.clone(),
                     format!("Standard library module '{}' does not exist", self.path.value))
             }
         } else {
             match fs::read_to_string(self.path.value.clone()) {
-                Ok(content) => Ok(content),
+                Ok(content) => {
+                    self.source = Some(FileSource::File);
+                    Ok(content)
+                },
                 Err(err) => error!(meta, self.token_path.clone() => {
                     message: format!("Could not read file '{}'", self.path.value),
                     comment: err.to_string()
@@ -92,10 +101,16 @@ impl Import {
             None => self.handle_compile_code(meta, code)
         }
     }
-
+    
     fn handle_compile_code(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+        let file_meta = FileMeta {
+            is_import: true,
+            source: self.source.unwrap()
+        };
         let options = CompilerOptions::default();
-        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
+
+        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options, file_meta);
+
         match compiler.tokenize() {
             Ok(tokens) => {
                 let mut block = Block::new();
@@ -128,7 +143,8 @@ impl SyntaxModule<ParserMetadata> for Import {
             token_path: None,
             is_all: false,
             is_pub: false,
-            export_defs: vec![]
+            export_defs: vec![],
+            source: None
         }
     }
 
