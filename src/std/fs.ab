@@ -1,4 +1,4 @@
-import { match_regex, join, replace_regex, split } from "std/text"
+import { match_regex, join, replace_regex, split, trim } from "std/text"
 
 /// Checks if a directory exists.
 pub fun dir_exists(path) {
@@ -54,9 +54,9 @@ pub fun dir_create(path: Text): Null {
     }
 }
 
-/// Determine whether mktemp is OSX's.
-fun is_osx_mktemp(): Bool {
-    // OSX's mktemp does not have --version
+/// Determine whether mktemp is macOS's.
+fun is_mac_os_mktemp(): Bool {
+    // macOS's mktemp does not have --version
     silent $ mktemp --version $ failed {
         return true
     }
@@ -65,28 +65,40 @@ fun is_osx_mktemp(): Bool {
 
 /// Create a temporary directory and return the path.
 /// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
-pub fun temp_dir_create(template: Text = "tmp.XXXXXXXXXX"): Text? {
-    if template == "" {
+pub fun temp_dir_create(
+        template: Text = "tmp.XXXXXXXXXX",
+        auto_delete: Bool = false,
+        force_delete: Bool = false
+    ): Text? {
+    if trim(template) == "" {
         echo "The template cannot be an empty string!"
         fail 1
     }
-    if not is_osx_mktemp() {
-        const filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
-        if len(filename) == 0 {
-            echo "Failed to make a temporary directory"
-            fail 1
-        }
-        return filename
-    } else {
+
+    let filename = ""
+    if is_mac_os_mktemp() {
         // usage: mktemp [-d] [-p tmpdir] [-q] [-t prefix] [-u] template ...
         //        mktemp [-d] [-p tmpdir] [-q] [-u] -t prefix
-        const filename = $ mktemp -d -p "\$TMPDIR" "{template}" $?
-        if len(filename) == 0 {
-            echo "Failed to make a temporary directory"
-            fail 1
-        }
-        return filename
+        filename = $ mktemp -d -p "\$TMPDIR" "{template}" $?
+    } else {
+        filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
     }
+    if filename == "" {
+        echo "Failed to make a temporary directory"
+        fail 1
+    }
+    if auto_delete {
+        if force_delete {
+            $ trap 'rm -rf {filename}' EXIT $ failed {
+                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+            }
+        } else {
+            $ trap 'rmdir {filename}' EXIT $ failed {
+                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+            }
+        }
+    }
+    return filename
 }
 
 /// Changes the permission bits of a file.

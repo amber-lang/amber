@@ -4,7 +4,7 @@ import * from "std/fs"
 // FAILED
 
 main {
-    let tmpdir = trust $ mktemp -d $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
         $ touch {tmpdir}/1st\ file\ with\ spaces.txt $
         $ touch {tmpdir}/2nd\ file\ with\ spaces.txt $
@@ -21,6 +21,4 @@ main {
     for file in files {
         echo "[{file}]"
     }
-
-    trust $ rm -rf {tmpdir} $
 }

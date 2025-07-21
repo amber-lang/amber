@@ -1,3 +1,5 @@
+import { temp_dir_create } from "std/fs"
+
 // Output
 // [one]
 // [two three four]
@@ -10,7 +12,7 @@ fun append_ref(ref inner: [Text], path: Text): Null {
 }
 
 main {
-    let tmpdir = trust $ mktemp -d $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ echo -e 'one\ntwo three four' >{tmpdir}/numbers1.txt $
     trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
 
@@ -20,6 +22,4 @@ main {
     for line in lines {
         echo "[{line}]"
     }
-
-    trust $ rm -rf {tmpdir} $
 }
