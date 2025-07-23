@@ -1,6 +1,6 @@
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::translate::compute::{translate_computation, ArithOp};
+use crate::translate::compute::ArithOp;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
 
@@ -53,7 +53,7 @@ impl TranslateModule for Or {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Or, Some(left), Some(right))
+        ArithmeticFragment::new(left, ArithOp::Or, right).to_frag()
     }
 }
 

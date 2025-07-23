@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
-use crate::translate::compute::{ArithOp, translate_computation};
+use crate::translate::compute::{ArithOp, translate_float_computation};
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
 
@@ -46,8 +46,10 @@ impl SyntaxModule<ParserMetadata> for Le {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
             Type::Num,
+            Type::Int,
             Type::Text,
             Type::array_of(Type::Num),
+            Type::array_of(Type::Int),
             Type::array_of(Type::Text),
         ])?;
         Ok(())
@@ -56,14 +58,24 @@ impl SyntaxModule<ParserMetadata> for Le {
 
 impl TranslateModule for Le {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if self.left.get_type() == Type::array_of(Type::Num) {
-            translate_array_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)
-        } else if [Type::Text, Type::array_of(Type::Text)].contains(&self.left.get_type()) {
-            translate_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)
-        } else {
-            let left = self.left.translate(meta);
-            let right = self.right.translate(meta);
-            translate_computation(meta, ArithOp::Le, Some(left), Some(right))
+        match self.left.get_type() {
+            Type::Int => {
+                let left = self.left.translate(meta).with_quotes(false);
+                let right = self.right.translate(meta).with_quotes(false);
+                ArithmeticFragment::new(left, ArithOp::Le, right).to_frag()
+            }
+            Type::Num => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                translate_float_computation(meta, ArithOp::Le, Some(left), Some(right))
+            }
+            Type::Array(inner_type) => {
+                translate_array_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right, *inner_type)
+            }
+            Type::Text => {
+                translate_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)
+            }
+            _ => unreachable!("Unsupported type {} in less equal comparison", self.left.get_type())
         }
     }
 }

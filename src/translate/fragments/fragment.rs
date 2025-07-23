@@ -8,14 +8,14 @@ use super::{
     var_expr::VarExprFragment,
     var_stmt::VarStmtFragment,
 };
-use crate::utils::TranslateMetadata;
+use crate::{translate::fragments::arithmetic::ArithmeticFragment, utils::TranslateMetadata};
 
 pub trait FragmentRenderable {
     fn to_string(self, meta: &mut TranslateMetadata) -> String;
     fn to_frag(self) -> FragmentKind;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub enum FragmentKind {
     Raw(RawFragment),
     VarExpr(VarExprFragment),
@@ -24,8 +24,9 @@ pub enum FragmentKind {
     Interpolable(InterpolableFragment),
     List(ListFragment),
     Subprocess(SubprocessFragment),
+    Arithmetic(ArithmeticFragment),
     Comment(CommentFragment),
-    Empty
+    #[default] Empty
 }
 
 impl FragmentKind {
@@ -34,6 +35,7 @@ impl FragmentKind {
             FragmentKind::VarExpr(var) => FragmentKind::VarExpr(var.with_quotes(value)),
             FragmentKind::Interpolable(inter) => FragmentKind::Interpolable(inter.with_quotes(value)),
             FragmentKind::Subprocess(sub) => FragmentKind::Subprocess(sub.with_quotes(value)),
+            FragmentKind::Arithmetic(arith) => FragmentKind::Arithmetic(arith.with_quotes(value)),
             _ => self,
         }
     }
@@ -59,6 +61,7 @@ impl FragmentRenderable for FragmentKind {
             FragmentKind::Interpolable(interpolable) => interpolable.to_string(meta),
             FragmentKind::List(list) => list.to_string(meta),
             FragmentKind::Subprocess(subprocess) => subprocess.to_string(meta),
+            FragmentKind::Arithmetic(arithmetic) => arithmetic.to_string(meta),
             FragmentKind::Comment(comment) => comment.to_string(meta),
             FragmentKind::Empty => String::new(),
         }

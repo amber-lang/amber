@@ -11,6 +11,7 @@ pub mod cli;
 pub mod extra;
 pub mod postprocessor;
 pub mod optimizing;
+pub mod translation;
 mod stdlib;
 mod validity;
 mod erroring;

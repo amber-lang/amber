@@ -1,8 +1,8 @@
-import { file_chown } from "std/fs"
+import { file_chown, temp_dir_create } from "std/fs"
 
 // We use `whoami` to get the running user to assign again the same user as permission
 main {
-    let tmpdir = $ mktemp -d /tmp/amber-XXXX $ failed {
+    let tmpdir = temp_dir_create("amber-XXXX", true, true) failed {
         echo "It wasn't possible to create the folder"
     }
     $ touch {tmpdir}/amber-symbolic $ failed {
@@ -14,5 +14,4 @@ main {
     } else {
         echo "File {tmpdir}/amber-symbolic not exists"
     }
-    trust $ rm -rf {tmpdir} $
 }

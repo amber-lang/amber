@@ -1,9 +1,9 @@
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
-use crate::modules::prelude::{RawFragment, FragmentKind, FragmentRenderable};
+use crate::modules::prelude::{ArithmeticFragment, FragmentKind, FragmentRenderable, RawFragment};
 use crate::modules::types::{Type, Typed};
-use crate::translate::compute::{translate_computation, ArithOp};
+use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::ParserMetadata;
 use crate::utils::TranslateMetadata;
@@ -17,7 +17,7 @@ pub struct Neg {
 
 impl Typed for Neg {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.expr.get_type()
     }
 }
 
@@ -28,6 +28,12 @@ impl UnOp for Neg {
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "-")?;
+        // Let the number be parsed with a minus sign instead of a negation operator.
+        // This allows numbers to parse as `-42` instead of `$(( - 42 ))`
+        if meta.get_current_token().map(|tok| tok.word.parse::<usize>().is_ok()).unwrap_or(false) {
+            meta.set_index(meta.get_index().saturating_sub(1));
+            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
+        }
         Ok(())
     }
 }
@@ -42,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Neg {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num])?;
+        Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num, Type::Int])?;
         Ok(())
     }
 }
@@ -50,7 +56,10 @@ impl SyntaxModule<ParserMetadata> for Neg {
 impl TranslateModule for Neg {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
-        translate_computation(meta, ArithOp::Neg, None, Some(expr))
+        match self.expr.get_type() {
+            Type::Int => ArithmeticFragment::new(None, ArithOp::Neg, expr).to_frag(),
+            _ => translate_float_computation(meta, ArithOp::Neg, None, Some(expr))
+        }
     }
 }
 

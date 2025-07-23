@@ -1,7 +1,7 @@
 // Output
 // 1 2 3
 
-fun test(arr: [Num]): [] {
+fun test(arr: [Int]): [] {
     return arr
 }
 

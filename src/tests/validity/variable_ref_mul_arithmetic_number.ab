@@ -1,0 +1,19 @@
+// Output
+// 72
+// 6336
+
+fun foo(ref a, b) {
+    a = a * b
+}
+
+fun bar(ref a, b, c) {
+    a = a * b * c
+}
+
+let a = 12
+foo(a, 6)
+echo a
+
+let b = 132
+bar(b, 12, 4)
+echo b

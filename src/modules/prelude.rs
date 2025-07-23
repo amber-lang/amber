@@ -7,7 +7,9 @@ pub use crate::translate::fragments::interpolable::{InterpolableFragment, Interp
 pub use crate::translate::fragments::list::ListFragment;
 pub use crate::translate::fragments::raw::RawFragment;
 pub use crate::translate::fragments::subprocess::SubprocessFragment;
+pub use crate::translate::fragments::arithmetic::ArithmeticFragment;
 pub use crate::translate::fragments::var_expr::{VarExprFragment, VarRenderType};
 pub use crate::translate::fragments::var_stmt::VarStmtFragment;
 pub use crate::translate::module::TranslateModule;
+pub use crate::translate::compute::ArithOp;
 pub use crate::utils::{ParserMetadata, TranslateMetadata};

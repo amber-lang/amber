@@ -4,7 +4,7 @@ use super::fragment::{FragmentKind, FragmentRenderable};
 /// This module represents a raw code fragment in Bash.
 /// It is used to render code fragments that do not require any further processing.
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RawFragment {
     pub value: String,
 }

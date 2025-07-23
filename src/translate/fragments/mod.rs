@@ -5,6 +5,7 @@ pub mod interpolable;
 pub mod list;
 pub mod raw;
 pub mod subprocess;
+pub mod arithmetic;
 pub mod var_expr;
 pub mod var_stmt;
 

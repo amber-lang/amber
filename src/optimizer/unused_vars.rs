@@ -145,6 +145,14 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                 find_unused_variables(item, meta);
             }
         }
+        FragmentKind::Arithmetic(arith) => {
+            if let Some(left) = &*arith.left {
+                find_unused_variables(left, meta);
+            }
+            if let Some(right) = &*arith.right {
+                find_unused_variables(right, meta);
+            }
+        }
         FragmentKind::VarStmt(var_stmt) => {
             if should_optimize_var_stmt(var_stmt) {
                 meta.with_is_var_rhs_ctx(true, |meta| -> Result<(), ()> {
@@ -177,6 +185,6 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
         FragmentKind::Subprocess(subprocess) => {
             find_unused_variables(&subprocess.fragment, meta);
         }
-        _ => {}
+        FragmentKind::Raw(_) | FragmentKind::Comment(_) | FragmentKind::Empty => {}
     }
 }

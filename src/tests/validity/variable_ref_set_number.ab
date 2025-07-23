@@ -1,10 +1,15 @@
 // Output
-// 36
+// 42
+// 42
 
 fun foo(ref a) {
-    a += 12
+    a = 42
 }
 
 let a = 24
+foo(a)
+echo a
+
+let a = 11.11
 foo(a)
 echo a
