@@ -60,7 +60,8 @@ impl SyntaxModule<ParserMetadata> for Array {
                         Type::Null => self.kind = Type::Array(Box::new(value.get_type())),
                         Type::Array(ref mut kind) => {
                             if value.get_type() != **kind {
-                                return error!(meta, tok, format!("Expected array value of type '{kind}'"))
+                                let pos = value.get_position(meta);
+                                return error_pos!(meta, pos, format!("Expected array value of type '{kind}'"))
                             }
                         },
                         _ => ()
@@ -88,7 +89,7 @@ impl TranslateModule for Array {
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args).with_spaces().to_frag();
         let var_stmt = VarStmtFragment::new("__array", self.kind.clone(), args).with_global_id(id);
-        meta.push_intermediate_variable(var_stmt).to_frag()
+        meta.push_ephemeral_variable(var_stmt).to_frag()
     }
 }
 

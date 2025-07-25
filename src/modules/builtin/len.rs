@@ -13,7 +13,7 @@ pub struct Len {
 
 impl Typed for Len {
     fn get_type(&self) -> Type {
-        Type::Num
+        Type::Int
     }
 }
 
@@ -54,7 +54,7 @@ impl TranslateModule for Len {
         let value = self.value.translate(meta);
         let id = meta.gen_value_id();
         let var_stmt = VarStmtFragment::new("__length", self.value.get_type(), value).with_global_id(id);
-        meta.push_intermediate_variable(var_stmt).with_length_getter(true).to_frag()
+        meta.push_ephemeral_variable(var_stmt).with_length_getter(true).to_frag()
     }
 }
 

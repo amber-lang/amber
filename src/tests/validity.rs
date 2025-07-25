@@ -1,3 +1,4 @@
+/// Tests for Amber scripts that check validity of generated bash execution output.
 use super::script_test;
 use super::TestOutcomeTarget;
 use test_generator::test_resources;

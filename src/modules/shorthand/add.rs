@@ -42,8 +42,9 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
         syntax(meta, &mut *self.expr)?;
         shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
             Type::Num,
+            Type::Int,
             Type::Text,
-            Type::array_of(Type::Generic)
+            Type::array_of(Type::Generic),
         ])?;
         Ok(())
     }
@@ -63,7 +64,16 @@ impl TranslateModule for ShorthandAdd {
                     .with_operator("+=")
                     .to_frag()
             }
-            _ => {
+            Type::Int => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                let expr = ArithmeticFragment::new(var.to_frag(), ArithOp::Add, expr).to_frag();
+                VarStmtFragment::new(&self.var, self.kind.clone(), expr)
+                    .with_global_id(self.global_id)
+                    .with_ref(self.is_ref)
+                    .with_operator("=")
+                    .to_frag()
+            }
+            Type::Num => {
                 let expr = self.expr.translate_eval(meta, self.is_ref);
                 let expr = translate_computation_eval(meta, ArithOp::Add, Some(var.to_frag()), Some(expr), self.is_ref);
                 VarStmtFragment::new(&self.var, self.kind.clone(), expr)
@@ -72,6 +82,7 @@ impl TranslateModule for ShorthandAdd {
                     .with_operator("=")
                     .to_frag()
             }
+            _ => unreachable!("Unsupported type {} in shorthand addition operation", self.kind)
         }
     }
 }

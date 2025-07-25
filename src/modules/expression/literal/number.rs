@@ -31,13 +31,9 @@ impl SyntaxModule<ParserMetadata> for Number {
         if let Ok(value) = integer(meta, vec![]) {
             self.value.push_str(&value);
         }
-        if let Ok(sym) = token(meta, ".") {
-            self.value.push_str(&sym);
-            self.value.push_str(&integer(meta, vec![])?);
-        }
-        if self.value.is_empty() {
-            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
-        }
+        let sym = token(meta, ".")?;
+        self.value.push_str(&sym);
+        self.value.push_str(&integer(meta, vec![])?);
         Ok(())
     }
 }

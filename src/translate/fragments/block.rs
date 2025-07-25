@@ -4,7 +4,7 @@ use crate::utils::TranslateMetadata;
 
 /// Renders blocks of statements in Bash code.
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlockFragment {
     pub statements: Vec<FragmentKind>,
     pub increase_indent: bool,
