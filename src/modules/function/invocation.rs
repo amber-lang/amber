@@ -153,7 +153,7 @@ impl TranslateModule for FunctionInvocation {
             let invocation_instance = format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
             let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
             let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
-            meta.push_intermediate_variable(var_stmt).to_frag()
+            meta.push_ephemeral_variable(var_stmt).to_frag()
         } else {
             fragments!("''")
         }

@@ -85,7 +85,7 @@ impl TranslateModule for Ternary {
             let id = meta.gen_value_id();
             let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
             let var_stmt = VarStmtFragment::new("__ternary", self.true_expr.get_type(), value).with_global_id(id);
-            meta.push_intermediate_variable(var_stmt).to_frag()
+            meta.push_ephemeral_variable(var_stmt).to_frag()
         } else {
             SubprocessFragment::new(expr).to_frag()
         }

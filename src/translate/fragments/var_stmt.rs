@@ -10,7 +10,10 @@ pub struct VarStmtFragment {
     pub global_id: Option<usize>,
     pub index: Option<Box<FragmentKind>>,
     pub kind: Type,
+    // This variable is made only for storing a value used by a single exprssion
+    pub is_ephemeral: bool,
     pub is_ref: bool,
+    // Determines if the variable can be removed when not used
     pub optimize_unused: bool,
     pub operator: String,
     pub value: Box<FragmentKind>,
@@ -26,6 +29,7 @@ impl Default for VarStmtFragment {
             index: None,
             kind: Type::Generic,
             is_ref: false,
+            is_ephemeral: false,
             optimize_unused: true,
             operator: "=".to_string(),
             value: Box::new(FragmentKind::Empty),
@@ -50,6 +54,11 @@ impl VarStmtFragment {
 
     pub fn with_ref(mut self, is_ref: bool) -> Self {
         self.is_ref = is_ref;
+        self
+    }
+
+    pub fn with_ephemeral(mut self, is_ephemeral: bool) -> Self {
+        self.is_ephemeral = is_ephemeral;
         self
     }
 
