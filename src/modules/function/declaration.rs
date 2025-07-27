@@ -162,6 +162,24 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         return error!(meta, name_token, format!("Argument '{name}' is already defined"));
                     }
 
+                    // Check for function name conflict
+                    // Skip this check for standard library files
+                    if let Some(path) = &meta.context.path {
+                        if path.contains("std/") {
+                            // Skip validation for standard library files
+                        } else {
+                            // Check against locally-defined functions only
+                            if meta.context.local_funs.contains(&name) {
+                                return error!(meta, name_token, format!("Function parameter '{name}' conflicts with existing function '{name}'"));
+                            }
+                        }
+                    } else {
+                        // If no path, assume it's user code and apply the check
+                        if meta.context.local_funs.contains(&name) {
+                            return error!(meta, name_token, format!("Function parameter '{name}' conflicts with existing function '{name}'"));
+                        }
+                    }
+
                     // Optionally parse the argument type
                     let mut arg_type = Type::Generic;
                     match token(meta, ":") {

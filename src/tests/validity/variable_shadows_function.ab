@@ -1,0 +1,11 @@
+// Output
+// hello
+
+fun myFunc() {
+  echo "hello"
+}
+
+main {
+  let myFunc = myFunc()
+  echo myFunc
+}

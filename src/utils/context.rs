@@ -115,6 +115,8 @@ pub struct Context {
     pub is_trust_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
+    /// This is a list of names of all locally-defined functions in the file
+    pub local_funs: Vec<String>,
     /// The return type of the currently parsed function
     pub fun_ret_type: Option<Type>,
     /// List of compiler flags
@@ -136,6 +138,7 @@ impl Context {
             is_main_ctx: false,
             is_trust_ctx: false,
             pub_funs: vec![],
+            local_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new(),
         }

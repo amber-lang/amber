@@ -129,6 +129,8 @@ impl ParserMetadata {
     /// Adds a function declaration to the current scope
     pub fn add_fun_declaration(&mut self, fun: FunctionInterface, ctx: Context) -> Option<usize> {
         let global_id = self.gen_fun_id();
+        // Track locally-defined function names
+        self.context.local_funs.push(fun.name.clone());
         // Add the function to the public function list
         if fun.is_public {
             let decl = fun.clone().into_fun_declaration(global_id);

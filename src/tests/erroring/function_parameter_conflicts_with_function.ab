@@ -1,0 +1,10 @@
+// Output
+// Function parameter 'foo' conflicts with existing function 'foo'
+
+fun foo() {
+  echo "foo"
+}
+
+fun bar(foo) {
+  foo()
+}

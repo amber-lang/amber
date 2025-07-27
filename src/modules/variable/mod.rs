@@ -92,6 +92,15 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
     if variable_name_keywords().contains(&name) {
         return error!(meta, tok, format!("Identifier '{name}' is a reserved keyword"))
     }
+    // Validate if the variable name conflicts with a locally-defined function
+    // Skip this check for standard library files
+    if let Some(path) = &meta.context.path {
+        if path.contains("std/") {
+            return Ok(());
+        }
+    }
+    // TODO: Consider more nuanced validation for local variables
+    // For now, only function parameters are checked to avoid breaking existing valid patterns
     Ok(())
 }
 
