@@ -162,10 +162,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         return error!(meta, name_token, format!("Argument '{name}' is already defined"));
                     }
 
-                    // Check if argument name conflicts with an existing function
-                    if meta.get_fun_declaration(&name).is_some() {
-                        return error!(meta, name_token, format!("Argument '{}' conflicts with existing function of the same name", name))
-                    }
+
 
                     // Optionally parse the argument type
                     let mut arg_type = Type::Generic;
