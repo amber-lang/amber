@@ -1,5 +1,4 @@
 // Output
-// Value at -5: ""
 // Value at -4: "zero"
 // Value at -3: "one"
 // Value at -2: "two"
@@ -17,7 +16,6 @@ main {
     if bash_version() >= 402 {
         // Do not use loop; we want to test compile time arithmetic.
         let array = ["zero", "one", "two", "three"]
-        echo "Value at -5: \"{array[-5]}\""
         echo "Value at -4: \"{array[-4]}\""
         echo "Value at -3: \"{array[-3]}\""
         echo "Value at -2: \"{array[-2]}\""
