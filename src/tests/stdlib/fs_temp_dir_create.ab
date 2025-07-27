@@ -8,13 +8,13 @@ fun filename(path: Text): Text {
 
 main {
     const path = temp_dir_create("amber-XXXX")?
-    const filename = filename(path)
+    const file_name = filename(path)
     if {
-        not starts_with(filename, "amber-") {
-            echo "filename should start with \"amber-\", {filename} given"
+        not starts_with(file_name, "amber-") {
+            echo "filename should start with \"amber-\", {file_name} given"
         }
-        len(filename) != len("amber-XXXX") {
-            echo "The length of filename should be {len("amber-XXXX")}. {filename} given"
+        len(file_name) != len("amber-XXXX") {
+            echo "The length of filename should be {len("amber-XXXX")}. {file_name} given"
         }
         dir_exists(path) {
             echo "Succeeded"
