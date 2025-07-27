@@ -1,0 +1,8 @@
+// Output
+// should work
+
+main {
+    if [true][0] {
+        echo "should work"
+    }
+}

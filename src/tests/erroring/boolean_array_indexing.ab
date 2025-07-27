@@ -1,8 +1,0 @@
-// Output
-// Index accessor must be an integer (and not a range) for left side of operation
-
-main {
-    if [true][0] {
-        echo "should work"
-    }
-}

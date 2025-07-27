@@ -2,16 +2,26 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{try_parse_type, Type, Typed};
 use crate::modules::prelude::*;
+use crate::modules::variable::handle_index_accessor;
 
 #[derive(Debug, Clone)]
 pub struct Array {
     exprs: Vec<Expr>,
-    kind: Type
+    kind: Type,
+    index: Option<Box<Expr>>,
 }
 
 impl Typed for Array {
     fn get_type(&self) -> Type {
-        self.kind.clone()
+        if self.index.is_some() {
+            if let Type::Array(item_type) = &self.kind {
+                *item_type.clone()
+            } else {
+                self.kind.clone()
+            }
+        } else {
+            self.kind.clone()
+        }
     }
 }
 
@@ -21,7 +31,8 @@ impl SyntaxModule<ParserMetadata> for Array {
     fn new() -> Self {
         Array {
             exprs: vec![],
-            kind: Type::Null
+            kind: Type::Null,
+            index: None,
         }
     }
 
@@ -79,6 +90,10 @@ impl SyntaxModule<ParserMetadata> for Array {
                 }
             }
         };
+        // Try to parse array indexing
+        if let Some(index_expr) = handle_index_accessor(meta, true)? {
+            self.index = Some(Box::new(index_expr));
+        }
         Ok(())
     }
 }
@@ -89,7 +104,17 @@ impl TranslateModule for Array {
         let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args).with_spaces().to_frag();
         let var_stmt = VarStmtFragment::new("__array", self.kind.clone(), args).with_global_id(id);
-        meta.push_ephemeral_variable(var_stmt).to_frag()
+        let array_var = meta.push_ephemeral_variable(var_stmt);
+        
+        if let Some(index_expr) = &self.index {
+            // Generate array access with index
+            VarExprFragment::new("__array", self.get_type())
+                .with_global_id(Some(id))
+                .with_index_by_expr(meta, Some(*index_expr.clone()))
+                .to_frag()
+        } else {
+            array_var.to_frag()
+        }
     }
 }
 
