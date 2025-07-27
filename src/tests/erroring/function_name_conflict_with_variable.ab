@@ -1,0 +1,8 @@
+// Output
+// Function 'bar' conflicts with existing variable of the same name
+
+let bar = "test"
+
+fun bar() {
+    echo "bar"
+}

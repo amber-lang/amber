@@ -70,6 +70,9 @@ pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -
     if meta.get_fun_declaration(&name).is_some() {
         return error!(meta, tok, format!("Function '{}' already exists", name))
     }
+    if meta.get_var(&name).is_some() {
+        return error!(meta, tok, format!("Function '{}' conflicts with existing variable of the same name", name))
+    }
     Ok(())
 }
 
