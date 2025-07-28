@@ -19,7 +19,8 @@ impl VariableInit {
         meta: &mut ParserMetadata,
         tok: Option<Token>
     ) -> SyntaxResult {
-        if meta.get_fun_declaration(&self.name).is_some() {
+        // Only check for function name conflicts in global scope
+        if !meta.context.is_fun_ctx && meta.get_fun_declaration(&self.name).is_some() {
             return error!(meta, tok, format!("Variable '{}' conflicts with existing function of the same name", self.name))
         }
         handle_identifier_name(meta, &self.name, tok)?;
