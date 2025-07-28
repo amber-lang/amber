@@ -1,0 +1,12 @@
+// Output
+// parameter value: test
+
+fun foo() {
+    echo "function foo"
+}
+
+fun bar(foo) {
+    echo "parameter value: {foo}"
+}
+
+bar("test")
