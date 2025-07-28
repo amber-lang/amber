@@ -55,23 +55,23 @@ fun sed_version(): Num {
 /// Function uses `sed`
 pub fun replace_regex(source: Text, search: Text, replacement: Text, extended: Bool = false): Text {
     trust {
-        const sed_ver = sed_version()
+        const sed_type = sed_version()
         search = replace(search, "/", "\/")
         replacement = replace(replacement, "/", "\/")
-        if sed_ver == SED_VERSION_GNU or sed_ver == SED_VERSION_BUSYBOX {
+        if sed_type == SED_VERSION_GNU or sed_type == SED_VERSION_BUSYBOX {
             // '\b' is supported but not in POSIX standards. Disable it
             search = replace(search, "\\b", "\\\b")
         }
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option
-            if sed_ver == SED_VERSION_GNU {
+            if sed_type == SED_VERSION_GNU {
                 return $ echo "{source}" | sed -r -e "s/{search}/{replacement}/g" $
             } else {
                 return $ echo "{source}" | sed -E -e "s/{search}/{replacement}/g" $
             }
         } else {
-            if sed_ver == SED_VERSION_GNU or sed_ver == SED_VERSION_BUSYBOX {
+            if sed_type == SED_VERSION_GNU or sed_type == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
