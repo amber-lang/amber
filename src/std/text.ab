@@ -179,17 +179,17 @@ pub fun text_contains_all(source: Text, searches: [Text]): Bool {
 /// Function uses `sed`
 pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
     trust {
-        const sed_ver = sed_version()
+        const sed_version = sed_version()
         search = replace(search, "/", "\/")
         let output = ""
-        if sed_ver == SED_VERSION_GNU or sed_ver == SED_VERSION_BUSYBOX {
+        if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
             // '\b' is supported but not in POSIX standards. Disable it
             search = replace(search, "\\b", "\\\b")
         }
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option
-            if sed_ver == SED_VERSION_GNU {
+            if sed_version == SED_VERSION_GNU {
                 // '\b' is not in POSIX standards. Disable it
                 search = replace(search, "\b", "\\b")
                 output = $ echo "{source}" | sed -r -ne "/{search}/p" $
@@ -197,7 +197,7 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
                 output = $ echo "{source}" | sed -E -ne "/{search}/p" $
             }
         } else {
-            if sed_ver == SED_VERSION_GNU or sed_ver == SED_VERSION_BUSYBOX {
+            if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
