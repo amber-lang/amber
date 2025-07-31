@@ -100,7 +100,7 @@ impl Range {
                 upper_val = translate_float_computation(meta, ArithOp::Add, Some(upper_val), Some(fragments!("1")));
             }
             let upper_var_stmt = VarStmtFragment::new("__slice_upper", Type::Int, upper_val).with_global_id(upper_id);
-            meta.push_intermediate_variable(upper_var_stmt).to_frag()
+            meta.push_ephemeral_variable(upper_var_stmt).to_frag()
         };
 
         // Cap the lower bound at zero.
@@ -108,10 +108,10 @@ impl Range {
             let offset_id = meta.gen_value_id();
             let offset_val = self.from.translate(meta);
             let offset_var_stmt = VarStmtFragment::new("__slice_offset", Type::Int, offset_val).with_global_id(offset_id);
-            let offset_var_expr = meta.push_intermediate_variable(offset_var_stmt).to_frag();
+            let offset_var_expr = meta.push_ephemeral_variable(offset_var_stmt).to_frag();
             let offset_cap = fragments!("$((", offset_var_expr.clone().with_quotes(false), " > 0 ? ", offset_var_expr.with_quotes(false), " : 0))");
             let offset_var_stmt = VarStmtFragment::new("__slice_offset", Type::Int, offset_cap).with_global_id(offset_id);
-            meta.push_intermediate_variable(offset_var_stmt).to_frag()
+            meta.push_ephemeral_variable(offset_var_stmt).to_frag()
         };
 
         // Cap the slice length at zero.
@@ -119,10 +119,10 @@ impl Range {
             let length_id = meta.gen_value_id();
             let length_val = translate_float_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
             let length_var_stmt = VarStmtFragment::new("__slice_length", Type::Int, length_val).with_global_id(length_id);
-            let length_var_expr = meta.push_intermediate_variable(length_var_stmt).to_frag();
+            let length_var_expr = meta.push_ephemeral_variable(length_var_stmt).to_frag();
             let length_cap = fragments!("$((", length_var_expr.clone().with_quotes(false), " > 0 ? ", length_var_expr.with_quotes(false), " : 0))");
             let length_var_stmt = VarStmtFragment::new("__slice_length", Type::Int, length_cap).with_global_id(length_id);
-            meta.push_intermediate_variable(length_var_stmt).to_frag()
+            meta.push_ephemeral_variable(length_var_stmt).to_frag()
         };
 
         (offset, length)
