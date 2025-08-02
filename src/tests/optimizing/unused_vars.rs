@@ -95,6 +95,24 @@ fn test_remove_unused_variables_subprocess() {
 }
 
 #[test]
+fn test_remove_unused_variables_subprocess_as_expr() {
+    let subprocess = SubprocessFragment::new(
+        RawFragment::new("mv here/file.txt there/file.txt").to_frag()
+    );
+
+    let mut ast = BlockFragment::new(bash_code!({
+        a = syntax(subprocess.to_frag());
+        b = 20;
+    }), true).to_frag();
+
+    remove_unused_variables(&mut ast);
+
+    let block = unwrap_fragment!(ast, Block);
+    assert_eq!(block.statements.len(), 1);
+    assert_eq!(unwrap_fragment!(block.statements[0].clone(), VarStmt).get_name(), "a");
+}
+
+#[test]
 fn test_remove_unused_variables_transitive() {
     let mut ast = BlockFragment::new(bash_code!({
         a = 10;

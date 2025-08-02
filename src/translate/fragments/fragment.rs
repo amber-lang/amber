@@ -49,6 +49,19 @@ impl FragmentKind {
             _ => false,
         }
     }
+
+    pub fn is_mutating(&self) -> bool {
+        match self {
+            FragmentKind::VarStmt(var_stmt) => var_stmt.value.is_mutating(),
+            FragmentKind::Block(block) => block.statements.iter().any(|stmt| stmt.is_mutating()),
+            FragmentKind::Interpolable(interpolable) => interpolable.interps.iter().any(|item| item.is_mutating()),
+            FragmentKind::List(list) => list.values.iter().any(|item| item.is_mutating()),
+            FragmentKind::Arithmetic(arithmetic) => arithmetic.left.as_ref().as_ref().is_some_and(|l| l.is_mutating())
+                || arithmetic.right.as_ref().as_ref().is_some_and(|r| r.is_mutating()),
+            FragmentKind::Subprocess(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl FragmentRenderable for FragmentKind {
