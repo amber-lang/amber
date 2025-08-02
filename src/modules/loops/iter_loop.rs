@@ -4,11 +4,12 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::{RawFragment, FragmentKind};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
+use crate::translate::fragments::get_variable_name;
 use crate::translate::module::TranslateModule;
 use crate::utils::context::Context;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
-use crate::fragments;
+use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -16,7 +17,9 @@ pub struct IterLoop {
     block: Block,
     iter_expr: Expr,
     iter_index: Option<String>,
+    iter_index_global_id: Option<usize>,
     iter_name: String,
+    iter_global_id: Option<usize>,
     iter_type: Type
 }
 
@@ -28,7 +31,9 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             block: Block::new().with_needs_noop().with_condition(),
             iter_expr: Expr::new(),
             iter_index: None,
+            iter_index_global_id: None,
             iter_name: String::new(),
+            iter_global_id: None,
             iter_type: Type::Generic
         }
     }
@@ -52,9 +57,9 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             token(meta, "{")?;
             // Create iterator variable
             meta.with_push_scope(|meta| {
-                meta.add_var(&self.iter_name, self.iter_type.clone(), false);
+                self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
                 if let Some(index) = self.iter_index.as_ref() {
-                    meta.add_var(index, Type::Num, false);
+                    self.iter_index_global_id = meta.add_var(index, Type::Num, false);
                 }
                 // Save loop context state and set it to true
                 meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
@@ -75,7 +80,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let iter_path = self.translate_path(meta);
-        let iter_name = RawFragment::from(self.iter_name.clone()).to_frag();
+        let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
 
         let for_loop_prefix = match iter_path.is_some() {
             true => fragments!("while IFS= read -r ", iter_name, "; do"),
@@ -86,9 +91,10 @@ impl TranslateModule for IterLoop {
             false => fragments!("done"),
         };
 
-        match self.iter_index.as_ref() {
-            Some(index) => {
+        match (self.iter_index.as_ref(), self.iter_index_global_id) {
+            (Some(index), global_id) => {
                 let indent = TranslateMetadata::single_indent();
+                let index = get_variable_name(index, global_id);
                 BlockFragment::new(vec![
                     RawFragment::from(format!("{index}=0;")).to_frag(),
                     for_loop_prefix,
@@ -97,7 +103,7 @@ impl TranslateModule for IterLoop {
                     for_loop_suffix,
                 ], false).to_frag()
             },
-            None => {
+            _ => {
                 BlockFragment::new(vec![
                     for_loop_prefix,
                     self.block.translate(meta),
