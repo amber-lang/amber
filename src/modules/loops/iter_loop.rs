@@ -59,7 +59,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             meta.with_push_scope(|meta| {
                 self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
                 if let Some(index) = self.iter_index.as_ref() {
-                    self.iter_index_global_id = meta.add_var(index, Type::Num, false);
+                    self.iter_index_global_id = meta.add_var(index, Type::Int, false);
                 }
                 // Save loop context state and set it to true
                 meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
