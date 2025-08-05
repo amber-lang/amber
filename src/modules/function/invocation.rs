@@ -66,6 +66,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             if let Some(ref tok) = tok {
                 (self.line, self.col) = tok.pos;
             }
+            self.failed.function = meta.get_current_token();
             self.name = variable(meta, variable_name_extensions())?;
             // Get the arguments
             token(meta, "(")?;

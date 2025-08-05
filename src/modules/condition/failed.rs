@@ -8,9 +8,10 @@ use crate::modules::types::Type;
 #[derive(Debug, Clone)]
 pub struct Failed {
     pub is_parsed: bool,
-    is_question_mark: bool,
-    is_main: bool,
-    block: Box<Block>
+    pub is_question_mark: bool,
+    pub is_main: bool,
+    pub function: Option<Token>,
+    pub block: Box<Block>
 }
 
 impl SyntaxModule<ParserMetadata> for Failed {
@@ -21,6 +22,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_parsed: false,
             is_question_mark: false,
             is_main: false,
+            function: None,
             block: Box::new(Block::new().with_needs_noop().with_condition())
         }
     }
@@ -62,7 +64,16 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
-                    return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    return match self.function.as_ref() {
+                        Some(tok) => error!(meta, Some(tok.clone()),
+                            format!("The function '{}' requires a 'failed' block or statement to handle errors", tok.word),
+                            "You can use '?' operator to handle errors in the main block or function body"
+                        ),
+                        _ => error!(meta, tok,
+                            "Failed expression must be followed by a block or statement",
+                            "You can use '?' operator to handle errors in the main block or function body"
+                        )
+                    }
                 }
             }
         }
