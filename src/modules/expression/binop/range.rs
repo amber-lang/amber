@@ -1,7 +1,7 @@
 use crate::modules::prelude::*;
 use crate::{fragments, raw_fragment};
 use crate::modules::expression::binop::BinOp;
-use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_float_computation, ArithOp};
 use heraclitus_compiler::prelude::*;
@@ -56,20 +56,44 @@ impl SyntaxModule<ParserMetadata> for Range {
 impl TranslateModule for Range {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let from = self.from.translate(meta);
-        let to = if let Some(ExprType::Integer(int)) = &self.to.value {
-            match (int.value.parse::<i64>(), self.neq) {
-                (Ok(value), true) => raw_fragment!("{}", value - 1),
-                _ => self.to.translate(meta)
-            }
-        } else {
-            let to = self.to.translate(meta);
-            if self.neq {
-                ArithmeticFragment::new(to, ArithOp::Sub, fragments!("1")).to_frag()
+        
+        // Check if we can determine direction at compile time (both are integer literals)
+        if let (Some(from_val), Some(to_val)) = (self.from.get_integer_value(), self.to.get_integer_value()) {
+            // Compile-time detection: both are numeric literals
+            if from_val > to_val || (from_val == to_val && self.neq) {
+                // Reverse range or empty exclusive range
+                let to_adjusted = if self.neq { to_val + 1 } else { to_val };
+                let expr = fragments!("seq ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted));
+                return SubprocessFragment::new(expr).with_quotes(false).to_frag();
             } else {
-                to
+                // Forward range
+                let to_adjusted = if self.neq { to_val - 1 } else { to_val };
+                let expr = fragments!("seq ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted));
+                return SubprocessFragment::new(expr).with_quotes(false).to_frag();
             }
+        }
+        
+        // Runtime detection: at least one operand is a variable
+        let to_raw = self.to.translate(meta);
+        let from_var = fragments!(from.clone());
+        let to_var = fragments!(to_raw.clone());
+        
+        // For runtime detection, we need to compare with the original values and then adjust
+        let forward_to = if self.neq {
+            ArithmeticFragment::new(to_raw.clone(), ArithOp::Sub, fragments!("1")).to_frag()
+        } else {
+            to_raw.clone()
         };
-        let expr = fragments!("seq ", from, " ", to);
+        let reverse_to = if self.neq {
+            ArithmeticFragment::new(to_raw.clone(), ArithOp::Add, fragments!("1")).to_frag()
+        } else {
+            to_raw.clone()
+        };
+        
+        let expr = fragments!(
+            "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then seq ", from_var.clone(), " -1 ", reverse_to,
+            "; else seq ", from_var, " ", forward_to, "; fi"
+        );
         SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
 }
