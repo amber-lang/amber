@@ -78,12 +78,12 @@ impl Range {
     /// Generate a range at runtime when at least one operand is a variable
     fn generate_runtime_range(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let from = self.from.translate(meta);
-        let to_raw = self.to.translate(meta);
+        let to = self.to.translate(meta);
         let from_var = fragments!(from.clone());
-        let to_var = fragments!(to_raw.clone());
+        let to_var = fragments!(to.clone());
         
-        let forward_to = self.adjust_end_for_forward_range(to_raw.clone());
-        let reverse_to = self.adjust_end_for_reverse_range(to_raw.clone());
+        let forward_to = self.adjust_end_for_forward_range(to.clone());
+        let reverse_to = self.adjust_end_for_reverse_range(to.clone());
         
         let expr = fragments!(
             "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then seq ", from_var.clone(), " -1 ", reverse_to,
