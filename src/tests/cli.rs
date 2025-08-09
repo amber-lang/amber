@@ -3,6 +3,36 @@
 // relying on the external binary, making them more reliable and faster.
 
 use crate::compiler::{AmberCompiler, CompilerOptions};
+use heraclitus_compiler::prelude::Message;
+
+// Helper function to compile amber code and return messages and bash code
+fn compile_amber_code(code: &str) -> Result<(Vec<Message>, String), Box<dyn std::error::Error>> {
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    
+    compiler.compile()
+        .map_err(|e| format!("Compilation failed: {}", e.message.unwrap_or_default()).into())
+}
+
+// Helper function to collect message text from compiler messages
+fn collect_message_text(messages: &[Message]) -> Vec<String> {
+    messages.iter()
+        .map(|msg| msg.message.clone().unwrap_or_default())
+        .collect()
+}
+
+// Helper function to assert that messages contain a warning with specific pattern
+fn assert_contains_warning(messages: &[String], pattern: &str, context: &str) {
+    let found = messages.iter().any(|msg| msg.contains(pattern));
+    assert!(found, "Expected warning containing '{}' in {}, got messages: {:?}", pattern, context, messages);
+}
+
+// Helper function to assert that messages don't contain escape sequence warnings
+fn assert_no_escape_warnings(messages: &[String]) {
+    let has_escape_warnings = messages.iter()
+        .any(|msg| msg.contains("Invalid escape sequence"));
+    assert!(!has_escape_warnings, "Expected no escape sequence warnings, got messages: {:?}", messages);
+}
 
 // Test that the bash error code is forwarded to the exit code of amber.
 #[test]
@@ -24,6 +54,9 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
     // Show any compiler messages (shouldn't be any for this test)
     messages.iter().for_each(|m| m.show());
     
+    // Assert that no compiler messages were generated
+    assert_eq!(messages.len(), 0);
+    
     // Execute the bash code and check the exit status
     let exit_status = AmberCompiler::execute(bash_code, vec![])?;
     
@@ -38,22 +71,14 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
 fn invalid_escape_sequence_warning() -> Result<(), Box<dyn std::error::Error>> {
     let amber_code = r#"echo "\c""#;
     
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    
     // Compile the amber code and capture messages
-    let (messages, bash_code) = compiler.compile()
-        .map_err(|e| format!("Compilation failed: {}", e.message.unwrap_or_default()))?;
+    let (messages, bash_code) = compile_amber_code(amber_code)?;
     
     // Collect all message content to check for warnings
-    let all_messages: Vec<String> = messages.iter()
-        .map(|msg| msg.message.clone().unwrap_or_default())
-        .collect();
+    let all_messages = collect_message_text(&messages);
     
     // Check that we got the expected warning message content
-    let found_invalid_escape = all_messages.iter()
-        .any(|msg| msg.contains("Invalid escape sequence '\\c'"));
-    assert!(found_invalid_escape, "Expected warning about invalid escape sequence '\\c', got messages: {:?}", all_messages);
+    assert_contains_warning(&all_messages, "Invalid escape sequence '\\c'", "invalid escape sequence test");
     
     // Verify we have at least one message (the warning)
     assert!(!all_messages.is_empty(), "Expected at least one warning message");
@@ -70,22 +95,14 @@ fn invalid_escape_sequence_warning() -> Result<(), Box<dyn std::error::Error>> {
 fn valid_escape_sequence_no_warning() -> Result<(), Box<dyn std::error::Error>> {
     let amber_code = r#"echo "\n\t\\""#;
     
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    
     // Compile the amber code and capture messages
-    let (messages, bash_code) = compiler.compile()
-        .map_err(|e| format!("Compilation failed: {}", e.message.unwrap_or_default()))?;
+    let (messages, bash_code) = compile_amber_code(amber_code)?;
     
     // Collect all message content to check for warnings
-    let all_messages: Vec<String> = messages.iter()
-        .map(|msg| msg.message.clone().unwrap_or_default())
-        .collect();
+    let all_messages = collect_message_text(&messages);
     
     // Check that we got no warning messages related to escape sequences
-    let has_escape_warnings = all_messages.iter()
-        .any(|msg| msg.contains("Invalid escape sequence"));
-    assert!(!has_escape_warnings, "Expected no escape sequence warnings, got messages: {:?}", all_messages);
+    assert_no_escape_warnings(&all_messages);
     
     // Execute the bash code to verify it works
     let exit_status = AmberCompiler::execute(bash_code, vec![])?;
@@ -99,30 +116,16 @@ fn valid_escape_sequence_no_warning() -> Result<(), Box<dyn std::error::Error>> 
 fn multiple_invalid_escape_sequences() -> Result<(), Box<dyn std::error::Error>> {
     let amber_code = r#"echo "\x\y\z""#;
     
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    
     // Compile the amber code and capture messages
-    let (messages, bash_code) = compiler.compile()
-        .map_err(|e| format!("Compilation failed: {}", e.message.unwrap_or_default()))?;
+    let (messages, bash_code) = compile_amber_code(amber_code)?;
     
     // Collect all message content to check for warnings
-    let all_messages: Vec<String> = messages.iter()
-        .map(|msg| msg.message.clone().unwrap_or_default())
-        .collect();
+    let all_messages = collect_message_text(&messages);
     
     // Verify we have warnings for each invalid escape sequence
-    let found_x_escape = all_messages.iter()
-        .any(|msg| msg.contains("Invalid escape sequence '\\x'"));
-    assert!(found_x_escape, "Expected warning about invalid escape sequence '\\x', got messages: {:?}", all_messages);
-    
-    let found_y_escape = all_messages.iter()
-        .any(|msg| msg.contains("Invalid escape sequence '\\y'"));
-    assert!(found_y_escape, "Expected warning about invalid escape sequence '\\y', got messages: {:?}", all_messages);
-    
-    let found_z_escape = all_messages.iter()
-        .any(|msg| msg.contains("Invalid escape sequence '\\z'"));
-    assert!(found_z_escape, "Expected warning about invalid escape sequence '\\z', got messages: {:?}", all_messages);
+    assert_contains_warning(&all_messages, "Invalid escape sequence '\\x'", "multiple escape sequences test");
+    assert_contains_warning(&all_messages, "Invalid escape sequence '\\y'", "multiple escape sequences test");
+    assert_contains_warning(&all_messages, "Invalid escape sequence '\\z'", "multiple escape sequences test");
     
     // Execute the bash code to verify it still works
     let exit_status = AmberCompiler::execute(bash_code, vec![])?;
