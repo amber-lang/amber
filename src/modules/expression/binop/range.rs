@@ -55,40 +55,35 @@ impl SyntaxModule<ParserMetadata> for Range {
 
 impl TranslateModule for Range {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let from = self.from.translate(meta);
-        
-        // Check if we can determine direction at compile time (both are integer literals)
+        // Try compile-time optimization first
         if let (Some(from_val), Some(to_val)) = (self.from.get_integer_value(), self.to.get_integer_value()) {
-            // Compile-time detection: both are numeric literals
-            if from_val > to_val || (from_val == to_val && self.neq) {
-                // Reverse range or empty exclusive range
-                let to_adjusted = if self.neq { to_val + 1 } else { to_val };
-                let expr = fragments!("seq ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted));
-                return SubprocessFragment::new(expr).with_quotes(false).to_frag();
-            } else {
-                // Forward range
-                let to_adjusted = if self.neq { to_val - 1 } else { to_val };
-                let expr = fragments!("seq ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted));
-                return SubprocessFragment::new(expr).with_quotes(false).to_frag();
-            }
+            return self.generate_compile_time_range(from_val, to_val);
         }
         
-        // Runtime detection: at least one operand is a variable
+        // Fall back to runtime detection
+        self.generate_runtime_range(meta)
+    }
+}
+
+impl Range {
+    /// Generate a range at compile time when both operands are numeric literals
+    fn generate_compile_time_range(&self, from_val: isize, to_val: isize) -> FragmentKind {
+        if self.is_reverse_range(from_val, to_val) {
+            self.generate_reverse_seq(from_val, to_val)
+        } else {
+            self.generate_forward_seq(from_val, to_val)
+        }
+    }
+    
+    /// Generate a range at runtime when at least one operand is a variable
+    fn generate_runtime_range(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let from = self.from.translate(meta);
         let to_raw = self.to.translate(meta);
         let from_var = fragments!(from.clone());
         let to_var = fragments!(to_raw.clone());
         
-        // For runtime detection, we need to compare with the original values and then adjust
-        let forward_to = if self.neq {
-            ArithmeticFragment::new(to_raw.clone(), ArithOp::Sub, fragments!("1")).to_frag()
-        } else {
-            to_raw.clone()
-        };
-        let reverse_to = if self.neq {
-            ArithmeticFragment::new(to_raw.clone(), ArithOp::Add, fragments!("1")).to_frag()
-        } else {
-            to_raw.clone()
-        };
+        let forward_to = self.adjust_end_for_forward_range(to_raw.clone());
+        let reverse_to = self.adjust_end_for_reverse_range(to_raw.clone());
         
         let expr = fragments!(
             "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then seq ", from_var.clone(), " -1 ", reverse_to,
@@ -96,9 +91,44 @@ impl TranslateModule for Range {
         );
         SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
-}
+    
+    /// Check if this is a reverse range (start > end or equal with exclusive operator)
+    fn is_reverse_range(&self, from_val: isize, to_val: isize) -> bool {
+        from_val > to_val || (from_val == to_val && self.neq)
+    }
+    
+    /// Generate a forward seq command for compile-time ranges
+    fn generate_forward_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
+        let to_adjusted = if self.neq { to_val - 1 } else { to_val };
+        let expr = fragments!("seq ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted));
+        SubprocessFragment::new(expr).with_quotes(false).to_frag()
+    }
+    
+    /// Generate a reverse seq command for compile-time ranges
+    fn generate_reverse_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
+        let to_adjusted = if self.neq { to_val + 1 } else { to_val };
+        let expr = fragments!("seq ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted));
+        SubprocessFragment::new(expr).with_quotes(false).to_frag()
+    }
+    
+    /// Adjust the end value for forward ranges (runtime)
+    fn adjust_end_for_forward_range(&self, to_raw: FragmentKind) -> FragmentKind {
+        if self.neq {
+            ArithmeticFragment::new(to_raw, ArithOp::Sub, fragments!("1")).to_frag()
+        } else {
+            to_raw
+        }
+    }
+    
+    /// Adjust the end value for reverse ranges (runtime)
+    fn adjust_end_for_reverse_range(&self, to_raw: FragmentKind) -> FragmentKind {
+        if self.neq {
+            ArithmeticFragment::new(to_raw, ArithOp::Add, fragments!("1")).to_frag()
+        } else {
+            to_raw
+        }
+    }
 
-impl Range {
     pub fn get_array_index(&self, meta: &mut TranslateMetadata) -> (FragmentKind, FragmentKind) {
         if let Some(from) = self.from.get_integer_value() {
             if let Some(mut to) = self.to.get_integer_value() {
