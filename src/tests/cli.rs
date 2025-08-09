@@ -14,8 +14,7 @@ fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
         "#;
     
     // Create compiler with no postprocessors (equivalent to --no-proc *)
-    let mut options = CompilerOptions::default();
-    options.no_proc = vec!["*".to_string()];
+    let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
     
     // Compile the amber code to bash
