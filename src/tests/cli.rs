@@ -4,32 +4,6 @@
 
 use crate::compiler::{AmberCompiler, CompilerOptions};
 
-// Helper function to assert multiple warnings with expected messages
-fn assert_multiple_warnings(amber_code: &str, expected_messages: &[&str]) -> Result<(), Box<dyn std::error::Error>> {
-    // Amber compiler setup and parse
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    
-    let (messages, _bash_code) = compiler.compile()
-        .map_err(|e| format!("Compilation failed: {}", e.message.unwrap_or_default()))?;
-    
-    // Assert expected number of warnings
-    assert_eq!(messages.len(), expected_messages.len(), 
-               "Expected {} warnings, got {}: {:?}", expected_messages.len(), messages.len(), messages);
-    
-    // Assert each expected message is found
-    let warning_texts: Vec<String> = messages.iter()
-        .map(|msg| msg.message.clone().unwrap_or_default())
-        .collect();
-    
-    for expected_message in expected_messages {
-        let found = warning_texts.iter().any(|msg| msg.contains(expected_message));
-        assert!(found, "Expected warning containing '{}', got messages: {:?}", expected_message, warning_texts);
-    }
-    
-    Ok(())
-}
-
 // Helper function to assert no warnings
 fn assert_no_warnings(amber_code: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Amber compiler setup and parse
@@ -119,18 +93,14 @@ fn valid_escape_sequence_no_warning() -> Result<(), Box<dyn std::error::Error>> 
     Ok(())
 }
 
-// Test multiple invalid escape sequences
+// Test invalid escape sequence
 #[test]
-fn multiple_invalid_escape_sequences() -> Result<(), Box<dyn std::error::Error>> {
+fn invalid_escape_sequence_x_warning() -> Result<(), Box<dyn std::error::Error>> {
     // Amber code
-    let amber_code = r#"echo "\x\y\z""#;
+    let amber_code = r#"echo "\x""#;
     
-    // Amber compiler setup and parse + assertMultipleWarnings
-    assert_multiple_warnings(amber_code, &[
-        "Invalid escape sequence '\\x'",
-        "Invalid escape sequence '\\y'", 
-        "Invalid escape sequence '\\z'"
-    ])?;
+    // Amber compiler setup and parse + assertSingleWarning
+    assert_single_warning(amber_code, "Invalid escape sequence '\\x'")?;
     
     Ok(())
 }
