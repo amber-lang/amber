@@ -1,0 +1,14 @@
+// Test nameof functionality - mixed variable and function scopes
+let name = "variable"
+
+fun name() {
+    echo "function"
+}
+
+// Function takes precedence when using both syntaxes
+echo nameof name
+echo nameof(name)
+
+// Output
+// name__0_v0
+// name__0_v0

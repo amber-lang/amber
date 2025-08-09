@@ -1,0 +1,11 @@
+// Test nameof functionality - basic function nameof
+fun my_function() {
+    echo "Hello"
+}
+
+echo nameof my_function
+echo nameof(my_function)
+
+// Output
+// my_function__0_v0
+// my_function__0_v0

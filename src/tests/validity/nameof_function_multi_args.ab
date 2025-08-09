@@ -1,0 +1,11 @@
+// Test nameof functionality - function with multiple typed arguments  
+fun multi_arg_function(arg1: Int, arg2: Bool, arg3: Text) {
+    echo arg1
+    echo arg2  
+    echo arg3
+}
+
+echo nameof multi_arg_function(Int, Bool, Text)
+
+// Output
+// multi_arg_function__0_v0

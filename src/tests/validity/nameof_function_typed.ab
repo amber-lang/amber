@@ -1,0 +1,9 @@
+// Test nameof functionality - function with typed arguments
+fun typed_function(arg: Text) {
+    echo arg
+}
+
+echo nameof typed_function(Text)
+
+// Output
+// typed_function__0_v0

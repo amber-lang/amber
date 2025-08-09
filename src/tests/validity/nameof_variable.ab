@@ -1,0 +1,9 @@
+// Test nameof functionality - variable nameof
+let my_variable = "test"
+
+echo nameof my_variable
+echo nameof(my_variable)
+
+// Output
+// __0_my_variable
+// __0_my_variable
