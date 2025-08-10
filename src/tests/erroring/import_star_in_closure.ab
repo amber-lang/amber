@@ -1,0 +1,4 @@
+// Output
+// Invalid use of '*' in import closure
+
+import { * } from "test"
