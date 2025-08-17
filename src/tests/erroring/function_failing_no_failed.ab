@@ -1,0 +1,9 @@
+// Output
+// The function 'foo' requires a 'failed' block or statement to handle errors
+
+fun foo(arg) {
+    echo arg
+    fail 1
+}
+
+foo("This should fail")
