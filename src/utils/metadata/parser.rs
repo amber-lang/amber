@@ -69,7 +69,7 @@ impl ParserMetadata {
 
     /// Adds a variable to the current scope
     pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
-        let global_id = (self.is_global_scope() || self.is_shadowing_prev_scope(name)).then(|| self.gen_var_id());
+        let global_id = Some(self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
             name: name.to_string(),
@@ -93,18 +93,6 @@ impl ParserMetadata {
             is_const: false,
         });
         global_id
-    }
-
-    pub fn is_shadowing_prev_scope(&self, name: &str) -> bool {
-        if self.context.scopes.len() > 1 {
-            self.context.scopes.iter()
-                .rev()
-                .skip(1)
-                .find_map(|scope| scope.get_var(name))
-                .is_some()
-        } else {
-            false
-        }
     }
 
     /// Gets a variable from the current scope or any parent scope

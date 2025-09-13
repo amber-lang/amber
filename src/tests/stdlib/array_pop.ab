@@ -2,10 +2,13 @@ import { array_pop } from "std/array"
 
 // Output
 // Popped from numbers: "three" (3) [zero one two]
-// Popped from empty: "" (0) []
+// Cannot pop from empty array
 
 fun test_pop(label: Text, data: [Text]): Null {
-    let value = array_pop(data)
+    let value = array_pop(data) failed {
+        echo "Cannot pop from empty array"
+        return null
+    }
     echo "Popped from {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

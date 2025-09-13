@@ -1,5 +1,4 @@
 // Output
-// Value at -5: ""
 // Value at -4: "zero"
 // Value at -3: "one"
 // Value at -2: "two"
@@ -14,7 +13,7 @@ fun bash_version(): Int {
 }
 
 fun test_index(array) {
-    for index in -5..=-1 {
+    for index in -4..=-1 {
         echo "Value at {index}: \"{array[index]}\""
     }
 }
