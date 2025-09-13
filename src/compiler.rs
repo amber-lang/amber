@@ -316,7 +316,8 @@ impl AmberCompiler {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
                 let output = String::from_utf8_lossy(&child.stdout).to_string();
-                Ok(output)
+                let err_output = String::from_utf8_lossy(&child.stderr).to_string();
+                Ok(output + &err_output)
             } else {
                 let message = Message::new_err_msg("Failed to find Bash");
                 Err(message)

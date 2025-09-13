@@ -7,13 +7,13 @@ import * from "std/env"
 pub fun file_download(url: Text, path: Text): Bool {
     if {
         is_command("curl") {
-            trust $ curl -L -o "{path}" "{url}" $
+            silent trust $ curl -L -o "{path}" "{url}" $
         }
         is_command("wget") {
-            trust $ wget "{url}" -P "{path}" $
+            silent trust $ wget "{url}" -P "{path}" $
         }
         is_command("aria2c") {
-            trust $ aria2c "{url}" -d "{path}" $
+            silent trust $ aria2c "{url}" -d "{path}" $
         }
         else {
             return false

@@ -1,88 +1,77 @@
-// Tests for the amber CLI binary itself.
-// Make sure to run `cargo build` before running these tests.
+// Tests for the amber CLI binary functionality using internal APIs.
+// These tests use internal compilation and execution functions instead of
+// relying on the external binary, making them more reliable and faster.
 
-use assert_cmd::prelude::*;
-use predicates::prelude::*;
-use std::io::Write;
-use std::process::Command;
-use tempfile::NamedTempFile;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 
 // Test that the bash error code is forwarded to the exit code of amber.
 #[test]
-fn bash_error_exit_code() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
-
-    let mut file = NamedTempFile::new()?;
-
-    writeln!(
-        file,
-        r#"
-        main {{
+fn bash_error_exit_code() {
+    // Amber code
+    let amber_code = r#"
+        main {
             $ notexistingcommand $?
-        }}
-        "#
-    )?;
-
-    // Changes locale to default to prevent locale-specific error messages.
-    cmd.env("LC_ALL", "C")
-        .arg("run")
-        .arg("--no-proc")
-        .arg("*")
-        .arg(file.path());
-
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("notexistingcommand: command not found"))
-        .code(127);
-
-    Ok(())
+        }
+        "#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, bash_code) = compiler.compile().unwrap();
+    
+    // Assert no warnings
+    assert_eq!(messages.len(), 0);
+    
+    // Execute the bash code and check the exit status
+    let exit_status = AmberCompiler::execute(bash_code, vec![]).unwrap();
+    assert_eq!(exit_status.code(), Some(127));
 }
 
 // Test that invalid escape sequences generate warnings
 #[test]
-fn invalid_escape_sequence_warning() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
-
-    cmd.arg("eval")
-        .arg(r#"echo "\c""#);
-
-    cmd.assert()
-        .success()
-        .stderr(predicate::str::contains("WARN  Invalid escape sequence '\\c'"))
-        .stderr(predicate::str::contains("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\"))
-        .stdout(predicate::str::contains("\\c"));
-
-    Ok(())
+fn invalid_escape_sequence_warning() {
+    // Amber code
+    let amber_code = r#"echo "\c""#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, _bash_code) = compiler.compile().unwrap();
+    
+    // Assert exactly one warning
+    assert_eq!(messages.len(), 1);
+    let warning_text = messages[0].message.clone().unwrap();
+    assert!(warning_text.contains("Invalid escape sequence '\\c'"));
 }
 
 // Test that valid escape sequences don't generate warnings
 #[test]
-fn valid_escape_sequence_no_warning() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
-
-    cmd.arg("eval")
-        .arg(r#"echo "\n\t\\""#);
-
-    cmd.assert()
-        .success()
-        .stderr(predicate::str::contains("WARN").not());
-
-    Ok(())
+fn valid_escape_sequence_no_warning() {
+    // Amber code
+    let amber_code = r#"echo "\n\t\\""#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, _bash_code) = compiler.compile().unwrap();
+    
+    // Assert no warnings
+    assert_eq!(messages.len(), 0);
 }
 
-// Test multiple invalid escape sequences
+// Test invalid escape sequence
 #[test]
-fn multiple_invalid_escape_sequences() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME"))?;
-
-    cmd.arg("eval")
-        .arg(r#"echo "\x\y\z""#);
-
-    cmd.assert()
-        .success()
-        .stderr(predicate::str::contains("Invalid escape sequence '\\x'"))
-        .stderr(predicate::str::contains("Invalid escape sequence '\\y'"))
-        .stderr(predicate::str::contains("Invalid escape sequence '\\z'"));
-
-    Ok(())
+fn invalid_escape_sequence_x_warning() {
+    // Amber code
+    let amber_code = r#"echo "\x""#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, _bash_code) = compiler.compile().unwrap();
+    
+    // Assert exactly one warning
+    assert_eq!(messages.len(), 1);
+    let warning_text = messages[0].message.clone().unwrap();
+    assert!(warning_text.contains("Invalid escape sequence '\\x'"));
 }

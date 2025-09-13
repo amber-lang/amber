@@ -27,6 +27,10 @@ macro_rules! bash_code {
         let variable = VarStmtFragment::new(stringify!($a), Type::Generic, raw_fragment!(stringify!($b))).with_ephemeral(true).to_frag();
         bash_code!(@acc [$($elems,)* variable] $($rest)*)
     }};
+    (@acc [$($elems:expr),*] $a:ident = syntax($b:expr); $($rest:tt)*) => {{
+        let variable = VarStmtFragment::new(stringify!($a), Type::Generic, $b).to_frag();
+        bash_code!(@acc [$($elems,)* variable] $($rest)*)
+    }};
     // Blocks
     (@acc [$($elems:expr),*] if { $($cond_block:tt)* } $($rest:tt)*) => {
         bash_code!(@acc [$($elems,)* BlockFragment::new(bash_code!({ $($cond_block)* }), true).with_condition(true).to_frag()] $($rest)*)

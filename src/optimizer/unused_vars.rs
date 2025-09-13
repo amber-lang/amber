@@ -120,6 +120,7 @@ fn should_optimize_var_stmt(var_stmt: &VarStmtFragment) -> bool {
         && var_stmt.optimize_unused
         && var_stmt.index.is_none()
         && var_stmt.operator == "="
+        && !var_stmt.value.is_mutating()
 }
 
 fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata) {

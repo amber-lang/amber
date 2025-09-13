@@ -147,6 +147,13 @@ impl SyntaxModule<ParserMetadata> for Import {
                 if token(meta, "}").is_err() {
                     loop {
                         let tok = meta.get_current_token();
+                        // Check for incorrect use of '*' inside import closure
+                        if token(meta, "*").is_ok() {
+                            return error!(meta, tok => {
+                                message: "Invalid use of '*' in import closure",
+                                comment: "Did you mean to 'import * from' instead?"
+                            });
+                        }
                         let name = variable(meta, variable_name_extensions())?;
                         let alias = match token(meta, "as") {
                             Ok(_) => Some(variable(meta, variable_name_extensions())?),
