@@ -71,8 +71,8 @@ impl InterpolableFragment {
                     InterpolableRenderType::GlobalContext => result += r"\$",
                 }
                 '`' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r"`",
-                    InterpolableRenderType::GlobalContext => result += r"\`",
+                    InterpolableRenderType::StringLiteral => result += r"\`",
+                    InterpolableRenderType::GlobalContext => result += r"`",
                 }
                 '!' => match self.render_type {
                     InterpolableRenderType::StringLiteral => result += r#""'!'""#,
