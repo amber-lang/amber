@@ -79,7 +79,7 @@ main(args) {
     }
 
     // Set the download link
-    let url = "https://github.com/amber-lang/{name}/releases/download/{tag}/amber-{arch}-{os}.tar.xz"
+    let url = "https://github.com/amber-lang/{name}/releases/download/{tag}/amber-{os}-{arch}.tar.xz"
 
     // Download amber
     silent $ curl -L -o "{archive}" "{url}" $ failed {
@@ -96,9 +96,9 @@ main(args) {
     }
 
     // Unarchive amber
-    silent $ {sudo} tar --strip-components=1 -xvf {place}/{archive} -C {place} $ failed {
+    silent $ {sudo} tar -xvf "{place}/{archive}" -C "{place}" $ failed {
         echo "Failed to unarchive amber at {place}/{archive}"
-        echo "Please make sure that you have `tar` command installed."
+        echo "Please make sure that you have \`tar\` command installed."
         exit 1
     }
 
@@ -131,7 +131,7 @@ main(args) {
         exit 1
     }
 
-    let nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    let nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type \`no\`:")
     if (nickname != "no") {
         // Send feedback to the server
         trust silent $ curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" $
