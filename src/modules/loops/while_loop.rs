@@ -50,10 +50,11 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
 
 impl TranslateModule for WhileLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let mut result = vec![];
-        result.push(fragments!("while [ ", self.condition.translate(meta), " != 0 ]; do"));
-        result.push(self.block.translate(meta));
-        result.push(fragments!("done"));
+        let result = vec![
+            fragments!("while [ ", self.condition.translate(meta), " != 0 ]; do"),
+            self.block.translate(meta),
+            fragments!("done")
+        ];
         BlockFragment::new(result, false).to_frag()
     }
 }
