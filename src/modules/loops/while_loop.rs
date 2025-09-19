@@ -30,11 +30,10 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
         
         // Validate that the condition is a boolean expression
         if self.condition.get_type() != Type::Bool {
-            let msg = format!(
+            return error!(meta, tok, format!(
                 "Expected boolean expression in while condition, got {}",
                 self.condition.get_type()
-            );
-            return error!(meta, tok, msg);
+            ));
         }
 
         token(meta, "{")?;

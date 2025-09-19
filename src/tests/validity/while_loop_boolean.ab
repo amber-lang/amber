@@ -1,7 +1,0 @@
-let i = 0
-main {
-    while i < 3 {
-        i = i + 1
-        echo i
-    }
-}
