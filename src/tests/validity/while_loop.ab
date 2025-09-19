@@ -1,0 +1,7 @@
+let i = 0
+main {
+    while i < 5 {
+        i = i + 1
+        echo i
+    }
+}
