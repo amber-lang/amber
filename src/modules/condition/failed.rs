@@ -2,7 +2,6 @@ use heraclitus_compiler::prelude::*;
 use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
-use crate::modules::statement::stmt::Statement;
 use crate::modules::types::Type;
 
 #[derive(Debug, Clone)]
@@ -34,27 +33,14 @@ impl SyntaxModule<ParserMetadata> for Failed {
             self.is_question_mark = true;
         } else {
             match token(meta, "failed") {
-                Ok(_) => match token(meta, "{") {
-                    Ok(_) => {
-                        let tok = meta.get_current_token();
-                        syntax(meta, &mut *self.block)?;
-                        if self.block.is_empty() {
-                            let message = Message::new_warn_at_token(meta, tok)
-                                .message("Empty failed block")
-                                .comment("You should use 'trust' modifier to run commands without handling errors");
-                            meta.add_message(message);
-                        }
-                        token(meta, "}")?;
-                    },
-                    Err(_) => {
-                        match token(meta, ":") {
-                            Ok(_) => {
-                                let mut statement = Statement::new();
-                                syntax(meta, &mut statement)?;
-                                self.block.push_statement(statement);
-                            },
-                            Err(_) => return error!(meta, tok, "Failed expression must be followed by a block or statement")
-                        }
+                Ok(_) => {
+                    let tok = meta.get_current_token();
+                    *self.block = Block::parse_block(meta)?;
+                    if self.block.is_empty() {
+                        let message = Message::new_warn_at_token(meta, tok)
+                            .message("Empty failed block")
+                            .comment("You should use 'trust' modifier to run commands without handling errors");
+                        meta.add_message(message);
                     }
                 },
                 Err(_) => if meta.context.is_trust_ctx {

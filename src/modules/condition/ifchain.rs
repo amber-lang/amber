@@ -3,7 +3,6 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
-use crate::modules::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
@@ -27,28 +26,14 @@ impl SyntaxModule<ParserMetadata> for IfChain {
         token(meta, "{")?;
         loop {
             let mut cond = Expr::new();
-            let mut block = Block::new().with_needs_noop().with_condition();
             // Handle comments and empty lines
             if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
                 continue
             }
             // Handle else keyword
             if token(meta, "else").is_ok() {
-                match token(meta, "{") {
-                    Ok(_) => {
-                        let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
-                        syntax(meta, &mut *false_block)?;
-                        self.false_block = Some(false_block);
-                        token(meta, "}")?;
-                    }
-                    Err(_) => {
-                        let mut statement = Statement::new();
-                        token(meta, ":")?;
-                        syntax(meta, &mut statement)?;
-                        self.false_block = Some(Box::new(Block::new().with_needs_noop().with_condition()));
-                        self.false_block.as_mut().unwrap().push_statement(statement);
-                    }
-                }
+                let false_block = Block::parse_block(meta)?;
+                self.false_block = Some(Box::new(false_block));
                 token(meta, "}")?;
                 return Ok(())
             }
@@ -57,20 +42,8 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             }
             // Handle end of the if chain
             syntax(meta, &mut cond)?;
-            match token(meta, "{") {
-                Ok(_) => {
-                    syntax(meta, &mut block)?;
-                    token(meta, "}")?;
-                    self.cond_blocks.push((cond, block));
-                }
-                Err(_) => {
-                    let mut statement = Statement::new();
-                    token(meta, ":")?;
-                    syntax(meta, &mut statement)?;
-                    block.push_statement(statement);
-                    self.cond_blocks.push((cond, block));
-                }
-            }
+            let block = Block::parse_block(meta)?;
+            self.cond_blocks.push((cond, block));
         }
     }
 }

@@ -43,45 +43,21 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         token(meta, "if")?;
         // Parse expression
         syntax(meta, &mut *self.expr)?;
-        // Parse true block
-        match token(meta, "{") {
-            Ok(_) => {
-                syntax(meta, &mut *self.true_block)?;
-                token(meta, "}")?;
-            }
-            Err(_) => {
-                let mut statement = Statement::new();
-                token(meta, ":")?;
-                syntax(meta, &mut statement)?;
-                self.true_block.push_statement(statement);
-            }
-        }
+        // Parse true block using unified block parser
+        *self.true_block = Block::parse_block(meta)?;
+        
         // Parse false block
         if token(meta, "else").is_ok() {
-            match token(meta, "{") {
-                Ok(_) => {
-                    let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
-                    let tok = meta.get_current_token();
-                    syntax(meta, &mut *false_block)?;
-                    // Check if the statement is using if chain syntax sugar
-                    if false_block.statements.len() == 1 {
-                        if let Some(statement) = false_block.statements.first() {
-                            self.prevent_not_using_if_chain(meta, statement, tok)?;
-                        }
-                    }
-                    self.false_block = Some(false_block);
-                    token(meta, "}")?;
-                }
-                Err(_) => {
-                    token(meta, ":")?;
-                    let tok = meta.get_current_token();
-                    let mut statement = Statement::new();
-                    syntax(meta, &mut statement)?;
-                    // Check if the statement is using if chain syntax sugar
-                    self.prevent_not_using_if_chain(meta, &statement, tok)?;
-                    self.false_block.get_or_insert(Box::new(Block::new())).push_statement(statement);
+            let false_block = Block::parse_block(meta)?;
+            let tok = meta.get_current_token();
+            
+            // Check if the statement is using if chain syntax sugar
+            if false_block.statements.len() == 1 {
+                if let Some(statement) = false_block.statements.first() {
+                    self.prevent_not_using_if_chain(meta, statement, tok)?;
                 }
             }
+            self.false_block = Some(Box::new(false_block));
         }
         Ok(())
     }

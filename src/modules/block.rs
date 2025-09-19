@@ -20,7 +20,6 @@ impl Block {
         self.statements.is_empty()
     }
 
-
     pub fn with_condition(mut self) -> Self {
         self.is_conditional = true;
         self
@@ -39,6 +38,28 @@ impl Block {
     pub fn with_no_indent(mut self) -> Self {
         self.should_indent = false;
         self
+    }
+
+    // Parse a unified block that can handle both single-line and multi-line syntax
+    pub fn parse_block(meta: &mut ParserMetadata) -> Result<Block, Failure> {
+        let mut block = Block::new().with_needs_noop().with_condition();
+        
+        match token(meta, "{") {
+            Ok(_) => {
+                // Parse multi-line block
+                syntax(meta, &mut block)?;
+                token(meta, "}")?;
+                Ok(block)
+            }
+            Err(_) => {
+                // Parse single-line block
+                token(meta, ":")?;
+                let mut statement = Statement::new();
+                syntax(meta, &mut statement)?;
+                block.push_statement(statement);
+                Ok(block)
+            }
+        }
     }
 }
 
