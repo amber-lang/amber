@@ -34,33 +34,20 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             // Handle else keyword
             if token(meta, "else").is_ok() {
                 let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
-                
-                if token(meta, "{").is_ok() {
-                    syntax(meta, &mut *false_block)?;
-                    token(meta, "}")?;
-                } else {
-                    // Let the Block parser handle the ':' syntax
-                    syntax(meta, &mut *false_block)?;
-                }
-                
+                syntax(meta, &mut *false_block)?;
                 self.false_block = Some(false_block);
-                token(meta, "}")?;
-                return Ok(())
-            }
-            if token(meta, "}").is_ok() {
+                if token(meta, "}").is_err() {
+                  return error!(meta, meta.get_current_token(), "Expected `else` condition to be the last in the if chain")?
+                }
                 return Ok(())
             }
             // Handle end of the if chain
-            syntax(meta, &mut cond)?;
-            
-            if token(meta, "{").is_ok() {
-                syntax(meta, &mut block)?;
-                token(meta, "}")?;
-            } else {
-                // Let the Block parser handle the ':' syntax
-                syntax(meta, &mut block)?;
+            if token(meta, "}").is_ok() {
+                return Ok(())
             }
-            
+            syntax(meta, &mut cond)?;
+            syntax(meta, &mut block)?;
+
             self.cond_blocks.push((cond, block));
         }
     }

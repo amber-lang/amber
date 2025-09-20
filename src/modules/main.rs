@@ -41,7 +41,6 @@ impl SyntaxModule<ParserMetadata> for Main {
                 self.args = Some(variable(meta, variable_name_extensions())?);
                 token(meta, ")")?;
             }
-            token(meta, "{")?;
             // Create a new scope for variables
             meta.with_push_scope(|meta| {
                 // Create variables
@@ -52,7 +51,6 @@ impl SyntaxModule<ParserMetadata> for Main {
                 syntax(meta, &mut self.block)?;
                 Ok(())
             })?;
-            token(meta, "}")?;
             meta.context.is_main_ctx = false;
             Ok(())
         }, |pos| {

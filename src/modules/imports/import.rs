@@ -98,7 +98,7 @@ impl Import {
         let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
         match compiler.tokenize() {
             Ok(tokens) => {
-                let mut block = Block::new();
+                let mut block = Block::new().with_no_syntax();
                 // Save snapshot of current file
                 let position = PositionInfo::from_token(meta, self.token_import.clone());
                 let mut context = Context::new(Some(self.path.value.clone()), tokens)

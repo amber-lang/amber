@@ -20,12 +20,9 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "loop")?;
-        token(meta, "{")?;
         // Save loop context state and set it to true
         meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-            // Parse loop
             syntax(meta, &mut self.block)?;
-            token(meta, "}")?;
             Ok(())
         })?;
         Ok(())

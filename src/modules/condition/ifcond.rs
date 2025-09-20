@@ -43,28 +43,14 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         token(meta, "if")?;
         // Parse expression
         syntax(meta, &mut *self.expr)?;
-        // Parse true block - check for both { and : syntax
-        if token(meta, "{").is_ok() {
-            syntax(meta, &mut *self.true_block)?;
-            token(meta, "}")?;
-        } else {
-            // Let the Block parser handle the ':' syntax
-            syntax(meta, &mut *self.true_block)?;
-        }
-        
+        // Parse true block
+        syntax(meta, &mut *self.true_block)?;
         // Parse false block
         if token(meta, "else").is_ok() {
             let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
             let tok = meta.get_current_token();
-            
-            if token(meta, "{").is_ok() {
-                syntax(meta, &mut *false_block)?;
-                token(meta, "}")?;
-            } else {
-                // Let the Block parser handle the ':' syntax
-                syntax(meta, &mut *false_block)?;
-            }
-            
+            syntax(meta, &mut *false_block)?;
+
             // Check if the statement is using if chain syntax sugar
             if false_block.statements.len() == 1 {
                 if let Some(statement) = false_block.statements.first() {
