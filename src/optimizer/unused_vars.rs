@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use amber_meta::ContextManager;
 
 use crate::modules::prelude::*;
@@ -28,17 +28,22 @@ enum SymbolType {
 pub struct UnusedVariablesMetadata {
     symbols: VecDeque<SymbolType>,
     dependent_variables: Vec<VarExprName>,
+    used_variables: HashSet<VarExprName>,
     #[context]
     pub is_var_rhs_ctx: bool,
 }
 
 impl UnusedVariablesMetadata {
-    pub fn is_var_used(&self, name: VarStmtName) -> bool {
+    pub fn is_var_used(&mut self, name: VarStmtName) -> bool {
+        if self.used_variables.contains(&name) {
+          return true
+        }
         let mut transitive_variables = HashMap::from([(name.clone(), vec![0_usize])]);
         let mut cond_block_scope: usize = 0;
         for symbol_type in self.symbols.iter() {
             match symbol_type {
                 SymbolType::Expression(var_expr) => if transitive_variables.contains_key(var_expr) {
+                    self.used_variables.extend(transitive_variables.keys().cloned());
                     return true;
                 }
                 SymbolType::Statement(var_stmt, dependencies) => {
