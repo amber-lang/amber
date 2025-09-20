@@ -1,0 +1,11 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+__1_a=10
+__2_b="${__1_a}"
+__3_c="${__1_a}"
+if [ 1 != 0 ]; then
+    __3_c="${__2_b}"
+fi
+echo "${__3_c}"
