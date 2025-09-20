@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
         // Parse the condition expression
         let tok = meta.get_current_token();
         syntax(meta, &mut self.condition)?;
-        
+
         // Validate that the condition is a boolean expression
         if self.condition.get_type() != Type::Bool {
             return error!(meta, tok, format!(
@@ -36,12 +36,10 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
             ));
         }
 
-        token(meta, "{")?;
         // Save loop context state and set it to true
         meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
             // Parse loop
             syntax(meta, &mut self.block)?;
-            token(meta, "}")?;
             Ok(())
         })?;
         Ok(())
