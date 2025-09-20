@@ -43,13 +43,27 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         token(meta, "if")?;
         // Parse expression
         syntax(meta, &mut *self.expr)?;
-        // Parse true block using unified block parser
-        *self.true_block = Block::parse_block(meta)?;
+        // Parse true block - check for both { and : syntax
+        if token(meta, "{").is_ok() {
+            syntax(meta, &mut *self.true_block)?;
+            token(meta, "}")?;
+        } else {
+            // Let the Block parser handle the ':' syntax
+            syntax(meta, &mut *self.true_block)?;
+        }
         
         // Parse false block
         if token(meta, "else").is_ok() {
-            let false_block = Block::parse_block(meta)?;
+            let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
             let tok = meta.get_current_token();
+            
+            if token(meta, "{").is_ok() {
+                syntax(meta, &mut *false_block)?;
+                token(meta, "}")?;
+            } else {
+                // Let the Block parser handle the ':' syntax
+                syntax(meta, &mut *false_block)?;
+            }
             
             // Check if the statement is using if chain syntax sugar
             if false_block.statements.len() == 1 {
@@ -57,7 +71,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
                     self.prevent_not_using_if_chain(meta, statement, tok)?;
                 }
             }
-            self.false_block = Some(Box::new(false_block));
+            self.false_block = Some(false_block);
         }
         Ok(())
     }

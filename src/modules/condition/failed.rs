@@ -35,7 +35,15 @@ impl SyntaxModule<ParserMetadata> for Failed {
             match token(meta, "failed") {
                 Ok(_) => {
                     let tok = meta.get_current_token();
-                    *self.block = Block::parse_block(meta)?;
+                    
+                    if token(meta, "{").is_ok() {
+                        syntax(meta, &mut *self.block)?;
+                        token(meta, "}")?;
+                    } else {
+                        // Let the Block parser handle the ':' syntax
+                        syntax(meta, &mut *self.block)?;
+                    }
+                    
                     if self.block.is_empty() {
                         let message = Message::new_warn_at_token(meta, tok)
                             .message("Empty failed block")

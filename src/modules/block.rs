@@ -20,6 +20,7 @@ impl Block {
         self.statements.is_empty()
     }
 
+
     pub fn with_condition(mut self) -> Self {
         self.is_conditional = true;
         self
@@ -39,28 +40,6 @@ impl Block {
         self.should_indent = false;
         self
     }
-
-    // Parse a unified block that can handle both single-line and multi-line syntax
-    pub fn parse_block(meta: &mut ParserMetadata) -> Result<Block, Failure> {
-        let mut block = Block::new().with_needs_noop().with_condition();
-        
-        match token(meta, "{") {
-            Ok(_) => {
-                // Parse multi-line block
-                syntax(meta, &mut block)?;
-                token(meta, "}")?;
-                Ok(block)
-            }
-            Err(_) => {
-                // Parse single-line block
-                token(meta, ":")?;
-                let mut statement = Statement::new();
-                syntax(meta, &mut statement)?;
-                block.push_statement(statement);
-                Ok(block)
-            }
-        }
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Block {
@@ -76,6 +55,27 @@ impl SyntaxModule<ParserMetadata> for Block {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Try to detect if this is a single-line block by checking for ':'
+        let current_token = meta.get_current_token();
+        if let Some(token) = current_token {
+            if token.word == ":" {
+                // Parse single-line block
+                meta.increment_index(); // consume the ':'
+                return meta.with_push_scope(|meta| {
+                    let mut statement = Statement::new();
+                    if let Err(failure) = statement.parse(meta) {
+                        return match failure {
+                            Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token after ':'"),
+                            Failure::Loud(err) => Err(Failure::Loud(err))
+                        }
+                    }
+                    self.statements.push(statement);
+                    Ok(())
+                });
+            }
+        }
+        
+        // Parse as multi-line block (assumes caller handled opening '{')
         meta.with_push_scope(|meta| {
             while let Some(token) = meta.get_current_token() {
                 // Handle the end of line or command

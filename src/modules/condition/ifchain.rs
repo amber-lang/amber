@@ -26,14 +26,24 @@ impl SyntaxModule<ParserMetadata> for IfChain {
         token(meta, "{")?;
         loop {
             let mut cond = Expr::new();
+            let mut block = Block::new().with_needs_noop().with_condition();
             // Handle comments and empty lines
             if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
                 continue
             }
             // Handle else keyword
             if token(meta, "else").is_ok() {
-                let false_block = Block::parse_block(meta)?;
-                self.false_block = Some(Box::new(false_block));
+                let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
+                
+                if token(meta, "{").is_ok() {
+                    syntax(meta, &mut *false_block)?;
+                    token(meta, "}")?;
+                } else {
+                    // Let the Block parser handle the ':' syntax
+                    syntax(meta, &mut *false_block)?;
+                }
+                
+                self.false_block = Some(false_block);
                 token(meta, "}")?;
                 return Ok(())
             }
@@ -42,7 +52,15 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             }
             // Handle end of the if chain
             syntax(meta, &mut cond)?;
-            let block = Block::parse_block(meta)?;
+            
+            if token(meta, "{").is_ok() {
+                syntax(meta, &mut block)?;
+                token(meta, "}")?;
+            } else {
+                // Let the Block parser handle the ':' syntax
+                syntax(meta, &mut block)?;
+            }
+            
             self.cond_blocks.push((cond, block));
         }
     }
