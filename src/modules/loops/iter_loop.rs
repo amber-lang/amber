@@ -54,7 +54,6 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
                 Type::Array(kind) => *kind,
                 _ => return error!(meta, tok, "Expected iterable"),
             };
-            token(meta, "{")?;
             // Create iterator variable
             meta.with_push_scope(|meta| {
                 self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
@@ -65,7 +64,6 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
                 meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
                     // Parse loop
                     syntax(meta, &mut self.block)?;
-                    token(meta, "}")?;
                     Ok(())
                 })?;
                 Ok(())

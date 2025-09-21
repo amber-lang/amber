@@ -3,7 +3,6 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
-use crate::modules::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
@@ -34,43 +33,22 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             }
             // Handle else keyword
             if token(meta, "else").is_ok() {
-                match token(meta, "{") {
-                    Ok(_) => {
-                        let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
-                        syntax(meta, &mut *false_block)?;
-                        self.false_block = Some(false_block);
-                        token(meta, "}")?;
-                    }
-                    Err(_) => {
-                        let mut statement = Statement::new();
-                        token(meta, ":")?;
-                        syntax(meta, &mut statement)?;
-                        self.false_block = Some(Box::new(Block::new().with_needs_noop().with_condition()));
-                        self.false_block.as_mut().unwrap().push_statement(statement);
-                    }
+                let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
+                syntax(meta, &mut *false_block)?;
+                self.false_block = Some(false_block);
+                if token(meta, "}").is_err() {
+                  return error!(meta, meta.get_current_token(), "Expected `else` condition to be the last in the if chain")?
                 }
-                token(meta, "}")?;
-                return Ok(())
-            }
-            if token(meta, "}").is_ok() {
                 return Ok(())
             }
             // Handle end of the if chain
-            syntax(meta, &mut cond)?;
-            match token(meta, "{") {
-                Ok(_) => {
-                    syntax(meta, &mut block)?;
-                    token(meta, "}")?;
-                    self.cond_blocks.push((cond, block));
-                }
-                Err(_) => {
-                    let mut statement = Statement::new();
-                    token(meta, ":")?;
-                    syntax(meta, &mut statement)?;
-                    block.push_statement(statement);
-                    self.cond_blocks.push((cond, block));
-                }
+            if token(meta, "}").is_ok() {
+                return Ok(())
             }
+            syntax(meta, &mut cond)?;
+            syntax(meta, &mut block)?;
+
+            self.cond_blocks.push((cond, block));
         }
     }
 }

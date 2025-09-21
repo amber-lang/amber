@@ -11,6 +11,7 @@ pub struct Block {
     pub statements: Vec<Statement>,
     pub should_indent: bool,
     pub needs_noop: bool,
+    pub parses_syntax: bool,
     pub is_conditional: bool,
 }
 
@@ -20,15 +21,9 @@ impl Block {
         self.statements.is_empty()
     }
 
-
     pub fn with_condition(mut self) -> Self {
         self.is_conditional = true;
         self
-    }
-
-    // Push a parsed statement into the block
-    pub fn push_statement(&mut self, statement: Statement) {
-        self.statements.push(statement);
     }
 
     pub fn with_needs_noop(mut self) -> Self {
@@ -40,6 +35,11 @@ impl Block {
         self.should_indent = false;
         self
     }
+
+    pub fn with_no_syntax(mut self) -> Self {
+        self.parses_syntax = false;
+        self
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Block {
@@ -49,21 +49,28 @@ impl SyntaxModule<ParserMetadata> for Block {
         Block {
             statements: vec![],
             should_indent: true,
+            parses_syntax: true,
             needs_noop: false,
             is_conditional: false,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let is_single_line = if self.parses_syntax {
+            let parsed_word = token_by(meta, |word| [":", "{"].contains(&word.as_str()))?;
+            parsed_word == ":"
+        } else {
+            false
+        };
+
         meta.with_push_scope(|meta| {
-            while let Some(token) = meta.get_current_token() {
-                // Handle the end of line or command
-                if ["\n", ";"].contains(&token.word.as_str()) {
-                    meta.increment_index();
+            while meta.get_current_token().is_some() {
+                // Handle the end of line
+                if token(meta, "\n").is_ok() {
                     continue;
                 }
                 // Handle block end
-                else if token.word == "}" {
+                if !is_single_line && self.parses_syntax && token(meta, "}").is_ok() {
                     break;
                 }
                 let mut statement = Statement::new();
@@ -74,6 +81,12 @@ impl SyntaxModule<ParserMetadata> for Block {
                     }
                 }
                 self.statements.push(statement);
+                // Handle the semicolon
+                token(meta, ";").ok();
+                // Handle single line
+                if is_single_line {
+                    break;
+                }
             }
             Ok(())
         })

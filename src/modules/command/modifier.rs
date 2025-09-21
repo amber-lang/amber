@@ -72,7 +72,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 
     fn new() -> Self {
         CommandModifier {
-            block: Box::new(Block::new()),
+            block: Box::new(Block::new().with_no_indent()),
             is_block: true,
             is_trust: false,
             is_silent: false
@@ -83,10 +83,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
         self.parse_modifier_sequence(meta)?;
         if self.is_block {
             return self.use_modifiers(meta, |this, meta| {
-                token(meta, "{")?;
                 syntax(meta, &mut *this.block)?;
-                this.block.should_indent = false;
-                token(meta, "}")?;
                 Ok(())
             })
         }

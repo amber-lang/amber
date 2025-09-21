@@ -119,7 +119,7 @@ impl AmberCompiler {
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
-        let mut block = Block::new();
+        let mut block = Block::new().with_no_syntax();
         let time = Instant::now();
         // Parse with debug or not
         let result = if Self::env_flag_set(AMBER_DEBUG_PARSER) {
