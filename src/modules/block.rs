@@ -95,9 +95,9 @@ impl SyntaxModule<ParserMetadata> for Block {
 }
 
 impl TypeCheckModule for Block {
-    fn type_check(&mut self, ctx: &mut TypeContext) -> TypeCheckResult<Type> {
+    fn type_check(&mut self, _ctx: &mut TypeContext) -> TypeCheckResult<Type> {
         // Type check all statements in the block
-        for statement in &mut self.statements {
+        for _statement in &mut self.statements {
             // For now, we'll just call type_check if the statement supports it
             // This is a simplified approach - in a full implementation, we'd traverse
             // the AST more systematically

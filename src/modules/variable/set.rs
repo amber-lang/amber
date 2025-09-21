@@ -64,7 +64,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 }
 
 impl TypeCheckModule for VariableSet {
-    fn type_check(&mut self, ctx: &mut TypeContext) -> TypeCheckResult<Type> {
+    fn type_check(&mut self, _ctx: &mut TypeContext) -> TypeCheckResult<Type> {
         // This is where the actual type checking logic would be extracted to
         // For now, we rely on the existing logic in parse() for compatibility
         // TODO: Move the type checking logic from parse() method to here
