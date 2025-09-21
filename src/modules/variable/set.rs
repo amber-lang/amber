@@ -63,6 +63,15 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
     }
 }
 
+impl TypeCheckModule for VariableSet {
+    fn type_check(&mut self, ctx: &mut TypeContext) -> TypeCheckResult<Type> {
+        // This is where the actual type checking logic would be extracted to
+        // For now, we rely on the existing logic in parse() for compatibility
+        // TODO: Move the type checking logic from parse() method to here
+        Ok(self.expr.get_type())
+    }
+}
+
 impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let index = self.index.as_ref().map(|v| v.translate(meta));

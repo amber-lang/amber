@@ -62,6 +62,15 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     }
 }
 
+impl TypeCheckModule for VariableGet {
+    fn type_check(&mut self, ctx: &mut TypeContext) -> TypeCheckResult<Type> {
+        // This is where the actual type checking logic would be extracted to
+        // For now, we rely on the existing logic in parse() for compatibility  
+        // TODO: Move the type checking logic from parse() method to here
+        Ok(self.get_type())
+    }
+}
+
 impl TranslateModule for VariableGet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         VarExprFragment::new(&self.name, self.get_type())

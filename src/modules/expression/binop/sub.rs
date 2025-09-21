@@ -34,6 +34,31 @@ impl BinOp for Sub {
     }
 }
 
+impl TypeCheckModule for Sub {
+    fn type_check(&mut self, ctx: &mut TypeContext) -> TypeCheckResult<Type> {
+        use crate::modules::typeck::typecheck_binary_allowed_types;
+        use super::get_binop_position_info;
+        
+        let left_type = self.left.get_type();
+        let right_type = self.right.get_type();
+        let pos = get_binop_position_info(ctx.metadata(), &self.left, &self.right);
+        
+        let allowed_types = [Type::Num, Type::Int];
+        
+        let result_type = typecheck_binary_allowed_types(
+            ctx.metadata_mut(),
+            "subtraction",
+            &left_type,
+            &right_type,
+            &allowed_types,
+            pos,
+        )?;
+        
+        self.kind = result_type.clone();
+        Ok(result_type)
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Sub {
     syntax_name!("Sub");
 
