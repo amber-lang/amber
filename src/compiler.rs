@@ -293,14 +293,18 @@ impl AmberCompiler {
     }
 
     /// Perform type checking on parsed AST (new pipeline)
-    pub fn type_check(&self, _block: &mut Block, meta: &mut ParserMetadata) -> Result<(), Message> {
-        use crate::modules::typeck::TypeContext;
+    pub fn type_check(&self, block: &mut Block, meta: &mut ParserMetadata) -> Result<(), Message> {
+        use crate::modules::typeck::{TypeContext, TypeCheckModule};
         
         let time = Instant::now();
         
-        // Currently a no-op as we transition
-        // TODO: Implement actual type checking here once all modules support TypeCheckModule
-        let mut _ctx = TypeContext::new(meta);
+        // Create type checking context
+        let mut ctx = TypeContext::new(meta);
+        
+        // Perform type checking on the block
+        if let Err(failure) = block.type_check(&mut ctx) {
+            return Err(failure.unwrap_loud());
+        }
         
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
@@ -322,6 +326,12 @@ impl AmberCompiler {
         let messages = meta.messages.clone();
         let code = self.translate(block, meta)?;
         Ok((messages, code))
+    }
+
+    /// Test method to verify the new pipeline works
+    #[cfg(test)]
+    pub fn test_new_pipeline(&self) -> Result<(Vec<Message>, String), Message> {
+        self.compile_with_separate_phases()
     }
 
     pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {

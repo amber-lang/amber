@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::ops::Index;
 
 use crate::modules::prelude::*;
+use crate::modules::types::Type;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use super::statement::stmt::Statement;
@@ -90,6 +91,19 @@ impl SyntaxModule<ParserMetadata> for Block {
             }
             Ok(())
         })
+    }
+}
+
+impl TypeCheckModule for Block {
+    fn type_check(&mut self, ctx: &mut TypeContext) -> TypeCheckResult<Type> {
+        // Type check all statements in the block
+        for statement in &mut self.statements {
+            // For now, we'll just call type_check if the statement supports it
+            // This is a simplified approach - in a full implementation, we'd traverse
+            // the AST more systematically
+            // TODO: Implement proper AST traversal
+        }
+        Ok(Type::Null) // Blocks themselves don't have a meaningful type
     }
 }
 
