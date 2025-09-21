@@ -1,0 +1,12 @@
+import * from "std/text"
+
+// Output
+// 123
+// -12
+// 0
+
+main {
+    echo parse_int("123")?
+    echo parse_int("-12")?
+    echo parse_int("0")?
+}

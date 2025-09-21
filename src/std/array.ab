@@ -1,7 +1,7 @@
 /// Returns index of the first value found in the specified array.
 ///
 /// If the value is not found, the function returns -1.
-pub fun array_find(array, value): Num {
+pub fun array_find(array, value): Int {
     for index, element in array {
         if value as Text == element as Text {
             return index
@@ -11,8 +11,8 @@ pub fun array_find(array, value): Num {
 }
 
 /// Searches for a value in an array and returns an array with the index of the various items.
-pub fun array_find_all(array, value): [Num] {
-    let result = [Num]
+pub fun array_find_all(array, value): [Int] {
+    let result = [Int]
     for index, element in array {
         if value as Text == element as Text {
             result += [index]
@@ -45,7 +45,7 @@ pub fun array_last(array) {
 /// Removes an element at the index from the array; if the index is negative
 /// or beyond the end, the return value is undefined, but the array will be
 /// unchanged.
-pub fun array_remove_at(ref array: [], index: Num): Null {
+pub fun array_remove_at(ref array: [], index: Int): Null {
     let offset = index + 1
     let length = len(array)
     array = array[0..index] + array[offset..length]

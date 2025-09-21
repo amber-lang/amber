@@ -36,7 +36,7 @@ const SED_VERSION_UNKNOWN = 0
 const SED_VERSION_GNU = 1
 const SED_VERSION_BUSYBOX = 2
 
-fun sed_version(): Num {
+fun sed_version(): Int {
     // We can't match against a word "GNU" because
     // alpine's busybox sed returns "This is not GNU sed version"
     trust $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
@@ -129,8 +129,18 @@ pub fun uppercase(text: Text): Text {
 
 /// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
 #[allow_absurd_cast]
-pub fun parse_number(text: Text): Num? {
+pub fun parse_int(text: Text): Num? {
     $ [ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null $?
+    return text as Num
+}
+
+/// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
+#[allow_absurd_cast]
+pub fun parse_num(text: Text): Num? {
+    let re_int="^-?[0-9]+$"
+    let re_float="^-?[0-9]*\.[0-9]+$"
+
+    $ [[ {text} =~ {re_int} ]] || [[ {text} =~ {re_float} ]] $?
     return text as Num
 }
 
@@ -170,7 +180,6 @@ pub fun text_contains_all(source: Text, searches: [Text]): Bool {
             return false
         }
     }
-
     return true
 }
 
@@ -249,7 +258,7 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 /// If `length` is provided, the substring will include `length` characters; otherwise, it slices to the end of `text`.
 /// If `length` is negative, an empty string is returned.
-pub fun slice(text: Text, index: Num, length: Num = 0): Text {
+pub fun slice(text: Text, index: Int, length: Int = 0): Text {
     if length == 0: length = len(text) - index
     if length <= 0: return ""
     return trust $ printf "%.{length}s" "\$\{text:{index}}" $
@@ -258,7 +267,7 @@ pub fun slice(text: Text, index: Num, length: Num = 0): Text {
 /// Returns the character from `text` at the specified `index` (0-based).
 ///
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
-pub fun char_at(text: Text, index: Num): Text {
+pub fun char_at(text: Text, index: Int): Text {
     return trust $ printf "%.1s" "\$\{text:{index}}" $
 }
 
@@ -282,7 +291,7 @@ pub fun capitalized(text: Text): Text {
 }
 
 /// Pads `text` with the specified `pad` character on left until it reaches the desired `length`.
-pub fun lpad(text: Text, pad: Text, length: Num): Text {
+pub fun lpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
     length = len(text) - length
     pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
@@ -290,7 +299,7 @@ pub fun lpad(text: Text, pad: Text, length: Num): Text {
 }
 
 /// Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
-pub fun rpad(text: Text, pad: Text, length: Num): Text {
+pub fun rpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
     length = len(text) - length
     pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
@@ -298,6 +307,6 @@ pub fun rpad(text: Text, pad: Text, length: Num): Text {
 }
 
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
-pub fun zfill(text: Text, length: Num): Text {
+pub fun zfill(text: Text, length: Int): Text {
     return lpad(text, "0", length)
 }
