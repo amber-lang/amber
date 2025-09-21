@@ -35,7 +35,6 @@ impl SyntaxModule<ParserMetadata> for Failed {
             match token(meta, "failed") {
                 Ok(_) => {
                     let tok = meta.get_current_token();
-                    dbg!(tok.clone());
                     syntax(meta, &mut *self.block)?;
                     if self.block.is_empty() {
                         let message = Message::new_warn_at_token(meta, tok)
