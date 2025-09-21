@@ -19,7 +19,7 @@ use std::fs::File;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+use std::process::{exit, Command, ExitStatus};
 use std::time::Instant;
 
 pub mod postprocessor;
@@ -166,7 +166,11 @@ impl AmberCompiler {
 
     fn gen_header(&self) -> String {
         let header_template = if let Ok(dynamic) = env::var("AMBER_HEADER") {
-            fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from path '{dynamic}'").as_str())
+            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+                let msg = format!("Couldn't read the dynamic header file from path '{dynamic}'");
+                Message::new_err_msg(msg).show();
+                exit(1);
+            })
         } else {
             include_str!("header.sh").trim_end().to_string()
         };
@@ -176,7 +180,11 @@ impl AmberCompiler {
 
     fn gen_footer(&self) -> String {
         let footer_template = if let Ok(dynamic) = env::var("AMBER_FOOTER") {
-            fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic footer file from {dynamic}").as_str())
+            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+                let msg = format!("Couldn't read the dynamic footer file from path '{dynamic}'");
+                Message::new_err_msg(msg).show();
+                exit(1);
+            })
         } else {
             String::new()
         };
