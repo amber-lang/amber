@@ -127,14 +127,14 @@ pub fun uppercase(text: Text): Text {
     return trust $ echo "{text}" | tr '[:lower:]' '[:upper:]' $
 }
 
-/// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
+/// Attempts to parse a given text into an `Int` number.
 #[allow_absurd_cast]
 pub fun parse_int(text: Text): Num? {
     $ [ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null $?
     return text as Num
 }
 
-/// Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
+/// Attempts to parse a given text into a `Num` number.
 #[allow_absurd_cast]
 pub fun parse_num(text: Text): Num? {
     let re_int="^-?[0-9]+$"
