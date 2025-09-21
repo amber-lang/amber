@@ -29,6 +29,9 @@ impl TranslateModule for Continue {
     }
 }
 
+
+impl_noop_typecheck!(Continue);
+
 impl DocumentationModule for Continue {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

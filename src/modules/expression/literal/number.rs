@@ -51,6 +51,9 @@ impl Number {
     }
 }
 
+
+impl_noop_typecheck!(Number);
+
 impl DocumentationModule for Number {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

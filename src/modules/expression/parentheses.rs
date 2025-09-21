@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{prelude::FragmentKind, types::{Type, Typed}}, utils::metadata::ParserMetadata};
+use crate::{docs::module::DocumentationModule, modules::{prelude::FragmentKind, types::{Type, Typed}, typecheck::TypeCheckModule}, utils::metadata::ParserMetadata};
 use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 
@@ -31,6 +31,12 @@ impl SyntaxModule<ParserMetadata> for Parentheses {
         self.kind = self.value.get_type();
         token(meta, ")")?;
         Ok(())
+    }
+}
+
+impl TypeCheckModule for Parentheses {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.value.typecheck(meta)
     }
 }
 

@@ -57,6 +57,9 @@ impl TranslateModule for WhileLoop {
     }
 }
 
+
+impl_noop_typecheck!(WhileLoop);
+
 impl DocumentationModule for WhileLoop {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

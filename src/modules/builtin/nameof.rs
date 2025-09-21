@@ -53,6 +53,9 @@ impl TranslateModule for Nameof {
     }
 }
 
+
+impl_noop_typecheck!(Nameof);
+
 impl DocumentationModule for Nameof {
     fn document(&self, meta: &ParserMetadata) -> String {
         "".to_string()

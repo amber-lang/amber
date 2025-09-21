@@ -34,6 +34,9 @@ impl TranslateModule for Status {
     }
 }
 
+
+impl_noop_typecheck!(Status);
+
 impl DocumentationModule for Status {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

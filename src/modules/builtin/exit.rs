@@ -48,6 +48,9 @@ impl TranslateModule for Exit {
     }
 }
 
+
+impl_noop_typecheck!(Exit);
+
 impl DocumentationModule for Exit {
     fn document(&self, meta: &ParserMetadata) -> String {
         "".to_string()

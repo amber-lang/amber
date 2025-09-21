@@ -155,6 +155,43 @@ impl SyntaxModule<ParserMetadata> for Statement {
     }
 }
 
+impl TypeCheckModule for Statement {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(statement) = &mut self.value {
+            match statement {
+                StatementType::Expr(expr) => expr.typecheck(meta)?,
+                StatementType::VariableInit(var_init) => var_init.typecheck(meta)?,
+                StatementType::VariableSet(var_set) => var_set.typecheck(meta)?,
+                StatementType::IfCondition(if_cond) => if_cond.typecheck(meta)?,
+                StatementType::IfChain(if_chain) => if_chain.typecheck(meta)?,
+                StatementType::ShorthandAdd(shorthand) => shorthand.typecheck(meta)?,
+                StatementType::ShorthandSub(shorthand) => shorthand.typecheck(meta)?,
+                StatementType::ShorthandMul(shorthand) => shorthand.typecheck(meta)?,
+                StatementType::ShorthandDiv(shorthand) => shorthand.typecheck(meta)?,
+                StatementType::ShorthandModulo(shorthand) => shorthand.typecheck(meta)?,
+                StatementType::InfiniteLoop(loop_stmt) => loop_stmt.typecheck(meta)?,
+                StatementType::IterLoop(iter_loop) => iter_loop.typecheck(meta)?,
+                StatementType::WhileLoop(while_loop) => while_loop.typecheck(meta)?,
+                StatementType::Break(_) => {}, // No type checking needed for break
+                StatementType::Continue(_) => {}, // No type checking needed for continue
+                StatementType::FunctionDeclaration(func_decl) => func_decl.typecheck(meta)?,
+                StatementType::Return(ret) => ret.typecheck(meta)?,
+                StatementType::Fail(fail) => fail.typecheck(meta)?,
+                StatementType::Import(_) => {}, // No type checking needed for imports
+                StatementType::Main(main) => main.typecheck(meta)?,
+                StatementType::Cd(cd) => cd.typecheck(meta)?,
+                StatementType::Echo(echo) => echo.typecheck(meta)?,
+                StatementType::Mv(mv) => mv.typecheck(meta)?,
+                StatementType::Exit(exit) => exit.typecheck(meta)?,
+                StatementType::CommandModifier(cmd_mod) => cmd_mod.typecheck(meta)?,
+                StatementType::Comment(_) => {}, // No type checking needed for comments
+                StatementType::CommentDoc(_) => {}, // No type checking needed for doc comments
+            }
+        }
+        Ok(())
+    }
+}
+
 impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate the staxtement

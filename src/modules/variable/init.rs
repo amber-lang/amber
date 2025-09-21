@@ -66,6 +66,9 @@ impl TranslateModule for VariableInit {
     }
 }
 
+
+impl_noop_typecheck!(VariableInit);
+
 impl DocumentationModule for VariableInit {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

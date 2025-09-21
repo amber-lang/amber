@@ -67,6 +67,9 @@ impl TranslateModule for Return {
     }
 }
 
+
+impl_noop_typecheck!(Return);
+
 impl DocumentationModule for Return {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

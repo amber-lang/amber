@@ -277,9 +277,31 @@ impl AmberCompiler {
         }
     }
 
+    pub fn typecheck(&self, mut block: Block, mut meta: ParserMetadata) -> Result<(Block, ParserMetadata), Message> {
+        use crate::modules::typecheck::TypeCheckModule;
+        let time = Instant::now();
+        
+        // Perform type checking on the block
+        if let Err(failure) = block.typecheck(&mut meta) {
+            return Err(failure.unwrap_loud());
+        }
+        
+        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            println!(
+                "[{}]\tin\t{}ms\t{pathname}",
+                "Typecheck".green(),
+                time.elapsed().as_millis()
+            );
+        }
+        
+        Ok((block, meta))
+    }
+
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         let tokens = self.tokenize()?;
         let (block, meta) = self.parse(tokens)?;
+        let (block, meta) = self.typecheck(block, meta)?;
         let messages = meta.messages.clone();
         let code = self.translate(block, meta)?;
         Ok((messages, code))

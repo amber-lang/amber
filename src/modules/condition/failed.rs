@@ -109,3 +109,5 @@ impl TranslateModule for Failed {
         }
     }
 }
+
+impl_noop_typecheck!(Failed);

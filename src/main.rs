@@ -7,6 +7,18 @@ mod translate;
 mod utils;
 mod optimizer;
 
+/// Macro to implement a no-op TypeCheckModule for modules that don't need type checking
+#[macro_export]
+macro_rules! impl_noop_typecheck {
+    ($type:ty) => {
+        impl crate::modules::typecheck::TypeCheckModule for $type {
+            fn typecheck(&mut self, _meta: &mut crate::utils::ParserMetadata) -> heraclitus_compiler::prelude::SyntaxResult {
+                Ok(())
+            }
+        }
+    };
+}
+
 pub mod built_info {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }

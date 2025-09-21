@@ -103,6 +103,9 @@ impl TranslateModule for Command {
     }
 }
 
+
+impl_noop_typecheck!(Command);
+
 impl DocumentationModule for Command {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

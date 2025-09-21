@@ -72,6 +72,9 @@ impl TranslateModule for Mv {
     }
 }
 
+
+impl_noop_typecheck!(Mv);
+
 impl DocumentationModule for Mv {
     fn document(&self, meta: &ParserMetadata) -> String {
         "".to_string()

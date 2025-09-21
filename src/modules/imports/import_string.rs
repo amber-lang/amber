@@ -52,3 +52,5 @@ impl SyntaxModule<ParserMetadata> for ImportString {
         Ok(())
     }
 }
+
+impl_noop_typecheck!(ImportString);

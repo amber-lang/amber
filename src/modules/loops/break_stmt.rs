@@ -32,6 +32,9 @@ impl TranslateModule for Break {
     }
 }
 
+
+impl_noop_typecheck!(Break);
+
 impl DocumentationModule for Break {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

@@ -69,6 +69,9 @@ impl TranslateModule for CommentDoc {
     }
 }
 
+
+impl_noop_typecheck!(CommentDoc);
+
 impl DocumentationModule for CommentDoc {
     fn document(&self, _meta: &ParserMetadata) -> String {
         self.value.trim_end().to_string() + "\n"

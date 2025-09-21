@@ -32,6 +32,9 @@ impl TranslateModule for Null {
     }
 }
 
+
+impl_noop_typecheck!(Null);
+
 impl DocumentationModule for Null {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

@@ -56,6 +56,13 @@ impl SyntaxModule<ParserMetadata> for Ternary {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Ternary {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if self.cond.get_type() != Type::Bool {
             let msg = self.cond.get_error_message(meta)
                 .message("Expected expression that evaluates to 'Bool' in ternary condition");

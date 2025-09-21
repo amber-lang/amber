@@ -77,6 +77,9 @@ impl TranslateModule for IfCondition {
     }
 }
 
+
+impl_noop_typecheck!(IfCondition);
+
 impl DocumentationModule for IfCondition {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

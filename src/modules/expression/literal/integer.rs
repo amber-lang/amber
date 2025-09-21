@@ -40,6 +40,9 @@ impl TranslateModule for Integer {
     }
 }
 
+
+impl_noop_typecheck!(Integer);
+
 impl DocumentationModule for Integer {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

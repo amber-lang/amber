@@ -50,6 +50,9 @@ impl TranslateModule for Text {
     }
 }
 
+
+impl_noop_typecheck!(Text);
+
 impl DocumentationModule for Text {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

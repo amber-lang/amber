@@ -32,6 +32,9 @@ impl TranslateModule for Comment {
     }
 }
 
+
+impl_noop_typecheck!(Comment);
+
 impl DocumentationModule for Comment {
     fn document(&self, _meta: &ParserMetadata) -> String {
         self.value.clone() + "\n\n"

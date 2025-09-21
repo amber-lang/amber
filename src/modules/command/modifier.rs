@@ -104,6 +104,9 @@ impl TranslateModule for CommandModifier {
     }
 }
 
+
+impl_noop_typecheck!(CommandModifier);
+
 impl DocumentationModule for CommandModifier {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

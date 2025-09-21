@@ -277,6 +277,9 @@ impl TranslateModule for FunctionDeclaration {
     }
 }
 
+
+impl_noop_typecheck!(FunctionDeclaration);
+
 impl DocumentationModule for FunctionDeclaration {
     fn document(&self, meta: &ParserMetadata) -> String {
         let mut result = vec![];

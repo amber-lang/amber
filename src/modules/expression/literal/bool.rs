@@ -36,6 +36,9 @@ impl TranslateModule for Bool {
     }
 }
 
+
+impl_noop_typecheck!(Bool);
+
 impl DocumentationModule for Bool {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

@@ -40,6 +40,9 @@ impl TranslateModule for InfiniteLoop {
     }
 }
 
+
+impl_noop_typecheck!(InfiniteLoop);
+
 impl DocumentationModule for InfiniteLoop {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

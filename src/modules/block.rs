@@ -93,6 +93,16 @@ impl SyntaxModule<ParserMetadata> for Block {
     }
 }
 
+impl TypeCheckModule for Block {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type check all statements in the block
+        for statement in &mut self.statements {
+            statement.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
+
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Save the current statement queue and create a new one

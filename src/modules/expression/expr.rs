@@ -5,6 +5,7 @@ use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
 use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Typed, Type};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::typeop::TypeOp;
@@ -190,6 +191,49 @@ impl TranslateModule for Expr {
             // Variable access
             VariableGet
         ])
+    }
+}
+
+impl TypeCheckModule for Expr {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(expr_type) = &mut self.value {
+            match expr_type {
+                ExprType::Bool(_) => {}, // No type checking needed for literals
+                ExprType::Number(_) => {},
+                ExprType::Integer(_) => {},
+                ExprType::Text(_) => {},
+                ExprType::Parentheses(p) => p.typecheck(meta)?,
+                ExprType::VariableGet(v) => v.typecheck(meta)?,
+                ExprType::Add(op) => op.typecheck(meta)?,
+                ExprType::Sub(op) => op.typecheck(meta)?,
+                ExprType::Mul(op) => op.typecheck(meta)?,
+                ExprType::Div(op) => op.typecheck(meta)?,
+                ExprType::Modulo(op) => op.typecheck(meta)?,
+                ExprType::Neg(op) => op.typecheck(meta)?,
+                ExprType::And(op) => op.typecheck(meta)?,
+                ExprType::Or(op) => op.typecheck(meta)?,
+                ExprType::Gt(op) => op.typecheck(meta)?,
+                ExprType::Ge(op) => op.typecheck(meta)?,
+                ExprType::Lt(op) => op.typecheck(meta)?,
+                ExprType::Le(op) => op.typecheck(meta)?,
+                ExprType::Eq(op) => op.typecheck(meta)?,
+                ExprType::Neq(op) => op.typecheck(meta)?,
+                ExprType::Not(op) => op.typecheck(meta)?,
+                ExprType::Ternary(op) => op.typecheck(meta)?,
+                ExprType::LinesInvocation(li) => li.typecheck(meta)?,
+                ExprType::FunctionInvocation(fi) => fi.typecheck(meta)?,
+                ExprType::Command(cmd) => cmd.typecheck(meta)?,
+                ExprType::Array(arr) => arr.typecheck(meta)?,
+                ExprType::Range(r) => r.typecheck(meta)?,
+                ExprType::Null(_) => {},
+                ExprType::Cast(c) => c.typecheck(meta)?,
+                ExprType::Status(_) => {},
+                ExprType::Nameof(n) => n.typecheck(meta)?,
+                ExprType::Len(l) => l.typecheck(meta)?,
+                ExprType::Is(i) => i.typecheck(meta)?,
+            }
+        }
+        Ok(())
     }
 }
 

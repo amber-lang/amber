@@ -122,6 +122,9 @@ impl IterLoop {
     }
 }
 
+
+impl_noop_typecheck!(IterLoop);
+
 impl DocumentationModule for IterLoop {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

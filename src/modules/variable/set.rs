@@ -75,6 +75,9 @@ impl TranslateModule for VariableSet {
     }
 }
 
+
+impl_noop_typecheck!(VariableSet);
+
 impl DocumentationModule for VariableSet {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

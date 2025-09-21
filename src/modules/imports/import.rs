@@ -199,6 +199,9 @@ impl TranslateModule for Import {
     }
 }
 
+
+impl_noop_typecheck!(Import);
+
 impl DocumentationModule for Import {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

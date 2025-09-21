@@ -81,6 +81,9 @@ impl TranslateModule for Main {
     }
 }
 
+
+impl_noop_typecheck!(Main);
+
 impl DocumentationModule for Main {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

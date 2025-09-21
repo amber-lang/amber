@@ -160,6 +160,9 @@ impl TranslateModule for FunctionInvocation {
     }
 }
 
+
+impl_noop_typecheck!(FunctionInvocation);
+
 impl DocumentationModule for FunctionInvocation {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

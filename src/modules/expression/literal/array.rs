@@ -93,6 +93,9 @@ impl TranslateModule for Array {
     }
 }
 
+
+impl_noop_typecheck!(Array);
+
 impl DocumentationModule for Array {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()

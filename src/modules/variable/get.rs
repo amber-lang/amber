@@ -72,8 +72,15 @@ impl TranslateModule for VariableGet {
     }
 }
 
+
 impl DocumentationModule for VariableGet {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
+    }
+}
+
+impl crate::modules::typecheck::TypeCheckModule for VariableGet {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
     }
 }
