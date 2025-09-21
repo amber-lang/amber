@@ -13,3 +13,4 @@ pub use crate::translate::fragments::var_stmt::VarStmtFragment;
 pub use crate::translate::module::TranslateModule;
 pub use crate::translate::compute::ArithOp;
 pub use crate::utils::{ParserMetadata, TranslateMetadata};
+pub use crate::modules::typeck::{TypeCheckModule, TypeContext, TypeCheckResult, TypedAstNode};

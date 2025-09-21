@@ -11,6 +11,7 @@ pub mod types;
 pub mod imports;
 pub mod main;
 pub mod builtin;
+pub mod typeck;
 pub mod prelude;
 
 #[macro_export]

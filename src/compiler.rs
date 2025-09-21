@@ -285,6 +285,45 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
+    /// Parse without type checking (new pipeline)
+    pub fn parse_only(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
+        // For now, this is the same as parse() since type checking is still embedded
+        // This will be the foundation for the separated pipeline
+        self.parse(tokens)
+    }
+
+    /// Perform type checking on parsed AST (new pipeline)
+    pub fn type_check(&self, _block: &mut Block, meta: &mut ParserMetadata) -> Result<(), Message> {
+        use crate::modules::typeck::TypeContext;
+        
+        let time = Instant::now();
+        
+        // Currently a no-op as we transition
+        // TODO: Implement actual type checking here once all modules support TypeCheckModule
+        let mut _ctx = TypeContext::new(meta);
+        
+        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            println!(
+                "[{}]\tin\t{}ms\t{pathname}",
+                "TypeCheck".green(),
+                time.elapsed().as_millis()
+            );
+        }
+        
+        Ok(())
+    }
+
+    /// New compilation pipeline: Parse -> TypeCheck -> Translate
+    pub fn compile_with_separate_phases(&self) -> Result<(Vec<Message>, String), Message> {
+        let tokens = self.tokenize()?;
+        let (mut block, mut meta) = self.parse_only(tokens)?;
+        self.type_check(&mut block, &mut meta)?;
+        let messages = meta.messages.clone();
+        let code = self.translate(block, meta)?;
+        Ok((messages, code))
+    }
+
     pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         if let Some(mut command) = Self::find_bash() {
             if !args.is_empty() {
