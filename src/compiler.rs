@@ -208,8 +208,13 @@ impl AmberCompiler {
         }
 
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+<<<<<<< HEAD
 
         let header_template =
+=======
+        
+        let header_template = 
+>>>>>>> 8feec68424855f9e16bfed0c38a69a4024a28d8f
             if let Ok(dynamic) = env::var("AMBER_HEADER") {
                 fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from {dynamic}").as_str())
             } else {
@@ -229,8 +234,12 @@ impl AmberCompiler {
 
         let footer = footer_template
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
+<<<<<<< HEAD
             .replace("{{ date }}", now.as_str());
 
+=======
+        
+>>>>>>> 8feec68424855f9e16bfed0c38a69a4024a28d8f
         Ok(format!("{}\n{}\n{}", header, result, footer))
     }
 
