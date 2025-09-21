@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
         }
     }
 
-    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "nameof")?;
         let name = variable(meta, variable_name_extensions())?;
         match meta.get_var(&name) {
@@ -45,7 +45,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 }
 
 impl TranslateModule for Nameof {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         VarExprFragment::new(&self.name, Type::Text)
             .with_global_id(self.global_id)
             .with_render_type(VarRenderType::NameOf)
@@ -54,7 +54,7 @@ impl TranslateModule for Nameof {
 }
 
 impl DocumentationModule for Nameof {
-    fn document(&self, _meta: &ParserMetadata) -> String {
+    fn document(&self, meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

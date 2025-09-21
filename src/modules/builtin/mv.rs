@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
         }
     }
 
-    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
             token(meta, "mv")?;
@@ -73,7 +73,7 @@ impl TranslateModule for Mv {
 }
 
 impl DocumentationModule for Mv {
-    fn document(&self, _meta: &ParserMetadata) -> String {
+    fn document(&self, meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

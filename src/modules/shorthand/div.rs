@@ -40,6 +40,13 @@ impl SyntaxModule<ParserMetadata> for ShorthandDiv {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for ShorthandDiv {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         shorthand_typecheck_allowed_types(meta, "divide", &self.kind, &self.expr, &[
             Type::Num,
             Type::Int,

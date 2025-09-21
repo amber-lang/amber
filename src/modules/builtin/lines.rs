@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
         }
     }
 
-    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "lines")?;
         token(meta, "(")?;
         let tok = meta.get_current_token();
@@ -76,7 +76,7 @@ impl LinesInvocation {
 }
 
 impl DocumentationModule for LinesInvocation {
-    fn document(&self, _meta: &ParserMetadata) -> String {
+    fn document(&self, meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
