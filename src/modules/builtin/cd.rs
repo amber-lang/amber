@@ -16,7 +16,7 @@ impl SyntaxModule<ParserMetadata> for Cd {
         Cd { value: Expr::new() }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
         syntax(meta, &mut self.value)?;
         let path_type = self.value.get_type();

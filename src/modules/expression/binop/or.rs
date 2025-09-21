@@ -43,7 +43,14 @@ impl SyntaxModule<ParserMetadata> for Or {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Or {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         Self::typecheck_equality(meta, &self.left, &self.right)?;
         Ok(())
     }

@@ -43,7 +43,14 @@ impl SyntaxModule<ParserMetadata> for Cast {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Cast {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let begin = meta.get_token_at(self.expr.pos.0);
         let end = meta.get_current_token();
         let pos = PositionInfo::from_between_tokens(meta, begin, end);

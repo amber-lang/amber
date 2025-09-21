@@ -12,6 +12,7 @@ pub mod imports;
 pub mod main;
 pub mod builtin;
 pub mod prelude;
+pub mod typecheck;
 
 #[macro_export]
 macro_rules! handle_types {

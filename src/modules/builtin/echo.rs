@@ -17,7 +17,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "echo")?;
         syntax(meta, &mut *self.value)?;
         Ok(())

@@ -43,7 +43,14 @@ impl SyntaxModule<ParserMetadata> for Ge {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Ge {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

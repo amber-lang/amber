@@ -45,7 +45,14 @@ impl SyntaxModule<ParserMetadata> for Mul {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Mul {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.kind = Self::typecheck_allowed_types(meta, "multiplication", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

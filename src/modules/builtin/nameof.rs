@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "nameof")?;
         let name = variable(meta, variable_name_extensions())?;
         match meta.get_var(&name) {

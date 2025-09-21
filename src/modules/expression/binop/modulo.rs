@@ -44,7 +44,14 @@ impl SyntaxModule<ParserMetadata> for Modulo {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Modulo {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.kind = Self::typecheck_allowed_types(meta, "modulo", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

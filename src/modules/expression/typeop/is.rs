@@ -44,6 +44,14 @@ impl SyntaxModule<ParserMetadata> for Is {
     }
 
     fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type checking is now handled by TypeCheckModule
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Is {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        // The Is operation doesn't currently perform type checking in parse
         Ok(())
     }
 }

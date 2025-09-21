@@ -16,7 +16,7 @@ impl SyntaxModule<ParserMetadata> for Exit {
         Exit { code: None }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "exit")?;
 
         let mut code_expr = Expr::new();
