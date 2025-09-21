@@ -9,7 +9,6 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
 use crate::rules;
 use postprocessor::PostProcessor;
-use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
@@ -165,6 +164,26 @@ impl AmberCompiler {
         result
     }
 
+    fn gen_header(&self) -> String {
+        let header_template = if let Ok(dynamic) = env::var("AMBER_HEADER") {
+            fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from path '{dynamic}'").as_str())
+        } else {
+            include_str!("header.sh").trim_end().to_string()
+        };
+
+        header_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+    }
+
+    fn gen_footer(&self) -> String {
+        let footer_template = if let Ok(dynamic) = env::var("AMBER_FOOTER") {
+            fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic footer file from {dynamic}").as_str())
+        } else {
+            String::new()
+        };
+
+        footer_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+    }
+
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
@@ -207,31 +226,7 @@ impl AmberCompiler {
             };
         }
 
-        let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-
-        let header_template =
-            if let Ok(dynamic) = env::var("AMBER_HEADER") {
-                fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from {dynamic}").as_str())
-            } else {
-                include_str!("header.sh").to_string()
-            };
-
-        let footer_template =
-            if let Ok(dynamic) = env::var("AMBER_FOOTER") {
-                fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic footer file from {dynamic}").as_str())
-            } else {
-                String::new()
-            };
-
-        let header = header_template
-            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
-            .replace("{{ date }}", now.as_str());
-
-        let footer = footer_template
-            .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
-            .replace("{{ date }}", now.as_str());
-
-        Ok(format!("{}\n{}\n{}", header, result, footer))
+        Ok(format!("{}\n{}\n{}", self.gen_header(), result, self.gen_footer()))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
