@@ -1,9 +1,7 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::{docs::module::DocumentationModule, translate::module::TranslateModule};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
-use crate::utils::metadata::ParserMetadata;
-use crate::utils::TranslateMetadata;
 use crate::modules::types::{Type, Typed};
 
 use super::TypeOp;
@@ -64,6 +62,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
                 },
                 (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => meta.add_message(message),
                 (Type::Text, Type::Num) => { meta.add_message(message) },
+                (Type::Text, Type::Bool) => { meta.add_message(message) },
                 _ => {}
             }
         }
@@ -72,7 +71,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
 }
 
 impl TranslateModule for Cast {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         self.expr.translate(meta)
     }
 }

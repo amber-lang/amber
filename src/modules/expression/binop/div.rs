@@ -1,24 +1,22 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, utils::TranslateMetadata};
-use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::translate::compute::ArithOp;
-use crate::utils::metadata::ParserMetadata;
-use crate::translate::compute::translate_computation;
+use crate::translate::compute::translate_float_computation;
 use crate::modules::types::{Typed, Type};
-use crate::translate::module::TranslateModule;
 
 use super::BinOp;
 
 #[derive(Debug, Clone)]
 pub struct Div {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Div {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.kind.clone()
     }
 }
 
@@ -39,25 +37,33 @@ impl BinOp for Div {
 
 impl SyntaxModule<ParserMetadata> for Div {
     syntax_name!("Div");
-    
+
     fn new() -> Self {
         Div {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
+            kind: Type::Generic
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "divide", self.left, self.right, [Num])?;
+        self.kind = Self::typecheck_allowed_types(meta, "division", &self.left, &self.right, &[
+            Type::Num,
+            Type::Int,
+        ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Div {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Div, Some(left), Some(right))
+        match self.kind {
+            Type::Int => ArithmeticFragment::new(left, ArithOp::Div, right).to_frag(),
+            Type::Num => translate_float_computation(meta, ArithOp::Div, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in division operation", self.kind),
+        }
     }
 }
 

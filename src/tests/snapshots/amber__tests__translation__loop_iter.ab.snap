@@ -1,0 +1,492 @@
+---
+source: src/tests/translation.rs
+expression: ast
+---
+Block(
+    BlockFragment {
+        statements: [
+            VarStmt(
+                VarStmtFragment {
+                    name: "__array",
+                    global_id: Some(
+                        0,
+                    ),
+                    index: None,
+                    kind: Array(
+                        Int,
+                    ),
+                    is_ephemeral: true,
+                    is_ref: false,
+                    optimize_unused: true,
+                    operator: "=",
+                    value: List(
+                        ListFragment {
+                            values: [
+                                Raw(
+                                    RawFragment {
+                                        value: "1",
+                                    },
+                                ),
+                                Raw(
+                                    RawFragment {
+                                        value: "2",
+                                    },
+                                ),
+                                Raw(
+                                    RawFragment {
+                                        value: "3",
+                                    },
+                                ),
+                            ],
+                            separator: Space,
+                        },
+                    ),
+                },
+            ),
+            Block(
+                BlockFragment {
+                    statements: [
+                        List(
+                            ListFragment {
+                                values: [
+                                    Raw(
+                                        RawFragment {
+                                            value: "for ",
+                                        },
+                                    ),
+                                    Raw(
+                                        RawFragment {
+                                            value: "__0_item",
+                                        },
+                                    ),
+                                    Raw(
+                                        RawFragment {
+                                            value: " in ",
+                                        },
+                                    ),
+                                    VarExpr(
+                                        VarExprFragment {
+                                            name: "__array",
+                                            global_id: Some(
+                                                0,
+                                            ),
+                                            kind: Array(
+                                                Int,
+                                            ),
+                                            is_ref: false,
+                                            is_length: false,
+                                            default_value: None,
+                                            is_quoted: true,
+                                            is_array_to_string: false,
+                                            render_type: BashValue,
+                                            index: None,
+                                        },
+                                    ),
+                                    Raw(
+                                        RawFragment {
+                                            value: "; do",
+                                        },
+                                    ),
+                                ],
+                                separator: Empty,
+                            },
+                        ),
+                        Block(
+                            BlockFragment {
+                                statements: [
+                                    List(
+                                        ListFragment {
+                                            values: [
+                                                Raw(
+                                                    RawFragment {
+                                                        value: "echo ",
+                                                    },
+                                                ),
+                                                Interpolable(
+                                                    InterpolableFragment {
+                                                        strings: [
+                                                            "Item: ",
+                                                            "",
+                                                        ],
+                                                        interps: [
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "item",
+                                                                    global_id: Some(
+                                                                        0,
+                                                                    ),
+                                                                    kind: Int,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    render_type: BashValue,
+                                                                    index: None,
+                                                                },
+                                                            ),
+                                                        ],
+                                                        render_type: StringLiteral,
+                                                        quoted: true,
+                                                    },
+                                                ),
+                                            ],
+                                            separator: Empty,
+                                        },
+                                    ),
+                                ],
+                                increase_indent: true,
+                                needs_noop: true,
+                                is_conditional: true,
+                            },
+                        ),
+                        List(
+                            ListFragment {
+                                values: [
+                                    Raw(
+                                        RawFragment {
+                                            value: "done",
+                                        },
+                                    ),
+                                ],
+                                separator: Empty,
+                            },
+                        ),
+                    ],
+                    increase_indent: false,
+                    needs_noop: false,
+                    is_conditional: false,
+                },
+            ),
+            VarStmt(
+                VarStmtFragment {
+                    name: "__array",
+                    global_id: Some(
+                        1,
+                    ),
+                    index: None,
+                    kind: Array(
+                        Text,
+                    ),
+                    is_ephemeral: true,
+                    is_ref: false,
+                    optimize_unused: true,
+                    operator: "=",
+                    value: List(
+                        ListFragment {
+                            values: [
+                                Interpolable(
+                                    InterpolableFragment {
+                                        strings: [
+                                            "A",
+                                        ],
+                                        interps: [],
+                                        render_type: StringLiteral,
+                                        quoted: true,
+                                    },
+                                ),
+                                Interpolable(
+                                    InterpolableFragment {
+                                        strings: [
+                                            "B",
+                                        ],
+                                        interps: [],
+                                        render_type: StringLiteral,
+                                        quoted: true,
+                                    },
+                                ),
+                                Interpolable(
+                                    InterpolableFragment {
+                                        strings: [
+                                            "C",
+                                        ],
+                                        interps: [],
+                                        render_type: StringLiteral,
+                                        quoted: true,
+                                    },
+                                ),
+                            ],
+                            separator: Space,
+                        },
+                    ),
+                },
+            ),
+            VarStmt(
+                VarStmtFragment {
+                    name: "items",
+                    global_id: Some(
+                        1,
+                    ),
+                    index: None,
+                    kind: Array(
+                        Text,
+                    ),
+                    is_ephemeral: false,
+                    is_ref: false,
+                    optimize_unused: true,
+                    operator: "=",
+                    value: VarExpr(
+                        VarExprFragment {
+                            name: "__array",
+                            global_id: Some(
+                                1,
+                            ),
+                            kind: Array(
+                                Text,
+                            ),
+                            is_ref: false,
+                            is_length: false,
+                            default_value: None,
+                            is_quoted: true,
+                            is_array_to_string: false,
+                            render_type: BashValue,
+                            index: None,
+                        },
+                    ),
+                },
+            ),
+            VarStmt(
+                VarStmtFragment {
+                    name: "__array",
+                    global_id: Some(
+                        2,
+                    ),
+                    index: None,
+                    kind: Array(
+                        Int,
+                    ),
+                    is_ephemeral: true,
+                    is_ref: false,
+                    optimize_unused: true,
+                    operator: "=",
+                    value: List(
+                        ListFragment {
+                            values: [
+                                Raw(
+                                    RawFragment {
+                                        value: "1",
+                                    },
+                                ),
+                                Raw(
+                                    RawFragment {
+                                        value: "2",
+                                    },
+                                ),
+                                Raw(
+                                    RawFragment {
+                                        value: "3",
+                                    },
+                                ),
+                            ],
+                            separator: Space,
+                        },
+                    ),
+                },
+            ),
+            Block(
+                BlockFragment {
+                    statements: [
+                        Raw(
+                            RawFragment {
+                                value: "__3_index=0;",
+                            },
+                        ),
+                        List(
+                            ListFragment {
+                                values: [
+                                    Raw(
+                                        RawFragment {
+                                            value: "for ",
+                                        },
+                                    ),
+                                    Raw(
+                                        RawFragment {
+                                            value: "__2_item",
+                                        },
+                                    ),
+                                    Raw(
+                                        RawFragment {
+                                            value: " in ",
+                                        },
+                                    ),
+                                    VarExpr(
+                                        VarExprFragment {
+                                            name: "__array",
+                                            global_id: Some(
+                                                2,
+                                            ),
+                                            kind: Array(
+                                                Int,
+                                            ),
+                                            is_ref: false,
+                                            is_length: false,
+                                            default_value: None,
+                                            is_quoted: true,
+                                            is_array_to_string: false,
+                                            render_type: BashValue,
+                                            index: None,
+                                        },
+                                    ),
+                                    Raw(
+                                        RawFragment {
+                                            value: "; do",
+                                        },
+                                    ),
+                                ],
+                                separator: Empty,
+                            },
+                        ),
+                        Block(
+                            BlockFragment {
+                                statements: [
+                                    List(
+                                        ListFragment {
+                                            values: [
+                                                Raw(
+                                                    RawFragment {
+                                                        value: "echo ",
+                                                    },
+                                                ),
+                                                Interpolable(
+                                                    InterpolableFragment {
+                                                        strings: [
+                                                            "Index: ",
+                                                            ", Item: ",
+                                                            "",
+                                                        ],
+                                                        interps: [
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "index",
+                                                                    global_id: Some(
+                                                                        3,
+                                                                    ),
+                                                                    kind: Int,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    render_type: BashValue,
+                                                                    index: None,
+                                                                },
+                                                            ),
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "item",
+                                                                    global_id: Some(
+                                                                        2,
+                                                                    ),
+                                                                    kind: Int,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    render_type: BashValue,
+                                                                    index: None,
+                                                                },
+                                                            ),
+                                                        ],
+                                                        render_type: StringLiteral,
+                                                        quoted: true,
+                                                    },
+                                                ),
+                                            ],
+                                            separator: Empty,
+                                        },
+                                    ),
+                                    List(
+                                        ListFragment {
+                                            values: [
+                                                Raw(
+                                                    RawFragment {
+                                                        value: "echo ",
+                                                    },
+                                                ),
+                                                Interpolable(
+                                                    InterpolableFragment {
+                                                        strings: [
+                                                            "Item from list: ",
+                                                            "",
+                                                        ],
+                                                        interps: [
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "items",
+                                                                    global_id: Some(
+                                                                        1,
+                                                                    ),
+                                                                    kind: Text,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    render_type: BashValue,
+                                                                    index: Some(
+                                                                        Index(
+                                                                            VarExpr(
+                                                                                VarExprFragment {
+                                                                                    name: "index",
+                                                                                    global_id: Some(
+                                                                                        3,
+                                                                                    ),
+                                                                                    kind: Int,
+                                                                                    is_ref: false,
+                                                                                    is_length: false,
+                                                                                    default_value: None,
+                                                                                    is_quoted: true,
+                                                                                    is_array_to_string: false,
+                                                                                    render_type: BashValue,
+                                                                                    index: None,
+                                                                                },
+                                                                            ),
+                                                                        ),
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        ],
+                                                        render_type: StringLiteral,
+                                                        quoted: true,
+                                                    },
+                                                ),
+                                            ],
+                                            separator: Empty,
+                                        },
+                                    ),
+                                ],
+                                increase_indent: true,
+                                needs_noop: true,
+                                is_conditional: true,
+                            },
+                        ),
+                        Raw(
+                            RawFragment {
+                                value: "    (( __3_index++ )) || true",
+                            },
+                        ),
+                        List(
+                            ListFragment {
+                                values: [
+                                    Raw(
+                                        RawFragment {
+                                            value: "done",
+                                        },
+                                    ),
+                                ],
+                                separator: Empty,
+                            },
+                        ),
+                    ],
+                    increase_indent: false,
+                    needs_noop: false,
+                    is_conditional: false,
+                },
+            ),
+        ],
+        increase_indent: true,
+        needs_noop: false,
+        is_conditional: false,
+    },
+)

@@ -1,0 +1,13 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+__0_a=10
+while :
+do
+    if [ "$(( ${__0_a} <= 0 ))" != 0 ]; then
+        break
+    fi
+    echo "${__0_a}"
+    __0_a="$(( ${__0_a} - 1 ))"
+done

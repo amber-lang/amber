@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::expr::{Expr, ExprType};
@@ -24,6 +24,7 @@ use crate::modules::shorthand::{
 use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
     iter_loop::IterLoop,
+    while_loop::WhileLoop,
     break_stmt::Break,
     continue_stmt::Continue,
 };
@@ -57,6 +58,7 @@ pub enum StatementType {
     ShorthandModulo(ShorthandModulo),
     InfiniteLoop(InfiniteLoop),
     IterLoop(IterLoop),
+    WhileLoop(WhileLoop),
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
@@ -85,17 +87,17 @@ impl Statement {
         // Functions
         FunctionDeclaration, Main, Return, Fail,
         // Loops
-        InfiniteLoop, IterLoop, Break, Continue,
+        InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
         // Conditions
         IfChain, IfCondition,
+        // Command
+        CommandModifier, Echo, Mv, Cd, Exit,
         // Variables
         VariableInit, VariableSet,
         // Short hand
         ShorthandAdd, ShorthandSub,
         ShorthandMul, ShorthandDiv,
         ShorthandModulo,
-        // Command
-        CommandModifier, Echo, Mv, Cd, Exit,
         // Comment doc
         CommentDoc, Comment,
         // Expression
@@ -154,22 +156,26 @@ impl SyntaxModule<ParserMetadata> for Statement {
 }
 
 impl TranslateModule for Statement {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
-        let translated = match statement {
-            StatementType::Expr(expr) => match &expr.value {
-                Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
-                _ => format!("echo {} > /dev/null 2>&1", self.translate_match(meta, statement))
+        match statement {
+            StatementType::Expr(expr) => {
+                match &expr.value {
+                    Some(ExprType::Command(cmd)) => {
+                        cmd.translate_command_statement(meta)
+                    },
+                    _ => {
+                        self.translate_match(meta, statement);
+                        FragmentKind::Empty
+                    }
+                }
             },
-            _ => self.translate_match(meta, statement)
-        };
-        // Get all the required supplemental statements
-        let indentation = meta.gen_indent();
-        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + st.trim_end_matches(';') + ";\n").join("");
-        // Return all the statements
-        statements + &indentation + &translated
+            _ => {
+                self.translate_match(meta, statement)
+            }
+        }
     }
 }
 

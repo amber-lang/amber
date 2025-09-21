@@ -1,5 +1,8 @@
 import * from "std/date"
 
 main {
-    if trust date_add("+17 Days", "2009-02-07T09:46:40UTC", true) == "2009-02-24T09:46:40UTC": echo "Succeeded"
+    let date = date_from_posix("2009-02-07 09:46:40")?
+    if date_add(date, 17, "days")? == date_from_posix("2009-02-24 09:46:40")? {
+        echo "Succeeded"
+    }
 }

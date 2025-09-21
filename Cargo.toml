@@ -6,6 +6,7 @@ repository = "https://github.com/amber-lang/Amber"
 homepage = "https://amber-lang.com/"
 description = "The Programming Language compiled to Bash."
 rust-version = "1.79"
+build = "build.rs"
 
 [package.metadata.deb]
 maintainer = "Amber-Lang project"
@@ -21,8 +22,9 @@ clap = { version = "4.5.20", features = ["derive"] }
 clap_complete = "4.5.36"
 colored = "2.0.0"
 glob = "0.3"
-heraclitus-compiler = "1.8.1"
+heraclitus-compiler = "1.8.3"
 include_dir = "0.7.4"
+insta = "1.43.1"
 itertools = "0.13.0"
 similar-string = "1.4.2"
 test-generator = "0.3.1"
@@ -41,37 +43,12 @@ strip = true
 lto = true
 opt-level = 3
 
-# The profile that 'cargo dist' will build with
-[profile.dist]
-inherits = "release"
-lto = "thin"
-
 [profile.test]
 opt-level = 3
 
 [workspace]
 members = ["meta"]
 
-# Config for 'cargo dist'
-[workspace.metadata.dist]
-# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.14.1"
-# CI backends to support
-ci = "github"
-# The installers to generate for each app
-installers = []
-# Target platforms to build apps for (Rust target-triple syntax)
-targets = [
-      "aarch64-apple-darwin",
-      "x86_64-apple-darwin",
-      "x86_64-unknown-linux-gnu",
-      "x86_64-unknown-linux-musl",
-      "x86_64-pc-windows-msvc"
-]
-# Publish jobs to run in CI
-pr-run-mode = "skip"
-# Skip checking whether the specified configuration files are up to date
-allow-dirty = ["ci"]
-
 [build-dependencies]
 build-helper = "0.1.1"
+built = { version = "0.7", features = [ "git2" ] }

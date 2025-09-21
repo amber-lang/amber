@@ -4,7 +4,7 @@ import * from "std/fs"
 // [xxx; do echo HACKED; done; for file in]
 
 main {
-    let tmpdir = trust $ mktemp -d $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
         $ touch "{tmpdir}/xxx; do echo HACKED; done; for file in" $
     }
@@ -20,6 +20,4 @@ main {
     for file in files {
         echo "[{file}]"
     }
-
-    trust $ rm -rf {tmpdir} $
 }

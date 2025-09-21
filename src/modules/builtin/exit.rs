@@ -1,22 +1,19 @@
-use heraclitus_compiler::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Exit {
-    code: Option<Expr>
+    code: Option<Expr>,
 }
 
 impl SyntaxModule<ParserMetadata> for Exit {
     syntax_name!("Exit");
 
     fn new() -> Self {
-        Exit {
-            code: None
-        }
+        Exit { code: None }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -29,11 +26,11 @@ impl SyntaxModule<ParserMetadata> for Exit {
 
         if let Some(ref code_expr) = self.code {
             let code_type = code_expr.get_type();
-            if code_type != Type::Num {
+            if code_type != Type::Int {
                 let position = code_expr.get_position(meta);
                 return error_pos!(meta, position => {
-                    message: "Builtin function `exit` can only be used with values of type Num",
-                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Num)
+                    message: "Builtin function `exit` can only be used with values of type Int",
+                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Int)
                 });
             }
         }
@@ -43,11 +40,11 @@ impl SyntaxModule<ParserMetadata> for Exit {
 }
 
 impl TranslateModule for Exit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let code = self.code.as_ref()
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let exit_code = self.code.as_ref()
             .map(|expr| expr.translate(meta))
-            .unwrap_or_else(|| "0".to_string());
-        format!("exit {}", code)
+            .unwrap_or(fragments!("0"));
+        fragments!("exit ", exit_code)
     }
 }
 

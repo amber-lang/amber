@@ -1,0 +1,6 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+__0_a="some value"
+echo "${__0_a}"

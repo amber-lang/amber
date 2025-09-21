@@ -1,3 +1,4 @@
+/// Tests for Amber scripts that check error messages and failure cases.
 use super::script_test;
 use super::TestOutcomeTarget;
 use test_generator::test_resources;

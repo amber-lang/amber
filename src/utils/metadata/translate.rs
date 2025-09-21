@@ -1,11 +1,12 @@
 use std::cmp;
 use std::collections::VecDeque;
 
+use super::ParserMetadata;
 use crate::compiler::CompilerOptions;
+use crate::modules::prelude::*;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
-use super::ParserMetadata;
 
 const INDENT_SPACES: &str = "    ";
 
@@ -16,7 +17,7 @@ pub struct TranslateMetadata {
     pub fun_cache: FunctionCache,
     /// A queue of statements that are needed to be evaluated
     /// before current statement in order to be correct.
-    pub stmt_queue: VecDeque<String>,
+    pub stmt_queue: VecDeque<FragmentKind>,
     /// The metadata of the function that is currently being translated.
     pub fun_meta: Option<FunctionMetadata>,
     /// Used to determine the value or array being evaluated.
@@ -28,7 +29,7 @@ pub struct TranslateMetadata {
     /// The current indentation level.
     pub indent: i64,
     /// Determines if minify flag was set.
-    pub minify: bool
+    pub minify: bool,
 }
 
 impl TranslateMetadata {
@@ -54,6 +55,15 @@ impl TranslateMetadata {
         INDENT_SPACES.repeat(cmp::max(self.indent, 0) as usize)
     }
 
+    #[inline]
+    /// Create an intermediate variable and return it's variable expression
+    pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
+        let stmt = statement.with_ephemeral(true);
+        let expr = VarExprFragment::from_stmt(&stmt);
+        self.stmt_queue.push_back(stmt.to_frag());
+        expr
+    }
+
     pub fn increase_indent(&mut self) {
         self.indent += 1;
     }
@@ -68,23 +78,26 @@ impl TranslateMetadata {
         id
     }
 
-    pub fn gen_silent(&self) -> &'static str {
-        if self.silenced { " > /dev/null 2>&1" } else { "" }
+    pub fn gen_silent(&self) -> RawFragment {
+        let expr = if self.silenced { " >/dev/null 2>&1" } else { "" };
+        RawFragment::new(expr)
     }
 
     // Returns the appropriate amount of quotes with escape symbols.
     // This helps to avoid problems with `eval` expressions.
     pub fn gen_quote(&self) -> &'static str {
-        if self.eval_ctx { "\\\"" } else { "\"" }
-    }
-
-    pub fn gen_subprocess(&self, stmt: &str) -> String {
-        self.eval_ctx
-            .then(|| format!("$(eval \"{}\")", stmt))
-            .unwrap_or_else(|| format!("$({})", stmt))
+        if self.eval_ctx {
+            "\\\""
+        } else {
+            "\""
+        }
     }
 
     pub fn gen_dollar(&self) -> &'static str {
-        if self.eval_ctx { "\\$" } else { "$" }
+        if self.eval_ctx {
+            "\\$"
+        } else {
+            "$"
+        }
     }
 }

@@ -1,8 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
 use super::TypeOp;
@@ -50,11 +49,11 @@ impl SyntaxModule<ParserMetadata> for Is {
 }
 
 impl TranslateModule for Is {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         if self.expr.get_type() == self.kind {
-            "1".to_string()
+            fragments!("1")
         } else {
-            "0".to_string()
+            fragments!("0")
         }
     }
 }

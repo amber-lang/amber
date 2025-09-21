@@ -1,0 +1,20 @@
+// Output
+// 1
+// 2
+// 4
+// 5
+// 6
+
+let i = 0
+main {
+    while i < 10 {
+        i += 1
+        if i == 3 {
+            continue
+        }
+        if i == 7 {
+            break
+        }
+        echo i
+    }
+}

@@ -1,11 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::block::Block;
 use crate::modules::statement::stmt::{Statement, StatementType};
+use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]
 pub struct IfCondition {
@@ -35,7 +34,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
     fn new() -> Self {
         IfCondition {
             expr: Box::new(Expr::new()),
-            true_block: Box::new(Block::new()),
+            true_block: Box::new(Block::new().with_needs_noop().with_condition()),
             false_block: None
         }
     }
@@ -45,60 +44,36 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         // Parse expression
         syntax(meta, &mut *self.expr)?;
         // Parse true block
-        match token(meta, "{") {
-            Ok(_) => {
-                syntax(meta, &mut *self.true_block)?;
-                token(meta, "}")?;
-            }
-            Err(_) => {
-                let mut statement = Statement::new();
-                token(meta, ":")?;
-                syntax(meta, &mut statement)?;
-                self.true_block.push_statement(statement);
-            }
-        }
+        syntax(meta, &mut *self.true_block)?;
         // Parse false block
         if token(meta, "else").is_ok() {
-            match token(meta, "{") {
-                Ok(_) => {
-                    let mut false_block = Box::new(Block::new());
-                    let tok = meta.get_current_token();
-                    syntax(meta, &mut *false_block)?;
-                    // Check if the statement is using if chain syntax sugar
-                    if false_block.statements.len() == 1 {
-                        if let Some(statement) = false_block.statements.first() {
-                            self.prevent_not_using_if_chain(meta, statement, tok)?;
-                        }
-                    }
-                    self.false_block = Some(false_block);
-                    token(meta, "}")?;
-                }
-                Err(_) => {
-                    token(meta, ":")?;
-                    let tok = meta.get_current_token();
-                    let mut statement = Statement::new();
-                    syntax(meta, &mut statement)?;
-                    // Check if the statement is using if chain syntax sugar
-                    self.prevent_not_using_if_chain(meta, &statement, tok)?;
-                    self.false_block.get_or_insert(Box::new(Block::new())).push_statement(statement);
+            let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
+            let tok = meta.get_current_token();
+            syntax(meta, &mut *false_block)?;
+
+            // Check if the statement is using if chain syntax sugar
+            if false_block.statements.len() == 1 {
+                if let Some(statement) = false_block.statements.first() {
+                    self.prevent_not_using_if_chain(meta, statement, tok)?;
                 }
             }
+            self.false_block = Some(false_block);
         }
         Ok(())
     }
 }
 
 impl TranslateModule for IfCondition {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
-        result.push(format!("if [ {} != 0 ]; then", self.expr.translate(meta)));
+        result.push(fragments!("if [ ", self.expr.translate(meta), " != 0 ]; then"));
         result.push(self.true_block.translate(meta));
         if let Some(false_block) = &self.false_block {
-            result.push("else".to_string());
+            result.push(fragments!("else"));
             result.push(false_block.translate(meta));
         }
-        result.push("fi".to_string());
-        result.join("\n")
+        result.push(fragments!("fi"));
+        BlockFragment::new(result, false).to_frag()
     }
 }
 

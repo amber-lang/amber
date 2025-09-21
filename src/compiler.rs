@@ -1,9 +1,12 @@
 extern crate chrono;
+use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
+use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
 use crate::rules;
 use postprocessor::PostProcessor;
 use chrono::prelude::*;
@@ -25,6 +28,7 @@ pub mod postprocessor;
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
 const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
+const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
@@ -115,7 +119,7 @@ impl AmberCompiler {
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
-        let mut block = Block::new();
+        let mut block = Block::new().with_no_syntax();
         let time = Instant::now();
         // Parse with debug or not
         let result = if Self::env_flag_set(AMBER_DEBUG_PARSER) {
@@ -165,9 +169,9 @@ impl AmberCompiler {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
-        let mut result = vec![];
+        let mut result = BlockFragment::new(Vec::new(), false);
         for (_path, block) in ast_forest {
-            result.push(block.translate(&mut meta_translate));
+            result.append(block.translate(&mut meta_translate));
         }
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
@@ -178,7 +182,12 @@ impl AmberCompiler {
             );
         }
 
-        let mut result = result.join("\n") + "\n";
+        let mut result = result.to_frag();
+        if !Self::env_flag_set(AMBER_NO_OPTIMIZE) {
+            optimize_fragments(&mut result);
+        }
+
+        let mut result = result.to_string(&mut meta_translate);
 
         let filters = self.options.no_proc.iter()
             .map(|x| WildMatchPattern::new(x))
@@ -199,29 +208,29 @@ impl AmberCompiler {
         }
 
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        
-        let header_template = 
+
+        let header_template =
             if let Ok(dynamic) = env::var("AMBER_HEADER") {
                 fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic header file from {dynamic}").as_str())
             } else {
                 include_str!("header.sh").to_string()
             };
-        
-        let footer_template = 
+
+        let footer_template =
             if let Ok(dynamic) = env::var("AMBER_FOOTER") {
                 fs::read_to_string(dynamic.to_string()).expect(format!("Couldn't read the dynamic footer file from {dynamic}").as_str())
             } else {
                 String::new()
             };
-        
+
         let header = header_template
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
             .replace("{{ date }}", now.as_str());
-        
+
         let footer = footer_template
             .replace("{{ version }}", env!("CARGO_PKG_VERSION"))
             .replace("{{ date }}", now.as_str());
-        
+
         Ok(format!("{}\n{}\n{}", header, result, footer))
     }
 
@@ -282,7 +291,7 @@ impl AmberCompiler {
             }
         }
         if !paths.is_empty() {
-            let files = if paths.len() > 1 { "Files" } else { "File" };
+            let files = pluralize(paths.len(), "File", "Files");
             let message = once(format!("{files} generated at:")).chain(paths).join("\n");
             Message::new_info_msg(message).show();
         }
@@ -327,7 +336,8 @@ impl AmberCompiler {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
                 let output = String::from_utf8_lossy(&child.stdout).to_string();
-                Ok(output)
+                let err_output = String::from_utf8_lossy(&child.stderr).to_string();
+                Ok(output + &err_output)
             } else {
                 let message = Message::new_err_msg("Failed to find Bash");
                 Err(message)
@@ -349,10 +359,19 @@ impl AmberCompiler {
         return None;
     }
 
+    /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
     fn find_bash() -> Option<Command> {
-        let mut command = Command::new("/usr/bin/env");
-        command.arg("bash");
-        Some(command)
+        if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
+            let mut command = Command::new("docker");
+            let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
+            let args: Vec<&str> = args_string.split_whitespace().collect();
+            command.args(args);
+            Some(command)
+        } else {
+            let mut command = Command::new("/usr/bin/env");
+            command.arg("bash");
+            Some(command)
+        }
     }
 }

@@ -1,16 +1,18 @@
 use std::collections::VecDeque;
 use std::ops::Index;
 
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use crate::docs::module::DocumentationModule;
-use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use super::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
-    pub statements: Vec<Statement>
+    pub statements: Vec<Statement>,
+    pub should_indent: bool,
+    pub needs_noop: bool,
+    pub parses_syntax: bool,
+    pub is_conditional: bool,
 }
 
 impl Block {
@@ -19,9 +21,24 @@ impl Block {
         self.statements.is_empty()
     }
 
-    // Push a parsed statement into the block
-    pub fn push_statement(&mut self, statement: Statement) {
-        self.statements.push(statement);
+    pub fn with_condition(mut self) -> Self {
+        self.is_conditional = true;
+        self
+    }
+
+    pub fn with_needs_noop(mut self) -> Self {
+        self.needs_noop = true;
+        self
+    }
+
+    pub fn with_no_indent(mut self) -> Self {
+        self.should_indent = false;
+        self
+    }
+
+    pub fn with_no_syntax(mut self) -> Self {
+        self.parses_syntax = false;
+        self
     }
 }
 
@@ -30,20 +47,30 @@ impl SyntaxModule<ParserMetadata> for Block {
 
     fn new() -> Self {
         Block {
-            statements: vec![]
+            statements: vec![],
+            should_indent: true,
+            parses_syntax: true,
+            needs_noop: false,
+            is_conditional: false,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let is_single_line = if self.parses_syntax {
+            let parsed_word = token_by(meta, |word| [":", "{"].contains(&word.as_str()))?;
+            parsed_word == ":"
+        } else {
+            false
+        };
+
         meta.with_push_scope(|meta| {
-            while let Some(token) = meta.get_current_token() {
-                // Handle the end of line or command
-                if ["\n", ";"].contains(&token.word.as_str()) {
-                    meta.increment_index();
+            while meta.get_current_token().is_some() {
+                // Handle the end of line
+                if token(meta, "\n").is_ok() {
                     continue;
                 }
                 // Handle block end
-                else if token.word == "}" {
+                if !is_single_line && self.parses_syntax && token(meta, "}").is_ok() {
                     break;
                 }
                 let mut statement = Statement::new();
@@ -54,6 +81,12 @@ impl SyntaxModule<ParserMetadata> for Block {
                     }
                 }
                 self.statements.push(statement);
+                // Handle the semicolon
+                token(meta, ";").ok();
+                // Handle single line
+                if is_single_line {
+                    break;
+                }
             }
             Ok(())
         })
@@ -61,20 +94,22 @@ impl SyntaxModule<ParserMetadata> for Block {
 }
 
 impl TranslateModule for Block {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Save the current statement queue and create a new one
         let mut new_queue = VecDeque::new();
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
-        meta.increase_indent();
-        let result = if self.is_empty() {
-            ":".to_string()
-        } else {
-            self.statements.iter()
-                .map(|statement| statement.translate(meta))
-                .filter(|translation| !translation.trim().is_empty())
-                .collect::<Vec<_>>().join("\n")
+        let result = {
+            let mut statements = vec![];
+            for statement in &self.statements {
+                let statement = statement.translate(meta);
+                statements.extend(meta.stmt_queue.drain(..));
+                statements.push(statement);
+            }
+            BlockFragment::new(statements, self.should_indent)
+                .with_needs_noop(self.needs_noop)
+                .with_condition(self.is_conditional)
+                .to_frag()
         };
-        meta.decrease_indent();
         // Restore the old statement queue
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         result

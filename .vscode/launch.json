@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug the Amber compiler",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=amber",
+                    "--package=amber"
+                ],
+                "filter": {
+                    "name": "amber",
+                    "kind": "bin",
+                }
+            },
+            "args": [
+                "build",
+                "test.ab",
+                "test.sh"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

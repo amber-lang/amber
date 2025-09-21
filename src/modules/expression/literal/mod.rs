@@ -1,10 +1,10 @@
-use std::collections::VecDeque;
 use heraclitus_compiler::prelude::*;
 use crate::utils::metadata::ParserMetadata;
 use crate::modules::expression::expr::Expr;
 
 pub mod bool;
 pub mod number;
+pub mod integer;
 pub mod text;
 pub mod null;
 pub mod array;
@@ -28,6 +28,32 @@ fn is_escaped(word: &str, symbol: char) -> bool {
     backslash_count % 2 != 0
 }
 
+fn validate_text_escape_sequences(meta: &mut ParserMetadata, string_content: &str, start_pos: usize, end_pos: usize) {
+    let mut chars = string_content.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(&next_char) = chars.peek() {
+                match next_char {
+                    // Valid escape sequences
+                    'n' | 't' | 'r' | '0' | '{' | '$' | '\'' | '"' | '\\' => {
+                        chars.next(); // consume the valid escape character
+                    }
+                    // Invalid escape sequences
+                    _ => {
+                        let warning_msg = format!("Invalid escape sequence '\\{next_char}'");
+                        let pos = PositionInfo::from_between_tokens(meta, meta.get_token_at(start_pos), meta.get_token_at(end_pos));
+                        let message = Message::new_warn_at_position(meta, pos)
+                            .message(warning_msg)
+                            .comment("Only these escape sequences are supported: \\n, \\t, \\r, \\0, \\{, \\$, \\', \\\", \\\\");
+                        meta.add_message(message);
+                        chars.next(); // consume the invalid escape character
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
@@ -46,7 +72,8 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         let mut is_interp = false;
         // Initialize string
         let start = token_by(meta, |word| word.starts_with(letter))?;
-        strings.push(start.chars().skip(1).collect::<String>());
+        let start_content = start.chars().skip(1).collect::<String>();
+        strings.push(start_content);
         // Factor rest of the interpolation
         while let Some(tok) = meta.get_current_token() {
             // Track interpolations
@@ -61,15 +88,17 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
                     meta.offset_index(-1);
                 }
                 else {
-                    strings.push(tok.word.clone());
-                    if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
+                    let string_content = tok.word.clone();
+                    if string_content.ends_with(letter) && !is_escaped(&string_content, letter) {
                         meta.increment_index();
                         // Right trim the symbol
-                        let trimmed = strings.last().unwrap()
-                            .chars().take(tok.word.chars().count() - 1).collect::<String>();
+                        let trimmed = string_content
+                            .chars().take(string_content.chars().count() - 1).collect::<String>();
                         // replace the last string
-                        *strings.last_mut().unwrap() = trimmed;
+                        strings.push(trimmed);
                         return Ok((strings, interps))
+                    } else {
+                        strings.push(string_content);
                     }
                 }
             }
@@ -77,125 +106,4 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, letter: char) -> Res
         }
         Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
     }
-}
-
-fn translate_escaped_string(string: String, is_str: bool) -> String {
-    let mut chars = string.chars().peekable();
-    let mut result = String::new();
-    while let Some(c) = chars.next() {
-        match c {
-            '"' => {
-                // Escape double quotes if in a string
-                if is_str {
-                    result.push('\\');
-                    result.push('\"');
-                }
-                else {
-                    result.push('"');
-                }
-            },
-            symbol @ ('$' | '`') => {
-                if is_str {
-                    result.push('\\');
-                }
-                result.push(symbol);
-            },
-            '!' => {
-                if is_str {
-                    result += "\"'!'\"";
-                } else {
-                    result.push('!')
-                }
-            }
-            '\\' => {
-                // Escape symbols
-                match chars.peek() {
-                    Some('\n') => {
-                        // We want to escape new line characters
-                        if !is_str {
-                            chars.next();
-                        }
-                    }
-                    Some('n') => {
-                        result.push('\n');
-                        chars.next();
-                    },
-                    Some('t') => {
-                        result.push('\t');
-                        chars.next();
-                    },
-                    Some('r') => {
-                        result.push('\r');
-                        chars.next();
-                    },
-                    Some('0') => {
-                        result.push('\0');
-                        chars.next();
-                    },
-                    Some('\'') => {
-                        if is_str {
-                            result.push('\'');
-                        } else {
-                            result.push('\\');
-                            result.push('\'');
-                        }
-                        chars.next();
-                    },
-                    Some('\"') => {
-                        if is_str {
-                            result.push('\\');
-                            result.push('\"');
-                        } else {
-                            result.push('\"');
-                        }
-                        chars.next();
-                    },
-                    Some('\\') => {
-                        if is_str {
-                            result.push('\\');
-                        }
-                        result.push('\\');
-                        chars.next();
-                    },
-                    Some('{') => {
-                        result.push('{');
-                        chars.next();
-                    },
-                    Some('$') => {
-                        result.push('$');
-                        chars.next();
-                    },
-                    _ => result.push(c)
-                }
-            },
-            _ => result.push(c)
-        }
-    }
-    result
-}
-
-pub fn translate_interpolated_region(strings: Vec<String>, interps: Vec<String>, is_str: bool) -> String {
-    let mut result = vec![];
-    let mut interps = VecDeque::from_iter(interps);
-    let mut strings = VecDeque::from_iter(strings);
-    let mut is_even = false;
-    loop {
-        let value = if is_even { interps.pop_front() } else { strings.pop_front() };
-        match value {
-            Some(translated) => {
-                if is_even {
-                    if translated.starts_with('\"') && translated.ends_with('\"') {
-                        result.push(translated.get(1..translated.len() - 1).unwrap().to_string());
-                    } else {
-                        result.push(translated);
-                    }
-                } else {
-                    result.push(translate_escaped_string(translated, is_str));
-                }
-            },
-            None => break
-        }
-        is_even = !is_even;
-    }
-    result.join("")
 }

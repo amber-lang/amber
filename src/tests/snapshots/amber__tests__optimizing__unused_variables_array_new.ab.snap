@@ -1,0 +1,8 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+__0_a=10
+__2_c=30
+__0_array=("${__0_a}" "${__2_c}")
+echo "${__0_array[@]}"

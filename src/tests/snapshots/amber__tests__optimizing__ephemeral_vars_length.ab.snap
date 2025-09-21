@@ -1,0 +1,7 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+__0_a="this is interesting"
+__0_length="${__0_a}"
+echo "${#__0_length}"

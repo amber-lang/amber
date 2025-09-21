@@ -1,0 +1,5 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+echo "All variables are unused"

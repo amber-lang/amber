@@ -1,11 +1,10 @@
 import * from "std/fs"
 
 main {
-    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    let tmpdir = temp_dir_create("amber-XXXX", true)?
     if dir_exists(tmpdir) {
         echo "Succeeded"
     } else {
         echo "Not Found"
     }
-    trust $ rm -rf {tmpdir} $
 }

@@ -5,6 +5,11 @@ mod rules;
 mod stdlib;
 mod translate;
 mod utils;
+mod optimizer;
+
+pub mod built_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
 
 #[cfg(test)]
 pub mod tests;
@@ -21,7 +26,7 @@ use std::process::Command;
 use std::{fs, io};
 
 #[derive(Parser, Clone, Debug)]
-#[command(version, arg_required_else_help(true))]
+#[command(version(built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)), arg_required_else_help(true))]
 struct Cli {
     #[command(subcommand)]
     command: Option<CommandKind>,
@@ -34,9 +39,9 @@ struct Cli {
     args: Vec<String>,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -73,9 +78,9 @@ struct RunCommand {
     args: Vec<String>,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -86,9 +91,9 @@ struct CheckCommand {
     input: PathBuf,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -102,9 +107,9 @@ struct BuildCommand {
     output: Option<PathBuf>,
 
     /// Disable a postprocessor
-    /// Available postprocessors: 'shfmt', 'bshchk'
+    /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "s*mt"
+    /// Argument also supports a wilcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 
@@ -214,7 +219,7 @@ fn write_output(output: PathBuf, code: String) {
     } else {
         match fs::File::create(&output) {
             Ok(mut file) => {
-                write!(file, "{}", code).unwrap();
+                write!(file, "{code}").unwrap();
                 set_file_permission(&file, output);
             }
             Err(err) => {

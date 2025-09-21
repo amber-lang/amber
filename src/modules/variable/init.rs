@@ -1,9 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Typed, Type};
+use crate::modules::prelude::*;
+use crate::modules::types::Typed;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_identifier_name};
 
 #[derive(Debug, Clone)]
@@ -60,19 +58,11 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 }
 
 impl TranslateModule for VariableInit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
-        let mut expr = self.expr.translate(meta);
-        if let Type::Array(_) = self.expr.get_type() {
-            expr = format!("({expr})");
-        }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}={expr}")
-        } else if self.is_fun_ctx {
-            format!("local {name}={expr}")
-        } else {
-            format!("{name}={expr}")
-        }
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let expr = self.expr.translate(meta);
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .to_frag()
     }
 }
 

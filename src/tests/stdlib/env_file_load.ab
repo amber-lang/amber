@@ -1,16 +1,15 @@
 import { env_file_load, env_var_load } from "std/env"
-import { file_write } from "std/fs"
+import { file_write, temp_dir_create } from "std/fs"
 
 // Output
 // yes
 
 main {
-    let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
+    let tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ cd {tmpdir} $
     trust file_write(".env", "TEST=1")
     env_file_load()
     if env_var_load("TEST") == "1" {
         echo "yes"
     }
-    trust $ rm -rf {tmpdir} $
 } 

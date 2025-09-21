@@ -37,6 +37,8 @@ pub fun array_first(array) {
 /// value is undefined.
 pub fun array_last(array) {
     let index = len(array) - 1
+    if index < 0:
+        fail 1
     return array[index]
 }
 
@@ -49,10 +51,10 @@ pub fun array_remove_at(ref array: [], index: Num): Null {
     array = array[0..index] + array[offset..length]
 }
 
-/// Removes an element at the index from the array, and returns it; if the
-/// index is negative or beyond the end, the return value is undefined, but
-/// the array will be unchanged.
+/// Removes an element at the index from the array, and returns it
 pub fun array_extract_at(ref array, index) {
+    if index < 0 or index >= len(array):
+        fail 1
     let element = array[index]
     let offset = index + 1
     let length = len(array)
@@ -65,6 +67,8 @@ pub fun array_extract_at(ref array, index) {
 pub fun array_pop(ref array) {
     let length = len(array)
     let index = length - 1
+    if index < 0:
+        fail 1
     let element = array[index]
     array = array[0..index]
     return element

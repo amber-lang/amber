@@ -1,11 +1,53 @@
-/// Replaces all occurences of a pattern in the content with the provided replace text.
-pub fun replace(source, search, replace) {
-    return "\$\{source//{search}/{replace}}"
+// We cannot import `bash_version` from `env.ab` because it imports `text.ab` making a circular dependency.
+// This is a workaround to avoid that issue and the import system should be improved in the future.
+#[allow_absurd_cast]
+fun bash_version(): [Int] {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
+    let patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Int
+    return [major, minor, patch]
 }
 
-/// Replaces the first occurence of a pattern in the content with the provided replace text.
+/// Replaces all occurrences of a pattern in the content with the provided replace text.
+pub fun replace(source, search, replace) {
+    // Here we use a command to avoid #646
+    let result = ""
+    if bash_version() >= [4,3] {
+        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    } else {
+        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+    }
+    return result
+}
+
+/// Replaces the first occurrence of a pattern in the content with the provided replace text.
 pub fun replace_one(source, search, replace) {
-    return "\$\{source/{search}/{replace}}"
+    // Here we use a command to avoid #646
+    let result = ""
+    if bash_version() >= [4,3] {
+        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+    } else {
+        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+    }
+    return result
+}
+
+const SED_VERSION_UNKNOWN = 0
+const SED_VERSION_GNU = 1
+const SED_VERSION_BUSYBOX = 2
+
+fun sed_version(): Num {
+    // We can't match against a word "GNU" because
+    // alpine's busybox sed returns "This is not GNU sed version"
+    trust $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+    if status == 0 {
+        return SED_VERSION_GNU
+    }
+    trust $ re='\bBusyBox\b'; [[ \$(sed 2>&1) =~ \$re ]] $
+    if status == 0 {
+        return SED_VERSION_BUSYBOX
+    }
+    return SED_VERSION_UNKNOWN
 }
 
 /// Replaces all occurences of a regex pattern in the content with the provided replace text.
@@ -13,16 +55,26 @@ pub fun replace_one(source, search, replace) {
 /// Function uses `sed`
 pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
     trust {
+        const sed_version = sed_version()
         search = replace(search, "/", "\/")
         replace = replace(replace, "/", "\/")
+        if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
+            // '\b' is supported but not in POSIX standards. Disable it
+            search = replace(search, "\\b", "\\\b")
+        }
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
-            // but only via the "-r" option; use that if the version information
-            // contains "GNU sed".
-            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-            let flag = status == 0 then "-r" else "-E"
-            return $ echo "{source}" | sed "{flag}" -e "s/{search}/{replace}/g" $
+            // but only via the "-r" option
+            if sed_version == SED_VERSION_GNU {
+                return $ echo "{source}" | sed -r -e "s/{search}/{replace}/g" $
+            } else {
+                return $ echo "{source}" | sed -E -e "s/{search}/{replace}/g" $
+            }
         } else {
+            if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
+                // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
+                search = replace(search, "\|", "|")
+            }
             return $ echo "{source}" | sed -e "s/{search}/{replace}/g" $
         }
     }
@@ -92,8 +144,8 @@ pub fun split_chars(text: Text): [Text] {
 }
 
 /// Checks if some text contains a value.
-pub fun text_contains(text: Text, phrase: Text): Bool {
-  let result = trust $ if [[ "{text}" == *"{phrase}"* ]]; then
+pub fun text_contains(source: Text, search: Text): Bool {
+  let result = trust $ if [[ "{source}" == *"{search}"* ]]; then
     echo 1
   fi $
 
@@ -101,9 +153,9 @@ pub fun text_contains(text: Text, phrase: Text): Bool {
 }
 
 /// Checks if an array value is in the text.
-pub fun text_contains_any(text: Text, terms: [Text]): Bool {
-    for term in terms {
-        if text_contains(text, term) {
+pub fun text_contains_any(source: Text, searches: [Text]): Bool {
+    for search in searches {
+        if text_contains(source, search) {
             return true
         }
     }
@@ -112,9 +164,9 @@ pub fun text_contains_any(text: Text, terms: [Text]): Bool {
 }
 
 /// Checks if all the arrays values are in the string
-pub fun text_contains_all(text: Text, terms: [Text]): Bool {
-    for term in terms {
-        if not text_contains(text, term) {
+pub fun text_contains_all(source: Text, searches: [Text]): Bool {
+    for search in searches {
+        if not text_contains(source, search) {
             return false
         }
     }
@@ -127,16 +179,28 @@ pub fun text_contains_all(text: Text, terms: [Text]): Bool {
 /// Function uses `sed`
 pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
     trust {
+        const sed_version = sed_version()
         search = replace(search, "/", "\/")
         let output = ""
+        if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
+            // '\b' is supported but not in POSIX standards. Disable it
+            search = replace(search, "\\b", "\\\b")
+        }
         if extended {
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
-            // but only via the "-r" option; use that if the version information
-            // contains "GNU sed".
-            $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-            let flag = status == 0 then "-r" else "-E"
-            output = $ echo "{source}" | sed "{flag}" -ne "/{search}/p" $
+            // but only via the "-r" option
+            if sed_version == SED_VERSION_GNU {
+                // '\b' is not in POSIX standards. Disable it
+                search = replace(search, "\b", "\\b")
+                output = $ echo "{source}" | sed -r -ne "/{search}/p" $
+            } else {
+                output = $ echo "{source}" | sed -E -ne "/{search}/p" $
+            }
         } else {
+            if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
+                // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
+                search = replace(search, "\|", "|")
+            }
             output = $ echo "{source}" | sed -ne "/{search}/p" $
         }
         if output != "" {
@@ -205,16 +269,14 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        const bash_version = $ echo \"\$\{BASH_VERSINFO[0]}\" $ as Num
-        if bash_version >= 4 {
-            return $ echo \"\$\{text^}\" $
+        if bash_version() >= [4] {
+            return $ echo \"\$\{{nameof text}^}\" $
         }
-        // GNU sed supports \U
-        $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-        if status == 0 {
+        if sed_version() == SED_VERSION_GNU {
+            // GNU sed supports \U
             return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
         }
-        const first_letter = uppercase(char_at(text, 0)) 
+        const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
     }
 }

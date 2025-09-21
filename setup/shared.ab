@@ -9,18 +9,18 @@ pub fun get_os(): Text {
         exit 1
     }
     if os_type == "Darwin":
-        return "apple-darwin"
-    
+        return "macos"
+
     if os_type != "Linux" {
         echo "Unsupported OS type: {os_type}"
         echo "Please try again or use another download method."
         exit 1
     }
-    
-    if not has_failed("ls -l /lib | grep libc.musl"):
-        return "unknown-linux-musl"
 
-    return "unknown-linux-gnu"
+    if not has_failed("ls -l /lib | grep libc.musl"):
+        return "linux-musl"
+
+    return "linux-gnu"
 }
 
 pub fun get_arch(): Text {

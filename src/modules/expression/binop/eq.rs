@@ -1,11 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
+use crate::translate::compare::translate_array_equality;
+use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{ArithOp, translate_computation};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use super::{strip_text_quotes, BinOp};
+use crate::translate::compute::{ArithOp, translate_float_computation};
+use super::BinOp;
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
@@ -46,22 +45,26 @@ impl SyntaxModule<ParserMetadata> for Eq {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "equate", self.left, self.right)?;
+        Self::typecheck_equality(meta, &self.left, &self.right)?;
         Ok(())
     }
 }
 
 impl TranslateModule for Eq {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let mut left = self.left.translate(meta);
-        let mut right = self.right.translate(meta);
-        // Handle text comparison
-        if self.left.get_type() == Type::Text && self.right.get_type() == Type::Text {
-            strip_text_quotes(&mut left);
-            strip_text_quotes(&mut right);
-            meta.gen_subprocess(&format!("[ \"_{left}\" != \"_{right}\" ]; echo $?"))
-        } else {
-            translate_computation(meta, ArithOp::Eq, Some(left), Some(right))
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let left = self.left.translate(meta).with_quotes(false);
+        let right = self.right.translate(meta).with_quotes(false);
+        match self.left.get_type() {
+            Type::Int => ArithmeticFragment::new(left, ArithOp::Eq, right).to_frag(),
+            Type::Num => translate_float_computation(meta, ArithOp::Eq, Some(left), Some(right)),
+            Type::Array(_) => {
+                if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
+                    translate_array_equality(left, right, false)
+                } else {
+                    unreachable!("Arrays are always represented as variable expressions when used as values")
+                }
+            }
+            _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
         }
     }
 }
