@@ -1,0 +1,5 @@
+// Output
+// Failed command must be followed by a 'failed' block or statement
+
+echo $ echo "Hello, this will not fail" $
+echo $ echo "This is my first amber command" $
