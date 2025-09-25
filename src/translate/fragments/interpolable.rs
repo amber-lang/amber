@@ -58,7 +58,7 @@ impl InterpolableFragment {
     }
 
     fn translate_escaped_string(&self, string: String) -> String {
-        let chars = string.chars().peekable();
+        let chars = string.chars();
         let mut result = String::new();
         for c in chars {
             match self.render_type {
