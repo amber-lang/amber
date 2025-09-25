@@ -1,0 +1,14 @@
+import { text_contains } from "std/text"
+import { array_filled } from "std/array"
+
+main {
+    let response = "" 
+    silent trust $
+        {nameof response}=\$( \\
+            cargo run eval \$'import \{ array_filled } from "std/array"\nlet array = array_filled(1, [1])' \\
+            2>&1 >/dev/null \\
+        ) 
+    $
+    if text_contains(response, "Arrays cannot be nested due to the Bash limitations"):
+        echo "Succeeded"
+}
