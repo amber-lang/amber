@@ -65,9 +65,9 @@ impl InterpolableFragment {
                 InterpolableRenderType::StringLiteral => {
                     match c {
                         '"' =>  result += r#"\""#,
-                        '$' =>  result += r"\$",
-                        '`' =>  result += r"\`",
-                        '\\' =>  result += r"\\",
+                        '$' =>  result += r#"\$"#,
+                        '`' =>  result += r#"\`"#,
+                        '\\' =>  result += r#"\\"#,
                         _ => result.push(c),
                     }
                 }
