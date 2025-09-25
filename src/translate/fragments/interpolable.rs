@@ -68,6 +68,7 @@ impl InterpolableFragment {
                         '$' =>  result += r#"\$"#,
                         '`' =>  result += r#"\`"#,
                         '\\' =>  result += r#"\\"#,
+                        '!' =>  result += r#""'!'""#,
                         _ => result.push(c),
                     }
                 }
@@ -114,6 +115,7 @@ mod tests {
         assert_eq!(i_str.translate_escaped_string(r#"\$"#.to_string()), r#"\\\$"#);
         assert_eq!(i_str.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
         assert_eq!(i_str.translate_escaped_string(r#"`"#.to_string()), r#"\`"#);
+        assert_eq!(i_str.translate_escaped_string(r#"!"#.to_string()), r#""'!'""#);
         assert_eq!(i_str.translate_escaped_string(r#"\ "#.to_string()), r#"\\ "#);
         assert_eq!(i_str.translate_escaped_string(r#"${var}"#.to_string()), r#"\${var}"#);
 
@@ -128,6 +130,7 @@ mod tests {
         assert_eq!(i_glo.translate_escaped_string(r#"$"#.to_string()), r#"$"#);
         assert_eq!(i_glo.translate_escaped_string(r#"\$"#.to_string()), r#"\$"#);
         assert_eq!(i_glo.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"!"#.to_string()), r#"!"#);
         assert_eq!(i_glo.translate_escaped_string(r#"basename `pwd`"#.to_string()), r#"basename `pwd`"#);
         assert_eq!(i_glo.translate_escaped_string(r#"\ "#.to_string()), r#"\ "#);
     }
