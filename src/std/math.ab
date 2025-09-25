@@ -1,6 +1,6 @@
 /// Sums an array's contents
 #[allow_absurd_cast]
-pub fun math_sum(list: [Num]): Num {
+pub fun math_sum(list) {
     let sum = 0
     for item in list: sum += item
     return sum

@@ -129,9 +129,9 @@ pub fun uppercase(text: Text): Text {
 
 /// Attempts to parse a given text into an `Int` number.
 #[allow_absurd_cast]
-pub fun parse_int(text: Text): Num? {
+pub fun parse_int(text: Text): Int? {
     $ [ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null $?
-    return text as Num
+    return text as Int
 }
 
 /// Attempts to parse a given text into a `Num` number.
