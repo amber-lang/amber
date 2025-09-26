@@ -24,17 +24,6 @@ impl SyntaxModule<ParserMetadata> for Exit {
             self.code = Some(code_expr);
         }
 
-        if let Some(ref code_expr) = self.code {
-            let code_type = code_expr.get_type();
-            if code_type != Type::Int {
-                let position = code_expr.get_position(meta);
-                return error_pos!(meta, position => {
-                    message: "Builtin function `exit` can only be used with values of type Int",
-                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Int)
-                });
-            }
-        }
-
         Ok(())
     }
 }
@@ -48,8 +37,25 @@ impl TranslateModule for Exit {
     }
 }
 
-
-impl_noop_typecheck!(Exit);
+impl TypeCheckModule for Exit {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(ref mut code_expr) = self.code {
+            // First type-check the nested expression
+            code_expr.typecheck(meta)?;
+            
+            // Then check if it's the correct type
+            let code_type = code_expr.get_type();
+            if code_type != Type::Int {
+                let position = code_expr.get_position(meta);
+                return error_pos!(meta, position => {
+                    message: "Builtin function `exit` can only be used with values of type Int",
+                    comment: format!("Given type: {}, expected type: {}", code_type, Type::Int)
+                });
+            }
+        }
+        Ok(())
+    }
+}
 
 impl DocumentationModule for Exit {
     fn document(&self, _meta: &ParserMetadata) -> String {

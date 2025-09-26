@@ -1,5 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{prelude::FragmentKind, types::{Type, Typed}, typecheck::TypeCheckModule}, utils::metadata::ParserMetadata};
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::FragmentKind;
+use crate::modules::types::{Type, Typed};
+use crate::modules::typecheck::TypeCheckModule;
+use crate::utils::metadata::ParserMetadata;
 use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 

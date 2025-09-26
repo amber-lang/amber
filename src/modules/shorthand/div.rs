@@ -40,7 +40,6 @@ impl SyntaxModule<ParserMetadata> for ShorthandDiv {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
-        // Type checking is now handled by TypeCheckModule
         Ok(())
     }
 }

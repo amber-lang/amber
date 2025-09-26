@@ -32,8 +32,8 @@ impl SyntaxModule<ParserMetadata> for Mv {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
             token(meta, "mv")?;
-            syntax(meta, &mut self.source)?;
-            syntax(meta, &mut self.destination)?;
+            syntax(meta, &mut *self.source)?;
+            syntax(meta, &mut *self.destination)?;
             syntax(meta, &mut self.failed)?;
             Ok(())
         })

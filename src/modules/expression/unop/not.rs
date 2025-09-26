@@ -38,7 +38,6 @@ impl SyntaxModule<ParserMetadata> for Not {
     }
 
     fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type checking is now handled by TypeCheckModule
         Ok(())
     }
 }

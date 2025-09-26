@@ -19,7 +19,6 @@ impl SyntaxModule<ParserMetadata> for Cd {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
         syntax(meta, &mut self.value)?;
-        // Type checking is now handled by TypeCheckModule
         Ok(())
     }
 }

@@ -3,6 +3,7 @@ use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
@@ -301,7 +302,6 @@ impl AmberCompiler {
     }
 
     pub fn typecheck(&self, mut block: Block, mut meta: ParserMetadata) -> Result<(Block, ParserMetadata), Message> {
-        use crate::modules::typecheck::TypeCheckModule;
         let time = Instant::now();
         
         // Perform type checking on the block

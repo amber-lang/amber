@@ -55,7 +55,6 @@ impl SyntaxModule<ParserMetadata> for Fail {
             Err(_) => {
                 match syntax(meta, &mut self.expr) {
                     Ok(_) => {
-                        // Type checking is now handled by TypeCheckModule
                     },
                     Err(_) => {
                         self.code = "1".to_string();

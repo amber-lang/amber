@@ -1,6 +1,7 @@
 use heraclitus_compiler::prelude::*;
 use std::path::Path;
 use crate::utils::ParserMetadata;
+use crate::impl_noop_typecheck;
 
 #[derive(Debug, Clone)]
 pub struct ImportString {
@@ -52,7 +53,5 @@ impl SyntaxModule<ParserMetadata> for ImportString {
         Ok(())
     }
 }
-
-use crate::impl_noop_typecheck;
 
 impl_noop_typecheck!(ImportString);
