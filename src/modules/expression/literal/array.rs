@@ -56,6 +56,13 @@ impl SyntaxModule<ParserMetadata> for Array {
                     // Parse array value
                     let mut value = Expr::new();
                     syntax(meta, &mut value)?;
+                    
+                    // Check if the parsed value is an array type (nested arrays not allowed)
+                    if value.get_type().is_array() {
+                        let pos = value.get_position(meta);
+                        return error_pos!(meta, pos, "Nested arrays are not supported")
+                    }
+                    
                     match self.kind {
                         Type::Null => self.kind = Type::Array(Box::new(value.get_type())),
                         Type::Array(ref mut kind) => {

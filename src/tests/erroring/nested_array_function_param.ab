@@ -1,0 +1,10 @@
+// Output
+// Nested arrays are not supported
+
+fun test(value) {
+    return [value]
+}
+
+main {
+    echo test([1,2,3])
+}

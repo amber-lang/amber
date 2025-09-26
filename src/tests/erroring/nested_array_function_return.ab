@@ -1,0 +1,10 @@
+// Output
+// Nested arrays are not supported
+
+fun get_array() {
+    return [1, 2, 3]
+}
+
+main {
+    let nested = [get_array()]
+}

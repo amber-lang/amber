@@ -1,7 +1,0 @@
-fun test(value) {
-  return [value]
-}
-
-main {
-  echo test([1,2,3])
-}
