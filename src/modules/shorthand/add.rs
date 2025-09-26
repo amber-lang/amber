@@ -31,15 +31,10 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let var_tok = meta.get_current_token();
         self.var = variable(meta, variable_name_extensions())?;
         token(meta, "+=")?;
-        let variable = handle_variable_reference(meta, &var_tok, &self.var)?;
-        prevent_constant_mutation(meta, &var_tok, &self.var, variable.is_const)?;
-        self.kind = variable.kind;
-        self.global_id = variable.global_id;
-        self.is_ref = variable.is_ref;
         syntax(meta, &mut *self.expr)?;
+        // Variable reference handling moved to typecheck phase
         Ok(())
     }
 }
@@ -47,6 +42,15 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 impl TypeCheckModule for ShorthandAdd {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
+        
+        // Handle variable reference in typecheck phase
+        let var_tok = meta.get_current_token(); // Best effort to get current token
+        let variable = handle_variable_reference(meta, &var_tok, &self.var)?;
+        prevent_constant_mutation(meta, &var_tok, &self.var, variable.is_const)?;
+        self.kind = variable.kind;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
+        
         shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
             Type::Num,
             Type::Int,
@@ -54,6 +58,7 @@ impl TypeCheckModule for ShorthandAdd {
             Type::array_of(Type::Generic),
         ])?;
         Ok(())
+    }
     }
 }
 

@@ -99,7 +99,7 @@ impl TypeCheckModule for Array {
         }
         
         match self.kind {
-            Type::Null => {
+            Type::Generic => {
                 // Infer type from first element
                 self.kind = Type::Array(Box::new(self.exprs[0].get_type()));
             },
@@ -113,7 +113,7 @@ impl TypeCheckModule for Array {
                     }
                 }
             },
-            _ => {} // Other types handled elsewhere
+            _ => unimplemented!("Unexpected array type state")
         }
         
         // Validate all elements have the same type

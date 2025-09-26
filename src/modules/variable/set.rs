@@ -36,18 +36,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         self.index = handle_index_accessor(meta, false)?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
-        let variable = handle_variable_reference(meta, &tok, &self.name)?;
-        self.global_id = variable.global_id;
-        self.is_ref = variable.is_ref;
-        self.var_type = variable.kind.clone(); // Store for typecheck phase
-        prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
-        
-        // Basic index validation (non-type related)
-        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            let left_type = variable.kind.clone();
-            return error!(meta, tok, format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
-        }
-        
+        // Variable reference handling moved to typecheck phase
         Ok(())
     }
 }
@@ -72,7 +61,21 @@ impl TypeCheckModule for VariableSet {
             index.typecheck(meta)?;
         }
         
-        // Now do the type validation with properly type-checked expressions
+        // Now handle variable reference in the typecheck phase
+        let tok = meta.get_current_token(); // Best effort to get current token
+        let variable = handle_variable_reference(meta, &tok, &self.name)?;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
+        self.var_type = variable.kind.clone();
+        prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
+        
+        // Check if the variable can be indexed
+        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
+            let left_type = variable.kind.clone();
+            return error!(meta, tok, format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+        }
+        
+        // Type validation with properly type-checked expressions
         let right_type = self.expr.get_type();
         
         // Handle index assignment

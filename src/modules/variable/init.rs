@@ -20,9 +20,8 @@ impl VariableInit {
         tok: Option<Token>
     ) -> SyntaxResult {
         handle_identifier_name(meta, &self.name, tok)?;
-        // Don't get the expression type here - will be done in typecheck phase
-        // For now, register the variable with a placeholder type
-        self.global_id = meta.add_var(&self.name, Type::Generic, self.is_const);
+        // Register the variable with the correct type - will be called from typecheck phase
+        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
         Ok(())
     }
 }
@@ -49,8 +48,7 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         context!({
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
-            // Add a variable to the memory
-            self.handle_add_variable(meta, tok)?;
+            // Variable will be added to memory during typecheck phase
             self.is_fun_ctx = meta.context.is_fun_ctx;
             Ok(())
         }, |position| {
@@ -73,11 +71,9 @@ impl TypeCheckModule for VariableInit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
         
-        // Now update the variable with the correct type
-        let expr_type = self.expr.get_type();
-        if let Some(global_id) = self.global_id {
-            meta.context.variables[global_id].kind = expr_type;
-        }
+        // Now add the variable to memory with the correct type
+        let tok = None; // We don't have the token here, but it's not used for error reporting in this context
+        self.handle_add_variable(meta, tok)?;
         
         Ok(())
     }
