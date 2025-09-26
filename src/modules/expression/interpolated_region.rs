@@ -9,6 +9,15 @@ pub enum InterpolatedRegionType {
     Command,
 }
 
+impl InterpolatedRegionType {
+    pub fn to_char(&self) -> char {
+        match self {
+            InterpolatedRegionType::Text => '"',
+            InterpolatedRegionType::Command => '$'
+        }
+    }
+}
+
 /// Returns true if the words contain an even number of `\`.
 fn is_escaped(word: &str, symbol: char) -> bool {
     let mut backslash_count = 0;
@@ -74,10 +83,7 @@ fn parse_escaped_string(string: String, region_type: &InterpolatedRegionType) ->
 pub fn parse_interpolated_region(meta: &mut ParserMetadata, interpolated_type: &InterpolatedRegionType) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
-    let letter = match interpolated_type {
-        InterpolatedRegionType::Text => '"',
-        InterpolatedRegionType::Command => '$'
-    };
+    let letter = interpolated_type.to_char();
     // Handle full string
     if let Ok(word) = token_by(meta, |word| {
         word.starts_with(letter)
