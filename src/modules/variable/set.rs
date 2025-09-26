@@ -62,32 +62,30 @@ impl TypeCheckModule for VariableSet {
             index.typecheck(meta)?;
         }
         
-        if self.tok.is_some() {
-            let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
-            self.global_id = variable.global_id;
-            self.is_ref = variable.is_ref;
-            self.var_type = variable.kind.clone();
-            prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
-            
-            if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-                let left_type = variable.kind.clone();
-                return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
-            }
-            
-            let right_type = self.expr.get_type();
-            
-            if self.index.is_some() {
-                if let Type::Array(kind) = &self.var_type {
-                    if !right_type.is_allowed_in(kind) {
-                        let tok = self.expr.get_position(meta);
-                        return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
-                    }
+        let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
+        self.var_type = variable.kind.clone();
+        prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
+        
+        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
+            let left_type = variable.kind.clone();
+            return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+        }
+        
+        let right_type = self.expr.get_type();
+        
+        if self.index.is_some() {
+            if let Type::Array(kind) = &self.var_type {
+                if !right_type.is_allowed_in(kind) {
+                    let tok = self.expr.get_position(meta);
+                    return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
             }
-            else if !right_type.is_allowed_in(&self.var_type) {
-                let tok = self.expr.get_position(meta);
-                return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
-            }
+        }
+        else if !right_type.is_allowed_in(&self.var_type) {
+            let tok = self.expr.get_position(meta);
+            return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
         }
         
         Ok(())

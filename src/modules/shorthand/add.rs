@@ -45,20 +45,18 @@ impl TypeCheckModule for ShorthandAdd {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
         
-        if self.tok.is_some() {
-            let variable = handle_variable_reference(meta, &self.tok, &self.var)?;
-            prevent_constant_mutation(meta, &self.tok, &self.var, variable.is_const)?;
-            self.kind = variable.kind;
-            self.global_id = variable.global_id;
-            self.is_ref = variable.is_ref;
-            
-            shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
-                Type::Num,
-                Type::Int,
-                Type::Text,
-                Type::array_of(Type::Generic),
-            ])?;
-        }
+        let variable = handle_variable_reference(meta, &self.tok, &self.var)?;
+        prevent_constant_mutation(meta, &self.tok, &self.var, variable.is_const)?;
+        self.kind = variable.kind;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
+        
+        shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
+            Type::Num,
+            Type::Int,
+            Type::Text,
+            Type::array_of(Type::Generic),
+        ])?;
         Ok(())
     }
 }
