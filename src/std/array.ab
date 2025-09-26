@@ -85,7 +85,7 @@ pub fun array_shift(ref array) {
 
 // Returns an array of length `size` and each element is set to `value`; if
 // `value` is an array type, an error is thrown during compilation
-pub fun array_filled(size, value) {
+pub fun array_filled(size, value = 0) {
     let array = [value]
     array = array[0..0]
     if not (size is Int):

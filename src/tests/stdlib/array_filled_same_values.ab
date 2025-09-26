@@ -2,12 +2,14 @@ import { array_filled } from "std/array"
 
 // Output
 // [0 0 0]
+// [0 0 0]
 // [.5 .5 .5]
 // [a a a]
 // [0 0 0]
 // [  ]
 
 main {
+    echo "[{array_filled(3)}]"
     echo "[{array_filled(3, 0)}]"
     echo "[{array_filled(3, .5)}]"
     echo "[{array_filled(3, "a")}]"
