@@ -1,5 +1,5 @@
 // Output
-// You already declared `sudo` modifier before
+// Command modifier 'sudo' has already been declared
 
 main {
     // This should fail with duplicate sudo modifier error

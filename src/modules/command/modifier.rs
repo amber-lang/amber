@@ -60,7 +60,7 @@ impl CommandModifier {
                         },
                         "sudo" => {
                             if self.is_sudo {
-                                return error!(meta, Some(tok.clone()), "You already declared `sudo` modifier before");
+                                return error!(meta, Some(tok.clone()), "Command modifier 'sudo' has already been declared");
                             }
                             self.is_sudo = true;
                             meta.increment_index();
