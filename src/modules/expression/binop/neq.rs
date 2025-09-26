@@ -51,6 +51,8 @@ impl SyntaxModule<ParserMetadata> for Neq {
 
 impl TypeCheckModule for Neq {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
         Self::typecheck_equality(meta, &self.left, &self.right)?;
         Ok(())
     }

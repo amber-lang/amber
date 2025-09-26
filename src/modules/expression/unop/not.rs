@@ -44,6 +44,7 @@ impl SyntaxModule<ParserMetadata> for Not {
 
 impl TypeCheckModule for Not {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
         Self::typecheck_allowed_types(meta, "logical negation", &self.expr, &[Type::Bool])?;
         Ok(())
     }

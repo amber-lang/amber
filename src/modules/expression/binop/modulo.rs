@@ -51,6 +51,8 @@ impl SyntaxModule<ParserMetadata> for Modulo {
 
 impl TypeCheckModule for Modulo {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
         self.kind = Self::typecheck_allowed_types(meta, "modulo", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

@@ -55,6 +55,7 @@ impl SyntaxModule<ParserMetadata> for Neg {
 
 impl TypeCheckModule for Neg {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
         Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num, Type::Int])?;
         Ok(())
     }

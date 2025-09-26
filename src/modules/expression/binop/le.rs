@@ -50,6 +50,8 @@ impl SyntaxModule<ParserMetadata> for Le {
 
 impl TypeCheckModule for Le {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
         Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

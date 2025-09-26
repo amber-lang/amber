@@ -52,6 +52,8 @@ impl SyntaxModule<ParserMetadata> for Sub {
 
 impl TypeCheckModule for Sub {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
         self.kind = Self::typecheck_allowed_types(meta, "subtraction", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

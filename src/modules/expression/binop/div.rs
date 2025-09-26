@@ -53,6 +53,8 @@ impl SyntaxModule<ParserMetadata> for Div {
 
 impl TypeCheckModule for Div {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
         self.kind = Self::typecheck_allowed_types(meta, "division", &self.left, &self.right, &[
             Type::Num,
             Type::Int,

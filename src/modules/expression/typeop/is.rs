@@ -49,8 +49,9 @@ impl SyntaxModule<ParserMetadata> for Is {
 }
 
 impl TypeCheckModule for Is {
-    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
-        // The Is operation doesn't currently perform type checking in parse
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        // The Is operation doesn't require additional type checking
         Ok(())
     }
 }
