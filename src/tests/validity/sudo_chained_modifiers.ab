@@ -1,0 +1,13 @@
+// Output
+// single statement
+
+main {
+    // Test for single statement
+    sudo $ echo "single statement" $?
+
+    // Test for expression (no output)
+    let _ = sudo $ echo "expression" $?
+
+    // Test combined with trust and silent (no output due to silent)
+    sudo trust silent $ echo "all modifiers" $?
+}

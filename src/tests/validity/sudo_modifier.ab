@@ -1,0 +1,9 @@
+// Output
+// Hello World
+
+main {
+    sudo silent {
+        echo "Hello World"
+        $ non-existent command $?
+    }
+}

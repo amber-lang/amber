@@ -7,6 +7,7 @@ use crate::modules::prelude::*;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
+use crate::translate::fragments::gen_sudo_prefix;
 
 const INDENT_SPACES: &str = "    ";
 
@@ -26,6 +27,8 @@ pub struct TranslateMetadata {
     pub eval_ctx: bool,
     /// Determines whether the current context should be silenced.
     pub silenced: bool,
+    /// Determines whether the current context should use sudo.
+    pub sudoed: bool,
     /// The current indentation level.
     pub indent: i64,
     /// Determines if minify flag was set.
@@ -42,6 +45,7 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
+            sudoed: false,
             indent: -1,
             minify: options.minify,
         }
@@ -80,6 +84,11 @@ impl TranslateMetadata {
 
     pub fn gen_silent(&self) -> RawFragment {
         let expr = if self.silenced { " >/dev/null 2>&1" } else { "" };
+        RawFragment::new(expr)
+    }
+
+    pub fn gen_sudo_prefix(&self) -> RawFragment {
+        let expr = if self.sudoed { &gen_sudo_prefix() } else { "" };
         RawFragment::new(expr)
     }
 
