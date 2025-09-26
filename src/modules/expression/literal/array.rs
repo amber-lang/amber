@@ -46,16 +46,17 @@ impl SyntaxModule<ParserMetadata> for Array {
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
-                    let tok = meta.get_current_token();
-                    if token(meta, "[").is_ok() {
-                        return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
-                    }
                     if token(meta, "]").is_ok() {
                         break;
                     }
                     // Parse array value
                     let mut value = Expr::new();
                     syntax(meta, &mut value)?;
+                    // Handle nested arrays
+                    if value.kind.is_array() {
+                        let pos = value.get_position(meta);
+                        return error_pos!(meta, pos, "Arrays cannot be nested due to the Bash limitations")
+                    }
                     match self.kind {
                         Type::Null => self.kind = Type::Array(Box::new(value.get_type())),
                         Type::Array(ref mut kind) => {
