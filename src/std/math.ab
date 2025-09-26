@@ -1,6 +1,6 @@
 /// Sums an array's contents
 #[allow_absurd_cast]
-pub fun math_sum(list: [Num]): Num {
+pub fun math_sum(list) {
     let sum = 0
     for item in list: sum += item
     return sum
@@ -8,29 +8,29 @@ pub fun math_sum(list: [Num]): Num {
 
 /// Returns a number, rounded to the nearest integer
 #[allow_absurd_cast]
-pub fun math_round(number: Num): Num {
+pub fun math_round(number: Num): Int {
     if number > 0 {
-        return trust $ echo "({number}+0.5)/1" | bc $ as Num
+        return trust $ echo "({number}+0.5)/1" | bc $ as Int
     }
 
-    return trust $ echo "({number}-0.5)/1" | bc $ as Num
+    return trust $ echo "({number}-0.5)/1" | bc $ as Int
 }
 
 /// Returns the largest integer less than or equal to a number
 #[allow_absurd_cast]
-pub fun math_floor(number: Num): Num {
-    return trust $ echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}' $ as Num
+pub fun math_floor(number: Num): Int {
+    return trust $ echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}' $ as Int
 }
 
 /// Returns the smallest integer greater than or equal to a number
 #[allow_absurd_cast]
-pub fun math_ceil(number: Num): Num {
+pub fun math_ceil(number: Num): Int {
     return math_floor(number) + 1
 }
 
 /// Returns the absolute value of a number
 #[allow_absurd_cast]
-pub fun math_abs(number: Num): Num {
+pub fun math_abs(number) {
     if number < 0: return -number
     return number
 }
