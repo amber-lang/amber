@@ -77,7 +77,22 @@ impl TranslateModule for IfChain {
 }
 
 
-impl_noop_typecheck!(IfChain);
+impl TypeCheckModule for IfChain {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check all condition-block pairs
+        for (cond, block) in &mut self.cond_blocks {
+            cond.typecheck(meta)?;
+            block.typecheck(meta)?;
+        }
+        
+        // Type-check the false block if it exists
+        if let Some(false_block) = &mut self.false_block {
+            false_block.typecheck(meta)?;
+        }
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for IfChain {
     fn document(&self, _meta: &ParserMetadata) -> String {

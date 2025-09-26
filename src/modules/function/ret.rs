@@ -68,7 +68,11 @@ impl TranslateModule for Return {
 }
 
 
-impl_noop_typecheck!(Return);
+impl TypeCheckModule for Return {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)
+    }
+}
 
 impl DocumentationModule for Return {
     fn document(&self, _meta: &ParserMetadata) -> String {

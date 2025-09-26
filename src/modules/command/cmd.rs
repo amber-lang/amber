@@ -104,7 +104,19 @@ impl TranslateModule for Command {
 }
 
 
-impl_noop_typecheck!(Command);
+impl TypeCheckModule for Command {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check all interpolated expressions
+        for interp in &mut self.interps {
+            interp.typecheck(meta)?;
+        }
+        
+        // Type-check the failed block
+        self.failed.typecheck(meta)?;
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for Command {
     fn document(&self, _meta: &ParserMetadata) -> String {

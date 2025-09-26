@@ -19,14 +19,7 @@ impl SyntaxModule<ParserMetadata> for Cd {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
         syntax(meta, &mut self.value)?;
-        let path_type = self.value.get_type();
-        if path_type != Type::Text {
-            let position = self.value.get_position(meta);
-            return error_pos!(meta, position => {
-                message: "Builtin function `cd` can only be used with values of type Text",
-                comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-            });
-        }
+        // Type checking is now handled by TypeCheckModule
         Ok(())
     }
 }
@@ -38,7 +31,23 @@ impl TranslateModule for Cd {
 }
 
 
-impl_noop_typecheck!(Cd);
+impl TypeCheckModule for Cd {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // First, type-check the nested expression
+        self.value.typecheck(meta)?;
+        
+        // Then check if it's the correct type
+        let path_type = self.value.get_type();
+        if path_type != Type::Text {
+            let position = self.value.get_position(meta);
+            return error_pos!(meta, position => {
+                message: "Builtin function `cd` can only be used with values of type Text",
+                comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+            });
+        }
+        Ok(())
+    }
+}
 
 impl DocumentationModule for Cd {
     fn document(&self, _meta: &ParserMetadata) -> String {

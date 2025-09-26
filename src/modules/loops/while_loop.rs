@@ -58,7 +58,17 @@ impl TranslateModule for WhileLoop {
 }
 
 
-impl_noop_typecheck!(WhileLoop);
+impl TypeCheckModule for WhileLoop {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check the condition expression
+        self.condition.typecheck(meta)?;
+        
+        // Type-check the block
+        self.block.typecheck(meta)?;
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for WhileLoop {
     fn document(&self, _meta: &ParserMetadata) -> String {

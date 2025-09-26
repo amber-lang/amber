@@ -123,7 +123,17 @@ impl IterLoop {
 }
 
 
-impl_noop_typecheck!(IterLoop);
+impl TypeCheckModule for IterLoop {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check the iterator expression
+        self.iter_expr.typecheck(meta)?;
+        
+        // Type-check the block
+        self.block.typecheck(meta)?;
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for IterLoop {
     fn document(&self, _meta: &ParserMetadata) -> String {

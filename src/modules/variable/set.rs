@@ -76,7 +76,15 @@ impl TranslateModule for VariableSet {
 }
 
 
-impl_noop_typecheck!(VariableSet);
+impl TypeCheckModule for VariableSet {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        if let Some(index) = &mut self.index {
+            index.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
 
 impl DocumentationModule for VariableSet {
     fn document(&self, _meta: &ParserMetadata) -> String {

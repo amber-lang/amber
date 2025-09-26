@@ -110,4 +110,9 @@ impl TranslateModule for Failed {
     }
 }
 
-impl_noop_typecheck!(Failed);
+impl TypeCheckModule for Failed {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check the failed block
+        self.block.typecheck(meta)
+    }
+}

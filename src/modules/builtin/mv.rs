@@ -33,23 +33,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
         self.modifier.use_modifiers(meta, |_this, meta| {
             token(meta, "mv")?;
             syntax(meta, &mut self.source)?;
-            let mut path_type = self.source.get_type();
-            if path_type != Type::Text {
-                let position = self.source.get_position(meta);
-                return error_pos!(meta, position => {
-                    message: "Builtin function `mv` can only be used with values of type Text",
-                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                });
-            }
             syntax(meta, &mut self.destination)?;
-            path_type = self.destination.get_type();
-            if path_type != Type::Text {
-                let position = self.destination.get_position(meta);
-                return error_pos!(meta, position => {
-                    message: "Builtin function `mv` can only be used with values of type Text",
-                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                });
-            }
             syntax(meta, &mut self.failed)?;
             Ok(())
         })
@@ -73,7 +57,35 @@ impl TranslateModule for Mv {
 }
 
 
-impl_noop_typecheck!(Mv);
+impl TypeCheckModule for Mv {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check nested expressions first
+        self.source.typecheck(meta)?;
+        self.destination.typecheck(meta)?;
+        self.failed.typecheck(meta)?;
+        
+        // Then check if they're the correct types
+        let source_type = self.source.get_type();
+        if source_type != Type::Text {
+            let position = self.source.get_position(meta);
+            return error_pos!(meta, position => {
+                message: "Builtin function `mv` can only be used with values of type Text",
+                comment: format!("Given type: {}, expected type: {}", source_type, Type::Text)
+            });
+        }
+        
+        let dest_type = self.destination.get_type();
+        if dest_type != Type::Text {
+            let position = self.destination.get_position(meta);
+            return error_pos!(meta, position => {
+                message: "Builtin function `mv` can only be used with values of type Text",
+                comment: format!("Given type: {}, expected type: {}", dest_type, Type::Text)
+            });
+        }
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for Mv {
     fn document(&self, _meta: &ParserMetadata) -> String {

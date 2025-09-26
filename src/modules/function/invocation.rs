@@ -161,7 +161,19 @@ impl TranslateModule for FunctionInvocation {
 }
 
 
-impl_noop_typecheck!(FunctionInvocation);
+impl TypeCheckModule for FunctionInvocation {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check all arguments
+        for arg in &mut self.args {
+            arg.typecheck(meta)?;
+        }
+        
+        // Type-check the failed block
+        self.failed.typecheck(meta)?;
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for FunctionInvocation {
     fn document(&self, _meta: &ParserMetadata) -> String {

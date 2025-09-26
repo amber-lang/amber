@@ -78,7 +78,22 @@ impl TranslateModule for IfCondition {
 }
 
 
-impl_noop_typecheck!(IfCondition);
+impl TypeCheckModule for IfCondition {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check the condition expression
+        self.expr.typecheck(meta)?;
+        
+        // Type-check the true block
+        self.true_block.typecheck(meta)?;
+        
+        // Type-check the false block if it exists
+        if let Some(false_block) = &mut self.false_block {
+            false_block.typecheck(meta)?;
+        }
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for IfCondition {
     fn document(&self, _meta: &ParserMetadata) -> String {

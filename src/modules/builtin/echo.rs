@@ -31,7 +31,11 @@ impl TranslateModule for Echo {
 }
 
 
-impl_noop_typecheck!(Echo);
+impl TypeCheckModule for Echo {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.value.typecheck(meta)
+    }
+}
 
 impl DocumentationModule for Echo {
     fn document(&self, _meta: &ParserMetadata) -> String {

@@ -67,7 +67,11 @@ impl TranslateModule for VariableInit {
 }
 
 
-impl_noop_typecheck!(VariableInit);
+impl TypeCheckModule for VariableInit {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)
+    }
+}
 
 impl DocumentationModule for VariableInit {
     fn document(&self, _meta: &ParserMetadata) -> String {
