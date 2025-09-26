@@ -46,17 +46,12 @@ impl SyntaxModule<ParserMetadata> for Array {
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
-                    let tok = meta.get_current_token();
-                    if token(meta, "[").is_ok() {
-                        return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
-                    }
                     if token(meta, "]").is_ok() {
                         break;
                     }
                     // Parse array value
                     let mut value = Expr::new();
                     syntax(meta, &mut value)?;
-                    // Don't check types here - will be done in typecheck phase
                     let tok = meta.get_current_token();
                     if token(meta, "]").is_ok() {
                         self.exprs.push(value);
@@ -90,6 +85,11 @@ impl TypeCheckModule for Array {
         // First type-check all the expressions
         for expr in &mut self.exprs {
             expr.typecheck(meta)?;
+            // Handle nested arrays
+            if expr.get_type().is_array() {
+                let pos = expr.get_position(meta);
+                return error_pos!(meta, pos, "Arrays cannot be nested due to the Bash limitations")
+            }
         }
         
         // Then determine the array type
