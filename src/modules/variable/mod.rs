@@ -120,7 +120,14 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<O
             let expected = if range { "integer or range" } else { "integer (and not a range)" };
             let side = if range { "right" } else { "left" };
             let message = format!("Index accessor must be an {expected} for {side} side of operation");
-            let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
+            
+            // Provide more helpful error message if this looks like an array literal
+            let comment = if index.get_type() == Type::Bool && is_likely_array_literal(meta) {
+                "This looks like an array literal. If you meant to create an array, make sure it's not being parsed as an index accessor on a variable.".to_string()
+            } else {
+                format!("The index accessor must be an {} and not {}", expected, index.get_type())
+            };
+            
             return error!(meta, tok => { message: message, comment: comment });
         }
         token(meta, "]")?;
@@ -135,4 +142,27 @@ fn allow_index_accessor(index: &Expr, range: bool) -> bool {
         (Type::Array(_), Some(ExprType::Range(_))) => range,
         _ => false,
     }
+}
+
+fn is_likely_array_literal(meta: &ParserMetadata) -> bool {
+    // Look ahead to see if there are comma-separated values followed by ]
+    // This is a heuristic to detect array literals that were misparsed
+    let current_index = meta.get_index();
+    if meta.get_token_at(current_index).is_some() {
+        // Look for pattern like: something, something]
+        let mut i = current_index;
+        let mut found_comma = false;
+        while let Some(tok) = meta.get_token_at(i) {
+            if tok.word == "]" {
+                return found_comma; // If we found commas before ], likely an array
+            } else if tok.word == "," {
+                found_comma = true;
+            }
+            i += 1;
+            if i > current_index + 10 { // Don't look too far ahead
+                break;
+            }
+        }
+    }
+    false
 }
