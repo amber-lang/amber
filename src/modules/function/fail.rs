@@ -53,12 +53,8 @@ impl SyntaxModule<ParserMetadata> for Fail {
                 self.code = value;
             },
             Err(_) => {
-                match syntax(meta, &mut self.expr) {
-                    Ok(_) => {
-                    },
-                    Err(_) => {
-                        self.code = "1".to_string();
-                    }
+                if syntax(meta, &mut self.expr).is_err() {
+                    self.code = "1".to_string();
                 }
             }
         }
