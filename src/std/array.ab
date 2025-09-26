@@ -83,8 +83,8 @@ pub fun array_shift(ref array) {
     return element
 }
 
-// Returns an array of length `size` and each element is set to `value`; if
-// `value` is an array type, an error is thrown during compilation
+// Returns an array of length `size` with each element set to `value`; if `size`
+// is less than zero or not of type `Int`, an empty array is returned 
 pub fun array_filled(size, value = 0) {
     let array = [value]
     array = array[0..0]
