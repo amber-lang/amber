@@ -53,4 +53,6 @@ impl SyntaxModule<ParserMetadata> for ImportString {
     }
 }
 
+use crate::impl_noop_typecheck;
+
 impl_noop_typecheck!(ImportString);

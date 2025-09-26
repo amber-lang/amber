@@ -34,7 +34,7 @@ impl TranslateModule for Echo {
 impl_noop_typecheck!(Echo);
 
 impl DocumentationModule for Echo {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

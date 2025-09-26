@@ -41,7 +41,7 @@ impl TranslateModule for Cd {
 impl_noop_typecheck!(Cd);
 
 impl DocumentationModule for Cd {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

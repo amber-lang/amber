@@ -79,7 +79,7 @@ impl LinesInvocation {
 impl_noop_typecheck!(LinesInvocation);
 
 impl DocumentationModule for LinesInvocation {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

@@ -55,7 +55,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         // Type checking is now handled by TypeCheckModule
         Ok(())
     }

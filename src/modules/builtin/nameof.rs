@@ -45,7 +45,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 }
 
 impl TranslateModule for Nameof {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         VarExprFragment::new(&self.name, Type::Text)
             .with_global_id(self.global_id)
             .with_render_type(VarRenderType::NameOf)
@@ -57,7 +57,7 @@ impl TranslateModule for Nameof {
 impl_noop_typecheck!(Nameof);
 
 impl DocumentationModule for Nameof {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

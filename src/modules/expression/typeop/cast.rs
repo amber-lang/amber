@@ -43,7 +43,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         // Type checking is now handled by TypeCheckModule
         Ok(())
     }
@@ -84,7 +84,7 @@ impl TranslateModule for Cast {
 }
 
 impl DocumentationModule for Cast {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

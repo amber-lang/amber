@@ -11,8 +11,8 @@ mod optimizer;
 #[macro_export]
 macro_rules! impl_noop_typecheck {
     ($type:ty) => {
-        impl crate::modules::typecheck::TypeCheckModule for $type {
-            fn typecheck(&mut self, _meta: &mut crate::utils::ParserMetadata) -> heraclitus_compiler::prelude::SyntaxResult {
+        impl $crate::modules::typecheck::TypeCheckModule for $type {
+            fn typecheck(&mut self, _meta: &mut $crate::utils::ParserMetadata) -> heraclitus_compiler::prelude::SyntaxResult {
                 Ok(())
             }
         }

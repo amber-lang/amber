@@ -43,21 +43,21 @@ impl SyntaxModule<ParserMetadata> for Is {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         // Type checking is now handled by TypeCheckModule
         Ok(())
     }
 }
 
 impl TypeCheckModule for Is {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         // The Is operation doesn't currently perform type checking in parse
         Ok(())
     }
 }
 
 impl TranslateModule for Is {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         if self.expr.get_type() == self.kind {
             fragments!("1")
         } else {
@@ -67,7 +67,7 @@ impl TranslateModule for Is {
 }
 
 impl DocumentationModule for Is {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }

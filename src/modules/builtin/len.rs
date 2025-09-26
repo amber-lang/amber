@@ -38,7 +38,7 @@ impl SyntaxModule<ParserMetadata> for Len {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         // Type checking is now handled by TypeCheckModule
         Ok(())
     }
@@ -67,7 +67,7 @@ impl TranslateModule for Len {
 }
 
 impl DocumentationModule for Len {
-    fn document(&self, meta: &ParserMetadata) -> String {
+    fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }
 }
