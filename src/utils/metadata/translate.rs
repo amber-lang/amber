@@ -8,7 +8,6 @@ use crate::modules::types::Type;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
-use crate::fragments;
 
 const INDENT_SPACES: &str = "    ";
 
@@ -93,21 +92,21 @@ impl TranslateMetadata {
             // Generate a simple variable name for sudo
             let var_name = "__sudo";
             
-            // Create the bash condition to detect sudo dynamically 
-            let condition = r#"if [ "$USER" = "root" ] || [ "$(id -u)" = "0" ]; then echo "" ; elif command -v sudo >/dev/null 2>&1; then echo "sudo" ; else echo "" ; fi"#;
+            // Create the bash condition to detect sudo dynamically using more concise logic
+            let condition = r#"[ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1 && printf 'sudo '"#;
             let condition_frag = RawFragment::new(&format!("$({})", condition)).to_frag();
             
             // Use VarStmtFragment for variable assignment
             let var_stmt = VarStmtFragment::new(var_name, Type::Text, condition_frag);
             
-            // Use VarExprFragment::from_stmt to get variable expression  
-            let var_expr = VarExprFragment::from_stmt(&var_stmt);
+            // Use VarExprFragment::from_stmt to get variable expression without quotes
+            let var_expr = VarExprFragment::from_stmt(&var_stmt).with_quotes(false);
             
             // Add the variable statement to stmt_queue
             self.stmt_queue.push_back(var_stmt.to_frag());
             
-            // Return the variable with a conditional space 
-            fragments!(var_expr.to_frag(), RawFragment::new(&format!("${{{}:+ }}", var_name)).to_frag())
+            // Return just the VarExprFragment 
+            var_expr.to_frag()
         } else {
             FragmentKind::Empty
         }
