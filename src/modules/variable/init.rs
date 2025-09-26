@@ -11,16 +11,15 @@ pub struct VariableInit {
     global_id: Option<usize>,
     is_fun_ctx: bool,
     is_const: bool,
+    tok: Option<Token>,
 }
 
 impl VariableInit {
     fn handle_add_variable(
         &mut self,
         meta: &mut ParserMetadata,
-        tok: Option<Token>
     ) -> SyntaxResult {
-        handle_identifier_name(meta, &self.name, tok)?;
-        // Register the variable with the correct type - will be called from typecheck phase
+        handle_identifier_name(meta, &self.name, self.tok.clone())?;
         self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
         Ok(())
     }
@@ -35,20 +34,19 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             expr: Box::new(Expr::new()),
             global_id: None,
             is_fun_ctx: false,
-            is_const: false
+            is_const: false,
+            tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let keyword = token_by(meta, |word| ["let", "const"].contains(&word.as_str()))?;
         self.is_const = keyword == "const";
-        // Get the variable name
-        let tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         context!({
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
-            // Variable will be added to memory during typecheck phase
             self.is_fun_ctx = meta.context.is_fun_ctx;
             Ok(())
         }, |position| {
@@ -70,11 +68,7 @@ impl TranslateModule for VariableInit {
 impl TypeCheckModule for VariableInit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
-        
-        // Now add the variable to memory with the correct type
-        let tok = None; // We don't have the token here, but it's not used for error reporting in this context
-        self.handle_add_variable(meta, tok)?;
-        
+        self.handle_add_variable(meta)?;
         Ok(())
     }
 }

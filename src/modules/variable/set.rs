@@ -13,7 +13,8 @@ pub struct VariableSet {
     global_id: Option<usize>,
     index: Option<Expr>,
     is_ref: bool,
-    var_type: Type, // Store the variable type for typecheck phase
+    var_type: Type,
+    tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -27,16 +28,16 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
             index: None,
             is_ref: false,
             var_type: Type::Null,
+            tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         self.index = handle_index_accessor(meta, false)?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
-        // Variable reference handling moved to typecheck phase
         Ok(())
     }
 }
@@ -61,37 +62,32 @@ impl TypeCheckModule for VariableSet {
             index.typecheck(meta)?;
         }
         
-        // Now handle variable reference in the typecheck phase
-        let tok = meta.get_current_token(); // Best effort to get current token
-        let variable = handle_variable_reference(meta, &tok, &self.name)?;
-        self.global_id = variable.global_id;
-        self.is_ref = variable.is_ref;
-        self.var_type = variable.kind.clone();
-        prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
-        
-        // Check if the variable can be indexed
-        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            let left_type = variable.kind.clone();
-            return error!(meta, tok, format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
-        }
-        
-        // Type validation with properly type-checked expressions
-        let right_type = self.expr.get_type();
-        
-        // Handle index assignment
-        if self.index.is_some() {
-            // Check if the assigned value is compatible with the array
-            if let Type::Array(kind) = &self.var_type {
-                if !right_type.is_allowed_in(kind) {
-                    let tok = self.expr.get_position(meta);
-                    return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
+        if self.tok.is_some() {
+            let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
+            self.global_id = variable.global_id;
+            self.is_ref = variable.is_ref;
+            self.var_type = variable.kind.clone();
+            prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
+            
+            if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
+                let left_type = variable.kind.clone();
+                return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+            }
+            
+            let right_type = self.expr.get_type();
+            
+            if self.index.is_some() {
+                if let Type::Array(kind) = &self.var_type {
+                    if !right_type.is_allowed_in(kind) {
+                        let tok = self.expr.get_position(meta);
+                        return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
+                    }
                 }
             }
-        }
-        // Check if the variable is compatible with the assigned value
-        else if !right_type.is_allowed_in(&self.var_type) {
-            let tok = self.expr.get_position(meta);
-            return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
+            else if !right_type.is_allowed_in(&self.var_type) {
+                let tok = self.expr.get_position(meta);
+                return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
+            }
         }
         
         Ok(())

@@ -14,7 +14,8 @@ pub struct ShorthandModulo {
     expr: Box<Expr>,
     kind: Type,
     global_id: Option<usize>,
-    is_ref: bool
+    is_ref: bool,
+    tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for ShorthandModulo {
@@ -26,15 +27,16 @@ impl SyntaxModule<ParserMetadata> for ShorthandModulo {
             expr: Box::new(Expr::new()),
             kind: Type::Null,
             global_id: None,
-            is_ref: false
+            is_ref: false,
+            tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.tok = meta.get_current_token();
         self.var = variable(meta, variable_name_extensions())?;
         token(meta, "%=")?;
         syntax(meta, &mut *self.expr)?;
-        // Variable reference handling moved to typecheck phase
         Ok(())
     }
 }
@@ -43,18 +45,18 @@ impl TypeCheckModule for ShorthandModulo {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
         
-        // Handle variable reference in typecheck phase
-        let var_tok = meta.get_current_token(); // Best effort to get current token
-        let variable = handle_variable_reference(meta, &var_tok, &self.var)?;
-        prevent_constant_mutation(meta, &var_tok, &self.var, variable.is_const)?;
-        self.kind = variable.kind;
-        self.global_id = variable.global_id;
-        self.is_ref = variable.is_ref;
-        
-        shorthand_typecheck_allowed_types(meta, "modulo", &self.kind, &self.expr, &[
-            Type::Num,
-            Type::Int
-        ])?;
+        if self.tok.is_some() {
+            let variable = handle_variable_reference(meta, &self.tok, &self.var)?;
+            prevent_constant_mutation(meta, &self.tok, &self.var, variable.is_const)?;
+            self.kind = variable.kind;
+            self.global_id = variable.global_id;
+            self.is_ref = variable.is_ref;
+            
+            shorthand_typecheck_allowed_types(meta, "modulo", &self.kind, &self.expr, &[
+                Type::Num,
+                Type::Int
+            ])?;
+        }
         Ok(())
     }
 }
