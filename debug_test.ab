@@ -1,5 +1,7 @@
+fun test(value) {
+  return [value]
+}
+
 main {
-    let arr = [1, 2, 3, 4, 5]
-    let result = arr[0..2]
-    echo result
+  echo test([1,2,3])
 }
