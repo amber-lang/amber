@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
 
-/// Represents a region that can be interpolated. Similarily to what Heraclitus returns when parsing a region.
+/// Represents a region that can be interpolated. Similarly to what Heraclitus returns when parsing a region.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InterpolableRenderType {
     /// This should be rendered to Bash's double quoted string
@@ -58,56 +58,21 @@ impl InterpolableFragment {
     }
 
     fn translate_escaped_string(&self, string: String) -> String {
-        let mut chars = string.chars().peekable();
+        let chars = string.chars();
         let mut result = String::new();
-        while let Some(c) = chars.next() {
-            match c {
-                '"' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r#"\""#,
-                    InterpolableRenderType::GlobalContext => result += r#"""#,
-                }
-                '$' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r"\$",
-                    InterpolableRenderType::GlobalContext => result += r"\$",
-                }
-                '`' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r"\`",
-                    InterpolableRenderType::GlobalContext => result += r"`",
-                }
-                '!' => match self.render_type {
-                    InterpolableRenderType::StringLiteral => result += r#""'!'""#,
-                    InterpolableRenderType::GlobalContext => result += r"!",
-                }
-                '\\' => {
-                    // Escape symbols
-                    match chars.peek() {
-                        Some('\n') => {}
-                        Some('n') => result.push('\n'),
-                        Some('t') => result.push('\t'),
-                        Some('r') => result.push('\r'),
-                        Some('0') => result.push('\0'),
-                        Some('{') => result.push('{'),
-                        Some('$') => result.push('$'),
-                        Some('\'') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += r#"'"#,
-                            InterpolableRenderType::GlobalContext => result += r#"\'"#,
-                        }
-                        Some('"') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += r#"\""#,
-                            InterpolableRenderType::GlobalContext => result += r#"""#,
-                        }
-                        Some('\\') => match self.render_type {
-                            InterpolableRenderType::StringLiteral => result += r#"\\"#,
-                            InterpolableRenderType::GlobalContext => result += r#"\"#,
-                        }
-                        _ => {
-                            result.push(c);
-                            continue;
-                        }
+        for c in chars {
+            match self.render_type {
+                InterpolableRenderType::StringLiteral => {
+                    match c {
+                        '"' =>  result += r#"\""#,
+                        '$' =>  result += r#"\$"#,
+                        '`' =>  result += r#"\`"#,
+                        '\\' =>  result += r#"\\"#,
+                        '!' =>  result += r#""'!'""#,
+                        _ => result.push(c),
                     }
-                    chars.next();
-                },
-                _ => result.push(c)
+                }
+                InterpolableRenderType::GlobalContext => result.push(c),
             }
         }
         result
@@ -127,5 +92,46 @@ impl FragmentRenderable for InterpolableFragment {
 
     fn to_frag(self) -> FragmentKind {
         FragmentKind::Interpolable(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_interpolable(render_type: InterpolableRenderType) -> InterpolableFragment {
+        InterpolableFragment::new(vec![], vec![], render_type)
+    }
+
+    #[test]
+    fn test_translate_escaped_string() {
+        // Test StringLiteral translation
+        let i_str = create_interpolable(InterpolableRenderType::StringLiteral);
+        assert_eq!(i_str.translate_escaped_string(r#"hello"#.to_string()), r#"hello"#);
+        assert_eq!(i_str.translate_escaped_string(r#"\"#.to_string()), r#"\\"#);
+        assert_eq!(i_str.translate_escaped_string(r#"""#.to_string()), r#"\""#);
+        assert_eq!(i_str.translate_escaped_string(r#"'"#.to_string()), r#"'"#);
+        assert_eq!(i_str.translate_escaped_string(r#"$"#.to_string()), r#"\$"#);
+        assert_eq!(i_str.translate_escaped_string(r#"\$"#.to_string()), r#"\\\$"#);
+        assert_eq!(i_str.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
+        assert_eq!(i_str.translate_escaped_string(r#"`"#.to_string()), r#"\`"#);
+        assert_eq!(i_str.translate_escaped_string(r#"!"#.to_string()), r#""'!'""#);
+        assert_eq!(i_str.translate_escaped_string(r#"\ "#.to_string()), r#"\\ "#);
+        assert_eq!(i_str.translate_escaped_string(r#"${var}"#.to_string()), r#"\${var}"#);
+
+        // Test GlobalContext translation
+        let i_glo = create_interpolable(InterpolableRenderType::GlobalContext);
+        assert_eq!(i_glo.translate_escaped_string(r#"hello"#.to_string()), r#"hello"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\a"#.to_string()), r#"\a"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\"#.to_string()), r#"\"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\\"#.to_string()), r#"\\"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"""#.to_string()), r#"""#);
+        assert_eq!(i_glo.translate_escaped_string(r#"'"#.to_string()), r#"'"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"$"#.to_string()), r#"$"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\$"#.to_string()), r#"\$"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"!"#.to_string()), r#"!"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"basename `pwd`"#.to_string()), r#"basename `pwd`"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\ "#.to_string()), r#"\ "#);
     }
 }
