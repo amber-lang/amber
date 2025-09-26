@@ -1,4 +1,4 @@
-import { has_failed, input_prompt } from "std/env"
+import { has_failed, input_prompt, is_root } from "std/env"
 import { split_chars } from "std/text"
 import { array_contains } from "std/array"
 import { file_exists } from "std/fs"
@@ -52,7 +52,7 @@ main(args) {
 
     // Make the directories we need first to ensure we have permissions before downloading any files
     // this decreases the chance that our script results in partial installation leaving assets behind
-    let sudo = user_only_install then "" else "sudo"
+    let sudo = user_only_install or is_root() then "" else "sudo"
     // Create directory for amber
     silent $ {sudo} mkdir -p "{place}" $ failed {
         echo "Failed to create directory for amber."
@@ -129,7 +129,13 @@ main(args) {
         exit 1
     }
 
-    let nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    let nickname = ""
+    // Skip nickname prompt if running as root in non-interactive environment (like Docker)
+    if is_root() and has_failed("tty") {
+        nickname = "no"
+    } else {
+        nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    }
     if (nickname != "no") {
         // Send feedback to the server
         trust silent $ curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" $
