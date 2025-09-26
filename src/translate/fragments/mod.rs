@@ -54,8 +54,3 @@ pub fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
         None => name.to_string()
     }
 }
-
-// Returns "sudo " if needed, empty string otherwise (one-liner as requested)
-pub fn gen_sudo_prefix() -> String {
-    if std::env::var("USER").map(|u| u == "root").unwrap_or(false) { "".to_string() } else { std::process::Command::new("which").arg("sudo").output().map(|o| if o.status.success() { "sudo " } else { "" }).unwrap_or("").to_string() }
-}

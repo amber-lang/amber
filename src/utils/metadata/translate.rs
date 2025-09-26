@@ -7,7 +7,7 @@ use crate::modules::prelude::*;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
-use crate::translate::fragments::gen_sudo_prefix;
+use crate::fragments;
 
 const INDENT_SPACES: &str = "    ";
 
@@ -87,9 +87,23 @@ impl TranslateMetadata {
         RawFragment::new(expr)
     }
 
-    pub fn gen_sudo_prefix(&self) -> RawFragment {
-        let expr = if self.sudoed { &gen_sudo_prefix() } else { "" };
-        RawFragment::new(expr)
+    pub fn gen_sudo_prefix(&mut self) -> FragmentKind {
+        if self.sudoed {
+            // Generate a unique variable name for the sudo prefix
+            let id = self.gen_value_id();
+            let var_name = format!("__{}_{}", id, "sudo_prefix");
+            
+            // Create the bash condition to detect sudo dynamically (without trailing space)
+            let condition = r#"if [ "$USER" = "root" ] || [ "$(id -u)" = "0" ]; then echo "" ; elif command -v sudo >/dev/null 2>&1; then echo "sudo" ; else echo "" ; fi"#;
+            
+            // Add the variable assignment directly to stmt_queue
+            self.stmt_queue.push_back(RawFragment::new(&format!("{}=$({})", var_name, condition)).to_frag());
+            
+            // Return the variable with a conditional space 
+            fragments!(RawFragment::new(&format!("${{{}}}", var_name)).to_frag(), RawFragment::new(&format!("${{{}:+ }}", var_name)).to_frag())
+        } else {
+            FragmentKind::Empty
+        }
     }
 
     // Returns the appropriate amount of quotes with escape symbols.
