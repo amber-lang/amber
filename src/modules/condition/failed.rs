@@ -8,8 +8,20 @@ use crate::modules::types::Type;
 pub struct Failed {
     pub is_parsed: bool,
     is_question_mark: bool,
+    error_position: Option<PositionInfo>,
+    function_name: Option<String>,
     is_main: bool,
     block: Box<Block>
+}
+
+impl Failed {
+    pub fn set_position(&mut self, position: PositionInfo) {
+        self.error_position = Some(position);
+    }
+
+    pub fn set_function_name(&mut self, name: String) {
+        self.function_name = Some(name);
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Failed {
@@ -20,6 +32,8 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_parsed: false,
             is_question_mark: false,
             is_main: false,
+            function_name: None,
+            error_position: None,
             block: Box::new(Block::new().with_needs_noop().with_condition())
         }
     }
@@ -35,7 +49,6 @@ impl SyntaxModule<ParserMetadata> for Failed {
             match token(meta, "failed") {
                 Ok(_) => {
                     let tok = meta.get_current_token();
-                    dbg!(tok.clone());
                     syntax(meta, &mut *self.block)?;
                     if self.block.is_empty() {
                         let message = Message::new_warn_at_token(meta, tok)
@@ -49,7 +62,17 @@ impl SyntaxModule<ParserMetadata> for Failed {
                     self.is_parsed = true;
                     return Ok(());
                 } else {
-                    return error!(meta, tok, "Failed expression must be followed by a block or statement")
+                    match (self.function_name.clone(), self.error_position.clone()) {
+                        (Some(fun_name), Some(pos)) => {
+                            return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by a 'failed' block or statement"))
+                        }
+                        (None, Some(pos)) => {
+                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'failed' block or statement"))
+                        }
+                        _ => {
+                            return error!(meta, tok, format!("Failed expression must be followed by a 'failed' block or statement"))
+                        }
+                    }
                 }
             }
         }

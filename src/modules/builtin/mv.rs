@@ -10,8 +10,8 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Mv {
-    source: Expr,
-    destination: Expr,
+    source: Box<Expr>,
+    destination: Box<Expr>,
     modifier: CommandModifier,
     failed: Failed,
 }
@@ -21,8 +21,8 @@ impl SyntaxModule<ParserMetadata> for Mv {
 
     fn new() -> Self {
         Mv {
-            source: Expr::new(),
-            destination: Expr::new(),
+            source: Box::new(Expr::new()),
+            destination: Box::new(Expr::new()),
             failed: Failed::new(),
             modifier: CommandModifier::new().parse_expr(),
         }

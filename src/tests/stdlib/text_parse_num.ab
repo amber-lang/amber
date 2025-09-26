@@ -1,0 +1,18 @@
+import * from "std/text"
+
+// Output
+// 123
+// -123
+// 3.14
+// .15
+// -456.789
+// 0
+
+main {
+    echo parse_num("123")?
+    echo parse_num("-123")?
+    echo parse_num("3.14")?
+    echo parse_num(".15")?
+    echo parse_num("-456.789")?
+    echo parse_num("0")?
+}

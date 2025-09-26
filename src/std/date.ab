@@ -21,7 +21,7 @@
 /// - `%p` - locale's equivalent of either AM or PM; blank if unknown
 /// - `%T` - time; same as %H:%M:%S
 /// - `%Y` - year
-pub fun date_format_posix(date: Num, format: Text = "%F %T", utc: Bool = false): Text? {
+pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false): Text? {
     let utc_flag = utc then "-u" else ""
     // Case if this is a GNU date command
     return $ date {utc_flag} -d "@{date}" +"{format}" 2>/dev/null $ failed {
@@ -34,19 +34,19 @@ pub fun date_format_posix(date: Num, format: Text = "%F %T", utc: Bool = false):
 /// If no format is specified, "%F %T" format is used.
 /// For more info about format type "man date" on your shell or go to <https://www.gnu.org/software/coreutils/date>.
 #[allow_absurd_cast]
-pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Num? {
+pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Int? {
     let utc_flag = utc then "-u" else ""
     // Case if this is a GNU date command
     return $ date {utc_flag} -d "\$(date -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
         // Case if this is a BSD date command
-        return $ date {utc_flag} -j -f "{format}" "{date}" +%s $? as Num
-    } as Num
+        return $ date {utc_flag} -j -f "{format}" "{date}" +%s $? as Int
+    } as Int
 }
 
 /// Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
 #[allow_absurd_cast]
-pub fun date_now(): Num {
-    return trust $ date +%s $ as Num
+pub fun date_now(): Int {
+    return trust $ date +%s $ as Int
 }
 
 /// Adds a value to a date passed in the unix epoch format in miliseconds.
@@ -59,7 +59,7 @@ pub fun date_now(): Num {
 /// - hours
 /// - minutes
 /// - seconds
-pub fun date_add(date: Num, amount: Num, unit: Text): Num? {
+pub fun date_add(date: Int, amount: Int, unit: Text): Int? {
     if {
         unit == "years": return date + amount * 365 * 24 * 60 * 60
         unit == "months": return date + amount * 30 * 24 * 60 * 60
@@ -81,7 +81,7 @@ pub fun date_add(date: Num, amount: Num, unit: Text): Num? {
 /// - hours
 /// - minutes
 /// - seconds
-pub fun date_sub(date: Num, amount: Num, unit: Text): Num? {
+pub fun date_sub(date: Int, amount: Int, unit: Text): Int? {
     if {
         unit == "years": return date - amount * 365 * 24 * 60 * 60
         unit == "months": return date - amount * 30 * 24 * 60 * 60

@@ -40,6 +40,7 @@ impl SyntaxModule<ParserMetadata> for Command {
         self.modifier.use_modifiers(meta, |_this, meta| {
             let tok = meta.get_current_token();
             (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
+            self.failed.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
             match syntax(meta, &mut self.failed) {
                 Ok(_) => Ok(()),
                 Err(Failure::Quiet(_)) => error!(meta, tok => {

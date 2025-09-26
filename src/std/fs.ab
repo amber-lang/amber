@@ -1,36 +1,32 @@
 import { match_regex, join, replace_regex, split, trim } from "std/text"
 
 /// Checks if a directory exists.
-pub fun dir_exists(path) {
-    $ [ -d "{path}" ] $ failed {
-        return false
-    }
-    return true
+pub fun dir_exists(path: Text): Bool {
+    trust $ [ -d "{path}" ] $
+    return status == 0
 }
 
 /// Checks if a file exists.
-pub fun file_exists(path) {
-    $ [ -f "{path}" ] $ failed {
-        return false
-    }
-    return true
+pub fun file_exists(path: Text): Bool {
+    trust $ [ -f "{path}" ] $
+    return status == 0
 }
 
 /// Gets file contents from a path.
-pub fun file_read(path) {
+pub fun file_read(path: Text): Text? {
     return $ < "{path}" $?
 }
 
 /// Writes content to a file.
 /// Doesn't check if the file exist
-pub fun file_write(path, content) {
+pub fun file_write(path: Text, content: Text): Text? {
     return $ echo "{content}" > "{path}" $?
 }
 
 /// Appends content to a file.
 ///
 /// Doesn't check if the file exists.
-pub fun file_append(path, content) {
+pub fun file_append(path: Text, content: Text): Text? {
     return $ echo "{content}" >> "{path}" $?
 }
 
@@ -66,10 +62,10 @@ fun is_mac_os_mktemp(): Bool {
 /// Create a temporary directory and return the path.
 /// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
 pub fun temp_dir_create(
-        template: Text = "tmp.XXXXXXXXXX",
-        auto_delete: Bool = false,
-        force_delete: Bool = false
-    ): Text? {
+    template: Text = "tmp.XXXXXXXXXX",
+    auto_delete: Bool = false,
+    force_delete: Bool = false
+): Text? {
     if trim(template) == "" {
         echo "The template cannot be an empty string!"
         fail 1

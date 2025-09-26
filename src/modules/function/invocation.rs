@@ -67,6 +67,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                 (self.line, self.col) = tok.pos;
             }
             self.name = variable(meta, variable_name_extensions())?;
+            self.failed.set_function_name(self.name.clone());
             // Get the arguments
             token(meta, "(")?;
             self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
@@ -103,6 +104,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
             self.refs.clone_from(&function_unit.arg_refs);
             (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
+            self.failed.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
 
             self.is_failable = function_unit.is_failable;
             if self.is_failable {

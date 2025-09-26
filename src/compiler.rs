@@ -9,7 +9,6 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
 use crate::rules;
 use postprocessor::PostProcessor;
-use chrono::prelude::*;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
@@ -20,7 +19,7 @@ use std::fs::File;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+use std::process::{exit, Command, ExitStatus};
 use std::time::Instant;
 
 pub mod postprocessor;
@@ -165,6 +164,34 @@ impl AmberCompiler {
         result
     }
 
+    fn gen_header(&self) -> String {
+        let header_template = if let Ok(dynamic) = env::var("AMBER_HEADER") {
+            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+                let msg = format!("Couldn't read the dynamic header file from path '{dynamic}'");
+                Message::new_err_msg(msg).show();
+                exit(1);
+            })
+        } else {
+            include_str!("header.sh").trim_end().to_string()
+        };
+
+        header_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+    }
+
+    fn gen_footer(&self) -> String {
+        let footer_template = if let Ok(dynamic) = env::var("AMBER_FOOTER") {
+            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+                let msg = format!("Couldn't read the dynamic footer file from path '{dynamic}'");
+                Message::new_err_msg(msg).show();
+                exit(1);
+            })
+        } else {
+            String::new()
+        };
+
+        footer_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+    }
+
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
@@ -207,11 +234,7 @@ impl AmberCompiler {
             };
         }
 
-        let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        let header = include_str!("header.sh")
-            .replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
-            .replace("{{ date }}", now.as_str());
-        Ok(format!("{header}{result}"))
+        Ok(format!("{}\n{}\n{}", self.gen_header(), result, self.gen_footer()))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
