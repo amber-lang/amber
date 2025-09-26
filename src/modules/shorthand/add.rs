@@ -46,6 +46,7 @@ impl SyntaxModule<ParserMetadata> for ShorthandAdd {
 
 impl TypeCheckModule for ShorthandAdd {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
         shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
             Type::Num,
             Type::Int,

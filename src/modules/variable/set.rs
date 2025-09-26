@@ -12,7 +12,8 @@ pub struct VariableSet {
     expr: Box<Expr>,
     global_id: Option<usize>,
     index: Option<Expr>,
-    is_ref: bool
+    is_ref: bool,
+    var_type: Type, // Store the variable type for typecheck phase
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -24,7 +25,8 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
             expr: Box::new(Expr::new()),
             global_id: None,
             index: None,
-            is_ref: false
+            is_ref: false,
+            var_type: Type::Null,
         }
     }
 
@@ -37,28 +39,15 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         let variable = handle_variable_reference(meta, &tok, &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
+        self.var_type = variable.kind.clone(); // Store for typecheck phase
         prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
-        // Typecheck the variable
-        let left_type = variable.kind.clone();
-        let right_type = self.expr.get_type();
-        // Check if the variable can be indexed
+        
+        // Basic index validation (non-type related)
         if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
+            let left_type = variable.kind.clone();
             return error!(meta, tok, format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
         }
-        // Handle index assignment
-        if self.index.is_some() {
-            // Check if the assigned value is compatible with the array
-            if let Type::Array(kind) = variable.kind.clone() {
-                if !self.expr.get_type().is_allowed_in(&kind) {
-                    let right_type = self.expr.get_type();
-                    return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
-                }
-            }
-        }
-        // Check if the variable is compatible with the assigned value
-        else if !self.expr.get_type().is_allowed_in(&variable.kind) {
-            return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{left_type}'"));
-        }
+        
         Ok(())
     }
 }
@@ -82,6 +71,26 @@ impl TypeCheckModule for VariableSet {
         if let Some(index) = &mut self.index {
             index.typecheck(meta)?;
         }
+        
+        // Now do the type validation with properly type-checked expressions
+        let right_type = self.expr.get_type();
+        
+        // Handle index assignment
+        if self.index.is_some() {
+            // Check if the assigned value is compatible with the array
+            if let Type::Array(kind) = &self.var_type {
+                if !right_type.is_allowed_in(kind) {
+                    let tok = self.expr.get_position(meta);
+                    return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
+                }
+            }
+        }
+        // Check if the variable is compatible with the assigned value
+        else if !right_type.is_allowed_in(&self.var_type) {
+            let tok = self.expr.get_position(meta);
+            return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
+        }
+        
         Ok(())
     }
 }

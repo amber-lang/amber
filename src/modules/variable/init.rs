@@ -20,7 +20,9 @@ impl VariableInit {
         tok: Option<Token>
     ) -> SyntaxResult {
         handle_identifier_name(meta, &self.name, tok)?;
-        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
+        // Don't get the expression type here - will be done in typecheck phase
+        // For now, register the variable with a placeholder type
+        self.global_id = meta.add_var(&self.name, Type::Generic, self.is_const);
         Ok(())
     }
 }
@@ -69,7 +71,15 @@ impl TranslateModule for VariableInit {
 
 impl TypeCheckModule for VariableInit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.expr.typecheck(meta)
+        self.expr.typecheck(meta)?;
+        
+        // Now update the variable with the correct type
+        let expr_type = self.expr.get_type();
+        if let Some(global_id) = self.global_id {
+            meta.context.variables[global_id].kind = expr_type;
+        }
+        
+        Ok(())
     }
 }
 
