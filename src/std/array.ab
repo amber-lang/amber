@@ -51,7 +51,8 @@ pub fun array_remove_at(ref array: [], index: Int): Null {
     array = array[0..index] + array[offset..length]
 }
 
-/// Removes an element at the index from the array, and returns it
+/// Removes an element at the index from the array, and returns it; if the
+/// index is negative or beyond the end, the function fails.
 pub fun array_extract_at(ref array, index) {
     if index < 0 or index >= len(array):
         fail 1
