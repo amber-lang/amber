@@ -1,5 +1,3 @@
-// Test succeeded block with failing function
-
 fun test_failable(): Num? {
     if 1 < 5 {
         fail 1

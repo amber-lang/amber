@@ -1,8 +1,0 @@
-// Output
-// Unclosed command literal
-
-$ echo "test" $ succeeded {
-    echo "Success!"
-} $ failed {
-    echo "Failed!"
-}
