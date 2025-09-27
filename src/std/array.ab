@@ -27,9 +27,11 @@ pub fun array_contains(array, value) {
     return result >= 0
 }
 
-/// Returns the first element in the array; if the array is empty, the return
-/// value is undefined.
+/// Returns the first element in the array; if the array is empty, the function
+/// fails.
 pub fun array_first(array) {
+    if len(array) == 0:
+        fail 1
     return array[0]
 }
 
@@ -75,9 +77,11 @@ pub fun array_pop(ref array) {
 }
 
 /// Removes the first element from the array, and returns it; if the array
-/// is empty, the return value is undefined, but the array will be unchanged.
+/// is empty, the function fails, and the array will be unchanged.
 pub fun array_shift(ref array) {
     let length = len(array)
+    if length == 0:
+        fail 1
     let element = array[0]
     array = array[1..length]
     return element
