@@ -10,7 +10,8 @@ pub struct VariableGet {
     kind: Type,
     global_id: Option<usize>,
     index: Box<Option<Expr>>,
-    is_ref: bool
+    is_ref: bool,
+    tok: Option<Token>
 }
 
 impl Typed for VariableGet {
@@ -81,7 +82,7 @@ impl crate::modules::typecheck::TypeCheckModule for VariableGet {
         
         // Check if the variable can be indexed
         if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            return error!(meta, self.tok.clone().unwrap(), format!("Cannot index a non-array variable of type '{}'", self.kind));
+            return error!(meta, self.tok.clone(), format!("Cannot index a non-array variable of type '{}'", self.kind));
         }
         Ok(())
     }
