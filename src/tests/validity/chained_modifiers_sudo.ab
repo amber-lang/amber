@@ -1,5 +1,5 @@
 main {
-    trust $ sudo() \{ command sudo -n \"\$@"; } $
+    trust $ sudo() \{ command sudo -n "\$@"; } $
 
     // Read first line of sudoers file
     sudo silent $ head -n1 /etc/sudoers $ failed {
