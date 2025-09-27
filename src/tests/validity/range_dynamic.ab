@@ -17,33 +17,53 @@
 // <empty lines>
 // ---
 
-echo 0..10
-echo 0..=10
+let a = 0
+let b = 10
+echo a..b
+echo a..=b
+echo "---"
+
+let a = -5
+let b = 10
+echo a..b
+echo a..=b
 
 echo "---"
-echo -5..10
-echo -5..=10
+let a = -5
+let b = -1
+echo a..b
+echo a..=b
 
 echo "---"
-echo -5..-1
-echo -5..=-1
+let a = -5
+let b = -10
+echo a..b
+echo a..=b
 
 echo "---"
-echo -5..-10
-echo -5..=-10
+let a = 5
+let b = -10
+echo a..b
+echo a..=b
 
 echo "---"
-echo 5..-10
-echo 5..=-10
+let c = 0
+echo c..=c
 
-echo "---"
-echo 0..=0
-echo 5..=5
-echo -5..=-5
+let c = 5
+echo c..=c
 
+let c = -5
+echo c..=c
 echo "---"
+
 echo "<3 empty lines>"
-echo 0..0
-echo 5..5
-echo -5..-5
+let c = 0
+echo c..c
+
+let c = 5
+echo c..c
+
+let c = -5
+echo c..c
 echo "---"

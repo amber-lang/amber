@@ -68,6 +68,9 @@ impl TranslateModule for Range {
 impl Range {
     /// Generate a range at compile time when both operands are numeric literals
     fn generate_compile_time_range(&self, from_val: isize, to_val: isize) -> FragmentKind {
+        if self.neq && from_val == to_val {
+            return FragmentKind::Empty
+        }
         if self.is_reverse_range(from_val, to_val) {
             self.generate_reverse_seq(from_val, to_val)
         } else {
@@ -88,10 +91,21 @@ impl Range {
         let forward_to = self.adjust_end_for_forward_range(to_var.clone());
         let reverse_to = self.adjust_end_for_reverse_range(to_var.clone());
 
-        let expr = fragments!(
-            "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then seq -- ", from_var.clone(), " -1 ", reverse_to,
-            "; else seq -- ", from_var, " ", forward_to, "; fi"
-        );
+        let expr = if self.neq {
+            fragments!(
+                "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
+                "seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
+                "elif [ ", from_var.clone(), " -lt ", to_var.clone(), " ]; then ",
+                "seq -- ", from_var.clone(), " ", forward_to, "; fi"
+            )
+        } else {
+            fragments!(
+                "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
+                "seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
+                "else seq -- ", from_var.clone(), " ", forward_to, "; fi"
+            )
+        };
+
         SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
 
