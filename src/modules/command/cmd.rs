@@ -7,7 +7,6 @@ use crate::modules::expression::literal::parse_interpolated_region;
 use super::modifier::CommandModifier;
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::fragments;
 
 #[derive(Debug, Clone)]
 pub struct Command {
@@ -74,7 +73,9 @@ impl Command {
 
         let silent = meta.gen_silent().to_frag();
         let sudo_prefix = meta.gen_sudo_prefix().to_frag();
-        let translation = fragments!(sudo_prefix, translation, silent);
+        let translation = ListFragment::new(vec![sudo_prefix, translation, silent])
+            .with_spaces()
+            .to_frag();
         swap(&mut is_silent, &mut meta.silenced);
         swap(&mut is_sudo, &mut meta.sudoed);
 
