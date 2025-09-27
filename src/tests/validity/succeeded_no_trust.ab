@@ -1,0 +1,9 @@
+// Test that succeeded block works without trust modifier
+
+// Output
+// hello
+// Command succeeded
+
+$ echo "hello" $ succeeded {
+    echo "Command succeeded"
+}

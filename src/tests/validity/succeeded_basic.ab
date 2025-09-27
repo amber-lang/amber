@@ -1,0 +1,7 @@
+// Output
+// test
+// Success!
+
+$ echo "test" $ succeeded {
+    echo "Success!"
+}

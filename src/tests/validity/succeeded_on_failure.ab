@@ -1,0 +1,3 @@
+silent $ you_do_not_have_this $ succeeded {
+    echo "This should not execute!"
+}

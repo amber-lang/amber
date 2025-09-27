@@ -80,6 +80,7 @@ KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
 KEYWORD_SILENT = 'silent' ;
 KEYWORD_STATUS = 'status' ;
+KEYWORD_SUCCEEDED = 'succeeded' ;
 KEYWORD_THEN = 'then' ;
 KEYWORD_TRUST = 'trust' ;
 KEYWORD_UNSAFE = 'unsafe' ;
@@ -126,7 +127,7 @@ list = empty_list | full_list ;
 command_modifier = SILENT_MOD, [ TRUST_MOD ] ;
 command_modifier_block = command_modifier, multiline_block ;
 command_base = '$', { ANY_CHAR | interpolation }, '$' ;
-command = [ SILENT_MOD ], command_base, [ failure_handler ] ;
+command = [ SILENT_MOD ], command_base, [ failure_handler | success_handler ] ;
 command_trust = [ SILENT_MOD ], TRUST_MOD, command_base ;
 
 (* Operations *)
@@ -141,6 +142,10 @@ failure_propagation = '?';
 failure_block = KEYWORD_FAILED, block ;
 failure_handler = failure_propagation | failure_block ;
 
+(* Success handler *)
+success_block = KEYWORD_SUCCEEDED, block ;
+success_handler = success_block ;
+
 (* Variable *)
 variable_index = '[', expression, ']' ;
 variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
@@ -151,6 +156,7 @@ variable_set = identifier, variable_index?, '=', expression ;
 (* Function *)
 function_call = identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = [ SILENT_MOD ], function_call, failure_handler ;
+function_call_succeeded = [ SILENT_MOD ], function_call, success_handler ;
 function_call_trust = [ SILENT_MOD ], TRUST_MOD, function_call ;
 function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
 function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
