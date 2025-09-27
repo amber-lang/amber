@@ -9,7 +9,6 @@ pub struct Succeeded {
     pub is_parsed: bool,
     error_position: Option<PositionInfo>,
     function_name: Option<String>,
-    is_main: bool,
     block: Box<Block>
 }
 
@@ -29,7 +28,6 @@ impl SyntaxModule<ParserMetadata> for Succeeded {
     fn new() -> Self {
         Succeeded {
             is_parsed: false,
-            is_main: false,
             function_name: None,
             error_position: None,
             block: Box::new(Block::new().with_needs_noop().with_condition())
@@ -47,14 +45,12 @@ impl SyntaxModule<ParserMetadata> for Succeeded {
                         .comment("You should use 'trust' modifier to run commands without handling errors");
                     meta.add_message(message);
                 }
-                self.is_main = meta.context.is_main_ctx;
                 self.is_parsed = true;
                 Ok(())
             },
             Err(_) => {
                 // If we're in a trust context, mark as parsed
                 if meta.context.is_trust_ctx {
-                    self.is_main = meta.context.is_main_ctx;
                     self.is_parsed = true;
                 }
                 // Otherwise, return quietly (no succeeded block found)
