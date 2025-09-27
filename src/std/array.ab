@@ -43,8 +43,7 @@ pub fun array_last(array) {
 }
 
 /// Removes an element at the index from the array; if the index is negative
-/// or beyond the end, the return value is undefined, but the array will be
-/// unchanged.
+/// or beyond the end, the array will be unchanged.
 pub fun array_remove_at(ref array: [], index: Int): Null {
     let offset = index + 1
     let length = len(array)
