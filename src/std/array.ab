@@ -63,7 +63,7 @@ pub fun array_extract_at(ref array, index) {
 }
 
 /// Removes the last element from the array, and returns it; if the array
-/// is empty, the return value is undefined, but the array will be unchanged.
+/// is empty, the function fails, and the array will be unchanged.
 pub fun array_pop(ref array) {
     let length = len(array)
     let index = length - 1
