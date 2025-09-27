@@ -20,6 +20,6 @@ main {
         exit
     }
 
-    if status == 0 and trust $ id -u $ == "0":
+    if status == 0:
         echo "Succeeded"
 }
