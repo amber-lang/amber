@@ -1,6 +1,3 @@
-// Output
-// Succeeded
-
 fun test_failable(): Num? {
     if 1 < 5 {
         fail 1
@@ -8,9 +5,7 @@ fun test_failable(): Num? {
     return 42
 }
 
-main {
-    test_failable() succeeded {
-        echo "This should not print!"
-    }
-    echo "Succeeded"
+test_failable() succeeded {
+    echo "This should not print!"
 }
+echo "Succeeded"

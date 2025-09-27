@@ -5,11 +5,6 @@ fun test_failable(): Num? {
     return 42
 }
 
-// Output
-// Function succeeded!
-
-main {
-    test_failable() succeeded {
-        echo "Function succeeded!"
-    }
+test_failable() succeeded {
+    echo "Succeeded"
 }
