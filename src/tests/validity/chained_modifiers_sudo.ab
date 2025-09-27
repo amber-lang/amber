@@ -1,3 +1,6 @@
+// Output
+// Succeeded
+
 main {
     trust $ sudo() \{ command sudo -n "\$@"; } $
 
@@ -19,6 +22,4 @@ main {
 
     if status == 0 and trust $ id -u $ == "0":
         echo "Succeeded"
-    else:
-        echo "Unexpected behaviour - privileged"
 }
