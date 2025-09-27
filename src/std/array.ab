@@ -33,8 +33,8 @@ pub fun array_first(array) {
     return array[0]
 }
 
-/// Returns the last element in the array; if the array is empty, the return
-/// value is undefined.
+/// Returns the last element in the array; if the array is empty, the function
+/// fails.
 pub fun array_last(array) {
     let index = len(array) - 1
     if index < 0:
