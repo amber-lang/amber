@@ -1,0 +1,17 @@
+// Test succeeded block with function invocation
+
+fun test_failable(): Num? {
+    if 1 > 5 {
+        fail 1
+    }
+    return 42
+}
+
+// Output
+// Function succeeded!
+
+main {
+    test_failable() succeeded {
+        echo "Function succeeded!"
+    }
+}
