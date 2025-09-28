@@ -49,7 +49,7 @@ pub fun date_now(): Int {
     return trust $ date +%s $ as Int
 }
 
-/// Adds a value to a date passed in the unix epoch format in miliseconds.
+/// Adds a value to a date passed in the unix epoch format in milliseconds.
 /// Example : `date_add(date, 3, "days")`
 ///
 /// Available units:

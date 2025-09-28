@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                     self.value = token.word[3..].trim().to_string();
                     meta.increment_index();
                     while let Some(token) = meta.get_current_token() {
-                        let is_token_underneeth = token.pos.0 == col + 1;
+                        let is_token_underneath = token.pos.0 == col + 1;
                         let last_char = self.value.chars().last().unwrap_or('\n');
                         // If the token is a newline, we add a newline to the comment
                         if token.word.starts_with('\n') {
@@ -32,11 +32,11 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                             meta.increment_index();
                             continue;
                         }
-                        if token.word.starts_with("///") && is_token_underneeth {
+                        if token.word.starts_with("///") && is_token_underneath {
                             // Update the column of the last comment
                             col = token.pos.0;
                             meta.increment_index();
-                            // If the comment signifies a paragrah break, we add two newlines
+                            // If the comment signifies a paragraph break, we add two newlines
                             if token.word[3..].trim().is_empty() {
                                 if last_char == '\n' {
                                     continue;
