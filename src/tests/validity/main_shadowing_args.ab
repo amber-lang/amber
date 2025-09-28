@@ -1,0 +1,8 @@
+// Argument names in different functions can be the same
+fun func1(args: Bool): Text {
+    return "Succeeded"
+}
+
+main(args) {
+    echo func1(true)
+}
