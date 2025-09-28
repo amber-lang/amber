@@ -3,8 +3,8 @@ import * from "std/env"
 /// Downloads a file from a given URL and saves it to a specified path using available command-line tools.
 ///
 /// It checks for the availability of common command-line tools (`curl`, `wget`, and `aria2c`, in order) and uses the first available tool to perform the download.
-/// If none of the tools are available, the function returns `false`.
-pub fun file_download(url: Text, path: Text): Bool {
+/// If none of the tools are available, the function fails.
+pub fun file_download(url: Text, path: Text): Null? {
     if {
         is_command("curl") {
             silent trust $ curl -L -o "{path}" "{url}" $
@@ -16,9 +16,7 @@ pub fun file_download(url: Text, path: Text): Bool {
             silent trust $ aria2c "{url}" -d "{path}" $
         }
         else {
-            return false
+            fail 1
         }
     }
-
-    return true
 }

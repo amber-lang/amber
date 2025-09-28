@@ -32,15 +32,15 @@ pub fun file_append(path: Text, content: Text): Text? {
 
 /// Creates a symbolic link.
 ///
-/// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun symlink_create(origin: Text, destination: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+pub fun symlink_create(origin: Text, destination: Text): Null? {
     if file_exists(origin) {
-        trust $ ln -s "{origin}" "{destination}" $
-        return true
+        $ ln -s "{origin}" "{destination}" $?
+        return null
     }
 
     echo "The file {origin} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Creates a directory with all parent directories as required.
@@ -99,28 +99,28 @@ pub fun temp_dir_create(
 
 /// Changes the permission bits of a file.
 ///
-/// If the file doesn't exist, it returns `false` and prints a message.
-pub fun file_chmod(path: Text, mode: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+pub fun file_chmod(path: Text, mode: Text): Null? {
     if file_exists(path) {
-        trust $ chmod "{mode}" "{path}" $
-        return true
+        $ chmod "{mode}" "{path}" $?
+        return null
     }
 
     echo "The file {path} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Changes the owner of a file.
 ///
-/// If the file doesn't exist, it returns `false` and prints a message.
-pub fun file_chown(path: Text, user: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+pub fun file_chown(path: Text, user: Text): Null? {
     if file_exists(path) or dir_exists(path) {
-        trust $ chown -R "{user}" "{path}" $
-        return true
+        $ chown -R "{user}" "{path}" $?
+        return null
     }
 
     echo "The file {path} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Escapes all characters in the passed-in glob except "*", "?" and "/",
