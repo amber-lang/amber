@@ -41,7 +41,7 @@ struct Cli {
     /// Disable a postprocessor
     /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "b*chk"
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -80,7 +80,7 @@ struct RunCommand {
     /// Disable a postprocessor
     /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "b*chk"
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -93,7 +93,7 @@ struct CheckCommand {
     /// Disable a postprocessor
     /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "b*chk"
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 }
@@ -109,7 +109,7 @@ struct BuildCommand {
     /// Disable a postprocessor
     /// Available postprocessors: 'bshchk'
     /// To select multiple, pass multiple times with different values
-    /// Argument also supports a wilcard match, like "*" or "b*chk"
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
 

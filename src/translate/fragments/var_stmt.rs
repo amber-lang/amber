@@ -10,7 +10,7 @@ pub struct VarStmtFragment {
     pub global_id: Option<usize>,
     pub index: Option<Box<FragmentKind>>,
     pub kind: Type,
-    // This variable is made only for storing a value used by a single exprssion
+    // This variable is made only for storing a value used by a single expression
     pub is_ephemeral: bool,
     pub is_ref: bool,
     // Determines if the variable can be removed when not used
