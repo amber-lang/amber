@@ -44,9 +44,9 @@ pub fun symlink_create(origin: Text, destination: Text): Null? {
 }
 
 /// Creates a directory with all parent directories as required.
-pub fun dir_create(path: Text): Null {
+pub fun dir_create(path: Text): Null? {
     if not dir_exists(path) {
-        trust $ mkdir -p "{path}" $
+        $ mkdir -p "{path}" $?
     }
 }
 
