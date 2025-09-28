@@ -64,14 +64,23 @@ impl Command {
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
 
+        let interps_contains_single_quote = !self.interps.is_empty() && self.strings.iter().any(|s| s.contains('\''));
         let translation = InterpolableFragment::new(
             self.strings.clone(),
             interps,
-            InterpolableRenderType::GlobalContext
+            if interps_contains_single_quote {
+                InterpolableRenderType::StringLiteral
+            } else {
+                InterpolableRenderType::GlobalContext
+            }
         ).to_frag();
 
         let silent = meta.gen_silent().to_frag();
-        let translation = fragments!(translation, silent);
+        let translation = if interps_contains_single_quote {
+            fragments!("eval ", translation, silent)
+        } else {
+            fragments!(translation, silent)
+        };
         swap(&mut is_silent, &mut meta.silenced);
 
         if is_statement {
