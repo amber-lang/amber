@@ -4,7 +4,6 @@ use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
-use crate::translate::fragments::get_variable_name;
 
 #[derive(Debug, Clone)]
 pub struct Then {
@@ -16,11 +15,11 @@ pub struct Then {
 
 impl Then {
     pub fn set_position(&mut self, _position: PositionInfo) {
-        // Not used anymore
+        // Not used in Then module
     }
 
     pub fn set_function_name(&mut self, _name: String) {
-        // Not used anymore
+        // Not used in Then module
     }
 }
 
@@ -46,7 +45,8 @@ impl SyntaxModule<ParserMetadata> for Then {
                     
                     // Check if we immediately hit a closing paren (empty parameter)
                     if token(meta, ")").is_ok() {
-                        return error!(meta, param_tok, "Parameter name cannot be empty");
+                        let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
+                        return error_pos!(meta, pos, "Parameter name cannot be empty");
                     }
                     
                     self.param_name = variable(meta, variable_name_extensions())?;
@@ -90,17 +90,14 @@ impl TranslateModule for Then {
             
             match &block {
                 FragmentKind::Empty => {
-                    // Don't create the variable if the block is empty
                     FragmentKind::Empty
                 },
                 FragmentKind::Block(block) if block.statements.is_empty() => {
-                    // Don't create the variable if the block is empty
                     FragmentKind::Empty
                 },
                 _ => {
-                    // Create the parameter variable assignment using VarStmtFragment
-                    let param_var_name = get_variable_name(&self.param_name, self.param_global_id);
-                    let param_assignment = VarStmtFragment::new(&param_var_name, Type::Int, fragments!("$?"));
+                    let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, fragments!("$?"))
+                        .with_global_id(self.param_global_id);
                     
                     BlockFragment::new(vec![
                         param_assignment.to_frag(),
