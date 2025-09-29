@@ -1,8 +1,9 @@
 use heraclitus_compiler::prelude::*;
-use crate::fragments;
+use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
+use crate::translate::fragments::get_variable_name;
 
 #[derive(Debug, Clone)]
 pub struct Then {
@@ -10,7 +11,8 @@ pub struct Then {
     error_position: Option<PositionInfo>,
     function_name: Option<String>,
     block: Box<Block>,
-    param_name: String
+    param_name: String,
+    param_global_id: Option<usize>
 }
 
 impl Then {
@@ -32,7 +34,8 @@ impl SyntaxModule<ParserMetadata> for Then {
             function_name: None,
             error_position: None,
             block: Box::new(Block::new().with_needs_noop().with_condition()),
-            param_name: String::new()
+            param_name: String::new(),
+            param_global_id: None
         }
     }
 
@@ -44,6 +47,12 @@ impl SyntaxModule<ParserMetadata> for Then {
                 // Parse the parameter in parentheses
                 token(meta, "(")?;
                 let param_tok = meta.get_current_token();
+                
+                // Check if we immediately hit a closing paren (empty parameter)
+                if token(meta, ")").is_ok() {
+                    return error!(meta, param_tok, "Parameter name cannot be empty");
+                }
+                
                 let param_name = token_by(meta, |word| word.chars().all(|c| c.is_alphanumeric() || c == '_'))?;
                 
                 if param_name.is_empty() {
@@ -53,7 +62,13 @@ impl SyntaxModule<ParserMetadata> for Then {
                 self.param_name = param_name;
                 token(meta, ")")?;
                 
-                syntax(meta, &mut *self.block)?;
+                // Add the parameter variable to the scope and parse the block
+                meta.with_push_scope(|meta| {
+                    self.param_global_id = meta.add_var(&self.param_name, Type::Num, false);
+                    syntax(meta, &mut *self.block)?;
+                    Ok(())
+                })?;
+                
                 if self.block.is_empty() {
                     let message = Message::new_warn_at_token(meta, tok)
                         .message("Empty then block")
@@ -78,22 +93,22 @@ impl SyntaxModule<ParserMetadata> for Then {
 impl TranslateModule for Then {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
+            // Create the parameter variable assignment using the proper variable name
+            let param_var_name = get_variable_name(&self.param_name, self.param_global_id);
+            let param_assignment = raw_fragment!("{}=$?", param_var_name);
+            
             let block = self.block.translate(meta);
-            // Store the exit status in a variable and pass it to the then block
-            let status_variable_stmt = VarStmtFragment::new("__status", Type::Num, fragments!("$?"));
-            let param_variable_stmt = VarStmtFragment::new(&self.param_name, Type::Num, VarExprFragment::from_stmt(&status_variable_stmt).to_frag());
             
             match &block {
                 FragmentKind::Empty => {
-                    status_variable_stmt.to_frag()
+                    param_assignment.to_frag()
                 },
                 FragmentKind::Block(block) if block.statements.is_empty() => {
-                    status_variable_stmt.to_frag()
+                    param_assignment.to_frag()
                 },
                 _ => {
                     BlockFragment::new(vec![
-                        status_variable_stmt.to_frag(),
-                        param_variable_stmt.to_frag(),
+                        param_assignment.to_frag(),
                         block,
                     ], false).to_frag()
                 }

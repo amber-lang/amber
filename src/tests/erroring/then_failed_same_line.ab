@@ -1,0 +1,10 @@
+// Output
+// Cannot use both 'then' and 'failed' blocks for the same command
+
+main {
+    $ echo "test" $ then(code) {
+        echo "Success!"
+    } failed {
+        echo "Failed!"
+    }
+}
