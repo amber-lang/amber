@@ -13,16 +13,6 @@ pub struct Then {
     param_global_id: Option<usize>
 }
 
-impl Then {
-    pub fn set_position(&mut self, _position: PositionInfo) {
-        // Not used in Then module
-    }
-
-    pub fn set_function_name(&mut self, _name: String) {
-        // Not used in Then module
-    }
-}
-
 impl SyntaxModule<ParserMetadata> for Then {
     syntax_name!("Then Expression");
 

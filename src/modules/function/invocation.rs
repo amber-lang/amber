@@ -75,7 +75,6 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.name = variable(meta, variable_name_extensions())?;
             self.failed.set_function_name(self.name.clone());
             self.succeeded.set_function_name(self.name.clone());
-            self.then.set_function_name(self.name.clone());
             // Get the arguments
             token(meta, "(")?;
             self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
@@ -113,11 +112,10 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.refs.clone_from(&function_unit.arg_refs);
             (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
             
-            // Set position for failed, succeeded, and then handlers
+            // Set position for failed and succeeded handlers
             let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
             self.failed.set_position(position.clone());
-            self.succeeded.set_position(position.clone());
-            self.then.set_position(position);
+            self.succeeded.set_position(position);
 
             self.is_failable = function_unit.is_failable;
             if self.is_failable {

@@ -46,11 +46,10 @@ impl SyntaxModule<ParserMetadata> for Command {
             let tok = meta.get_current_token();
             (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Command)?;
             
-            // Set position for failed, succeeded, and then handlers
+            // Set position for failed and succeeded handlers
             let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
             self.failed.set_position(position.clone());
-            self.succeeded.set_position(position.clone());
-            self.then.set_position(position);
+            self.succeeded.set_position(position);
             
             // Try to parse then block first
             syntax(meta, &mut self.then)?;
