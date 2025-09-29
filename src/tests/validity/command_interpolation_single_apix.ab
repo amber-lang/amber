@@ -1,0 +1,4 @@
+const msg = "Succeede"
+trust $ printf '{msg}' $
+let dilimiter = " "
+trust $ echo 'a b c d e' | cut -d'{dilimiter}' -f4 $
