@@ -31,9 +31,7 @@ main(args) {
     const bins_folder = get_bins_folder(user_only_install)
 
     // Check if such directory exists
-    trust $ test -d "{place}" $
-
-    if status == 0 {
+    trust $ test -d "{place}" $ succeeded {
         echo "Amber already installed"
         echo "It seems that Amber is already installed on your system. ({place})"
         echo "If you want to reinstall Amber, uninstall it first."
