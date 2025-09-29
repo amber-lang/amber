@@ -2,7 +2,7 @@ import { array_filled } from "std/array"
 
 main {
     let array = array_filled(0, 1.0)
-    if array is [Num]:
+    if array == [Num]:
         echo "Succeeded"
     else:
         echo "Failed"
