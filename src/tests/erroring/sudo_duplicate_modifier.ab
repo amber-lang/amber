@@ -1,0 +1,7 @@
+// Output
+// Command modifier 'sudo' has already been declared
+
+main {
+    // This should fail with duplicate sudo modifier error
+    sudo sudo $ echo "test" $?
+}

@@ -8,7 +8,6 @@ use crate::modules::expression::interpolated_region::{InterpolatedRegionType, pa
 use super::modifier::CommandModifier;
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
-use crate::fragments;
 
 #[derive(Debug, Clone)]
 pub struct Command {
@@ -90,7 +89,9 @@ impl Command {
         let succeeded = self.succeeded.translate(meta);
 
         let mut is_silent = self.modifier.is_silent || meta.silenced;
+        let mut is_sudo = self.modifier.is_sudo || meta.sudoed;
         swap(&mut is_silent, &mut meta.silenced);
+        swap(&mut is_sudo, &mut meta.sudoed);
 
         let translation = InterpolableFragment::new(
             self.strings.clone(),
@@ -99,8 +100,12 @@ impl Command {
         ).to_frag();
 
         let silent = meta.gen_silent().to_frag();
-        let translation = fragments!(translation, silent);
+        let sudo_prefix = meta.gen_sudo_prefix().to_frag();
+        let translation = ListFragment::new(vec![sudo_prefix, translation, silent])
+            .with_spaces()
+            .to_frag();
         swap(&mut is_silent, &mut meta.silenced);
+        swap(&mut is_sudo, &mut meta.sudoed);
 
         // Choose between failed, succeeded, or no handler
         let handler = if self.failed.is_parsed {

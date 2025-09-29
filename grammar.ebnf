@@ -36,6 +36,7 @@ expression =
     builtins_expression |
     command |
     function_call |
+    function_call_failed |
     identifier |
     list |
     null |
@@ -80,6 +81,7 @@ KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
 KEYWORD_SILENT = 'silent' ;
 KEYWORD_STATUS = 'status' ;
+KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
 KEYWORD_THEN = 'then' ;
 KEYWORD_TRUST = 'trust' ;
@@ -93,8 +95,6 @@ DIGIT = '0'..'9' ;
 TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
 UNARY_OP = '-' | KEYWORD_NOT ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | KEYWORD_AND | KEYWORD_OR | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
-SILENT_MOD = KEYWORD_SILENT ;
-TRUST_MOD = KEYWORD_TRUST ;
 VISIBILITY = KEYWORD_PUB ;
 
 (* Identifier *)
@@ -124,11 +124,10 @@ list = empty_list | full_list ;
 
 (* Command expression *)
 (* The ordering of command modifiers doesn't matter *)
-command_modifier = SILENT_MOD, [ TRUST_MOD ] ;
+command_modifier = [ KEYWORD_SILENT ], [ KEYWORD_TRUST ], [ KEYWORD_SUDO ] ;
 command_modifier_block = command_modifier, multiline_block ;
 command_base = '$', { ANY_CHAR | interpolation }, '$' ;
-command = [ SILENT_MOD ], command_base, [ failure_handler | success_handler ] ;
-command_trust = [ SILENT_MOD ], TRUST_MOD, command_base ;
+command = command_modifier, command_base, [ failure_handler | success_handler ] ;
 
 (* Operations *)
 binary_operation = expression, BINARY_OP, expression ;
@@ -154,10 +153,8 @@ variable_get = identifier, variable_index? ;
 variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
-function_call = identifier, '(', [ expression, { ',', expression } ], ')' ;
-function_call_failed = [ SILENT_MOD ], function_call, failure_handler ;
-function_call_succeeded = [ SILENT_MOD ], function_call, success_handler ;
-function_call_trust = [ SILENT_MOD ], TRUST_MOD, function_call ;
+function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
+function_call_failed = function_call, [ failure_handler | success_handler ] ;
 function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
 function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;

@@ -8,7 +8,8 @@ pub struct CommandModifier {
     pub block: Box<Block>,
     pub is_block: bool,
     pub is_trust: bool,
-    pub is_silent: bool
+    pub is_silent: bool,
+    pub is_sudo: bool
 }
 
 impl CommandModifier {
@@ -57,6 +58,13 @@ impl CommandModifier {
                             self.is_silent = true;
                             meta.increment_index();
                         },
+                        "sudo" => {
+                            if self.is_sudo {
+                                return error!(meta, Some(tok.clone()), "Command modifier 'sudo' has already been declared");
+                            }
+                            self.is_sudo = true;
+                            meta.increment_index();
+                        },
                         _ => break
                     }
                 },
@@ -75,7 +83,8 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             block: Box::new(Block::new().with_no_indent()),
             is_block: true,
             is_trust: false,
-            is_silent: false
+            is_silent: false,
+            is_sudo: false
         }
     }
 
@@ -95,8 +104,10 @@ impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_block {
             meta.silenced = self.is_silent;
+            meta.sudoed = self.is_sudo;
             let result = self.block.translate(meta);
             meta.silenced = false;
+            meta.sudoed = false;
             result
         } else {
             FragmentKind::Empty
