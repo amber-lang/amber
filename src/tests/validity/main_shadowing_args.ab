@@ -1,6 +1,7 @@
 // Argument names in different functions can be the same
 fun func1(args: Bool): Text {
-    return "Succeeded"
+    if args:
+        return "Succeeded"
 }
 
 main(args) {
