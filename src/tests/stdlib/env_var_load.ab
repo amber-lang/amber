@@ -3,7 +3,7 @@ import { file_write, temp_dir_create } from "std/fs"
 
 main {
     let tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ cd {tmpdir} $
+    cd tmpdir
     trust file_write(".env", "TEST=1")
     if env_var_load("TEST") == "1" {
         echo "Succeeded"

@@ -2,10 +2,13 @@ import { array_shift } from "std/array"
 
 // Output
 // Shifted from numbers: "zero" (3) [one two three]
-// Shifted from empty: "" (0) []
+// First of empty array does not exist
 
 fun test_shift(label: Text, data: [Text]): Null {
-    let value = array_shift(data)
+    let value = array_shift(data) failed {
+        echo "First of empty array does not exist"
+        return null
+    }
     echo "Shifted from {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

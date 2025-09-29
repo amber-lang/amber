@@ -32,21 +32,21 @@ pub fun file_append(path: Text, content: Text): Text? {
 
 /// Creates a symbolic link.
 ///
-/// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun symlink_create(origin: Text, destination: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+pub fun symlink_create(origin: Text, destination: Text): Null? {
     if file_exists(origin) {
-        trust $ ln -s "{origin}" "{destination}" $
-        return true
+        $ ln -s "{origin}" "{destination}" $?
+        return null
     }
 
     echo "The file {origin} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Creates a directory with all parent directories as required.
-pub fun dir_create(path: Text): Null {
+pub fun dir_create(path: Text): Null? {
     if not dir_exists(path) {
-        trust $ mkdir -p "{path}" $
+        $ mkdir -p "{path}" $?
     }
 }
 
@@ -99,28 +99,28 @@ pub fun temp_dir_create(
 
 /// Changes the permission bits of a file.
 ///
-/// If the file doesn't exist, it returns `false` and prints a message.
-pub fun file_chmod(path: Text, mode: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+pub fun file_chmod(path: Text, mode: Text): Null? {
     if file_exists(path) {
-        trust $ chmod "{mode}" "{path}" $
-        return true
+        $ chmod "{mode}" "{path}" $?
+        return null
     }
 
     echo "The file {path} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Changes the owner of a file.
 ///
-/// If the file doesn't exist, it returns `false` and prints a message.
-pub fun file_chown(path: Text, user: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+pub fun file_chown(path: Text, user: Text): Null? {
     if file_exists(path) or dir_exists(path) {
-        trust $ chown -R "{user}" "{path}" $
-        return true
+        $ chown -R "{user}" "{path}" $?
+        return null
     }
 
     echo "The file {path} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Escapes all characters in the passed-in glob except "*", "?" and "/",
@@ -131,7 +131,7 @@ fun escape_non_glob_chars(path: Text): Text {
 
 /// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
-/// `glob` function.
+/// `file_glob` function.
 pub fun file_glob_all(paths: [Text]): [Text]? {
     let combined = ""
     if len(paths) == 1 {
@@ -144,7 +144,7 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
         }
         combined = join(items, " ")
     }
-    let files = $ eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done" $?
+    let files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && echo \\"\\\$file\\"; done" $?
     return split(files, "\n")
 }
 

@@ -13,9 +13,9 @@ pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
     if bash_version() >= [4,3] {
-        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}//\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
     }
     return result
 }
@@ -25,9 +25,9 @@ pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
     if bash_version() >= [4,3] {
-        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\"\$\{{nameof replace}}\"}" $
+        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}/\"\$\{{nameof search}}\"/\$\{{nameof replace}}}" $
+        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
     }
     return result
 }
@@ -50,14 +50,14 @@ fun sed_version(): Int {
     return SED_VERSION_UNKNOWN
 }
 
-/// Replaces all occurences of a regex pattern in the content with the provided replace text.
+/// Replaces all occurrences of a regex pattern in the content with the provided replace text.
 ///
 /// Function uses `sed`
 pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text {
     trust {
         const sed_version = sed_version()
-        search = replace(search, "/", "\/")
-        replace = replace(replace, "/", "\/")
+        search = replace(search, "/", "\\/")
+        replace = replace(replace, "/", "\\/")
         if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
             // '\b' is supported but not in POSIX standards. Disable it
             search = replace(search, "\\b", "\\\b")
@@ -183,7 +183,7 @@ pub fun text_contains_all(source: Text, searches: [Text]): Bool {
     return true
 }
 
-/// Match all occurences of a regex pattern.
+/// Match all occurrences of a regex pattern.
 ///
 /// Function uses `sed`
 pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
@@ -261,14 +261,14 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 pub fun slice(text: Text, index: Int, length: Int = 0): Text {
     if length == 0: length = len(text) - index
     if length <= 0: return ""
-    return trust $ printf "%.{length}s" "\$\{text:{index}}" $
+    return trust $ printf "%.{length}s" "\$\{text: {index}}" $
 }
 
 /// Returns the character from `text` at the specified `index` (0-based).
 ///
 /// If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
 pub fun char_at(text: Text, index: Int): Text {
-    return trust $ printf "%.1s" "\$\{text:{index}}" $
+    return trust $ printf "%.1s" "\$\{text: {index}}" $
 }
 
 /// Capitalize the first letter of the given `text`.
@@ -279,7 +279,7 @@ pub fun capitalized(text: Text): Text {
             return text
         }
         if bash_version() >= [4] {
-            return $ echo \"\$\{{nameof text}^}\" $
+            return $ echo "\$\{{nameof text}^}" $
         }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
