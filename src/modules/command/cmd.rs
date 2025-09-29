@@ -57,15 +57,9 @@ impl SyntaxModule<ParserMetadata> for Command {
             
             if self.then.is_parsed {
                 // Check for conflicts with failed or succeeded blocks
-                if token(meta, "failed").is_ok() {
+                if let Ok(word) = token_by(meta, |word| word == "failed" || word == "succeeded") {
                     return error!(meta, meta.get_current_token() => {
-                        message: "Cannot use both 'then' and 'failed' blocks for the same command",
-                        comment: "Use either 'then' to handle both success and failure, or 'failed'/'succeeded' blocks, but not both"
-                    });
-                }
-                if token(meta, "succeeded").is_ok() {
-                    return error!(meta, meta.get_current_token() => {
-                        message: "Cannot use both 'then' and 'succeeded' blocks for the same command",
+                        message: format!("Cannot use both 'then' and '{}' blocks for the same command", word),
                         comment: "Use either 'then' to handle both success and failure, or 'failed'/'succeeded' blocks, but not both"
                     });
                 }

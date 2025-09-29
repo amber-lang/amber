@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::raw_fragment;
+use crate::fragments;
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
@@ -93,20 +93,22 @@ impl SyntaxModule<ParserMetadata> for Then {
 impl TranslateModule for Then {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
-            // Create the parameter variable assignment using the proper variable name
-            let param_var_name = get_variable_name(&self.param_name, self.param_global_id);
-            let param_assignment = raw_fragment!("{}=$?", param_var_name);
-            
             let block = self.block.translate(meta);
             
             match &block {
                 FragmentKind::Empty => {
-                    param_assignment.to_frag()
+                    // Don't create the variable if the block is empty
+                    FragmentKind::Empty
                 },
                 FragmentKind::Block(block) if block.statements.is_empty() => {
-                    param_assignment.to_frag()
+                    // Don't create the variable if the block is empty
+                    FragmentKind::Empty
                 },
                 _ => {
+                    // Create the parameter variable assignment using VarStmtFragment
+                    let param_var_name = get_variable_name(&self.param_name, self.param_global_id);
+                    let param_assignment = VarStmtFragment::new(&param_var_name, Type::Num, fragments!("$?"));
+                    
                     BlockFragment::new(vec![
                         param_assignment.to_frag(),
                         block,
