@@ -7,6 +7,7 @@ use itertools::izip;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::condition::succeeded::Succeeded;
+use crate::modules::condition::then::Then;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::modules::expression::expr::{Expr, ExprType};
@@ -24,6 +25,7 @@ pub struct FunctionInvocation {
     col: usize,
     failed: Failed,
     succeeded: Succeeded,
+    then: Then,
     modifier: CommandModifier,
     is_failable: bool
 }
@@ -56,6 +58,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             col: 0,
             failed: Failed::new(),
             succeeded: Succeeded::new(),
+            then: Then::new(),
             modifier: CommandModifier::new().parse_expr(),
             is_failable: false
         }
@@ -72,6 +75,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.name = variable(meta, variable_name_extensions())?;
             self.failed.set_function_name(self.name.clone());
             self.succeeded.set_function_name(self.name.clone());
+            self.then.set_function_name(self.name.clone());
             // Get the arguments
             token(meta, "(")?;
             self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
@@ -109,39 +113,59 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.refs.clone_from(&function_unit.arg_refs);
             (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
             
-            // Set position for both failed and succeeded handlers
+            // Set position for failed, succeeded, and then handlers
             let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
             self.failed.set_position(position.clone());
-            self.succeeded.set_position(position);
+            self.succeeded.set_position(position.clone());
+            self.then.set_position(position);
 
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
-                // Try to parse succeeded block first
-                syntax(meta, &mut self.succeeded)?;
+                // Try to parse then block first
+                syntax(meta, &mut self.then)?;
                 
-                // If succeeded block was parsed successfully, check for conflicts
-                if self.succeeded.is_parsed {
-                    // Check if there's an attempt to use failed block as well
+                if self.then.is_parsed {
+                    // Check for conflicts with failed or succeeded blocks
                     if token(meta, "failed").is_ok() {
                         return error!(meta, meta.get_current_token() => {
-                            message: "Cannot use both 'succeeded' and 'failed' blocks for the same function call",
-                            comment: "Use either 'succeeded' or 'failed' block, but not both"
+                            message: "Cannot use both 'then' and 'failed' blocks for the same function call",
+                            comment: "Use either 'then' to handle both success and failure, or 'failed'/'succeeded' blocks, but not both"
+                        });
+                    }
+                    if token(meta, "succeeded").is_ok() {
+                        return error!(meta, meta.get_current_token() => {
+                            message: "Cannot use both 'then' and 'succeeded' blocks for the same function call",
+                            comment: "Use either 'then' to handle both success and failure, or 'failed'/'succeeded' blocks, but not both"
                         });
                     }
                 } else {
-                    // Try to parse failed block
-                    match syntax(meta, &mut self.failed) {
-                        Ok(_) => (),
-                        Err(Failure::Quiet(_)) => return error!(meta, tok => {
-                            message: "This function can fail. Please handle the failure or success",
-                            comment: "You can use '?' to propagate failure, 'failed' block to handle failure, or 'succeeded' block to handle success"
-                        }),
-                        Err(err) => return Err(err)
+                    // Try to parse succeeded block
+                    syntax(meta, &mut self.succeeded)?;
+                    
+                    // If succeeded block was parsed successfully, check for conflicts
+                    if self.succeeded.is_parsed {
+                        // Check if there's an attempt to use failed block as well
+                        if token(meta, "failed").is_ok() {
+                            return error!(meta, meta.get_current_token() => {
+                                message: "Cannot use both 'succeeded' and 'failed' blocks for the same function call",
+                                comment: "Use either 'succeeded' or 'failed' block, but not both"
+                            });
+                        }
+                    } else {
+                        // Try to parse failed block
+                        match syntax(meta, &mut self.failed) {
+                            Ok(_) => (),
+                            Err(Failure::Quiet(_)) => return error!(meta, tok => {
+                                message: "This function can fail. Please handle the failure or success",
+                                comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'then' block to handle both"
+                            }),
+                            Err(err) => return Err(err)
+                        }
                     }
                 }
             } else {
                 let tok = meta.get_current_token();
-                if let Ok(symbol) = token_by(meta, |word| ["?", "failed", "succeeded"].contains(&word.as_str())) {
+                if let Ok(symbol) = token_by(meta, |word| ["?", "failed", "succeeded", "then"].contains(&word.as_str())) {
                     let message = Message::new_warn_at_token(meta, tok)
                         .message("This function cannot fail")
                         .comment(format!("You can remove the '{symbol}' in the end"));
@@ -170,8 +194,11 @@ impl TranslateModule for FunctionInvocation {
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
-            // Choose between failed or succeeded handler
-            if self.failed.is_parsed {
+            // Choose between failed, succeeded, or then handler
+            if self.then.is_parsed {
+                let then = self.then.translate(meta);
+                meta.stmt_queue.push_back(then);
+            } else if self.failed.is_parsed {
                 let failed = self.failed.translate(meta);
                 meta.stmt_queue.push_back(failed);
             } else if self.succeeded.is_parsed {
