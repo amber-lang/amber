@@ -62,8 +62,7 @@ main(args) {
         exit 1
     }
     if user_only_install {
-        silent dir_create(bins_folder)
-        if not dir_exists(bins_folder) {
+        silent dir_create(bins_folder) failed {
             echo "Failed to create directory for amber bin at {bins_folder}."
             exit 1
         }
