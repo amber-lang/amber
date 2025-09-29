@@ -1,4 +1,4 @@
 const msg = "Succeede"
 trust $ printf '{msg}' $
 let position = 4
-trust $ echo 'a b c d e' | cut --delimiter=' ' --fields={position} $
+trust $ echo 'a b c d e' | cut -d' ' -f{position} $
