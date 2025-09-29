@@ -1,5 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::{fragments, raw_fragment};
+use crate::raw_fragment;
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
