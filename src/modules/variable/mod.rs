@@ -70,12 +70,12 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
 }
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
-    // Validate if the variable name uses the reserved prefix with ALL CAPS
+    // Validate if the variable name uses the reserved prefix with fully uppercase names
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 && is_all_caps(name) {
         let new_name = name.get(2..).unwrap();
         return error!(meta, tok => {
             message: format!("Identifier '{name}' is not allowed"),
-            comment: format!("Identifiers with double underscores cannot be ALL CAPS.\nConsider using '{new_name}' instead.")
+            comment: format!("Identifiers with double underscores cannot be fully uppercase.\nConsider using '{new_name}' instead.")
         })
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
