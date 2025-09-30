@@ -77,19 +77,23 @@ impl TranslateModule for Then {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
             let block = self.block.translate(meta);
+            // the condition of '$?' clears the status code thus we need to store it in a variable
+            let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
+            let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
             
             match &block {
                 FragmentKind::Empty => {
-                    FragmentKind::Empty
+                    status_variable_stmt.to_frag()
                 },
                 FragmentKind::Block(block) if block.statements.is_empty() => {
-                    FragmentKind::Empty
+                    status_variable_stmt.to_frag()
                 },
                 _ => {
-                    let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, fragments!("$?"))
+                    let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, status_variable_expr.to_frag())
                         .with_global_id(self.param_global_id);
                     
                     BlockFragment::new(vec![
+                        status_variable_stmt.to_frag(),
                         param_assignment.to_frag(),
                         block,
                     ], false).to_frag()

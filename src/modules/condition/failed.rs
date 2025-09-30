@@ -87,7 +87,7 @@ impl TranslateModule for Failed {
         if self.is_parsed {
             let block = self.block.translate(meta);
             // the condition of '$?' clears the status code thus we need to store it in a variable
-            let status_variable_stmt = VarStmtFragment::new("__status", Type::Num, fragments!("$?"));
+            let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
             let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
             if self.is_question_mark {
                 // Set default return value if failure happened in a function
