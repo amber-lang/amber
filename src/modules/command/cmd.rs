@@ -20,6 +20,19 @@ pub struct Command {
     then: Then
 }
 
+impl Command {
+    pub fn handle_multiple_failure_handlers(meta: &mut ParserMetadata, keyword: &str) -> SyntaxResult {
+        let token = meta.get_current_token();
+        if let Ok(word) = token_by(meta, |word| ["failed", "succeeded", "then"].contains(&word.as_str())) {
+            return error!(meta, token => {
+                message: format!("Cannot use both '{keyword}' and '{}' blocks for the same command", word),
+                comment: "Use either '{keyword}' to handle both success and failure, 'failed' or 'succeeded' blocks, but not both"
+            });
+        }
+        Ok(())
+    }
+}
+
 impl Typed for Command {
     fn get_type(&self) -> Type {
         Type::Text
@@ -45,49 +58,32 @@ impl SyntaxModule<ParserMetadata> for Command {
         self.modifier.use_modifiers(meta, |_this, meta| {
             let tok = meta.get_current_token();
             (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Command)?;
-            
+
             // Set position for failed and succeeded handlers
             let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
             self.failed.set_position(position.clone());
-            self.succeeded.set_position(position);
-            
+
             // Try to parse then block first
-            syntax(meta, &mut self.then)?;
-            
-            if self.then.is_parsed {
-                // Check for conflicts with failed or succeeded blocks
-                if let Ok(word) = token_by(meta, |word| word == "failed" || word == "succeeded") {
-                    return error!(meta, meta.get_current_token() => {
-                        message: format!("Cannot use both 'then' and '{}' blocks for the same command", word),
-                        comment: "Use either 'then' to handle both success and failure, or 'failed'/'succeeded' blocks, but not both"
-                    });
-                }
-                // When then block is used, no trust modifier is required
-                return Ok(());
+            match syntax(meta, &mut self.then) {
+                Ok(_) => return Command::handle_multiple_failure_handlers(meta, "then"),
+                err @ Err(Failure::Loud(_)) => return err,
+                _ => {}
             }
-            
+
             // Try to parse succeeded block
-            syntax(meta, &mut self.succeeded)?;
-            
-            // If succeeded block was parsed successfully, check for conflicts with failed
-            if self.succeeded.is_parsed {
-                // Check if there's an attempt to use failed block as well
-                if token(meta, "failed").is_ok() {
-                    return error!(meta, meta.get_current_token() => {
-                        message: "Cannot use both 'succeeded' and 'failed' blocks for the same command",
-                        comment: "Use either 'succeeded' or 'failed' block, but not both"
-                    });
-                }
-                return Ok(());
+            match syntax(meta, &mut self.succeeded) {
+                Ok(_) => return Command::handle_multiple_failure_handlers(meta, "succeeded"),
+                err @ Err(Failure::Loud(_)) => return err,
+                _ => {}
             }
 
             // If no succeeded block, try to parse failed block
             match syntax(meta, &mut self.failed) {
-                Ok(_) => Ok(()),
+                Ok(_) => Self::handle_multiple_failure_handlers(meta, "failed"),
                 Err(Failure::Quiet(_)) => {
                     // Neither succeeded, failed, nor then block found
                     error!(meta, tok => {
-                        message: "Every command statement must handle execution result", 
+                        message: "Every command statement must handle execution result",
                         comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'then' block to handle both, or 'trust' modifier to ignore results"
                     })
                 },

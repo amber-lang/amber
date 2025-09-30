@@ -7,19 +7,7 @@ use crate::modules::types::Type;
 #[derive(Debug, Clone)]
 pub struct Succeeded {
     pub is_parsed: bool,
-    error_position: Option<PositionInfo>,
-    function_name: Option<String>,
     block: Box<Block>
-}
-
-impl Succeeded {
-    pub fn set_position(&mut self, position: PositionInfo) {
-        self.error_position = Some(position);
-    }
-
-    pub fn set_function_name(&mut self, name: String) {
-        self.function_name = Some(name);
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Succeeded {
@@ -28,8 +16,6 @@ impl SyntaxModule<ParserMetadata> for Succeeded {
     fn new() -> Self {
         Succeeded {
             is_parsed: false,
-            function_name: None,
-            error_position: None,
             block: Box::new(Block::new().with_needs_noop().with_condition())
         }
     }
@@ -48,13 +34,14 @@ impl SyntaxModule<ParserMetadata> for Succeeded {
                 self.is_parsed = true;
                 Ok(())
             },
-            Err(_) => {
+            Err(err) => {
                 // If we're in a trust context, mark as parsed
                 if meta.context.is_trust_ctx {
                     self.is_parsed = true;
+                    Ok(())
+                } else {
+                    Err(err)
                 }
-                // Otherwise, return quietly (no succeeded block found)
-                Ok(())
             }
         }
     }
@@ -67,7 +54,7 @@ impl TranslateModule for Succeeded {
             // the condition of '$?' clears the status code thus we need to store it in a variable
             let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
             let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
-            
+
             match &block {
                 FragmentKind::Empty => {
                     status_variable_stmt.to_frag()

@@ -32,23 +32,23 @@ impl SyntaxModule<ParserMetadata> for Then {
                     // Parse the parameter in parentheses
                     token(meta, "(")?;
                     let param_tok = meta.get_current_token();
-                    
+
                     // Check if we immediately hit a closing paren (empty parameter)
                     if token(meta, ")").is_ok() {
                         let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
                         return error_pos!(meta, pos, "Parameter name cannot be empty");
                     }
-                    
+
                     self.param_name = variable(meta, variable_name_extensions())?;
                     token(meta, ")")?;
-                    
+
                     // Add the parameter variable to the scope and parse the block
                     meta.with_push_scope(|meta| {
                         self.param_global_id = meta.add_var(&self.param_name, Type::Int, false);
                         syntax(meta, &mut *self.block)?;
                         Ok(())
                     })?;
-                    
+
                     if self.block.is_empty() {
                         let message = Message::new_warn_at_token(meta, meta.get_current_token())
                             .message("Empty then block")
@@ -61,13 +61,14 @@ impl SyntaxModule<ParserMetadata> for Then {
                     error_pos!(meta, pos, "Failed to parse then block")
                 })
             },
-            Err(_) => {
+            Err(err) => {
                 // If we're in a trust context, mark as parsed
                 if meta.context.is_trust_ctx {
                     self.is_parsed = true;
+                    Ok(())
+                } else {
+                    Err(err)
                 }
-                // Otherwise, return quietly (no then block found)
-                Ok(())
             }
         }
     }
@@ -80,7 +81,7 @@ impl TranslateModule for Then {
             // the condition of '$?' clears the status code thus we need to store it in a variable
             let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
             let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
-            
+
             match &block {
                 FragmentKind::Empty => {
                     status_variable_stmt.to_frag()
@@ -91,7 +92,7 @@ impl TranslateModule for Then {
                 _ => {
                     let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, status_variable_expr.to_frag())
                         .with_global_id(self.param_global_id);
-                    
+
                     BlockFragment::new(vec![
                         status_variable_stmt.to_frag(),
                         param_assignment.to_frag(),

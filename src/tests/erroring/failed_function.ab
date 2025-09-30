@@ -1,5 +1,5 @@
 // Output
-// Failed function call 'foo' must be followed by a 'failed' block or statement
+// Failed function call 'foo' must be followed by a 'then', 'succeeded' or 'failed' block or statement
 
 fun foo(a: Text, b: Num): Null? {
     echo a + " World"
