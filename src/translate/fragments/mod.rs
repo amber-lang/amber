@@ -47,10 +47,25 @@ macro_rules! eval_context {
     };
 }
 
+// Helper function to check if a name is ALL CAPS
+fn is_all_caps(name: &str) -> bool {
+    name.chars()
+        .filter(|c| c.is_alphabetic())
+        .all(|c| c.is_uppercase())
+}
+
 // Returns a variable name that should be rendered
 pub fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
     match global_id {
-        Some(id) => format!("__{id}_{}", name.trim_start_matches("__")),
+        Some(id) => {
+            // If the name is ALL CAPS, add __ prefix
+            if is_all_caps(name) {
+                format!("__{name}_{id}")
+            } else {
+                // For non-ALL-CAPS names, don't add __ prefix
+                format!("{name}_{id}")
+            }
+        }
         None => name.to_string()
     }
 }

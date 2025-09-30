@@ -81,11 +81,11 @@ impl Range {
     /// Generate a range at runtime when at least one operand is a variable
     fn generate_runtime_range(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let from = self.from.translate(meta);
-        let from_var_stmt = VarStmtFragment::new("__from", self.from.kind.clone(), from);
+        let from_var_stmt = VarStmtFragment::new("from", self.from.kind.clone(), from);
         let from_var = meta.push_ephemeral_variable(from_var_stmt).to_frag();
 
         let to = self.to.translate(meta);
-        let to_var_stmt = VarStmtFragment::new("__to", self.from.kind.clone(), to);
+        let to_var_stmt = VarStmtFragment::new("to", self.from.kind.clone(), to);
         let to_var = meta.push_ephemeral_variable(to_var_stmt).to_frag();
 
         let forward_to = self.adjust_end_for_forward_range(to_var.clone());
@@ -170,7 +170,7 @@ impl Range {
             if !self.neq {
                 upper_val = translate_float_computation(meta, ArithOp::Add, Some(upper_val), Some(fragments!("1")));
             }
-            let upper_var_stmt = VarStmtFragment::new("__slice_upper", Type::Int, upper_val).with_global_id(upper_id);
+            let upper_var_stmt = VarStmtFragment::new("slice_upper", Type::Int, upper_val).with_global_id(upper_id);
             meta.push_ephemeral_variable(upper_var_stmt).to_frag()
         };
 
@@ -178,10 +178,10 @@ impl Range {
         let offset = {
             let offset_id = meta.gen_value_id();
             let offset_val = self.from.translate(meta);
-            let offset_var_stmt = VarStmtFragment::new("__slice_offset", Type::Int, offset_val).with_global_id(offset_id);
+            let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_val).with_global_id(offset_id);
             let offset_var_expr = meta.push_ephemeral_variable(offset_var_stmt).to_frag();
             let offset_cap = fragments!("$((", offset_var_expr.clone().with_quotes(false), " > 0 ? ", offset_var_expr.with_quotes(false), " : 0))");
-            let offset_var_stmt = VarStmtFragment::new("__slice_offset", Type::Int, offset_cap).with_global_id(offset_id);
+            let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_cap).with_global_id(offset_id);
             meta.push_ephemeral_variable(offset_var_stmt).to_frag()
         };
 
@@ -189,10 +189,10 @@ impl Range {
         let length = {
             let length_id = meta.gen_value_id();
             let length_val = translate_float_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
-            let length_var_stmt = VarStmtFragment::new("__slice_length", Type::Int, length_val).with_global_id(length_id);
+            let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_val).with_global_id(length_id);
             let length_var_expr = meta.push_ephemeral_variable(length_var_stmt).to_frag();
             let length_cap = fragments!("$((", length_var_expr.clone().with_quotes(false), " > 0 ? ", length_var_expr.with_quotes(false), " : 0))");
-            let length_var_stmt = VarStmtFragment::new("__slice_length", Type::Int, length_cap).with_global_id(length_id);
+            let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_cap).with_global_id(length_id);
             meta.push_ephemeral_variable(length_var_stmt).to_frag()
         };
 

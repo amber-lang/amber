@@ -128,7 +128,7 @@ impl Command {
         } else {
             let id = meta.gen_value_id();
             let value = SubprocessFragment::new(translation).to_frag();
-            let var_stmt = VarStmtFragment::new("__command", Type::Text, value).with_global_id(id);
+            let var_stmt = VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
             let var_expr = meta.push_ephemeral_variable(var_stmt);
             meta.stmt_queue.push_back(handler);
             var_expr.to_frag()

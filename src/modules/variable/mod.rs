@@ -70,12 +70,12 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
 }
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
-    // Validate if the variable name uses the reserved prefix
-    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
-        let new_name = name.get(1..).unwrap();
+    // Validate if the variable name uses the reserved prefix with ALL CAPS
+    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 && is_all_caps(name) {
+        let new_name = name.get(2..).unwrap();
         return error!(meta, tok => {
             message: format!("Identifier '{name}' is not allowed"),
-            comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
+            comment: format!("Identifiers with double underscores cannot be ALL CAPS.\nConsider using '{new_name}' instead.")
         })
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
@@ -109,6 +109,12 @@ fn is_camel_case(name: &str) -> bool {
     }
     if is_lowercase && is_uppercase { return true }
     false
+}
+
+fn is_all_caps(name: &str) -> bool {
+    name.chars()
+        .filter(|c| c.is_alphabetic())
+        .all(|c| c.is_uppercase())
 }
 
 pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<Option<Expr>, Failure> {

@@ -8,17 +8,22 @@ pub struct FunctionMetadata {
     id: usize,
     variant: usize,
     returns: Type,
+    is_all_caps: bool,
 }
 
 impl FunctionMetadata {
-    pub fn new<T: Into<String>>(name: T, id: usize, variant: usize, returns: &Type) -> Self {
+    pub fn new<T: Into<String>>(name: T, id: usize, variant: usize, returns: &Type, is_all_caps: bool) -> Self {
         let name = name.into();
         let returns = returns.clone();
-        FunctionMetadata { name, id, variant, returns }
+        FunctionMetadata { name, id, variant, returns, is_all_caps }
     }
 
     pub fn mangled_name(&self) -> String {
-        format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
+        if self.is_all_caps {
+            format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
+        } else {
+            format!("ret_{}{}_v{}", self.name, self.id, self.variant)
+        }
     }
 
     pub fn get_type(&self) -> Type {

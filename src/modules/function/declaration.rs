@@ -258,11 +258,19 @@ impl TranslateModule for FunctionDeclaration {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_meta.clone();
+        // Helper to check if function name is ALL CAPS
+        let is_all_caps = self.name.chars()
+            .filter(|c| c.is_alphabetic())
+            .all(|c| c.is_uppercase());
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
+            meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns, is_all_caps));
             // Parse the function body
-            let name = raw_fragment!("{}__{}_v{}", self.name, self.id, index);
+            let name = if is_all_caps {
+                raw_fragment!("__{}__{}_v{}", self.name, self.id, index)
+            } else {
+                raw_fragment!("{}__{}_v{}", self.name, self.id, index)
+            };
             result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);

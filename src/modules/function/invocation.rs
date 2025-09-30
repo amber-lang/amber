@@ -155,7 +155,15 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let name = raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        // Check if function name is ALL CAPS
+        let is_all_caps = self.name.chars()
+            .filter(|c| c.is_alphabetic())
+            .all(|c| c.is_uppercase());
+        let name = if is_all_caps {
+            raw_fragment!("__{}__{}_v{}", self.name, self.id, self.variant_id)
+        } else {
+            raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id)
+        };
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
@@ -180,8 +188,20 @@ impl TranslateModule for FunctionInvocation {
             }
         }
         if self.kind != Type::Null {
-            let invocation_return = format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-            let invocation_instance = format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+            // Check if function name is ALL CAPS
+            let is_all_caps = self.name.chars()
+                .filter(|c| c.is_alphabetic())
+                .all(|c| c.is_uppercase());
+            let invocation_return = if is_all_caps {
+                format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id)
+            } else {
+                format!("ret_{}{}_v{}", self.name, self.id, self.variant_id)
+            };
+            let invocation_instance = if is_all_caps {
+                format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col)
+            } else {
+                format!("ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col)
+            };
             let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
             let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
             meta.push_ephemeral_variable(var_stmt).to_frag()

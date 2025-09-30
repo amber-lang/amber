@@ -67,13 +67,13 @@ pub fn translate_lexical_comparison(
     right: &Expr
 ) -> FragmentKind {
     let left = {
-        let left_stmt = VarStmtFragment::new("__left_comp", left.get_type(), left.translate(meta));
+        let left_stmt = VarStmtFragment::new("left_comp", left.get_type(), left.translate(meta));
         let left_expr = VarExprFragment::from_stmt(&left_stmt).with_array_to_string(true).to_frag();
         meta.stmt_queue.push_back(left_stmt.to_frag());
         left_expr
     };
     let right = {
-        let right_stmt = VarStmtFragment::new("__right_comp", right.get_type(), right.translate(meta));
+        let right_stmt = VarStmtFragment::new("right_comp", right.get_type(), right.translate(meta));
         let right_expr = VarExprFragment::from_stmt(&right_stmt).with_array_to_string(true).to_frag();
         meta.stmt_queue.push_back(right_stmt.to_frag());
         right_expr
@@ -150,13 +150,13 @@ pub fn translate_array_lexical_comparison(
     right: &Expr,
     kind: Type
 ) -> FragmentKind {
-    let left_expr_length = create_variable_length_getter(meta, "__left_comp", left);
-    let right_expr_length = create_variable_length_getter(meta, "__right_comp", right);
+    let left_expr_length = create_variable_length_getter(meta, "left_comp", left);
+    let right_expr_length = create_variable_length_getter(meta, "right_comp", right);
     // Compare lengths of arrays and choose the longest one
-    let (len_stmt, len_expr) = create_variable_with_smaller_number("__len_comp", left_expr_length.clone(), right_expr_length.clone());
+    let (len_stmt, len_expr) = create_variable_with_smaller_number("len_comp", left_expr_length.clone(), right_expr_length.clone());
     // Iterator variables that will be used in the for loop
-    let (left_helper_stmt, left_helper_expr) = create_indexed_variable_with_default_fallback("__left", "__i", left_expr_length.clone());
-    let (right_helper_stmt, right_helper_expr) = create_indexed_variable_with_default_fallback("__right", "__i", right_expr_length.clone());
+    let (left_helper_stmt, left_helper_expr) = create_indexed_variable_with_default_fallback("left", "i", left_expr_length.clone());
+    let (right_helper_stmt, right_helper_expr) = create_indexed_variable_with_default_fallback("right", "i", right_expr_length.clone());
     // Get the operator and its opposite for the if statement
     let (op, _) = operator.get_bash_lexical_operators();
     let (inv_op, ..) = operator.get_opposite_operator().get_bash_lexical_operators();
@@ -193,7 +193,7 @@ pub fn translate_array_lexical_comparison(
     let block = BlockFragment::new(vec![
         CommentFragment::new(&format!("Compare if left array {pretty_op} right array")).to_frag(),
         len_stmt.to_frag(),
-        fragments!("for (( __i=0; __i<", len_expr.to_frag(), "; __i++ )); do"),
+        fragments!("for (( i=0; i<", len_expr.to_frag(), "; i++ )); do"),
         BlockFragment::new(vec![
             left_helper_stmt.to_frag(),
             right_helper_stmt.to_frag(),
@@ -202,7 +202,7 @@ pub fn translate_array_lexical_comparison(
         fragments!("done"),
         fragments!(compared_array_lengths, "\n"),
     ], true);
-    let var_stmt = VarStmtFragment::new("__comp", Type::Bool, SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag());
+    let var_stmt = VarStmtFragment::new("comp", Type::Bool, SubprocessFragment::new(fragments!("\n", block.to_frag())).to_frag());
     meta.push_ephemeral_variable(var_stmt).to_frag()
 }
 
