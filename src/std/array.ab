@@ -86,3 +86,15 @@ pub fun array_shift(ref array) {
     array = array[1..length]
     return element
 }
+
+/// Returns an array of length `size` with each element set to `value`; if `size`
+/// is less than zero or not of type `Int`, an empty array is returned 
+pub fun array_filled(size, value = 0) {
+    let array = [value]
+    array = array[0..0]
+    if not (size is Int):
+        return array 
+    for _ in 0..(size >= 0 then size else 0):
+        array += [value]
+    return array
+}
