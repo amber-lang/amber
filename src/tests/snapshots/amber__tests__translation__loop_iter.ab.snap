@@ -56,7 +56,7 @@ Block(
                                     ),
                                     Raw(
                                         RawFragment {
-                                            value: "__0_item",
+                                            value: "item_0",
                                         },
                                     ),
                                     Raw(
@@ -288,7 +288,7 @@ Block(
                     statements: [
                         Raw(
                             RawFragment {
-                                value: "__3_index=0;",
+                                value: "index_3=0;",
                             },
                         ),
                         List(
@@ -301,7 +301,7 @@ Block(
                                     ),
                                     Raw(
                                         RawFragment {
-                                            value: "__2_item",
+                                            value: "item_2",
                                         },
                                     ),
                                     Raw(
@@ -463,7 +463,7 @@ Block(
                         ),
                         Raw(
                             RawFragment {
-                                value: "    (( __3_index++ )) || true",
+                                value: "    (( index_3++ )) || true",
                             },
                         ),
                         List(

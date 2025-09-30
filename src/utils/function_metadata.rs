@@ -2,6 +2,13 @@ use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
 
+// Helper function to check if a name is all uppercase
+fn is_all_uppercase(name: &str) -> bool {
+    name.chars()
+        .filter(|c| c.is_alphabetic())
+        .all(|c| c.is_uppercase())
+}
+
 #[derive(Clone)]
 pub struct FunctionMetadata {
     name: String,
@@ -18,7 +25,11 @@ impl FunctionMetadata {
     }
 
     pub fn mangled_name(&self) -> String {
-        format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
+        if is_all_uppercase(&self.name) {
+            format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
+        } else {
+            format!("ret_{}{}_v{}", self.name, self.id, self.variant)
+        }
     }
 
     pub fn get_type(&self) -> Type {

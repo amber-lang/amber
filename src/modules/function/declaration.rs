@@ -20,6 +20,13 @@ use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
 use super::declaration_utils::*;
 
+// Helper function to check if a name is all uppercase
+fn is_all_uppercase(name: &str) -> bool {
+    name.chars()
+        .filter(|c| c.is_alphabetic())
+        .all(|c| c.is_uppercase())
+}
+
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
     pub name: String,
@@ -262,7 +269,11 @@ impl TranslateModule for FunctionDeclaration {
         for (index, function) in blocks.iter().enumerate() {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
-            let name = raw_fragment!("{}__{}_v{}", self.name, self.id, index);
+            let name = if is_all_uppercase(&self.name) {
+                raw_fragment!("__{}__{}_v{}", self.name, self.id, index)
+            } else {
+                raw_fragment!("{}__{}_v{}", self.name, self.id, index)
+            };
             result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);

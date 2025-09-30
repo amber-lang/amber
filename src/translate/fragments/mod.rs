@@ -47,10 +47,24 @@ macro_rules! eval_context {
     };
 }
 
+// Helper function to check if a name is all uppercase
+fn is_all_uppercase(name: &str) -> bool {
+    name.chars()
+        .filter(|c| c.is_alphabetic())
+        .all(|c| c.is_uppercase())
+}
+
 // Returns a variable name that should be rendered
 pub fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
     match global_id {
-        Some(id) => format!("__{id}_{}", name.trim_start_matches("__")),
+        Some(id) => {
+            let clean_name = name.trim_start_matches("__");
+            if is_all_uppercase(clean_name) {
+                format!("__{clean_name}_{id}")
+            } else {
+                format!("{clean_name}_{id}")
+            }
+        }
         None => name.to_string()
     }
 }

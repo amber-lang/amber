@@ -12,6 +12,13 @@ use crate::modules::variable::variable_name_extensions;
 use crate::modules::expression::expr::{Expr, ExprType};
 use super::invocation_utils::*;
 
+// Helper function to check if a name is all uppercase
+fn is_all_uppercase(name: &str) -> bool {
+    name.chars()
+        .filter(|c| c.is_alphabetic())
+        .all(|c| c.is_uppercase())
+}
+
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
     name: String,
@@ -155,7 +162,11 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let name = raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        let name = if is_all_uppercase(&self.name) {
+            raw_fragment!("__{}__{}_v{}", self.name, self.id, self.variant_id)
+        } else {
+            raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id)
+        };
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
@@ -180,8 +191,16 @@ impl TranslateModule for FunctionInvocation {
             }
         }
         if self.kind != Type::Null {
-            let invocation_return = format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-            let invocation_instance = format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+            let invocation_return = if is_all_uppercase(&self.name) {
+                format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id)
+            } else {
+                format!("ret_{}{}_v{}", self.name, self.id, self.variant_id)
+            };
+            let invocation_instance = if is_all_uppercase(&self.name) {
+                format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col)
+            } else {
+                format!("ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col)
+            };
             let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
             let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
             meta.push_ephemeral_variable(var_stmt).to_frag()

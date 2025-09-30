@@ -71,12 +71,20 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix
+    // Allow __ prefix for all uppercase names as per the new naming scheme
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
-        let new_name = name.get(1..).unwrap();
-        return error!(meta, tok => {
-            message: format!("Identifier '{name}' is not allowed"),
-            comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
-        })
+        let clean_name = name.trim_start_matches("__");
+        let is_all_caps = clean_name.chars()
+            .filter(|c| c.is_alphabetic())
+            .all(|c| c.is_uppercase());
+        
+        if !is_all_caps {
+            let new_name = name.get(1..).unwrap();
+            return error!(meta, tok => {
+                message: format!("Identifier '{name}' is not allowed"),
+                comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
+            })
+        }
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
         let flag = get_ccflag_name(CCFlags::AllowCamelCase);
