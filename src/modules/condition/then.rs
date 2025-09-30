@@ -26,56 +26,50 @@ impl SyntaxModule<ParserMetadata> for Then {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Check if we have "then(" pattern before consuming any tokens
-        // This avoids conflicting with ternary expressions which use "then" without parentheses
-        let start_index = meta.get_index();
-        
-        // Try to match "then" token
-        if token(meta, "then").is_err() {
-            // No "then" found
-            if meta.context.is_trust_ctx {
-                self.is_parsed = true;
+        match token(meta, "then") {
+            Ok(_) => {
+                context!({
+                    // Parse the parameter in parentheses
+                    token(meta, "(")?;
+                    let param_tok = meta.get_current_token();
+                    
+                    // Check if we immediately hit a closing paren (empty parameter)
+                    if token(meta, ")").is_ok() {
+                        let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
+                        return error_pos!(meta, pos, "Parameter name cannot be empty");
+                    }
+                    
+                    self.param_name = variable(meta, variable_name_extensions())?;
+                    token(meta, ")")?;
+                    
+                    // Add the parameter variable to the scope and parse the block
+                    meta.with_push_scope(|meta| {
+                        self.param_global_id = meta.add_var(&self.param_name, Type::Int, false);
+                        syntax(meta, &mut *self.block)?;
+                        Ok(())
+                    })?;
+                    
+                    if self.block.is_empty() {
+                        let message = Message::new_warn_at_token(meta, meta.get_current_token())
+                            .message("Empty then block")
+                            .comment("You should use 'trust' modifier to run commands without handling errors");
+                        meta.add_message(message);
+                    }
+                    self.is_parsed = true;
+                    Ok(())
+                }, |pos| {
+                    error_pos!(meta, pos, "Failed to parse then block")
+                })
+            },
+            Err(_) => {
+                // If we're in a trust context, mark as parsed
+                if meta.context.is_trust_ctx {
+                    self.is_parsed = true;
+                }
+                // Otherwise, return quietly (no then block found)
+                Ok(())
             }
-            return Ok(());
         }
-        
-        // We found "then", now check if it's followed by "("
-        if token(meta, "(").is_err() {
-            // Not a then(param) block, restore position for ternary expression
-            meta.set_index(start_index);
-            if meta.context.is_trust_ctx {
-                self.is_parsed = true;
-            }
-            return Ok(());
-        }
-        
-        // This is a then(param) block, parse it
-        let param_tok = meta.get_current_token();
-        
-        // Check if we immediately hit a closing paren (empty parameter)
-        if token(meta, ")").is_ok() {
-            let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
-            return error_pos!(meta, pos, "Parameter name cannot be empty");
-        }
-        
-        self.param_name = variable(meta, variable_name_extensions())?;
-        token(meta, ")")?;
-        
-        // Add the parameter variable to the scope and parse the block
-        meta.with_push_scope(|meta| {
-            self.param_global_id = meta.add_var(&self.param_name, Type::Int, false);
-            syntax(meta, &mut *self.block)?;
-            Ok(())
-        })?;
-        
-        if self.block.is_empty() {
-            let message = Message::new_warn_at_token(meta, meta.get_current_token())
-                .message("Empty then block")
-                .comment("You should use 'trust' modifier to run commands without handling errors");
-            meta.add_message(message);
-        }
-        self.is_parsed = true;
-        Ok(())
     }
 }
 
