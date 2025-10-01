@@ -3,6 +3,7 @@ use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
+use crate::modules::variable::variable_name_extensions;
 
 #[derive(Debug, Clone)]
 pub struct Failed {
@@ -11,7 +12,9 @@ pub struct Failed {
     error_position: Option<PositionInfo>,
     function_name: Option<String>,
     is_main: bool,
-    block: Box<Block>
+    block: Box<Block>,
+    param_name: String,
+    param_global_id: Option<usize>
 }
 
 impl Failed {
@@ -34,7 +37,9 @@ impl SyntaxModule<ParserMetadata> for Failed {
             is_main: false,
             function_name: None,
             error_position: None,
-            block: Box::new(Block::new().with_needs_noop().with_condition())
+            block: Box::new(Block::new().with_needs_noop().with_condition()),
+            param_name: String::new(),
+            param_global_id: None
         }
     }
 
@@ -48,13 +53,47 @@ impl SyntaxModule<ParserMetadata> for Failed {
         } else {
             match token(meta, "failed") {
                 Ok(_) => {
-                    let tok = meta.get_current_token();
-                    syntax(meta, &mut *self.block)?;
-                    if self.block.is_empty() {
-                        let message = Message::new_warn_at_token(meta, tok)
-                            .message("Empty failed block")
-                            .comment("You should use 'trust' modifier to run commands without handling errors");
-                        meta.add_message(message);
+                    // Check if there's a parameter in parentheses
+                    if token(meta, "(").is_ok() {
+                        context!({
+                            let param_tok = meta.get_current_token();
+
+                            // Check if we immediately hit a closing paren (empty parameter)
+                            if token(meta, ")").is_ok() {
+                                let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
+                                return error_pos!(meta, pos, "Parameter name cannot be empty");
+                            }
+
+                            self.param_name = variable(meta, variable_name_extensions())?;
+                            token(meta, ")")?;
+
+                            // Add the parameter variable to the scope and parse the block
+                            meta.with_push_scope(|meta| {
+                                self.param_global_id = meta.add_var(&self.param_name, Type::Int, false);
+                                syntax(meta, &mut *self.block)?;
+                                Ok(())
+                            })?;
+
+                            if self.block.is_empty() {
+                                let message = Message::new_warn_at_token(meta, meta.get_current_token())
+                                    .message("Empty failed block")
+                                    .comment("You should use 'trust' modifier to run commands without handling errors");
+                                meta.add_message(message);
+                            }
+                            Ok(())
+                        }, |pos| {
+                            error_pos!(meta, pos, "Failed to parse failed block")
+                        })?;
+                    } else {
+                        // No parameter, parse block normally
+                        let tok = meta.get_current_token();
+                        syntax(meta, &mut *self.block)?;
+                        if self.block.is_empty() {
+                            let message = Message::new_warn_at_token(meta, tok)
+                                .message("Empty failed block")
+                                .comment("You should use 'trust' modifier to run commands without handling errors");
+                            meta.add_message(message);
+                        }
                     }
                 },
                 Err(_) => if meta.context.is_trust_ctx {
@@ -119,12 +158,26 @@ impl TranslateModule for Failed {
                     status_variable_stmt.to_frag()
                 },
                 _ => {
-                    BlockFragment::new(vec![
-                        status_variable_stmt.to_frag(),
-                        fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
-                        block,
-                        fragments!("fi"),
-                    ], false).to_frag()
+                    // If a parameter name is provided, assign the status to it
+                    if !self.param_name.is_empty() {
+                        let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, status_variable_expr.clone().to_frag())
+                            .with_global_id(self.param_global_id);
+
+                        BlockFragment::new(vec![
+                            status_variable_stmt.to_frag(),
+                            fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
+                            param_assignment.to_frag(),
+                            block,
+                            fragments!("fi"),
+                        ], false).to_frag()
+                    } else {
+                        BlockFragment::new(vec![
+                            status_variable_stmt.to_frag(),
+                            fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
+                            block,
+                            fragments!("fi"),
+                        ], false).to_frag()
+                    }
                 }
             }
         } else {
