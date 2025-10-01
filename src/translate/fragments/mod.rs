@@ -9,6 +9,8 @@ pub mod arithmetic;
 pub mod var_expr;
 pub mod var_stmt;
 
+use crate::utils::is_all_caps;
+
 #[macro_export]
 macro_rules! fragments {
     ($($token:expr),+) => {
@@ -45,13 +47,6 @@ macro_rules! eval_context {
             result
         }
     };
-}
-
-// Helper function to check if a name is ALL CAPS
-fn is_all_caps(name: &str) -> bool {
-    name.chars()
-        .filter(|c| c.is_alphabetic())
-        .all(|c| c.is_uppercase())
 }
 
 // Returns a variable name that should be rendered

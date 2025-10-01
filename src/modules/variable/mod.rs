@@ -3,6 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::VariableDecl;
 use crate::utils::metadata::ParserMetadata;
+use crate::utils::is_all_caps;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 
@@ -109,12 +110,6 @@ fn is_camel_case(name: &str) -> bool {
     }
     if is_lowercase && is_uppercase { return true }
     false
-}
-
-fn is_all_caps(name: &str) -> bool {
-    name.chars()
-        .filter(|c| c.is_alphabetic())
-        .all(|c| c.is_uppercase())
 }
 
 pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<Option<Expr>, Failure> {
