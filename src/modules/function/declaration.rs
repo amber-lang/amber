@@ -18,7 +18,6 @@ use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
-use crate::utils::is_all_caps;
 use super::declaration_utils::*;
 
 #[derive(Debug, Clone)]
@@ -259,17 +258,13 @@ impl TranslateModule for FunctionDeclaration {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_meta.clone();
-        // Check if function name is fully uppercase
-        let name_is_all_caps = is_all_caps(&self.name);
+        // Get the variable prefix based on function name casing
+        let prefix = meta.gen_variable_prefix(&self.name);
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
-            let name = if name_is_all_caps {
-                raw_fragment!("__{}__{}_v{}", self.name, self.id, index)
-            } else {
-                raw_fragment!("{}__{}_v{}", self.name, self.id, index)
-            };
+            let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
             result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function, &self.arg_refs) {
                 result.push(args);

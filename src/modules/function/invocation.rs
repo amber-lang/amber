@@ -10,7 +10,6 @@ use crate::modules::condition::succeeded::Succeeded;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::modules::expression::expr::{Expr, ExprType};
-use crate::utils::is_all_caps;
 use super::invocation_utils::*;
 
 #[derive(Debug, Clone)]
@@ -156,13 +155,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Check if function name is fully uppercase
-        let name_is_all_caps = is_all_caps(&self.name);
-        let name = if name_is_all_caps {
-            raw_fragment!("__{}__{}_v{}", self.name, self.id, self.variant_id)
-        } else {
-            raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id)
-        };
+        // Get the variable prefix based on function name casing
+        let prefix = meta.gen_variable_prefix(&self.name);
+        let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
@@ -187,18 +182,10 @@ impl TranslateModule for FunctionInvocation {
             }
         }
         if self.kind != Type::Null {
-            // Check if function name is fully uppercase
-            let name_is_all_caps = is_all_caps(&self.name);
-            let invocation_return = if name_is_all_caps {
-                format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id)
-            } else {
-                format!("ret_{}{}_v{}", self.name, self.id, self.variant_id)
-            };
-            let invocation_instance = if name_is_all_caps {
-                format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col)
-            } else {
-                format!("ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col)
-            };
+            // Get the variable prefix for return values
+            let prefix = meta.gen_variable_prefix(&self.name);
+            let invocation_return = format!("{}ret_{}{}_v{}", prefix, self.name, self.id, self.variant_id);
+            let invocation_instance = format!("{}ret_{}{}_v{}__{}_{}", prefix, self.name, self.id, self.variant_id, self.line, self.col);
             let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
             let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
             meta.push_ephemeral_variable(var_stmt).to_frag()
