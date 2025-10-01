@@ -64,13 +64,13 @@ impl SyntaxModule<ParserMetadata> for Failed {
                 } else {
                     match (self.function_name.clone(), self.error_position.clone()) {
                         (Some(fun_name), Some(pos)) => {
-                            return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by a 'failed' block or statement"))
+                            return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by a 'failed' block, statement or operator '?'"))
                         }
                         (None, Some(pos)) => {
-                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'failed' block or statement"))
+                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'failed' block, statement or operator '?'t"))
                         }
                         _ => {
-                            return error!(meta, tok, format!("Failed expression must be followed by a 'failed' block or statement"))
+                            return error!(meta, tok, format!("Failed expression must be followed by a 'failed' block, statement or operator '?'"))
                         }
                     }
                 }
