@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Failed {
         let tok = meta.get_current_token();
         if token(meta, "?").is_ok() {
             if !meta.context.is_fun_ctx && !meta.context.is_main_ctx && !meta.context.is_trust_ctx {
-                return error!(meta, tok, "The '?' operator can only be used in the main block or function body")
+                return error!(meta, tok, "The '?' operator can only be used in the main block {} or inside a function body")
             }
             self.is_question_mark = true;
         } else {
