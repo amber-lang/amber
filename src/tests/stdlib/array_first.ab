@@ -15,6 +15,6 @@ fun test_first(label: Text, data: [Text]): Null {
 main {
     let numbers = ["zero", "one", "two", "three"]
     let empty = [Text]
-    test_first("numbers", numbers)?
-    test_first("empty", empty)?
+    test_first("numbers", numbers)
+    test_first("empty", empty)
 }

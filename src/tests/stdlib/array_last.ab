@@ -15,6 +15,6 @@ fun test_last(label: Text, data: [Text]): Null {
 main {
     let numbers = ["zero", "one", "two", "three"]
     let empty = [Text]
-    test_last("numbers", numbers)?
-    test_last("empty", empty)?
+    test_last("numbers", numbers)
+    test_last("empty", empty)
 }

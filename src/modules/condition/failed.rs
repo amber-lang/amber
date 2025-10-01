@@ -64,13 +64,13 @@ impl SyntaxModule<ParserMetadata> for Failed {
                 } else {
                     match (self.function_name.clone(), self.error_position.clone()) {
                         (Some(fun_name), Some(pos)) => {
-                            return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by a 'failed' block or statement"))
+                            return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by a 'then', 'succeeded' or 'failed' block or statement"))
                         }
                         (None, Some(pos)) => {
-                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'failed' block or statement"))
+                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'failed', 'succeeded' or 'failed' block or statement"))
                         }
                         _ => {
-                            return error!(meta, tok, format!("Failed expression must be followed by a 'failed' block or statement"))
+                            return error!(meta, tok, format!("Failed expression must be followed by a 'failed', 'succeeded' or 'failed' block or statement"))
                         }
                     }
                 }
@@ -87,7 +87,7 @@ impl TranslateModule for Failed {
         if self.is_parsed {
             let block = self.block.translate(meta);
             // the condition of '$?' clears the status code thus we need to store it in a variable
-            let status_variable_stmt = VarStmtFragment::new("__status", Type::Num, fragments!("$?"));
+            let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
             let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
             if self.is_question_mark {
                 // Set default return value if failure happened in a function
