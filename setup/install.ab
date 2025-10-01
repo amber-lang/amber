@@ -1,21 +1,21 @@
 import { has_failed, input_prompt } from "std/env"
 import { split_chars } from "std/text"
 import { array_contains } from "std/array"
-import { file_exists } from "std/fs"
+import { file_exists, dir_create, dir_exists } from "std/fs"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
-let name = "amber"
-let target = "amber"
-let archive = "amber.tar.xz"
-let agent = has_failed("uname -a")
+const name = "amber"
+const target = "amber"
+const archive = "amber.tar.xz"
+const agent = has_failed("uname -a")
     then "unknown"
     else trust $ uname -a $
 
-fun get_latest_release_tag() {
-    let tag_url = "https://api.github.com/repos/amber-lang/{name}/releases/latest"
-    let tag_json = $ curl -sL "{tag_url}" $?
+fun get_latest_release_tag(): Text? {
+    const tag_url = "https://api.github.com/repos/amber-lang/{name}/releases/latest"
+    const tag_json = $ curl -sL "{tag_url}" $?
     // Get the tag name from the JSON
-    let tag = $ echo "\${nameof tag_json}" \
+    const tag = $ echo "\${nameof tag_json}" \
         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
         | grep -Eo "\\"[^\\"]+\\"\$" \
         | grep -Eo "[^\\"\\s]+" $?
@@ -23,17 +23,15 @@ fun get_latest_release_tag() {
 }
 
 main(args) {
-    let os = get_os()
-    let arch = get_arch()
+    const os = get_os()
+    const arch = get_arch()
 
-    let user_only_install = array_contains(args, "--user")
-    let place = get_place(user_only_install)
-    let bins_folder = get_bins_folder(user_only_install)
+    const user_only_install = array_contains(args, "--user")
+    const place = get_place(user_only_install)
+    const bins_folder = get_bins_folder(user_only_install)
 
     // Check if such directory exists
-    trust $ test -d "{place}" $
-
-    if status == 0 {
+    trust $ test -d "{place}" $ succeeded {
         echo "Amber already installed"
         echo "It seems that Amber is already installed on your system. ({place})"
         echo "If you want to reinstall Amber, uninstall it first."
@@ -52,7 +50,7 @@ main(args) {
 
     // Make the directories we need first to ensure we have permissions before downloading any files
     // this decreases the chance that our script results in partial installation leaving assets behind
-    let sudo = user_only_install then "" else "sudo"
+    const sudo = user_only_install then "" else "sudo"
     // Create directory for amber
     silent $ {sudo} mkdir -p "{place}" $ failed {
         echo "Failed to create directory for amber."
@@ -64,20 +62,20 @@ main(args) {
         exit 1
     }
     if user_only_install {
-        silent $ mkdir -p "{bins_folder}" $ failed {
+        silent dir_create(bins_folder) failed {
             echo "Failed to create directory for amber bin at {bins_folder}."
             exit 1
         }
     }
 
-    let tag = get_latest_release_tag() failed {
+    const tag = get_latest_release_tag() failed {
         echo "Failed to get the latest release tag."
         echo "Please try again or use another download method."
         exit 1
     }
 
     // Set the download link
-    let url = "https://github.com/amber-lang/{name}/releases/download/{tag}/amber-{os}-{arch}.tar.xz"
+    const url = "https://github.com/amber-lang/{name}/releases/download/{tag}/amber-{os}-{arch}.tar.xz"
 
     // Download amber
     silent $ curl -L -o "{archive}" "{url}" $ failed {
