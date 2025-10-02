@@ -3,6 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::VariableDecl;
 use crate::utils::metadata::ParserMetadata;
+use crate::utils::is_all_caps;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 
@@ -70,12 +71,12 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
 }
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
-    // Validate if the variable name uses the reserved prefix
-    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
-        let new_name = name.get(1..).unwrap();
+    // Validate if the variable name uses the reserved prefix with fully uppercase names
+    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 && is_all_caps(name) {
+        let new_name = name.get(2..).unwrap();
         return error!(meta, tok => {
             message: format!("Identifier '{name}' is not allowed"),
-            comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
+            comment: format!("Identifiers with double underscores cannot be fully uppercase.\nConsider using '{new_name}' instead.")
         })
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {

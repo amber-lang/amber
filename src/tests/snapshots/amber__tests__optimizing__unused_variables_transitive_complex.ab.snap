@@ -2,10 +2,10 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
-__1_a=10
-__2_b="${__1_a}"
-__3_c="${__1_a}"
+a_1=10
+b_2="${a_1}"
+c_3="${a_1}"
 if [ 1 != 0 ]; then
-    __3_c="${__2_b}"
+    c_3="${b_2}"
 fi
-echo "${__3_c}"
+echo "${c_3}"

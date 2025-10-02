@@ -9,6 +9,8 @@ pub mod arithmetic;
 pub mod var_expr;
 pub mod var_stmt;
 
+use crate::utils::is_all_caps;
+
 #[macro_export]
 macro_rules! fragments {
     ($($token:expr),+) => {
@@ -50,7 +52,15 @@ macro_rules! eval_context {
 // Returns a variable name that should be rendered
 pub fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
     match global_id {
-        Some(id) => format!("__{id}_{}", name.trim_start_matches("__")),
+        Some(id) => {
+            // If the name is ALL CAPS, add __ prefix
+            if is_all_caps(name) {
+                format!("__{name}_{id}")
+            } else {
+                // For non-ALL-CAPS names, don't add __ prefix
+                format!("{name}_{id}")
+            }
+        }
         None => name.to_string()
     }
 }

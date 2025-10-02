@@ -65,7 +65,7 @@ impl TranslateModule for Add {
             Type::Array(_) => {
                 let id = meta.gen_value_id();
                 let value = fragments!(left, " ", right);
-                let var_stmt = VarStmtFragment::new("__array_add", self.kind.clone(), value).with_global_id(id);
+                let var_stmt = VarStmtFragment::new("array_add", self.kind.clone(), value).with_global_id(id);
                 meta.push_ephemeral_variable(var_stmt).to_frag()
             },
             Type::Text => fragments!(left, right),

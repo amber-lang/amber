@@ -160,7 +160,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let name = raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        // Get the variable prefix based on function name casing
+        let prefix = meta.gen_variable_prefix(&self.name);
+        let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
@@ -188,8 +190,10 @@ impl TranslateModule for FunctionInvocation {
             }
         }
         if self.kind != Type::Null {
-            let invocation_return = format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-            let invocation_instance = format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+            // Get the variable prefix for return values
+            let prefix = meta.gen_variable_prefix(&self.name);
+            let invocation_return = format!("{}ret_{}{}_v{}", prefix, self.name, self.id, self.variant_id);
+            let invocation_instance = format!("{}ret_{}{}_v{}__{}_{}", prefix, self.name, self.id, self.variant_id, self.line, self.col);
             let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
             let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
             meta.push_ephemeral_variable(var_stmt).to_frag()

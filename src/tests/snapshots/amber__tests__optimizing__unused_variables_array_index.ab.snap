@@ -2,6 +2,6 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
-__0_array=(1 2 3 4)
-__1_i=2
-echo "${__0_array[${__1_i}]}"
+array_0=(1 2 3 4)
+i_1=2
+echo "${array_0[${i_1}]}"

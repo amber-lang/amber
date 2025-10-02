@@ -9,6 +9,7 @@ use crate::raw_fragment;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
+use crate::utils::is_all_caps;
 
 const INDENT_SPACES: &str = "    ";
 
@@ -120,6 +121,16 @@ impl TranslateMetadata {
             "\\$"
         } else {
             "$"
+        }
+    }
+
+    /// Returns the variable prefix based on the name casing.
+    /// Returns "__" for fully uppercase names, "" for others.
+    pub fn gen_variable_prefix(&self, name: &str) -> &'static str {
+        if is_all_caps(name) {
+            "__"
+        } else {
+            ""
         }
     }
 }

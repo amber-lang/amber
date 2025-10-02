@@ -235,8 +235,7 @@ impl VarExprFragment {
         }
         let id = meta.gen_value_id();
         let eval_value = format!("{prefix}${{{name}}}{suffix}");
-        // TODO: Check if we can just `{name}_deref` without `__` and/or id.
-        let var_name = format!("__{name}_deref_{id}");
+        let var_name = format!("{name}_deref_{id}");
         meta.stmt_queue.push_back(RawFragment::from(
             format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
         ).to_frag());

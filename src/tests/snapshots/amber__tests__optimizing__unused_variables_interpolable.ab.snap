@@ -2,5 +2,5 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
-__1_b=20
-echo "The answer is ${__1_b}."
+b_1=20
+echo "The answer is ${b_1}."
