@@ -1,5 +1,5 @@
 // Output
-// Failed command must be followed by a 'succeeded' or 'failed' block, statement or operator '?'
+// Failed command must be followed by a 'then', 'succeeded' or 'failed' block, statement or operator '?'
 
 echo $ echo "Hello, this will not fail" $
 echo $ echo "This is my first amber command" $
