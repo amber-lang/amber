@@ -200,7 +200,7 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
             // but only via the "-r" option
             if sed_version == SED_VERSION_GNU {
                 // '\b' is not in POSIX standards. Disable it
-                search = replace(search, "\b", "\\\b")
+                search = replace(search, "\\b", "\\b")
                 output = $ echo "{source}" | sed -r -ne "/{search}/p" $
             } else {
                 output = $ echo "{source}" | sed -E -ne "/{search}/p" $
