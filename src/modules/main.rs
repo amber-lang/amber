@@ -75,7 +75,6 @@ impl TranslateModule for Main {
             // the indentation applied by the block translation.  Unlike
             // other instances of code blocks, we do not want to indent
             // the code generated from the main block.
-            // TODO: Rethink as part of the Bash output improvement work.
             meta.stmt_queue.push_back(args);
             self.block.translate(meta)
         }

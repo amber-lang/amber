@@ -18,7 +18,6 @@ impl IfCondition {
         let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StatementType::IfCondition(_) | StatementType::IfChain(_));
         if is_not_if_chain && !meta.context.cc_flags.contains(&CCFlags::AllowNestedIfElse) {
             let flag_name = get_ccflag_name(CCFlags::AllowNestedIfElse);
-            // TODO: [A34] Add a comment pointing to the website documentation
             let message = Message::new_warn_at_token(meta, tok)
                 .message("You should use if-chain instead of nested if else statements")
                 .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
