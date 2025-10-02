@@ -67,10 +67,10 @@ impl SyntaxModule<ParserMetadata> for Failed {
                             return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by a 'then', 'succeeded' or 'failed' block, statement or operator '?'"))
                         }
                         (None, Some(pos)) => {
-                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'succeeded' or 'failed' block, statement or operator '?'"))
+                            return error_pos!(meta, pos, format!("Failed command must be followed by a 'then', 'succeeded' or 'failed' block, statement or operator '?'"))
                         }
                         _ => {
-                            return error!(meta, tok, format!("Failed expression must be followed by a 'succeeded' or 'failed' block, statement or operator '?'"))
+                            return error!(meta, tok, format!("Failed expression must be followed by a 'then', 'succeeded' or 'failed' block, statement or operator '?'"))
                         }
                     }
                 }
