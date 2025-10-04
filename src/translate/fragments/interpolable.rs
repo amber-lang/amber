@@ -42,6 +42,7 @@ impl InterpolableFragment {
 
     pub fn render_interpolated_region(mut self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
+        self.balance_single_quotes();
         while let Some(string) = self.strings.pop_front() {
             result.push(self.translate_escaped_string(string));
             if let Some(translated) = self.interps.pop_front() {
@@ -55,6 +56,26 @@ impl InterpolableFragment {
             }
         }
         result.join("")
+    }
+
+    fn balance_single_quotes(&mut self) {
+        let mut in_single_quotes = false;
+
+        for s in &mut self.strings {
+            // If previous chunk left us inside quotes, reopen at the start.
+            if in_single_quotes {
+                s.insert_str(0, "\"'");
+            }
+
+            let unescaped = count_unescaped_single_quotes(s);
+
+            // If this chunk has an odd number of unescaped quotes, it toggles the region.
+            if unescaped % 2 == 1 {
+                in_single_quotes = !in_single_quotes;
+                // Close the chunk locally so each piece is balanced.
+                s.push_str("'\"");
+            }
+        }
     }
 
     fn translate_escaped_string(&self, string: String) -> String {
@@ -77,6 +98,26 @@ impl InterpolableFragment {
         }
         result
     }
+}
+
+/// Count single quotes that are NOT escaped by an odd number of preceding backslashes.
+fn count_unescaped_single_quotes(s: &str) -> usize {
+    let mut count = 0usize;
+    let mut backslashes = 0usize;
+
+    for b in s.bytes() {
+        match b {
+            b'\\' => backslashes += 1,
+            b'\'' => {
+                if backslashes % 2 == 0 {
+                    count += 1;
+                }
+                backslashes = 0;
+            }
+            _ => backslashes = 0,
+        }
+    }
+    count
 }
 
 impl FragmentRenderable for InterpolableFragment {
@@ -133,5 +174,16 @@ mod tests {
         assert_eq!(i_glo.translate_escaped_string(r#"!"#.to_string()), r#"!"#);
         assert_eq!(i_glo.translate_escaped_string(r#"basename `pwd`"#.to_string()), r#"basename `pwd`"#);
         assert_eq!(i_glo.translate_escaped_string(r#"\ "#.to_string()), r#"\ "#);
+    }
+
+    #[test]
+    fn test_count_unescaped_single_quotes() {
+        assert_eq!(count_unescaped_single_quotes(r#"foo"#), 0);
+        assert_eq!(count_unescaped_single_quotes(r#"foo\'bar"#), 0);
+        assert_eq!(count_unescaped_single_quotes(r#"foo'bar"#), 1);
+        // even number of backslashes before quote -> not escaped
+        assert_eq!(count_unescaped_single_quotes(r#"foo\\\\'bar"#), 1);
+        assert_eq!(count_unescaped_single_quotes(r#"'\"'"#), 2);
+        assert_eq!(count_unescaped_single_quotes(r#"'''"#), 3);
     }
 }
