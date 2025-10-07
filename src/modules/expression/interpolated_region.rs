@@ -83,9 +83,8 @@ fn parse_escaped_string(meta: &mut ParserMetadata, string: String, region_type: 
                             supported_escapes.push_str(r#", \$"#);
                         }
 
-                        let mut message = Message::new_warn_at_position(meta, c_pos)
-                            .message(warning_msg);
-                        message = message
+                        let message = Message::new_warn_at_position(meta, c_pos)
+                            .message(warning_msg)
                             .comment(format!("Only these escape sequences are supported: {supported_escapes}"));
                         meta.add_message(message);
                     }
