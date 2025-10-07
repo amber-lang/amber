@@ -56,9 +56,27 @@ fn parse_escaped_string(meta: &mut ParserMetadata, string: String, region_type: 
                 Some((i, peek)) => {
                     let warning_msg = format!("Invalid escape sequence '\\{peek}'");
                     let pos = PositionInfo::from_token(meta, meta.get_token_at(meta.get_index().saturating_sub(1)));
-                    if let Position::Pos(row, col) = pos.position {
-                        let c_pos = PositionInfo::at_pos(pos.path, (row, col + i ), 2);
-                        let mut supported_escapes = String::from(r#"\n, \t, \r, \0, \{, \', \"#);
+                    if let Position::Pos(start_row, start_col) = pos.position {
+                        let mut current_row = start_row;
+                        let mut current_col = start_col;
+
+                        // Calculate the absolute position of the 'peek' character,
+                        // accounting for newlines within the token's word.
+                        let mut byte_offset_in_string = 0;
+                        for char_in_string in string.chars() {
+                            if byte_offset_in_string == *i {
+                                break;
+                            } else if char_in_string == '\n' {
+                                current_row += 1;
+                                current_col = 0;
+                            } else {
+                                current_col += char_in_string.len_utf8();
+                            }
+                            byte_offset_in_string += char_in_string.len_utf8();
+                        }
+
+                        let c_pos = PositionInfo::at_pos(pos.path, (current_row, current_col), 2);
+                        let mut supported_escapes = String::from(r#"\n, \t, \r, \0, \{"#);
                         if *region_type == InterpolatedRegionType::Text {
                             supported_escapes.push_str(r#", \""#);
                         } else if *region_type == InterpolatedRegionType::Command {
