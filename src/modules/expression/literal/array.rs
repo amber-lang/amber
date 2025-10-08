@@ -113,7 +113,7 @@ impl TypeCheckModule for Array {
                     }
                 }
             },
-            _ => unimplemented!("Unexpected array type state")
+            _ => unimplemented!("Unexpected array type state {0}.", self.kind)
         }
         
         // Validate all elements have the same type
