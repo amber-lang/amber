@@ -64,7 +64,6 @@ impl TranslateModule for VariableInit {
     }
 }
 
-
 impl TypeCheckModule for VariableInit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;

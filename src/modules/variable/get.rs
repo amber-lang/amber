@@ -2,6 +2,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
 use crate::modules::prelude::*;
+use crate::modules::typecheck::TypeCheckModule;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -73,7 +74,7 @@ impl DocumentationModule for VariableGet {
     }
 }
 
-impl crate::modules::typecheck::TypeCheckModule for VariableGet {
+impl TypeCheckModule for VariableGet {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
         self.global_id = variable.global_id;
