@@ -42,62 +42,63 @@ fn parse_escaped_string(meta: &mut ParserMetadata, string: String, region_type: 
     let mut chars = string.chars().enumerate().peekable();
     let mut result = String::new();
     while let Some((_, c)) = chars.next() {
-        match (c, chars.peek()) {
-            ('\\', Some((_, '\n'))) => {}
-            ('\\', Some((_, '\\'))) => result.push('\\'),
-            ('\\', Some((_, 'n'))) => result.push('\n'),
-            ('\\', Some((_, 't'))) => result.push('\t'),
-            ('\\', Some((_, 'r'))) => result.push('\r'),
-            ('\\', Some((_, '0'))) => result.push('\0'),
-            ('\\', Some((_, '{'))) => result.push('{'),
-            ('\\', Some((_, '"'))) if *region_type == InterpolatedRegionType::Text => result.push('"'),
-            ('\\', Some((_, '$'))) if *region_type == InterpolatedRegionType::Command => result.push('$'),
-            ('\\', Some((i, peek))) => {
-                let warning_msg = format!("Invalid escape sequence '\\{peek}'");
-                let pos = PositionInfo::from_token(meta, meta.get_token_at(meta.get_index().saturating_sub(1)));
-                if let Position::Pos(start_row, start_col) = pos.position {
-                    let mut current_row = start_row;
-                    let mut current_col = start_col;
+        if let Some((i, peek)) = chars.peek() {
+            match (c, peek) {
+                ('\\', '\n') => {}
+                ('\\', '\\') => result.push('\\'),
+                ('\\', 'n') => result.push('\n'),
+                ('\\', 't') => result.push('\t'),
+                ('\\', 'r') => result.push('\r'),
+                ('\\', '0') => result.push('\0'),
+                ('\\', '{') => result.push('{'),
+                ('\\', '"') if *region_type == InterpolatedRegionType::Text => result.push('"'),
+                ('\\', '$') if *region_type == InterpolatedRegionType::Command => result.push('$'),
+                ('\\', peek) => {
+                    let warning_msg = format!("Invalid escape sequence '\\{peek}'");
+                    let pos = PositionInfo::from_token(meta, meta.get_token_at(meta.get_index().saturating_sub(1)));
+                    if let Position::Pos(start_row, start_col) = pos.position {
+                        let mut current_row = start_row;
+                        let mut current_col = start_col;
 
-                    // Calculate the absolute position of the 'peek' character,
-                    // accounting for newlines within the token's word.
-                    let mut byte_offset_in_string = 0;
-                    for char_in_string in string.chars() {
-                        if byte_offset_in_string == *i {
-                            break;
-                        } else if char_in_string == '\n' {
-                            current_row += 1;
-                            current_col = 0;
-                        } else {
-                            current_col += char_in_string.len_utf8();
+                        // Calculate the absolute position of the 'peek' character,
+                        // accounting for newlines within the token's word.
+                        let mut byte_offset_in_string = 0;
+                        for char_in_string in string.chars() {
+                            if byte_offset_in_string == *i {
+                                break;
+                            } else if char_in_string == '\n' {
+                                current_row += 1;
+                                current_col = 0;
+                            } else {
+                                current_col += char_in_string.len_utf8();
+                            }
+                            byte_offset_in_string += char_in_string.len_utf8();
                         }
-                        byte_offset_in_string += char_in_string.len_utf8();
-                    }
 
-                    let c_pos = PositionInfo::at_pos(pos.path, (current_row, current_col), 2);
-                    let mut supported_escapes = String::from(r#"\n, \t, \r, \0, \{"#);
-                    if *region_type == InterpolatedRegionType::Text {
-                        supported_escapes.push_str(r#", \""#);
-                    } else if *region_type == InterpolatedRegionType::Command {
-                        supported_escapes.push_str(r#", \$"#);
-                    }
+                        let c_pos = PositionInfo::at_pos(pos.path, (current_row, current_col), 2);
+                        let mut supported_escapes = String::from(r#"\n, \t, \r, \0, \{"#);
+                        if *region_type == InterpolatedRegionType::Text {
+                            supported_escapes.push_str(r#", \""#);
+                        } else if *region_type == InterpolatedRegionType::Command {
+                            supported_escapes.push_str(r#", \$"#);
+                        }
 
-                    let message = Message::new_warn_at_position(meta, c_pos)
-                        .message(warning_msg)
-                        .comment(format!("Only these escape sequences are supported: {supported_escapes}"));
-                    meta.add_message(message);
+                        let message = Message::new_warn_at_position(meta, c_pos)
+                            .message(warning_msg)
+                            .comment(format!("Only these escape sequences are supported: {supported_escapes}"));
+                        meta.add_message(message);
+                    }
+                    result.push(c);
+                    continue;
                 }
-                result.push(c);
-                continue;
+                (_, _) => {
+                    result.push(c);
+                    continue;
+                }
             }
-            ('\\', None) => {
-                result.push(c);
-                continue;
-            }
-            (_, _) => {
-                result.push(c);
-                continue;
-            }
+        } else {
+            result.push(c);
+            continue;
         }
         chars.next();
     }
