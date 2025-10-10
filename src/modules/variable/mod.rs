@@ -28,11 +28,11 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Module keywords
         "pub", "import", "from",
         // Function keywords
-        "fun", "return", "ref", "fail", "failed",
+        "fun", "return", "ref", "fail", "failed", "succeeded", "then",
         // Types
         "Text", "Number", "Bool", "Null",
         // Command Modifiers
-        "silent", "trust",
+        "silent", "trust", "sudo",
         // Misc
         "echo", "status", "nameof", "mv", "cd",
         "exit", "len",
