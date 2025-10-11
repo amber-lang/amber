@@ -62,6 +62,7 @@ impl InterpolableFragment {
 
     fn balance_single_quotes(&mut self) {
         let mut in_single_quotes = false;
+        let mut in_double_quotes = false;
 
         for s in &mut self.strings {
             // If previous chunk left us inside quotes, reopen at the start.
@@ -69,7 +70,7 @@ impl InterpolableFragment {
                 s.insert_str(0, "\"'");
             }
 
-            let unescaped = count_unescaped_single_quotes(s);
+            let unescaped = count_single_quotes(s, &mut in_double_quotes);
 
             // If this chunk has an odd number of unescaped quotes, it toggles the region.
             if unescaped % 2 == 1 {
@@ -103,15 +104,21 @@ impl InterpolableFragment {
 }
 
 /// Count single quotes that are NOT escaped by an odd number of preceding backslashes.
-fn count_unescaped_single_quotes(s: &str) -> usize {
+fn count_single_quotes(s: &str, in_double_quotes: &mut bool) -> usize {
     let mut count = 0usize;
     let mut backslashes = 0usize;
 
     for b in s.bytes() {
         match b {
             b'\\' => backslashes += 1,
-            b'\'' => {
+            b'"' => {
                 if backslashes % 2 == 0 {
+                    *in_double_quotes = !*in_double_quotes;
+                }
+                backslashes = 0;
+            }
+            b'\'' => {
+                if !*in_double_quotes && backslashes % 2 == 0 {
                     count += 1;
                 }
                 backslashes = 0;
@@ -180,12 +187,33 @@ mod tests {
 
     #[test]
     fn test_count_unescaped_single_quotes() {
-        assert_eq!(count_unescaped_single_quotes(r#"foo"#), 0);
-        assert_eq!(count_unescaped_single_quotes(r#"foo\'bar"#), 0);
-        assert_eq!(count_unescaped_single_quotes(r#"foo'bar"#), 1);
+        let mut in_dq;
+        in_dq = false; assert_eq!(count_single_quotes(r#"foo"#, &mut in_dq), 0);
+        in_dq = false; assert_eq!(count_single_quotes(r#"foo\'bar"#, &mut in_dq), 0);
+        in_dq = false; assert_eq!(count_single_quotes(r#"foo'bar"#, &mut in_dq), 1);
         // even number of backslashes before quote -> not escaped
-        assert_eq!(count_unescaped_single_quotes(r#"foo\\\\'bar"#), 1);
-        assert_eq!(count_unescaped_single_quotes(r#"'\"'"#), 2);
-        assert_eq!(count_unescaped_single_quotes(r#"'''"#), 3);
+        in_dq = false; assert_eq!(count_single_quotes(r#"foo\\\\'bar"#, &mut in_dq), 1);
+        in_dq = false; assert_eq!(count_single_quotes(r#"'"#, &mut in_dq), 1);
+        in_dq = false; assert_eq!(count_single_quotes(r#"'\"'"#, &mut in_dq), 2);
+        in_dq = false; assert_eq!(count_single_quotes(r#"'''"#, &mut in_dq), 3);
+        in_dq = false; assert_eq!(count_single_quotes(r#""'""#, &mut in_dq), 0);
+
+        in_dq = false;
+        assert_eq!(count_single_quotes(r#"'""#, &mut in_dq), 1);
+        assert!(in_dq);
+        assert_eq!(count_single_quotes(r#"'""#, &mut in_dq), 0);
+        assert!(!in_dq);
+        assert_eq!(count_single_quotes(r#"\"'\""#, &mut in_dq), 1);
+        assert!(!in_dq);
+        assert_eq!(count_single_quotes(r#"""#, &mut in_dq), 0);
+        assert!(in_dq);
+        assert_eq!(count_single_quotes(r#"'"#, &mut in_dq), 0);
+        assert!(in_dq);
+        assert_eq!(count_single_quotes(r#"\'"#, &mut in_dq), 0);
+        assert!(in_dq);
+        assert_eq!(count_single_quotes(r#"\""#, &mut in_dq), 0);
+        assert!(in_dq);
+        assert_eq!(count_single_quotes(r#"""#, &mut in_dq), 0);
+        assert!(!in_dq);
     }
 }
