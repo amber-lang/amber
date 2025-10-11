@@ -8,6 +8,7 @@
 // '
 // a'b
 // a'bABCc'd
+// "ab
 
 const str = "ABC"
 const space = " "
@@ -21,3 +22,4 @@ echo "a'b{str}c'd"
 trust $ echo "'" $
 trust $ echo "a'b" $
 trust $ echo "a'b{str}c'd" $
+trust $ echo '"a'b $

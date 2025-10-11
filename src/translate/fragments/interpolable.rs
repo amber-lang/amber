@@ -70,11 +70,9 @@ impl InterpolableFragment {
                 s.insert_str(0, "\"'");
             }
 
-            let unescaped = count_single_quotes(s, &mut in_double_quotes);
+            let single_quote_open = scan_quote_state(s, &mut in_single_quotes, &mut in_double_quotes);
 
-            // If this chunk has an odd number of unescaped quotes, it toggles the region.
-            if unescaped % 2 == 1 {
-                in_single_quotes = !in_single_quotes;
+            if single_quote_open {
                 // Close the chunk locally so each piece is balanced.
                 s.push_str("'\"");
             }
@@ -103,30 +101,32 @@ impl InterpolableFragment {
     }
 }
 
-/// Count single quotes that are NOT escaped by an odd number of preceding backslashes.
-fn count_single_quotes(s: &str, in_double_quotes: &mut bool) -> usize {
-    let mut count = 0usize;
-    let mut backslashes = 0usize;
+/// Scans a string to determine the quoting state, updating the state flags.
+/// Returns `true` if the single-quote state was toggled.
+fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut bool) -> bool {
+    let initial_in_single_quotes = *in_single_quotes;
+    let mut backslashes = 0;
 
     for b in s.bytes() {
         match b {
             b'\\' => backslashes += 1,
             b'"' => {
-                if backslashes % 2 == 0 {
+                if !*in_single_quotes && backslashes % 2 == 0 {
                     *in_double_quotes = !*in_double_quotes;
                 }
                 backslashes = 0;
             }
             b'\'' => {
                 if !*in_double_quotes && backslashes % 2 == 0 {
-                    count += 1;
+                    *in_single_quotes = !*in_single_quotes;
                 }
                 backslashes = 0;
             }
             _ => backslashes = 0,
         }
     }
-    count
+
+    initial_in_single_quotes != *in_single_quotes
 }
 
 impl FragmentRenderable for InterpolableFragment {
@@ -186,34 +186,47 @@ mod tests {
     }
 
     #[test]
-    fn test_count_unescaped_single_quotes() {
-        let mut in_dq;
-        in_dq = false; assert_eq!(count_single_quotes(r#"foo"#, &mut in_dq), 0);
-        in_dq = false; assert_eq!(count_single_quotes(r#"foo\'bar"#, &mut in_dq), 0);
-        in_dq = false; assert_eq!(count_single_quotes(r#"foo'bar"#, &mut in_dq), 1);
+    fn test_toggles_single_quote_state() {
+        let mut dq = false;
+        let mut sq = false;
+        scan_quote_state(r#"foo"#, &mut sq, &mut dq);
+        scan_quote_state(r#"foo\'bar"#, &mut sq, &mut dq);
+        scan_quote_state(r#"foo'bar"#, &mut sq, &mut dq);
         // even number of backslashes before quote -> not escaped
-        in_dq = false; assert_eq!(count_single_quotes(r#"foo\\\\'bar"#, &mut in_dq), 1);
-        in_dq = false; assert_eq!(count_single_quotes(r#"'"#, &mut in_dq), 1);
-        in_dq = false; assert_eq!(count_single_quotes(r#"'\"'"#, &mut in_dq), 2);
-        in_dq = false; assert_eq!(count_single_quotes(r#"'''"#, &mut in_dq), 3);
-        in_dq = false; assert_eq!(count_single_quotes(r#""'""#, &mut in_dq), 0);
+        scan_quote_state(r#"foo\\\\'bar"#, &mut sq, &mut dq);
+        scan_quote_state(r#"'"#, &mut sq, &mut dq);
+        scan_quote_state(r#"'\"'"#, &mut sq, &mut dq);
+        scan_quote_state(r#"'''"#, &mut sq, &mut dq);
+        scan_quote_state(r#""'""#, &mut sq, &mut dq);
 
-        in_dq = false;
-        assert_eq!(count_single_quotes(r#"'""#, &mut in_dq), 1);
-        assert!(in_dq);
-        assert_eq!(count_single_quotes(r#"'""#, &mut in_dq), 0);
-        assert!(!in_dq);
-        assert_eq!(count_single_quotes(r#"\"'\""#, &mut in_dq), 1);
-        assert!(!in_dq);
-        assert_eq!(count_single_quotes(r#"""#, &mut in_dq), 0);
-        assert!(in_dq);
-        assert_eq!(count_single_quotes(r#"'"#, &mut in_dq), 0);
-        assert!(in_dq);
-        assert_eq!(count_single_quotes(r#"\'"#, &mut in_dq), 0);
-        assert!(in_dq);
-        assert_eq!(count_single_quotes(r#"\""#, &mut in_dq), 0);
-        assert!(in_dq);
-        assert_eq!(count_single_quotes(r#"""#, &mut in_dq), 0);
-        assert!(!in_dq);
+        sq = false;
+        dq = false;
+        scan_quote_state(r#" '" "#, &mut sq, &mut dq);
+        assert!(sq);
+        assert!(!dq);
+        scan_quote_state(r#" '" "#, &mut sq, &mut dq);
+        assert!(!sq);
+        assert!(dq);
+        scan_quote_state(r#" \"'\" "#, &mut sq, &mut dq);
+        assert!(!sq);
+        assert!(dq);
+        scan_quote_state(r#" " "#, &mut sq, &mut dq);
+        assert!(!sq);
+        assert!(!dq);
+        scan_quote_state(r#" ' "#, &mut sq, &mut dq);
+        assert!(sq);
+        assert!(!dq);
+        scan_quote_state(r#" \' "#, &mut sq, &mut dq);
+        assert!(sq);
+        assert!(!dq);
+        scan_quote_state(r#" \" "#, &mut sq, &mut dq);
+        assert!(sq);
+        assert!(!dq);
+        scan_quote_state(r#" " "#, &mut sq, &mut dq);
+        assert!(sq);
+        assert!(!dq);
+        scan_quote_state(r#" '"' "#, &mut sq, &mut dq);
+        assert!(!sq);
+        assert!(dq);
     }
 }
