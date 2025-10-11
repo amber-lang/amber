@@ -42,7 +42,9 @@ impl InterpolableFragment {
 
     pub fn render_interpolated_region(mut self, meta: &mut TranslateMetadata) -> String {
         let mut result = vec![];
-        self.balance_single_quotes();
+        if self.render_type == InterpolableRenderType::GlobalContext {
+            self.balance_single_quotes();
+        }
         while let Some(string) = self.strings.pop_front() {
             result.push(self.translate_escaped_string(string));
             if let Some(translated) = self.interps.pop_front() {
