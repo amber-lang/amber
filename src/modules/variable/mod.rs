@@ -24,7 +24,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
-        "for", "loop", "break", "continue", "in",
+        "for", "loop", "break", "continue", "in", "while",
         // Module keywords
         "pub", "import", "from",
         // Function keywords
