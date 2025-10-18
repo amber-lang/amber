@@ -69,7 +69,7 @@ impl TranslateModule for Main {
             let global_id = meta.gen_value_id();
             let args = self.args.clone().map_or_else(
                 || FragmentKind::Empty,
-                |name| raw_fragment!("declare -r __{global_id}_{name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                |name| raw_fragment!("declare -r {name}_{global_id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
             );
             // Temporarily decrease the indentation level to counteract
             // the indentation applied by the block translation.  Unlike
