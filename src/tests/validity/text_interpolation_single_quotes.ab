@@ -5,6 +5,7 @@
 // a'b
 // 'ABC'
 // a'bABCc'd
+// 'ABC'
 // 'ABC
 // ABC'
 // '"a'b
@@ -17,6 +18,7 @@ echo "''"
 echo "a'b"
 echo "'ABC'"
 echo "a'b{str}c'd"
+echo "'{str}'"
 echo "'{str}"
 echo "{str}'"
 echo "'\"a'b"
