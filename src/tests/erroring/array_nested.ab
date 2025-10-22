@@ -1,0 +1,7 @@
+// Output
+// Arrays cannot be nested due to the Bash limitations
+
+let a = [1,2,3]
+let b = [3,2,1]
+let c = [a, b]
+echo c

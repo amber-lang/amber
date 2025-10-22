@@ -2,6 +2,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
 use crate::modules::prelude::*;
+use crate::modules::typecheck::TypeCheckModule;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -10,7 +11,8 @@ pub struct VariableGet {
     kind: Type,
     global_id: Option<usize>,
     index: Box<Option<Expr>>,
-    is_ref: bool
+    is_ref: bool,
+    tok: Option<Token>
 }
 
 impl Typed for VariableGet {
@@ -42,22 +44,15 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
             kind: Type::Null,
             global_id: None,
             index: Box::new(None),
-            is_ref: false
+            is_ref: false,
+            tok: None
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        let variable = handle_variable_reference(meta, &tok, &self.name)?;
-        self.global_id = variable.global_id;
-        self.is_ref = variable.is_ref;
-        self.kind = variable.kind.clone();
         self.index = Box::new(handle_index_accessor(meta, true)?);
-        // Check if the variable can be indexed
-        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            return error!(meta, tok, format!("Cannot index a non-array variable of type '{}'", self.kind));
-        }
         Ok(())
     }
 }
@@ -79,8 +74,17 @@ impl DocumentationModule for VariableGet {
     }
 }
 
-impl crate::modules::typecheck::TypeCheckModule for VariableGet {
-    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+impl TypeCheckModule for VariableGet {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
+        self.kind = variable.kind.clone();
+        
+        // Check if the variable can be indexed
+        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
+            return error!(meta, self.tok.clone(), format!("Cannot index a non-array variable of type '{}'", self.kind));
+        }
         Ok(())
     }
 }

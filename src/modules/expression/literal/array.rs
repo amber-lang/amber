@@ -46,26 +46,12 @@ impl SyntaxModule<ParserMetadata> for Array {
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
-                    let tok = meta.get_current_token();
-                    if token(meta, "[").is_ok() {
-                        return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
-                    }
                     if token(meta, "]").is_ok() {
                         break;
                     }
                     // Parse array value
                     let mut value = Expr::new();
                     syntax(meta, &mut value)?;
-                    match self.kind {
-                        Type::Null => self.kind = Type::Array(Box::new(value.get_type())),
-                        Type::Array(ref mut kind) => {
-                            if value.get_type() != **kind {
-                                let pos = value.get_position(meta);
-                                return error_pos!(meta, pos, format!("Expected array value of type '{kind}'"))
-                            }
-                        },
-                        _ => ()
-                    }
                     let tok = meta.get_current_token();
                     if token(meta, "]").is_ok() {
                         self.exprs.push(value);
@@ -94,7 +80,56 @@ impl TranslateModule for Array {
 }
 
 
-impl_noop_typecheck!(Array);
+impl TypeCheckModule for Array {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // First type-check all the expressions
+        for expr in &mut self.exprs {
+            expr.typecheck(meta)?;
+            // Handle nested arrays
+            if expr.get_type().is_array() {
+                let pos = expr.get_position(meta);
+                return error_pos!(meta, pos, "Arrays cannot be nested due to the Bash limitations")
+            }
+        }
+        
+        // Then determine the array type
+        if self.exprs.is_empty() {
+            // Empty array keeps its existing type (from explicit type annotation or default)
+            return Ok(());
+        }
+        
+        match self.kind {
+            Type::Generic => {
+                // Infer type from first element
+                self.kind = Type::Array(Box::new(self.exprs[0].get_type()));
+            },
+            Type::Array(ref expected_type) => {
+                // Type already specified, validate all elements match
+                for expr in &self.exprs {
+                    let expr_type = expr.get_type();
+                    if expr_type != **expected_type {
+                        let pos = expr.get_position(meta);
+                        return error_pos!(meta, pos, format!("Expected array value of type '{expected_type}'"))
+                    }
+                }
+            },
+            _ => unimplemented!("Unexpected array type state {0}.", self.kind)
+        }
+        
+        // Validate all elements have the same type
+        if let Type::Array(ref element_type) = self.kind {
+            for expr in &self.exprs[1..] {
+                let expr_type = expr.get_type();
+                if expr_type != **element_type {
+                    let pos = expr.get_position(meta);
+                    return error_pos!(meta, pos, format!("Array elements must have the same type. Expected '{}', found '{}'", element_type, expr_type));
+                }
+            }
+        }
+        
+        Ok(())
+    }
+}
 
 impl DocumentationModule for Array {
     fn document(&self, _meta: &ParserMetadata) -> String {
