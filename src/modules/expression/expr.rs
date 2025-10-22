@@ -194,44 +194,37 @@ impl TranslateModule for Expr {
     }
 }
 
+macro_rules! typecheck_expr {
+    (literals: [$($literal:ident),*], complex: [$($complex:ident),*], $self:ident, $meta:ident, $expr_type:ident) => {
+        match $expr_type {
+            $(
+                ExprType::$literal(_) => {
+                    // Literals are already correctly typed during parsing
+                },
+            )*
+            $(
+                ExprType::$complex(expr) => {
+                    expr.typecheck($meta)?;
+                    $self.kind = expr.get_type();
+                },
+            )*
+        }
+    };
+}
+
 impl TypeCheckModule for Expr {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if let Some(expr_type) = &mut self.value {
-            match expr_type {
-                ExprType::Bool(_) => {}, // No type checking needed for literals
-                ExprType::Number(_) => {},
-                ExprType::Integer(_) => {},
-                ExprType::Text(_) => {},
-                ExprType::Parentheses(p) => p.typecheck(meta)?,
-                ExprType::VariableGet(v) => v.typecheck(meta)?,
-                ExprType::Add(op) => op.typecheck(meta)?,
-                ExprType::Sub(op) => op.typecheck(meta)?,
-                ExprType::Mul(op) => op.typecheck(meta)?,
-                ExprType::Div(op) => op.typecheck(meta)?,
-                ExprType::Modulo(op) => op.typecheck(meta)?,
-                ExprType::Neg(op) => op.typecheck(meta)?,
-                ExprType::And(op) => op.typecheck(meta)?,
-                ExprType::Or(op) => op.typecheck(meta)?,
-                ExprType::Gt(op) => op.typecheck(meta)?,
-                ExprType::Ge(op) => op.typecheck(meta)?,
-                ExprType::Lt(op) => op.typecheck(meta)?,
-                ExprType::Le(op) => op.typecheck(meta)?,
-                ExprType::Eq(op) => op.typecheck(meta)?,
-                ExprType::Neq(op) => op.typecheck(meta)?,
-                ExprType::Not(op) => op.typecheck(meta)?,
-                ExprType::Ternary(op) => op.typecheck(meta)?,
-                ExprType::LinesInvocation(li) => li.typecheck(meta)?,
-                ExprType::FunctionInvocation(fi) => fi.typecheck(meta)?,
-                ExprType::Command(cmd) => cmd.typecheck(meta)?,
-                ExprType::Array(arr) => arr.typecheck(meta)?,
-                ExprType::Range(r) => r.typecheck(meta)?,
-                ExprType::Null(_) => {},
-                ExprType::Cast(c) => c.typecheck(meta)?,
-                ExprType::Status(_) => {},
-                ExprType::Nameof(n) => n.typecheck(meta)?,
-                ExprType::Len(l) => l.typecheck(meta)?,
-                ExprType::Is(i) => i.typecheck(meta)?,
-            }
+            typecheck_expr!(
+                literals: [Bool, Number, Integer, Text, Null, Status],
+                complex: [
+                    Parentheses, VariableGet, Add, Sub, Mul, Div, Modulo, Neg,
+                    And, Or, Gt, Ge, Lt, Le, Eq, Neq, Not, Ternary,
+                    LinesInvocation, FunctionInvocation, Command, Array, Range,
+                    Cast, Nameof, Len, Is
+                ],
+                self, meta, expr_type
+            );
         }
         Ok(())
     }

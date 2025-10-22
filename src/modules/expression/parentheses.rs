@@ -40,7 +40,9 @@ impl SyntaxModule<ParserMetadata> for Parentheses {
 
 impl TypeCheckModule for Parentheses {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.value.typecheck(meta)
+        self.value.typecheck(meta)?;
+        self.kind = self.value.get_type();
+        Ok(())
     }
 }
 

@@ -303,12 +303,12 @@ impl AmberCompiler {
 
     pub fn typecheck(&self, mut block: Block, mut meta: ParserMetadata) -> Result<(Block, ParserMetadata), Message> {
         let time = Instant::now();
-        
+
         // Perform type checking on the block
         if let Err(failure) = block.typecheck(&mut meta) {
             return Err(failure.unwrap_loud());
         }
-        
+
         if Self::env_flag_set(AMBER_DEBUG_TIME) {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
@@ -317,7 +317,7 @@ impl AmberCompiler {
                 time.elapsed().as_millis()
             );
         }
-        
+
         Ok((block, meta))
     }
 
@@ -348,7 +348,8 @@ impl AmberCompiler {
 
     pub fn generate_docs(&self, output: Option<String>, usage: bool) -> Result<(), Message> {
         let tokens = self.tokenize()?;
-        let (block, mut meta) = self.parse(tokens)?;
+        let (block, meta) = self.parse(tokens)?;
+        let (block, mut meta) = self.typecheck(block, meta)?;
         meta.doc_usage = usage;
         self.document(block, meta, output);
         Ok(())
