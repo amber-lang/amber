@@ -50,7 +50,15 @@ impl TranslateModule for Text {
 }
 
 
-impl_noop_typecheck!(Text);
+impl TypeCheckModule for Text {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type check all interpolated expressions
+        for expr in &mut self.interps {
+            expr.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
 
 impl DocumentationModule for Text {
     fn document(&self, _meta: &ParserMetadata) -> String {

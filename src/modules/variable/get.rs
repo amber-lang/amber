@@ -1,6 +1,6 @@
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
-use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions};
+use crate::modules::variable::{handle_index_accessor, handle_variable_reference, variable_name_extensions, validate_index_accessor};
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use heraclitus_compiler::prelude::*;
@@ -81,10 +81,20 @@ impl TypeCheckModule for VariableGet {
         self.is_ref = variable.is_ref;
         self.kind = variable.kind.clone();
         
-        // Check if the variable can be indexed
-        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            return error!(meta, self.tok.clone(), format!("Cannot index a non-array variable of type '{}'", self.kind));
+        // Typecheck and validate index expression if present
+        if let Some(ref mut index_expr) = self.index.as_mut() {
+            // Check if the variable can be indexed
+            if !matches!(variable.kind, Type::Array(_)) {
+                return error!(meta, self.tok.clone(), format!("Cannot index a non-array variable of type '{}'", self.kind));
+            }
+            
+            // Typecheck the index expression
+            index_expr.typecheck(meta)?;
+            
+            // Validate the index type
+            validate_index_accessor(meta, index_expr, true, self.tok.clone())?;
         }
+        
         Ok(())
     }
 }

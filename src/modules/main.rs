@@ -59,12 +59,21 @@ impl SyntaxModule<ParserMetadata> for Main {
 
 impl TypeCheckModule for Main {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        dbg!(meta.context.scopes.len());
         // Main cannot be parsed inside of a block
         if !meta.is_global_scope() {
             return error!(meta, self.token.clone(), "Main must be in the global scope")
         }
-        Ok(())
+
+        // Typecheck the main block content
+        meta.with_push_scope(true, |meta| {
+            // Create variables for main arguments
+            for arg in self.args.iter() {
+                meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+            }
+            // Typecheck the block
+            self.block.typecheck(meta)?;
+            Ok(())
+        })
     }
 }
 

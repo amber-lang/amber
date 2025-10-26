@@ -45,6 +45,9 @@ impl SyntaxModule<ParserMetadata> for Len {
 
 impl TypeCheckModule for Len {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Typecheck the expression first
+        self.value.typecheck(meta)?;
+        
         if !matches!(self.value.get_type(), Type::Text | Type::Array(_)) {
             let msg = self
                 .value

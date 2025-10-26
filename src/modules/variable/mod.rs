@@ -111,22 +111,25 @@ fn is_camel_case(name: &str) -> bool {
     false
 }
 
-pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<Option<Expr>, Failure> {
+pub fn handle_index_accessor(meta: &mut ParserMetadata, _range: bool) -> Result<Option<Expr>, Failure> {
     if token(meta, "[").is_ok() {
-        let tok = meta.get_current_token();
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
-        if !allow_index_accessor(&index, range) {
-            let expected = if range { "integer or range" } else { "integer (and not a range)" };
-            let side = if range { "right" } else { "left" };
-            let message = format!("Index accessor must be an {expected} for {side} side of operation");
-            let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
-            return error!(meta, tok => { message: message, comment: comment });
-        }
         token(meta, "]")?;
         return Ok(Some(index));
     }
     Ok(None)
+}
+
+pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool, tok: Option<Token>) -> SyntaxResult {
+    if !allow_index_accessor(index, range) {
+        let expected = if range { "integer or range" } else { "integer (and not a range)" };
+        let side = if range { "right" } else { "left" };
+        let message = format!("Index accessor must be an {expected} for {side} side of operation");
+        let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
+        return error!(meta, tok => { message: message, comment: comment });
+    }
+    Ok(())
 }
 
 fn allow_index_accessor(index: &Expr, range: bool) -> bool {

@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
+use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions, validate_index_accessor};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
@@ -68,9 +68,14 @@ impl TypeCheckModule for VariableSet {
         self.var_type = variable.kind.clone();
         prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
         
-        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            let left_type = variable.kind.clone();
-            return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+        if let Some(ref index_expr) = self.index {
+            if !matches!(variable.kind, Type::Array(_)) {
+                let left_type = variable.kind.clone();
+                return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+            }
+            
+            // Validate the index type (must be integer, not range, for assignment)
+            validate_index_accessor(meta, index_expr, false, self.tok.clone())?;
         }
         
         let right_type = self.expr.get_type();
