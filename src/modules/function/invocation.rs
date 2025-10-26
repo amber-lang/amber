@@ -14,6 +14,7 @@ use super::invocation_utils::*;
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
     name: String,
+    name_tok: Option<Token>,
     args: Vec<Expr>,
     refs: Vec<bool>,
     kind: Type,
@@ -45,6 +46,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     fn new() -> Self {
         FunctionInvocation {
             name: String::new(),
+            name_tok: None,
             args: vec![],
             refs: vec![],
             kind: Type::Null,
@@ -61,16 +63,17 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
-            // Get the function name
+            // Get the function name and store token for error reporting
             let tok = meta.get_current_token();
             if let Some(ref tok) = tok {
                 (self.line, self.col) = tok.pos;
             }
             self.name = variable(meta, variable_name_extensions())?;
+            self.name_tok = tok.clone();
             self.failed.set_function_name(self.name.clone());
-            // Get the arguments
+
+            // Parse arguments syntax
             token(meta, "(")?;
-            self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
             loop {
                 if token(meta, ")").is_ok() {
                     break
@@ -83,50 +86,72 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                     Err(_) => token(meta, ",")?,
                 };
             }
-            let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
-            let expected_arg_count = function_unit.arg_refs.len();
-            let actual_arg_count = self.args.len();
-            let optional_count = function_unit.arg_optionals.len();
 
-            // Case when function call is missing arguments
-            if actual_arg_count < expected_arg_count {
-                // Check if we can compensate with optional arguments stored in fun_unit
-                if actual_arg_count >= expected_arg_count - optional_count {
-                    let missing = expected_arg_count - actual_arg_count;
-                    let provided_optional = optional_count - missing;
-                    for exp in function_unit.arg_optionals.iter().skip(provided_optional){
-                        self.args.push(exp.clone());
-                    }
-                }
-            }
-
-            let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
-            let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
-            self.refs.clone_from(&function_unit.arg_refs);
-            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, tok.clone())?;
+            // Store position for later error reporting
             self.failed.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
 
-            self.is_failable = function_unit.is_failable;
-            if self.is_failable {
-                match syntax(meta, &mut self.failed) {
-                    Ok(_) => (),
-                    Err(Failure::Quiet(_)) => return error!(meta, tok => {
-                        message: "This function can fail. Please handle the failure",
-                        comment: "You can use '?' in the end to propagate the failure"
-                    }),
-                    Err(err) => return Err(err)
-                }
-            } else {
-                let tok = meta.get_current_token();
-                if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str())) {
-                    let message = Message::new_warn_at_token(meta, tok)
-                        .message("This function cannot fail")
-                        .comment(format!("You can remove the '{symbol}' in the end"));
-                    meta.add_message(message);
-                }
-            }
+            // Try to parse the failed block if present (optional in parse phase)
+            syntax(meta, &mut self.failed).ok();
+
             Ok(())
         })
+    }
+}
+
+impl TypeCheckModule for FunctionInvocation {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check all arguments first
+        for arg in &mut self.args {
+            arg.typecheck(meta)?;
+        }
+
+        // Look up the function declaration (this requires typecheck phase context)
+        self.id = handle_function_reference(meta, self.name_tok.clone(), &self.name)?;
+
+        let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+        let expected_arg_count = function_unit.args.len();
+        let actual_arg_count = self.args.len();
+        let optional_count = function_unit.args.iter().filter(|arg| arg.optional.is_some()).count();
+
+        // Handle missing arguments by filling with optional defaults
+        if actual_arg_count < expected_arg_count {
+            // Check if we can compensate with optional arguments stored in fun_unit
+            if actual_arg_count >= expected_arg_count - optional_count {
+                let missing = expected_arg_count - actual_arg_count;
+                let provided_optional = optional_count - missing;
+                let optionals: Vec<_> = function_unit.args.iter().filter_map(|arg| arg.optional.as_ref()).collect();
+                for exp in optionals.iter().skip(provided_optional){
+                    self.args.push((*exp).clone());
+                }
+            }
+        }
+
+        // Validate arguments and get function variant
+        let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
+        let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
+        self.refs = function_unit.args.iter().map(|arg| arg.is_ref).collect();
+        (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, self.name_tok.clone())?;
+
+        // Handle failable function logic
+        self.is_failable = function_unit.is_failable;
+        if self.is_failable {
+            if !self.failed.is_parsed {
+                return error!(meta, self.name_tok.clone() => {
+                    message: "This function can fail. Please handle the failure",
+                    comment: "You can use '?' in the end to propagate the failure"
+                });
+            }
+            self.failed.typecheck(meta)?;
+        } else {
+            if self.failed.is_parsed {
+                let message = Message::new_warn_at_token(meta, self.name_tok.clone())
+                    .message("This function cannot fail")
+                    .comment("You can remove the 'failed' block or '?' at the end");
+                meta.add_message(message);
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -159,21 +184,6 @@ impl TranslateModule for FunctionInvocation {
         } else {
             fragments!("''")
         }
-    }
-}
-
-
-impl TypeCheckModule for FunctionInvocation {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check all arguments
-        for arg in &mut self.args {
-            arg.typecheck(meta)?;
-        }
-        
-        // Type-check the failed block
-        self.failed.typecheck(meta)?;
-        
-        Ok(())
     }
 }
 

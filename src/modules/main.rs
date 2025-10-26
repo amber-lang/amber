@@ -10,7 +10,8 @@ use super::variable::variable_name_extensions;
 pub struct Main {
     pub args: Option<String>,
     pub block: Block,
-    pub is_skipped: bool
+    pub token: Option<Token>,
+    pub is_skipped: bool,
 }
 
 impl SyntaxModule<ParserMetadata> for Main {
@@ -20,17 +21,14 @@ impl SyntaxModule<ParserMetadata> for Main {
         Self {
             args: None,
             block: Block::new().with_no_indent(),
+            token: None,
             is_skipped: false
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
+        self.token = meta.get_current_token();
         token(meta, "main")?;
-        // Main cannot be parsed inside of a block
-        if !meta.is_global_scope() {
-            return error!(meta, tok, "Main must be in the global scope")
-        }
         // If this main is included in other file, skip it
         if !meta.context.trace.is_empty() {
             self.is_skipped = true;
@@ -42,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Main {
                 token(meta, ")")?;
             }
             // Create a new scope for variables
-            meta.with_push_scope(|meta| {
+            meta.with_push_scope(true, |meta| {
                 // Create variables
                 for arg in self.args.iter() {
                     meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
@@ -56,6 +54,17 @@ impl SyntaxModule<ParserMetadata> for Main {
         }, |pos| {
             error_pos!(meta, pos, "Undefined syntax in main block")
         })
+    }
+}
+
+impl TypeCheckModule for Main {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        dbg!(meta.context.scopes.len());
+        // Main cannot be parsed inside of a block
+        if !meta.is_global_scope() {
+            return error!(meta, self.token.clone(), "Main must be in the global scope")
+        }
+        Ok(())
     }
 }
 
@@ -80,9 +89,6 @@ impl TranslateModule for Main {
         }
     }
 }
-
-
-impl_noop_typecheck!(Main);
 
 impl DocumentationModule for Main {
     fn document(&self, _meta: &ParserMetadata) -> String {

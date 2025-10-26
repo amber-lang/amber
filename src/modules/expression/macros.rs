@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! parse_expr_group {
+macro_rules! parse_expression_group {
     // Group type that handles Binary Operators
     (@internal ({$cur:ident, $prev:ident}, $meta:expr, BinOp => [$($cur_modules:ident),+])) => {{
         let start_index = $meta.get_index();
@@ -131,7 +131,7 @@ macro_rules! parse_expr_group {
 }
 
 #[macro_export]
-macro_rules! parse_expr {
+macro_rules! parse_expression {
     // Base Case: Current and previous precedence groups remaining
     (@internal (
         $cur_name:ident @ $cur_type:ident => [$($cur_modules:ident),*],
@@ -142,14 +142,14 @@ macro_rules! parse_expr {
         }
 
         fn $next_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$next_name, _terminal},
                 meta, $next_type => [$($next_modules),*]
             ))
         }
 
         fn $cur_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$cur_name, $next_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
@@ -162,13 +162,13 @@ macro_rules! parse_expr {
         $next_name:ident @ $next_type:ident => [$($next_modules:ident),*],
         $($rest_name:ident @ $rest_type:ident => [$($rest_modules:ident),*]),+
     )) => {
-        parse_expr!(@internal (
+        parse_expression!(@internal (
             $next_name @ $next_type => [$($next_modules),*],
             $($rest_name @ $rest_type => [$($rest_modules),*]),*)
         );
 
         fn $cur_name (meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$cur_name, $next_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
@@ -176,7 +176,7 @@ macro_rules! parse_expr {
     };
 
     // Public interface:
-    // parse_expr!(meta, [
+    // parse_expression!(meta, [
     //     name @ TernOp => [Ternary],
     //     name @ BinOp => [Add, Sub],
     //     name @ BinOp => [Mul, Div],
@@ -188,7 +188,7 @@ macro_rules! parse_expr {
         $name:ident @ $type:ident => [$($modules:ident),*],
         $($rest_name:ident @ $rest_type:ident => [$($rest_modules:ident),*]),+
     ]) => {{
-        parse_expr!(@internal (
+        parse_expression!(@internal (
             $name @ $type => [$($modules),*],
             $($rest_name @ $rest_type => [$($rest_modules),*]),*
         ));
@@ -197,7 +197,7 @@ macro_rules! parse_expr {
     }};
 
     // Edge case: Single group provided
-    // parse_expr!(meta, [
+    // parse_expression!(meta, [
     //     name @ Literal => [Num, Text],
     // ]);
     ($meta:expr, [
@@ -208,7 +208,7 @@ macro_rules! parse_expr {
         }
 
         fn $name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$name, _terminal},
                 meta, $type => [$($modules),*]
             ))
@@ -216,6 +216,20 @@ macro_rules! parse_expr {
 
         $name($meta)?
     }};
+}
+
+#[macro_export]
+macro_rules! typecheck_expression {
+    ($self:ident, $meta:ident, $expr_type:ident, [$($expression:ident),*]) => {
+        match $expr_type {
+            $(
+                ExprType::$expression(expr) => {
+                    expr.typecheck($meta)?;
+                    $self.kind = expr.get_type();
+                },
+            )*
+        }
+    };
 }
 
 #[macro_export]

@@ -304,6 +304,9 @@ impl AmberCompiler {
     pub fn typecheck(&self, mut block: Block, mut meta: ParserMetadata) -> Result<(Block, ParserMetadata), Message> {
         let time = Instant::now();
 
+        // Initialize global scope for typechecking
+        meta.context.scopes.push(crate::utils::context::ScopeUnit::new());
+
         // Perform type checking on the block
         if let Err(failure) = block.typecheck(&mut meta) {
             return Err(failure.unwrap_loud());

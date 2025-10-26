@@ -26,30 +26,15 @@ impl SyntaxModule<ParserMetadata> for Return {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
         token(meta, "return")?;
         if !meta.context.is_fun_ctx {
+            let tok = meta.get_current_token();
             return error!(meta, tok => {
                 message: "Return statement outside of function",
                 comment: "Return statements can only be used inside of functions"
             });
         }
         syntax(meta, &mut self.expr)?;
-        let ret_type = meta.context.fun_ret_type.as_ref();
-        let expr_type = &self.expr.get_type();
-        match ret_type {
-            Some(ret_type) => {
-                if !expr_type.is_allowed_in(ret_type) {
-                    return error!(meta, tok => {
-                        message: "Return type does not match function return type",
-                        comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
-                    });
-                }
-            },
-            None => {
-                meta.context.fun_ret_type = Some(expr_type.clone());
-            }
-        }
         Ok(())
     }
 }
@@ -70,7 +55,25 @@ impl TranslateModule for Return {
 
 impl TypeCheckModule for Return {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.expr.typecheck(meta)
+        self.expr.typecheck(meta)?;
+        
+        let ret_type = meta.context.fun_ret_type.as_ref();
+        let expr_type = &self.expr.get_type();
+        match ret_type {
+            Some(ret_type) => {
+                if !expr_type.is_allowed_in(ret_type) {
+                    let tok = meta.get_current_token();
+                    return error!(meta, tok => {
+                        message: "Return type does not match function return type",
+                        comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
+                    });
+                }
+            },
+            None => {
+                meta.context.fun_ret_type = Some(expr_type.clone());
+            }
+        }
+        Ok(())
     }
 }
 

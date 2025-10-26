@@ -51,7 +51,13 @@ use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::builtin::nameof::Nameof;
-use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
+use crate::{
+    document_expression,
+    parse_expression,
+    parse_expression_group,
+    typecheck_expression,
+    translate_expression
+};
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
@@ -138,7 +144,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let result = parse_expr!(meta, [
+        let result = parse_expression!(meta, [
             ternary @ TernOp => [ Ternary ],
             range @ BinOp => [ Range ],
             or @ BinOp => [ Or ],
@@ -166,94 +172,38 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 }
 
-impl TranslateModule for Expr {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        translate_expression!(meta, self.value.as_ref().unwrap(), [
-            // Ternary conditional
-            Ternary,
-            // Logical operators
-            And, Or,
-            // Comparison operators
-            Gt, Ge, Lt, Le, Eq, Neq,
-            // Arithmetic operators
-            Add, Sub, Mul, Div, Modulo,
-            // Binary operators
-            Range, Cast, Is,
-            // Unary operators
-            Not, Neg, Nameof, Len,
-            // Literals
-            Parentheses, Bool, Number, Integer, Text,
-            Array, Null, Status,
-            // Builtin invocation
-            LinesInvocation,
-            // Function invocation
-            FunctionInvocation, Command,
-            // Variable access
-            VariableGet
-        ])
-    }
-}
-
-macro_rules! typecheck_expr {
-    (literals: [$($literal:ident),*], complex: [$($complex:ident),*], $self:ident, $meta:ident, $expr_type:ident) => {
-        match $expr_type {
-            $(
-                ExprType::$literal(_) => {
-                    // Literals are already correctly typed during parsing
-                },
-            )*
-            $(
-                ExprType::$complex(expr) => {
-                    expr.typecheck($meta)?;
-                    $self.kind = expr.get_type();
-                },
-            )*
-        }
-    };
-}
-
 impl TypeCheckModule for Expr {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if let Some(expr_type) = &mut self.value {
-            typecheck_expr!(
-                literals: [Bool, Number, Integer, Text, Null, Status],
-                complex: [
-                    Parentheses, VariableGet, Add, Sub, Mul, Div, Modulo, Neg,
-                    And, Or, Gt, Ge, Lt, Le, Eq, Neq, Not, Ternary,
-                    LinesInvocation, FunctionInvocation, Command, Array, Range,
-                    Cast, Nameof, Len, Is
-                ],
-                self, meta, expr_type
-            );
+            typecheck_expression!(self, meta, expr_type, [
+                Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+                Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+                Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+                Range, Status, Sub, Ternary, Text, VariableGet
+            ]);
         }
         Ok(())
+    }
+}
+
+impl TranslateModule for Expr {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        translate_expression!(meta, self.value.as_ref().unwrap(), [
+            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+            Range, Status, Sub, Ternary, Text, VariableGet
+        ])
     }
 }
 
 impl DocumentationModule for Expr {
     fn document(&self, meta: &ParserMetadata) -> String {
         document_expression!(meta, self.value.as_ref().unwrap(), [
-            // Ternary conditional
-            Ternary,
-            // Logical operators
-            And, Or,
-            // Comparison operators
-            Gt, Ge, Lt, Le, Eq, Neq,
-            // Arithmetic operators
-            Add, Sub, Mul, Div, Modulo,
-            // Binary operators
-            Range, Cast, Is,
-            // Unary operators
-            Not, Neg, Nameof, Len,
-            // Literals
-            Parentheses, Bool, Number, Integer, Text,
-            Array, Null, Status,
-            // Builtin invocation
-            LinesInvocation,
-            // Function invocation
-            FunctionInvocation, Command,
-            // Variable access
-            VariableGet
+            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+            Range, Status, Sub, Ternary, Text, VariableGet
         ])
     }
 }

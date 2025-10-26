@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Array {
     fn new() -> Self {
         Array {
             exprs: vec![],
-            kind: Type::Null
+            kind: Type::Generic
         }
     }
 
@@ -91,13 +91,13 @@ impl TypeCheckModule for Array {
                 return error_pos!(meta, pos, "Arrays cannot be nested due to the Bash limitations")
             }
         }
-        
+
         // Then determine the array type
         if self.exprs.is_empty() {
             // Empty array keeps its existing type (from explicit type annotation or default)
             return Ok(());
         }
-        
+
         match self.kind {
             Type::Generic => {
                 // Infer type from first element
@@ -115,7 +115,7 @@ impl TypeCheckModule for Array {
             },
             _ => unimplemented!("Unexpected array type state {0}.", self.kind)
         }
-        
+
         // Validate all elements have the same type
         if let Type::Array(ref element_type) = self.kind {
             for expr in &self.exprs[1..] {
@@ -126,7 +126,7 @@ impl TypeCheckModule for Array {
                 }
             }
         }
-        
+
         Ok(())
     }
 }

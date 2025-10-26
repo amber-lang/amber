@@ -1,17 +1,23 @@
 use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
 use crate::modules::expression::expr::Expr;
+use crate::modules::function::declaration::FunctionDeclarationArgument;
 use crate::modules::types::Type;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
+pub struct FunctionDeclArg {
+    pub name: String,
+    pub kind: Type,
+    pub optional: Option<Expr>,
+    pub is_ref: bool,
+}
+
+#[derive(Clone, Debug)]
 pub struct FunctionDecl {
     pub name: String,
-    pub arg_names: Vec<String>,
-    pub arg_types: Vec<Type>,
-    pub arg_refs: Vec<bool>,
-    pub arg_optionals: Vec<Expr>,
+    pub args: Vec<FunctionDeclArg>,
     pub returns: Type,
     pub is_args_typed: bool,
     pub is_public: bool,
@@ -21,13 +27,18 @@ pub struct FunctionDecl {
 
 impl FunctionDecl {
     pub fn into_interface(self) -> FunctionInterface {
+        let args = self.args.into_iter().map(|arg| FunctionDeclarationArgument {
+            name: arg.name,
+            kind: arg.kind,
+            optional: arg.optional,
+            is_ref: arg.is_ref,
+            tok: None,
+        }).collect();
+        
         FunctionInterface {
             id: Some(self.id),
             name: self.name,
-            arg_names: self.arg_names,
-            arg_types: self.arg_types,
-            arg_refs: self.arg_refs,
-            arg_optionals: self.arg_optionals,
+            args,
             returns: self.returns,
             is_public: self.is_public,
             is_failable: self.is_failable,

@@ -1,17 +1,12 @@
 use crate::modules::{types::Type, block::Block};
-use crate::modules::expression::expr::Expr;
-use super::{context::FunctionDecl, function_cache::FunctionInstance};
-
-
+use crate::modules::function::declaration::FunctionDeclarationArgument;
+use super::{context::{FunctionDecl, FunctionDeclArg}, function_cache::FunctionInstance};
 
 #[derive(Clone, Debug)]
 pub struct FunctionInterface {
     pub id: Option<usize>,
     pub name: String,
-    pub arg_names: Vec<String>,
-    pub arg_types: Vec<Type>,
-    pub arg_refs: Vec<bool>,
-    pub arg_optionals : Vec<Expr>,
+    pub args: Vec<FunctionDeclarationArgument>,
     pub returns: Type,
     pub is_public: bool,
     pub is_failable: bool,
@@ -19,13 +14,17 @@ pub struct FunctionInterface {
 
 impl FunctionInterface {
     pub fn into_fun_declaration(self, id: usize) -> FunctionDecl {
-        let is_args_typed = self.arg_types.iter().all(|t| t != &Type::Generic);
+        let is_args_typed = self.args.iter().all(|arg| arg.kind != Type::Generic);
+        let args = self.args.into_iter().map(|arg| FunctionDeclArg {
+            name: arg.name,
+            kind: arg.kind,
+            optional: arg.optional,
+            is_ref: arg.is_ref,
+        }).collect();
+
         FunctionDecl {
             name: self.name,
-            arg_names: self.arg_names,
-            arg_types: self.arg_types,
-            arg_refs: self.arg_refs,
-            arg_optionals: self.arg_optionals,
+            args,
             returns: self.returns,
             is_args_typed,
             is_public: self.is_public,
@@ -37,7 +36,7 @@ impl FunctionInterface {
     pub fn into_fun_instance(self, block: Block) -> FunctionInstance {
         FunctionInstance {
             variant_id: 0,
-            args: self.arg_types,
+            args: self.args.iter().map(|arg| arg.kind.clone()).collect(),
             returns: self.returns,
             block
         }
