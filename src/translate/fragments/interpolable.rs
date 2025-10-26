@@ -108,8 +108,7 @@ impl InterpolableFragment {
 
 /// Scans a string to determine the quoting state, updating the state flags.
 /// Returns `true` if the single-quote state was toggled.
-fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut bool) -> bool {
-    let initial_in_single_quotes = *in_single_quotes;
+fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut bool) {
     let mut backslashes = 0;
 
     for b in s.bytes() {
@@ -130,8 +129,6 @@ fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut
             _ => backslashes = 0,
         }
     }
-
-    initial_in_single_quotes != *in_single_quotes
 }
 
 impl FragmentRenderable for InterpolableFragment {
