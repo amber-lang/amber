@@ -7,6 +7,8 @@
 // 'ABC
 // ABC'
 // a'bABCc'd
+// ABC ABC
+// ABC ABC
 // "ab
 // ---
 // ABC
@@ -22,6 +24,8 @@ trust $ echo '"{str}"' $
 trust $ echo "'{str}" $
 trust $ echo "{str}'" $
 trust $ echo "a'b{str}c'd" $
+trust $ echo '{str} {str}' $
+trust $ echo "{str} {str}" $
 trust $ echo '"a'b $
 echo "---"
 // Reallife examples
