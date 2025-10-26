@@ -65,11 +65,13 @@ impl InterpolableFragment {
         let mut in_double_quotes = false;
         let total_strings = self.strings.len();
         let total_interps = self.interps.len();
+        let mut reopen_single_quotes = false;
 
         for (idx, s) in self.strings.iter_mut().enumerate() {
             // If previous chunk left us inside quotes, reopen at the start.
-            if in_single_quotes {
+            if reopen_single_quotes {
                 s.insert_str(0, "\"'");
+                reopen_single_quotes = false;
             }
 
             scan_quote_state(s, &mut in_single_quotes, &mut in_double_quotes);
@@ -80,6 +82,9 @@ impl InterpolableFragment {
             if in_single_quotes && (has_more_strings || has_more_interps) {
                 // Close the chunk locally so each piece is balanced.
                 s.push_str("'\"");
+                in_single_quotes = false;
+                in_double_quotes = true;
+                reopen_single_quotes = true;
             }
         }
     }
