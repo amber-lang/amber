@@ -63,18 +63,28 @@ impl InterpolableFragment {
     fn balance_single_quotes(&mut self) {
         let mut in_single_quotes = false;
         let mut in_double_quotes = false;
+        let total_strings = self.strings.len();
+        let total_interps = self.interps.len();
+        let mut reopen_single_quotes = false;
 
-        for s in &mut self.strings {
+        for (idx, s) in self.strings.iter_mut().enumerate() {
             // If previous chunk left us inside quotes, reopen at the start.
-            if in_single_quotes {
+            if reopen_single_quotes {
                 s.insert_str(0, "\"'");
+                reopen_single_quotes = false;
             }
 
-            let single_quote_open = scan_quote_state(s, &mut in_single_quotes, &mut in_double_quotes);
+            scan_quote_state(s, &mut in_single_quotes, &mut in_double_quotes);
 
-            if single_quote_open {
+            let has_more_strings = idx + 1 < total_strings;
+            let has_more_interps = idx < total_interps;
+
+            if in_single_quotes && (has_more_strings || has_more_interps) {
                 // Close the chunk locally so each piece is balanced.
                 s.push_str("'\"");
+                in_single_quotes = false;
+                in_double_quotes = true;
+                reopen_single_quotes = true;
             }
         }
     }
@@ -103,8 +113,7 @@ impl InterpolableFragment {
 
 /// Scans a string to determine the quoting state, updating the state flags.
 /// Returns `true` if the single-quote state was toggled.
-fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut bool) -> bool {
-    let initial_in_single_quotes = *in_single_quotes;
+fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut bool) {
     let mut backslashes = 0;
 
     for b in s.bytes() {
@@ -125,8 +134,6 @@ fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut
             _ => backslashes = 0,
         }
     }
-
-    initial_in_single_quotes != *in_single_quotes
 }
 
 impl FragmentRenderable for InterpolableFragment {

@@ -2,9 +2,13 @@
 // Output
 // '
 // a'b
+// 'ABC'
+// "ABC"
 // 'ABC
 // ABC'
 // a'bABCc'd
+// ABC ABC
+// ABC ABC
 // "ab
 // ---
 // ABC
@@ -15,9 +19,13 @@ const space = " "
 
 trust $ echo "'" $
 trust $ echo "a'b" $
+trust $ echo "'{str}'" $
+trust $ echo '"{str}"' $
 trust $ echo "'{str}" $
 trust $ echo "{str}'" $
 trust $ echo "a'b{str}c'd" $
+trust $ echo '{str} {str}' $
+trust $ echo "{str} {str}" $
 trust $ echo '"a'b $
 echo "---"
 // Reallife examples
