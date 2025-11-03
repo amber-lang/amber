@@ -28,7 +28,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Module keywords
         "pub", "import", "from",
         // Function keywords
-        "fun", "return", "ref", "fail", "failed", "succeeded", "then",
+        "fun", "return", "ref", "fail", "failed", "succeeded", "handle",
         // Types
         "Text", "Number", "Bool", "Null",
         // Command Modifiers

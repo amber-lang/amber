@@ -8,7 +8,7 @@ use itertools::izip;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failed::Failed;
 use crate::modules::condition::succeeded::Succeeded;
-use crate::modules::condition::then::Then;
+use crate::modules::condition::handle::Handle;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::modules::expression::expr::{Expr, ExprType};
@@ -26,7 +26,7 @@ pub struct FunctionInvocation {
     col: usize,
     failed: Failed,
     succeeded: Succeeded,
-    then: Then,
+    handle: Handle,
     modifier: CommandModifier,
     is_failable: bool
 }
@@ -59,7 +59,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             col: 0,
             failed: Failed::new(),
             succeeded: Succeeded::new(),
-            then: Then::new(),
+            handle: Handle::new(),
             modifier: CommandModifier::new().parse_expr(),
             is_failable: false
         }
@@ -118,8 +118,8 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
-                match syntax(meta, &mut self.then) {
-                    Ok(_) => return Command::handle_multiple_failure_handlers(meta, "then"),
+                match syntax(meta, &mut self.handle) {
+                    Ok(_) => return Command::handle_multiple_failure_handlers(meta, "handle"),
                     err @ Err(Failure::Loud(_)) => return err,
                     _ => {}
                 }
@@ -134,16 +134,16 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                     Ok(_) => Command::handle_multiple_failure_handlers(meta, "failed"),
                     Err(Failure::Quiet(_)) => error!(meta, tok => {
                         message: "This function can fail. Please handle the failure or success",
-                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'then' block to handle both"
+                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'handle' block to handle both"
                     }),
                     Err(err) => Err(err)
                 }
             } else {
                 let tok = meta.get_current_token();
                 let index = meta.get_index();
-                if let Ok(symbol) = token_by(meta, |word| ["?", "failed", "succeeded", "then"].contains(&word.as_str())) {
+                if let Ok(symbol) = token_by(meta, |word| ["?", "failed", "succeeded", "handle"].contains(&word.as_str())) {
                     // This could be a ternary operator
-                    if symbol == "then" && token(meta, "(").is_err() {
+                    if symbol == "handle" && token(meta, "(").is_err() {
                         meta.set_index(index);
                     } else {
                         return error!(meta, tok => {
@@ -177,10 +177,10 @@ impl TranslateModule for FunctionInvocation {
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);
         if self.is_failable {
-            // Choose between failed, succeeded, or then handler
-            if self.then.is_parsed {
-                let then = self.then.translate(meta);
-                meta.stmt_queue.push_back(then);
+            // Choose between failed, succeeded, or handle handler
+            if self.handle.is_parsed {
+                let handle = self.handle.translate(meta);
+                meta.stmt_queue.push_back(handle);
             } else if self.failed.is_parsed {
                 let failed = self.failed.translate(meta);
                 meta.stmt_queue.push_back(failed);

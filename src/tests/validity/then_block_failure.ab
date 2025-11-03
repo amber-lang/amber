@@ -3,7 +3,7 @@
 
 main {
     silent {
-        $ nonexistent_command $ then(code) {
+        $ nonexistent_command $ handle(code) {
             echo "Command failed with code: {code}"
         }
     }

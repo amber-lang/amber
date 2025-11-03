@@ -1,8 +1,8 @@
 // Output
-// Cannot use both 'then' and 'failed' blocks for the same command
+// Cannot use both 'handle' and 'failed' blocks for the same command
 
 main {
-    $ echo "test" $ then(code) {
+    $ echo "test" $ handle(code) {
         echo "Success!"
     } failed {
         echo "Failed!"

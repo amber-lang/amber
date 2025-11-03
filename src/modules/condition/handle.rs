@@ -6,18 +6,18 @@ use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
 
 #[derive(Debug, Clone)]
-pub struct Then {
+pub struct Handle {
     pub is_parsed: bool,
     block: Box<Block>,
     param_name: String,
     param_global_id: Option<usize>
 }
 
-impl SyntaxModule<ParserMetadata> for Then {
-    syntax_name!("Then Expression");
+impl SyntaxModule<ParserMetadata> for Handle {
+    syntax_name!("Handle Expression");
 
     fn new() -> Self {
-        Then {
+        Handle {
             is_parsed: false,
             block: Box::new(Block::new().with_needs_noop().with_condition()),
             param_name: String::new(),
@@ -26,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for Then {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        match token(meta, "then") {
+        match token(meta, "handle") {
             Ok(_) => {
                 context!({
                     // Parse the parameter in parentheses
@@ -51,14 +51,14 @@ impl SyntaxModule<ParserMetadata> for Then {
 
                     if self.block.is_empty() {
                         let message = Message::new_warn_at_token(meta, meta.get_current_token())
-                            .message("Empty then block")
+                            .message("Empty handle block")
                             .comment("You should use 'trust' modifier to run commands without handling errors");
                         meta.add_message(message);
                     }
                     self.is_parsed = true;
                     Ok(())
                 }, |pos| {
-                    error_pos!(meta, pos, "Failed to parse then block")
+                    error_pos!(meta, pos, "Failed to parse handle block")
                 })
             },
             Err(err) => {
@@ -74,7 +74,7 @@ impl SyntaxModule<ParserMetadata> for Then {
     }
 }
 
-impl TranslateModule for Then {
+impl TranslateModule for Handle {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
             let block = self.block.translate(meta);

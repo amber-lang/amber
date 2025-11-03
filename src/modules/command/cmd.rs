@@ -3,7 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::expression::literal::bool;
 use crate::modules::condition::failed::Failed;
 use crate::modules::condition::succeeded::Succeeded;
-use crate::modules::condition::then::Then;
+use crate::modules::condition::handle::Handle;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
 use super::modifier::CommandModifier;
@@ -17,13 +17,13 @@ pub struct Command {
     modifier: CommandModifier,
     failed: Failed,
     succeeded: Succeeded,
-    then: Then
+    handle: Handle
 }
 
 impl Command {
     pub fn handle_multiple_failure_handlers(meta: &mut ParserMetadata, keyword: &str) -> SyntaxResult {
         let token = meta.get_current_token();
-        if let Ok(word) = token_by(meta, |word| ["failed", "succeeded", "then"].contains(&word.as_str())) {
+        if let Ok(word) = token_by(meta, |word| ["failed", "succeeded", "handle"].contains(&word.as_str())) {
             return error!(meta, token => {
                 message: format!("Cannot use both '{keyword}' and '{}' blocks for the same command", word),
                 comment: "Use either '{keyword}' to handle both success and failure, 'failed' or 'succeeded' blocks, but not both"
@@ -49,7 +49,7 @@ impl SyntaxModule<ParserMetadata> for Command {
             modifier: CommandModifier::new().parse_expr(),
             failed: Failed::new(),
             succeeded: Succeeded::new(),
-            then: Then::new()
+            handle: Handle::new()
         }
     }
 
@@ -63,9 +63,9 @@ impl SyntaxModule<ParserMetadata> for Command {
             let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
             self.failed.set_position(position.clone());
 
-            // Try to parse then block first
-            match syntax(meta, &mut self.then) {
-                Ok(_) => return Command::handle_multiple_failure_handlers(meta, "then"),
+            // Try to parse handle block first
+            match syntax(meta, &mut self.handle) {
+                Ok(_) => return Command::handle_multiple_failure_handlers(meta, "handle"),
                 err @ Err(Failure::Loud(_)) => return err,
                 _ => {}
             }
@@ -81,10 +81,10 @@ impl SyntaxModule<ParserMetadata> for Command {
             match syntax(meta, &mut self.failed) {
                 Ok(_) => Self::handle_multiple_failure_handlers(meta, "failed"),
                 Err(Failure::Quiet(_)) => {
-                    // Neither succeeded, failed, nor then block found
+                    // Neither succeeded, failed, nor handle block found
                     error!(meta, tok => {
                         message: "Every command statement must handle execution result",
-                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'then' block to handle both, or 'trust' modifier to ignore results"
+                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'handle' block to handle both, or 'trust' modifier to ignore results"
                     })
                 },
                 Err(err) => Err(err)
@@ -101,7 +101,7 @@ impl Command {
             .collect::<Vec<FragmentKind>>();
         let failed = self.failed.translate(meta);
         let succeeded = self.succeeded.translate(meta);
-        let then = self.then.translate(meta);
+        let handle = self.handle.translate(meta);
 
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         let mut is_sudo = self.modifier.is_sudo || meta.sudoed;
@@ -122,9 +122,9 @@ impl Command {
         swap(&mut is_silent, &mut meta.silenced);
         swap(&mut is_sudo, &mut meta.sudoed);
 
-        // Choose between failed, succeeded, then, or no handler
-        let handler = if self.then.is_parsed {
-            then
+        // Choose between failed, succeeded, handle, or no handler
+        let handler = if self.handle.is_parsed {
+            handle
         } else if self.failed.is_parsed {
             failed
         } else if self.succeeded.is_parsed {
