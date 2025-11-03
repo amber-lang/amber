@@ -23,7 +23,7 @@ pub fun math_floor(number: Num): Num {
 /// Returns the smallest integer greater than or equal to a number
 #[allow_absurd_cast]
 pub fun math_ceil(number: Num): Num {
-    return math_floor(number) + 1
+    return math_floor(number) + 1.0
 }
 
 /// Returns the absolute value of a number
