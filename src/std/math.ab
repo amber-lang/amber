@@ -30,7 +30,7 @@ pub fun math_ceil(number: Num): Int {
 
 /// Returns the absolute value of a number
 #[allow_absurd_cast]
-pub fun math_abs(number) {
+pub fun math_abs(number: Num) {
     if number < 0: return -number
     return number
 }
