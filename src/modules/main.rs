@@ -9,6 +9,7 @@ use super::variable::variable_name_extensions;
 #[derive(Debug, Clone)]
 pub struct Main {
     pub args: Option<String>,
+    pub args_global_id: Option<usize>,
     pub block: Block,
     pub is_skipped: bool
 }
@@ -19,6 +20,7 @@ impl SyntaxModule<ParserMetadata> for Main {
     fn new() -> Self {
         Self {
             args: None,
+            args_global_id: None,
             block: Block::new().with_no_indent(),
             is_skipped: false
         }
@@ -45,7 +47,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             meta.with_push_scope(|meta| {
                 // Create variables
                 for arg in self.args.iter() {
-                    meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+                    self.args_global_id = meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
                 }
                 // Parse the block
                 syntax(meta, &mut self.block)?;
@@ -69,7 +71,10 @@ impl TranslateModule for Main {
             let global_id = meta.gen_value_id();
             let args = self.args.clone().map_or_else(
                 || FragmentKind::Empty,
-                |name| raw_fragment!("declare -r {name}_{global_id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                |name| {
+                    let id = self.args_global_id.unwrap_or(global_id);
+                    raw_fragment!("declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                }
             );
             // Temporarily decrease the indentation level to counteract
             // the indentation applied by the block translation.  Unlike
