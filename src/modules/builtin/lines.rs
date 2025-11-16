@@ -30,19 +30,29 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "lines")?;
         token(meta, "(")?;
-        let tok = meta.get_current_token();
         let mut path = Expr::new();
         syntax(meta, &mut path)?;
         token(meta, ")")?;
-        if path.get_type() != Type::Text {
-            let msg = format!(
-                "Expected value of type 'Text' but got '{}'",
-                path.get_type()
-            );
-            return error!(meta, tok, msg);
-        }
         self.path = Box::new(Some(path));
         Ok(())
+    }
+}
+
+impl TypeCheckModule for LinesInvocation {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(path) = &*self.path {
+            if path.get_type() != Type::Text {
+                let msg = format!(
+                    "Expected value of type 'Text' but got '{}'",
+                    path.get_type()
+                );
+                let pos = path.get_position(meta);
+                return error_pos!(meta, pos, msg);
+            }
+            Ok(())
+        } else {
+          unreachable!()
+        }
     }
 }
 
@@ -74,9 +84,6 @@ impl LinesInvocation {
             .expect("Cannot read lines without provided path in iterator loop")
     }
 }
-
-
-impl_noop_typecheck!(LinesInvocation);
 
 impl DocumentationModule for LinesInvocation {
     fn document(&self, _meta: &ParserMetadata) -> String {

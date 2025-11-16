@@ -30,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for Command {
         Command {
             strings: vec![],
             interps: vec![],
-            modifier: CommandModifier::new().parse_expr(),
+            modifier: CommandModifier::new_expr(),
             failed: Failed::new()
         }
     }
@@ -111,10 +111,10 @@ impl TypeCheckModule for Command {
         for interp in &mut self.interps {
             interp.typecheck(meta)?;
         }
-        
+
         // Type-check the failed block
         self.failed.typecheck(meta)?;
-        
+
         Ok(())
     }
 }

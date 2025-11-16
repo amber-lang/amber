@@ -61,25 +61,25 @@ impl TypeCheckModule for VariableSet {
         if let Some(index) = &mut self.index {
             index.typecheck(meta)?;
         }
-        
+
         let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         self.var_type = variable.kind.clone();
         prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
-        
+
         if let Some(ref index_expr) = self.index {
             if !matches!(variable.kind, Type::Array(_)) {
                 let left_type = variable.kind.clone();
                 return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
             }
-            
+
             // Validate the index type (must be integer, not range, for assignment)
             validate_index_accessor(meta, index_expr, false, self.tok.clone())?;
         }
-        
+
         let right_type = self.expr.get_type();
-        
+
         if self.index.is_some() {
             if let Type::Array(kind) = &self.var_type {
                 if !right_type.is_allowed_in(kind) {
@@ -92,7 +92,7 @@ impl TypeCheckModule for VariableSet {
             let tok = self.expr.get_position(meta);
             return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
         }
-        
+
         Ok(())
     }
 }

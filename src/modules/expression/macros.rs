@@ -220,7 +220,7 @@ macro_rules! parse_expression {
 
 #[macro_export]
 macro_rules! typecheck_expression {
-    ($self:ident, $meta:ident, $expr_type:ident, [$($expression:ident),*]) => {
+    ($self:ident, $meta:expr, $expr_type:expr, [$($expression:ident),*]) => {
         match $expr_type {
             $(
                 ExprType::$expression(expr) => {

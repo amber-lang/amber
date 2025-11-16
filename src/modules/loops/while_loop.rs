@@ -36,12 +36,7 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
             ));
         }
 
-        // Save loop context state and set it to true
-        meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-            // Parse loop
-            syntax(meta, &mut self.block)?;
-            Ok(())
-        })?;
+        syntax(meta, &mut self.block)?;
         Ok(())
     }
 }
@@ -62,10 +57,10 @@ impl TypeCheckModule for WhileLoop {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Type-check the condition expression
         self.condition.typecheck(meta)?;
-        
-        // Type-check the block
-        self.block.typecheck(meta)?;
-        
+        // Save loop context state and set it to true
+        meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+            self.block.typecheck(meta)
+        })?;
         Ok(())
     }
 }

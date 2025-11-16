@@ -174,14 +174,12 @@ impl SyntaxModule<ParserMetadata> for Expr {
 
 impl TypeCheckModule for Expr {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(expr_type) = &mut self.value {
-            typecheck_expression!(self, meta, expr_type, [
-                Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
-                Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
-                Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-                Range, Status, Sub, Ternary, Text, VariableGet
-            ]);
-        }
+        typecheck_expression!(self, meta, self.value.as_mut().unwrap(), [
+            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+            Range, Status, Sub, Ternary, Text, VariableGet
+        ]);
         Ok(())
     }
 }

@@ -9,7 +9,7 @@ use crate::modules::variable::{
     set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
-use crate::handle_types;
+use crate::{handle_types, typecheck_statement};
 use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition,
@@ -45,7 +45,7 @@ use super::comment_doc::CommentDoc;
 use super::comment::Comment;
 
 #[derive(Debug, Clone)]
-pub enum StatementType {
+pub enum StmtType {
     Expr(Expr),
     VariableInit(VariableInit),
     VariableSet(VariableSet),
@@ -77,11 +77,11 @@ pub enum StatementType {
 
 #[derive(Debug, Clone)]
 pub struct Statement {
-    pub value: Option<StatementType>
+    pub value: Option<StmtType>
 }
 
 impl Statement {
-    handle_types!(StatementType, [
+    handle_types!(StmtType, [
         // Imports
         Import,
         // Functions
@@ -105,7 +105,7 @@ impl Statement {
     ]);
 
     // Get result out of the provided module and save it in the internal state
-    fn get<M,S>(&mut self, meta: &mut M, mut module: S, cb: impl Fn(S) -> StatementType) -> SyntaxResult
+    fn get<M,S>(&mut self, meta: &mut M, mut module: S, cb: impl Fn(S) -> StmtType) -> SyntaxResult
     where
         M: Metadata,
         S: SyntaxModule<M>
@@ -121,7 +121,7 @@ impl Statement {
 
     pub fn get_docs_item_name(&self) -> Option<String> {
         match &self.value {
-            Some(StatementType::FunctionDeclaration(inner)) => Some(inner.name.clone()),
+            Some(StmtType::FunctionDeclaration(inner)) => Some(inner.name.clone()),
             _ => None,
         }
     }
@@ -157,37 +157,13 @@ impl SyntaxModule<ParserMetadata> for Statement {
 
 impl TypeCheckModule for Statement {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(statement) = &mut self.value {
-            match statement {
-                StatementType::Expr(expr) => expr.typecheck(meta)?,
-                StatementType::VariableInit(var_init) => var_init.typecheck(meta)?,
-                StatementType::VariableSet(var_set) => var_set.typecheck(meta)?,
-                StatementType::IfCondition(if_cond) => if_cond.typecheck(meta)?,
-                StatementType::IfChain(if_chain) => if_chain.typecheck(meta)?,
-                StatementType::ShorthandAdd(shorthand) => shorthand.typecheck(meta)?,
-                StatementType::ShorthandSub(shorthand) => shorthand.typecheck(meta)?,
-                StatementType::ShorthandMul(shorthand) => shorthand.typecheck(meta)?,
-                StatementType::ShorthandDiv(shorthand) => shorthand.typecheck(meta)?,
-                StatementType::ShorthandModulo(shorthand) => shorthand.typecheck(meta)?,
-                StatementType::InfiniteLoop(loop_stmt) => loop_stmt.typecheck(meta)?,
-                StatementType::IterLoop(iter_loop) => iter_loop.typecheck(meta)?,
-                StatementType::WhileLoop(while_loop) => while_loop.typecheck(meta)?,
-                StatementType::Break(_) => {}, // No type checking needed for break
-                StatementType::Continue(_) => {}, // No type checking needed for continue
-                StatementType::FunctionDeclaration(func_decl) => func_decl.typecheck(meta)?,
-                StatementType::Return(ret) => ret.typecheck(meta)?,
-                StatementType::Fail(fail) => fail.typecheck(meta)?,
-                StatementType::Import(_) => {}, // No type checking needed for imports
-                StatementType::Main(main) => main.typecheck(meta)?,
-                StatementType::Cd(cd) => cd.typecheck(meta)?,
-                StatementType::Echo(echo) => echo.typecheck(meta)?,
-                StatementType::Mv(mv) => mv.typecheck(meta)?,
-                StatementType::Exit(exit) => exit.typecheck(meta)?,
-                StatementType::CommandModifier(cmd_mod) => cmd_mod.typecheck(meta)?,
-                StatementType::Comment(_) => {}, // No type checking needed for comments
-                StatementType::CommentDoc(_) => {}, // No type checking needed for doc comments
-            }
-        }
+        typecheck_statement!(meta, self.value.as_mut().unwrap(), [
+            Break, Cd, CommandModifier, Comment, CommentDoc, Continue, Echo,
+            Exit, Expr, Fail, FunctionDeclaration, IfChain, IfCondition,
+            Import, InfiniteLoop, IterLoop, Main, Mv, Return, ShorthandAdd,
+            ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
+            VariableInit, VariableSet, WhileLoop
+        ]);
         Ok(())
     }
 }
@@ -198,7 +174,7 @@ impl TranslateModule for Statement {
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
         match statement {
-            StatementType::Expr(expr) => {
+            StmtType::Expr(expr) => {
                 match &expr.value {
                     Some(ExprType::Command(cmd)) => {
                         cmd.translate_command_statement(meta)

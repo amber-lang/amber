@@ -55,7 +55,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             line: 0,
             col: 0,
             failed: Failed::new(),
-            modifier: CommandModifier::new().parse_expr(),
+            modifier: CommandModifier::new_expr(),
             is_failable: false
         }
     }

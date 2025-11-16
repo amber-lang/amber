@@ -5,16 +5,18 @@ use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]
 pub struct CommandModifier {
-    pub block: Box<Block>,
-    pub is_block: bool,
+    pub block: Option<Box<Block>>,
     pub is_trust: bool,
     pub is_silent: bool
 }
 
 impl CommandModifier {
-    pub fn parse_expr(mut self) -> Self {
-        self.is_block = false;
-        self
+    pub fn new_expr() -> Self {
+        CommandModifier {
+            block: None,
+            is_trust: false,
+            is_silent: false
+        }
     }
 
     pub fn use_modifiers<F>(
@@ -72,8 +74,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 
     fn new() -> Self {
         CommandModifier {
-            block: Box::new(Block::new().with_no_indent()),
-            is_block: true,
+            block: Some(Box::new(Block::new().with_no_indent())),
             is_trust: false,
             is_silent: false
         }
@@ -81,9 +82,10 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.parse_modifier_sequence(meta)?;
-        if self.is_block {
+        if let Some(mut block) = self.block.take() {
             return self.use_modifiers(meta, |this, meta| {
-                syntax(meta, &mut *this.block)?;
+                syntax(meta, &mut *block)?;
+                this.block = Some(block);
                 Ok(())
             })
         }
@@ -93,9 +95,9 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 
 impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if self.is_block {
+        if let Some(block) = &self.block {
             meta.silenced = self.is_silent;
-            let result = self.block.translate(meta);
+            let result = block.translate(meta);
             meta.silenced = false;
             result
         } else {
@@ -104,8 +106,14 @@ impl TranslateModule for CommandModifier {
     }
 }
 
-
-impl_noop_typecheck!(CommandModifier);
+impl TypeCheckModule for CommandModifier {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(block) = &mut self.block {
+            block.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
 
 impl DocumentationModule for CommandModifier {
     fn document(&self, _meta: &ParserMetadata) -> String {

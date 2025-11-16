@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for Mv {
             source: Box::new(Expr::new()),
             destination: Box::new(Expr::new()),
             failed: Failed::new(),
-            modifier: CommandModifier::new().parse_expr(),
+            modifier: CommandModifier::new_expr(),
         }
     }
 
@@ -63,7 +63,7 @@ impl TypeCheckModule for Mv {
         self.source.typecheck(meta)?;
         self.destination.typecheck(meta)?;
         self.failed.typecheck(meta)?;
-        
+
         // Then check if they're the correct types
         let source_type = self.source.get_type();
         if source_type != Type::Text {
@@ -73,7 +73,7 @@ impl TypeCheckModule for Mv {
                 comment: format!("Given type: {}, expected type: {}", source_type, Type::Text)
             });
         }
-        
+
         let dest_type = self.destination.get_type();
         if dest_type != Type::Text {
             let position = self.destination.get_position(meta);
@@ -82,7 +82,7 @@ impl TypeCheckModule for Mv {
                 comment: format!("Given type: {}, expected type: {}", dest_type, Type::Text)
             });
         }
-        
+
         Ok(())
     }
 }
