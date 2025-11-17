@@ -14,6 +14,6 @@ The package contains all the required install scripts and dependencies. You can 
 }
 ```
 
-The package is avaiable as `amber-lang` on [nixpkgs](https://github.com/NixOS/nixpkgs/pull/313774).
+The package is available as `amber-lang` on [nixpkgs](https://github.com/NixOS/nixpkgs/pull/313774).
 
 While developing with Nix, the flake defines all dependencies for `nix develop` (or `direnv` if used).

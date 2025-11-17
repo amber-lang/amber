@@ -3,7 +3,8 @@ import { symlink_create, temp_dir_create } from "std/fs"
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ touch {tmpdir}/amber-symbolic $
-    if symlink_create("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link") {
+    trust symlink_create("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link")
+    if status == 0 {
         echo "Succeeded"
     } else {
         echo "failed"

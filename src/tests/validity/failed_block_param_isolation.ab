@@ -1,0 +1,12 @@
+// Output
+// Exit code: 127
+// 0
+
+// Verify that using a parameter prevents status from being overwritten
+main {
+    silent $ you_do_not_have_this $ failed(error) {
+        trust $ true $
+        echo "Exit code: {error}"
+    }
+    echo status
+}

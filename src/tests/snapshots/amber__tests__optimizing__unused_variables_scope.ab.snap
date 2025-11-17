@@ -2,7 +2,7 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
-__0_outer_a=10
-__2_inner_a=30
-echo "${__2_inner_a}"
-echo "${__0_outer_a}"
+outer_a_0=10
+inner_a_2=30
+echo "${inner_a_2}"
+echo "${outer_a_0}"

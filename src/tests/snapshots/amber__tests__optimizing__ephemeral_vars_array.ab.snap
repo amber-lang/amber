@@ -2,5 +2,5 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
-__0_array=(1 2 3)
-echo "${__0_array[@]}"
+array_0=(1 2 3)
+echo "${array_0[@]}"

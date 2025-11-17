@@ -1,0 +1,10 @@
+fun test_failable(): Num? {
+    if 1 > 5 {
+        fail 1
+    }
+    return 42
+}
+
+test_failable() succeeded {
+    echo "Succeeded"
+}

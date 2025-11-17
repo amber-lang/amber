@@ -5,7 +5,7 @@ use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use itertools::izip;
 use crate::modules::command::modifier::CommandModifier;
-use crate::modules::condition::failed::Failed;
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::modules::expression::expr::{Expr, ExprType};
@@ -22,7 +22,7 @@ pub struct FunctionInvocation {
     id: usize,
     line: usize,
     col: usize,
-    failed: Failed,
+    failure_handler: FailureHandler,
     modifier: CommandModifier,
     is_failable: bool
 }
@@ -54,7 +54,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             id: 0,
             line: 0,
             col: 0,
-            failed: Failed::new(),
+            failure_handler: FailureHandler::new(),
             modifier: CommandModifier::new_expr(),
             is_failable: false
         }
@@ -70,7 +70,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             }
             self.name = variable(meta, variable_name_extensions())?;
             self.name_tok = tok.clone();
-            self.failed.set_function_name(self.name.clone());
+            self.failure_handler.set_function_name(self.name.clone());
 
             // Parse arguments syntax
             token(meta, "(")?;
@@ -88,10 +88,10 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             }
 
             // Store position for later error reporting
-            self.failed.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
+            self.failure_handler.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
 
             // Try to parse the failed block if present (optional in parse phase)
-            syntax(meta, &mut self.failed).ok();
+            syntax(meta, &mut self.failure_handler).ok();
 
             Ok(())
         })
@@ -135,18 +135,18 @@ impl TypeCheckModule for FunctionInvocation {
         // Handle failable function logic
         self.is_failable = function_unit.is_failable;
         if self.is_failable {
-            if !self.failed.is_parsed {
+            if !self.failure_handler.is_parsed {
                 return error!(meta, self.name_tok.clone() => {
-                    message: "This function can fail. Please handle the failure",
-                    comment: "You can use '?' in the end to propagate the failure"
+                    message: format!("Function '{}' can potentially fail but is left unhandled.", self.name),
+                    comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'exited' block to handle both"
                 });
             }
-            self.failed.typecheck(meta)?;
+            self.failure_handler.typecheck(meta)?;
         } else {
-            if self.failed.is_parsed {
+            if self.failure_handler.is_parsed {
                 let message = Message::new_warn_at_token(meta, self.name_tok.clone())
                     .message("This function cannot fail")
-                    .comment("You can remove the 'failed' block or '?' at the end");
+                    .comment("You can remove the failure handler block or '?' at the end");
                 meta.add_message(message);
             }
         }
@@ -157,7 +157,9 @@ impl TypeCheckModule for FunctionInvocation {
 
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let name = raw_fragment!("{}__{}_v{}", self.name, self.id, self.variant_id);
+        // Get the variable prefix based on function name casing
+        let prefix = meta.gen_variable_prefix(&self.name);
+        let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
@@ -171,13 +173,15 @@ impl TranslateModule for FunctionInvocation {
         let args = ListFragment::new(args).with_spaces().to_frag();
         meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);
-        if self.is_failable {
-            let failed = self.failed.translate(meta);
-            meta.stmt_queue.push_back(failed);
+        if self.is_failable && self.failure_handler.is_parsed {
+            let handler = self.failure_handler.translate(meta);
+            meta.stmt_queue.push_back(handler);
         }
         if self.kind != Type::Null {
-            let invocation_return = format!("__ret_{}{}_v{}", self.name, self.id, self.variant_id);
-            let invocation_instance = format!("__ret_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
+            // Get the variable prefix for return values
+            let prefix = meta.gen_variable_prefix(&self.name);
+            let invocation_return = format!("{}ret_{}{}_v{}", prefix, self.name, self.id, self.variant_id);
+            let invocation_instance = format!("{}ret_{}{}_v{}__{}_{}", prefix, self.name, self.id, self.variant_id, self.line, self.col);
             let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
             let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
             meta.push_ephemeral_variable(var_stmt).to_frag()

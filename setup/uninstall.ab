@@ -4,11 +4,11 @@ import { get_arch, get_place, get_bins_folder } from "./shared.ab"
 echo ""
 
 main(args) {
-    let arch = get_arch()
+    const arch = get_arch()
 
-    let user_only_install = array_contains(args, "--user")
-    let place = get_place(user_only_install)
-    let bins_folder = get_bins_folder(user_only_install)
+    const user_only_install = array_contains(args, "--user")
+    const place = get_place(user_only_install)
+    const bins_folder = get_bins_folder(user_only_install)
 
     trust $ test -d "{place}" > /dev/null $
 

@@ -304,11 +304,13 @@ impl TranslateModule for FunctionDeclaration {
         let mut result = vec![];
         let blocks = meta.fun_cache.get_instances_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_meta.clone();
+        // Get the variable prefix based on function name casing
+        let prefix = meta.gen_variable_prefix(&self.name);
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
             meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
             // Parse the function body
-            let name = raw_fragment!("{}__{}_v{}", self.name, self.id, index);
+            let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
             result.push(fragments!(name, "() {"));
             if let Some(args) = self.set_args_as_variables(meta, function) {
                 result.push(args);

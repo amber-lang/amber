@@ -3,10 +3,11 @@ import * from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-	trust $ cd {tmpdir} $
-	if file_download("http://127.0.0.1:8081/", "./test.txt") {
-		if file_exists("./test.txt") {
-			    echo "ok"
-		}
-	}
+    cd tmpdir
+    trust file_download("http://127.0.0.1:8081/", "./test.txt")
+    if status == 0 {
+        if file_exists("./test.txt") {
+            echo "ok"
+        }
+    }
 }

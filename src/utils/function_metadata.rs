@@ -1,6 +1,7 @@
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
+use crate::utils::is_all_caps;
 
 #[derive(Clone)]
 pub struct FunctionMetadata {
@@ -18,7 +19,11 @@ impl FunctionMetadata {
     }
 
     pub fn mangled_name(&self) -> String {
-        format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
+        if is_all_caps(&self.name) {
+            format!("__ret_{}{}_v{}", self.name, self.id, self.variant)
+        } else {
+            format!("ret_{}{}_v{}", self.name, self.id, self.variant)
+        }
     }
 
     pub fn get_type(&self) -> Type {

@@ -1,0 +1,8 @@
+// Output
+// Cannot use both 'succeeded' and 'failed' blocks for the same command
+
+$ echo "test" $ succeeded {
+    echo "Success!"
+} failed {
+    echo "Failed!"
+}
