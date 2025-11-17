@@ -28,22 +28,11 @@ impl SyntaxModule<ParserMetadata> for Exit {
     }
 }
 
-impl TranslateModule for Exit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let exit_code = self.code.as_ref()
-            .map(|expr| expr.translate(meta))
-            .unwrap_or(fragments!("0"));
-        fragments!("exit ", exit_code)
-    }
-}
-
 impl TypeCheckModule for Exit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if let Some(ref mut code_expr) = self.code {
-            // First type-check the nested expression
             code_expr.typecheck(meta)?;
-            
-            // Then check if it's the correct type
+
             let code_type = code_expr.get_type();
             if code_type != Type::Int {
                 let position = code_expr.get_position(meta);
@@ -54,6 +43,15 @@ impl TypeCheckModule for Exit {
             }
         }
         Ok(())
+    }
+}
+
+impl TranslateModule for Exit {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let exit_code = self.code.as_ref()
+            .map(|expr| expr.translate(meta))
+            .unwrap_or(fragments!("0"));
+        fragments!("exit ", exit_code)
     }
 }
 

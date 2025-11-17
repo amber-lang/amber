@@ -55,20 +55,20 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
     }
 }
 
+impl TypeCheckModule for VariableInit {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        self.handle_add_variable(meta)?;
+        Ok(())
+    }
+}
+
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let expr = self.expr.translate(meta);
         VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
             .with_global_id(self.global_id)
             .to_frag()
-    }
-}
-
-impl TypeCheckModule for VariableInit {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.expr.typecheck(meta)?;
-        self.handle_add_variable(meta)?;
-        Ok(())
     }
 }
 

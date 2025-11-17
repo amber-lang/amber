@@ -34,14 +34,17 @@ impl SyntaxModule<ParserMetadata> for Integer {
     }
 }
 
+impl TypeCheckModule for Integer {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Integer {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         RawFragment::from(self.value.to_string()).to_frag()
     }
 }
-
-
-impl_noop_typecheck!(Integer);
 
 impl DocumentationModule for Integer {
     fn document(&self, _meta: &ParserMetadata) -> String {

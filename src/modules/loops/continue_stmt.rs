@@ -23,20 +23,19 @@ impl SyntaxModule<ParserMetadata> for Continue {
     }
 }
 
-impl TranslateModule for Continue {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("continue")
-    }
-}
-
 impl TypeCheckModule for Continue {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Detect if the continue statement is inside a loop
         if !meta.context.is_loop_ctx {
             return error!(meta, self.tok.clone(), "Continue statement can only be used inside a loop")
-
         }
         Ok(())
+    }
+}
+
+impl TranslateModule for Continue {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("continue")
     }
 }
 

@@ -39,24 +39,10 @@ impl SyntaxModule<ParserMetadata> for Return {
     }
 }
 
-impl TranslateModule for Return {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let fun_name = meta.fun_meta.as_ref()
-            .map(FunctionMetadata::mangled_name)
-            .expect("Function name and return type not set");
-        let result = self.expr.translate(meta);
-        let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
-            .with_optimization_when_unused(false);
-        meta.stmt_queue.push_back(var_stmt.to_frag());
-        fragments!("return 0")
-    }
-}
-
-
 impl TypeCheckModule for Return {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
-        
+
         let ret_type = meta.context.fun_ret_type.as_ref();
         let expr_type = &self.expr.get_type();
         match ret_type {
@@ -74,6 +60,19 @@ impl TypeCheckModule for Return {
             }
         }
         Ok(())
+    }
+}
+
+impl TranslateModule for Return {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let fun_name = meta.fun_meta.as_ref()
+            .map(FunctionMetadata::mangled_name)
+            .expect("Function name and return type not set");
+        let result = self.expr.translate(meta);
+        let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
+            .with_optimization_when_unused(false);
+        meta.stmt_queue.push_back(var_stmt.to_frag());
+        fragments!("return 0")
     }
 }
 

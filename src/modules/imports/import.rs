@@ -187,12 +187,6 @@ impl SyntaxModule<ParserMetadata> for Import {
     }
 }
 
-impl TranslateModule for Import {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        FragmentKind::Empty
-    }
-}
-
 impl TypeCheckModule for Import {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if !meta.is_global_scope() {
@@ -202,6 +196,12 @@ impl TypeCheckModule for Import {
         let code = self.resolve_import(meta)?;
         self.handle_import(meta, code)?;
         Ok(())
+    }
+}
+
+impl TranslateModule for Import {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        FragmentKind::Empty
     }
 }
 

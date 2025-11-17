@@ -57,6 +57,31 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
     }
 }
 
+impl TypeCheckModule for VariableGet {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
+        self.global_id = variable.global_id;
+        self.is_ref = variable.is_ref;
+        self.kind = variable.kind.clone();
+
+        // Typecheck and validate index expression if present
+        if let Some(ref mut index_expr) = self.index.as_mut() {
+            // Check if the variable can be indexed
+            if !matches!(variable.kind, Type::Array(_)) {
+                return error!(meta, self.tok.clone(), format!("Cannot index a non-array variable of type '{}'", self.kind));
+            }
+
+            // Typecheck the index expression
+            index_expr.typecheck(meta)?;
+
+            // Validate the index type
+            validate_index_accessor(meta, index_expr, true, self.tok.clone())?;
+        }
+
+        Ok(())
+    }
+}
+
 impl TranslateModule for VariableGet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         VarExprFragment::new(&self.name, self.get_type())
@@ -67,34 +92,8 @@ impl TranslateModule for VariableGet {
     }
 }
 
-
 impl DocumentationModule for VariableGet {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
-    }
-}
-
-impl TypeCheckModule for VariableGet {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
-        self.global_id = variable.global_id;
-        self.is_ref = variable.is_ref;
-        self.kind = variable.kind.clone();
-        
-        // Typecheck and validate index expression if present
-        if let Some(ref mut index_expr) = self.index.as_mut() {
-            // Check if the variable can be indexed
-            if !matches!(variable.kind, Type::Array(_)) {
-                return error!(meta, self.tok.clone(), format!("Cannot index a non-array variable of type '{}'", self.kind));
-            }
-            
-            // Typecheck the index expression
-            index_expr.typecheck(meta)?;
-            
-            // Validate the index type
-            validate_index_accessor(meta, index_expr, true, self.tok.clone())?;
-        }
-        
-        Ok(())
     }
 }

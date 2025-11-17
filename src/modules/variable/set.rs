@@ -42,19 +42,6 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
     }
 }
 
-impl TranslateModule for VariableSet {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let index = self.index.as_ref().map(|v| v.translate(meta));
-        let expr = self.expr.translate(meta);
-        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
-            .with_global_id(self.global_id)
-            .with_ref(self.is_ref)
-            .with_index(index)
-            .to_frag()
-    }
-}
-
-
 impl TypeCheckModule for VariableSet {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
@@ -94,6 +81,18 @@ impl TypeCheckModule for VariableSet {
         }
 
         Ok(())
+    }
+}
+
+impl TranslateModule for VariableSet {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let index = self.index.as_ref().map(|v| v.translate(meta));
+        let expr = self.expr.translate(meta);
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .with_index(index)
+            .to_frag()
     }
 }
 

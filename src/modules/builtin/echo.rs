@@ -24,16 +24,15 @@ impl SyntaxModule<ParserMetadata> for Echo {
     }
 }
 
-impl TranslateModule for Echo {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("echo ", self.value.translate(meta))
-    }
-}
-
-
 impl TypeCheckModule for Echo {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.value.typecheck(meta)
+    }
+}
+
+impl TranslateModule for Echo {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("echo ", self.value.translate(meta))
     }
 }
 

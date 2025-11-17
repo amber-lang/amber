@@ -14,4 +14,3 @@ pub use crate::translate::module::TranslateModule;
 pub use crate::translate::compute::ArithOp;
 pub use crate::utils::{ParserMetadata, TranslateMetadata};
 pub use crate::modules::typecheck::TypeCheckModule;
-pub use crate::impl_noop_typecheck;

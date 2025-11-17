@@ -39,17 +39,6 @@ impl SyntaxModule<ParserMetadata> for Text {
     }
 }
 
-impl TranslateModule for Text {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Translate all interpolations
-        let interps = self.interps.iter()
-            .map(|item| item.translate(meta).with_quotes(false))
-            .collect::<Vec<FragmentKind>>();
-        InterpolableFragment::new(self.strings.clone(), interps, InterpolableRenderType::StringLiteral).to_frag()
-    }
-}
-
-
 impl TypeCheckModule for Text {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Type check all interpolated expressions
@@ -57,6 +46,16 @@ impl TypeCheckModule for Text {
             expr.typecheck(meta)?;
         }
         Ok(())
+    }
+}
+
+impl TranslateModule for Text {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        // Translate all interpolations
+        let interps = self.interps.iter()
+            .map(|item| item.translate(meta).with_quotes(false))
+            .collect::<Vec<FragmentKind>>();
+        InterpolableFragment::new(self.strings.clone(), interps, InterpolableRenderType::StringLiteral).to_frag()
     }
 }
 

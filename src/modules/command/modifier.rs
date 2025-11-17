@@ -93,6 +93,15 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
     }
 }
 
+impl TypeCheckModule for CommandModifier {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(block) = &mut self.block {
+            block.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
+
 impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if let Some(block) = &self.block {
@@ -103,15 +112,6 @@ impl TranslateModule for CommandModifier {
         } else {
             FragmentKind::Empty
         }
-    }
-}
-
-impl TypeCheckModule for CommandModifier {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(block) = &mut self.block {
-            block.typecheck(meta)?;
-        }
-        Ok(())
     }
 }
 

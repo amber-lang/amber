@@ -28,14 +28,17 @@ impl SyntaxModule<ParserMetadata> for Status {
     }
 }
 
+impl TypeCheckModule for Status {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Status {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         VarExprFragment::new("__status", Type::Int).to_frag()
     }
 }
-
-
-impl_noop_typecheck!(Status);
 
 impl DocumentationModule for Status {
     fn document(&self, _meta: &ParserMetadata) -> String {

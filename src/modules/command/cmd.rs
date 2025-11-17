@@ -98,24 +98,18 @@ impl Command {
     }
 }
 
-impl TranslateModule for Command {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        self.translate_command(meta, false)
-    }
-}
-
-
 impl TypeCheckModule for Command {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check all interpolated expressions
         for interp in &mut self.interps {
             interp.typecheck(meta)?;
         }
+        self.failed.typecheck(meta)
+    }
+}
 
-        // Type-check the failed block
-        self.failed.typecheck(meta)?;
-
-        Ok(())
+impl TranslateModule for Command {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        self.translate_command(meta, false)
     }
 }
 

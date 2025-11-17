@@ -91,20 +91,8 @@ impl TranslateModule for IterLoop {
     }
 }
 
-impl IterLoop {
-    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
-        if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
-            Some(value.translate_path(meta))
-        } else {
-            None
-        }
-    }
-}
-
-
 impl TypeCheckModule for IterLoop {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check the iterator expression
         self.iter_expr.typecheck(meta)?;
 
         // Determine iterator type after typechecking
@@ -132,6 +120,16 @@ impl TypeCheckModule for IterLoop {
         })?;
 
         Ok(())
+    }
+}
+
+impl IterLoop {
+    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
+        if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
+            Some(value.translate_path(meta))
+        } else {
+            None
+        }
     }
 }
 

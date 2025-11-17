@@ -41,6 +41,17 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
     }
 }
 
+impl TypeCheckModule for WhileLoop {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.condition.typecheck(meta)?;
+        // Save loop context state and set it to true
+        meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+            self.block.typecheck(meta)
+        })?;
+        Ok(())
+    }
+}
+
 impl TranslateModule for WhileLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let result = vec![
@@ -49,19 +60,6 @@ impl TranslateModule for WhileLoop {
             fragments!("done")
         ];
         BlockFragment::new(result, false).to_frag()
-    }
-}
-
-
-impl TypeCheckModule for WhileLoop {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check the condition expression
-        self.condition.typecheck(meta)?;
-        // Save loop context state and set it to true
-        meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-            self.block.typecheck(meta)
-        })?;
-        Ok(())
     }
 }
 

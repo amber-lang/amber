@@ -23,18 +23,11 @@ impl SyntaxModule<ParserMetadata> for Cd {
     }
 }
 
-impl TranslateModule for Cd {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("cd ", self.value.translate(meta), " || exit")
-    }
-}
-
-
 impl TypeCheckModule for Cd {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // First, type-check the nested expression
         self.value.typecheck(meta)?;
-        
+
         // Then check if it's the correct type
         let path_type = self.value.get_type();
         if path_type != Type::Text {
@@ -45,6 +38,12 @@ impl TypeCheckModule for Cd {
             });
         }
         Ok(())
+    }
+}
+
+impl TranslateModule for Cd {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("cd ", self.value.translate(meta), " || exit")
     }
 }
 

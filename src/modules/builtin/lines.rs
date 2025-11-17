@@ -40,7 +40,8 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
 
 impl TypeCheckModule for LinesInvocation {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(path) = &*self.path {
+        if let Some(path) = &mut *self.path {
+            path.typecheck(meta)?;
             if path.get_type() != Type::Text {
                 let msg = format!(
                     "Expected value of type 'Text' but got '{}'",

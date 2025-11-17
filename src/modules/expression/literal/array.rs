@@ -69,17 +69,6 @@ impl SyntaxModule<ParserMetadata> for Array {
     }
 }
 
-impl TranslateModule for Array {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let id = meta.gen_value_id();
-        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
-        let args = ListFragment::new(args).with_spaces().to_frag();
-        let var_stmt = VarStmtFragment::new("__array", self.kind.clone(), args).with_global_id(id);
-        meta.push_ephemeral_variable(var_stmt).to_frag()
-    }
-}
-
-
 impl TypeCheckModule for Array {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // First type-check all the expressions
@@ -128,6 +117,16 @@ impl TypeCheckModule for Array {
         }
 
         Ok(())
+    }
+}
+
+impl TranslateModule for Array {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let id = meta.gen_value_id();
+        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
+        let args = ListFragment::new(args).with_spaces().to_frag();
+        let var_stmt = VarStmtFragment::new("__array", self.kind.clone(), args).with_global_id(id);
+        meta.push_ephemeral_variable(var_stmt).to_frag()
     }
 }
 

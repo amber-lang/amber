@@ -26,12 +26,6 @@ impl SyntaxModule<ParserMetadata> for Break {
     }
 }
 
-impl TranslateModule for Break {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("break")
-    }
-}
-
 impl TypeCheckModule for Break {
   fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
     // Detect if the break statement is inside a loop
@@ -40,6 +34,12 @@ impl TypeCheckModule for Break {
     }
     Ok(())
   }
+}
+
+impl TranslateModule for Break {
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("break")
+    }
 }
 
 impl DocumentationModule for Break {

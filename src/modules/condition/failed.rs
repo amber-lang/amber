@@ -82,6 +82,12 @@ impl SyntaxModule<ParserMetadata> for Failed {
     }
 }
 
+impl TypeCheckModule for Failed {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.block.typecheck(meta)
+    }
+}
+
 impl TranslateModule for Failed {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_parsed {
@@ -130,12 +136,5 @@ impl TranslateModule for Failed {
         } else {
             FragmentKind::Empty
         }
-    }
-}
-
-impl TypeCheckModule for Failed {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check the failed block
-        self.block.typecheck(meta)
     }
 }

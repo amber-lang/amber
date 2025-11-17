@@ -63,6 +63,18 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
     }
 }
 
+impl TypeCheckModule for IfCondition {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        self.true_block.typecheck(meta)?;
+        // Type-check the false block if it exists
+        if let Some(false_block) = &mut self.false_block {
+            false_block.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
+
 impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
@@ -74,24 +86,6 @@ impl TranslateModule for IfCondition {
         }
         result.push(fragments!("fi"));
         BlockFragment::new(result, false).to_frag()
-    }
-}
-
-
-impl TypeCheckModule for IfCondition {
-    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check the condition expression
-        self.expr.typecheck(meta)?;
-
-        // Type-check the true block
-        self.true_block.typecheck(meta)?;
-
-        // Type-check the false block if it exists
-        if let Some(false_block) = &mut self.false_block {
-            false_block.typecheck(meta)?;
-        }
-
-        Ok(())
     }
 }
 

@@ -30,14 +30,17 @@ impl SyntaxModule<ParserMetadata> for Bool {
     }
 }
 
+impl TypeCheckModule for Bool {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Bool {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         raw_fragment!("{}", if self.value { 1 } else { 0 })
     }
 }
-
-
-impl_noop_typecheck!(Bool);
 
 impl DocumentationModule for Bool {
     fn document(&self, _meta: &ParserMetadata) -> String {
