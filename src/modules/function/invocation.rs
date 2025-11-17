@@ -142,13 +142,11 @@ impl TypeCheckModule for FunctionInvocation {
                 });
             }
             self.failure_handler.typecheck(meta)?;
-        } else {
-            if self.failure_handler.is_parsed {
-                let message = Message::new_warn_at_token(meta, self.name_tok.clone())
-                    .message("This function cannot fail")
-                    .comment("You can remove the failure handler block or '?' at the end");
-                meta.add_message(message);
-            }
+        } else if self.failure_handler.is_parsed {
+            let message = Message::new_warn_at_token(meta, self.name_tok.clone())
+                .message("This function cannot fail")
+                .comment("You can remove the failure handler block or '?' at the end");
+            meta.add_message(message);
         }
 
         Ok(())

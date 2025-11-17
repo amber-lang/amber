@@ -93,7 +93,7 @@ impl SyntaxModule<ParserMetadata> for Block {
 
 impl TypeCheckModule for Block {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let no_scope_exists = meta.context.scopes.len() == 0;
+        let no_scope_exists = meta.context.scopes.is_empty();
         meta.with_push_scope(self.parses_syntax || no_scope_exists, |meta| {
             // Type check all statements in the block
             for statement in &mut self.statements {
