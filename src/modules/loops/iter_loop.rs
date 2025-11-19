@@ -46,32 +46,11 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             self.iter_name = variable(meta, variable_name_extensions())?;
         }
         token(meta, "in")?;
-        context!({
-            // Parse iterable
-            let tok = meta.get_current_token();
-            syntax(meta, &mut self.iter_expr)?;
-            self.iter_type = match self.iter_expr.get_type() {
-                Type::Array(kind) => *kind,
-                _ => return error!(meta, tok, "Expected iterable"),
-            };
-            // Create iterator variable
-            meta.with_push_scope(|meta| {
-                self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
-                if let Some(index) = self.iter_index.as_ref() {
-                    self.iter_index_global_id = meta.add_var(index, Type::Int, false);
-                }
-                // Save loop context state and set it to true
-                meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-                    // Parse loop
-                    syntax(meta, &mut self.block)?;
-                    Ok(())
-                })?;
-                Ok(())
-            })?;
-            Ok(())
-        }, |pos| {
-            error_pos!(meta, pos, "Syntax error in loop")
-        })
+        // Parse iterable expression
+        syntax(meta, &mut self.iter_expr)?;
+        // Parse loop body
+        syntax(meta, &mut self.block)?;
+        Ok(())
     }
 }
 
@@ -109,6 +88,38 @@ impl TranslateModule for IterLoop {
                 ], false).to_frag()
             },
         }
+    }
+}
+
+impl TypeCheckModule for IterLoop {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.iter_expr.typecheck(meta)?;
+
+        // Determine iterator type after typechecking
+        self.iter_type = match self.iter_expr.get_type() {
+            Type::Array(kind) => *kind,
+            _ => {
+                let pos = self.iter_expr.get_position(meta);
+                return error_pos!(meta, pos, "Expected iterable");
+            }
+        };
+
+        // Create iterator variable
+        meta.with_push_scope(true, |meta| {
+            self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
+            if let Some(index) = self.iter_index.as_ref() {
+                self.iter_index_global_id = meta.add_var(index, Type::Int, false);
+            }
+            // Save loop context state and set it to true
+            meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+                // Type-check the loop body
+                self.block.typecheck(meta)?;
+                Ok(())
+            })?;
+            Ok(())
+        })?;
+
+        Ok(())
     }
 }
 

@@ -3,6 +3,7 @@ use crate::built_info;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
@@ -300,9 +301,30 @@ impl AmberCompiler {
         }
     }
 
+    pub fn typecheck(&self, mut block: Block, mut meta: ParserMetadata) -> Result<(Block, ParserMetadata), Message> {
+        let time = Instant::now();
+
+        // Perform type checking on the block
+        if let Err(failure) = block.typecheck(&mut meta) {
+            return Err(failure.unwrap_loud());
+        }
+
+        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            println!(
+                "[{}]\tin\t{}ms\t{pathname}",
+                "Typecheck".green(),
+                time.elapsed().as_millis()
+            );
+        }
+
+        Ok((block, meta))
+    }
+
     pub fn compile(&self) -> Result<(Vec<Message>, String), Message> {
         let tokens = self.tokenize()?;
         let (block, meta) = self.parse(tokens)?;
+        let (block, meta) = self.typecheck(block, meta)?;
         let messages = meta.messages.clone();
         let code = self.translate(block, meta)?;
         Ok((messages, code))
@@ -326,7 +348,8 @@ impl AmberCompiler {
 
     pub fn generate_docs(&self, output: Option<String>, usage: bool) -> Result<(), Message> {
         let tokens = self.tokenize()?;
-        let (block, mut meta) = self.parse(tokens)?;
+        let (block, meta) = self.parse(tokens)?;
+        let (block, mut meta) = self.typecheck(block, meta)?;
         meta.doc_usage = usage;
         self.document(block, meta, output);
         Ok(())

@@ -55,12 +55,22 @@ impl SyntaxModule<ParserMetadata> for Ternary {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Ternary {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.cond.typecheck(meta)?;
         if self.cond.get_type() != Type::Bool {
             let msg = self.cond.get_error_message(meta)
                 .message("Expected expression that evaluates to 'Bool' in ternary condition");
             return Err(Failure::Loud(msg));
         }
+
+        self.true_expr.typecheck(meta)?;
+        self.false_expr.typecheck(meta)?;
         if self.true_expr.get_type() != self.false_expr.get_type() {
             let pos = get_binop_position_info(meta, &self.true_expr, &self.false_expr);
             let msg = Message::new_err_at_position(meta, pos)

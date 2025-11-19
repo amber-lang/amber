@@ -3,6 +3,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
 use crate::modules::prelude::{ArithmeticFragment, FragmentKind, FragmentRenderable, RawFragment};
 use crate::modules::types::{Type, Typed};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::ParserMetadata;
@@ -47,7 +48,14 @@ impl SyntaxModule<ParserMetadata> for Neg {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Neg {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
         Self::typecheck_allowed_types(meta, "arithmetic negation", &self.expr, &[Type::Num, Type::Int])?;
         Ok(())
     }

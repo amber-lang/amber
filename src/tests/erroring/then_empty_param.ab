@@ -2,7 +2,7 @@
 // Parameter name cannot be empty
 
 main {
-    $ echo "test" $ then() {
+    $ echo "test" $ exited() {
         echo "Success!"
     }
 }

@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
-use crate::modules::condition::failed::Failed;
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
@@ -13,7 +13,7 @@ pub struct Mv {
     source: Box<Expr>,
     destination: Box<Expr>,
     modifier: CommandModifier,
-    failed: Failed,
+    failure_handler: FailureHandler,
 }
 
 impl SyntaxModule<ParserMetadata> for Mv {
@@ -23,8 +23,8 @@ impl SyntaxModule<ParserMetadata> for Mv {
         Mv {
             source: Box::new(Expr::new()),
             destination: Box::new(Expr::new()),
-            failed: Failed::new(),
-            modifier: CommandModifier::new().parse_expr(),
+            failure_handler: FailureHandler::new(),
+            modifier: CommandModifier::new_expr(),
         }
     }
 
@@ -33,26 +33,38 @@ impl SyntaxModule<ParserMetadata> for Mv {
         self.modifier.use_modifiers(meta, |_this, meta| {
             token(meta, "mv")?;
             syntax(meta, &mut *self.source)?;
-            let mut path_type = self.source.get_type();
-            if path_type != Type::Text {
-                let position = self.source.get_position(meta);
-                return error_pos!(meta, position => {
-                    message: "Builtin function `mv` can only be used with values of type Text",
-                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                });
-            }
             syntax(meta, &mut *self.destination)?;
-            path_type = self.destination.get_type();
-            if path_type != Type::Text {
-                let position = self.destination.get_position(meta);
-                return error_pos!(meta, position => {
-                    message: "Builtin function `mv` can only be used with values of type Text",
-                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                });
-            }
-            syntax(meta, &mut self.failed)?;
+            syntax(meta, &mut self.failure_handler)?;
             Ok(())
         })
+    }
+}
+
+impl TypeCheckModule for Mv {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.source.typecheck(meta)?;
+        self.destination.typecheck(meta)?;
+        self.failure_handler.typecheck(meta)?;
+
+        let source_type = self.source.get_type();
+        if source_type != Type::Text {
+            let position = self.source.get_position(meta);
+            return error_pos!(meta, position => {
+                message: "Builtin function `mv` can only be used with values of type Text",
+                comment: format!("Given type: {}, expected type: {}", source_type, Type::Text)
+            });
+        }
+
+        let dest_type = self.destination.get_type();
+        if dest_type != Type::Text {
+            let position = self.destination.get_position(meta);
+            return error_pos!(meta, position => {
+                message: "Builtin function `mv` can only be used with values of type Text",
+                comment: format!("Given type: {}, expected type: {}", dest_type, Type::Text)
+            });
+        }
+
+        Ok(())
     }
 }
 
@@ -60,14 +72,14 @@ impl TranslateModule for Mv {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let source = self.source.translate(meta);
         let destination = self.destination.translate(meta);
-        let failed = self.failed.translate(meta);
+        let handler = self.failure_handler.translate(meta);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
         let silent = meta.gen_silent().to_frag();
         swap(&mut is_silent, &mut meta.silenced);
         BlockFragment::new(vec![
             fragments!("mv ", source, " ", destination, silent),
-            failed,
+            handler,
         ], false).to_frag()
     }
 }

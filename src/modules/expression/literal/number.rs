@@ -38,6 +38,12 @@ impl SyntaxModule<ParserMetadata> for Number {
     }
 }
 
+impl TypeCheckModule for Number {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Number {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         RawFragment::from(self.value.to_string()).to_frag()

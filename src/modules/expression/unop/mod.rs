@@ -1,11 +1,12 @@
 use heraclitus_compiler::prelude::*;
 use crate::{modules::types::{Type, Typed}, utils::{pluralize, ParserMetadata}};
 use super::expr::Expr;
+use crate::modules::typecheck::TypeCheckModule;
 
 pub mod not;
 pub mod neg;
 
-pub trait UnOp: SyntaxModule<ParserMetadata> {
+pub trait UnOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
     fn set_expr(&mut self, expr: Expr);
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult;
 

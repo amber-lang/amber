@@ -53,20 +53,24 @@ impl SyntaxModule<ParserMetadata> for Fail {
                 self.code = value;
             },
             Err(_) => {
-                match syntax(meta, &mut self.expr) {
-                    Ok(_) => {
-                        if self.expr.get_type() != Type::Num {
-                            return error!(meta, tok => {
-                                message: "Invalid exit code",
-                                comment: "Fail status must be a non-zero integer"
-                            });
-                        }
-                    },
-                    Err(_) => {
-                        self.code = "1".to_string();
-                    }
+                if syntax(meta, &mut self.expr).is_err() {
+                    self.code = "1".to_string();
                 }
             }
+        }
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Fail {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Only check if we have an expression (not a code value)
+        if self.code.is_empty() && self.expr.get_type() != Type::Num {
+            let tok = meta.get_current_token();
+            return error!(meta, tok => {
+                message: "Invalid exit code",
+                comment: "Fail status must be a non-zero integer"
+            });
         }
         Ok(())
     }

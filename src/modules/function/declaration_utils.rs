@@ -76,8 +76,8 @@ pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -
 pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: FunctionInterface, ctx: Context) -> Result<usize, Failure> {
     let name = fun.name.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
-    let any_generic = fun.arg_types.iter().any(|kind| kind == &Type::Generic);
-    let any_typed = fun.arg_types.iter().any(|kind| kind != &Type::Generic);
+    let any_generic = fun.args.iter().any(|arg| arg.kind == Type::Generic);
+    let any_typed = fun.args.iter().any(|arg| arg.kind != Type::Generic);
     // Either all arguments are generic or typed
     if any_typed && any_generic {
         return error!(meta, tok => {

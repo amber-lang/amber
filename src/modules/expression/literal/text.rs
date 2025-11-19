@@ -34,6 +34,16 @@ impl SyntaxModule<ParserMetadata> for Text {
     }
 }
 
+impl TypeCheckModule for Text {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type check all interpolated expressions
+        for expr in &mut self.interps {
+            expr.typecheck(meta)?;
+        }
+        Ok(())
+    }
+}
+
 impl TranslateModule for Text {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate all interpolations

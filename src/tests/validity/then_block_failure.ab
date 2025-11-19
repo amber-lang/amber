@@ -3,7 +3,7 @@
 
 main {
     silent {
-        $ nonexistent_command $ then(code) {
+        $ nonexistent_command $ exited(code) {
             echo "Command failed with code: {code}"
         }
     }

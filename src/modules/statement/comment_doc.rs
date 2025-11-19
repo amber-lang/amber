@@ -60,6 +60,12 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
     }
 }
 
+impl TypeCheckModule for CommentDoc {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for CommentDoc {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         let comments = self.value.trim().lines()

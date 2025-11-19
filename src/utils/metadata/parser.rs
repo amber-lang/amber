@@ -48,13 +48,17 @@ impl ParserMetadata {
     }
 
     /// Pushes a new scope to the stack
-    pub fn with_push_scope<B>(&mut self, mut body: B) -> SyntaxResult
+    pub fn with_push_scope<B>(&mut self, predicate: bool, mut body: B) -> SyntaxResult
     where
         B: FnMut(&mut Self) -> SyntaxResult
     {
-        self.context.scopes.push(ScopeUnit::new());
+        if predicate {
+            self.context.scopes.push(ScopeUnit::new());
+        }
         let result = body(self);
-        self.context.scopes.pop();
+        if predicate {
+            self.context.scopes.pop();
+        }
         result
     }
 

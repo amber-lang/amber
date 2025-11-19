@@ -1,8 +1,8 @@
 // Output
-// Cannot use both 'then' and 'failed' blocks for the same command
+// Cannot use both 'exited' and 'failed' blocks for the same command
 
 main {
-    $ echo "test" $ then(code) {
+    $ echo "test" $ exited(code) {
         echo "Success!"
     } failed {
         echo "Failed!"

@@ -3,7 +3,7 @@
 // Test passed with code: 0
 
 main {
-    $ echo "test" $ then(code) {
+    $ echo "test" $ exited(code) {
         echo "Test passed with code: {code}"
     }
 }

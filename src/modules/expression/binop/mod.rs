@@ -3,6 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::ParserMetadata;
 use crate::utils::pluralize;
 use super::super::expression::expr::Expr;
+use crate::modules::typecheck::TypeCheckModule;
 
 pub mod add;
 pub mod sub;
@@ -19,7 +20,7 @@ pub mod eq;
 pub mod neq;
 pub mod range;
 
-pub trait BinOp: SyntaxModule<ParserMetadata> {
+pub trait BinOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
     fn set_left(&mut self, left: Expr);
     fn set_right(&mut self, right: Expr);
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult;

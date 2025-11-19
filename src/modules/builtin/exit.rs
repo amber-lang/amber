@@ -24,7 +24,15 @@ impl SyntaxModule<ParserMetadata> for Exit {
             self.code = Some(code_expr);
         }
 
-        if let Some(ref code_expr) = self.code {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Exit {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if let Some(ref mut code_expr) = self.code {
+            code_expr.typecheck(meta)?;
+
             let code_type = code_expr.get_type();
             if code_type != Type::Int {
                 let position = code_expr.get_position(meta);
@@ -34,7 +42,6 @@ impl SyntaxModule<ParserMetadata> for Exit {
                 });
             }
         }
-
         Ok(())
     }
 }

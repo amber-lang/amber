@@ -1,0 +1,5 @@
+// Output
+// 12
+
+let variable = 12
+trust $ echo \${nameof variable} $

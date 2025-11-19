@@ -63,30 +63,41 @@ impl SyntaxModule<ParserMetadata> for Block {
             false
         };
 
-        meta.with_push_scope(|meta| {
-            while meta.get_current_token().is_some() {
-                // Handle the end of line
-                if token(meta, "\n").is_ok() {
-                    continue;
+        while meta.get_current_token().is_some() {
+            // Handle the end of line
+            if token(meta, "\n").is_ok() {
+                continue;
+            }
+            // Handle block end
+            if !is_single_line && self.parses_syntax && token(meta, "}").is_ok() {
+                break;
+            }
+            let mut statement = Statement::new();
+            if let Err(failure) = statement.parse(meta) {
+                return match failure {
+                    Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
+                    Failure::Loud(err) => return Err(Failure::Loud(err))
                 }
-                // Handle block end
-                if !is_single_line && self.parses_syntax && token(meta, "}").is_ok() {
-                    break;
-                }
-                let mut statement = Statement::new();
-                if let Err(failure) = statement.parse(meta) {
-                    return match failure {
-                        Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
-                        Failure::Loud(err) => return Err(Failure::Loud(err))
-                    }
-                }
-                self.statements.push(statement);
-                // Handle the semicolon
-                token(meta, ";").ok();
-                // Handle single line
-                if is_single_line {
-                    break;
-                }
+            }
+            self.statements.push(statement);
+            // Handle the semicolon
+            token(meta, ";").ok();
+            // Handle single line
+            if is_single_line {
+                break;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Block {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let no_scope_exists = meta.context.scopes.is_empty();
+        meta.with_push_scope(self.parses_syntax || no_scope_exists, |meta| {
+            // Type check all statements in the block
+            for statement in &mut self.statements {
+                statement.typecheck(meta)?;
             }
             Ok(())
         })

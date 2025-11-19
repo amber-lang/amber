@@ -105,7 +105,8 @@ impl Import {
                     .file_import(&meta.context.trace, position);
                 meta.with_context_ref(&mut context, |meta| {
                     // Parse imported code
-                    syntax(meta, &mut block)
+                    syntax(meta, &mut block)?;
+                    block.typecheck(meta)
                 })?;
                 // Persist compiled file to cache
                 meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, context.pub_funs.clone());
@@ -136,9 +137,6 @@ impl SyntaxModule<ParserMetadata> for Import {
         self.is_pub = token(meta, "pub").is_ok();
         self.token_import = meta.get_current_token();
         token(meta, "import")?;
-        if !meta.is_global_scope() {
-            return error!(meta, self.token_import.clone(), "Imports must be in the global scope")
-        }
         match token(meta, "*") {
             Ok(_) => self.is_all = true,
             Err(_) => {
@@ -185,7 +183,15 @@ impl SyntaxModule<ParserMetadata> for Import {
         token(meta, "from")?;
         self.token_path = meta.get_current_token();
         syntax(meta, &mut self.path)?;
-        // Import code from file or standard library
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Import {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if !meta.is_global_scope() {
+            return error!(meta, self.token_import.clone(), "Imports must be in the global scope")
+        }
         self.add_import(meta, &self.path.value.clone())?;
         let code = self.resolve_import(meta)?;
         self.handle_import(meta, code)?;

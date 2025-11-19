@@ -22,6 +22,12 @@ impl SyntaxModule<ParserMetadata> for Comment {
     }
 }
 
+impl TypeCheckModule for Comment {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Comment {
     fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> FragmentKind {
         if meta.minify {

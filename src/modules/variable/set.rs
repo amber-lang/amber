@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
+use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions, validate_index_accessor};
 use crate::modules::types::{Typed, Type};
 
 #[derive(Debug, Clone)]
@@ -12,7 +12,9 @@ pub struct VariableSet {
     expr: Box<Expr>,
     global_id: Option<usize>,
     index: Option<Expr>,
-    is_ref: bool
+    is_ref: bool,
+    var_type: Type,
+    tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for VariableSet {
@@ -24,41 +26,60 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
             expr: Box::new(Expr::new()),
             global_id: None,
             index: None,
-            is_ref: false
+            is_ref: false,
+            var_type: Type::Null,
+            tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         self.index = handle_index_accessor(meta, false)?;
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
-        let variable = handle_variable_reference(meta, &tok, &self.name)?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for VariableSet {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        if let Some(index) = &mut self.index {
+            index.typecheck(meta)?;
+        }
+
+        let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
-        prevent_constant_mutation(meta, &tok, &self.name, variable.is_const)?;
-        // Typecheck the variable
-        let left_type = variable.kind.clone();
-        let right_type = self.expr.get_type();
-        // Check if the variable can be indexed
-        if self.index.is_some() && !matches!(variable.kind, Type::Array(_)) {
-            return error!(meta, tok, format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+        self.var_type = variable.kind.clone();
+        prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
+
+        if let Some(ref index_expr) = self.index {
+            if !matches!(variable.kind, Type::Array(_)) {
+                let left_type = variable.kind.clone();
+                return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+            }
+
+            // Validate the index type (must be integer, not range, for assignment)
+            validate_index_accessor(meta, index_expr, false, self.tok.clone())?;
         }
-        // Handle index assignment
+
+        let right_type = self.expr.get_type();
+
         if self.index.is_some() {
-            // Check if the assigned value is compatible with the array
-            if let Type::Array(kind) = variable.kind.clone() {
-                if !self.expr.get_type().is_allowed_in(&kind) {
-                    let right_type = self.expr.get_type();
-                    return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
+            if let Type::Array(kind) = &self.var_type {
+                if !right_type.is_allowed_in(kind) {
+                    let tok = self.expr.get_position(meta);
+                    return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
             }
         }
-        // Check if the variable is compatible with the assigned value
-        else if !self.expr.get_type().is_allowed_in(&variable.kind) {
-            return error!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{left_type}'"));
+        else if !right_type.is_allowed_in(&self.var_type) {
+            let tok = self.expr.get_position(meta);
+            return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
         }
+
         Ok(())
     }
 }

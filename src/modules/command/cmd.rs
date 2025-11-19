@@ -1,9 +1,7 @@
 use std::mem::swap;
 use crate::modules::types::{Type, Typed};
 use crate::modules::expression::literal::bool;
-use crate::modules::condition::failed::Failed;
-use crate::modules::condition::succeeded::Succeeded;
-use crate::modules::condition::then::Then;
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
 use super::modifier::CommandModifier;
@@ -15,22 +13,7 @@ pub struct Command {
     strings: Vec<String>,
     interps: Vec<Expr>,
     modifier: CommandModifier,
-    failed: Failed,
-    succeeded: Succeeded,
-    then: Then
-}
-
-impl Command {
-    pub fn handle_multiple_failure_handlers(meta: &mut ParserMetadata, keyword: &str) -> SyntaxResult {
-        let token = meta.get_current_token();
-        if let Ok(word) = token_by(meta, |word| ["failed", "succeeded", "then"].contains(&word.as_str())) {
-            return error!(meta, token => {
-                message: format!("Cannot use both '{keyword}' and '{}' blocks for the same command", word),
-                comment: "Use either '{keyword}' to handle both success and failure, 'failed' or 'succeeded' blocks, but not both"
-            });
-        }
-        Ok(())
-    }
+    failure_handler: FailureHandler
 }
 
 impl Typed for Command {
@@ -46,10 +29,8 @@ impl SyntaxModule<ParserMetadata> for Command {
         Command {
             strings: vec![],
             interps: vec![],
-            modifier: CommandModifier::new().parse_expr(),
-            failed: Failed::new(),
-            succeeded: Succeeded::new(),
-            then: Then::new()
+            modifier: CommandModifier::new_expr(),
+            failure_handler: FailureHandler::new()
         }
     }
 
@@ -59,37 +40,32 @@ impl SyntaxModule<ParserMetadata> for Command {
             let tok = meta.get_current_token();
             (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Command)?;
 
-            // Set position for failed and succeeded handlers
+            // Set position for failure handler
             let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
-            self.failed.set_position(position.clone());
+            self.failure_handler.set_position(position.clone());
 
-            // Try to parse then block first
-            match syntax(meta, &mut self.then) {
-                Ok(_) => return Command::handle_multiple_failure_handlers(meta, "then"),
-                err @ Err(Failure::Loud(_)) => return err,
-                _ => {}
-            }
-
-            // Try to parse succeeded block
-            match syntax(meta, &mut self.succeeded) {
-                Ok(_) => return Command::handle_multiple_failure_handlers(meta, "succeeded"),
-                err @ Err(Failure::Loud(_)) => return err,
-                _ => {}
-            }
-
-            // If no succeeded block, try to parse failed block
-            match syntax(meta, &mut self.failed) {
-                Ok(_) => Self::handle_multiple_failure_handlers(meta, "failed"),
+            // Try to parse failure handler (failed, succeeded, or exited)
+            match syntax(meta, &mut self.failure_handler) {
+                Ok(_) => Ok(()),
                 Err(Failure::Quiet(_)) => {
-                    // Neither succeeded, failed, nor then block found
+                    // No failure handler found
                     error!(meta, tok => {
                         message: "Every command statement must handle execution result",
-                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'then' block to handle both, or 'trust' modifier to ignore results"
+                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
                     })
                 },
                 Err(err) => Err(err)
             }
         })
+    }
+}
+
+impl TypeCheckModule for Command {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        for interp in self.interps.iter_mut() {
+            interp.typecheck(meta)?;
+        }
+        self.failure_handler.typecheck(meta)
     }
 }
 
@@ -99,9 +75,7 @@ impl Command {
         let interps = self.interps.iter()
             .map(|item| item.translate(meta).with_quotes(false))
             .collect::<Vec<FragmentKind>>();
-        let failed = self.failed.translate(meta);
-        let succeeded = self.succeeded.translate(meta);
-        let then = self.then.translate(meta);
+        let handler = self.failure_handler.translate(meta);
 
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         let mut is_sudo = self.modifier.is_sudo || meta.sudoed;
@@ -122,25 +96,14 @@ impl Command {
         swap(&mut is_silent, &mut meta.silenced);
         swap(&mut is_sudo, &mut meta.sudoed);
 
-        // Choose between failed, succeeded, then, or no handler
-        let handler = if self.then.is_parsed {
-            then
-        } else if self.failed.is_parsed {
-            failed
-        } else if self.succeeded.is_parsed {
-            succeeded
-        } else {
-            FragmentKind::Empty
-        };
-
         if is_statement {
-            if let FragmentKind::Empty = handler {
-                translation
-            } else {
+            if self.failure_handler.is_parsed {
                 meta.stmt_queue.push_back(translation);
                 handler
+            } else {
+                translation
             }
-        } else if let FragmentKind::Empty = handler {
+        } else if !self.failure_handler.is_parsed {
             SubprocessFragment::new(translation).to_frag()
         } else {
             let id = meta.gen_value_id();

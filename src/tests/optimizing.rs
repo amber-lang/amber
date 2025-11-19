@@ -13,6 +13,7 @@ pub fn translate_and_optimize_amber_code<T: Into<String>>(code: T) -> Option<Str
     let compiler = AmberCompiler::new(code.into(), None, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
+    let (ast, meta) = compiler.typecheck(ast, meta).ok()?;
     let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
     let mut translation = ast.translate(&mut translate_meta);
     optimize_fragments(&mut translation);

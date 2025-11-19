@@ -8,6 +8,7 @@ use heraclitus_compiler::prelude::*;
 #[derive(Debug, Clone)]
 pub struct Nameof {
     name: String,
+    token: Option<Token>,
     global_id: Option<usize>,
 }
 
@@ -23,22 +24,29 @@ impl SyntaxModule<ParserMetadata> for Nameof {
     fn new() -> Self {
         Nameof {
             name: String::new(),
+            token: None,
             global_id: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "nameof")?;
-        let name = variable(meta, variable_name_extensions())?;
-        match meta.get_var(&name) {
+        self.token = meta.get_current_token();
+        self.name = variable(meta, variable_name_extensions())?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Nameof {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        match meta.get_var(&self.name) {
             Some(var_decl) => {
                 self.name.clone_from(&var_decl.name);
                 self.global_id = var_decl.global_id;
                 Ok(())
             }
             None => {
-                let tok = meta.get_current_token();
-                error!(meta, tok, format!("Variable '{name}' not found"))
+                error!(meta, self.token.clone(), format!("Variable '{}' not found", self.name))
             }
         }
     }

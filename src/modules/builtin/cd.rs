@@ -19,6 +19,16 @@ impl SyntaxModule<ParserMetadata> for Cd {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "cd")?;
         syntax(meta, &mut self.value)?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Cd {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // First, type-check the nested expression
+        self.value.typecheck(meta)?;
+
+        // Then check if it's the correct type
         let path_type = self.value.get_type();
         if path_type != Type::Text {
             let position = self.value.get_position(meta);

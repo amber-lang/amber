@@ -2,6 +2,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
@@ -37,7 +38,16 @@ impl SyntaxModule<ParserMetadata> for Len {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Len {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Typecheck the expression first
+        self.value.typecheck(meta)?;
+        
         if !matches!(self.value.get_type(), Type::Text | Type::Array(_)) {
             let msg = self
                 .value

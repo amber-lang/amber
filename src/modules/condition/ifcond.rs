@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
-use crate::modules::statement::stmt::{Statement, StatementType};
+use crate::modules::statement::stmt::{Statement, StmtType};
 use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]
@@ -15,7 +15,7 @@ pub struct IfCondition {
 
 impl IfCondition {
     fn prevent_not_using_if_chain(&self, meta: &mut ParserMetadata, statement: &Statement, tok: Option<Token>) -> Result<(), Failure> {
-        let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StatementType::IfCondition(_) | StatementType::IfChain(_));
+        let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StmtType::IfCondition(_) | StmtType::IfChain(_));
         if is_not_if_chain && !meta.context.cc_flags.contains(&CCFlags::AllowNestedIfElse) {
             let flag_name = get_ccflag_name(CCFlags::AllowNestedIfElse);
             let message = Message::new_warn_at_token(meta, tok)
@@ -57,6 +57,18 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
                 }
             }
             self.false_block = Some(false_block);
+        }
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for IfCondition {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        self.true_block.typecheck(meta)?;
+        // Type-check the false block if it exists
+        if let Some(false_block) = &mut self.false_block {
+            false_block.typecheck(meta)?;
         }
         Ok(())
     }

@@ -12,6 +12,7 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<FragmentKind> {
     let compiler = AmberCompiler::new(code.into(), None, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
+    let (ast, meta) = compiler.typecheck(ast, meta).ok()?;
     let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
     Some(ast.translate(&mut translate_meta))
 }

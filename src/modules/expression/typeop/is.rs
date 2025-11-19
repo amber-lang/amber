@@ -48,6 +48,12 @@ impl SyntaxModule<ParserMetadata> for Is {
     }
 }
 
+impl TypeCheckModule for Is {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)
+    }
+}
+
 impl TranslateModule for Is {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         if self.expr.get_type() == self.kind {
