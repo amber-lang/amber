@@ -68,6 +68,7 @@ impl TranslateModule for VariableInit {
         let expr = self.expr.translate(meta);
         VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
             .with_global_id(self.global_id)
+            .with_local(self.is_fun_ctx)
             .to_frag()
     }
 }

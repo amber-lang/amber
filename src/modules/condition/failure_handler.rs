@@ -170,7 +170,6 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
                 meta.add_message(message);
             }
 
-            dbg!(keyword);
             if let Some(keyword) = keyword {
                 let next_tok = meta.get_current_token();
                 let next_word = token_by(meta, |word| ["failed", "succeeded", "exited"].contains(&word.as_str()));
