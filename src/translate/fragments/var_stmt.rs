@@ -122,9 +122,9 @@ impl VarStmtFragment {
         // `local` command consumes exit code of command that it is assigned to.
         // To preserve the exit code of the assignment we split the local declaration into two parts.
         if self.is_local && is_running_command {
-            format!("local {}\n{}{}", var_name, meta.gen_indent(), assignment)
+            format!("local {var_name}\n{}{assignment}", meta.gen_indent())
         } else if self.is_local {
-            format!("local {}", assignment)
+            format!("local {assignment}")
         } else {
             assignment
         }
