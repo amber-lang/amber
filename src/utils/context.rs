@@ -27,14 +27,18 @@ pub struct FunctionDecl {
 
 impl FunctionDecl {
     pub fn into_interface(self) -> FunctionInterface {
-        let args = self.args.into_iter().map(|arg| FunctionDeclarationArgument {
-            name: arg.name,
-            kind: arg.kind,
-            optional: arg.optional,
-            is_ref: arg.is_ref,
-            tok: None,
-        }).collect();
-        
+        let args = self
+            .args
+            .into_iter()
+            .map(|arg| FunctionDeclarationArgument {
+                name: arg.name,
+                kind: arg.kind,
+                optional: arg.optional,
+                is_ref: arg.is_ref,
+                tok: None,
+            })
+            .collect();
+
         FunctionInterface {
             id: Some(self.id),
             name: self.name,
@@ -150,13 +154,6 @@ impl Context {
             fun_ret_type: None,
             cc_flags: HashSet::new(),
         }
-    }
-
-    pub fn function_invocation(mut self, expr: Vec<Token>) -> Self {
-        self.is_fun_ctx = true;
-        self.index = 0;
-        self.expr = expr;
-        self
     }
 
     pub fn file_import(mut self, trace: &[PositionInfo], position: PositionInfo) -> Self {
