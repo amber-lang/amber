@@ -62,7 +62,6 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
     let variant_id = meta.fun_cache.get_instances(fun.id).unwrap().len();
     meta.parsing_functions.insert((fun.id, args.to_vec()), variant_id);
 
-    // Swap the contexts to use the function context
     // Update the function's global scope with the current global scope's functions to support forward references (mutual recursion)
     if let Some(current_global_scope) = meta.context.scopes.first() {
         if let Some(fun_global_scope) = context.scopes.first_mut() {
