@@ -51,7 +51,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
 impl TypeCheckModule for Cast {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
-        
+
         let begin = meta.get_token_at(self.expr.pos.0);
         let end = meta.get_current_token();
         let pos = PositionInfo::from_between_tokens(meta, begin, end);
@@ -60,7 +60,7 @@ impl TypeCheckModule for Cast {
             let l_type = self.expr.get_type();
             let r_type = self.kind.clone();
             let message = Message::new_warn_at_position(meta, pos)
-                .message(format!("Casting a value of type '{l_type}' value to a '{r_type}' is not recommended"))
+                .message(format!("Casting a value of type '{l_type}' to '{r_type}' is not recommended"))
                 .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
             match (l_type, r_type) {
                 (Type::Array(left), Type::Array(right)) => {
@@ -69,8 +69,7 @@ impl TypeCheckModule for Cast {
                     }
                 },
                 (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => meta.add_message(message),
-                (Type::Text, Type::Num) => { meta.add_message(message) },
-                (Type::Text, Type::Bool) => { meta.add_message(message) },
+                (Type::Text, _) => { meta.add_message(message) },
                 _ => {}
             }
         }
