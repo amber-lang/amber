@@ -74,6 +74,7 @@ fn run_function_with_args(meta: &mut ParserMetadata, mut fun: FunctionDecl, args
         }
     }
 
+    // Swap the contexts to use the function context
     let res = meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
         meta.with_push_scope(true, |meta| {
