@@ -1,0 +1,8 @@
+// Output
+// Exit code cannot be '0' in a fail statement
+
+fun foo() {
+    fail 0
+}
+
+trust foo()
