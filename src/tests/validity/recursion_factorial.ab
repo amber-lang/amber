@@ -1,0 +1,12 @@
+// Output
+// 120
+
+fun factorial(n: Num): Num {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+let f5 = factorial(5)
+echo f5

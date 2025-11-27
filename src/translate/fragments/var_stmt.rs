@@ -13,6 +13,7 @@ pub struct VarStmtFragment {
     // This variable is made only for storing a value used by a single expression
     pub is_ephemeral: bool,
     pub is_ref: bool,
+    pub is_local: bool,
     // Determines if the variable can be removed when not used
     pub optimize_unused: bool,
     pub operator: String,
@@ -23,13 +24,14 @@ pub struct VarStmtFragment {
 
 impl Default for VarStmtFragment {
     fn default() -> Self {
-        Self {
+        VarStmtFragment {
             name: String::new(),
             global_id: None,
             index: None,
             kind: Type::Generic,
-            is_ref: false,
             is_ephemeral: false,
+            is_ref: false,
+            is_local: false,
             optimize_unused: true,
             operator: "=".to_string(),
             value: Box::new(FragmentKind::Empty),
@@ -39,7 +41,7 @@ impl Default for VarStmtFragment {
 
 impl VarStmtFragment {
     pub fn new(name: &str, kind: Type, value: FragmentKind) -> Self {
-        Self {
+        VarStmtFragment {
             name: name.to_string(),
             kind,
             value: Box::new(value),
@@ -59,6 +61,16 @@ impl VarStmtFragment {
 
     pub fn with_ephemeral(mut self, is_ephemeral: bool) -> Self {
         self.is_ephemeral = is_ephemeral;
+        self
+    }
+
+    pub fn with_value(mut self, value: FragmentKind) -> Self {
+        self.value = Box::new(value);
+        self
+    }
+
+    pub fn with_local(mut self, is_local: bool) -> Self {
+        self.is_local = is_local;
         self
     }
 
@@ -92,16 +104,30 @@ impl VarStmtFragment {
     }
 
     fn render_variable_statement(self, meta: &mut TranslateMetadata) -> String {
-        let mut frags = vec![];
-        frags.push(self.render_variable_name());
-        frags.extend(self.index.map(|index| format!("[{}]", index.to_string(meta))));
-        frags.push(self.operator);
+        let var_name = self.render_variable_name();
+        let is_running_command = self.value.is_running_command();
+        let mut assignment_parts = vec![];
+        assignment_parts.push(var_name.clone());
+        assignment_parts.extend(self.index.map(|index| format!("[{}]", index.to_string(meta))));
+        assignment_parts.push(self.operator);
+
+
         if self.kind.is_array() {
-            frags.push(format!("({})", self.value.to_string(meta)));
+            assignment_parts.push(format!("({})", self.value.to_string(meta)));
         } else {
-            frags.push(self.value.to_string(meta));
+            assignment_parts.push(self.value.to_string(meta));
         }
-        frags.join("")
+        let assignment = assignment_parts.join("");
+
+        // `local` command consumes exit code of command that it is assigned to.
+        // To preserve the exit code of the assignment we split the local declaration into two parts.
+        if self.is_local && is_running_command {
+            format!("local {var_name}\n{}{assignment}", meta.gen_indent())
+        } else if self.is_local {
+            format!("local {assignment}")
+        } else {
+            assignment
+        }
     }
 }
 

@@ -62,6 +62,19 @@ impl FragmentKind {
             _ => false,
         }
     }
+
+    pub fn is_running_command(&self) -> bool {
+        match self {
+            FragmentKind::VarStmt(var_stmt) => var_stmt.value.is_running_command(),
+            FragmentKind::Block(block) => block.statements.iter().any(|stmt| stmt.is_running_command()),
+            FragmentKind::Interpolable(interpolable) => interpolable.interps.iter().any(|item| item.is_running_command()),
+            FragmentKind::List(list) => list.values.iter().any(|item| item.is_running_command()),
+            FragmentKind::Arithmetic(arithmetic) => arithmetic.left.as_ref().as_ref().is_some_and(|l| l.is_running_command())
+                || arithmetic.right.as_ref().as_ref().is_some_and(|r| r.is_running_command()),
+            FragmentKind::Subprocess(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl FragmentRenderable for FragmentKind {

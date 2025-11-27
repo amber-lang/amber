@@ -1,0 +1,13 @@
+// Output
+// 1 2 3
+
+let collection = [Num]
+fun post_order(n: Num): Null {
+    if n > 0 {
+        post_order(n - 1)
+        collection += [n]
+    }
+}
+
+post_order(3)
+echo collection

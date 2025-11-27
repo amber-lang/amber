@@ -1,0 +1,15 @@
+// Output
+// 7
+
+fun ackermann(m: Num, n: Num): Num {
+    if m == 0 {
+        return n + 1
+    }
+    if m > 0 and n == 0 {
+        return ackermann(m - 1, 1)
+    }
+    return ackermann(m - 1, ackermann(m, n - 1))
+}
+
+let ack22 = ackermann(2, 2)
+echo ack22

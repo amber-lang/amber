@@ -1,0 +1,12 @@
+// Output
+// 8
+
+fun fibonacci(n: Num): Num {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+let fib6 = fibonacci(6)
+echo fib6

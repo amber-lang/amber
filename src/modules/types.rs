@@ -4,7 +4,7 @@ use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum Type {
     #[default] Null,
     Text,
