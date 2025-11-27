@@ -22,7 +22,7 @@
 /// - `%T` - time; same as %H:%M:%S
 /// - `%Y` - year
 ///
-/// ## Usage
+/// ### Usage
 /// ```ab
 /// let date = date_now() // Example value: 1678887000
 /// echo date_format_posix(date) // Outputs: 2023-03-15 14:30:00
@@ -40,7 +40,7 @@ pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false):
 /// If no format is specified, "%F %T" format is used.
 /// For more info about format type "man date" on your shell or go to <https://www.gnu.org/software/coreutils/date>.
 ///
-/// ## Usage
+/// ### Usage
 /// ```ab
 /// let date = "2023-03-15 14:30:00"
 /// echo date_from_posix(date) // Output: 1678887000
@@ -57,7 +57,7 @@ pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): 
 
 /// Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
 ///
-/// ## Usage
+/// ### Usage
 /// ```ab
 /// let date = date_now() // Example value: 1678887000
 /// ```
@@ -77,7 +77,7 @@ pub fun date_now(): Int {
 /// - minutes
 /// - seconds
 ///
-/// ## Usage
+/// ### Usage
 /// ```ab
 /// let date = date_now() // Example value: 1678887000
 /// let new_date = date_add(date, 5, "hours") // Example value: 1678890600
@@ -105,7 +105,7 @@ pub fun date_add(date: Int, amount: Int, unit: Text): Int? {
 /// - minutes
 /// - seconds
 ///
-/// ## Usage
+/// ### Usage
 /// ```ab
 /// let date = date_now() // Example value: 1678887000
 /// let new_date = date_sub(date, 5, "hours") // Example value: 1678882200
