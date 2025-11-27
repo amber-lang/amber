@@ -70,6 +70,7 @@ impl FunctionDeclaration {
             || word == ")"
             || word == "]"
             || word == ","
+            || word == "?"
             || before == "["
             || before == "("
         {
@@ -326,7 +327,7 @@ impl TranslateModule for FunctionDeclaration {
 impl DocumentationModule for FunctionDeclaration {
     fn document(&self, meta: &ParserMetadata) -> String {
         let mut result = vec![];
-        result.push(format!("# `{}`\n", self.name));
+        result.push(format!("## `{}`\n", self.name));
         result.push("```ab".to_string());
         result.push(self.doc_signature.to_owned().unwrap());
         result.push("```\n".to_string());
