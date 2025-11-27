@@ -105,8 +105,12 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
 
 impl TypeCheckModule for CommandModifier {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(block) = &mut self.block {
-            block.typecheck(meta)?;
+        if let Some(mut block) = self.block.take() {
+            return self.use_modifiers(meta, |this, meta| {
+                block.typecheck(meta)?;
+                this.block = Some(block);
+                Ok(())
+            })
         }
         Ok(())
     }

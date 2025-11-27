@@ -1,6 +1,11 @@
 import * from "std/date"
 
+#[allow_absurd_cast]
+fun get_current_date(): Int {
+    return trust $ date +%s $ as Int
+}
+
 main {
-    let posix_now = trust $ date +%s $ as Num
+    let posix_now = get_current_date()
     if date_now() == posix_now: echo "Succeeded"
 }
