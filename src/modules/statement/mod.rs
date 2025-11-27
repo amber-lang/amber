@@ -3,17 +3,6 @@ pub mod comment;
 pub mod comment_doc;
 
 #[macro_export]
-macro_rules! init_statement {
-    ([$($stmt:ident),*]) => {
-        vec![
-            $(
-                StmtType::$stmt($stmt::new()),
-            )*
-        ]
-    };
-}
-
-#[macro_export]
 macro_rules! parse_statement {
     ([$($stmt:ident),*], |$module:ident, $cons:ident| $body:expr) => {{
         let mut error = None;
