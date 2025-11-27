@@ -1,5 +1,5 @@
-pub import * from "str/trim.ab";
+pub import * from "str/trim.ab"
 
-pub fun is_even(n: Num) {
+pub fun is_even(n: Num): Text {
     return n % 2 == 0 then trim("  even  ") else "odd"
 }

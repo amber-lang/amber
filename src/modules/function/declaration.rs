@@ -13,7 +13,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::modules::typecheck::TypeCheckModule;
-use crate::utils::cc_flags::get_ccflag_by_name;
+use crate::utils::cc_flags::{CCFlags, get_ccflag_by_name};
 use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
@@ -37,6 +37,7 @@ pub struct FunctionDeclaration {
     pub returns: Type,
     pub id: usize,
     pub is_public: bool,
+    pub flags: HashSet<CCFlags>,
     pub comment: Option<CommentDoc>,
     /// Function signature prepared for docs generation
     pub doc_signature: Option<String>,
@@ -115,6 +116,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             name: String::new(),
             args: vec![],
             returns: Type::Generic,
+            flags: HashSet::new(),
             id: 0,
             is_public: false,
             comment: None,
@@ -133,106 +135,95 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             syntax(meta, &mut comment)?;
             self.comment = Some(comment);
         }
-        let mut flags = HashSet::new();
         // Get all the user-defined compiler flags
         while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
             // Push to the flags vector as it is more safe in case of parsing errors
-            flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+            self.flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
-        let tok = meta.get_current_token();
         let doc_index = meta.get_index();
         // Check if this function is public
         if token(meta, "pub").is_ok() {
             self.is_public = true;
         }
-        if let Err(err) = token(meta, "fun") {
-            if !flags.is_empty() {
-                return error!(meta, tok, "Compiler flags can only be used in function declarations")
-            }
-            return Err(err)
-        }
+        token(meta, "fun")?;
         // Get the function name
         self.name_token = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         let mut optional = false;
         context!({
-            // Set the compiler flags
-            meta.with_context_fn(Context::set_cc_flags, flags, |meta| {
-                // Get the arguments
-                token(meta, "(")?;
-                loop {
-                    if token(meta, ")").is_ok() {
-                        break
-                    }
-                    let is_ref = token(meta, "ref").is_ok();
-                    let name_token = meta.get_current_token();
-                    let name = variable(meta, variable_name_extensions())?;
-
-                    // Optionally parse the argument type
-                    let arg_type = match token(meta, ":") {
-                        Ok(_) => parse_type(meta)?,
-                        Err(_) => Type::Generic
-                    };
-
-                    // Optionally parse default value
-                    let optional_expr = match token(meta, "=") {
-                        Ok(_) => {
-                            optional = true;
-                            let mut expr = Expr::new();
-                            syntax(meta, &mut expr)?;
-                            Some(expr)
-                        },
-                        Err(_) => None,
-                    };
-
-                    self.args.push(FunctionDeclarationArgument {
-                        name,
-                        kind: arg_type,
-                        optional: optional_expr,
-                        is_ref,
-                        tok: name_token,
-                    });
-                    match token(meta, ")") {
-                        Ok(_) => break,
-                        Err(_) => token(meta, ",")?
-                    };
+            // Get the arguments
+            token(meta, "(")?;
+            loop {
+                if token(meta, ")").is_ok() {
+                    break
                 }
-                let mut returns_tok = None;
-                let mut question_tok = None;
-                // Optionally parse the return type
-                match token(meta, ":") {
+                let is_ref = token(meta, "ref").is_ok();
+                let name_token = meta.get_current_token();
+                let name = variable(meta, variable_name_extensions())?;
+
+                // Optionally parse the argument type
+                let arg_type = match token(meta, ":") {
+                    Ok(_) => parse_type(meta)?,
+                    Err(_) => Type::Generic
+                };
+
+                // Optionally parse default value
+                let optional_expr = match token(meta, "=") {
                     Ok(_) => {
-                        returns_tok = meta.get_current_token();
-                        self.returns = parse_type(meta)?;
-                        question_tok = meta.get_current_token();
-                        if token(meta, "?").is_ok() {
-                            self.declared_failable = true;
-                        }
+                        optional = true;
+                        let mut expr = Expr::new();
+                        syntax(meta, &mut expr)?;
+                        Some(expr)
                     },
-                    Err(_) => self.returns = Type::Generic
-                }
-                // Parse the body
-                token(meta, "{")?;
-                let (index_begin, index_end, is_failable) = skip_function_body(meta);
-                self.is_failable = is_failable;
-                if self.returns == Type::Generic {
-                    self.declared_failable = is_failable;
-                }
+                    Err(_) => None,
+                };
 
-                // Validate failable function declarations
-                if is_failable && !self.declared_failable {
-                    return error!(meta, returns_tok, "Failable functions must have a '?' after the type name");
-                }
-                if !is_failable && self.declared_failable {
-                    return error!(meta, question_tok.or(returns_tok), "Infallible functions must not have a '?' after the type name");
-                }
+                self.args.push(FunctionDeclarationArgument {
+                    name,
+                    kind: arg_type,
+                    optional: optional_expr,
+                    is_ref,
+                    tok: name_token,
+                });
+                match token(meta, ")") {
+                    Ok(_) => break,
+                    Err(_) => token(meta, ",")?
+                };
+            }
+            let mut returns_tok = None;
+            let mut question_tok = None;
+            // Optionally parse the return type
+            match token(meta, ":") {
+                Ok(_) => {
+                    returns_tok = meta.get_current_token();
+                    self.returns = parse_type(meta)?;
+                    question_tok = meta.get_current_token();
+                    if token(meta, "?").is_ok() {
+                        self.declared_failable = true;
+                    }
+                },
+                Err(_) => self.returns = Type::Generic
+            }
+            // Parse the body
+            token(meta, "{")?;
+            let (index_begin, index_end, is_failable) = skip_function_body(meta);
+            self.is_failable = is_failable;
+            if self.returns == Type::Generic {
+                self.declared_failable = is_failable;
+            }
 
-                // Store function body for typecheck phase
-                self.function_body = Some(meta.context.expr[index_begin..index_end].to_vec());
-                token(meta, "}")?;
-                self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
-                Ok(())
-            })?;
+            // Validate failable function declarations
+            if is_failable && !self.declared_failable {
+                return error!(meta, returns_tok, "Failable functions must have a '?' after the type name");
+            }
+            if !is_failable && self.declared_failable {
+                return error!(meta, question_tok.or(returns_tok), "Infallible functions must not have a '?' after the type name");
+            }
+
+            // Store function body for typecheck phase
+            self.function_body = Some(meta.context.expr[index_begin..index_end].to_vec());
+            token(meta, "}")?;
+            self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
             Ok(())
         }, |pos| {
             error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
@@ -250,52 +241,54 @@ impl TypeCheckModule for FunctionDeclaration {
         // Check if function already exists
         handle_existing_function(meta, self.name_token.clone())?;
 
-        // Check for duplicate argument names
-        let mut seen_argument_names = HashSet::new();
-        for arg in &self.args {
-            if !seen_argument_names.insert(arg.name.clone()) {
-                return error!(meta, arg.tok.clone(), format!("Argument '{}' is already defined", arg.name));
-            }
-        }
-
-        // Validate optional arguments
-        // Typecheck and validate optional arguments
-        let mut optional_started = false;
-        for arg in &mut self.args {
-            if let Some(ref mut expr) = arg.optional {
-                // Check if ref arguments are optional
-                if arg.is_ref {
-                    return error!(meta, arg.tok.clone(), "A ref cannot be optional");
+        // Set the compiler flags
+        meta.with_context_fn(Context::set_cc_flags, self.flags.clone(), |meta| {
+            // Check for duplicate argument names
+            let mut seen_argument_names = HashSet::new();
+            for arg in &self.args {
+                if !seen_argument_names.insert(arg.name.clone()) {
+                    return error!(meta, arg.tok.clone(), format!("Argument '{}' is already defined", arg.name));
                 }
-
-                // Typecheck the optional argument expression first
-                expr.typecheck(meta)?;
-
-                // Validate optional argument type
-                if !expr.get_type().is_allowed_in(&arg.kind) {
-                    return error!(meta, arg.tok.clone(), "Optional argument does not match annotated type");
-                }
-
-                optional_started = true;
-            } else if optional_started {
-                return error!(meta, arg.tok.clone(), "All arguments following an optional argument must also be optional");
             }
-        }
 
-        // Create function context and add to memory
-        let expr = self.function_body.clone().unwrap_or_default();
-        let ctx = meta.context.clone().function_invocation(expr);
+            // Validate optional arguments
+            // Typecheck and validate optional arguments
+            let mut optional_started = false;
+            for arg in &mut self.args {
+                if let Some(ref mut expr) = arg.optional {
+                    // Check if ref arguments are optional
+                    if arg.is_ref {
+                        return error!(meta, arg.tok.clone(), "A ref cannot be optional");
+                    }
 
-        self.id = handle_add_function(meta, self.name_token.clone(), FunctionInterface {
-            id: None,
-            name: self.name.clone(),
-            args: self.args.clone(),
-            returns: self.returns.clone(),
-            is_public: self.is_public,
-            is_failable: self.is_failable
-        }, ctx)?;
+                    // Typecheck the optional argument expression first
+                    expr.typecheck(meta)?;
 
-        Ok(())
+                    // Validate optional argument type
+                    if !expr.get_type().is_allowed_in(&arg.kind) {
+                        return error!(meta, arg.tok.clone(), "Optional argument does not match annotated type");
+                    }
+
+                    optional_started = true;
+                } else if optional_started {
+                    return error!(meta, arg.tok.clone(), "All arguments following an optional argument must also be optional");
+                }
+            }
+
+            // Create function context and add to memory
+            let expr = self.function_body.clone().unwrap_or_default();
+            let ctx = meta.context.clone().function_invocation(expr);
+
+            self.id = handle_add_function(meta, self.name_token.clone(), FunctionInterface {
+                id: None,
+                name: self.name.clone(),
+                args: self.args.clone(),
+                returns: self.returns.clone(),
+                is_public: self.is_public,
+                is_failable: self.is_failable
+            }, ctx)?;
+            Ok(())
+        })
     }
 }
 

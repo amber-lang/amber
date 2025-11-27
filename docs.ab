@@ -1,0 +1,20 @@
+import { file_glob, file_exists } from "std/fs"
+
+if file_exists("src/std/docs") {
+    $ rm -rf src/std/docs $ failed {
+        echo "Unable to remove old documentation"
+        exit 1
+    }
+}
+
+const files = file_glob("src/std") failed {
+    echo "Unable to glob files in 'src/std'"
+}
+
+for file in files {
+    $ cargo run --release docs {file} $ failed(code): if {
+        code == 1: echo "Running docs gen failed"
+        code == 127: echo "Cannot find 'cargo' command"
+        else: echo "Unknown error"
+    }
+}
