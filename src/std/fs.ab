@@ -1,24 +1,48 @@
 import { match_regex, join, replace_regex, split, trim } from "std/text"
 
 /// Checks if a directory exists.
+///
+/// ## Usage
+/// ```ab
+/// if dir_exists("/tmp/mydir") {
+///     echo "Directory exists"
+/// }
+/// ```
 pub fun dir_exists(path: Text): Bool {
     trust $ [ -d "{path}" ] $
     return status == 0
 }
 
 /// Checks if a file exists.
+///
+/// ## Usage
+/// ```ab
+/// if file_exists("config.txt") {
+///     echo "File exists"
+/// }
+/// ```
 pub fun file_exists(path: Text): Bool {
     trust $ [ -f "{path}" ] $
     return status == 0
 }
 
 /// Gets file contents from a path.
+///
+/// ## Usage
+/// ```ab
+/// let content = file_read("data.txt")
+/// ```
 pub fun file_read(path: Text): Text? {
     return $ < "{path}" $?
 }
 
 /// Writes content to a file.
 /// Doesn't check if the file exist
+///
+/// ## Usage
+/// ```ab
+/// file_write("output.txt", "Hello, World!")
+/// ```
 pub fun file_write(path: Text, content: Text): Text? {
     return $ echo "{content}" > "{path}" $?
 }
@@ -26,6 +50,11 @@ pub fun file_write(path: Text, content: Text): Text? {
 /// Appends content to a file.
 ///
 /// Doesn't check if the file exists.
+///
+/// ## Usage
+/// ```ab
+/// file_append("log.txt", "New log entry")
+/// ```
 pub fun file_append(path: Text, content: Text): Text? {
     return $ echo "{content}" >> "{path}" $?
 }
@@ -33,6 +62,11 @@ pub fun file_append(path: Text, content: Text): Text? {
 /// Creates a symbolic link.
 ///
 /// If the file doesn't exist, it fails and prints a message.
+///
+/// ## Usage
+/// ```ab
+/// symlink_create("/usr/bin/python3", "/usr/local/bin/python")
+/// ```
 pub fun symlink_create(origin: Text, destination: Text): Null? {
     if file_exists(origin) {
         $ ln -s "{origin}" "{destination}" $?
@@ -44,6 +78,11 @@ pub fun symlink_create(origin: Text, destination: Text): Null? {
 }
 
 /// Creates a directory with all parent directories as required.
+///
+/// ## Usage
+/// ```ab
+/// dir_create("/tmp/my/nested/directory")
+/// ```
 pub fun dir_create(path: Text): Null? {
     if not dir_exists(path) {
         $ mkdir -p "{path}" $?
@@ -61,6 +100,11 @@ fun is_mac_os_mktemp(): Bool {
 
 /// Create a temporary directory and return the path.
 /// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
+///
+/// ## Usage
+/// ```ab
+/// let temp = temp_dir_create("myapp.XXXXXX", true, false)
+/// ```
 pub fun temp_dir_create(
     template: Text = "tmp.XXXXXXXXXX",
     auto_delete: Bool = false,
@@ -100,6 +144,11 @@ pub fun temp_dir_create(
 /// Changes the permission bits of a file.
 ///
 /// If the file doesn't exist, it fails and prints a message.
+///
+/// ## Usage
+/// ```ab
+/// file_chmod("script.sh", "755")
+/// ```
 pub fun file_chmod(path: Text, mode: Text): Null? {
     if file_exists(path) {
         $ chmod "{mode}" "{path}" $?
@@ -113,6 +162,11 @@ pub fun file_chmod(path: Text, mode: Text): Null? {
 /// Changes the owner of a file.
 ///
 /// If the file doesn't exist, it fails and prints a message.
+///
+/// ## Usage
+/// ```ab
+/// file_chown("/var/www/html", "www-data")
+/// ```
 pub fun file_chown(path: Text, user: Text): Null? {
     if file_exists(path) or dir_exists(path) {
         $ chown -R "{user}" "{path}" $?
@@ -132,6 +186,11 @@ fun escape_non_glob_chars(path: Text): Text {
 /// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
 /// `file_glob` function.
+///
+/// ## Usage
+/// ```ab
+/// let files = file_glob_all(["*.txt", "*.md"])
+/// ```
 pub fun file_glob_all(paths: [Text]): [Text]? {
     let combined = ""
     if len(paths) == 1 {
@@ -149,6 +208,11 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
 }
 
 /// Finds all files or directories matching a file glob.
+///
+/// ## Usage
+/// ```ab
+/// let files = file_glob("*.txt")
+/// ```
 pub fun file_glob(path: Text): [Text]? {
     return file_glob_all([path])?
 }
@@ -156,6 +220,11 @@ pub fun file_glob(path: Text): [Text]? {
 /// Extract the file detecting from the filename the extension
 /// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
 /// Note: Not all the commands supports the output folder path
+///
+/// ## Usage
+/// ```ab
+/// file_extract("archive.tar.gz", "/tmp/extracted")
+/// ```
 pub fun file_extract(path: Text, target: Text): Null? {
     if file_exists(path) {
         if {

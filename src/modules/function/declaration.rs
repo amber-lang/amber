@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use crate::raw_fragment;
-use std::{env, fs};
 use std::ffi::OsStr;
 use std::path::Path;
 
@@ -324,23 +323,18 @@ impl TranslateModule for FunctionDeclaration {
         BlockFragment::new(result, false).to_frag()
     }
 }
-
 impl DocumentationModule for FunctionDeclaration {
     fn document(&self, meta: &ParserMetadata) -> String {
         let mut result = vec![];
-        result.push(format!("## `{}`\n", self.name));
-        let references = self.create_test_references(meta, &mut result);
+        result.push(format!("# `{}`\n", self.name));
         result.push("```ab".to_string());
         result.push(self.doc_signature.to_owned().unwrap());
         result.push("```\n".to_string());
         if let Some(comment) = &self.comment {
-            result.push(comment.document(meta));
-        }
-        if let Some(references) = references {
-            for reference in references {
-                result.push(reference);
-            }
-            result.push("".to_string());
+            let comment_text = comment.document(meta);
+            // Check if comment has Usage section with code block and insert import statement
+            let comment_text = self.insert_usage_import_statement(meta, comment_text);
+            result.push(comment_text);
         }
         result.push("".to_string());
         result.join("\n")
@@ -348,18 +342,8 @@ impl DocumentationModule for FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn create_test_references(&self, meta: &ParserMetadata, result: &mut Vec<String>) -> Option<Vec<String>> {
+    fn insert_usage_import_statement(&self, meta: &ParserMetadata, mut comment_text: String) -> String {
         if meta.doc_usage {
-            let mut references = Vec::new();
-            let exe_path = env::current_exe()
-                .expect("Executable path not found");
-            let root_path = exe_path.parent()
-                .and_then(Path::parent)
-                .and_then(Path::parent)
-                .expect("Root path not found");
-            let test_path = root_path.join("src")
-                .join("tests")
-                .join("stdlib");
             let lib_name = meta.context.path.as_ref()
                 .map(Path::new)
                 .and_then(Path::file_name)
@@ -367,40 +351,20 @@ impl FunctionDeclaration {
                 .map(|s| s.trim_end_matches(".ab"))
                 .map(String::from)
                 .unwrap_or_default();
-            result.push(String::from("```ab"));
-            result.push(format!("import {{ {} }} from \"std/{}\"", self.name, lib_name));
-            result.push(String::from("```\n"));
-            if test_path.exists() && test_path.is_dir() {
-                if let Ok(entries) = fs::read_dir(test_path) {
-                    let pattern1 = {
-                        let pattern = format!("{}*.ab", self.name);
-                        glob::Pattern::new(&pattern).unwrap()
-                    };
-                    let pattern2 = {
-                        let pattern = format!("{}_{}*.ab", lib_name, self.name);
-                        glob::Pattern::new(&pattern).unwrap()
-                    };
-                    for entry in entries.flatten() {
-                        let path = entry.path();
-                        if let Some(file_name) = path.file_name().and_then(OsStr::to_str) {
-                            if pattern1.matches(file_name) || pattern2.matches(file_name) {
-                                references.push(format!(
-                                    "* [{}](https://github.com/amber-lang/amber/blob/{}/src/tests/stdlib/{})",
-                                    file_name,
-                                    env!("CARGO_PKG_VERSION"),
-                                    file_name,
-                                ));
-                            }
-                        }
-                    }
-                }
-            }
-            if !references.is_empty() {
-                references.sort();
-                references.insert(0, String::from("You can check the original tests for code examples:"));
-                return Some(references);
+            let import_stmt = format!("import {{ {} }} from \"std/{}\"\n", self.name, lib_name);
+
+            let usage_pattern = regex::Regex::new(r"#\s*Usage\s+```ab").unwrap();
+            if usage_pattern.is_match(&comment_text) {
+                // Insert import statement after "# Usage"
+                return usage_pattern.replace(&comment_text, |caps: &regex::Captures| {
+                    format!("{}\n{}", &caps[0], import_stmt)
+                }).to_string();
+            } else {
+                comment_text += "```ab\n";
+                comment_text += &import_stmt;
+                comment_text += "```";
             }
         }
-        None
+        comment_text
     }
 }
