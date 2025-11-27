@@ -7,9 +7,13 @@ if file_exists("src/std/docs") {
     }
 }
 
-const files = file_glob("src/std") failed {
+echo "Generating documentation..."
+
+const files = file_glob("src/std/*.ab") failed {
     echo "Unable to glob files in 'src/std'"
 }
+
+echo files
 
 for file in files {
     $ cargo run --release docs {file} $ failed(code): if {
