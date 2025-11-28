@@ -1,0 +1,10 @@
+// Output
+// Command failed with code: 127
+
+main {
+    silent {
+        $ nonexistent_command $ exited(code) {
+            echo "Command failed with code: {code}"
+        }
+    }
+}

@@ -1,32 +1,41 @@
+use crate::fragments;
+use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 
 #[derive(Debug, Clone)]
-pub struct Continue;
+pub struct Continue {
+    tok: Option<Token>,
+}
 
 impl SyntaxModule<ParserMetadata> for Continue {
     syntax_name!("Continue");
 
     fn new() -> Self {
-        Continue
+        Continue {
+          tok: None
+        }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         token(meta, "continue")?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Continue {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Detect if the continue statement is inside a loop
         if !meta.context.is_loop_ctx {
-            return error!(meta, tok, "Continue statement can only be used inside a loop")
+            return error!(meta, self.tok.clone(), "Continue statement can only be used inside a loop")
         }
         Ok(())
     }
 }
 
 impl TranslateModule for Continue {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "continue".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        fragments!("continue")
     }
 }
 

@@ -1,5 +1,6 @@
 pub mod literal;
 pub mod expr;
+pub mod interpolated_region;
 pub mod parentheses;
 pub mod ternop;
 pub mod binop;

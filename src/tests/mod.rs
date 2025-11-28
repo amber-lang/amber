@@ -10,9 +10,21 @@ use std::process::{Command, Stdio};
 pub mod cli;
 pub mod extra;
 pub mod postprocessor;
+pub mod translation;
+pub mod optimizing;
 mod stdlib;
 mod validity;
 mod erroring;
+
+#[macro_export]
+macro_rules! unwrap_fragment {
+    ($expr:expr, $kind:ident) => {{
+        match $expr {
+            FragmentKind::$kind(fragment) => fragment,
+            _ => panic!("Expected FragmentKind::{}", stringify!($kind)),
+        }
+    }};
+}
 
 const SUCCEEDED: &str = "Succeeded";
 
@@ -45,7 +57,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
         }
         TestOutcomeTarget::Failure => match evaluated {
             Ok(stdout) => {
-                panic!("Expected error, got: {}", stdout)
+                panic!("Expected error, got: {stdout}")
             }
             Err(err) => {
                 let message = err.message.expect("Error message expected");

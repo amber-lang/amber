@@ -1,10 +1,11 @@
 use heraclitus_compiler::prelude::*;
 use crate::utils::ParserMetadata;
 use super::expr::Expr;
+use crate::modules::typecheck::TypeCheckModule;
 
 pub mod ternary;
 
-pub trait TernOp: SyntaxModule<ParserMetadata> {
+pub trait TernOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
     fn set_left(&mut self, left: Expr);
     fn set_middle(&mut self, middle: Expr);
     fn set_right(&mut self, right: Expr);

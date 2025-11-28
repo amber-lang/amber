@@ -1,0 +1,14 @@
+// Output
+// This
+// is
+// an
+// array
+
+fun foo(val) {
+    for item in val {
+        echo item
+    }
+}
+
+let property = 25
+foo(property > 10 then ["This", "is", "an", "array"] else ["This", "should", "never", "happen"])

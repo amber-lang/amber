@@ -2,10 +2,13 @@ import { array_first } from "std/array"
 
 // Output
 // First of numbers: "zero" (4) [zero one two three]
-// First of empty: "" (0) []
+// First of empty array does not exist
 
 fun test_first(label: Text, data: [Text]): Null {
-    let value = array_first(data)
+    let value = array_first(data) failed {
+        echo "First of empty array does not exist"
+        return null
+    }
     echo "First of {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

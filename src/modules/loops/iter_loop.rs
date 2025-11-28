@@ -1,19 +1,25 @@
 use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::prelude::{RawFragment, FragmentKind};
 use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
+use crate::translate::fragments::get_variable_name;
 use crate::translate::module::TranslateModule;
 use crate::utils::context::Context;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
+use crate::{fragments, raw_fragment};
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct IterLoop {
     block: Block,
     iter_expr: Expr,
     iter_index: Option<String>,
+    iter_index_global_id: Option<usize>,
     iter_name: String,
+    iter_global_id: Option<usize>,
     iter_type: Type
 }
 
@@ -22,10 +28,12 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
     fn new() -> Self {
         IterLoop {
-            block: Block::new(),
+            block: Block::new().with_needs_noop().with_condition(),
             iter_expr: Expr::new(),
             iter_index: None,
+            iter_index_global_id: None,
             iter_name: String::new(),
+            iter_global_id: None,
             iter_type: Type::Generic
         }
     }
@@ -38,72 +46,89 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             self.iter_name = variable(meta, variable_name_extensions())?;
         }
         token(meta, "in")?;
-        context!({
-            // Parse iterable
-            let tok = meta.get_current_token();
-            syntax(meta, &mut self.iter_expr)?;
-            self.iter_type = match self.iter_expr.get_type() {
-                Type::Array(kind) => *kind,
-                _ => return error!(meta, tok, "Expected iterable"),
-            };
-            token(meta, "{")?;
-            // Create iterator variable
-            meta.with_push_scope(|meta| {
-                meta.add_var(&self.iter_name, self.iter_type.clone(), false);
-                if let Some(index) = self.iter_index.as_ref() {
-                    meta.add_var(index, Type::Num, false);
-                }
-                // Save loop context state and set it to true
-                meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-                    // Parse loop
-                    syntax(meta, &mut self.block)?;
-                    token(meta, "}")?;
-                    Ok(())
-                })?;
-                Ok(())
-            })?;
-            Ok(())
-        }, |pos| {
-            error_pos!(meta, pos, "Syntax error in loop")
-        })
+        // Parse iterable expression
+        syntax(meta, &mut self.iter_expr)?;
+        // Parse loop body
+        syntax(meta, &mut self.block)?;
+        Ok(())
     }
 }
 
 impl TranslateModule for IterLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let (prefix, suffix) = self.surround_iter(meta);
-        match self.iter_index.as_ref() {
-            Some(index) => {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let iter_path = self.translate_path(meta);
+        let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
+
+        let for_loop_prefix = match iter_path.is_some() {
+            true => fragments!("while IFS= read -r ", iter_name, "; do"),
+            false => fragments!("for ", iter_name, " in ", self.iter_expr.translate(meta), "; do"),
+        };
+        let for_loop_suffix = match iter_path.is_some() {
+            true => fragments!("done <", iter_path.unwrap()),
+            false => fragments!("done"),
+        };
+
+        match (self.iter_index.as_ref(), self.iter_index_global_id) {
+            (Some(index), global_id) => {
                 let indent = TranslateMetadata::single_indent();
-                [
-                    format!("{index}=0;"),
-                    prefix,
+                let index = get_variable_name(index, global_id);
+                BlockFragment::new(vec![
+                    RawFragment::from(format!("{index}=0;")).to_frag(),
+                    for_loop_prefix,
                     self.block.translate(meta),
-                    format!("{indent}(( {index}++ )) || true"),
-                    suffix,
-                ].join("\n")
+                    RawFragment::from(format!("{indent}(( {index}++ )) || true")).to_frag(),
+                    for_loop_suffix,
+                ], false).to_frag()
             },
-            None => {
-                [
-                    prefix,
+            _ => {
+                BlockFragment::new(vec![
+                    for_loop_prefix,
                     self.block.translate(meta),
-                    suffix,
-                ].join("\n")
+                    for_loop_suffix,
+                ], false).to_frag()
             },
         }
     }
 }
 
+impl TypeCheckModule for IterLoop {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.iter_expr.typecheck(meta)?;
+
+        // Determine iterator type after typechecking
+        self.iter_type = match self.iter_expr.get_type() {
+            Type::Array(kind) => *kind,
+            _ => {
+                let pos = self.iter_expr.get_position(meta);
+                return error_pos!(meta, pos, "Expected iterable");
+            }
+        };
+
+        // Create iterator variable
+        meta.with_push_scope(true, |meta| {
+            self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
+            if let Some(index) = self.iter_index.as_ref() {
+                self.iter_index_global_id = meta.add_var(index, Type::Int, false);
+            }
+            // Save loop context state and set it to true
+            meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
+                // Type-check the loop body
+                self.block.typecheck(meta)?;
+                Ok(())
+            })?;
+            Ok(())
+        })?;
+
+        Ok(())
+    }
+}
+
 impl IterLoop {
-    fn surround_iter(&self, meta: &mut TranslateMetadata) -> (String, String) {
-        let name = &self.iter_name;
+    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
         if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
-            value.surround_iter(meta, name)
+            Some(value.translate_path(meta))
         } else {
-            let expr = self.iter_expr.translate(meta);
-            let prefix = format!("for {name} in {expr}; do");
-            let suffix = String::from("done");
-            (prefix, suffix)
+            None
         }
     }
 }

@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! parse_expr_group {
+macro_rules! parse_expression_group {
     // Group type that handles Binary Operators
     (@internal ({$cur:ident, $prev:ident}, $meta:expr, BinOp => [$($cur_modules:ident),+])) => {{
         let start_index = $meta.get_index();
@@ -89,7 +89,7 @@ macro_rules! parse_expr_group {
         Ok(node)
     }};
 
-    // Group type that handles Literals. Use this group as the last one in the precedence order
+    // Group type that handles Unary Operators.
     (@internal ({$cur:ident, $prev:ident}, $meta:expr, UnOp => [$($cur_modules:ident),+])) => {{
         let start_index = $meta.get_index();
         $({
@@ -131,7 +131,7 @@ macro_rules! parse_expr_group {
 }
 
 #[macro_export]
-macro_rules! parse_expr {
+macro_rules! parse_expression {
     // Base Case: Current and previous precedence groups remaining
     (@internal (
         $cur_name:ident @ $cur_type:ident => [$($cur_modules:ident),*],
@@ -142,14 +142,14 @@ macro_rules! parse_expr {
         }
 
         fn $next_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$next_name, _terminal},
                 meta, $next_type => [$($next_modules),*]
             ))
         }
 
         fn $cur_name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$cur_name, $next_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
@@ -162,13 +162,13 @@ macro_rules! parse_expr {
         $next_name:ident @ $next_type:ident => [$($next_modules:ident),*],
         $($rest_name:ident @ $rest_type:ident => [$($rest_modules:ident),*]),+
     )) => {
-        parse_expr!(@internal (
+        parse_expression!(@internal (
             $next_name @ $next_type => [$($next_modules),*],
             $($rest_name @ $rest_type => [$($rest_modules),*]),*)
         );
 
         fn $cur_name (meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$cur_name, $next_name},
                 meta, $cur_type => [$($cur_modules),*]
             ))
@@ -176,7 +176,7 @@ macro_rules! parse_expr {
     };
 
     // Public interface:
-    // parse_expr!(meta, [
+    // parse_expression!(meta, [
     //     name @ TernOp => [Ternary],
     //     name @ BinOp => [Add, Sub],
     //     name @ BinOp => [Mul, Div],
@@ -188,7 +188,7 @@ macro_rules! parse_expr {
         $name:ident @ $type:ident => [$($modules:ident),*],
         $($rest_name:ident @ $rest_type:ident => [$($rest_modules:ident),*]),+
     ]) => {{
-        parse_expr!(@internal (
+        parse_expression!(@internal (
             $name @ $type => [$($modules),*],
             $($rest_name @ $rest_type => [$($rest_modules),*]),*
         ));
@@ -197,7 +197,7 @@ macro_rules! parse_expr {
     }};
 
     // Edge case: Single group provided
-    // parse_expr!(meta, [
+    // parse_expression!(meta, [
     //     name @ Literal => [Num, Text],
     // ]);
     ($meta:expr, [
@@ -206,9 +206,9 @@ macro_rules! parse_expr {
         fn _terminal(_meta: &mut ParserMetadata) -> Result<Expr, Failure> {
             panic!("Please create a group that ends precedence recurrence");
         }
-    
+
         fn $name(meta: &mut ParserMetadata) -> Result<Expr, Failure> {
-            parse_expr_group!(@internal (
+            parse_expression_group!(@internal (
                 {$name, _terminal},
                 meta, $type => [$($modules),*]
             ))
@@ -219,34 +219,17 @@ macro_rules! parse_expr {
 }
 
 #[macro_export]
-macro_rules! error_type_match {
-    ($meta:expr, $message:expr, $op_name:expr, $left:expr, $right:expr, [$($type_match:ident),+]) => {{
-        let msg = format!("Cannot {} value of type '{}' with value of type '{}'", $op_name, $left.get_type(), $right.get_type());
-        error_type_match!(@internal ($meta, $message, $op_name, msg, [$($type_match),+]))
-    }};
-
-    ($meta:expr, $message:expr, $op_name:expr, $left:expr, [$($type_match:ident),+]) => {{
-        let msg = format!("Cannot {} value of type '{}'", $op_name, $left.get_type());
-        error_type_match!(@internal ($meta, $message, $op_name, msg, [$($type_match),+]))
-    }};
-
-    ($meta:expr, $message:expr, $op_name:expr, $left:expr, $right:expr) => {{
-        let msg = format!("Cannot {} value of type '{}' with value of type '{}'", $op_name, $left.get_type(), $right.get_type());
-        let comment = format!("You can only {} values of the same types.", $op_name);
-        Err(Failure::Loud(($message).message(msg).comment(comment)))
-    }};
-
-    (@internal ($meta:expr, $message:expr, $op_name:expr, $msg:expr, [$($type_match:ident),+])) => {{
-        let all_types = vec![$(format!("'{}'", stringify!($type_match))),+];
-        let comma_separated = all_types.iter().take(all_types.len() - 1).cloned().collect::<Vec<_>>().join(", ");
-        let types = if all_types.len() > 1 {
-            [ comma_separated, all_types.last().unwrap().to_string() ].join(" or ")
-        } else {
-            all_types.join("")
-        };
-        let comment = format!("You can only {} values of type {types} together.", $op_name);
-        Err(Failure::Loud(($message).message($msg).comment(comment)))
-    }};
+macro_rules! typecheck_expression {
+    ($self:ident, $meta:expr, $expr_type:expr, [$($expression:ident),*]) => {
+        match $expr_type {
+            $(
+                ExprType::$expression(expr) => {
+                    expr.typecheck($meta)?;
+                    $self.kind = expr.get_type();
+                },
+            )*
+        }
+    };
 }
 
 #[macro_export]

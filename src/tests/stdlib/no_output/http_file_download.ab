@@ -2,12 +2,12 @@ import * from "std/http"
 import * from "std/fs"
 
 main {
-	let tmpdir = trust $ mktemp -d /tmp/amber-XXXX $
-	trust $ cd {tmpdir} $
-	if file_download("http://127.0.0.1:8081/", "./test.txt") {
-		if file_exists("./test.txt") {
-			    echo "ok"
-		}
-	}
-	trust $ rm -rf {tmpdir} $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    cd tmpdir
+    trust file_download("http://127.0.0.1:8081/", "./test.txt")
+    if status == 0 {
+        if file_exists("./test.txt") {
+            echo "ok"
+        }
+    }
 }

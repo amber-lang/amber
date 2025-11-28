@@ -1,10 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
-use crate::translate::compute::{ArithOp, translate_computation};
+use crate::modules::prelude::*;
+use crate::translate::compute::{ArithOp, translate_float_computation};
 use crate::modules::expression::expr::Expr;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
@@ -12,12 +9,13 @@ use super::BinOp;
 #[derive(Debug, Clone)]
 pub struct Sub {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Sub {
     fn get_type(&self) -> Type {
-        Type::Num
+        self.kind.clone()
     }
 }
 
@@ -42,21 +40,37 @@ impl SyntaxModule<ParserMetadata> for Sub {
     fn new() -> Self {
         Sub {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
+            kind: Type::Generic
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "subtract", self.left, self.right, [Num])?;
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Sub {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
+        self.kind = Self::typecheck_allowed_types(meta, "subtraction", &self.left, &self.right, &[
+            Type::Num,
+            Type::Int,
+        ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Sub {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Sub, Some(left), Some(right))
+        match self.kind {
+            Type::Int => FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Sub, right)),
+            Type::Num => translate_float_computation(meta, ArithOp::Sub, Some(left), Some(right)),
+            _ => unreachable!("Unsupported type {} in subtraction operation", self.kind),
+        }
     }
 }
 

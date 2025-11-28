@@ -1,9 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::modules::types::{Typed, Type};
+use crate::modules::prelude::*;
+use crate::modules::types::Typed;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use super::{variable_name_extensions, handle_identifier_name};
 
 #[derive(Debug, Clone)]
@@ -13,15 +11,15 @@ pub struct VariableInit {
     global_id: Option<usize>,
     is_fun_ctx: bool,
     is_const: bool,
+    tok: Option<Token>,
 }
 
 impl VariableInit {
     fn handle_add_variable(
         &mut self,
         meta: &mut ParserMetadata,
-        tok: Option<Token>
     ) -> SyntaxResult {
-        handle_identifier_name(meta, &self.name, tok)?;
+        handle_identifier_name(meta, &self.name, self.tok.clone())?;
         self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
         Ok(())
     }
@@ -36,21 +34,19 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             expr: Box::new(Expr::new()),
             global_id: None,
             is_fun_ctx: false,
-            is_const: false
+            is_const: false,
+            tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let keyword = token_by(meta, |word| ["let", "const"].contains(&word.as_str()))?;
         self.is_const = keyword == "const";
-        // Get the variable name
-        let tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         context!({
             token(meta, "=")?;
             syntax(meta, &mut *self.expr)?;
-            // Add a variable to the memory
-            self.handle_add_variable(meta, tok)?;
             self.is_fun_ctx = meta.context.is_fun_ctx;
             Ok(())
         }, |position| {
@@ -59,20 +55,20 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
     }
 }
 
+impl TypeCheckModule for VariableInit {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        self.handle_add_variable(meta)?;
+        Ok(())
+    }
+}
+
 impl TranslateModule for VariableInit {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = self.name.clone();
-        let mut expr = self.expr.translate(meta);
-        if let Type::Array(_) = self.expr.get_type() {
-            expr = format!("({expr})");
-        }
-        if let Some(id) = self.global_id {
-            format!("__{id}_{name}={expr}")
-        } else if self.is_fun_ctx {
-            format!("local {name}={expr}")
-        } else {
-            format!("{name}={expr}")
-        }
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let expr = self.expr.translate(meta);
+        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+            .with_global_id(self.global_id)
+            .to_frag()
     }
 }
 

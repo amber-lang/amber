@@ -1,7 +1,8 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
@@ -13,7 +14,7 @@ pub struct Len {
 
 impl Typed for Len {
     fn get_type(&self) -> Type {
-        Type::Num
+        Type::Int
     }
 }
 
@@ -37,7 +38,16 @@ impl SyntaxModule<ParserMetadata> for Len {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Len {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Typecheck the expression first
+        self.value.typecheck(meta)?;
+        
         if !matches!(self.value.get_type(), Type::Text | Type::Array(_)) {
             let msg = self
                 .value
@@ -50,21 +60,11 @@ impl SyntaxModule<ParserMetadata> for Len {
 }
 
 impl TranslateModule for Len {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
-        if self.value.get_type() == Type::Text {
-            meta.stmt_queue.push_back(format!("__AMBER_LEN={value}"));
-            return String::from("\"${#__AMBER_LEN}\"")
-        }
-        // Case for Array passed as a reference
-        if value.starts_with("\"${!") {
-                meta.stmt_queue.push_back(format!("__AMBER_LEN=({value})"));
-                String::from("\"${#__AMBER_LEN[@]}\"")
-        } else {
-            format!("\"${{#{}", value.trim_start_matches("\"${"))
-                .trim_end()
-                .to_string()
-        }
+        let id = meta.gen_value_id();
+        let var_stmt = VarStmtFragment::new("__length", self.value.get_type(), value).with_global_id(id);
+        meta.push_ephemeral_variable(var_stmt).with_length_getter(true).to_frag()
     }
 }
 

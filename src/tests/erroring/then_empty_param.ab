@@ -1,0 +1,8 @@
+// Output
+// Parameter name cannot be empty
+
+main {
+    $ echo "test" $ exited() {
+        echo "Success!"
+    }
+}

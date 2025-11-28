@@ -2,10 +2,13 @@ import { array_last } from "std/array"
 
 // Output
 // Last of numbers: "three" (4) [zero one two three]
-// Last of empty: "" (0) []
+// Last of empty array does not exist
 
 fun test_last(label: Text, data: [Text]): Null {
-    let value = array_last(data)
+    let value = array_last(data) failed {
+        echo "Last of empty array does not exist"
+        return null
+    }
     echo "Last of {label}: \"{value}\" ({len(data)}) [{data}]"
 }
 

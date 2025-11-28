@@ -1,20 +1,20 @@
 use std::mem::swap;
 
 use heraclitus_compiler::prelude::*;
+use crate::{fragments, raw_fragment};
+use crate::modules::prelude::*;
 use itertools::izip;
-use crate::docs::module::DocumentationModule;
 use crate::modules::command::modifier::CommandModifier;
-use crate::modules::condition::failed::Failed;
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use super::invocation_utils::*;
 
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
     name: String,
+    name_tok: Option<Token>,
     args: Vec<Expr>,
     refs: Vec<bool>,
     kind: Type,
@@ -22,7 +22,7 @@ pub struct FunctionInvocation {
     id: usize,
     line: usize,
     col: usize,
-    failed: Failed,
+    failure_handler: FailureHandler,
     modifier: CommandModifier,
     is_failable: bool
 }
@@ -33,12 +33,20 @@ impl Typed for FunctionInvocation {
     }
 }
 
+fn is_ref(expr: &Expr) -> bool {
+    match &expr.value {
+        Some(ExprType::VariableGet(var)) => !var.is_variable_modified(),
+        _ => false,
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     syntax_name!("Function Invocation");
 
     fn new() -> Self {
         FunctionInvocation {
             name: String::new(),
+            name_tok: None,
             args: vec![],
             refs: vec![],
             kind: Type::Null,
@@ -46,8 +54,8 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             id: 0,
             line: 0,
             col: 0,
-            failed: Failed::new(),
-            modifier: CommandModifier::new().parse_expr(),
+            failure_handler: FailureHandler::new(),
+            modifier: CommandModifier::new_expr(),
             is_failable: false
         }
     }
@@ -55,15 +63,17 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
-            // Get the function name
+            // Get the function name and store token for error reporting
             let tok = meta.get_current_token();
             if let Some(ref tok) = tok {
                 (self.line, self.col) = tok.pos;
             }
             self.name = variable(meta, variable_name_extensions())?;
-            // Get the arguments
+            self.name_tok = tok.clone();
+            self.failure_handler.set_function_name(self.name.clone());
+
+            // Parse arguments syntax
             token(meta, "(")?;
-            self.id = handle_function_reference(meta, tok.clone(), &self.name)?;
             loop {
                 if token(meta, ")").is_ok() {
                     break
@@ -76,105 +86,106 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
                     Err(_) => token(meta, ",")?,
                 };
             }
-            let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
-            let expected_arg_count = function_unit.arg_refs.len();
-            let actual_arg_count = self.args.len();
-            let optional_count = function_unit.arg_optionals.len();
 
-            // Case when function call is missing arguments
-            if actual_arg_count < expected_arg_count {
-                // Check if we can compensate with optional arguments stored in fun_unit
-                if actual_arg_count >= expected_arg_count - optional_count {
-                    let missing = expected_arg_count - actual_arg_count;
-                    let provided_optional = optional_count - missing;
-                    for exp in function_unit.arg_optionals.iter().skip(provided_optional){
-                        self.args.push(exp.clone());
-                    }
-                }
-            }
+            // Store position for later error reporting
+            self.failure_handler.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
 
-            let types = self.args.iter().map(|e| e.get_type()).collect::<Vec<Type>>();
-            let var_names = self.args.iter().map(|e| e.is_var()).collect::<Vec<bool>>();
-            self.refs.clone_from(&function_unit.arg_refs);
-            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_names, tok.clone())?;
-
-            self.is_failable = function_unit.is_failable;
-            if self.is_failable {
-                match syntax(meta, &mut self.failed) {
-                    Ok(_) => if let Type::Failable(t) = &self.kind {
-                        self.kind = *t.clone();
-                    },
-                    Err(Failure::Quiet(_)) => return error!(meta, tok => {
-                        message: "This function can fail. Please handle the failure",
-                        comment: "You can use '?' in the end to propagate the failure"
-                    }),
-                    Err(err) => return Err(err)
-                }
-            } else {
-                let tok = meta.get_current_token();
-                if let Ok(symbol) = token_by(meta, |word| ["?", "failed"].contains(&word.as_str())) {
-                    let message = Message::new_warn_at_token(meta, tok)
-                        .message("This function cannot fail")
-                        .comment(format!("You can remove the '{symbol}' in the end"));
-                    meta.add_message(message);
-                }
-            }
+            // Try to parse the failed block if present (optional in parse phase)
+            syntax(meta, &mut self.failure_handler).ok();
 
             Ok(())
         })
     }
 }
 
-impl FunctionInvocation {
-    fn get_variable(&self, meta: &TranslateMetadata, name: &str, dollar_override: bool) -> String {
-        let dollar = dollar_override.then_some("$").unwrap_or_else(|| meta.gen_dollar());
-        let quote = meta.gen_quote();
-        if matches!(self.kind, Type::Array(_)) {
-            format!("{quote}{dollar}{{{name}[@]}}{quote}")
-        } else if matches!(self.kind, Type::Text) {
-            format!("{quote}{dollar}{{{name}}}{quote}")
-        } else {
-            format!("{quote}{dollar}{name}{quote}")
+impl TypeCheckModule for FunctionInvocation {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type-check all arguments first
+        for arg in &mut self.args {
+            arg.typecheck(meta)?;
         }
+
+        // Look up the function declaration (this requires typecheck phase context)
+        self.id = handle_function_reference(meta, self.name_tok.clone(), &self.name)?;
+
+        let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+        let expected_arg_count = function_unit.args.len();
+        let actual_arg_count = self.args.len();
+        let optional_count = function_unit.args.iter().filter(|arg| arg.optional.is_some()).count();
+
+        // Handle missing arguments by filling with optional defaults
+        if actual_arg_count < expected_arg_count {
+            // Check if we can compensate with optional arguments stored in fun_unit
+            if actual_arg_count >= expected_arg_count - optional_count {
+                let missing = expected_arg_count - actual_arg_count;
+                let provided_optional = optional_count - missing;
+                let optionals: Vec<_> = function_unit.args.iter().filter_map(|arg| arg.optional.as_ref()).collect();
+                for exp in optionals.iter().skip(provided_optional){
+                    self.args.push((*exp).clone());
+                }
+            }
+        }
+
+        // Validate arguments and get function variant
+        let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
+        let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
+        self.refs = function_unit.args.iter().map(|arg| arg.is_ref).collect();
+        (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, self.name_tok.clone())?;
+
+        // Handle failable function logic
+        self.is_failable = function_unit.is_failable;
+        if self.is_failable {
+            if !self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
+                return error!(meta, self.name_tok.clone() => {
+                    message: format!("Function '{}' can potentially fail but is left unhandled.", self.name),
+                    comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'exited' block to handle both"
+                });
+            }
+            self.failure_handler.typecheck(meta)?;
+        } else if self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
+            let message = Message::new_warn_at_token(meta, self.name_tok.clone())
+                .message(format!("Function '{}' cannot fail", &self.name))
+                .comment("You can remove the failure handler block or '?' at the end");
+            meta.add_message(message);
+        }
+
+        Ok(())
     }
 }
 
 impl TranslateModule for FunctionInvocation {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = format!("{}__{}_v{}", self.name, self.id, self.variant_id);
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        // Get the variable prefix based on function name casing
+        let prefix = meta.gen_variable_prefix(&self.name);
+        let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
         let mut is_silent = self.modifier.is_silent || meta.silenced;
         swap(&mut is_silent, &mut meta.silenced);
-        let silent = meta.gen_silent();
-        let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | {
-            if *is_ref {
-                arg.get_var_translated_name().unwrap()
-            } else {
-                let translation = arg.translate_eval(meta, false);
-                // If the argument is an array, we have to get just the "name[@]" part
-                (translation.starts_with("\"${") && translation.ends_with("[@]}\""))
-                    .then(|| translation.get(3..translation.len() - 2).unwrap().to_string())
-                    .unwrap_or(translation)
-            }
-        }).collect::<Vec<String>>().join(" ");
+        let silent = meta.gen_silent().to_frag();
 
-        meta.stmt_queue.push_back(format!("{name} {args}{silent}"));
-        let invocation_return = &format!("__AF_{}{}_v{}", self.name, self.id, self.variant_id);
-        let invocation_instance = &format!("__AF_{}{}_v{}__{}_{}", self.name, self.id, self.variant_id, self.line, self.col);
-        let parsed_invocation_return = self.get_variable(meta, invocation_return, true);
+        let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
+            FragmentKind::VarExpr(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
+            FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
+            _ if *is_ref => panic!("Reference value accepts only variables"),
+            var => var
+        }).collect::<Vec<FragmentKind>>();
+        let args = ListFragment::new(args).with_spaces().to_frag();
+        meta.stmt_queue.push_back(fragments!(name, " ", args, silent));
         swap(&mut is_silent, &mut meta.silenced);
-        if self.is_failable {
-            let failed = self.failed.translate(meta);
-            meta.stmt_queue.push_back(failed);
+        if self.is_failable && self.failure_handler.is_parsed {
+            let handler = self.failure_handler.translate(meta);
+            meta.stmt_queue.push_back(handler);
         }
-        meta.stmt_queue.push_back(
-            format!("__AF_{}{}_v{}__{}_{}={}", self.name, self.id, self.variant_id, self.line, self.col, if matches!(self.kind, Type::Array(_)) {
-                // If the function returns an array we have to store the intermediate result in a variable that is of type array
-                format!("({})", parsed_invocation_return)
-            } else {
-                parsed_invocation_return
-            })
-        );
-        self.get_variable(meta, invocation_instance, false)
+        if self.kind != Type::Null {
+            // Get the variable prefix for return values
+            let prefix = meta.gen_variable_prefix(&self.name);
+            let invocation_return = format!("{}ret_{}{}_v{}", prefix, self.name, self.id, self.variant_id);
+            let invocation_instance = format!("{}ret_{}{}_v{}__{}_{}", prefix, self.name, self.id, self.variant_id, self.line, self.col);
+            let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
+            let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
+            meta.push_ephemeral_variable(var_stmt).to_frag()
+        } else {
+            fragments!("''")
+        }
     }
 }
 

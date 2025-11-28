@@ -1,3 +1,5 @@
+import { temp_dir_create } from "std/fs"
+
 // Output
 // [one]
 // [two three four]
@@ -11,7 +13,7 @@
 // 4 [  six  ]
 
 main {
-    let tmpdir = trust $ mktemp -d $
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ echo -e 'one\ntwo three four\n\nfive\n  six  ' >{tmpdir}/numbers.txt $
 
     // Efficient for large files.
@@ -21,6 +23,4 @@ main {
     for index, line in lines("{tmpdir}/numbers.txt") {
         echo "{index} [{line}]"
     }
-
-    trust $ rm -rf {tmpdir} $
 }

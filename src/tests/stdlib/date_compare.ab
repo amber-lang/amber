@@ -1,5 +1,7 @@
 import * from "std/date"
 
 main {
-    if (trust date_compare("2000-01-01") == -1 and trust date_compare("2100-01-01") == 1) : echo "Succeeded"
+    if date_from_posix("2000-01-01 00:00:00")? < date_from_posix("2100-01-01 00:00:00")? {
+        echo "Succeeded"
+    }
 }

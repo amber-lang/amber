@@ -1,6 +1,9 @@
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
+use crate::{fragments, raw_fragment};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
@@ -43,25 +46,43 @@ impl SyntaxModule<ParserMetadata> for Fail {
             Ok(value) => {
                 if value == "0" {
                     return error!(meta, tok => {
-                        message: "Invalid exit code",
-                        comment: "Fail status must be a non-zero integer"
+                        message: "Exit code cannot be '0' in a fail statement",
+                        comment: "Zero code indicates success, not failure"
                     });
                 }
                 self.code = value;
             },
             Err(_) => {
-                match syntax(meta, &mut self.expr) {
-                    Ok(_) => {
-                        if self.expr.get_type() != Type::Num {
-                            return error!(meta, tok => {
-                                message: "Invalid exit code",
-                                comment: "Fail status must be a non-zero integer"
-                            });
-                        }
-                    },
-                    Err(_) => {
-                        self.code = "1".to_string();
-                    }
+                if syntax(meta, &mut self.expr).is_err() {
+                    self.code = "1".to_string();
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Fail {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Only check if we have an expression (not a code value)
+        if self.code.is_empty() {
+            self.expr.typecheck(meta)?;
+
+            if self.expr.get_type() != Type::Int {
+                let tok = meta.get_current_token();
+                return error!(meta, tok => {
+                    message: "Invalid exit code",
+                    comment: "Fail status must be of type Int"
+                });
+            }
+
+            if let Some(val) = self.expr.get_integer_value() {
+                if val == 0 {
+                    let tok = meta.get_current_token();
+                    return error!(meta, tok => {
+                        message: "Exit code cannot be '0' in a fail statement",
+                        comment: "Zero code indicates success, not failure"
+                    });
                 }
             }
         }
@@ -70,18 +91,21 @@ impl SyntaxModule<ParserMetadata> for Fail {
 }
 
 impl TranslateModule for Fail {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let translate = self.code.is_empty()
-            .then(|| self.expr.translate(meta))
-            .unwrap_or_else(|| self.code.clone());
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let translate = if self.code.is_empty() {
+            self.expr.translate(meta)
+        } else {
+            raw_fragment!("{}", &self.code)
+        };
         if self.is_main {
-            format!("exit {translate}")
+            fragments!("exit ", translate)
         } else {
             // Clean the return value if the function fails
             let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-            let stmt = format!("{}={}", fun_meta.mangled_name(), fun_meta.default_return());
-            meta.stmt_queue.push_back(stmt);
-            format!("return {translate}")
+            let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
+                .with_optimization_when_unused(false);
+            meta.stmt_queue.push_back(stmt.to_frag());
+            fragments!("return ", translate)
         }
     }
 }

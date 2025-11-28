@@ -1,0 +1,15 @@
+// Output
+// 12
+// 12.24
+
+fun foo(ref a) {
+    a *= 2
+}
+
+let a = 6
+foo(a)
+echo a
+
+let a = 6.12
+foo(a)
+echo a

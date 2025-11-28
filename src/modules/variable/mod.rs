@@ -3,6 +3,7 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::VariableDecl;
 use crate::utils::metadata::ParserMetadata;
+use crate::utils::is_all_caps;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 
@@ -23,15 +24,15 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         // Control flow keywords
         "if", "then", "else",
         // Loop keywords
-        "for", "loop", "break", "continue", "in",
+        "for", "loop", "break", "continue", "in", "while",
         // Module keywords
         "pub", "import", "from",
         // Function keywords
-        "fun", "return", "ref", "fail", "failed",
+        "fun", "return", "ref", "fail", "failed", "succeeded", "then",
         // Types
         "Text", "Number", "Bool", "Null",
         // Command Modifiers
-        "silent", "trust",
+        "silent", "trust", "sudo",
         // Misc
         "echo", "status", "nameof", "mv", "cd",
         "exit", "len",
@@ -44,7 +45,7 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>,
     match meta.get_var(name) {
         Some(variable_unit) => Ok(variable_unit.clone()),
         None => {
-            let message = format!("Variable '{}' does not exist", name);
+            let message = format!("Variable '{name}' does not exist");
             // Find other similar variable if exists
             if let Some(comment) = handle_similar_variable(meta, name) {
                 error!(meta, tok.clone(), message, comment)
@@ -70,12 +71,12 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
 }
 
 pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
-    // Validate if the variable name uses the reserved prefix
-    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 {
-        let new_name = name.get(1..).unwrap();
+    // Validate if the variable name uses the reserved prefix with fully uppercase names
+    if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 && is_all_caps(name) {
+        let new_name = name.get(2..).unwrap();
         return error!(meta, tok => {
             message: format!("Identifier '{name}' is not allowed"),
-            comment: format!("Identifiers with double underscores are reserved for the compiler.\nConsider using '{new_name}' instead.")
+            comment: format!("Identifiers with double underscores cannot be fully uppercase.\nConsider using '{new_name}' instead.")
         })
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
@@ -111,27 +112,30 @@ fn is_camel_case(name: &str) -> bool {
     false
 }
 
-pub fn handle_index_accessor(meta: &mut ParserMetadata, range: bool) -> Result<Option<Expr>, Failure> {
+pub fn handle_index_accessor(meta: &mut ParserMetadata, _range: bool) -> Result<Option<Expr>, Failure> {
     if token(meta, "[").is_ok() {
-        let tok = meta.get_current_token();
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
-        if !allow_index_accessor(&index, range) {
-            let expected = if range { "number or range" } else { "number (and not a range)" };
-            let side = if range { "right" } else { "left" };
-            let message = format!("Index accessor must be a {} for {} side of operation", expected, side);
-            let comment = format!("The index accessor must be a {} not a {}", expected, index.get_type());
-            return error!(meta, tok => { message: message, comment: comment });
-        }
         token(meta, "]")?;
         return Ok(Some(index));
     }
     Ok(None)
 }
 
+pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool, tok: Option<Token>) -> SyntaxResult {
+    if !allow_index_accessor(index, range) {
+        let expected = if range { "integer or range" } else { "integer (and not a range)" };
+        let side = if range { "right" } else { "left" };
+        let message = format!("Index accessor must be an {expected} for {side} side of operation");
+        let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
+        return error!(meta, tok => { message: message, comment: comment });
+    }
+    Ok(())
+}
+
 fn allow_index_accessor(index: &Expr, range: bool) -> bool {
     match (&index.kind, &index.value) {
-        (Type::Num, _) => true,
+        (Type::Int, _) => true,
         (Type::Array(_), Some(ExprType::Range(_))) => range,
         _ => false,
     }

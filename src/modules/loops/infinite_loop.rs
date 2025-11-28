@@ -1,8 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::translate::module::TranslateModule;
+use crate::fragments;
+use crate::modules::prelude::*;
 use crate::utils::context::Context;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]
@@ -15,32 +14,35 @@ impl SyntaxModule<ParserMetadata> for InfiniteLoop {
 
     fn new() -> Self {
         InfiniteLoop {
-            block: Block::new(),
+            block: Block::new().with_needs_noop().with_condition(),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "loop")?;
-        token(meta, "{")?;
+        syntax(meta, &mut self.block)?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for InfiniteLoop {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Save loop context state and set it to true
         meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-            // Parse loop
-            syntax(meta, &mut self.block)?;
-            token(meta, "}")?;
-            Ok(())
+          self.block.typecheck(meta)
         })?;
         Ok(())
     }
 }
 
 impl TranslateModule for InfiniteLoop {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        [
-            "while :".to_string(),
-            "do".to_string(),
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        BlockFragment::new(vec![
+            fragments!("while :"),
+            fragments!("do"),
             self.block.translate(meta),
-            "done".to_string(),
-        ].join("\n")
+            fragments!("done")
+        ], false).to_frag()
     }
 }
 

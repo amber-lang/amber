@@ -1,13 +1,20 @@
+use std::cmp;
 use std::collections::VecDeque;
 
+use super::ParserMetadata;
 use crate::compiler::CompilerOptions;
+use crate::modules::prelude::*;
+use crate::modules::types::Type;
+use crate::raw_fragment;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
-use super::ParserMetadata;
+use crate::utils::is_all_caps;
+use amber_meta::ContextManager;
 
 const INDENT_SPACES: &str = "    ";
 
+#[derive(ContextManager)]
 pub struct TranslateMetadata {
     /// The arithmetic module that is used to evaluate math.
     pub arith_module: ArithType,
@@ -15,7 +22,7 @@ pub struct TranslateMetadata {
     pub fun_cache: FunctionCache,
     /// A queue of statements that are needed to be evaluated
     /// before current statement in order to be correct.
-    pub stmt_queue: VecDeque<String>,
+    pub stmt_queue: VecDeque<FragmentKind>,
     /// The metadata of the function that is currently being translated.
     pub fun_meta: Option<FunctionMetadata>,
     /// Used to determine the value or array being evaluated.
@@ -23,11 +30,18 @@ pub struct TranslateMetadata {
     /// Determines whether the current context is a context in bash's `eval`.
     pub eval_ctx: bool,
     /// Determines whether the current context should be silenced.
+    #[context]
     pub silenced: bool,
+    /// Determines whether the current context should use sudo.
+    #[context]
+    pub sudoed: bool,
     /// The current indentation level.
     pub indent: i64,
     /// Determines if minify flag was set.
-    pub minify: bool
+    pub minify: bool,
+    /// Determines whether the current context is an expression context.
+    #[context]
+    pub expr_ctx: bool,
 }
 
 impl TranslateMetadata {
@@ -40,8 +54,10 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
+            sudoed: false,
             indent: -1,
             minify: options.minify,
+            expr_ctx: false,
         }
     }
 
@@ -50,7 +66,16 @@ impl TranslateMetadata {
     }
 
     pub fn gen_indent(&self) -> String {
-        INDENT_SPACES.repeat(self.indent as usize)
+        INDENT_SPACES.repeat(cmp::max(self.indent, 0) as usize)
+    }
+
+    #[inline]
+    /// Create an intermediate variable and return it's variable expression
+    pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
+        let stmt = statement.with_ephemeral(true);
+        let expr = VarExprFragment::from_stmt(&stmt);
+        self.stmt_queue.push_back(stmt.to_frag());
+        expr
     }
 
     pub fn increase_indent(&mut self) {
@@ -67,23 +92,53 @@ impl TranslateMetadata {
         id
     }
 
-    pub fn gen_silent(&self) -> &'static str {
-        if self.silenced { " > /dev/null 2>&1" } else { "" }
+    pub fn gen_silent(&self) -> FragmentKind {
+        if self.silenced {
+            raw_fragment!(">/dev/null 2>&1")
+        } else {
+            FragmentKind::Empty
+        }
+    }
+
+    pub fn gen_sudo_prefix(&mut self) -> FragmentKind {
+        if self.sudoed {
+            let var_name = "__sudo";
+            let condition = r#"[ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1 && printf sudo"#;
+            let condition_frag = RawFragment::new(&format!("$({condition})")).to_frag();
+            let var_stmt = VarStmtFragment::new(var_name, Type::Text, condition_frag);
+            let var_expr = VarExprFragment::from_stmt(&var_stmt).with_quotes(false);
+            self.stmt_queue.push_back(var_stmt.to_frag());
+            var_expr.to_frag()
+        } else {
+            FragmentKind::Empty
+        }
     }
 
     // Returns the appropriate amount of quotes with escape symbols.
     // This helps to avoid problems with `eval` expressions.
     pub fn gen_quote(&self) -> &'static str {
-        if self.eval_ctx { "\\\"" } else { "\"" }
-    }
-
-    pub fn gen_subprocess(&self, stmt: &str) -> String {
-        self.eval_ctx
-            .then(|| format!("$(eval \"{}\")", stmt))
-            .unwrap_or_else(|| format!("$({})", stmt))
+        if self.eval_ctx {
+            "\\\""
+        } else {
+            "\""
+        }
     }
 
     pub fn gen_dollar(&self) -> &'static str {
-        if self.eval_ctx { "\\$" } else { "$" }
+        if self.eval_ctx {
+            "\\$"
+        } else {
+            "$"
+        }
+    }
+
+    /// Returns the variable prefix based on the name casing.
+    /// Returns "__" for fully uppercase names, "" for others.
+    pub fn gen_variable_prefix(&self, name: &str) -> &'static str {
+        if is_all_caps(name) {
+            "__"
+        } else {
+            ""
+        }
     }
 }

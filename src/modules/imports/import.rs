@@ -1,13 +1,11 @@
 use std::fs;
 use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
 use super::import_string::ImportString;
 
 #[derive(Debug, Clone)]
@@ -100,14 +98,15 @@ impl Import {
         let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
         match compiler.tokenize() {
             Ok(tokens) => {
-                let mut block = Block::new();
+                let mut block = Block::new().with_no_syntax();
                 // Save snapshot of current file
                 let position = PositionInfo::from_token(meta, self.token_import.clone());
                 let mut context = Context::new(Some(self.path.value.clone()), tokens)
                     .file_import(&meta.context.trace, position);
                 meta.with_context_ref(&mut context, |meta| {
                     // Parse imported code
-                    syntax(meta, &mut block)
+                    syntax(meta, &mut block)?;
+                    block.typecheck(meta)
                 })?;
                 // Persist compiled file to cache
                 meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, context.pub_funs.clone());
@@ -138,9 +137,6 @@ impl SyntaxModule<ParserMetadata> for Import {
         self.is_pub = token(meta, "pub").is_ok();
         self.token_import = meta.get_current_token();
         token(meta, "import")?;
-        if !meta.is_global_scope() {
-            return error!(meta, self.token_import.clone(), "Imports must be in the global scope")
-        }
         match token(meta, "*") {
             Ok(_) => self.is_all = true,
             Err(_) => {
@@ -149,6 +145,13 @@ impl SyntaxModule<ParserMetadata> for Import {
                 if token(meta, "}").is_err() {
                     loop {
                         let tok = meta.get_current_token();
+                        // Check for incorrect use of '*' inside import closure
+                        if token(meta, "*").is_ok() {
+                            return error!(meta, tok => {
+                                message: "Invalid use of '*' in import closure",
+                                comment: "Did you mean to 'import * from' instead?"
+                            });
+                        }
                         let name = variable(meta, variable_name_extensions())?;
                         let alias = match token(meta, "as") {
                             Ok(_) => Some(variable(meta, variable_name_extensions())?),
@@ -180,7 +183,15 @@ impl SyntaxModule<ParserMetadata> for Import {
         token(meta, "from")?;
         self.token_path = meta.get_current_token();
         syntax(meta, &mut self.path)?;
-        // Import code from file or standard library
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Import {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if !meta.is_global_scope() {
+            return error!(meta, self.token_import.clone(), "Imports must be in the global scope")
+        }
         self.add_import(meta, &self.path.value.clone())?;
         let code = self.resolve_import(meta)?;
         self.handle_import(meta, code)?;
@@ -189,8 +200,8 @@ impl SyntaxModule<ParserMetadata> for Import {
 }
 
 impl TranslateModule for Import {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        "".to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        FragmentKind::Empty
     }
 }
 

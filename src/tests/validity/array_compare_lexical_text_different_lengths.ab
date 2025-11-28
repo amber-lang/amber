@@ -1,0 +1,29 @@
+// Output
+// Gt and Ge
+// Ge: 1
+// Gt: 1
+// Le: 0
+// Lt: 0
+// Lt and Le
+// Ge: 0
+// Gt: 0
+// Le: 1
+// Lt: 1
+
+let left = ["a", "b", "c", "x", "y", "z"]
+let right = ["a", "b", "c"]
+
+echo "Gt and Ge"
+echo "Ge: {left >= right}"
+echo "Gt: {left > right}"
+echo "Le: {left <= right}"
+echo "Lt: {left < right}"
+
+let left = ["a", "b", "c"]
+let right = ["a", "b", "d", "e"]
+
+echo "Lt and Le"
+echo "Ge: {left >= right}"
+echo "Gt: {left > right}"
+echo "Le: {left <= right}"
+echo "Lt: {left < right}"

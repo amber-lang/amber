@@ -1,5 +1,5 @@
 // Output
-// "sram"
+// sram
 
 fun reversed(input: Text): Text {
     return trust $ echo {input} | rev $
@@ -10,5 +10,5 @@ fun foo(ref a) {
 }
 
 let a = ""
-trust foo(a)
+foo(a)
 echo a

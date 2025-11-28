@@ -1,0 +1,10 @@
+fun test() {
+    let a = 12
+    if 5 < a {
+        fail a
+    }
+
+    return 42
+}
+
+test() failed: echo "Succeeded"

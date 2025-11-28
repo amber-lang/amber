@@ -1,0 +1,6 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+b_1=20
+echo "The answer is ${b_1}."

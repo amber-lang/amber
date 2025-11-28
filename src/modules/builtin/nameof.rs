@@ -1,4 +1,4 @@
-use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
@@ -8,6 +8,8 @@ use heraclitus_compiler::prelude::*;
 #[derive(Debug, Clone)]
 pub struct Nameof {
     name: String,
+    token: Option<Token>,
+    global_id: Option<usize>,
 }
 
 impl Typed for Nameof {
@@ -22,33 +24,40 @@ impl SyntaxModule<ParserMetadata> for Nameof {
     fn new() -> Self {
         Nameof {
             name: String::new(),
+            token: None,
+            global_id: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "nameof")?;
-        let name = variable(meta, variable_name_extensions())?;
-        match meta.get_var(&name) {
+        self.token = meta.get_current_token();
+        self.name = variable(meta, variable_name_extensions())?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Nameof {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        match meta.get_var(&self.name) {
             Some(var_decl) => {
                 self.name.clone_from(&var_decl.name);
-                if let Some(id) = var_decl.global_id {
-                    self.name = format!("__{id}_{}", self.name);
-                }
+                self.global_id = var_decl.global_id;
                 Ok(())
             }
             None => {
-                let tok = meta.get_current_token();
-                error!(meta, tok, format!("Variable '{name}' not found"))
+                error!(meta, self.token.clone(), format!("Variable '{}' not found", self.name))
             }
         }
     }
 }
 
 impl TranslateModule for Nameof {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let quote = meta.gen_quote();
-        let name = &self.name;
-        format!("{quote}{name}{quote}")
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        VarExprFragment::new(&self.name, Type::Text)
+            .with_global_id(self.global_id)
+            .with_render_type(VarRenderType::NameOf)
+            .to_frag()
     }
 }
 

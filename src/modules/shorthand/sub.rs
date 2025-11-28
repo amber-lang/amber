@@ -1,12 +1,12 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::error_type_match;
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::{module::TranslateModule, compute::{ArithOp, translate_computation}};
-use crate::modules::types::{Type, Typed};
+use crate::translate::compute::ArithOp;
+use crate::modules::types::Type;
+
+use super::shorthand_typecheck_allowed_types;
 
 #[derive(Debug, Clone)]
 pub struct ShorthandSub {
@@ -14,7 +14,8 @@ pub struct ShorthandSub {
     expr: Box<Expr>,
     kind: Type,
     global_id: Option<usize>,
-    is_ref: bool
+    is_ref: bool,
+    tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for ShorthandSub {
@@ -26,49 +27,59 @@ impl SyntaxModule<ParserMetadata> for ShorthandSub {
             expr: Box::new(Expr::new()),
             kind: Type::Null,
             global_id: None,
-            is_ref: false
+            is_ref: false,
+            tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let var_tok = meta.get_current_token();
+        self.tok = meta.get_current_token();
         self.var = variable(meta, variable_name_extensions())?;
         token(meta, "-=")?;
-        let variable = handle_variable_reference(meta, &var_tok, &self.var)?;
-        prevent_constant_mutation(meta, &var_tok, &self.var, variable.is_const)?;
+        syntax(meta, &mut *self.expr)?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for ShorthandSub {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+        
+        let variable = handle_variable_reference(meta, &self.tok, &self.var)?;
+        prevent_constant_mutation(meta, &self.tok, &self.var, variable.is_const)?;
         self.kind = variable.kind;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
-        syntax(meta, &mut *self.expr)?;
-        if self.kind != self.expr.get_type() || !matches!(self.kind, Type::Num) {
-            let msg = self.expr.get_error_message(meta);
-            return error_type_match!(meta, msg, "subtract", self.expr, [Num, Text, Array]);
-        }
+        
+        shorthand_typecheck_allowed_types(meta, "subtract", &self.kind, &self.expr, &[
+            Type::Num,
+            Type::Int,
+        ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for ShorthandSub {
     //noinspection DuplicatedCode
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let name = if let Some(id) = self.global_id {
-            format!("__{id}_{}", self.var)
-        } else if self.is_ref {
-            format!("${{{}}}", self.var)
-        } else {
-            self.var.clone()
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let var = VarExprFragment::new(&self.var, self.kind.clone())
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref);
+        let expr = match self.kind {
+            Type::Int => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                ArithmeticFragment::new(var.to_frag(), ArithOp::Sub, expr).to_frag()
+            }
+            Type::Num => {
+                let expr = self.expr.translate_eval(meta, self.is_ref);
+                translate_computation_eval(meta, ArithOp::Sub, Some(var.to_frag()), Some(expr), self.is_ref)
+            }
+            _ => unreachable!("Unsupported type {} in shorthand subtraction operation", self.kind)
         };
-        if self.is_ref {
-            let var = format!("\\${{{name}}}");
-            let expr = self.expr.translate_eval(meta, true);
-            let expr = translate_computation_eval(meta, ArithOp::Sub, Some(var), Some(expr));
-            format!("eval \"{name}={expr}\"")
-        } else {
-            let var = format!("${{{name}}}");
-            let expr = self.expr.translate(meta);
-            let expr = translate_computation(meta, ArithOp::Sub, Some(var), Some(expr));
-            format!("{name}={expr}")
-        }
+        VarStmtFragment::new(&self.var, self.kind.clone(), expr)
+            .with_global_id(self.global_id)
+            .with_ref(self.is_ref)
+            .to_frag()
     }
 }
 

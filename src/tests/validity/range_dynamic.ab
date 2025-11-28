@@ -1,0 +1,76 @@
+// Output
+// 0 1 2 3 4 5 6 7 8 9
+// 0 1 2 3 4 5 6 7 8 9 10
+// ---
+// -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9
+// -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10
+// ---
+// -5 -4 -3 -2
+// -5 -4 -3 -2 -1
+// ---
+// -5 -6 -7 -8 -9
+// -5 -6 -7 -8 -9 -10
+// ---
+// 5 4 3 2 1 0 -1 -2 -3 -4 -5 -6 -7 -8 -9
+// 5 4 3 2 1 0 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10
+// ---
+// -5
+// 0
+// 5
+// ---
+// <3 empty lines>
+//
+//
+//
+// ---
+
+let a = 0
+let b = 10
+echo a..b
+echo a..=b
+echo "---"
+
+let a = -5
+let b = 10
+echo a..b
+echo a..=b
+
+echo "---"
+let a = -5
+let b = -1
+echo a..b
+echo a..=b
+
+echo "---"
+let a = -5
+let b = -10
+echo a..b
+echo a..=b
+
+echo "---"
+let a = 5
+let b = -10
+echo a..b
+echo a..=b
+
+echo "---"
+let c = -5
+echo c..=c
+
+let c = 0
+echo c..=c
+
+let c = 5
+echo c..=c
+echo "---"
+
+echo "<3 empty lines>"
+let c = 0
+echo c..c
+
+let c = 5
+echo c..c
+
+let c = -5
+echo c..c
+echo "---"
