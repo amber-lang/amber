@@ -21,6 +21,12 @@
 /// - `%p` - locale's equivalent of either AM or PM; blank if unknown
 /// - `%T` - time; same as %H:%M:%S
 /// - `%Y` - year
+///
+/// ### Usage
+/// ```ab
+/// let date = date_now() // Example value: 1678887000
+/// echo date_format_posix(date) // Outputs: 2023-03-15 14:30:00
+/// ```
 pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false): Text? {
     let utc_flag = utc then "-u" else ""
     // Case if this is a GNU date command
@@ -33,6 +39,12 @@ pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false):
 /// Transforms date from a format described by a posix format string to a unix epoch format (seconds since the Epoch (1970-01-01 00:00 UTC)).
 /// If no format is specified, "%F %T" format is used.
 /// For more info about format type "man date" on your shell or go to <https://www.gnu.org/software/coreutils/date>.
+///
+/// ### Usage
+/// ```ab
+/// let date = "2023-03-15 14:30:00"
+/// echo date_from_posix(date) // Output: 1678887000
+/// ```
 #[allow_absurd_cast]
 pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Int? {
     let utc_flag = utc then "-u" else ""
@@ -44,6 +56,11 @@ pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): 
 }
 
 /// Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
+///
+/// ### Usage
+/// ```ab
+/// let date = date_now() // Example value: 1678887000
+/// ```
 #[allow_absurd_cast]
 pub fun date_now(): Int {
     return trust $ date +%s $ as Int
@@ -59,6 +76,12 @@ pub fun date_now(): Int {
 /// - hours
 /// - minutes
 /// - seconds
+///
+/// ### Usage
+/// ```ab
+/// let date = date_now() // Example value: 1678887000
+/// let new_date = date_add(date, 5, "hours") // Example value: 1678890600
+/// ```
 pub fun date_add(date: Int, amount: Int, unit: Text): Int? {
     if {
         unit == "years": return date + amount * 365 * 24 * 60 * 60
@@ -81,6 +104,12 @@ pub fun date_add(date: Int, amount: Int, unit: Text): Int? {
 /// - hours
 /// - minutes
 /// - seconds
+///
+/// ### Usage
+/// ```ab
+/// let date = date_now() // Example value: 1678887000
+/// let new_date = date_sub(date, 5, "hours") // Example value: 1678882200
+/// ```
 pub fun date_sub(date: Int, amount: Int, unit: Text): Int? {
     if {
         unit == "years": return date - amount * 365 * 24 * 60 * 60

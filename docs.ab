@@ -14,7 +14,7 @@ silent $ cargo build --release $ failed {
 }
 
 for file in files {
-    silent $ ./target/release/amber docs {file} $ exited(code): if {
+    silent $ ./target/release/amber docs --usage {file} $ exited(code): if {
         code == 0: echo_colored("Successfully generated for '{file}'", 32)
         code == 1: echo_colored("Docs gen failed for '{file}'", 31)
         code == 127: echo_colored("Cannot find compiled artifact './target/release/amber'", 31)
