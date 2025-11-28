@@ -135,16 +135,16 @@ impl TypeCheckModule for FunctionInvocation {
         // Handle failable function logic
         self.is_failable = function_unit.is_failable;
         if self.is_failable {
-            if !self.failure_handler.is_parsed {
+            if !self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
                 return error!(meta, self.name_tok.clone() => {
                     message: format!("Function '{}' can potentially fail but is left unhandled.", self.name),
                     comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'exited' block to handle both"
                 });
             }
             self.failure_handler.typecheck(meta)?;
-        } else if self.failure_handler.is_parsed {
+        } else if self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
             let message = Message::new_warn_at_token(meta, self.name_tok.clone())
-                .message("This function cannot fail")
+                .message(format!("Function '{}' cannot fail", &self.name))
                 .comment("You can remove the failure handler block or '?' at the end");
             meta.add_message(message);
         }

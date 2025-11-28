@@ -10,5 +10,5 @@ fun foo(ref a) {
 }
 
 let a = ""
-trust foo(a)
+foo(a)
 echo a

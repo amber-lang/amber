@@ -43,7 +43,8 @@ fun sed_version(): Int {
     if status == 0 {
         return SED_VERSION_GNU
     }
-    trust $ re='\bBusyBox\b'; [[ \$(sed 2>&1) =~ \$re ]] $
+    // On BSD single `sed` waits for stdin. We must use `sed --help` to avoid this.
+    trust $ re='\bBusyBox\b'; [[ \$(sed --help 2>&1) =~ \$re ]] $
     if status == 0 {
         return SED_VERSION_BUSYBOX
     }
