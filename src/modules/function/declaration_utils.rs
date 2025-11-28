@@ -1,9 +1,10 @@
-use heraclitus_compiler::prelude::*;
+use crate::modules::block::Block;
 use crate::modules::types::Type;
-use crate::utils::ParserMetadata;
 use crate::modules::variable::handle_identifier_name;
 use crate::utils::context::Context;
 use crate::utils::function_interface::FunctionInterface;
+use crate::utils::ParserMetadata;
+use heraclitus_compiler::prelude::*;
 
 pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
     let index_begin = meta.get_index();
@@ -17,7 +18,9 @@ pub fn skip_function_body(meta: &mut ParserMetadata) -> (usize, usize, bool) {
             "?" => is_failable = true,
             _ => {}
         }
-        if scope == 0 { break }
+        if scope == 0 {
+            break;
+        }
         meta.increment_index();
     }
     let index_end = meta.get_index();
@@ -64,15 +67,24 @@ pub fn is_functions_comment_doc(meta: &mut ParserMetadata) -> bool {
     false
 }
 
-pub fn handle_existing_function(meta: &mut ParserMetadata, tok: Option<Token>) -> Result<(), Failure> {
+pub fn handle_existing_function(
+    meta: &mut ParserMetadata,
+    tok: Option<Token>,
+) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
     if meta.get_fun_declaration(&name).is_some() {
-        return error!(meta, tok, format!("Function '{}' already exists", name))
+        return error!(meta, tok, format!("Function '{}' already exists", name));
     }
     Ok(())
 }
 
-pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: FunctionInterface, ctx: Context) -> Result<usize, Failure> {
+pub fn handle_add_function(
+    meta: &mut ParserMetadata,
+    tok: Option<Token>,
+    fun: FunctionInterface,
+    ctx: Context,
+    block: Block,
+) -> Result<usize, Failure> {
     let name = fun.name.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
     let any_generic = fun.args.iter().any(|arg| arg.kind == Type::Generic);
@@ -82,13 +94,13 @@ pub fn handle_add_function(meta: &mut ParserMetadata, tok: Option<Token>, fun: F
         return error!(meta, tok => {
             message: format!("Function '{}' has a mix of generic and typed arguments", name),
             comment: "Please decide whether to use generics or types for all arguments"
-        })
+        });
     }
     // Try to add the function to the memory
-    match meta.add_fun_declaration(fun, ctx) {
+    match meta.add_fun_declaration(fun, ctx, block) {
         // Return the id of the function
         Some(id) => Ok(id),
         // If the function already exists, show an error
-        None => error!(meta, tok, format!("Function '{}' already exists", name))
+        None => error!(meta, tok, format!("Function '{}' already exists", name)),
     }
 }

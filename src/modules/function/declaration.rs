@@ -1,25 +1,27 @@
-use std::collections::HashSet;
 use crate::raw_fragment;
-use std::{env, fs};
+use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::path::Path;
+use std::{env, fs};
 
+use super::declaration_utils::*;
 use crate::fragments;
-use crate::modules::prelude::*;
-use heraclitus_compiler::prelude::*;
-use itertools::izip;
-use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::statement::comment_doc::CommentDoc;
+use crate::modules::typecheck::TypeCheckModule;
+use crate::modules::types::parse_type;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::modules::typecheck::TypeCheckModule;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_by_name};
 use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
-use crate::modules::types::parse_type;
 use crate::utils::function_metadata::FunctionMetadata;
-use super::declaration_utils::*;
+use heraclitus_compiler::prelude::*;
+use itertools::izip;
+
+use crate::modules::block::Block;
 
 #[derive(Debug, Clone)]
 pub struct FunctionDeclarationArgument {
@@ -42,28 +44,36 @@ pub struct FunctionDeclaration {
     /// Function signature prepared for docs generation
     pub doc_signature: Option<String>,
     /// Function body context for typecheck phase
-    pub function_body: Option<Vec<Token>>,
+    pub function_body: Option<Block>,
     /// Whether function is failable
     pub is_failable: bool,
     /// Whether function was declared as failable
     pub declared_failable: bool,
     /// Token for function name (for error positioning)
-    pub name_token: Option<Token>
+    pub name_token: Option<Token>,
 }
 
 impl FunctionDeclaration {
-    fn set_args_as_variables(&self, _meta: &mut TranslateMetadata, function: &FunctionInstance) -> Option<FragmentKind> {
+    fn set_args_as_variables(
+        &self,
+        _meta: &mut TranslateMetadata,
+        function: &FunctionInstance,
+    ) -> Option<FragmentKind> {
         if !self.args.is_empty() {
             let mut result = vec![];
             for (index, (arg, kind)) in izip!(self.args.iter(), &function.args).enumerate() {
                 let name = &arg.name;
                 match (arg.is_ref, kind) {
-                    (false, Type::Array(_)) => result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1)),
+                    (false, Type::Array(_)) => {
+                        result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1))
+                    }
                     _ => result.push(raw_fragment!("local {name}=${}", index + 1)),
                 }
             }
             Some(BlockFragment::new(result, true).to_frag())
-        } else { None }
+        } else {
+            None
+        }
     }
 
     fn get_space(&self, parentheses: usize, before: &str, word: &str) -> String {
@@ -75,12 +85,16 @@ impl FunctionDeclaration {
             || before == "["
             || before == "("
         {
-            return String::new()
+            return String::new();
         }
         " ".to_string()
     }
 
-    fn render_function_signature(&self, meta: &ParserMetadata, doc_index: usize) -> Result<String, Failure> {
+    fn render_function_signature(
+        &self,
+        meta: &ParserMetadata,
+        doc_index: usize,
+    ) -> Result<String, Failure> {
         let mut result = String::new();
         let mut index = doc_index;
         let mut parentheses = 0;
@@ -97,7 +111,11 @@ impl FunctionDeclaration {
                 ")" => parentheses -= 1,
                 "{" if parentheses == 0 => break,
                 "" => {
-                    return error!(meta, cur_token.cloned(), "Error when parsing function signature. Please report this issue.");
+                    return error!(
+                        meta,
+                        cur_token.cloned(),
+                        "Error when parsing function signature. Please report this issue."
+                    );
                 }
                 _ => {}
             }
@@ -155,7 +173,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             token(meta, "(")?;
             loop {
                 if token(meta, ")").is_ok() {
-                    break
+                    break;
                 }
                 let is_ref = token(meta, "ref").is_ok();
                 let name_token = meta.get_current_token();
@@ -164,7 +182,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 // Optionally parse the argument type
                 let arg_type = match token(meta, ":") {
                     Ok(_) => parse_type(meta)?,
-                    Err(_) => Type::Generic
+                    Err(_) => Type::Generic,
                 };
 
                 // Optionally parse default value
@@ -174,7 +192,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                         let mut expr = Expr::new();
                         syntax(meta, &mut expr)?;
                         Some(expr)
-                    },
+                    }
                     Err(_) => None,
                 };
 
@@ -187,7 +205,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 });
                 match token(meta, ")") {
                     Ok(_) => break,
-                    Err(_) => token(meta, ",")?
+                    Err(_) => token(meta, ",")?,
                 };
             }
             let mut returns_tok = None;
@@ -201,12 +219,15 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                     if token(meta, "?").is_ok() {
                         self.declared_failable = true;
                     }
-                },
-                Err(_) => self.returns = Type::Generic
+                }
+                Err(_) => self.returns = Type::Generic,
             }
             // Parse the body
+            let start_pos = meta.get_index();
             token(meta, "{")?;
-            let (index_begin, index_end, is_failable) = skip_function_body(meta);
+            let (_, _, is_failable) = skip_function_body(meta);
+            meta.set_index(start_pos);
+
             self.is_failable = is_failable;
             if self.returns == Type::Generic {
                 self.declared_failable = is_failable;
@@ -214,19 +235,36 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
 
             // Validate failable function declarations
             if is_failable && !self.declared_failable {
-                return error!(meta, returns_tok, "Failable functions must have a '?' after the type name");
+                return error!(
+                    meta,
+                    returns_tok, "Failable functions must have a '?' after the type name"
+                );
             }
             if !is_failable && self.declared_failable {
-                return error!(meta, question_tok.or(returns_tok), "Infallible functions must not have a '?' after the type name");
+                return error!(
+                    meta,
+                    question_tok.or(returns_tok),
+                    "Infallible functions must not have a '?' after the type name"
+                );
             }
 
             // Store function body for typecheck phase
-            self.function_body = Some(meta.context.expr[index_begin..index_end].to_vec());
-            token(meta, "}")?;
+            let mut block = Block::new();
+            let was_fun_ctx = meta.context.is_fun_ctx;
+            meta.context.is_fun_ctx = true;
+            let result = syntax(meta, &mut block);
+            meta.context.is_fun_ctx = was_fun_ctx;
+            result?;
+            self.function_body = Some(block);
+
             self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
             Ok(())
         }, |pos| {
-            error_pos!(meta, pos, format!("Failed to parse function declaration '{}'", self.name))
+            error_pos!(
+                meta,
+                pos,
+                format!("Failed to parse function declaration '{}'", self.name)
+            )
         })
     }
 }
@@ -235,19 +273,22 @@ impl TypeCheckModule for FunctionDeclaration {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Check if we are in the global scope
         if !meta.is_global_scope() {
-            return error!(meta, self.name_token.clone(), "Functions can only be declared in the global scope")
+            return error!(meta, self.name_token.clone(),
+                "Functions can only be declared in the global scope"
+            );
         }
 
         // Check if function already exists
         handle_existing_function(meta, self.name_token.clone())?;
 
-        // Set the compiler flags
         meta.with_context_fn(Context::set_cc_flags, self.flags.clone(), |meta| {
             // Check for duplicate argument names
             let mut seen_argument_names = HashSet::new();
             for arg in &self.args {
                 if !seen_argument_names.insert(arg.name.clone()) {
-                    return error!(meta, arg.tok.clone(), format!("Argument '{}' is already defined", arg.name));
+                    return error!(meta, arg.tok.clone(),
+                        format!("Argument '{}' is already defined", arg.name)
+                    );
                 }
             }
 
@@ -266,27 +307,39 @@ impl TypeCheckModule for FunctionDeclaration {
 
                     // Validate optional argument type
                     if !expr.get_type().is_allowed_in(&arg.kind) {
-                        return error!(meta, arg.tok.clone(), "Optional argument does not match annotated type");
+                        return error!(meta, arg.tok.clone(),
+                            "Optional argument does not match annotated type"
+                        );
                     }
 
                     optional_started = true;
                 } else if optional_started {
-                    return error!(meta, arg.tok.clone(), "All arguments following an optional argument must also be optional");
+                    return error!(meta, arg.tok.clone(),
+                        "All arguments following an optional argument must also be optional"
+                    );
                 }
             }
 
             // Create function context and add to memory
-            let expr = self.function_body.clone().unwrap_or_default();
-            let ctx = meta.context.clone().function_invocation(expr);
+            let block = self.function_body.clone().unwrap_or_else(Block::new);
+            let mut ctx = meta.context.clone();
+            ctx.is_fun_ctx = true;
+            ctx.expr.clear();
 
-            self.id = handle_add_function(meta, self.name_token.clone(), FunctionInterface {
-                id: None,
-                name: self.name.clone(),
-                args: self.args.clone(),
-                returns: self.returns.clone(),
-                is_public: self.is_public,
-                is_failable: self.is_failable
-            }, ctx)?;
+            self.id = handle_add_function(
+                meta,
+                self.name_token.clone(),
+                FunctionInterface {
+                    id: None,
+                    name: self.name.clone(),
+                    args: self.args.clone(),
+                    returns: self.returns.clone(),
+                    is_public: self.is_public,
+                    is_failable: self.is_failable,
+                },
+                ctx,
+                block,
+            )?;
             Ok(())
         })
     }
@@ -301,7 +354,12 @@ impl TranslateModule for FunctionDeclaration {
         let prefix = meta.gen_variable_prefix(&self.name);
         // Translate each one of them
         for (index, function) in blocks.iter().enumerate() {
-            meta.fun_meta = Some(FunctionMetadata::new(&self.name, self.id, index, &self.returns));
+            meta.fun_meta = Some(FunctionMetadata::new(
+                &self.name,
+                self.id,
+                index,
+                &self.returns,
+            ));
             // Parse the function body
             let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
             result.push(fragments!(name, "() {"));
@@ -341,19 +399,24 @@ impl DocumentationModule for FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn create_test_references(&self, meta: &ParserMetadata, result: &mut Vec<String>) -> Option<Vec<String>> {
+    fn create_test_references(
+        &self,
+        meta: &ParserMetadata,
+        result: &mut Vec<String>,
+    ) -> Option<Vec<String>> {
         if meta.doc_usage {
             let mut references = Vec::new();
-            let exe_path = env::current_exe()
-                .expect("Executable path not found");
-            let root_path = exe_path.parent()
+            let exe_path = env::current_exe().expect("Executable path not found");
+            let root_path = exe_path
+                .parent()
                 .and_then(Path::parent)
                 .and_then(Path::parent)
                 .expect("Root path not found");
-            let test_path = root_path.join("src")
-                .join("tests")
-                .join("stdlib");
-            let lib_name = meta.context.path.as_ref()
+            let test_path = root_path.join("src").join("tests").join("stdlib");
+            let lib_name = meta
+                .context
+                .path
+                .as_ref()
                 .map(Path::new)
                 .and_then(Path::file_name)
                 .and_then(OsStr::to_str)
@@ -361,7 +424,10 @@ impl FunctionDeclaration {
                 .map(String::from)
                 .unwrap_or_default();
             result.push(String::from("```ab"));
-            result.push(format!("import {{ {} }} from \"std/{}\"", self.name, lib_name));
+            result.push(format!(
+                "import {{ {} }} from \"std/{}\"",
+                self.name, lib_name
+            ));
             result.push(String::from("```\n"));
             if test_path.exists() && test_path.is_dir() {
                 if let Ok(entries) = fs::read_dir(test_path) {
@@ -390,7 +456,10 @@ impl FunctionDeclaration {
             }
             if !references.is_empty() {
                 references.sort();
-                references.insert(0, String::from("You can check the original tests for code examples:"));
+                references.insert(
+                    0,
+                    String::from("You can check the original tests for code examples:"),
+                );
                 return Some(references);
             }
         }
