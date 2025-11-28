@@ -50,11 +50,7 @@ main(args) {
 
     // Make the directories we need first to ensure we have permissions before downloading any files
     // this decreases the chance that our script results in partial installation leaving assets behind
-<<<<<<< HEAD
-    const sudo = user_only_install then "" else "sudo"
-=======
     const sudo_cmd = user_only_install then "" else "sudo"
->>>>>>> 4ce73ada1c4e3c62b556e93b4920c5fe25e87394
     // Create directory for amber
     silent $ {sudo_cmd} mkdir -p "{place}" $ failed {
         echo "Failed to create directory for amber."
