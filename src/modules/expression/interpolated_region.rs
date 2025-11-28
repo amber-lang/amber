@@ -94,8 +94,7 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, interpolated_type: &
         let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
         strings.push(parse_escaped_string(stripped, interpolated_type));
         Ok((strings, interps))
-    }
-    else {
+    } else {
         let mut is_interp = false;
         // Initialize string
         let start = token_by(meta, |word| word.starts_with(letter))?;

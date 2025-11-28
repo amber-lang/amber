@@ -186,12 +186,14 @@ impl TypeCheckModule for Expr {
 
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        translate_expression!(meta, self.value.as_ref().unwrap(), [
-            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
-            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
-            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-            Range, Status, Sub, Ternary, Text, VariableGet
-        ])
+        meta.with_expr_ctx(true, |meta| {
+            translate_expression!(meta, self.value.as_ref().unwrap(), [
+                Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+                Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+                Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+                Range, Status, Sub, Ternary, Text, VariableGet
+            ])
+        })
     }
 }
 

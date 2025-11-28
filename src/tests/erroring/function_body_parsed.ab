@@ -1,0 +1,8 @@
+// This test checks if the function definition's body is parsed even if it isn't called
+
+// Output
+// Expected a data type
+
+fun foo() {
+    This is incorrect
+}

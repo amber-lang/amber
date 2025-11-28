@@ -1,13 +1,13 @@
 use std::collections::BTreeSet;
 
-use heraclitus_compiler::prelude::*;
-use amber_meta::ContextManager;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
-use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
+use crate::utils::context::{Context, FunctionDecl, ScopeUnit, VariableDecl};
+use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::import_cache::ImportCache;
-use crate::utils::function_cache::FunctionCache;
+use amber_meta::ContextManager;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, ContextManager)]
 pub struct ParserMetadata {
@@ -50,7 +50,7 @@ impl ParserMetadata {
     /// Pushes a new scope to the stack
     pub fn with_push_scope<B>(&mut self, predicate: bool, mut body: B) -> SyntaxResult
     where
-        B: FnMut(&mut Self) -> SyntaxResult
+        B: FnMut(&mut Self) -> SyntaxResult,
     {
         if predicate {
             self.context.scopes.push(ScopeUnit::new());
@@ -101,12 +101,21 @@ impl ParserMetadata {
 
     /// Gets a variable from the current scope or any parent scope
     pub fn get_var(&self, name: &str) -> Option<&VariableDecl> {
-        self.context.scopes.iter().rev().find_map(|scope| scope.get_var(name))
+        self.context
+            .scopes
+            .iter()
+            .rev()
+            .find_map(|scope| scope.get_var(name))
     }
 
     /// Gets variable names
     pub fn get_var_names(&self) -> BTreeSet<&String> {
-        self.context.scopes.iter().rev().flat_map(|scope| scope.get_var_names()).collect()
+        self.context
+            .scopes
+            .iter()
+            .rev()
+            .flat_map(|scope| scope.get_var_names())
+            .collect()
     }
 
     /* Functions */
@@ -119,7 +128,12 @@ impl ParserMetadata {
     }
 
     /// Adds a function declaration to the current scope
-    pub fn add_fun_declaration(&mut self, fun: FunctionInterface, ctx: Context) -> Option<usize> {
+    pub fn add_fun_declaration(
+        &mut self,
+        fun: FunctionInterface,
+        ctx: Context,
+        block: Block,
+    ) -> Option<usize> {
         let global_id = self.gen_fun_id();
         // Add the function to the public function list
         if fun.is_public {
@@ -130,7 +144,7 @@ impl ParserMetadata {
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_fun(fun.into_fun_declaration(global_id)).then(|| {
             // Add the function to the function cache
-            self.fun_cache.add_declaration(global_id, ctx);
+            self.fun_cache.add_declaration(global_id, ctx, block);
             global_id
         })
     }
@@ -151,17 +165,27 @@ impl ParserMetadata {
     /// This function returns the id of the function instance variant
     pub fn add_fun_instance(&mut self, fun: FunctionInterface, block: Block) -> usize {
         let id = fun.id.expect("Function id is not set");
-        self.fun_cache.add_instance(id, fun.into_fun_instance(block))
+        self.fun_cache
+            .add_instance(id, fun.into_fun_instance(block))
     }
 
     /// Gets a function declaration from the current scope or any parent scope
     pub fn get_fun_declaration(&self, name: &str) -> Option<&FunctionDecl> {
-        self.context.scopes.iter().rev().find_map(|scope| scope.get_fun(name))
+        self.context
+            .scopes
+            .iter()
+            .rev()
+            .find_map(|scope| scope.get_fun(name))
     }
 
     /// Gets function names
     pub fn get_fun_names(&self) -> BTreeSet<&String> {
-        self.context.scopes.iter().rev().flat_map(|scope| scope.get_fun_names()).collect()
+        self.context
+            .scopes
+            .iter()
+            .rev()
+            .flat_map(|scope| scope.get_fun_names())
+            .collect()
     }
 }
 
