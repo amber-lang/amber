@@ -1,7 +1,6 @@
 use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::modules::variable::handle_identifier_name;
-use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::Context;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::ParserMetadata;
@@ -96,16 +95,6 @@ pub fn handle_add_function(
             message: format!("Function '{}' has a mix of generic and typed arguments", name),
             comment: "Please decide whether to use generics or types for all arguments"
         });
-    }
-    if any_typed
-        && fun.returns == Type::Generic
-        && !meta.context.cc_flags.contains(&CCFlags::AllowGenericReturn)
-    {
-        let flag_name = get_ccflag_name(CCFlags::AllowGenericReturn);
-        let message = Message::new_warn_at_token(meta, tok.clone())
-            .message("Function has typed arguments but a generic return type")
-            .comment(format!("To suppress this warning, specify a return type for the function '{name}' or use '{flag_name}' compiler flag"));
-        meta.add_message(message);
     }
     // Try to add the function to the memory
     match meta.add_fun_declaration(fun, ctx, block) {
