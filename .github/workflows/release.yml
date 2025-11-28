@@ -167,7 +167,7 @@ jobs:
       - name: Upload to GitHub Release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.RELEASE_PAT }}
           file: dist/*
           file_glob: true
           tag: ${{ github.event.release.tag_name }}
