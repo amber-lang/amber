@@ -50,9 +50,13 @@ main(args) {
 
     // Make the directories we need first to ensure we have permissions before downloading any files
     // this decreases the chance that our script results in partial installation leaving assets behind
+<<<<<<< HEAD
     const sudo = user_only_install then "" else "sudo"
+=======
+    const sudo_cmd = user_only_install then "" else "sudo"
+>>>>>>> 4ce73ada1c4e3c62b556e93b4920c5fe25e87394
     // Create directory for amber
-    silent $ {sudo} mkdir -p "{place}" $ failed {
+    silent $ {sudo_cmd} mkdir -p "{place}" $ failed {
         echo "Failed to create directory for amber."
         if user_only_install {
             echo "Please make sure that root user can access {place} directory."
@@ -85,27 +89,27 @@ main(args) {
     }
 
     // Move archived version of amber
-    $ {sudo} mv "{archive}" "{place}/{archive}" $ failed {
+    $ {sudo_cmd} mv "{archive}" "{place}/{archive}" $ failed {
         echo "Failed to move amber to the installation directory."
         echo "Please make sure that root user can access {place} directory."
         exit 1
     }
 
     // Unarchive amber
-    silent $ {sudo} tar -xvf "{place}/{archive}" -C "{place}" $ failed {
+    silent $ {sudo_cmd} tar -xvf "{place}/{archive}" -C "{place}" $ failed {
         echo "Failed to unarchive amber at {place}/{archive}"
         echo "Please make sure that you have `tar` command installed."
         exit 1
     }
 
     // Delete the archive
-    $ {sudo} rm {place}/{archive} $ failed {
+    $ {sudo_cmd} rm {place}/{archive} $ failed {
         echo "Failed to remove downloaded archive at {place}/{archive}"
         exit 1
     }
 
     // Give permissions to execute amber
-    $ {sudo} chmod +x "{place}/{target}" $ failed {
+    $ {sudo_cmd} chmod +x "{place}/{target}" $ failed {
         echo "Failed to give permissions to execute amber."
         echo "Please make sure that root user can access {place} directory."
         exit 1
@@ -113,7 +117,7 @@ main(args) {
 
     // Delete the previous symbolic link
     if file_exists("{bins_folder}/{target}") {
-        $ {sudo} rm "{bins_folder}/{target}" $ failed {
+        $ {sudo_cmd} rm "{bins_folder}/{target}" $ failed {
             echo "Failed to remove the previous amber symbol link."
             echo "Please make sure that root user can access {bins_folder} directory."
             exit 1
@@ -121,7 +125,7 @@ main(args) {
     }
 
     // Create amber symbol link
-    $ {sudo} ln -s "{place}/{target}" "{bins_folder}/{target}" $ failed {
+    $ {sudo_cmd} ln -s "{place}/{target}" "{bins_folder}/{target}" $ failed {
         echo "Failed to create amber symbol link."
         echo "Please make sure that root user can access {bins_folder} directory."
         exit 1
