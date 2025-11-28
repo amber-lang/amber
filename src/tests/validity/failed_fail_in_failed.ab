@@ -1,0 +1,15 @@
+// Output
+// Failed captured
+// Failed with error 5
+
+fun foo() {
+    silent $ you_do_not_have_this $ failed {
+        echo "Failed captured"
+        fail 5
+    }
+    echo "This should never happen"
+}
+
+echo foo() failed {
+    echo "Failed with error {status}"
+}

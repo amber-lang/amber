@@ -1,7 +1,0 @@
-// Output
-// Failable types cannot be used as arguments
-
-pub fun test(a: Text?) {
-    echo a
-}
-test("Hello, World!")

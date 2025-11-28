@@ -1,7 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::ParserMetadata};
-use crate::translate::module::TranslateModule;
-use crate::utils::TranslateMetadata;
+use crate::raw_fragment;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
 
 #[derive(Debug, Clone)]
 pub struct Bool {
@@ -30,9 +30,15 @@ impl SyntaxModule<ParserMetadata> for Bool {
     }
 }
 
+impl TypeCheckModule for Bool {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Bool {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        format!("{}", if self.value { 1 } else { 0 })
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        raw_fragment!("{}", if self.value { 1 } else { 0 })
     }
 }
 

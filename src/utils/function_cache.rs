@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::modules::{types::Type, block::Block};
 use super::context::Context;
+use crate::modules::{block::Block, types::Type};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 /// This is a compiled function instance
@@ -8,17 +8,18 @@ pub struct FunctionInstance {
     pub variant_id: usize,
     pub args: Vec<Type>,
     pub returns: Type,
-    pub block: Block
+    pub block: Block,
 }
 
 #[derive(Debug)]
 /// This is a cached data representing a function
 pub struct FunctionCacheEntry {
     pub instances: Vec<FunctionInstance>,
-    pub context: Context
+    pub context: Context,
+    pub block: Block,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 // This is a map of all generated functions based on their invocations
 pub struct FunctionCache {
     pub funs: HashMap<usize, FunctionCacheEntry>,
@@ -26,17 +27,19 @@ pub struct FunctionCache {
 
 impl FunctionCache {
     pub fn new() -> FunctionCache {
-        FunctionCache {
-            funs: HashMap::new(),
-        }
+        FunctionCache::default()
     }
 
     /// Adds a new function declaration to the cache
-    pub fn add_declaration(&mut self, id: usize, context: Context) {
-        self.funs.insert(id, FunctionCacheEntry {
-            instances: Vec::new(),
-            context
-        });
+    pub fn add_declaration(&mut self, id: usize, context: Context, block: Block) {
+        self.funs.insert(
+            id,
+            FunctionCacheEntry {
+                instances: Vec::new(),
+                context,
+                block,
+            },
+        );
     }
 
     /// Adds a new function instance to the cache
@@ -60,5 +63,10 @@ impl FunctionCache {
     /// Gets the context of a function declaration
     pub fn get_context(&self, id: usize) -> Option<&Context> {
         self.funs.get(&id).map(|f| &f.context)
+    }
+
+    /// Gets the block of a function declaration
+    pub fn get_block(&self, id: usize) -> Option<&Block> {
+        self.funs.get(&id).map(|f| &f.block)
     }
 }

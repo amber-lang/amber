@@ -1,5 +1,7 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::metadata::{ParserMetadata, TranslateMetadata}};
+use crate::modules::prelude::*;
+use crate::docs::module::DocumentationModule;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 
 #[derive(Debug, Clone)]
@@ -29,20 +31,22 @@ impl SyntaxModule<ParserMetadata> for Number {
         if let Ok(value) = integer(meta, vec![]) {
             self.value.push_str(&value);
         }
-        if let Ok(sym) = token(meta, ".") {
-            self.value.push_str(&sym);
-            self.value.push_str(&integer(meta, vec![])?);
-        }
-        if self.value.is_empty() {
-            return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
-        }
+        let sym = token(meta, ".")?;
+        self.value.push_str(&sym);
+        self.value.push_str(&integer(meta, vec![])?);
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Number {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         Ok(())
     }
 }
 
 impl TranslateModule for Number {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> String {
-        self.value.to_string()
+    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+        RawFragment::from(self.value.to_string()).to_frag()
     }
 }
 

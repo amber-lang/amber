@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use heraclitus_compiler::prelude::*;
+use itertools::Itertools;
 use crate::utils::ParserMetadata;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -9,20 +10,25 @@ pub enum Type {
     Text,
     Bool,
     Num,
+    Int,
     Array(Box<Type>),
-    Failable(Box<Type>),
     Generic
 }
 
 impl Type {
+    #[inline]
+    pub fn array_of(kind: Type) -> Self {
+        Self::Array(Box::new(kind))
+    }
+
     pub fn is_subset_of(&self, other: &Type) -> bool {
         match (self, other) {
             (_, Type::Generic) => true,
-            (Type::Array(current), Type::Array(other)) => {
-                **current != Type::Generic && **other == Type::Generic
-            }
-            (current, Type::Failable(other)) if !matches!(current, Type::Failable(_)) => {
-                current.is_allowed_in(other)
+            (Type::Int, Type::Num) => true,
+            (Type::Array(current), Type::Array(other)) => match (&**current, &**other) {
+                (current, Type::Generic) if *current != Type::Generic => true,
+                (Type::Int, Type::Num) => true,
+                _ => false
             },
             _ => false
         }
@@ -33,10 +39,21 @@ impl Type {
     }
 
     pub fn is_array(&self) -> bool {
-        match self {
-            Type::Array(_) => true,
-            Type::Failable(inner) => inner.is_array(),
-            _ => false,
+        matches!(self, Type::Array(_))
+    }
+
+    pub fn pretty_join(types: &[Self], op: &str) -> String {
+        let mut all_types = types.iter().map(|kind| kind.to_string()).collect_vec();
+        let last_item = all_types.pop();
+        let comma_separated = all_types.iter().join(", ");
+        if let Some(last) = last_item {
+            if types.len() == 1 {
+                last
+            } else {
+                [comma_separated, last].join(&format!(" {op} "))
+            }
+        } else {
+            comma_separated
         }
     }
 }
@@ -47,13 +64,13 @@ impl Display for Type {
             Type::Text => write!(f, "Text"),
             Type::Bool => write!(f, "Bool"),
             Type::Num => write!(f, "Num"),
+            Type::Int => write!(f, "Int"),
             Type::Null => write!(f, "Null"),
             Type::Array(t) => if **t == Type::Generic {
                     write!(f, "[]")
                 } else {
-                    write!(f, "[{}]", t)
+                    write!(f, "[{t}]")
                 },
-            Type::Failable(t) => write!(f, "{}?", t),
             Type::Generic => write!(f, "Generic")
         }
     }
@@ -88,6 +105,10 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                     meta.increment_index();
                     Ok(Type::Num)
                 },
+                "Int" => {
+                    meta.increment_index();
+                    Ok(Type::Int)
+                },
                 "Null" => {
                     meta.increment_index();
                     Ok(Type::Null)
@@ -115,7 +136,7 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                 text @ ("String" | "Char") => {
                     error!(meta, tok, format!("'{text}' is not a valid data type. Did you mean 'Text'?"))
                 },
-                number @ ("Number" | "Int" | "Float" | "Double") => {
+                number @ ("Number" | "Float" | "Double") => {
                     error!(meta, tok, format!("'{number}' is not a valid data type. Did you mean 'Num'?"))
                 },
                 "Boolean" => {
@@ -135,10 +156,6 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
             Err(Failure::Quiet(PositionInfo::at_eof(meta)))
         }
     };
-
-    if token(meta, "?").is_ok() {
-        return res.map(|t| Type::Failable(Box::new(t)))
-    }
 
     res
 }
@@ -173,29 +190,6 @@ mod tests {
     #[test]
     fn generic_array_is_not_a_subset_of_itself() {
         let a = Type::Array(Box::new(Type::Generic));
-
-        assert!(!a.is_subset_of(&a));
-    }
-
-    #[test]
-    fn non_failable_is_a_subset_of_failable() {
-        let a = Type::Text;
-        let b = Type::Failable(Box::new(Type::Text));
-
-        assert!(a.is_subset_of(&b));
-    }
-
-    #[test]
-    fn failable_is_not_a_subset_of_non_failable() {
-        let a = Type::Text;
-        let b = Type::Failable(Box::new(Type::Text));
-
-        assert!(!b.is_subset_of(&a));
-    }
-
-    #[test]
-    fn failable_is_not_a_subset_of_itself() {
-        let a = Type::Failable(Box::new(Type::Text));
 
         assert!(!a.is_subset_of(&a));
     }

@@ -18,15 +18,15 @@ impl ManagerVisitor {
     }
 
     fn make_with(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("with_{}", name);
+        let concat = format!("with_{name}");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value (which must implement the `Copy` and
             /// `Clone` traits) and restores the previous value after the
             /// body function has returned.
-            pub fn #concat<T, E, B>(&mut self, #name: #segment, mut body: B) -> Result<T, E>
+            pub fn #concat<T, B>(&mut self, #name: #segment, mut body: B) -> T
             where
-                B: FnMut(&mut Self) -> Result<T, E>,
+                B: FnMut(&mut Self) -> T,
             {
                 // Native types are implicitly copied on clone.
                 let prev = self.#name.clone();
@@ -39,15 +39,15 @@ impl ManagerVisitor {
     }
 
     fn make_with_ref(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("with_{}_ref", name);
+        let concat = format!("with_{name}_ref");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value by swapping the references, and
             /// restores the previous value after the body function has
             /// returned.
-            pub fn #concat<T, E, B>(&mut self, #name: &mut #segment, mut body: B) -> Result<T, E>
+            pub fn #concat<T, B>(&mut self, #name: &mut #segment, mut body: B) -> T
             where
-                B: FnMut(&mut Self) -> Result<T, E>,
+                B: FnMut(&mut Self) -> T,
             {
                 use std::mem::swap;
                 swap(&mut self.#name, #name);
@@ -59,7 +59,7 @@ impl ManagerVisitor {
     }
 
     fn make_with_fn(name: &Ident, segment: &PathSegment) -> TokenStream2 {
-        let concat = format!("with_{}_fn", name);
+        let concat = format!("with_{name}_fn");
         let concat = Ident::new(&concat, name.span());
         quote! {
             /// Sets the field value on the encapsulated struct using
@@ -70,10 +70,10 @@ impl ManagerVisitor {
             /// with `with_foo_fn()`, annotate the encapsulated struct
             /// with `#[derive(ContextHelper)`, and required fields with
             /// `#[context]`.
-            pub fn #concat<V, S, T, E, B>(&mut self, mut setter: S, value: V, mut body: B) -> Result<T, E>
+            pub fn #concat<V, S, T, B>(&mut self, mut setter: S, value: V, mut body: B) -> T
             where
                 S: FnMut(&mut #segment, V) -> V,
-                B: FnMut(&mut Self) -> Result<T, E>,
+                B: FnMut(&mut Self) -> T,
             {
                 let prev = setter(&mut self.#name, value);
                 let result = body(self);

@@ -1,0 +1,25 @@
+// Output
+// Succeeded
+
+main {
+    trust $ sudo() \{ command sudo -n "\$@"; } $
+
+    // Read first line of sudoers file
+    sudo silent $ head -n1 /etc/sudoers $ failed {
+        let code = status
+        if {
+            // Case when user is not a root
+            code == 1 and trust $ id -u $ != "0":
+                echo "Succeeded"
+            // Case when sudo command is not installed
+            code == 127:
+                echo "Succeeded"
+            else:
+                echo "Unexpected behaviour: {code}"
+        }
+        exit
+    }
+
+    if status == 0:
+        echo "Succeeded"
+}

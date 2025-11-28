@@ -1,83 +1,180 @@
-import { match_regex, join, replace_regex, split } from "std/text"
+import { match_regex, join, replace_regex, split, trim } from "std/text"
 
 /// Checks if a directory exists.
-pub fun dir_exists(path) {
-    $ [ -d "{path}" ] $ failed {
-        return false
-    }
-    return true
+///
+/// ### Usage
+/// ```ab
+/// if dir_exists("/tmp/mydir") {
+///     echo "Directory exists"
+/// }
+/// ```
+pub fun dir_exists(path: Text): Bool {
+    trust $ [ -d "{path}" ] $
+    return status == 0
 }
 
 /// Checks if a file exists.
-pub fun file_exists(path) {
-    $ [ -f "{path}" ] $ failed {
-        return false
-    }
-    return true
+///
+/// ### Usage
+/// ```ab
+/// if file_exists("config.txt") {
+///     echo "File exists"
+/// }
+/// ```
+pub fun file_exists(path: Text): Bool {
+    trust $ [ -f "{path}" ] $
+    return status == 0
 }
 
 /// Gets file contents from a path.
-pub fun file_read(path) {
+///
+/// ### Usage
+/// ```ab
+/// let content = file_read("data.txt")
+/// ```
+pub fun file_read(path: Text): Text? {
     return $ < "{path}" $?
 }
 
 /// Writes content to a file.
 /// Doesn't check if the file exist
-pub fun file_write(path, content) {
+///
+/// ### Usage
+/// ```ab
+/// file_write("output.txt", "Hello, World!")
+/// ```
+pub fun file_write(path: Text, content: Text): Text? {
     return $ echo "{content}" > "{path}" $?
 }
 
 /// Appends content to a file.
 ///
 /// Doesn't check if the file exists.
-pub fun file_append(path, content) {
+///
+/// ### Usage
+/// ```ab
+/// file_append("log.txt", "New log entry")
+/// ```
+pub fun file_append(path: Text, content: Text): Text? {
     return $ echo "{content}" >> "{path}" $?
 }
 
 /// Creates a symbolic link.
 ///
-/// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun symlink_create(origin: Text, destination: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+///
+/// ### Usage
+/// ```ab
+/// symlink_create("/usr/bin/python3", "/usr/local/bin/python")
+/// ```
+pub fun symlink_create(origin: Text, destination: Text): Null? {
     if file_exists(origin) {
-        trust $ ln -s "{origin}" "{destination}" $
-        return true
+        $ ln -s "{origin}" "{destination}" $?
+        return null
     }
 
     echo "The file {origin} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Creates a directory with all parent directories as required.
-pub fun dir_create(path: Text): Null {
+///
+/// ### Usage
+/// ```ab
+/// dir_create("/tmp/my/nested/directory")
+/// ```
+pub fun dir_create(path: Text): Null? {
     if not dir_exists(path) {
-        trust $ mkdir -p "{path}" $
+        $ mkdir -p "{path}" $?
     }
 }
 
-/// Sets a file as executable.
-///
-/// If the file doesn't exist, it returns a boolean and prints a message.
-pub fun file_chmod(path: Text, mode: Text): Bool {
-    if file_exists(path) {
-        trust $ chmod "{mode}" "{path}" $
+/// Determine whether mktemp is macOS's.
+fun is_mac_os_mktemp(): Bool {
+    // macOS's mktemp does not have --version
+    silent $ mktemp --version $ failed {
         return true
+    }
+    return false
+}
+
+/// Create a temporary directory and return the path.
+/// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
+///
+/// ### Usage
+/// ```ab
+/// let temp = temp_dir_create("myapp.XXXXXX", true, false)
+/// ```
+pub fun temp_dir_create(
+    template: Text = "tmp.XXXXXXXXXX",
+    auto_delete: Bool = false,
+    force_delete: Bool = false
+): Text? {
+    if trim(template) == "" {
+        echo "The template cannot be an empty string!"
+        fail 1
+    }
+
+    let filename = ""
+    if is_mac_os_mktemp() {
+        // usage: mktemp [-d] [-p tmpdir] [-q] [-t prefix] [-u] template ...
+        //        mktemp [-d] [-p tmpdir] [-q] [-u] -t prefix
+        filename = $ mktemp -d -p "\$TMPDIR" "{template}" $?
+    } else {
+        filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
+    }
+    if filename == "" {
+        echo "Failed to make a temporary directory"
+        fail 1
+    }
+    if auto_delete {
+        if force_delete {
+            $ trap 'rm -rf {filename}' EXIT $ failed {
+                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+            }
+        } else {
+            $ trap 'rmdir {filename}' EXIT $ failed {
+                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+            }
+        }
+    }
+    return filename
+}
+
+/// Changes the permission bits of a file.
+///
+/// If the file doesn't exist, it fails and prints a message.
+///
+/// ### Usage
+/// ```ab
+/// file_chmod("script.sh", "755")
+/// ```
+pub fun file_chmod(path: Text, mode: Text): Null? {
+    if file_exists(path) {
+        $ chmod "{mode}" "{path}" $?
+        return null
     }
 
     echo "The file {path} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Changes the owner of a file.
 ///
-/// If the file doesn't exist, it returns `false`
-pub fun file_chown(path: Text, user: Text): Bool {
+/// If the file doesn't exist, it fails and prints a message.
+///
+/// ### Usage
+/// ```ab
+/// file_chown("/var/www/html", "www-data")
+/// ```
+pub fun file_chown(path: Text, user: Text): Null? {
     if file_exists(path) or dir_exists(path) {
-        trust $ chown -R "{user}" "{path}" $
-        return true
+        $ chown -R "{user}" "{path}" $?
+        return null
     }
 
     echo "The file {path} doesn't exist!"
-    return false
+    fail 1
 }
 
 /// Escapes all characters in the passed-in glob except "*", "?" and "/",
@@ -88,7 +185,12 @@ fun escape_non_glob_chars(path: Text): Text {
 
 /// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
-/// `glob` function.
+/// `file_glob` function.
+///
+/// ### Usage
+/// ```ab
+/// let files = file_glob_all(["*.txt", "*.md"])
+/// ```
 pub fun file_glob_all(paths: [Text]): [Text]? {
     let combined = ""
     if len(paths) == 1 {
@@ -101,11 +203,16 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
         }
         combined = join(items, " ")
     }
-    let files = $ eval "for file in {combined}; do [ -e \\\"\\\$file\\\" ] && echo \\\"\\\$file\\\"; done" $?
+    let files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && echo \\"\\\$file\\"; done" $?
     return split(files, "\n")
 }
 
 /// Finds all files or directories matching a file glob.
+///
+/// ### Usage
+/// ```ab
+/// let files = file_glob("*.txt")
+/// ```
 pub fun file_glob(path: Text): [Text]? {
     return file_glob_all([path])?
 }
@@ -113,12 +220,17 @@ pub fun file_glob(path: Text): [Text]? {
 /// Extract the file detecting from the filename the extension
 /// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
 /// Note: Not all the commands supports the output folder path
+///
+/// ### Usage
+/// ```ab
+/// file_extract("archive.tar.gz", "/tmp/extracted")
+/// ```
 pub fun file_extract(path: Text, target: Text): Null? {
     if file_exists(path) {
         if {
-            match_regex(path, "\.\(tar\.bz2\|tbz\|tbz2\)$"): $ tar xvjf "{path}" -C "{target}" $?
-            match_regex(path, "\.\(tar\.gz\|tgz\)$"): $ tar xzf "{path}" -C "{target}" $?
-            match_regex(path, "\.\(tar\.xz\|txz$\)$"): $ tar xJf "{path}" -C "{target}" $?
+            match_regex(path, "\.(tar\.bz2|tbz|tbz2)$", true): $ tar xvjf "{path}" -C "{target}" $?
+            match_regex(path, "\.(tar\.gz|tgz)$", true): $ tar xzf "{path}" -C "{target}" $?
+            match_regex(path, "\.(tar\.xz|txz)$", true): $ tar xJf "{path}" -C "{target}" $?
             match_regex(path, "\.bz2$"): $ bunzip2 "{path}" $?
             match_regex(path, "\.deb$"): $ dpkg-deb -xv "{path}" "{target}" $?
             match_regex(path, "\.gz$"): $ gunzip "{path}" $?

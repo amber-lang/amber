@@ -1,0 +1,19 @@
+import { array_filled } from "std/array"
+
+// Output
+// Array length for size=-1: 0
+// Array length for size=0: 0
+// Array length for size=1: 1 
+// Array length for size=2: 2 
+// Array length for size=3: 3
+
+fun test_size(size: Int): Null {
+    let array = array_filled(size, 0)
+    echo "Array length for size={size}: {len(array)}"
+}
+
+main {
+    for i in -1..=3 {
+        test_size(i)
+    }
+}

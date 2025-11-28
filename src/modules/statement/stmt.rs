@@ -1,15 +1,18 @@
 use heraclitus_compiler::prelude::*;
-use itertools::Itertools;
+use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
     set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
-use crate::handle_types;
+use crate::modules::command::cmd::Command;
+use crate::{
+    parse_statement, typecheck_statement, translate_statement, document_statement
+};
 use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition,
@@ -24,6 +27,7 @@ use crate::modules::shorthand::{
 use crate::modules::loops::{
     infinite_loop::InfiniteLoop,
     iter_loop::IterLoop,
+    while_loop::WhileLoop,
     break_stmt::Break,
     continue_stmt::Continue,
 };
@@ -44,7 +48,7 @@ use super::comment_doc::CommentDoc;
 use super::comment::Comment;
 
 #[derive(Debug, Clone)]
-pub enum StatementType {
+pub enum StmtType {
     Expr(Expr),
     VariableInit(VariableInit),
     VariableSet(VariableSet),
@@ -57,6 +61,7 @@ pub enum StatementType {
     ShorthandModulo(ShorthandModulo),
     InfiniteLoop(InfiniteLoop),
     IterLoop(IterLoop),
+    WhileLoop(WhileLoop),
     Break(Break),
     Continue(Continue),
     FunctionDeclaration(FunctionDeclaration),
@@ -68,6 +73,7 @@ pub enum StatementType {
     Echo(Echo),
     Mv(Mv),
     Exit(Exit),
+    Command(Command),
     CommandModifier(CommandModifier),
     Comment(Comment),
     CommentDoc(CommentDoc),
@@ -75,51 +81,13 @@ pub enum StatementType {
 
 #[derive(Debug, Clone)]
 pub struct Statement {
-    pub value: Option<StatementType>
+    pub value: Option<StmtType>
 }
 
 impl Statement {
-    handle_types!(StatementType, [
-        // Imports
-        Import,
-        // Functions
-        FunctionDeclaration, Main, Return, Fail,
-        // Loops
-        InfiniteLoop, IterLoop, Break, Continue,
-        // Conditions
-        IfChain, IfCondition,
-        // Variables
-        VariableInit, VariableSet,
-        // Short hand
-        ShorthandAdd, ShorthandSub,
-        ShorthandMul, ShorthandDiv,
-        ShorthandModulo,
-        // Command
-        CommandModifier, Echo, Mv, Cd, Exit,
-        // Comment doc
-        CommentDoc, Comment,
-        // Expression
-        Expr
-    ]);
-
-    // Get result out of the provided module and save it in the internal state
-    fn get<M,S>(&mut self, meta: &mut M, mut module: S, cb: impl Fn(S) -> StatementType) -> SyntaxResult
-    where
-        M: Metadata,
-        S: SyntaxModule<M>
-    {
-        match syntax(meta, &mut module) {
-            Ok(()) => {
-                self.value = Some(cb(module));
-                Ok(())
-            }
-            Err(details) => Err(details)
-        }
-    }
-
     pub fn get_docs_item_name(&self) -> Option<String> {
         match &self.value {
-            Some(StatementType::FunctionDeclaration(inner)) => Some(inner.name.clone()),
+            Some(StmtType::FunctionDeclaration(inner)) => Some(inner.name.clone()),
             _ => None,
         }
     }
@@ -134,49 +102,99 @@ impl SyntaxModule<ParserMetadata> for Statement {
         }
     }
 
+    #[allow(unused_assignments)]
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let mut error = None;
-        let statements = self.get_modules();
-        for statement in statements {
-            // Try to parse the statement
-            match self.parse_match(meta, statement) {
-                Ok(()) => return Ok(()),
-                Err(failure) => {
-                    match failure {
-                        Failure::Loud(err) => return Err(Failure::Loud(err)),
-                        Failure::Quiet(err) => error = Some(err)
-                    }
+        // Order matters here
+        parse_statement!([
+            // Imports
+            Import,
+            // Functions
+            FunctionDeclaration, Main, Return, Fail,
+            // Loops
+            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
+            // Conditions
+            IfChain, IfCondition,
+            // Command
+            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            // Variables
+            VariableInit, VariableSet,
+            // Short hand
+            ShorthandAdd, ShorthandSub,
+            ShorthandMul, ShorthandDiv,
+            ShorthandModulo,
+            // Comment doc
+            CommentDoc, Comment,
+            // Expression
+            Expr
+        ], |module, cons| {
+            match syntax(meta, &mut module) {
+                Ok(()) => {
+                    self.value = Some(cons(module));
+                    Ok(())
                 }
+                Err(details) => Err(details)
             }
-        }
-        Err(Failure::Quiet(error.unwrap()))
+        })
+    }
+}
+
+impl TypeCheckModule for Statement {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        typecheck_statement!(meta, self.value.as_mut().unwrap(), [
+            Break, Cd, Command, CommandModifier, Comment, CommentDoc, Continue, Echo,
+            Exit, Expr, Fail, FunctionDeclaration, IfChain, IfCondition,
+            Import, InfiniteLoop, IterLoop, Main, Mv, Return, ShorthandAdd,
+            ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
+            VariableInit, VariableSet, WhileLoop
+        ]);
+        Ok(())
     }
 }
 
 impl TranslateModule for Statement {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
-        let translated = match statement {
-            StatementType::Expr(expr) => match &expr.value {
-                Some(ExprType::Command(cmd)) => cmd.translate_command_statement(meta),
-                _ => format!("echo {} > /dev/null 2>&1", self.translate_match(meta, statement))
-            },
-            _ => self.translate_match(meta, statement)
-        };
-        // Get all the required supplemental statements
-        let indentation = meta.gen_indent();
-        let statements = meta.stmt_queue.drain(..).map(|st| indentation.clone() + st.trim_end_matches(';') + ";\n").join("");
-        // Return all the statements
-        statements + &indentation + &translated
+        translate_statement!(statement, [
+            Import,
+            FunctionDeclaration, Main, Return, Fail,
+            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
+            IfChain, IfCondition,
+            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            VariableInit, VariableSet,
+            ShorthandAdd, ShorthandSub,
+            ShorthandMul, ShorthandDiv,
+            ShorthandModulo,
+            CommentDoc, Comment,
+            Expr
+        ], |inner_module| {
+            if let StmtType::Expr(_) = statement {
+                inner_module.translate(meta);
+                FragmentKind::Empty
+            } else {
+                inner_module.translate(meta)
+            }
+        })
     }
 }
 
 impl DocumentationModule for Statement {
     fn document(&self, meta: &ParserMetadata) -> String {
         // Document the statement
-        let documented = self.document_match(meta, self.value.as_ref().unwrap());
-        documented
+        let statement = self.value.as_ref().unwrap();
+        document_statement!(statement, [
+            Import,
+            FunctionDeclaration, Main, Return, Fail,
+            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
+            IfChain, IfCondition,
+            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            VariableInit, VariableSet,
+            ShorthandAdd, ShorthandSub,
+            ShorthandMul, ShorthandDiv,
+            ShorthandModulo,
+            CommentDoc, Comment,
+            Expr
+        ], inner_module, inner_module.document(meta))
     }
 }

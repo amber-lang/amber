@@ -1,5 +1,4 @@
 // Output
-// Value at -5: ""
 // Value at -4: "zero"
 // Value at -3: "one"
 // Value at -2: "two"
@@ -7,14 +6,14 @@
 
 // Replace this with builtin if/when we get around to writing one.
 #[allow_absurd_cast]
-fun bash_version(): Num {
-    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Num
-    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Num
+fun bash_version(): Int {
+    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
+    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
     return (major * 100) + minor
 }
 
 fun test_index(ref byref) {
-    for index in -5..=-1 {
+    for index in -4..=-1 {
         echo "Value at {index}: \"{byref[index]}\""
     }
 }

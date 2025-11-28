@@ -1,7 +1,12 @@
 /// Returns index of the first value found in the specified array.
 ///
 /// If the value is not found, the function returns -1.
-pub fun array_find(array, value): Num {
+///
+/// ### Usage
+/// ```ab
+/// array_find([1, 2, 3], 2) // Outputs 2
+/// ```
+pub fun array_find(array, value): Int {
     for index, element in array {
         if value as Text == element as Text {
             return index
@@ -11,8 +16,13 @@ pub fun array_find(array, value): Num {
 }
 
 /// Searches for a value in an array and returns an array with the index of the various items.
-pub fun array_find_all(array, value): [Num] {
-    let result = [Num]
+///
+/// ### Usage
+/// ```ab
+/// array_find_all([1, 2, 3, 2], 2) // Outputs [1, 3]
+/// ```
+pub fun array_find_all(array, value): [Int] {
+    let result = [Int]
     for index, element in array {
         if value as Text == element as Text {
             result += [index]
@@ -22,37 +32,71 @@ pub fun array_find_all(array, value): [Num] {
 }
 
 /// Checks if a value is in the array.
+///
+/// ### Usage
+/// ```ab
+/// array_contains([1, 2, 3], 2) // Outputs true
+/// ```
 pub fun array_contains(array, value) {
     let result = array_find(array, value)
     return result >= 0
 }
 
-/// Returns the first element in the array; if the array is empty, the return
-/// value is undefined.
+/// Returns the first element in the array; if the array is empty, the function
+/// fails.
+///
+/// ### Usage
+/// ```ab
+/// array_first([1, 2, 3]) // Outputs 1
+/// ```
 pub fun array_first(array) {
+    if len(array) == 0:
+        fail 1
     return array[0]
 }
 
-/// Returns the last element in the array; if the array is empty, the return
-/// value is undefined.
+/// Returns the last element in the array; if the array is empty, the function
+/// fails.
+///
+/// ### Usage
+/// ```ab
+/// array_last([1, 2, 3]) // Outputs 3
+/// ```
 pub fun array_last(array) {
     let index = len(array) - 1
+    if index < 0:
+        fail 1
     return array[index]
 }
 
 /// Removes an element at the index from the array; if the index is negative
-/// or beyond the end, the return value is undefined, but the array will be
-/// unchanged.
-pub fun array_remove_at(ref array: [], index: Num): Null {
+/// or beyond the end, the array will be unchanged.
+///
+/// ### Usage
+/// ```ab
+/// let array = [1, 2, 3]
+/// array_remove_at(array, 1)
+/// echo array // Outputs [1, 3]
+/// ```
+pub fun array_remove_at(ref array: [], index: Int): Null {
     let offset = index + 1
     let length = len(array)
     array = array[0..index] + array[offset..length]
 }
 
 /// Removes an element at the index from the array, and returns it; if the
-/// index is negative or beyond the end, the return value is undefined, but
-/// the array will be unchanged.
-pub fun array_extract_at(ref array, index) {
+/// index is negative or beyond the end, the function fails.
+///
+/// ### Usage
+/// ```ab
+/// let array = [1, 2, 3]
+/// let element = array_extract_at(array, 1)
+/// echo element // Outputs 2
+/// echo array // Outputs [1, 3]
+/// ```
+pub fun array_extract_at(ref array: [], index: Int) {
+    if index < 0 or index >= len(array):
+        fail 1
     let element = array[index]
     let offset = index + 1
     let length = len(array)
@@ -61,20 +105,61 @@ pub fun array_extract_at(ref array, index) {
 }
 
 /// Removes the last element from the array, and returns it; if the array
-/// is empty, the return value is undefined, but the array will be unchanged.
+/// is empty, the function fails, and the array will be unchanged.
+///
+/// ### Usage
+/// ```ab
+/// let array = [1, 2, 3]
+/// let element = array_pop(array)
+/// echo element // Outputs 3
+/// echo array // Outputs [1, 2]
+/// ```
 pub fun array_pop(ref array) {
     let length = len(array)
     let index = length - 1
+    if index < 0:
+        fail 1
     let element = array[index]
     array = array[0..index]
     return element
 }
 
 /// Removes the first element from the array, and returns it; if the array
-/// is empty, the return value is undefined, but the array will be unchanged.
+/// is empty, the function fails, and the array will be unchanged.
+///
+/// ### Usage
+/// ```ab
+/// let array = [1, 2, 3]
+/// let element = array_shift(array)
+/// echo element // Outputs 1
+/// echo array // Outputs [2, 3]
+/// ```
 pub fun array_shift(ref array) {
     let length = len(array)
+    if length == 0:
+        fail 1
     let element = array[0]
     array = array[1..length]
     return element
+}
+
+/// Returns an array of length `size` with each element set to `value`; if `size`
+/// is less than zero an empty array is returned
+///
+/// ### Usage
+/// ```ab
+/// let array = array_filled(5, 1)
+/// echo array // Outputs [1, 1, 1, 1, 1]
+/// ```
+pub fun array_filled(size, value = 0) {
+    let array = [value] // Used for type casting array
+    array = array[0..0] // Resetting the array size to 0
+
+    if size <= 0 or not (size is Int):
+        return array
+
+    for _ in 0..size:
+        array += [value]
+
+    return array
 }

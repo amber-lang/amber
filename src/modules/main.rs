@@ -1,17 +1,18 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::raw_fragment;
 use crate::modules::types::Type;
 use crate::modules::block::Block;
+use crate::modules::prelude::*;
 
 use super::variable::variable_name_extensions;
 
 #[derive(Debug, Clone)]
 pub struct Main {
     pub args: Option<String>,
+    pub args_global_id: Option<usize>,
     pub block: Block,
-    pub is_skipped: bool
+    pub token: Option<Token>,
+    pub is_skipped: bool,
 }
 
 impl SyntaxModule<ParserMetadata> for Main {
@@ -20,18 +21,16 @@ impl SyntaxModule<ParserMetadata> for Main {
     fn new() -> Self {
         Self {
             args: None,
-            block: Block::new(),
+            args_global_id: None,
+            block: Block::new().with_no_indent(),
+            token: None,
             is_skipped: false
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let tok = meta.get_current_token();
+        self.token = meta.get_current_token();
         token(meta, "main")?;
-        // Main cannot be parsed inside of a block
-        if !meta.is_global_scope() {
-            return error!(meta, tok, "Main must be in the global scope")
-        }
         // If this main is included in other file, skip it
         if !meta.context.trace.is_empty() {
             self.is_skipped = true;
@@ -42,18 +41,16 @@ impl SyntaxModule<ParserMetadata> for Main {
                 self.args = Some(variable(meta, variable_name_extensions())?);
                 token(meta, ")")?;
             }
-            token(meta, "{")?;
             // Create a new scope for variables
-            meta.with_push_scope(|meta| {
+            meta.with_push_scope(true, |meta| {
                 // Create variables
                 for arg in self.args.iter() {
-                    meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+                    self.args_global_id = meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
                 }
                 // Parse the block
                 syntax(meta, &mut self.block)?;
                 Ok(())
             })?;
-            token(meta, "}")?;
             meta.context.is_main_ctx = false;
             Ok(())
         }, |pos| {
@@ -62,18 +59,47 @@ impl SyntaxModule<ParserMetadata> for Main {
     }
 }
 
+impl TypeCheckModule for Main {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Main cannot be parsed inside of a block
+        if !meta.is_global_scope() {
+            return error!(meta, self.token.clone(), "Main must be in the global scope")
+        }
+
+        // Typecheck the main block content
+        meta.with_push_scope(true, |meta| {
+            // Create variables for main arguments
+            for arg in self.args.iter() {
+                meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+            }
+            // Typecheck the block
+            self.block.typecheck(meta)?;
+            Ok(())
+        })
+    }
+}
+
 impl TranslateModule for Main {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.is_skipped {
-            String::new()
+            FragmentKind::Empty
         } else {
             let quote = meta.gen_quote();
             let dollar = meta.gen_dollar();
+            let global_id = meta.gen_value_id();
             let args = self.args.clone().map_or_else(
-                String::new,
-                |name| format!("declare -r {name}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                || FragmentKind::Empty,
+                |name| {
+                    let id = self.args_global_id.unwrap_or(global_id);
+                    raw_fragment!("declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                }
             );
-            format!("{args}\n{}", self.block.translate(meta))
+            // Temporarily decrease the indentation level to counteract
+            // the indentation applied by the block translation.  Unlike
+            // other instances of code blocks, we do not want to indent
+            // the code generated from the main block.
+            meta.stmt_queue.push_back(args);
+            self.block.translate(meta)
         }
     }
 }

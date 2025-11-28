@@ -1,34 +1,66 @@
 /// Sums an array's contents
+///
+/// ### Usage
+/// ```ab
+/// let total = math_sum([1, 2, 3, 4, 5])
+/// echo total // 15
+/// ```
 #[allow_absurd_cast]
-pub fun math_sum(list: [Num]): Num {
-    return trust $ echo "{list}" | awk '\{s=0; for (i=1; i<=NF; i++) s+=\$i; print s}' $ as Num
+pub fun math_sum(list) {
+    let sum = 0
+    for item in list: sum += item
+    return sum
 }
 
 /// Returns a number, rounded to the nearest integer
+///
+/// ### Usage
+/// ```ab
+/// let rounded = math_round(3.7)
+/// echo rounded // 4
+/// ```
 #[allow_absurd_cast]
-pub fun math_round(number: Num): Num {
+pub fun math_round(number: Num): Int {
     if number > 0 {
-        return trust $ echo "({number}+0.5)/1" | bc $ as Num
+        return trust $ echo "({number}+0.5)/1" | bc $ as Int
     }
 
-    return trust $ echo "({number}-0.5)/1" | bc $ as Num
+    return trust $ echo "({number}-0.5)/1" | bc $ as Int
 }
 
 /// Returns the largest integer less than or equal to a number
+///
+/// ### Usage
+/// ```ab
+/// let floored = math_floor(3.9)
+/// echo floored // 3
+/// ```
 #[allow_absurd_cast]
-pub fun math_floor(number: Num): Num {
-    return trust $ echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}' $ as Num
+pub fun math_floor(number: Num): Int {
+    return trust $ echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}' $ as Int
 }
 
 /// Returns the smallest integer greater than or equal to a number
+///
+/// ### Usage
+/// ```ab
+/// let ceiled = math_ceil(3.1)
+/// echo ceiled // 4
+/// ```
 #[allow_absurd_cast]
-pub fun math_ceil(number: Num): Num {
+pub fun math_ceil(number: Num): Int {
     return math_floor(number) + 1
 }
 
 /// Returns the absolute value of a number
+///
+/// ### Usage
+/// ```ab
+/// let absolute = math_abs(-42)
+/// echo absolute // 42
+/// ```
 #[allow_absurd_cast]
-pub fun math_abs(number: Num): Num {
+pub fun math_abs(number) {
     if number < 0: return -number
     return number
 }

@@ -1,18 +1,17 @@
-use std::mem::swap;
-
-use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::{condition::failed::Failed, expression::literal::bool, types::{Type, Typed}}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::modules::types::{Type, Typed};
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::modules::expression::literal::{parse_interpolated_region, translate_interpolated_region};
+use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
 use super::modifier::CommandModifier;
+use heraclitus_compiler::prelude::*;
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Command {
     strings: Vec<String>,
     interps: Vec<Expr>,
     modifier: CommandModifier,
-    failed: Failed
+    failure_handler: FailureHandler
 }
 
 impl Typed for Command {
@@ -28,8 +27,8 @@ impl SyntaxModule<ParserMetadata> for Command {
         Command {
             strings: vec![],
             interps: vec![],
-            modifier: CommandModifier::new().parse_expr(),
-            failed: Failed::new()
+            modifier: CommandModifier::new_expr(),
+            failure_handler: FailureHandler::new()
         }
     }
 
@@ -37,59 +36,82 @@ impl SyntaxModule<ParserMetadata> for Command {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
             let tok = meta.get_current_token();
-            (self.strings, self.interps) = parse_interpolated_region(meta, '$')?;
-            match syntax(meta, &mut self.failed) {
+            (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Command)?;
+
+            // Set position for failure handler
+            let position = PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token());
+            self.failure_handler.set_position(position.clone());
+
+            // Try to parse failure handler (failed, succeeded, or exited)
+            match syntax(meta, &mut self.failure_handler) {
                 Ok(_) => Ok(()),
-                Err(Failure::Quiet(_)) => error!(meta, tok => {
-                    message: "Every command statement must handle failed execution",
-                    comment: "You can use '?' in the end to propagate the failure"
-                }),
+                Err(Failure::Quiet(_)) => {
+                    // No failure handler found
+                    error!(meta, tok => {
+                        message: "Every command statement must handle execution result",
+                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
+                    })
+                },
                 Err(err) => Err(err)
             }
         })
     }
 }
 
-impl Command {
-    fn translate_command(&self, meta: &mut TranslateMetadata, is_statement: bool) -> String {
-        // Translate all interpolations
-        let interps = self.interps.iter()
-            .map(|item| item.translate(meta))
-            .collect::<Vec<String>>();
-        let failed = self.failed.translate(meta);
-        let mut is_silent = self.modifier.is_silent || meta.silenced;
-        swap(&mut is_silent, &mut meta.silenced);
-        let silent = meta.gen_silent();
-        let translation = translate_interpolated_region(self.strings.clone(), interps, false);
-        swap(&mut is_silent, &mut meta.silenced);
-        let translation = format!("{translation}{silent}");
-        if is_statement {
-            return if failed.is_empty() { translation } else {
-                meta.stmt_queue.push_back(translation);
-                failed
-            }
+impl TypeCheckModule for Command {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        for interp in self.interps.iter_mut() {
+            interp.typecheck(meta)?;
         }
-        if failed.is_empty() {
-            meta.gen_subprocess(&translation)
-        } else {
-            let id = meta.gen_value_id();
-            let quote = meta.gen_quote();
-            let dollar = meta.gen_dollar();
-            meta.stmt_queue.push_back(format!("__AMBER_VAL_{id}=$({translation})"));
-            meta.stmt_queue.push_back(failed);
-            format!("{quote}{dollar}{{__AMBER_VAL_{id}}}{quote}")
-        }
-    }
-
-    pub fn translate_command_statement(&self, meta: &mut TranslateMetadata) -> String {
-        self.translate_command(meta, true)
+        self.failure_handler.typecheck(meta)
     }
 }
 
 impl TranslateModule for Command {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        self.translate_command(meta, false)
-    }
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+         let translation = {
+             meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
+                meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
+                    let interps = self.interps.iter()
+                        .map(|item| item.translate(meta).with_quotes(false))
+                        .collect::<Vec<FragmentKind>>();
+
+                    let translation = InterpolableFragment::new(
+                        self.strings.clone(),
+                        interps,
+                        InterpolableRenderType::GlobalContext
+                    ).to_frag();
+
+                    let silent = meta.gen_silent().to_frag();
+                    let sudo_prefix = meta.gen_sudo_prefix().to_frag();
+                    ListFragment::new(vec![sudo_prefix, translation, silent])
+                        .with_spaces()
+                        .to_frag()
+                })
+            })
+         };
+
+         let handler = self.failure_handler.translate(meta);
+         let is_statement = !meta.expr_ctx;
+         let has_failure_handler = self.failure_handler.is_parsed;
+
+         match (is_statement, has_failure_handler) {
+             (true, true) => {
+                 meta.stmt_queue.push_back(translation);
+                 handler
+             }
+             (true, false) => translation,
+             (false, false) => SubprocessFragment::new(translation).to_frag(),
+             (false, true) => {
+                 let id = meta.gen_value_id();
+                 let value = SubprocessFragment::new(translation).to_frag();
+                 let var_stmt = VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
+                 let var_expr = meta.push_ephemeral_variable(var_stmt);
+                 meta.stmt_queue.push_back(handler);
+                 var_expr.to_frag()
+             }
+         }
+     }
 }
 
 impl DocumentationModule for Command {

@@ -1,10 +1,8 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{handle_binop, error_type_match};
+use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{ArithOp, translate_computation};
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::module::TranslateModule;
+use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
+use crate::translate::compute::{ArithOp, translate_float_computation};
 use crate::modules::types::{Typed, Type};
 use super::BinOp;
 
@@ -45,17 +43,48 @@ impl SyntaxModule<ParserMetadata> for Gt {
         }
     }
 
-    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        handle_binop!(meta, "compare", self.left, self.right, [Num])?;
+    fn parse(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Gt {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.left.typecheck(meta)?;
+        self.right.typecheck(meta)?;
+        Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
+            Type::Num,
+            Type::Int,
+            Type::Text,
+            Type::array_of(Type::Num),
+            Type::array_of(Type::Int),
+            Type::array_of(Type::Text),
+        ])?;
         Ok(())
     }
 }
 
 impl TranslateModule for Gt {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        translate_computation(meta, ArithOp::Gt, Some(left), Some(right))
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        match self.left.get_type() {
+            Type::Int => {
+                let left = self.left.translate(meta).with_quotes(false);
+                let right = self.right.translate(meta).with_quotes(false);
+                ArithmeticFragment::new(left, ArithOp::Gt, right).to_frag()
+            }
+            Type::Num => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                translate_float_computation(meta, ArithOp::Gt, Some(left), Some(right))
+            }
+            Type::Array(inner_type) => {
+                translate_array_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right, *inner_type)
+            }
+            Type::Text => {
+                translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
+            }
+            _ => unreachable!("Unsupported type {} in greater than comparison", self.left.get_type())
+        }
     }
 }
 

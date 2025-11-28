@@ -1,0 +1,33 @@
+// Single quotes should not disturb interpolation
+// Output
+// '
+// a'b
+// 'ABC'
+// "ABC"
+// 'ABC
+// ABC'
+// a'bABCc'd
+// ABC ABC
+// ABC ABC
+// "ab
+// ---
+// ABC
+// c
+
+const str = "ABC"
+const space = " "
+
+trust $ echo "'" $
+trust $ echo "a'b" $
+trust $ echo "'{str}'" $
+trust $ echo '"{str}"' $
+trust $ echo "'{str}" $
+trust $ echo "{str}'" $
+trust $ echo "a'b{str}c'd" $
+trust $ echo '{str} {str}' $
+trust $ echo "{str} {str}" $
+trust $ echo '"a'b $
+echo "---"
+// Reallife examples
+trust $ printf '{str}\\n' $
+trust $ echo 'a b c d e' | cut -d'{space}' -f3 $

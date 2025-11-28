@@ -1,7 +1,5 @@
 use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::utils::metadata::ParserMetadata;
-use crate::translate::module::TranslateModule;
+use crate::modules::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Comment {
@@ -24,12 +22,18 @@ impl SyntaxModule<ParserMetadata> for Comment {
     }
 }
 
+impl TypeCheckModule for Comment {
+    fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
+        Ok(())
+    }
+}
+
 impl TranslateModule for Comment {
-    fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut crate::utils::TranslateMetadata) -> FragmentKind {
         if meta.minify {
-            String::new()
+            FragmentKind::Empty
         } else {
-            format!("# {}", self.value)
+            CommentFragment::new(&self.value).to_frag()
         }
     }
 }

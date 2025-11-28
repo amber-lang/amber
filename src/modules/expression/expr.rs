@@ -3,7 +3,9 @@ use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::len::Len;
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::binop::BinOp;
+use crate::modules::prelude::FragmentKind;
 use crate::modules::types::{Typed, Type};
+use crate::modules::typecheck::TypeCheckModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::modules::expression::typeop::TypeOp;
@@ -13,6 +15,7 @@ use crate::modules::types::parse_type;
 use super::literal::{
     bool::Bool,
     number::Number,
+    integer::Integer,
     text::Text,
     array::Array,
     null::Null,
@@ -48,12 +51,19 @@ use super::ternop::ternary::Ternary;
 use crate::modules::function::invocation::FunctionInvocation;
 use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::builtin::nameof::Nameof;
-use crate::{document_expression, parse_expr, parse_expr_group, translate_expression};
+use crate::{
+    document_expression,
+    parse_expression,
+    parse_expression_group,
+    typecheck_expression,
+    translate_expression
+};
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
     Bool(Bool),
     Number(Number),
+    Integer(Integer),
     Text(Text),
     Parentheses(Parentheses),
     VariableGet(VariableGet),
@@ -104,6 +114,7 @@ impl Expr {
     pub fn get_integer_value(&self) -> Option<isize> {
         match &self.value {
             Some(ExprType::Number(value)) => value.get_integer_value(),
+            Some(ExprType::Integer(value)) => value.value.parse().ok(),
             Some(ExprType::Neg(value)) => value.get_integer_value(),
             _ => None,
         }
@@ -119,18 +130,6 @@ impl Expr {
         let pos = self.get_position(meta);
         Message::new_err_at_position(meta, pos)
     }
-
-    pub fn is_var(&self) -> bool {
-        matches!(self.value, Some(ExprType::VariableGet(_)))
-    }
-
-    // Get the variable name if the expression is a variable access
-    pub fn get_var_translated_name(&self) -> Option<String> {
-        match &self.value {
-            Some(ExprType::VariableGet(var)) => Some(var.get_translated_name()),
-            _ => None
-        }
-    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
@@ -145,7 +144,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let result = parse_expr!(meta, [
+        let result = parse_expression!(meta, [
             ternary @ TernOp => [ Ternary ],
             range @ BinOp => [ Range ],
             or @ BinOp => [ Or ],
@@ -158,7 +157,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
             unops @ UnOp => [ Neg, Not, Len ],
             literals @ Literal => [
                 // Literals
-                Parentheses, Bool, Number, Text,
+                Parentheses, Bool, Number, Integer, Text,
                 Array, Null, Status, Nameof,
                 // Builtin invocation
                 LinesInvocation,
@@ -173,58 +172,38 @@ impl SyntaxModule<ParserMetadata> for Expr {
     }
 }
 
+impl TypeCheckModule for Expr {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        typecheck_expression!(self, meta, self.value.as_mut().unwrap(), [
+            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+            Range, Status, Sub, Ternary, Text, VariableGet
+        ]);
+        Ok(())
+    }
+}
+
 impl TranslateModule for Expr {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
-        translate_expression!(meta, self.value.as_ref().unwrap(), [
-            // Ternary conditional
-            Ternary,
-            // Logical operators
-            And, Or,
-            // Comparison operators
-            Gt, Ge, Lt, Le, Eq, Neq,
-            // Arithmetic operators
-            Add, Sub, Mul, Div, Modulo,
-            // Binary operators
-            Range, Cast, Is,
-            // Unary operators
-            Not, Neg, Nameof, Len,
-            // Literals
-            Parentheses, Bool, Number, Text,
-            Array, Null, Status,
-            // Builtin invocation
-            LinesInvocation,
-            // Function invocation
-            FunctionInvocation, Command,
-            // Variable access
-            VariableGet
-        ])
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        meta.with_expr_ctx(true, |meta| {
+            translate_expression!(meta, self.value.as_ref().unwrap(), [
+                Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+                Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+                Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+                Range, Status, Sub, Ternary, Text, VariableGet
+            ])
+        })
     }
 }
 
 impl DocumentationModule for Expr {
     fn document(&self, meta: &ParserMetadata) -> String {
         document_expression!(meta, self.value.as_ref().unwrap(), [
-            // Ternary conditional
-            Ternary,
-            // Logical operators
-            And, Or,
-            // Comparison operators
-            Gt, Ge, Lt, Le, Eq, Neq,
-            // Arithmetic operators
-            Add, Sub, Mul, Div, Modulo,
-            // Binary operators
-            Range, Cast, Is,
-            // Unary operators
-            Not, Neg, Nameof, Len,
-            // Literals
-            Parentheses, Bool, Number, Text,
-            Array, Null, Status,
-            // Builtin invocation
-            LinesInvocation,
-            // Function invocation
-            FunctionInvocation, Command,
-            // Variable access
-            VariableGet
+            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
+            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
+            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
+            Range, Status, Sub, Ternary, Text, VariableGet
         ])
     }
 }

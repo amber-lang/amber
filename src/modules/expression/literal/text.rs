@@ -1,9 +1,10 @@
 use heraclitus_compiler::prelude::*;
-use crate::{docs::module::DocumentationModule, modules::types::{Type, Typed}, utils::{ParserMetadata, TranslateMetadata}};
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::modules::expression::expr::Expr;
-
-use super::{parse_interpolated_region, translate_interpolated_region};
+use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
 
 #[derive(Debug, Clone)]
 pub struct Text {
@@ -28,19 +29,28 @@ impl SyntaxModule<ParserMetadata> for Text {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        (self.strings, self.interps) = parse_interpolated_region(meta, '"')?;
+        (self.strings, self.interps) = parse_interpolated_region(meta, &InterpolatedRegionType::Text)?;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for Text {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Type check all interpolated expressions
+        for expr in &mut self.interps {
+            expr.typecheck(meta)?;
+        }
         Ok(())
     }
 }
 
 impl TranslateModule for Text {
-    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate all interpolations
         let interps = self.interps.iter()
-            .map(|item| item.translate(meta))
-            .collect::<Vec<String>>();
-        let quote = meta.gen_quote();
-        format!("{quote}{}{quote}", translate_interpolated_region(self.strings.clone(), interps, true))
+            .map(|item| item.translate(meta).with_quotes(false))
+            .collect::<Vec<FragmentKind>>();
+        InterpolableFragment::new(self.strings.clone(), interps, InterpolableRenderType::StringLiteral).to_frag()
     }
 }
 
