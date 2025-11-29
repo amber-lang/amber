@@ -70,7 +70,7 @@ impl TypeCheckModule for Main {
         meta.with_push_scope(true, |meta| {
             // Create variables for main arguments
             for arg in self.args.iter() {
-                meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+                self.args_global_id = meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
             }
             // Typecheck the block
             self.block.typecheck(meta)?;
