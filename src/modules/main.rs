@@ -41,16 +41,8 @@ impl SyntaxModule<ParserMetadata> for Main {
                 self.args = Some(variable(meta, variable_name_extensions())?);
                 token(meta, ")")?;
             }
-            // Create a new scope for variables
-            meta.with_push_scope(true, |meta| {
-                // Create variables
-                for arg in self.args.iter() {
-                    self.args_global_id = meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
-                }
-                // Parse the block
-                syntax(meta, &mut self.block)?;
-                Ok(())
-            })?;
+            // Parse the block
+            syntax(meta, &mut self.block)?;
             meta.context.is_main_ctx = false;
             Ok(())
         }, |pos| {
