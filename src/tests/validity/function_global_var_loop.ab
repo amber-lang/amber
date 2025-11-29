@@ -1,0 +1,13 @@
+let sum = 0
+
+fun add_numbers(): Null {
+    for index in 1..5 {
+        sum = sum + index
+    }
+}
+
+add_numbers()
+echo sum
+
+// Output
+// 10
