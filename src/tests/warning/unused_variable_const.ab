@@ -1,0 +1,6 @@
+// Output
+// Unused variable 'unused_var'
+// 1
+
+const unused_var = [1, 2, 3]
+echo 1

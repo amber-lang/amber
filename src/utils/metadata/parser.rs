@@ -57,7 +57,24 @@ impl ParserMetadata {
         }
         let result = body(self);
         if predicate {
-            self.context.scopes.pop();
+            let scope = self.context.scopes.pop().unwrap();
+            // Check for unused variables and const correctness
+            for (_, var) in scope.vars {
+                // Skip variables starting with _
+                if var.name.starts_with('_') {
+                    continue;
+                }
+
+                if !var.is_used {
+                    let message = Message::new_warn_at_token(self, var.tok.clone())
+                        .message(format!("Unused variable '{}'", var.name));
+                    self.add_message(message);
+                } else if !var.is_const && !var.is_modified {
+                    let message = Message::new_warn_at_token(self, var.tok.clone())
+                        .message(format!("Variable '{}' is never modified, consider using 'const'", var.name));
+                    self.add_message(message);
+                }
+            }
         }
         result
     }
@@ -72,7 +89,8 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
+    /// Adds a variable to the current scope
+    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool, tok: Option<Token>) -> Option<usize> {
         let global_id = Some(self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
@@ -81,12 +99,16 @@ impl ParserMetadata {
             global_id,
             is_ref: false,
             is_const,
+            is_used: false,
+            is_modified: false,
+            tok,
         });
         global_id
     }
 
     /// Adds a function parameter as variable to the current scope
-    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
+    /// Adds a function parameter as variable to the current scope
+    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool, tok: Option<Token>) -> Option<usize> {
         let global_id = self.is_global_scope().then(|| self.gen_var_id());
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(VariableDecl {
@@ -95,6 +117,9 @@ impl ParserMetadata {
             global_id,
             is_ref,
             is_const: false,
+            is_used: false, // Params are considered used by default? Or should we warn? Let's warn.
+            is_modified: false,
+            tok,
         });
         global_id
     }
@@ -116,6 +141,26 @@ impl ParserMetadata {
             .rev()
             .flat_map(|scope| scope.get_var_names())
             .collect()
+    }
+
+    /// Marks a variable as used
+    pub fn mark_var_used(&mut self, name: &str) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.is_used = true;
+                return;
+            }
+        }
+    }
+
+    /// Marks a variable as modified
+    pub fn mark_var_modified(&mut self, name: &str) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.is_modified = true;
+                return;
+            }
+        }
     }
 
     /* Functions */

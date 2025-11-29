@@ -57,6 +57,9 @@ pub struct VariableDecl {
     pub global_id: Option<usize>,
     pub is_ref: bool,
     pub is_const: bool,
+    pub is_used: bool,
+    pub is_modified: bool,
+    pub tok: Option<Token>,
 }
 
 #[derive(Clone, Debug, Default)]

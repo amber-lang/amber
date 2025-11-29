@@ -106,9 +106,9 @@ impl TypeCheckModule for IterLoop {
 
         // Create iterator variable
         meta.with_push_scope(true, |meta| {
-            self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false);
+            self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false, None);
             if let Some(index) = self.iter_index.as_ref() {
-                self.iter_index_global_id = meta.add_var(index, Type::Int, false);
+                self.iter_index_global_id = meta.add_var(index, Type::Int, false, None);
             }
             // Save loop context state and set it to true
             meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {

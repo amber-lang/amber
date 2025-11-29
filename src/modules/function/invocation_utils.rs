@@ -79,7 +79,7 @@ fn run_function_with_args(
         // Create a sub context for new variables
         meta.with_push_scope(true, |meta| {
             for (kind, arg) in izip!(args, &fun.args) {
-                meta.add_param(&arg.name, kind.clone(), arg.is_ref);
+                meta.add_param(&arg.name, kind.clone(), arg.is_ref, None);
             }
             // Set the expected return type if specified
             if fun.returns != Type::Generic {
