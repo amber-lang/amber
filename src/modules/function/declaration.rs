@@ -248,7 +248,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             }
 
             // Store function body for typecheck phase
-            let mut block = Block::new();
+            let mut block = Block::new().with_condition();
             let was_fun_ctx = meta.context.is_fun_ctx;
             meta.context.is_fun_ctx = true;
             let result = syntax(meta, &mut block);

@@ -1,0 +1,19 @@
+let counter = 0
+
+fun increment(): Null {
+    counter = counter + 1
+}
+
+fun check_counter(): Null {
+    if counter > 0 {
+        echo "Counter is positive"
+    } else {
+        echo "Counter is zero"
+    }
+}
+
+increment()
+check_counter()
+
+// Output
+// Counter is positive

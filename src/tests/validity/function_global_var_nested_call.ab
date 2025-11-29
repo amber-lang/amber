@@ -1,0 +1,15 @@
+let app_status = "init"
+
+fun set_active(): Null {
+    app_status = "active"
+}
+
+fun update_status(): Null {
+    set_active()
+}
+
+update_status()
+echo app_status
+
+// Output
+// active
