@@ -194,7 +194,7 @@ impl TypeCheckModule for FailureHandler {
         // If we have a parameter (exit code for failed or exited), add it to scope and typecheck the block
         if !self.param_name.is_empty() && (self.failure_type == FailureType::Failed || self.failure_type == FailureType::Exited) {
             meta.with_push_scope(true, |meta| {
-                self.param_global_id = meta.add_var(&self.param_name, Type::Int, false);
+                self.param_global_id = meta.add_var(&self.param_name, Type::Int, false, None);
                 self.block.typecheck(meta)
             })
         } else {

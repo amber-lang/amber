@@ -132,6 +132,16 @@ impl TypeCheckModule for FunctionInvocation {
         self.refs = function_unit.args.iter().map(|arg| arg.is_ref).collect();
         (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, self.name_tok.clone())?;
 
+        // Mark variables passed as reference as modified and used
+        for (arg, is_ref) in izip!(self.args.iter(), self.refs.iter()) {
+            if *is_ref {
+                if let Some(ExprType::VariableGet(var)) = &arg.value {
+                    meta.mark_var_modified(&var.name);
+                    meta.mark_var_used(&var.name);
+                }
+            }
+        }
+
         // Handle failable function logic
         self.is_failable = function_unit.is_failable;
         if self.is_failable {

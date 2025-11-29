@@ -20,7 +20,7 @@ impl VariableInit {
         meta: &mut ParserMetadata,
     ) -> SyntaxResult {
         handle_identifier_name(meta, &self.name, self.tok.clone())?;
-        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
+        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const, self.tok.clone());
         Ok(())
     }
 }
