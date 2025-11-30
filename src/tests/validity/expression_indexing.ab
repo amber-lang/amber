@@ -13,9 +13,11 @@ echo foo()[1]
 // Indexing with expression
 let i = 1
 echo [10, 20, 30][i + 1]
+echo ([[1, 2, 3][1]])[0]
 
 // Output
 // 1
 // 1 2
 // 5
 // 30
+// 2
