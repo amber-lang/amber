@@ -29,13 +29,19 @@ impl Typed for Access {
     }
 }
 
-impl Access {
-    pub fn new() -> Self {
+impl Default for Access {
+    fn default() -> Self {
         Access {
             left: Box::new(Expr::new()),
             index: Box::new(None),
             kind: Type::Null
         }
+    }
+}
+
+impl Access {
+    pub fn new() -> Self {
+        Access::default()
     }
 
     pub fn set_left(&mut self, left: Expr) {
