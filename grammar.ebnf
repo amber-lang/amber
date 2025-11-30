@@ -46,7 +46,8 @@ expression =
     range_inclusive |
     ternary |
     text |
-    unary_operation ;
+    unary_operation |
+    expression_index ;
 
 (* Keywords *)
 KEYWORD_AND = 'and' ;
@@ -133,6 +134,7 @@ command = command_modifier, command_base, [ handler ] ;
 (* Operations *)
 binary_operation = expression, BINARY_OP, expression ;
 unary_operation = UNARY_OP, expression ;
+expression_index = expression, '[', expression, ']' ;
 
 (* Parentheses *)
 parentheses = '(', expression, ')' ;
@@ -157,7 +159,7 @@ handler = success_handler | failure_handler | exited_handler ;
 variable_index = '[', expression, ']' ;
 variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
 variable_init_const = KEYWORD_CONST, identifier, '=', expression ;
-variable_get = identifier, variable_index? ;
+variable_get = identifier ;
 variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
