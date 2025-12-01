@@ -24,15 +24,9 @@ use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
 use std::process::Command;
 use std::{fs, io};
-use std::sync::OnceLock;
 
 fn get_version() -> &'static str {
-    static VERSION: OnceLock<String> = OnceLock::new();
-    if let Some(hash) = built_info::GIT_COMMIT_HASH_SHORT {
-        VERSION.get_or_init(|| format!("{}-{}", built_info::PKG_VERSION, hash)).as_str()
-    } else {
-        built_info::PKG_VERSION
-    }
+    built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)
 }
 
 #[derive(Parser, Clone, Debug)]
