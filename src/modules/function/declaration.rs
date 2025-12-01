@@ -1,4 +1,5 @@
 use crate::raw_fragment;
+use crate::translate::fragments::get_variable_name;
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::path::Path;
@@ -59,8 +60,8 @@ impl FunctionDeclaration {
     ) -> Option<FragmentKind> {
         if !self.args.is_empty() {
             let mut result = vec![];
-            for (index, (arg, kind)) in izip!(self.args.iter(), &function.args).enumerate() {
-                let name = &arg.name;
+            for (index, (arg, kind, global_id)) in izip!(self.args.iter(), &function.args, &function.args_global_ids).enumerate() {
+                let name = get_variable_name(&arg.name, *global_id);
                 match (arg.is_ref, kind) {
                     (false, Type::Array(_)) => {
                         result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1))

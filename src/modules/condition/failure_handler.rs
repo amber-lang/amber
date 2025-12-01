@@ -1,9 +1,12 @@
 use heraclitus_compiler::prelude::*;
+use heraclitus_compiler::compiling::failing::position_info::PositionInfo;
 use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::utils::context::{VariableDecl, VariableDeclWarn};
+use crate::utils::metadata::ParserMetadata;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum FailureType {
@@ -32,6 +35,7 @@ pub struct FailureHandler {
     is_main: bool,
     block: Box<Block>,
     param_name: String,
+    param_name_tok: Option<Token>,
     param_global_id: Option<usize>
 }
 
@@ -58,6 +62,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
             error_position: None,
             block: Box::new(Block::new().with_needs_noop().with_condition()),
             param_name: String::new(),
+            param_name_tok: None,
             param_global_id: None
         }
     }
@@ -92,6 +97,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
                                 return error_pos!(meta, pos, "Parameter name cannot be empty");
                             }
 
+                            self.param_name_tok = meta.get_current_token();
                             self.param_name = variable(meta, variable_name_extensions())?;
                             token(meta, ")")?;
 
@@ -124,6 +130,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
                                 return error_pos!(meta, pos, "Parameter name cannot be empty");
                             }
 
+                            self.param_name_tok = meta.get_current_token();
                             self.param_name = variable(meta, variable_name_extensions())?;
                             token(meta, ")")?;
 
@@ -194,7 +201,9 @@ impl TypeCheckModule for FailureHandler {
         // If we have a parameter (exit code for failed or exited), add it to scope and typecheck the block
         if !self.param_name.is_empty() && (self.failure_type == FailureType::Failed || self.failure_type == FailureType::Exited) {
             meta.with_push_scope(true, |meta| {
-                self.param_global_id = meta.add_var(&self.param_name, Type::Int, false, None);
+                let var = VariableDecl::new(self.param_name.clone(), Type::Num)
+                    .with_warn(VariableDeclWarn::from_token(meta, self.param_name_tok.clone()));
+                self.param_global_id = meta.add_var(var);
                 self.block.typecheck(meta)
             })
         } else {

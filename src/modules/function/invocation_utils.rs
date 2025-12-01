@@ -1,6 +1,6 @@
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::Type;
-use crate::utils::context::FunctionDecl;
+use crate::utils::context::{FunctionDecl, VariableDecl, VariableDeclWarn};
 use crate::utils::{pluralize, ParserMetadata};
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
@@ -74,12 +74,16 @@ fn run_function_with_args(
         .unwrap()
         .clone()
         .with_needs_noop();
+    let mut args_global_ids = vec![];
     // Swap the contexts to use the function context
     meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
         meta.with_push_scope(true, |meta| {
             for (kind, arg) in izip!(args, &fun.args) {
-                meta.add_param(&arg.name, kind.clone(), arg.is_ref, None);
+                let var = VariableDecl::new(arg.name.clone(), kind.clone())
+                    .with_warn(VariableDeclWarn::from_token(meta, tok.clone()))
+                    .with_ref(arg.is_ref);
+                args_global_ids.push(meta.add_var(var));
             }
             // Set the expected return type if specified
             if fun.returns != Type::Generic {
@@ -102,7 +106,7 @@ fn run_function_with_args(
     // Persist the new function instance
     Ok((
         fun.returns.clone(),
-        meta.add_fun_instance(fun.into_interface(), block),
+        meta.add_fun_instance(fun.into_interface(), args_global_ids, block),
     ))
 }
 

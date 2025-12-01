@@ -7,6 +7,7 @@ use std::collections::HashMap;
 pub struct FunctionInstance {
     pub variant_id: usize,
     pub args: Vec<Type>,
+    pub args_global_ids: Vec<Option<usize>>,
     pub returns: Type,
     pub block: Block,
 }

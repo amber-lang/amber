@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::{RawFragment, FragmentKind};
@@ -6,7 +7,7 @@ use crate::modules::types::{Typed, Type};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::fragments::get_variable_name;
 use crate::translate::module::TranslateModule;
-use crate::utils::context::Context;
+use crate::utils::context::{Context, VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 use crate::{fragments, raw_fragment};
@@ -19,8 +20,10 @@ pub struct IterLoop {
     iter_index: Option<String>,
     iter_index_global_id: Option<usize>,
     iter_name: String,
+    iter_name_tok: Option<Token>,
     iter_global_id: Option<usize>,
-    iter_type: Type
+    iter_type: Type,
+    iter_index_tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for IterLoop {
@@ -33,16 +36,21 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
             iter_index: None,
             iter_index_global_id: None,
             iter_name: String::new(),
+            iter_name_tok: None,
             iter_global_id: None,
-            iter_type: Type::Generic
+            iter_type: Type::Generic,
+            iter_index_tok: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "for")?;
+        self.iter_name_tok = meta.get_current_token();
         self.iter_name = variable(meta, variable_name_extensions())?;
         if token(meta, ",").is_ok() {
             self.iter_index = Some(self.iter_name.clone());
+            self.iter_index_tok = self.iter_name_tok.clone();
+            self.iter_name_tok = meta.get_current_token();
             self.iter_name = variable(meta, variable_name_extensions())?;
         }
         token(meta, "in")?;
@@ -106,9 +114,13 @@ impl TypeCheckModule for IterLoop {
 
         // Create iterator variable
         meta.with_push_scope(true, |meta| {
-            self.iter_global_id = meta.add_var(&self.iter_name, self.iter_type.clone(), false, None);
+            let var = VariableDecl::new(self.iter_name.clone(), self.iter_type.clone())
+                .with_warn(VariableDeclWarn::from_token(meta, self.iter_name_tok.clone()));
+            self.iter_global_id = meta.add_var(var);
             if let Some(index) = self.iter_index.as_ref() {
-                self.iter_index_global_id = meta.add_var(index, Type::Int, false, None);
+                let var = VariableDecl::new(index.clone(), Type::Int)
+                    .with_warn(VariableDeclWarn::from_token(meta, self.iter_index_tok.clone()));
+                self.iter_index_global_id = meta.add_var(var);
             }
             // Save loop context state and set it to true
             meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {

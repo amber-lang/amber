@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 
 use crate::modules::block::Block;
-use crate::modules::types::Type;
 use crate::utils::context::{Context, FunctionDecl, ScopeUnit, VariableDecl};
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_interface::FunctionInterface;
@@ -59,20 +58,17 @@ impl ParserMetadata {
         if predicate {
             let scope = self.context.scopes.pop().unwrap();
             // Check for unused variables and const correctness
-            for (_, var) in scope.vars {
-                // Skip variables starting with _
-                if var.name.starts_with('_') {
-                    continue;
-                }
-
-                if !var.is_used {
-                    let message = Message::new_warn_at_token(self, var.tok.clone())
-                        .message(format!("Unused variable '{}'", var.name));
-                    self.add_message(message);
-                } else if !var.is_const && !var.is_modified {
-                    let message = Message::new_warn_at_token(self, var.tok.clone())
-                        .message(format!("Variable '{}' is never modified, consider using 'const'", var.name));
-                    self.add_message(message);
+            for (_, mut var) in scope.vars {
+                if let Some(warn) = var.warn.as_mut() {
+                    if warn.on_unused && !var.is_used && !var.name.starts_with('_') {
+                        let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
+                            .message(format!("Unused variable '{}'", var.name));
+                        self.add_message(message);
+                    } else if !var.is_const && !var.is_modified && warn.on_unmodified {
+                        let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
+                            .message(format!("Variable '{}' is never modified, consider using 'const'", var.name));
+                        self.add_message(message);
+                    }
                 }
             }
         }
@@ -90,38 +86,12 @@ impl ParserMetadata {
 
     /// Adds a variable to the current scope
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool, tok: Option<Token>) -> Option<usize> {
-        let global_id = Some(self.gen_var_id());
+    pub fn add_var(&mut self, mut var: VariableDecl) -> Option<usize> {
+        let global_id = self.gen_var_id();
+        var.global_id = Some(global_id);
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(VariableDecl {
-            name: name.to_string(),
-            kind,
-            global_id,
-            is_ref: false,
-            is_const,
-            is_used: false,
-            is_modified: false,
-            tok,
-        });
-        global_id
-    }
-
-    /// Adds a function parameter as variable to the current scope
-    /// Adds a function parameter as variable to the current scope
-    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool, tok: Option<Token>) -> Option<usize> {
-        let global_id = self.is_global_scope().then(|| self.gen_var_id());
-        let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(VariableDecl {
-            name: name.to_string(),
-            kind,
-            global_id,
-            is_ref,
-            is_const: false,
-            is_used: false, // Params are considered used by default? Or should we warn? Let's warn.
-            is_modified: false,
-            tok,
-        });
-        global_id
+        scope.add_var(var);
+        Some(global_id)
     }
 
     /// Gets a variable from the current scope or any parent scope
@@ -208,10 +178,10 @@ impl ParserMetadata {
 
     /// Adds a function instance to the cache
     /// This function returns the id of the function instance variant
-    pub fn add_fun_instance(&mut self, fun: FunctionInterface, block: Block) -> usize {
+    pub fn add_fun_instance(&mut self, fun: FunctionInterface, args_global_ids: Vec<Option<usize>>, block: Block) -> usize {
         let id = fun.id.expect("Function id is not set");
         self.fun_cache
-            .add_instance(id, fun.into_fun_instance(block))
+            .add_instance(id, fun.into_fun_instance(args_global_ids, block))
     }
 
     /// Gets a function declaration from the current scope or any parent scope

@@ -1,5 +1,5 @@
 use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
-use crate::modules::expression::expr::Expr;
+use crate::{modules::expression::expr::Expr, utils::ParserMetadata};
 use crate::modules::function::declaration::FunctionDeclarationArgument;
 use crate::modules::types::Type;
 use amber_meta::ContextHelper;
@@ -50,6 +50,35 @@ impl FunctionDecl {
     }
 }
 
+
+// Rule set for variable warnings
+// Unused variable warning is enabled by default
+#[derive(Clone, Debug)]
+pub struct VariableDeclWarn {
+    pub pos: Option<PositionInfo>,
+    pub on_unused: bool,
+    pub on_unmodified: bool,
+}
+
+impl VariableDeclWarn {
+    pub fn new(pos: PositionInfo) -> Self {
+        Self {
+            pos: Some(pos),
+            on_unused: true,
+            on_unmodified: false,
+        }
+    }
+
+    pub fn from_token(meta: &mut ParserMetadata, token: impl Into<Option<Token>>) -> Self {
+        Self::new(PositionInfo::from_token(meta, token.into()))
+    }
+
+    pub fn warn_when_unmodified(mut self, warn: bool) -> Self {
+        self.on_unmodified = warn;
+        self
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct VariableDecl {
     pub name: String,
@@ -59,7 +88,38 @@ pub struct VariableDecl {
     pub is_const: bool,
     pub is_used: bool,
     pub is_modified: bool,
-    pub tok: Option<Token>,
+
+    pub warn: Option<VariableDeclWarn>,
+}
+
+impl VariableDecl {
+    pub fn new(name: String, kind: Type) -> Self {
+        Self {
+            name,
+            kind,
+            global_id: None,
+            is_ref: false,
+            is_const: false,
+            is_used: false,
+            is_modified: false,
+            warn: None,
+        }
+    }
+
+    pub fn with_const(mut self, is_const: bool) -> Self {
+        self.is_const = is_const;
+        self
+    }
+
+    pub fn with_ref(mut self, is_ref: bool) -> Self {
+        self.is_ref = is_ref;
+        self
+    }
+
+    pub fn with_warn(mut self, warn: VariableDeclWarn) -> Self {
+        self.warn = Some(warn);
+        self
+    }
 }
 
 #[derive(Clone, Debug, Default)]
