@@ -122,13 +122,13 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, _range: bool) -> Result<
     Ok(None)
 }
 
-pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool, tok: Option<Token>) -> SyntaxResult {
+pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool, position: PositionInfo) -> SyntaxResult {
     if !allow_index_accessor(index, range) {
         let expected = if range { "integer or range" } else { "integer (and not a range)" };
         let side = if range { "right" } else { "left" };
         let message = format!("Index accessor must be an {expected} for {side} side of operation");
         let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
-        return error!(meta, tok => { message: message, comment: comment });
+        return error_pos!(meta, position => { message: message, comment: comment });
     }
     Ok(())
 }
