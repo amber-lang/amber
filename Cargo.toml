@@ -1,6 +1,6 @@
 [package]
 name = "amber"
-version = "0.5.0-alpha"
+version = "0.5.1-alpha"
 edition = "2021"
 repository = "https://github.com/amber-lang/Amber"
 homepage = "https://amber-lang.com/"
