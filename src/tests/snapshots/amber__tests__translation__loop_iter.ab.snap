@@ -17,6 +17,7 @@ Block(
                     ),
                     is_ephemeral: true,
                     is_ref: false,
+                    is_local: false,
                     optimize_unused: true,
                     operator: "=",
                     value: List(
@@ -170,6 +171,7 @@ Block(
                     ),
                     is_ephemeral: true,
                     is_ref: false,
+                    is_local: false,
                     optimize_unused: true,
                     operator: "=",
                     value: List(
@@ -223,6 +225,7 @@ Block(
                     ),
                     is_ephemeral: false,
                     is_ref: false,
+                    is_local: false,
                     optimize_unused: true,
                     operator: "=",
                     value: VarExpr(
@@ -257,6 +260,7 @@ Block(
                     ),
                     is_ephemeral: true,
                     is_ref: false,
+                    is_local: false,
                     optimize_unused: true,
                     operator: "=",
                     value: List(

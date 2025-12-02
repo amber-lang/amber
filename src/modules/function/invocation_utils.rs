@@ -73,11 +73,36 @@ fn run_function_with_args(
         .get_block(fun.id)
         .unwrap()
         .clone()
-        .with_needs_noop();
+        .with_needs_noop()
+        .with_no_syntax();
+
+    // Check if the function is already being parsed (recursion)
+    // If so, return the variant id that is currently being parsed
+    if let Some(variant_id) = meta.parsing_functions.get(&(fun.id, args.to_vec())) {
+        return Ok((fun.returns.clone(), *variant_id));
+    }
+
+    // Calculate the variant id
+    let variant_id = meta.fun_cache.get_instances(fun.id).unwrap().len();
+    meta.parsing_functions.insert((fun.id, args.to_vec()), variant_id);
+
+    // Update the function's global scope with the current global scope's functions to support forward references (mutual recursion)
+    if let Some(current_global_scope) = meta.context.scopes.first() {
+        if let Some(fun_global_scope) = context.scopes.first_mut() {
+            for (name, decl) in &current_global_scope.funs {
+                if !fun_global_scope.funs.contains_key(name) {
+                    fun_global_scope.funs.insert(name.clone(), decl.clone());
+                }
+            }
+        }
+    }
     // Swap the contexts to use the function context
-    meta.with_context_ref(&mut context, |meta| {
+    let res = meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
         meta.with_push_scope(true, |meta| {
+            // Add the function itself to the scope to allow recursion
+            meta.context.scopes.last_mut().unwrap().add_fun(fun.clone());
+
             for (kind, arg) in izip!(args, &fun.args) {
                 meta.add_param(&arg.name, kind.clone(), arg.is_ref);
             }
@@ -90,7 +115,11 @@ fn run_function_with_args(
             Ok(())
         })?;
         Ok(())
-    })?;
+    });
+
+    meta.parsing_functions.remove(&(fun.id, args.to_vec()));
+    res?;
+
     // Set the new return type or null if nothing was returned
     if let Type::Generic = fun.returns {
         fun.returns = context.fun_ret_type.clone().unwrap_or(Type::Null);

@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
 use crate::modules::block::Block;
 use crate::modules::types::Type;
@@ -30,6 +30,8 @@ pub struct ParserMetadata {
     pub messages: Vec<Message>,
     /// Show standard library usage in documentation
     pub doc_usage: bool,
+    /// List of functions that are currently being parsed
+    pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
 }
 
 impl ParserMetadata {
@@ -201,6 +203,7 @@ impl Metadata for ParserMetadata {
             context: Context::new(path, tokens),
             messages: Vec::new(),
             doc_usage: false,
+            parsing_functions: HashMap::new(),
         }
     }
 
