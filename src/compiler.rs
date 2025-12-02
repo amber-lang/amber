@@ -1,5 +1,5 @@
 extern crate chrono;
-use crate::built_info;
+use crate::get_version;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::prelude::{BlockFragment, FragmentRenderable};
@@ -176,7 +176,7 @@ impl AmberCompiler {
             include_str!("header.sh").trim_end().to_string()
         };
 
-        header_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+        header_template.replace("{{ version }}", get_version())
     }
 
     fn gen_footer(&self) -> String {
@@ -190,7 +190,7 @@ impl AmberCompiler {
             String::new()
         };
 
-        footer_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+        footer_template.replace("{{ version }}", get_version())
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
