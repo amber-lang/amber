@@ -145,7 +145,7 @@ impl TypeCheckModule for FunctionInvocation {
         // Handle failable function logic
         self.is_failable = function_unit.is_failable;
         if self.is_failable {
-            if !self.failure_handler.is_parsed && !meta.context.is_trust_ctx && !meta.context.is_test_ctx {
+            if !self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
                 return error!(meta, self.name_tok.clone() => {
                     message: format!("Function '{}' can potentially fail but is left unhandled.", self.name),
                     comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, or 'exited' block to handle both"

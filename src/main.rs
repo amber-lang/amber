@@ -157,42 +157,45 @@ struct TestCommand {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-    if let Some(command) = cli.command {
+    let exit_code = if let Some(command) = cli.command {
         match command {
-            CommandKind::Eval(command) => {
-                handle_eval(command)?;
-            }
+            CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
                 let options = CompilerOptions::from_args(&command.no_proc, false, false);
                 let (code, messages) = compile_input(command.input, options);
-                execute_output(code, command.args, messages)?;
+                execute_output(code, command.args, messages)?
             }
             CommandKind::Check(command) => {
                 let options = CompilerOptions::from_args(&command.no_proc, false, false);
                 compile_input(command.input, options);
+                0
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
                 let options = CompilerOptions::from_args(&command.no_proc, command.minify, false);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
+                0
             }
             CommandKind::Docs(command) => {
                 handle_docs(command)?;
+                0
             }
             CommandKind::Completion => {
                 handle_completion();
+                0
             }
-            CommandKind::Test(command) => {
-                handle_test(command)?;
-            }
+            CommandKind::Test(command) => handle_test(command)?,
         }
     } else if let Some(input) = cli.input {
         let options = CompilerOptions::from_args(&cli.no_proc, false, false);
         let (code, messages) = compile_input(input, options);
-        execute_output(code, cli.args, messages)?;
-    }
-    Ok(())
+        execute_output(code, cli.args, messages)?
+    } else {
+        0
+    };
+
+    std::process::exit(exit_code);
 }
 
 fn create_output(command: &BuildCommand) -> PathBuf {
@@ -231,12 +234,12 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
     (bash_code, !messages.is_empty())
 }
 
-fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<(), Box<dyn Error>> {
+fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<i32, Box<dyn Error>> {
     if messages {
         render_dash();
     }
     let exit_status = AmberCompiler::execute(code, args)?;
-    std::process::exit(exit_status.code().unwrap_or(1));
+    Ok(exit_status.code().unwrap_or(1))
 }
 
 fn write_output(output: PathBuf, code: String) {
@@ -257,7 +260,7 @@ fn write_output(output: PathBuf, code: String) {
     }
 }
 
-fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
+fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
@@ -265,11 +268,11 @@ fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
             let exit_status = AmberCompiler::execute(code, vec![])?;
-            std::process::exit(exit_status.code().unwrap_or(1));
+            Ok(exit_status.code().unwrap_or(1))
         }
         Err(err) => {
             err.show();
-            std::process::exit(1);
+            Ok(1)
         }
     }
 }
@@ -297,7 +300,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_test(command: TestCommand) -> Result<(), Box<dyn Error>> {
+fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
     let input_path = command.input;
     if input_path.is_dir() {
         let mut files = vec![];
@@ -315,48 +318,46 @@ fn handle_test(command: TestCommand) -> Result<(), Box<dyn Error>> {
             let options = CompilerOptions::from_args(&command.no_proc, false, true);
             let compiler = AmberCompiler::new(code_content, Some(file.to_string_lossy().to_string()), options);
 
-            match compiler.compile() {
-                Ok((_messages, bash_code)) => {
-                    let output = Command::new("bash")
-                        .arg("-c")
-                        .arg(&bash_code)
-                        .output();
-
-                    match output {
-                        Ok(output) => {
-                            if output.status.success() {
-                                println!("{}", "Successed".green());
-                            } else {
-                                println!("{}", "Failed".red());
-                                failed += 1;
-                                println!("{}", String::from_utf8_lossy(&output.stdout));
-                                println!("{}", String::from_utf8_lossy(&output.stderr));
-                            }
-                        }
-                        Err(e) => {
-                            println!("{}", "Failed".red());
-                            failed += 1;
-                            println!("Error executing bash: {}", e);
-                        }
-                    }
-                }
+            let bash_code = match compiler.compile() {
+                Ok((_, code)) => code,
                 Err(err) => {
                     println!("{}", "Failed".red());
                     failed += 1;
                     err.show();
+                    continue;
                 }
+            };
+
+            let output = match Command::new("bash").arg("-c").arg(&bash_code).output() {
+                Ok(o) => o,
+                Err(e) => {
+                    println!("{}", "Failed".red());
+                    failed += 1;
+                    println!("Error executing bash: {}", e);
+                    continue;
+                }
+            };
+
+            if output.status.success() {
+                println!("{}", "Successed".green());
+            } else {
+                println!("{}", "Failed".red());
+                failed += 1;
+                println!("{}", String::from_utf8_lossy(&output.stdout));
+                println!("{}", String::from_utf8_lossy(&output.stderr));
             }
         }
 
         if failed > 0 {
-            std::process::exit(1);
+            Ok(1)
+        } else {
+            Ok(0)
         }
     } else {
         let options = CompilerOptions::from_args(&command.no_proc, false, true);
         let (code, messages) = compile_input(input_path, options);
-        execute_output(code, command.args, messages)?;
+        execute_output(code, command.args, messages)
     }
-    Ok(())
 }
 
 fn find_amber_files(dir: &PathBuf, files: &mut Vec<PathBuf>) -> std::io::Result<()> {

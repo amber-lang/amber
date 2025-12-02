@@ -1,7 +1,7 @@
 pub fun assert(condition: Bool) {
     if not condition {
         echo "Assertion failed"
-        exit 1
+        fail 1
     }
 }
 

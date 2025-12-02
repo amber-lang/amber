@@ -7,14 +7,14 @@ fn test_test_mode() {
         import { assert } from "std/test"
         test {
             echo "Test executed"
-            assert(true)
+            assert(true)?
         }
         main {
             echo "Main executed"
         }
     "#;
     
-    let options = CompilerOptions::from_args(&[], false, true); // test_mode = true
+    let options = CompilerOptions::from_args(&[], false, true);
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
     assert!(messages.is_empty());
@@ -30,14 +30,14 @@ fn test_default_mode_skips_test() {
         import { assert } from "std/test"
         test {
             echo "Test executed"
-            assert(false)
+            assert(false)?
         }
         main {
             echo "Main executed"
         }
     "#;
     
-    let options = CompilerOptions::from_args(&[], false, false); // test_mode = false
+    let options = CompilerOptions::from_args(&[], false, false);
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
     assert!(messages.is_empty());
