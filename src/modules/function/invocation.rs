@@ -164,6 +164,13 @@ impl TranslateModule for FunctionInvocation {
 
         let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
             FragmentKind::VarExpr(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
+            FragmentKind::VarExpr(var) if var.kind.is_array() && var.index.is_some() => {
+                let id = meta.gen_value_id();
+                let temp_name = format!("{}_{id}", var.get_index_typename());
+                let stmt = VarStmtFragment::new(&temp_name, var.kind.clone(), FragmentKind::VarExpr(var.clone()));
+                let temp_var = meta.push_ephemeral_variable(stmt);
+                fragments!(temp_var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]")
+            },
             FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
             _ if *is_ref => panic!("Reference value accepts only variables"),
             var => var

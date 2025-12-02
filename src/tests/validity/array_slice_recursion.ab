@@ -1,0 +1,14 @@
+fun sum_array(arr: [Num]): Num {
+    const length = len(arr)
+    if length == 1 {
+        return arr[0]
+    }
+    return arr[length - 1] + sum_array(arr[0..(length - 1)])
+}
+
+let arr = [1, 2, 3, 4, 5]
+let sum = sum_array(arr)
+echo sum
+
+// Output
+// 15
