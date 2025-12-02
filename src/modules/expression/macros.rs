@@ -111,6 +111,34 @@ macro_rules! parse_expression_group {
         $prev($meta)
     }};
 
+    // Group type that handles Postfix Operators.
+    (@internal ({$cur:ident, $prev:ident}, $meta:expr, PostfixOp => [$($cur_modules:ident),+])) => {{
+        let start_index = $meta.get_index();
+        let mut node = $prev($meta)?;
+        loop {
+            $({
+                let mut module = $cur_modules::new();
+                match module.parse_operator($meta) {
+                    Ok(()) => {
+                        module.set_left(node);
+                        syntax($meta, &mut module)?;
+                        let end_index = $meta.get_index();
+                        node = Expr {
+                            kind: module.get_type(),
+                            value: Some(ExprType::$cur_modules(module)),
+                            pos: (start_index, end_index)
+                        };
+                        continue
+                    }
+                    Err(Failure::Quiet(_)) => {}
+                    Err(Failure::Loud(err)) => return Err(Failure::Loud(err))
+                }
+            })*
+            break
+        }
+        Ok(node)
+    }};
+
     // Group type that handles Literals. Use this group as the last one in the precedence order
     (@internal ({$cur:ident, $prev:ident}, $meta:expr, Literal => [$($cur_modules:ident),+])) => {{
         let start_index = $meta.get_index();

@@ -1,9 +1,10 @@
-pub mod literal;
+pub mod access;
+pub mod binop;
 pub mod expr;
 pub mod interpolated_region;
+pub mod literal;
+pub mod macros;
 pub mod parentheses;
 pub mod ternop;
-pub mod binop;
-pub mod unop;
 pub mod typeop;
-pub mod macros;
+pub mod unop;

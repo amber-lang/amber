@@ -1,0 +1,13 @@
+// Output
+// 15
+
+fun sum_array(arr: [Num], index: Num): Num {
+    if index < 0 {
+        return 0
+    }
+    return arr[index] + sum_array(arr, index - 1)
+}
+
+let arr = [1, 2, 3, 4, 5]
+let sum = sum_array(arr, 4)
+echo sum

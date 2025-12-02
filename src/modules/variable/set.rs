@@ -66,7 +66,7 @@ impl TypeCheckModule for VariableSet {
             }
 
             // Validate the index type (must be integer, not range, for assignment)
-            validate_index_accessor(meta, index_expr, false, self.tok.clone())?;
+            validate_index_accessor(meta, index_expr, false, PositionInfo::from_token(meta, self.tok.clone()))?;
         }
 
         let right_type = self.expr.get_type();

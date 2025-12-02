@@ -62,11 +62,16 @@ impl FunctionDeclaration {
             let mut result = vec![];
             for (index, (arg, kind, global_id)) in izip!(self.args.iter(), &function.args, &function.args_global_ids).enumerate() {
                 let name = get_variable_name(&arg.name, *global_id);
+                let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic).with_ref(false);
+                let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                    .with_local(true)
+                    .with_optimization_when_unused(false);
                 match (arg.is_ref, kind) {
                     (false, Type::Array(_)) => {
-                        result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1))
-                    }
-                    _ => result.push(raw_fragment!("local {name}=${}", index + 1)),
+                        let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic).with_ref(true);
+                        result.push(var.with_index(None).with_value(val.to_frag()).to_frag());
+                    },
+                    _ => result.push(var.to_frag()),
                 }
             }
             Some(BlockFragment::new(result, true).to_frag())

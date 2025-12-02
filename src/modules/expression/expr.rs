@@ -21,6 +21,7 @@ use super::literal::{
     null::Null,
     status::Status,
 };
+use crate::modules::expression::access::Access;
 use super::binop::{
     add::Add,
     sub::Sub,
@@ -94,6 +95,7 @@ pub enum ExprType {
     Nameof(Nameof),
     Len(Len),
     Is(Is),
+    Access(Access),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -155,6 +157,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
             multiplication @ BinOp => [ Mul, Div, Modulo ],
             types @ TypeOp => [ Is, Cast ],
             unops @ UnOp => [ Neg, Not, Len ],
+            access @ PostfixOp => [ Access ],
             literals @ Literal => [
                 // Literals
                 Parentheses, Bool, Number, Integer, Text,
@@ -178,7 +181,7 @@ impl TypeCheckModule for Expr {
             Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
             Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
             Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-            Range, Status, Sub, Ternary, Text, VariableGet
+            Range, Status, Sub, Ternary, Text, VariableGet, Access
         ]);
         Ok(())
     }
@@ -191,7 +194,7 @@ impl TranslateModule for Expr {
                 Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
                 Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
                 Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-                Range, Status, Sub, Ternary, Text, VariableGet
+                Range, Status, Sub, Ternary, Text, VariableGet, Access
             ])
         })
     }
@@ -203,7 +206,7 @@ impl DocumentationModule for Expr {
             Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
             Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
             Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-            Range, Status, Sub, Ternary, Text, VariableGet
+            Range, Status, Sub, Ternary, Text, VariableGet, Access
         ])
     }
 }

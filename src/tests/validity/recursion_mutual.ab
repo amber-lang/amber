@@ -1,0 +1,24 @@
+// Output
+// 1
+// 1
+// 0
+// 0
+
+fun is_even(n: Num): Bool {
+    if n == 0 {
+        return true
+    }
+    return is_odd(n - 1)
+}
+
+fun is_odd(n: Num): Bool {
+    if n == 0 {
+        return false
+    }
+    return is_even(n - 1)
+}
+
+echo is_even(10)
+echo is_odd(11)
+echo is_even(11)
+echo is_odd(10)

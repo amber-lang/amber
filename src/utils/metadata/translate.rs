@@ -72,7 +72,8 @@ impl TranslateMetadata {
     #[inline]
     /// Create an intermediate variable and return it's variable expression
     pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
-        let stmt = statement.with_ephemeral(true);
+        let is_local = self.fun_meta.is_some();
+        let stmt = statement.with_ephemeral(true).with_local(is_local);
         let expr = VarExprFragment::from_stmt(&stmt);
         self.stmt_queue.push_back(stmt.to_frag());
         expr
