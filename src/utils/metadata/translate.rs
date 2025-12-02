@@ -42,6 +42,8 @@ pub struct TranslateMetadata {
     /// Determines whether the current context is an expression context.
     #[context]
     pub expr_ctx: bool,
+    /// Determines whether the compiler is in test mode.
+    pub test_mode: bool,
 }
 
 impl TranslateMetadata {
@@ -58,6 +60,7 @@ impl TranslateMetadata {
             indent: -1,
             minify: options.minify,
             expr_ctx: false,
+            test_mode: options.test_mode,
         }
     }
 

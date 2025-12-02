@@ -64,6 +64,8 @@ enum CommandKind {
     Docs(DocsCommand),
     /// Generate Bash completion script
     Completion,
+    /// Run tests
+    Test(TestCommand),
 }
 
 #[derive(Args, Clone, Debug)]
@@ -135,6 +137,24 @@ struct DocsCommand {
     usage: bool,
 }
 
+#[derive(Args, Clone, Debug)]
+struct TestCommand {
+    /// Input filename or directory ('-' to read from stdin)
+    #[arg(default_value = ".")]
+    input: PathBuf,
+
+    /// Arguments passed to Amber script
+    #[arg(trailing_var_arg = true)]
+    args: Vec<String>,
+
+    /// Disable a postprocessor
+    /// Available postprocessors: 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
+    #[arg(long, verbatim_doc_comment)]
+    no_proc: Vec<String>,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if let Some(command) = cli.command {
@@ -143,17 +163,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 handle_eval(command)?;
             }
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false);
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?;
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false);
                 compile_input(command.input, options);
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify);
+                let options = CompilerOptions::from_args(&command.no_proc, command.minify, false);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
             }
@@ -163,9 +183,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             CommandKind::Completion => {
                 handle_completion();
             }
+            CommandKind::Test(command) => {
+                handle_test(command)?;
+            }
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false);
+        let options = CompilerOptions::from_args(&cli.no_proc, false, false);
         let (code, messages) = compile_input(input, options);
         execute_output(code, cli.args, messages)?;
     }
@@ -272,6 +295,85 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     }
+}
+
+fn handle_test(command: TestCommand) -> Result<(), Box<dyn Error>> {
+    let input_path = command.input;
+    if input_path.is_dir() {
+        let mut files = vec![];
+        find_amber_files(&input_path, &mut files)?;
+        files.sort();
+
+        let total = files.len();
+        let mut failed = 0;
+
+        for (i, file) in files.iter().enumerate() {
+            print!("[{}/{}] Executing {} Test... ", i + 1, total, file.display());
+            std::io::stdout().flush()?;
+
+            let code_content = fs::read_to_string(file)?;
+            let options = CompilerOptions::from_args(&command.no_proc, false, true);
+            let compiler = AmberCompiler::new(code_content, Some(file.to_string_lossy().to_string()), options);
+
+            match compiler.compile() {
+                Ok((_messages, bash_code)) => {
+                    let output = Command::new("bash")
+                        .arg("-c")
+                        .arg(&bash_code)
+                        .output();
+
+                    match output {
+                        Ok(output) => {
+                            if output.status.success() {
+                                println!("{}", "Successed".green());
+                            } else {
+                                println!("{}", "Failed".red());
+                                failed += 1;
+                                println!("{}", String::from_utf8_lossy(&output.stdout));
+                                println!("{}", String::from_utf8_lossy(&output.stderr));
+                            }
+                        }
+                        Err(e) => {
+                            println!("{}", "Failed".red());
+                            failed += 1;
+                            println!("Error executing bash: {}", e);
+                        }
+                    }
+                }
+                Err(err) => {
+                    println!("{}", "Failed".red());
+                    failed += 1;
+                    err.show();
+                }
+            }
+        }
+
+        if failed > 0 {
+            std::process::exit(1);
+        }
+    } else {
+        let options = CompilerOptions::from_args(&command.no_proc, false, true);
+        let (code, messages) = compile_input(input_path, options);
+        execute_output(code, command.args, messages)?;
+    }
+    Ok(())
+}
+
+fn find_amber_files(dir: &PathBuf, files: &mut Vec<PathBuf>) -> std::io::Result<()> {
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                find_amber_files(&path, files)?;
+            } else if let Some(ext) = path.extension() {
+                if ext == "ab" {
+                    files.push(path);
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 fn handle_completion() {

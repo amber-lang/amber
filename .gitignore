@@ -1,9 +1,9 @@
 /target
 
 # Test files
-test*.ab
-test*.sh
-test*.md
+/test*.ab
+/test*.sh
+/test*.md
 /docs/
 src/std/docs/
 

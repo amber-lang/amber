@@ -2,8 +2,8 @@
 // 11
 // Hello
 
-fun test(a: Num, b: Text) {
+fun test_func(a: Num, b: Text) {
     echo a
     echo b
 }
-test(11, "Hello")
+test_func(11, "Hello")

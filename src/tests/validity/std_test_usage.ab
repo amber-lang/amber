@@ -1,0 +1,10 @@
+import { assert, assert_eq } from "std/test"
+
+main {
+    trust {
+        assert(true)
+        assert_eq(1, 1)
+        assert_eq("foo", "foo")
+    }
+    echo "Succeeded"
+}

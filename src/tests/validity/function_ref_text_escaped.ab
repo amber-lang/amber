@@ -1,7 +1,7 @@
-fun test(ref a) {
+fun test_func(ref a) {
     a = "Succeeded"
 }
 
 let a = "Goodbye World"
-test(a)
+test_func(a)
 echo a

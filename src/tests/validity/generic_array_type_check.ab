@@ -7,7 +7,7 @@ fun return_generic(): [] {
         return ["the great unknown"]
 }
 
-fun test(arr: []) {
+fun test_func(arr: []) {
         if arr is [] {
                 echo "Generic"
         }
@@ -21,6 +21,6 @@ fun test(arr: []) {
         }
 }
 
-test(return_generic())
-test([42, 69])
-test(["Hello", "Hi"])
+test_func(return_generic())
+test_func([42, 69])
+test_func(["Hello", "Hi"])
