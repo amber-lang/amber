@@ -1,14 +1,18 @@
 use heraclitus_compiler::prelude::*;
+
 use crate::raw_fragment;
 use crate::modules::types::Type;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
+use crate::utils::context::{VariableDecl, VariableDeclWarn};
+use crate::utils::metadata::ParserMetadata;
 
 use super::variable::variable_name_extensions;
 
 #[derive(Debug, Clone)]
 pub struct Main {
     pub args: Option<String>,
+    pub args_tok: Option<Token>,
     pub args_global_id: Option<usize>,
     pub block: Block,
     pub token: Option<Token>,
@@ -21,6 +25,7 @@ impl SyntaxModule<ParserMetadata> for Main {
     fn new() -> Self {
         Self {
             args: None,
+            args_tok: None,
             args_global_id: None,
             block: Block::new().with_no_indent(),
             token: None,
@@ -38,6 +43,7 @@ impl SyntaxModule<ParserMetadata> for Main {
         context!({
             meta.context.is_main_ctx = true;
             if token(meta, "(").is_ok() {
+                self.args_tok = meta.get_current_token();
                 self.args = Some(variable(meta, variable_name_extensions())?);
                 token(meta, ")")?;
             }
@@ -62,7 +68,10 @@ impl TypeCheckModule for Main {
         meta.with_push_scope(true, |meta| {
             // Create variables for main arguments
             for arg in self.args.iter() {
-                self.args_global_id = meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+                let var = VariableDecl::new(arg.clone(), Type::Array(Box::new(Type::Text)))
+                    .with_const(true)
+                    .with_warn(VariableDeclWarn::from_token(meta, self.args_tok.clone()));
+                self.args_global_id = Some(meta.add_var(var).unwrap());
             }
             // Typecheck the block
             self.block.typecheck(meta)?;

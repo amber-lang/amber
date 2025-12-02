@@ -1,8 +1,11 @@
 use heraclitus_compiler::prelude::*;
+
 use crate::modules::prelude::*;
 use crate::modules::types::Typed;
 use crate::modules::expression::expr::Expr;
 use super::{variable_name_extensions, handle_identifier_name};
+use crate::utils::context::{VariableDecl, VariableDeclWarn};
+use crate::utils::metadata::ParserMetadata;
 
 #[derive(Debug, Clone)]
 pub struct VariableInit {
@@ -20,7 +23,10 @@ impl VariableInit {
         meta: &mut ParserMetadata,
     ) -> SyntaxResult {
         handle_identifier_name(meta, &self.name, self.tok.clone())?;
-        self.global_id = meta.add_var(&self.name, self.expr.get_type(), self.is_const);
+        let var = VariableDecl::new(self.name.clone(), self.expr.get_type())
+            .with_warn(VariableDeclWarn::from_token(meta, self.tok.clone()).warn_when_unmodified(!self.is_const))
+            .with_const(self.is_const);
+        self.global_id = meta.add_var(var);
         Ok(())
     }
 }

@@ -33,10 +33,11 @@ impl FunctionInterface {
         }
     }
 
-    pub fn into_fun_instance(self, block: Block) -> FunctionInstance {
+    pub fn into_fun_instance(self, args_global_ids: Vec<Option<usize>>, block: Block) -> FunctionInstance {
         FunctionInstance {
             variant_id: 0,
             args: self.args.iter().map(|arg| arg.kind.clone()).collect(),
+            args_global_ids,
             returns: self.returns,
             block
         }

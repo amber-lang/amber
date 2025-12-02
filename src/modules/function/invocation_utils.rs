@@ -1,6 +1,6 @@
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::Type;
-use crate::utils::context::FunctionDecl;
+use crate::utils::context::{FunctionDecl, VariableDecl, VariableDeclWarn};
 use crate::utils::{pluralize, ParserMetadata};
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
@@ -75,6 +75,7 @@ fn run_function_with_args(
         .clone()
         .with_needs_noop()
         .with_no_syntax();
+    let mut args_global_ids = vec![];
 
     // Check if the function is already being parsed (recursion)
     // If so, return the variant id that is currently being parsed
@@ -104,7 +105,10 @@ fn run_function_with_args(
             meta.context.scopes.last_mut().unwrap().add_fun(fun.clone());
 
             for (kind, arg) in izip!(args, &fun.args) {
-                meta.add_param(&arg.name, kind.clone(), arg.is_ref);
+                let var = VariableDecl::new(arg.name.clone(), kind.clone())
+                    .with_warn(VariableDeclWarn::from_token(meta, tok.clone()))
+                    .with_ref(arg.is_ref);
+                args_global_ids.push(meta.add_var(var));
             }
             // Set the expected return type if specified
             if fun.returns != Type::Generic {
@@ -131,7 +135,7 @@ fn run_function_with_args(
     // Persist the new function instance
     Ok((
         fun.returns.clone(),
-        meta.add_fun_instance(fun.into_interface(), block),
+        meta.add_fun_instance(fun.into_interface(), args_global_ids, block),
     ))
 }
 

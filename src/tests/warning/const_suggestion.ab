@@ -1,0 +1,6 @@
+// Output
+// Variable 'const_candidate' is never modified, consider using 'const'
+// 1
+
+let const_candidate = 1
+echo const_candidate
