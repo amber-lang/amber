@@ -1,0 +1,21 @@
+let hello = false
+
+fun echo_hello(): Null {
+    echo "Hello"
+    hello = true
+}
+
+pub fun echo_world(): Null {
+    if not hello {
+        echo_hello()
+    }
+    echo "World"
+}
+
+echo_world()
+echo_world()
+
+// Output
+// Hello
+// World
+// World

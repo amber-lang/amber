@@ -1,5 +1,5 @@
 extern crate chrono;
-use crate::built_info;
+use crate::get_version;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::prelude::{BlockFragment, FragmentRenderable};
@@ -176,7 +176,7 @@ impl AmberCompiler {
             include_str!("header.sh").trim_end().to_string()
         };
 
-        header_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+        header_template.replace("{{ version }}", get_version())
     }
 
     fn gen_footer(&self) -> String {
@@ -190,7 +190,7 @@ impl AmberCompiler {
             String::new()
         };
 
-        footer_template.replace("{{ version }}", built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION))
+        footer_template.replace("{{ version }}", get_version())
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
@@ -358,12 +358,17 @@ impl AmberCompiler {
     #[cfg(test)]
     pub fn test_eval(&mut self) -> Result<String, Message> {
         self.options.no_proc = vec!["*".into()];
-        self.compile().map_or_else(Err, |(_, code)| {
+        self.compile().map_or_else(Err, |(warnings, code)| {
             if let Some(mut command) = Self::find_bash() {
                 let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
                 let output = String::from_utf8_lossy(&child.stdout).to_string();
                 let err_output = String::from_utf8_lossy(&child.stderr).to_string();
-                Ok(output + &err_output)
+                let warning_log = {
+                    let warn_map = warnings.iter().map(|warn| warn.message.clone().unwrap_or_else(|| "Empty warning".to_string()));
+                    let warn_log = warn_map.collect::<Vec<String>>().join("\n");
+                    if warn_log.is_empty() { String::new() } else { warn_log + "\n" }
+                };
+                Ok(warning_log + &output + &err_output)
             } else {
                 let message = Message::new_err_msg("Failed to find Bash");
                 Err(message)

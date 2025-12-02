@@ -10,9 +10,11 @@ use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::is_all_caps;
+use amber_meta::ContextManager;
 
 const INDENT_SPACES: &str = "    ";
 
+#[derive(ContextManager)]
 pub struct TranslateMetadata {
     /// The arithmetic module that is used to evaluate math.
     pub arith_module: ArithType,
@@ -28,13 +30,18 @@ pub struct TranslateMetadata {
     /// Determines whether the current context is a context in bash's `eval`.
     pub eval_ctx: bool,
     /// Determines whether the current context should be silenced.
+    #[context]
     pub silenced: bool,
     /// Determines whether the current context should use sudo.
+    #[context]
     pub sudoed: bool,
     /// The current indentation level.
     pub indent: i64,
     /// Determines if minify flag was set.
     pub minify: bool,
+    /// Determines whether the current context is an expression context.
+    #[context]
+    pub expr_ctx: bool,
 }
 
 impl TranslateMetadata {
@@ -50,6 +57,7 @@ impl TranslateMetadata {
             sudoed: false,
             indent: -1,
             minify: options.minify,
+            expr_ctx: false,
         }
     }
 

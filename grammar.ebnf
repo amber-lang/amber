@@ -46,7 +46,8 @@ expression =
     range_inclusive |
     ternary |
     text |
-    unary_operation ;
+    unary_operation |
+    expression_index ;
 
 (* Keywords *)
 KEYWORD_AND = 'and' ;
@@ -85,6 +86,7 @@ KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
 KEYWORD_THEN = 'then' ;
 KEYWORD_TRUST = 'trust' ;
+KEYWORD_EXITED = 'exited' ;
 KEYWORD_UNSAFE = 'unsafe' ;
 KEYWORD_WHILE = 'while' ;
 
@@ -127,34 +129,42 @@ list = empty_list | full_list ;
 command_modifier = [ KEYWORD_SILENT ], [ KEYWORD_TRUST ], [ KEYWORD_SUDO ] ;
 command_modifier_block = command_modifier, multiline_block ;
 command_base = '$', { ANY_CHAR | interpolation }, '$' ;
-command = command_modifier, command_base, [ failure_handler | success_handler ] ;
+command = command_modifier, command_base, [ handler ] ;
 
 (* Operations *)
 binary_operation = expression, BINARY_OP, expression ;
 unary_operation = UNARY_OP, expression ;
+expression_index = expression, '[', expression, ']' ;
 
 (* Parentheses *)
 parentheses = '(', expression, ')' ;
 
 (* Failure handler *)
 failure_propagation = '?';
-failure_block = KEYWORD_FAILED, block ;
+failure_block = KEYWORD_FAILED, {'(', identifier, ')'}, block ;
 failure_handler = failure_propagation | failure_block ;
 
 (* Success handler *)
 success_block = KEYWORD_SUCCEEDED, block ;
 success_handler = success_block ;
 
+(* Exited handler *)
+exited_block = KEYWORD_EXITED, {'(', identifier, ')'}, block ;
+exited_handler = exited_block ;
+
+(* All handlers combined *)
+handler = success_handler | failure_handler | exited_handler ;
+
 (* Variable *)
 variable_index = '[', expression, ']' ;
 variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
 variable_init_const = KEYWORD_CONST, identifier, '=', expression ;
-variable_get = identifier, variable_index? ;
+variable_get = identifier ;
 variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
-function_call_failed = function_call, [ failure_handler | success_handler ] ;
+function_call_failed = function_call, [ handler ] ;
 function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
 function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;

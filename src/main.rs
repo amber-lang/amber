@@ -25,8 +25,12 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::{fs, io};
 
+fn get_version() -> &'static str {
+    built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)
+}
+
 #[derive(Parser, Clone, Debug)]
-#[command(version(built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)), arg_required_else_help(true))]
+#[command(version(get_version()), arg_required_else_help(true))]
 struct Cli {
     #[command(subcommand)]
     command: Option<CommandKind>,
