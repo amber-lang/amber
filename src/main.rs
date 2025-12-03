@@ -24,6 +24,7 @@ use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
 use std::process::Command;
 use std::{fs, io};
+use rayon::prelude::*;
 
 fn get_version() -> &'static str {
     built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)
@@ -161,18 +162,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         match command {
             CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
                 compile_input(command.input, options);
                 0
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify, false);
+                let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
                 0
@@ -188,7 +189,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             CommandKind::Test(command) => handle_test(command)?,
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false, false);
+        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None);
         let (code, messages) = compile_input(input, options);
         execute_output(code, cli.args, messages)?
     } else {
@@ -302,61 +303,137 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
 
 fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
     let input_path = command.input;
+    let mut files = vec![];
     if input_path.is_dir() {
-        let mut files = vec![];
         find_amber_files(&input_path, &mut files)?;
-        files.sort();
+    } else {
+        files.push(input_path);
+    }
+    files.sort();
 
-        let total = files.len();
-        let mut failed = 0;
+    // Discovery phase
+    let mut tests = vec![];
+    for file in &files {
+        let code = match fs::read_to_string(file) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("Failed to read file {}: {}", file.display(), e);
+                return Ok(1);
+            }
+        };
 
-        for (i, file) in files.iter().enumerate() {
-            print!("[{}/{}] Executing {} Test... ", i + 1, total, file.display());
-            std::io::stdout().flush()?;
-
-            let code_content = fs::read_to_string(file)?;
-            let options = CompilerOptions::from_args(&command.no_proc, false, true);
-            let compiler = AmberCompiler::new(code_content, Some(file.to_string_lossy().to_string()), options);
-
-            let bash_code = match compiler.compile() {
-                Ok((_, code)) => code,
-                Err(err) => {
-                    println!("{}", "Failed".red());
-                    failed += 1;
-                    err.show();
-                    continue;
+        let options = CompilerOptions::from_args(&command.no_proc, false, true, None);
+        let compiler = AmberCompiler::new(code.clone(), Some(file.to_string_lossy().to_string()), options);
+        
+        match compiler.tokenize() {
+            Ok(tokens) => {
+                match compiler.parse(tokens) {
+                    Ok((_, meta)) => {
+                        for name in meta.test_names {
+                            tests.push((file.clone(), name, code.clone()));
+                        }
+                    }
+                    Err(e) => {
+                        e.show();
+                        return Ok(1);
+                    }
                 }
-            };
-
-            let output = match Command::new("bash").arg("-c").arg(&bash_code).output() {
-                Ok(o) => o,
-                Err(e) => {
-                    println!("{}", "Failed".red());
-                    failed += 1;
-                    println!("Error executing bash: {}", e);
-                    continue;
-                }
-            };
-
-            if output.status.success() {
-                println!("{}", "Successed".green());
-            } else {
-                println!("{}", "Failed".red());
-                failed += 1;
-                println!("{}", String::from_utf8_lossy(&output.stdout));
-                println!("{}", String::from_utf8_lossy(&output.stderr));
+            }
+            Err(e) => {
+                e.show();
+                return Ok(1);
             }
         }
+    }
 
-        if failed > 0 {
-            Ok(1)
+    let total = tests.len();
+    if total == 0 {
+        println!("No tests found");
+        return Ok(0);
+    }
+
+    let failed = std::sync::Mutex::new(vec![]);
+
+    tests.par_iter().enumerate().for_each(|(i, (file, name, code))| {
+        let test_name_display = if name.is_empty() {
+            format!("{}", file.display())
         } else {
-            Ok(0)
+            format!("{} ({})", file.display(), name)
+        };
+
+        let options = CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()));
+        let compiler = AmberCompiler::new(code.clone(), Some(file.to_string_lossy().to_string()), options);
+
+        let result = match compiler.compile() {
+            Ok((_, bash_code)) => {
+                match Command::new("bash").arg("-c").arg(&bash_code).output() {
+                    Ok(output) => {
+                        if output.status.success() {
+                            Ok(())
+                        } else {
+                            let err_msg = format!(
+                                "{}\n{}",
+                                String::from_utf8_lossy(&output.stdout),
+                                String::from_utf8_lossy(&output.stderr)
+                            ).trim().to_string();
+                            if err_msg.is_empty() {
+                                Err(Message::new_err_msg("(No output)".dimmed().to_string()))
+                            } else {
+                                Err(Message::new_err_msg(err_msg))
+                            }
+                        }
+                    }
+                    Err(e) => Err(Message::new_err_msg(format!("Error executing bash: {}", e))),
+                }
+            }
+            Err(e) => Err(e),
+        };
+
+        match result {
+            Ok(_) => {
+                println!("[{}/{}] {} {} ... {}", i + 1, total, "✓".green(), test_name_display, "Success".green());
+            }
+            Err(msg) => {
+                println!("[{}/{}] {} {} ... {}", i + 1, total, "×".red(), test_name_display, "Failed".red());
+                failed.lock().unwrap().push((i + 1, test_name_display, msg));
+            }
         }
+    });
+
+    let failed_vec = failed.lock().unwrap();
+    if !failed_vec.is_empty() {
+        print!("\n");
+        for (i, name, msg) in failed_vec.iter() {
+            println!("[{i}] {} failed with:", name);
+            if let Some(m) = &msg.message {
+                println!("{}", m);
+            } else {
+                msg.show();
+            }
+            println!();
+        }
+
+        println!("{}", "Summary of failed tests:".red());
+        for (_, name, _) in failed_vec.iter() {
+            println!("{} {}", "×".red(), name);
+        }
+        println!();
+    }
+
+    let passed_count = total - failed_vec.len();
+    let failed_count = failed_vec.len();
+
+    if failed_count == 0 {
+        println!("{}", " Success ".white().on_green());
     } else {
-        let options = CompilerOptions::from_args(&command.no_proc, false, true);
-        let (code, messages) = compile_input(input_path, options);
-        execute_output(code, command.args, messages)
+        println!("{}", " Failure ".white().on_red());
+    }
+    println!("{} tests passed | {} tests failed", passed_count, failed_count);
+
+    if failed_count > 0 {
+        Ok(1)
+    } else {
+        Ok(0)
     }
 }
 

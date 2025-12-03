@@ -14,7 +14,7 @@ fn test_test_mode() {
         }
     "#;
     
-    let options = CompilerOptions::from_args(&[], false, true);
+    let options = CompilerOptions::from_args(&[], false, true, None);
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
     assert!(messages.is_empty());
@@ -37,7 +37,7 @@ fn test_default_mode_skips_test() {
         }
     "#;
     
-    let options = CompilerOptions::from_args(&[], false, false);
+    let options = CompilerOptions::from_args(&[], false, false, None);
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
     assert!(messages.is_empty());
