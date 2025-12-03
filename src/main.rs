@@ -402,7 +402,7 @@ fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
 
     let failed_vec = failed.lock().unwrap();
     if !failed_vec.is_empty() {
-        print!("\n");
+        println!();
         for (i, name, msg) in failed_vec.iter() {
             println!("[{i}] {} failed with:", name);
             if let Some(m) = &msg.message {
