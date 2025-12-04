@@ -33,19 +33,21 @@ const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
     pub minify: bool,
+    pub test_mode: bool,
+    pub test_name: Option<String>,
 }
 
 impl Default for CompilerOptions {
     fn default() -> Self {
         let no_proc = vec![String::from("*")];
-        Self { no_proc, minify: false }
+        Self { no_proc, minify: false, test_mode: false, test_name: None }
     }
 }
 
 impl CompilerOptions {
-    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+    pub fn from_args(no_proc: &[String], minify: bool, test_mode: bool, test_name: Option<String>) -> Self {
         let no_proc = no_proc.to_owned();
-        Self { no_proc, minify }
+        Self { no_proc, minify, test_mode, test_name }
     }
 }
 

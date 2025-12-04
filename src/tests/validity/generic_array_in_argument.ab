@@ -2,9 +2,9 @@
 // 1 2 3
 // Hello Hi
 
-fun test(arr: []): Null {
+fun test_func(arr: []): Null {
         echo arr
 }
 
-test([1, 2, 3])
-test(["Hello", "Hi"])
+test_func([1, 2, 3])
+test_func(["Hello", "Hi"])

@@ -22,6 +22,7 @@ statement_global =
     import_all |
     import_ids |
     main |
+    test |
     statement_local ;
 
 (* Block *)
@@ -213,3 +214,7 @@ builtins_expression =
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
+
+(* Test *)
+KEYWORD_TEST = 'test' ;
+test = KEYWORD_TEST, block ;

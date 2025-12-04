@@ -16,6 +16,7 @@ mod stdlib;
 mod validity;
 mod erroring;
 mod warning;
+mod test_mode;
 
 #[macro_export]
 macro_rules! unwrap_fragment {

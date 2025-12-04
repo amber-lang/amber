@@ -1,4 +1,4 @@
-fun test() {
+fun test_func() {
     if 0 < 5 {
         fail 1
     }
@@ -6,4 +6,4 @@ fun test() {
     return 42
 }
 
-test() failed: echo "Succeeded"
+test_func() failed: echo "Succeeded"

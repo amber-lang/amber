@@ -1,4 +1,4 @@
-pub fun test(a: Text, b: Text) {
+pub fun test_func(a: Text, b: Text) {
     echo a + b
 }
-test("Suc", "ceeded")
+test_func("Suc", "ceeded")

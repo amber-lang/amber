@@ -1,0 +1,13 @@
+// Output
+// Main executed
+
+import { assert } from "std/test"
+
+test {
+    echo "Test executed"
+    assert(false) // Should not fail because test block is skipped
+}
+
+main {
+    echo "Main executed"
+}
