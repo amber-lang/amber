@@ -97,6 +97,16 @@ fn run_function_with_args(
             }
         }
     }
+    // Capture caller trace and path for the correct trace in errors
+    let caller_trace = meta.context.trace.clone();
+    let caller_path = meta.context.path.clone();
+
+    let call_site_pos = if let Some(ref t) = tok {
+        Some(PositionInfo::from_token(meta, Some(t.clone())))
+    } else {
+        None
+    };
+
     // Swap the contexts to use the function context
     let res = meta.with_context_ref(&mut context, |meta| {
         // Create a sub context for new variables
@@ -115,7 +125,23 @@ fn run_function_with_args(
                 meta.context.fun_ret_type = Some(fun.returns.clone());
             }
             // Typecheck the function body
-            block.typecheck(meta)?;
+            if let Err(failure) = block.typecheck(meta) {
+                match failure {
+                    Failure::Loud(mut msg) => {
+                        let mut new_trace = Vec::new();
+                        if caller_path != meta.context.path {
+                            new_trace.extend(caller_trace.clone());
+                        }
+                        if let Some(ref pos) = call_site_pos {
+                            new_trace.push(pos.clone());
+                        }
+                        new_trace.extend(msg.trace);
+                        msg.trace = new_trace;
+                        return Err(Failure::Loud(msg));
+                    }
+                    _ => return Err(failure),
+                }
+            }
             Ok(())
         })?;
         Ok(())

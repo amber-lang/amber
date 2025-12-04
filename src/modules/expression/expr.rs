@@ -103,7 +103,8 @@ pub struct Expr {
     pub value: Option<ExprType>,
     pub kind: Type,
     /// Positions of the tokens enclosing the expression
-    pub pos: (usize, usize)
+    pub pos: (usize, usize),
+    pub position: Option<PositionInfo>,
 }
 
 impl Typed for Expr {
@@ -123,6 +124,9 @@ impl Expr {
     }
 
     pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
+        if let Some(ref pos) = self.position {
+            return pos.clone();
+        }
         let begin = meta.get_token_at(self.pos.0);
         let end = meta.get_token_at(self.pos.1);
         PositionInfo::from_between_tokens(meta, begin, end)
@@ -141,7 +145,8 @@ impl SyntaxModule<ParserMetadata> for Expr {
         Expr {
             value: None,
             kind: Type::Null,
-            pos: (0, 0)
+            pos: (0, 0),
+            position: None,
         }
     }
 
@@ -171,6 +176,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
             ]
         ]);
         *self = result;
+        self.position = Some(self.get_position(meta));
         Ok(())
     }
 }

@@ -16,7 +16,8 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index)
+                            pos: (start_index, end_index),
+                            position: None,
                         };
                         continue
                     }
@@ -45,7 +46,8 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index)
+                            pos: (start_index, end_index),
+                            position: None,
                         };
                         continue
                     }
@@ -77,7 +79,8 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index)
+                            pos: (start_index, end_index),
+                            position: None,
                         };
                     }
                     Err(Failure::Quiet(_)) => {}
@@ -101,7 +104,8 @@ macro_rules! parse_expression_group {
                     return Ok(Expr {
                         kind: module.get_type(),
                         value: Some(ExprType::$cur_modules(module)),
-                        pos: (start_index, $meta.get_index())
+                        pos: (start_index, $meta.get_index()),
+                        position: None,
                     })
                 },
                 Err(Failure::Quiet(_)) => {},
@@ -126,7 +130,8 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index)
+                            pos: (start_index, end_index),
+                            position: None,
                         };
                         continue
                     }
@@ -148,7 +153,8 @@ macro_rules! parse_expression_group {
                 Ok(()) => return Ok(Expr {
                     kind: module.get_type(),
                     value: Some(ExprType::$cur_modules(module)),
-                    pos: (start_index, $meta.get_index())
+                    pos: (start_index, $meta.get_index()),
+                    position: None,
                 }),
                 Err(Failure::Quiet(_)) => {},
                 Err(Failure::Loud(err)) => return Err(Failure::Loud(err))
