@@ -182,9 +182,11 @@ jobs:
             else
               NIGHTLY_TAG="nightly-$(date --iso-8601)-${{ github.sha }}"
               echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
+              echo "prerelease=true" >> $GITHUB_OUTPUT
             fi
           else
              echo 'tag_name=${{ github.event.release.tag_name }}' >> $GITHUB_OUTPUT
+             echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload to GitHub Release
@@ -196,3 +198,4 @@ jobs:
           file_glob: true
           tag: ${{ steps.tag_name.outputs.tag_name }}
           overwrite: true
+          prerelease: ${{ steps.tag_name.outputs.prerelease }}
