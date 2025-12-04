@@ -77,6 +77,11 @@ impl VariableDeclWarn {
         self.on_unmodified = warn;
         self
     }
+
+    pub fn warn_when_unused(mut self, warn: bool) -> Self {
+        self.on_unused = warn;
+        self
+    }
 }
 
 #[derive(Clone, Debug)]
