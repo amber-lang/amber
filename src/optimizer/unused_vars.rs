@@ -60,6 +60,11 @@ impl UnusedVariablesMetadata {
                         transitive_variables.entry(var_stmt.clone())
                             .or_insert(Vec::new())
                             .push(cond_block_scope);
+
+                        if self.used_variables.contains(var_stmt) {
+                            self.used_variables.extend(transitive_variables.keys().cloned());
+                            return true;
+                        }
                     }
                     // Remove relations to variables that arent used
                     transitive_variables.retain(|_key, field| !field.is_empty());

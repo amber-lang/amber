@@ -1,0 +1,10 @@
+// Output
+// 1
+
+main(args) {
+    let a = 1
+    let b = a
+    let c = b
+    let d = c
+    echo d
+}

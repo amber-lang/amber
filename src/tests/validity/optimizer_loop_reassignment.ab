@@ -1,0 +1,31 @@
+// Output
+// dir: /some/dir/name/whatever
+// dir: /some/dir/name
+// dir: /some/dir
+// success: /some/dir
+
+fun parent_dir(dir: Text): Text {
+    return trust $ dirname "{dir}" $
+}
+
+main(args) {
+	let dir = "/some/dir/name/whatever"
+	let i = 0
+
+	loop {
+		i = i + 1
+		echo "dir: {dir}"
+
+		if dir == "/some/dir" {
+			echo "success: {dir}"
+			break
+		}
+
+		dir = parent_dir(dir)
+		// echo "new_dir1: {dir}"
+
+		if i > 5 {
+			break
+		}
+	}
+}
