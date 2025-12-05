@@ -12,7 +12,7 @@ main {
     trust $ echo -e 'one\ntwo three four' >{tmpdir}/numbers1.txt $
 
     // Inefficient for large files.
-    let lines = lines("{tmpdir}/numbers1.txt") + ["", "five", "  six  "]
+    const lines = lines("{tmpdir}/numbers1.txt") + ["", "five", "  six  "]
     for line in lines {
         echo "[{line}]"
     }

@@ -1,7 +1,7 @@
 // Output
 // 27
 
-let x = 21
-let y = 2
-let z = 3
+const x = 21
+const y = 2
+const z = 3
 echo x + y * z

@@ -2,9 +2,9 @@
 // This is a workaround to avoid that issue and the import system should be improved in the future.
 #[allow_absurd_cast]
 fun bash_version(): [Int] {
-    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
-    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
-    let patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Int
+    const major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
+    const minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
+    const patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Int
     return [major, minor, patch]
 }
 
@@ -17,7 +17,7 @@ fun bash_version(): [Int] {
 /// ```
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
-    let result = ""
+    const result = ""
     if bash_version() >= [4,3] {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
@@ -35,7 +35,7 @@ pub fun replace(source, search, replace) {
 /// ```
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
-    let result = ""
+    const result = ""
     if bash_version() >= [4,3] {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
@@ -107,7 +107,7 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// echo parts[0] // "a"
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
-    let result = [Text]
+    const result = [Text]
     trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
     return result
 }
@@ -222,8 +222,8 @@ pub fun parse_int(text: Text): Int? {
 /// ```
 #[allow_absurd_cast]
 pub fun parse_num(text: Text): Num? {
-    let re_int="^-?[0-9]+$"
-    let re_float="^-?[0-9]*\.[0-9]+$"
+    const re_int="^-?[0-9]+$"
+    const re_float="^-?[0-9]*\.[0-9]+$"
 
     $ [[ {text} =~ {re_int} ]] || [[ {text} =~ {re_float} ]] $?
     return text as Num
@@ -237,7 +237,7 @@ pub fun parse_num(text: Text): Num? {
 /// echo chars[0] // "h"
 /// ```
 pub fun split_chars(text: Text): [Text] {
-    let chars = [Text]
+    const chars = [Text]
     trust $ for ((i=0; i<\$\{#{nameof text}}; i++)); do
         {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
     done $
@@ -253,7 +253,7 @@ pub fun split_chars(text: Text): [Text] {
 /// }
 /// ```
 pub fun text_contains(source: Text, search: Text): Bool {
-  let result = trust $ if [[ "{source}" == *"{search}"* ]]; then
+  const result = trust $ if [[ "{source}" == *"{search}"* ]]; then
     echo 1
   fi $
 
@@ -376,7 +376,7 @@ pub fun reversed(text: Text): Text {
 /// }
 /// ```
 pub fun starts_with(text: Text, prefix: Text): Bool {
-  let result = trust $ if [[ "{text}" == "{prefix}"* ]]; then
+  const result = trust $ if [[ "{text}" == "{prefix}"* ]]; then
     echo 1
   fi $
 
@@ -392,7 +392,7 @@ pub fun starts_with(text: Text, prefix: Text): Bool {
 /// }
 /// ```
 pub fun ends_with(text: Text, suffix: Text): Bool {
-  let result = trust $ if [[ "{text}" == *"{suffix}" ]]; then
+  const result = trust $ if [[ "{text}" == *"{suffix}" ]]; then
     echo 1
   fi $
 

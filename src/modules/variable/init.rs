@@ -53,7 +53,7 @@ impl TypeCheckModule for VariableInit {
         handle_identifier_name(meta, &self.name, self.tok.clone())?;
         let var = VariableDecl::new(self.name.clone(), self.expr.get_type())
             .with_warn(VariableDeclWarn::from_token(meta, self.tok.clone())
-                .warn_when_unmodified(!self.is_const)
+                .warn_when_unmodified(!self.is_const && !meta.is_global_scope())
                 .warn_when_unused(!meta.is_global_scope()))
             .with_const(self.is_const);
         self.global_id = meta.add_var(var);

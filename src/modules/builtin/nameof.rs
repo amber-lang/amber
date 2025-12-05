@@ -39,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 
 impl TypeCheckModule for Nameof {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        match meta.get_var(&self.name) {
+        match meta.get_var_used(&self.name) {
             Some(var_decl) => {
                 self.name.clone_from(&var_decl.name);
                 self.global_id = var_decl.global_id;

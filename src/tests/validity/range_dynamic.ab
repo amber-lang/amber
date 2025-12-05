@@ -24,53 +24,53 @@
 //
 // ---
 
-let a = 0
-let b = 10
+const a = 0
+const b = 10
 echo a..b
 echo a..=b
 echo "---"
 
-let a = -5
-let b = 10
+const a = -5
+const b = 10
 echo a..b
 echo a..=b
 
 echo "---"
-let a = -5
-let b = -1
+const a = -5
+const b = -1
 echo a..b
 echo a..=b
 
 echo "---"
-let a = -5
-let b = -10
+const a = -5
+const b = -10
 echo a..b
 echo a..=b
 
 echo "---"
-let a = 5
-let b = -10
+const a = 5
+const b = -10
 echo a..b
 echo a..=b
 
 echo "---"
-let c = -5
+const c = -5
 echo c..=c
 
-let c = 0
+const c = 0
 echo c..=c
 
-let c = 5
+const c = 5
 echo c..=c
 echo "---"
 
 echo "<3 empty lines>"
-let c = 0
+const c = 0
 echo c..c
 
-let c = 5
+const c = 5
 echo c..c
 
-let c = -5
+const c = -5
 echo c..c
 echo "---"
