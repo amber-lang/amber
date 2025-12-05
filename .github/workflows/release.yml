@@ -20,6 +20,8 @@ jobs:
         libc: [gnu, musl]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
         uses: dtolnay/rust-toolchain@stable
@@ -40,16 +42,22 @@ jobs:
           esac
 
       - name: Add Rust target
-        run: rustup target add ${{ steps.triple.outputs.triple }}
+        run: rustup target add ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Build (cross)
-        run: cross build --release --target ${{ steps.triple.outputs.triple }}
+        run: cross build --release --target ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Package tar.xz
         run: |
           mkdir -p dist
           OUT="amber-linux-${{ matrix.libc }}-${{ matrix.arch }}.tar.xz"
-          tar -C target/${{ steps.triple.outputs.triple }}/release -cJf "dist/$OUT" ${BIN_NAME}
+          tar -C target/${TRIPLE}/release -cJf "dist/$OUT" ${BIN_NAME}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (Linux ${{ matrix.libc }} ${{ matrix.arch }})
         uses: actions/upload-artifact@v4
@@ -66,6 +74,8 @@ jobs:
         arch: [x86_64, aarch64]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
         uses: dtolnay/rust-toolchain@stable
@@ -80,16 +90,22 @@ jobs:
           fi
 
       - name: Add Rust target
-        run: rustup target add ${{ steps.triple.outputs.triple }}
+        run: rustup target add ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Build
-        run: cargo build --release --target ${{ steps.triple.outputs.triple }}
+        run: cargo build --release --target ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Package tar.xz
         run: |
           mkdir -p dist
           OUT="amber-macos-${{ matrix.arch }}.tar.xz"
-          tar -C target/${{ steps.triple.outputs.triple }}/release -cJf "dist/$OUT" ${BIN_NAME}
+          tar -C target/${TRIPLE}/release -cJf "dist/$OUT" ${BIN_NAME}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (macOS ${{ matrix.arch }})
         uses: actions/upload-artifact@v4
@@ -102,6 +118,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
         uses: dtolnay/rust-toolchain@stable
@@ -127,6 +145,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
         uses: dtolnay/rust-toolchain@stable
