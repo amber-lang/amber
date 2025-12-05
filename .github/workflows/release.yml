@@ -171,21 +171,42 @@ jobs:
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
           SHORT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
           if [ '${{ github.event_name }}' = 'schedule' ]; then
             # Check if any nightly release already exists for this SHA
             SHORT_SHA="${SHORT_SHA:0:7}"
 
             EXISTING=$(gh release list --limit 100 \
-              | grep "^nightly-" \
-              | grep -- "-${SHORT_SHA}" \
+              | grep "nightly" \
+              | grep "${SHORT_SHA}" \
               || true)
 
             if [ -n "$EXISTING" ]; then
               echo "tag_name=skip" >> $GITHUB_OUTPUT
               echo "Nightly release already exists for SHA ${SHORT_SHA}"
             else
-              NIGHTLY_TAG="nightly-$(date --iso-8601)-${SHORT_SHA}"
+              # Get the latest release tag to determine the next version
+              LATEST_TAG=$(gh release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
+              
+              if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+                LATEST_TAG="0.0.0"
+              fi
+              
+              IFS='.' read -r -a parts <<< "$LATEST_TAG"
+              MAJOR="${parts[0]}"
+              MINOR="${parts[1]}"
+              PATCH="${parts[2]}"
+
+              # Strip "-alpha" suffix if present
+              PATCH="${PATCH%%-*}"
+              
+              # Increment patch version
+              PATCH=$((PATCH + 1))
+              NEXT_VER="$MAJOR.$MINOR.$PATCH"
+              
+              NIGHTLY_TAG="${NEXT_VER}-nightly-$(date +%Y-%m-%d)-${SHORT_SHA}"
+              
               echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
               echo "prerelease=true" >> $GITHUB_OUTPUT
             fi
