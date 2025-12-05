@@ -168,10 +168,12 @@ jobs:
 
       - name: Decide tag
         id: tag_name
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          SHORT_SHA: ${{ github.sha }}
         run: |
           if [ '${{ github.event_name }}' = 'schedule' ]; then
             # Check if any nightly release already exists for this SHA
-            SHORT_SHA="${{ github.sha }}"
             SHORT_SHA="${SHORT_SHA:0:7}"
 
             EXISTING=$(gh release list --limit 100 \
@@ -188,7 +190,7 @@ jobs:
               echo "prerelease=true" >> $GITHUB_OUTPUT
             fi
           else
-             echo 'tag_name=${{ github.event.release.tag_name }}' >> $GITHUB_OUTPUT
+             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
              echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
 
