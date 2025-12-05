@@ -463,9 +463,11 @@ pub fun capitalized(text: Text): Text {
 /// ```
 pub fun lpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
-    length = len(text) - length
-    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
-    return pad + text
+    const pad_len = length - len(text)
+    let padding = ""
+    trust $ printf -v {nameof padding} "%{pad_len}s" "" $
+    trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
+    return padding + text
 }
 
 /// Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
@@ -477,9 +479,11 @@ pub fun lpad(text: Text, pad: Text, length: Int): Text {
 /// ```
 pub fun rpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
-    length = len(text) - length
-    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
-    return text + pad
+    const pad_len = length - len(text)
+    let padding = ""
+    trust $ printf -v {nameof padding} "%{pad_len}s" "" $
+    trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
+    return text + padding
 }
 
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
