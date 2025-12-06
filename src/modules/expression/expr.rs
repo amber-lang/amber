@@ -102,8 +102,7 @@ pub enum ExprType {
 pub struct Expr {
     pub value: Option<ExprType>,
     pub kind: Type,
-    /// Positions of the tokens enclosing the expression
-    pub pos: (usize, usize)
+    pub position: Option<PositionInfo>,
 }
 
 impl Typed for Expr {
@@ -122,14 +121,12 @@ impl Expr {
         }
     }
 
-    pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
-        let begin = meta.get_token_at(self.pos.0);
-        let end = meta.get_token_at(self.pos.1);
-        PositionInfo::from_between_tokens(meta, begin, end)
+    pub fn get_position(&self) -> PositionInfo {
+        self.position.clone().expect("Expr position wasn't set in the parsing stage")
     }
 
     pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
-        let pos = self.get_position(meta);
+        let pos = self.get_position();
         Message::new_err_at_position(meta, pos)
     }
 }
@@ -141,12 +138,12 @@ impl SyntaxModule<ParserMetadata> for Expr {
         Expr {
             value: None,
             kind: Type::Null,
-            pos: (0, 0)
+            position: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let result = parse_expression!(meta, [
+        *self = parse_expression!(meta, [
             ternary @ TernOp => [ Ternary ],
             range @ BinOp => [ Range ],
             or @ BinOp => [ Or ],
@@ -170,7 +167,6 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 VariableGet
             ]
         ]);
-        *self = result;
         Ok(())
     }
 }

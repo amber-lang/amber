@@ -47,7 +47,7 @@ impl TypeCheckModule for LinesInvocation {
                     "Expected value of type 'Text' but got '{}'",
                     path.get_type()
                 );
-                let pos = path.get_position(meta);
+                let pos = path.get_position();
                 return error_pos!(meta, pos, msg);
             }
             Ok(())
