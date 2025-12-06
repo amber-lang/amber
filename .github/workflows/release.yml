@@ -25,7 +25,7 @@ jobs:
       tag_name: ${{ steps.tag_name.outputs.tag_name }}
       prerelease: ${{ steps.tag_name.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Decide tag
         id: tag_name
         env:
