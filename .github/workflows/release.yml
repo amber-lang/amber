@@ -233,5 +233,6 @@ jobs:
           file: dist/*
           file_glob: true
           tag: ${{ steps.tag_name.outputs.tag_name }}
+          release_name: ${{ steps.tag_name.outputs.tag_name }}
           overwrite: true
           prerelease: ${{ steps.tag_name.outputs.prerelease }}
