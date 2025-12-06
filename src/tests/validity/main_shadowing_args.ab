@@ -1,6 +1,6 @@
 // Output
-// Unused variable 'args'
 // Succeeded
+// 1
 
 // Argument names in different functions can be the same
 fun func1(args: Bool): Text {
@@ -10,4 +10,5 @@ fun func1(args: Bool): Text {
 
 main(args) {
     echo func1(true)
+    echo len(args)
 }
