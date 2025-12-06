@@ -20,7 +20,7 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     Some(result)
 }
 
-/// Autoload the Amber test files in translation
+/// Autoload the Amber test files in compiling
 #[test_resources("src/tests/compiling/*.ab")]
 fn test_translation(input: &str) {
     let code = fs::read_to_string(input)
