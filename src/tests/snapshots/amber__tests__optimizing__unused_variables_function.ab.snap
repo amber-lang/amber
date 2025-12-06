@@ -1,0 +1,10 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+foo__0_v0() {
+    touch file.txt
+}
+
+foo__0_v0 
+echo "The \`file.txt\` must be created even if \`a\` is not used"
