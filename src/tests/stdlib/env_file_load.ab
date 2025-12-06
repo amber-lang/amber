@@ -5,7 +5,7 @@ import { file_write, temp_dir_create } from "std/fs"
 // yes
 
 main {
-    let tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     cd tmpdir
     trust file_write(".env", "TEST=1")
     env_file_load()

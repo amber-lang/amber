@@ -3,12 +3,12 @@
 // 42
 
 fun bar() {
-    let result = 12
+    const result = 12
     echo result
 }
 
 fun foo() {
-    let result = 42
+    const result = 42
     bar()
     echo result
 }

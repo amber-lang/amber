@@ -8,12 +8,12 @@ import { array_find_all } from "std/array"
 // Indices of "four": []
 
 fun test_search(data: [Text], value: Text): Null {
-    let indices = array_find_all(data, value)
+    const indices = array_find_all(data, value)
     echo "Indices of \"{value}\": [{indices}]"
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three", "two", "one", "zero"]
+    const numbers = ["zero", "one", "two", "three", "two", "one", "zero"]
     test_search(numbers, "zero")
     test_search(numbers, "one")
     test_search(numbers, "two")

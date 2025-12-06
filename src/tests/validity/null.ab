@@ -1,2 +1,2 @@
-let a = null
+const a = null
 echo a

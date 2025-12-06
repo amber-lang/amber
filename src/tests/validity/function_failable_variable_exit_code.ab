@@ -1,5 +1,5 @@
 fun test() {
-    let a = 12
+    const a = 12
     if 5 < a {
         fail a
     }

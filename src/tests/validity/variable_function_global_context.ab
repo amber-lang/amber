@@ -1,7 +1,12 @@
+// Output
+// Unused variable 'var'
+// Succeeded
+
 fun set() {
     let var = "abc"
 }
-set()
+
 let var = "Succeeded"
+set()
 
 echo var

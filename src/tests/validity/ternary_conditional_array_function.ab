@@ -10,5 +10,5 @@ fun foo(val) {
     }
 }
 
-let property = 25
+const property = 25
 foo(property > 10 then ["This", "is", "an", "array"] else ["This", "should", "never", "happen"])

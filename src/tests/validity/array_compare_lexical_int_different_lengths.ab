@@ -10,8 +10,8 @@
 // Le: 1
 // Lt: 1
 
-let left = [1, 2, 3, -10, -15, -20]
-let right = [1, 2, 3]
+const left = [1, 2, 3, -10, -15, -20]
+const right = [1, 2, 3]
 
 echo "Gt and Ge"
 echo "Ge: {left >= right}"
@@ -19,8 +19,8 @@ echo "Gt: {left > right}"
 echo "Le: {left <= right}"
 echo "Lt: {left < right}"
 
-let left = [1, 2, 3]
-let right = [1, 2, 3, 0, -1]
+const left = [1, 2, 3]
+const right = [1, 2, 3, 0, -1]
 
 echo "Lt and Le"
 echo "Ge: {left >= right}"

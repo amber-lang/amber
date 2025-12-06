@@ -7,8 +7,8 @@
 // Replace this with builtin if/when we get around to writing one.
 #[allow_absurd_cast]
 fun bash_version(): Int {
-    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
-    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
+    const major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
+    const minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
     return (major * 100) + minor
 }
 
@@ -20,7 +20,7 @@ fun test_index(array) {
 
 main {
     if bash_version() >= 402 {
-        let array = ["zero", "one", "two", "three"]
+        const array = ["zero", "one", "two", "three"]
         test_index(array)
     } else {
         // Negative indexing is not supported before Bash 4.2.

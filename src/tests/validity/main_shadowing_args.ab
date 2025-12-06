@@ -1,3 +1,7 @@
+// Output
+// Succeeded
+// 1
+
 // Argument names in different functions can be the same
 fun func1(args: Bool): Text {
     if args:
@@ -6,4 +10,5 @@ fun func1(args: Bool): Text {
 
 main(args) {
     echo func1(true)
+    echo len(args)
 }

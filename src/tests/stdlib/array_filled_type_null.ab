@@ -1,7 +1,7 @@
 import { array_filled } from "std/array"
 
 main {
-    let array = array_filled(0, null)
+    const array = array_filled(0, null)
     if array == [Null]:
         echo "Succeeded"
     else:
