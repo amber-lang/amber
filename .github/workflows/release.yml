@@ -42,8 +42,6 @@ jobs:
               | grep "${SHORT_SHA}" \
               || true)
 
-            echo "EXISTING: $EXISTING"
-
             if [ -n "$EXISTING" ]; then
               echo "tag_name=skip" >> $GITHUB_OUTPUT
               echo "Nightly release already exists for SHA ${SHORT_SHA}"
