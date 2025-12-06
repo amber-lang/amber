@@ -25,7 +25,6 @@ jobs:
       tag_name: ${{ steps.tag_name.outputs.tag_name }}
       prerelease: ${{ steps.tag_name.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v4
       - name: Decide tag
         id: tag_name
         env:
@@ -47,7 +46,7 @@ jobs:
               echo "Nightly release already exists for SHA ${SHORT_SHA}"
             else
               # Get the latest release tag to determine the next version
-              LATEST_TAG=$(gh release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
+              LATEST_TAG=$(gh --repo amber-lang/amber release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
               
               if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
                 LATEST_TAG="0.0.0"
