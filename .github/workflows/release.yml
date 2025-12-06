@@ -5,6 +5,7 @@ on:
     types: [published]
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 env:
   BIN_NAME: amber
@@ -172,7 +173,7 @@ jobs:
           TAG_NAME: ${{ github.event.release.tag_name }}
           SHORT_SHA: ${{ github.sha }}
         run: |
-          if [ '${{ github.event_name }}' = 'schedule' ]; then
+          if [ '${{ github.event_name }}' = 'schedule' ] || [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
             # Check if any nightly release already exists for this SHA
             SHORT_SHA="${SHORT_SHA:0:7}"
 
