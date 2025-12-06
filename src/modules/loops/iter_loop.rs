@@ -204,7 +204,7 @@ impl IterLoop {
         if let (Some(from_val), Some(to_val)) = (range.from.get_integer_value(), range.to.get_integer_value()) {
             return self.translate_static_range_loop(range, meta, from_val, to_val);
         }
-        let id = self.iter_global_id.expect("No global ID set for function iterator");
+        let id = self.iter_global_id.expect("No global ID set for loop iterator");
         // Dynamic range
         let from = range.from.translate(meta);
         let from_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_start", Type::Int, from).with_global_id(id))
