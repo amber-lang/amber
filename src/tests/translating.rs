@@ -1,23 +1,20 @@
 /// Tests for Amber scripts that check snapshot of generated AST.
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use crate::modules::prelude::{TranslateModule};
+use crate::modules::prelude::{FragmentKind, TranslateModule};
 use crate::utils::TranslateMetadata;
 use test_generator::test_resources;
-use crate::modules::prelude::*;
-use insta::assert_snapshot;
+use insta::assert_debug_snapshot;
 use std::fs;
 use std::path::Path;
 
-pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
+pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<FragmentKind> {
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(code.into(), None, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
     let (ast, meta) = compiler.typecheck(ast, meta).ok()?;
     let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
-    let ast = ast.translate(&mut translate_meta);
-    let result = ast.to_string(&mut translate_meta);
-    Some(result)
+    Some(ast.translate(&mut translate_meta))
 }
 
 /// Autoload the Amber test files in translation
@@ -31,5 +28,5 @@ fn test_translation(input: &str) {
         .expect("Provided directory")
         .to_str()
         .expect("Cannot translate to string");
-    assert_snapshot!(filename, ast);
+    assert_debug_snapshot!(filename, ast);
 }
