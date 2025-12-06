@@ -18,8 +18,67 @@ env:
   BIN_NAME: amber
 
 jobs:
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.tag_name.outputs.tag_name }}
+      prerelease: ${{ steps.tag_name.outputs.prerelease }}
+    steps:
+      - name: Decide tag
+        id: tag_name
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ '${{ github.event_name }}' = 'schedule' ] || [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            # Check if any nightly release already exists for this SHA
+            SHORT_SHA="${COMMIT_SHA:0:7}"
+
+            EXISTING=$(gh --repo $REPO release list --limit 100 \
+              | grep "nightly" \
+              | grep "${SHORT_SHA}" \
+              || true)
+
+            if [ -n "$EXISTING" ]; then
+              echo "tag_name=skip" >> $GITHUB_OUTPUT
+              echo "Nightly release already exists for SHA ${SHORT_SHA}"
+            else
+              # Get the latest release tag to determine the next version
+              LATEST_TAG=$(gh --repo $REPO release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
+              
+              if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+                LATEST_TAG="0.0.0"
+              fi
+              
+              IFS='.' read -r -a parts <<< "$LATEST_TAG"
+              MAJOR="${parts[0]}"
+              MINOR="${parts[1]}"
+              PATCH="${parts[2]}"
+
+              # Strip "-alpha" suffix if present
+              PATCH="${PATCH%%-*}"
+              
+              # Increment patch version
+              PATCH=$((PATCH + 1))
+              NEXT_VER="$MAJOR.$MINOR.$PATCH"
+              
+              NIGHTLY_TAG="${NEXT_VER}-nightly-$(date +%Y-%m-%d)-${SHORT_SHA}"
+              
+              echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
+              echo "prerelease=true" >> $GITHUB_OUTPUT
+            fi
+          else
+             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+             echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
   linux:
     name: Linux (${{ matrix.libc }}, ${{ matrix.arch }})
+    needs: preflight
+    if: needs.preflight.outputs.tag_name != 'skip'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -67,6 +126,8 @@ jobs:
 
   macos:
     name: macOS (${{ matrix.arch }})
+    needs: preflight
+    if: needs.preflight.outputs.tag_name != 'skip'
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -107,6 +168,8 @@ jobs:
 
   windows:
     name: Windows (x86_64)
+    needs: preflight
+    if: needs.preflight.outputs.tag_name != 'skip'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -132,6 +195,8 @@ jobs:
 
   installers:
     name: Prepare installers
+    needs: preflight
+    if: needs.preflight.outputs.tag_name != 'skip'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -163,7 +228,8 @@ jobs:
   publish:
     name: Publish Release Assets
     runs-on: ubuntu-latest
-    needs: [linux, macos, windows, installers]
+    needs: [preflight, linux, macos, windows, installers]
+    if: needs.preflight.outputs.tag_name != 'skip'
     steps:
       - uses: actions/checkout@v4
 
@@ -176,63 +242,13 @@ jobs:
       - name: Show collected files
         run: ls -al dist
 
-      - name: Decide tag
-        id: tag_name
-        env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
-          SHORT_SHA: ${{ github.sha }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ '${{ github.event_name }}' = 'schedule' ] || [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
-            # Check if any nightly release already exists for this SHA
-            SHORT_SHA="${SHORT_SHA:0:7}"
-
-            EXISTING=$(gh release list --limit 100 \
-              | grep "nightly" \
-              | grep "${SHORT_SHA}" \
-              || true)
-
-            if [ -n "$EXISTING" ]; then
-              echo "tag_name=skip" >> $GITHUB_OUTPUT
-              echo "Nightly release already exists for SHA ${SHORT_SHA}"
-            else
-              # Get the latest release tag to determine the next version
-              LATEST_TAG=$(gh release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
-              
-              if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
-                LATEST_TAG="0.0.0"
-              fi
-              
-              IFS='.' read -r -a parts <<< "$LATEST_TAG"
-              MAJOR="${parts[0]}"
-              MINOR="${parts[1]}"
-              PATCH="${parts[2]}"
-
-              # Strip "-alpha" suffix if present
-              PATCH="${PATCH%%-*}"
-              
-              # Increment patch version
-              PATCH=$((PATCH + 1))
-              NEXT_VER="$MAJOR.$MINOR.$PATCH"
-              
-              NIGHTLY_TAG="${NEXT_VER}-nightly-$(date +%Y-%m-%d)-${SHORT_SHA}"
-              
-              echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
-              echo "prerelease=true" >> $GITHUB_OUTPUT
-            fi
-          else
-             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-             echo "prerelease=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Upload to GitHub Release
-        if: steps.tag_name.outputs.tag_name != 'skip'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.RELEASE_PAT }}
           file: dist/*
           file_glob: true
-          tag: ${{ steps.tag_name.outputs.tag_name }}
-          release_name: ${{ steps.tag_name.outputs.tag_name }}
+          tag: ${{ needs.preflight.outputs.tag_name }}
+          release_name: ${{ needs.preflight.outputs.tag_name }}
           overwrite: true
-          prerelease: ${{ steps.tag_name.outputs.prerelease }}
+          prerelease: ${{ needs.preflight.outputs.prerelease }}
