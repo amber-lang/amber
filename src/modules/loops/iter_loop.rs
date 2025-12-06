@@ -107,7 +107,7 @@ impl TypeCheckModule for IterLoop {
         self.iter_type = match self.iter_expr.get_type() {
             Type::Array(kind) => *kind,
             _ => {
-                let pos = self.iter_expr.get_position(meta);
+                let pos = self.iter_expr.get_position();
                 return error_pos!(meta, pos, "Expected iterable");
             }
         };

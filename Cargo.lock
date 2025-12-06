@@ -421,9 +421,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "heraclitus-compiler"
-version = "1.8.3"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "817342b2c5aae155ce8b61fec450d7e4c6f11dbd0e27126a104c245066d9c0a0"
+checksum = "e72670042e09178f5cf816dd5d647e85c503882354de9c76eee396256355633e"
 dependencies = [
  "capitalize",
  "colored",

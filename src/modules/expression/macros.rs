@@ -16,8 +16,11 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index),
-                            position: None,
+                            position: {
+                                let begin = $meta.get_token_at(start_index);
+                                let end = $meta.get_token_at(end_index);
+                                Some(PositionInfo::from_between_tokens($meta, begin, end))
+                            },
                         };
                         continue
                     }
@@ -46,8 +49,11 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index),
-                            position: None,
+                            position: {
+                                let begin = $meta.get_token_at(start_index);
+                                let end = $meta.get_token_at(end_index);
+                                Some(PositionInfo::from_between_tokens($meta, begin, end))
+                            },
                         };
                         continue
                     }
@@ -79,8 +85,11 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index),
-                            position: None,
+                            position: {
+                                let begin = $meta.get_token_at(start_index);
+                                let end = $meta.get_token_at(end_index);
+                                Some(PositionInfo::from_between_tokens($meta, begin, end))
+                            },
                         };
                     }
                     Err(Failure::Quiet(_)) => {}
@@ -104,8 +113,11 @@ macro_rules! parse_expression_group {
                     return Ok(Expr {
                         kind: module.get_type(),
                         value: Some(ExprType::$cur_modules(module)),
-                        pos: (start_index, $meta.get_index()),
-                        position: None,
+                        position: {
+                            let begin = $meta.get_token_at(start_index);
+                            let end = $meta.get_token_at($meta.get_index());
+                            Some(PositionInfo::from_between_tokens($meta, begin, end))
+                        },
                     })
                 },
                 Err(Failure::Quiet(_)) => {},
@@ -130,8 +142,11 @@ macro_rules! parse_expression_group {
                         node = Expr {
                             kind: module.get_type(),
                             value: Some(ExprType::$cur_modules(module)),
-                            pos: (start_index, end_index),
-                            position: None,
+                            position: {
+                                let begin = $meta.get_token_at(start_index);
+                                let end = $meta.get_token_at(end_index);
+                                Some(PositionInfo::from_between_tokens($meta, begin, end))
+                            },
                         };
                         continue
                     }
@@ -153,8 +168,11 @@ macro_rules! parse_expression_group {
                 Ok(()) => return Ok(Expr {
                     kind: module.get_type(),
                     value: Some(ExprType::$cur_modules(module)),
-                    pos: (start_index, $meta.get_index()),
-                    position: None,
+                    position: {
+                        let begin = $meta.get_token_at(start_index);
+                        let end = $meta.get_token_at($meta.get_index());
+                        Some(PositionInfo::from_between_tokens($meta, begin, end))
+                    },
                 }),
                 Err(Failure::Quiet(_)) => {},
                 Err(Failure::Loud(err)) => return Err(Failure::Loud(err))

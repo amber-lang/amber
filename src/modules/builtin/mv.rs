@@ -48,7 +48,7 @@ impl TypeCheckModule for Mv {
 
         let source_type = self.source.get_type();
         if source_type != Type::Text {
-            let position = self.source.get_position(meta);
+            let position = self.source.get_position();
             return error_pos!(meta, position => {
                 message: "Builtin function `mv` can only be used with values of type Text",
                 comment: format!("Given type: {}, expected type: {}", source_type, Type::Text)
@@ -57,7 +57,7 @@ impl TypeCheckModule for Mv {
 
         let dest_type = self.destination.get_type();
         if dest_type != Type::Text {
-            let position = self.destination.get_position(meta);
+            let position = self.destination.get_position();
             return error_pos!(meta, position => {
                 message: "Builtin function `mv` can only be used with values of type Text",
                 comment: format!("Given type: {}, expected type: {}", dest_type, Type::Text)

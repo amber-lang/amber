@@ -72,8 +72,8 @@ pub trait BinOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
     }
 }
 
-pub fn get_binop_position_info(meta: &ParserMetadata, left: &Expr, right: &Expr) -> PositionInfo {
-    let begin = meta.get_token_at(left.pos.0);
-    let end = meta.get_token_at(right.pos.1);
-    PositionInfo::from_between_tokens(meta, begin, end)
+pub fn get_binop_position_info(meta: &mut ParserMetadata, left: &Expr, right: &Expr) -> PositionInfo {
+    let left_pos = left.get_position();
+    let right_pos = right.get_position();
+    PositionInfo::from_between_positions(meta, left_pos, right_pos)
 }
