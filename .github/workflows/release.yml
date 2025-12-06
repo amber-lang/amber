@@ -1,5 +1,12 @@
 name: Amber Release
 
+run-name: >-
+  ${{ 
+    github.event_name == 'release' 
+    && format('Release Official ({0})', github.ref_name) 
+    || format('Release Nightly (#{0})', github.run_number) 
+  }}
+
 on:
   release:
     types: [published]
