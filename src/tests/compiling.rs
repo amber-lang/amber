@@ -1,4 +1,4 @@
-/// Tests for Amber scripts that check snapshot of generated AST.
+/// Tests for Amber scripts that check snapshot of generated bash code.
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::{TranslateModule};
 use crate::utils::TranslateMetadata;
