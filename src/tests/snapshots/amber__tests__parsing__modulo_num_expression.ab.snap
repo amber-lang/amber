@@ -1,5 +1,5 @@
 ---
-source: src/tests/translation.rs
+source: src/tests/parsing.rs
 expression: ast
 ---
 Block(
@@ -25,17 +25,17 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "21.2",
+                                                    value: "10.5",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: " '-' ",
+                                                    value: " '%' ",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "7.3",
+                                                    value: "3.2",
                                                 },
                                             ),
                                             Raw(
@@ -45,7 +45,7 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "-l",
+                                                    value: "",
                                                 },
                                             ),
                                             Raw(
@@ -104,17 +104,17 @@ Block(
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "2.32",
+                                                                        value: "20.4",
                                                                     },
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: " '-' ",
+                                                                        value: " '%' ",
                                                                     },
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "1.12",
+                                                                        value: "6.0",
                                                                     },
                                                                 ),
                                                                 Raw(
@@ -124,7 +124,7 @@ Block(
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "-l",
+                                                                        value: "",
                                                                     },
                                                                 ),
                                                                 Raw(
@@ -151,12 +151,12 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: " '-' ",
+                                                    value: " '%' ",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "3.32",
+                                                    value: "3.1",
                                                 },
                                             ),
                                             Raw(
@@ -166,7 +166,7 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "-l",
+                                                    value: "",
                                                 },
                                             ),
                                             Raw(
@@ -223,19 +223,71 @@ Block(
                                                                         value: "echo ",
                                                                     },
                                                                 ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "1.5",
+                                                                Subprocess(
+                                                                    SubprocessFragment {
+                                                                        fragment: List(
+                                                                            ListFragment {
+                                                                                values: [
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: "echo ",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: "100.0",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: " '%' ",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: "7.5",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: " | bc ",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: "",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: " | sed '",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                                                                        },
+                                                                                    ),
+                                                                                    Raw(
+                                                                                        RawFragment {
+                                                                                            value: "'",
+                                                                                        },
+                                                                                    ),
+                                                                                ],
+                                                                                separator: Empty,
+                                                                            },
+                                                                        ),
+                                                                        quoted: true,
                                                                     },
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: " '-' ",
+                                                                        value: " '%' ",
                                                                     },
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "3.5",
+                                                                        value: "3.0",
                                                                     },
                                                                 ),
                                                                 Raw(
@@ -245,7 +297,7 @@ Block(
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "-l",
+                                                                        value: "",
                                                                     },
                                                                 ),
                                                                 Raw(
@@ -272,7 +324,7 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: " '-' ",
+                                                    value: " '%' ",
                                                 },
                                             ),
                                             Raw(
@@ -287,7 +339,7 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "-l",
+                                                    value: "",
                                                 },
                                             ),
                                             Raw(

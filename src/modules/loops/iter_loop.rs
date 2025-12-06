@@ -159,12 +159,13 @@ impl IterLoop {
         from_var: FragmentKind,
         to_var: FragmentKind
     ) -> FragmentKind {
+        let id = self.iter_global_id.unwrap();
         let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
 
         // Calculate direction
         // dir = from < to ? 1 : -1
         let dir_val = fragments!("$(( ", from_var.clone(), " < ", to_var.clone(), " ? 1 : -1 ))");
-        let dir_stmt = VarStmtFragment::new("dir", Type::Int, dir_val);
+        let dir_stmt = VarStmtFragment::new("__dir", Type::Int, dir_val).with_global_id(id);
         let dir_var = meta.push_ephemeral_variable(dir_stmt).with_quotes(false).to_frag();
 
         // Operator
@@ -205,14 +206,14 @@ impl IterLoop {
         if let (Some(from_val), Some(to_val)) = (range.from.get_integer_value(), range.to.get_integer_value()) {
             return self.translate_static_range_loop(range, meta, from_val, to_val);
         }
-        
+        let id = self.iter_global_id.expect("No global ID set for function iterator");
         // Dynamic range
         let from = range.from.translate(meta);
-        let from_var = meta.push_ephemeral_variable(VarStmtFragment::new("range_start", Type::Int, from))
+        let from_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_start", Type::Int, from).with_global_id(id))
             .with_quotes(false).to_frag();
 
         let to = range.to.translate(meta);
-        let to_var = meta.push_ephemeral_variable(VarStmtFragment::new("range_end", Type::Int, to))
+        let to_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_end", Type::Int, to).with_global_id(id))
             .with_quotes(false).to_frag();
 
         self.translate_dynamic_range_loop(range, meta, from_var, to_var)

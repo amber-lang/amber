@@ -1,5 +1,5 @@
 ---
-source: src/tests/translation.rs
+source: src/tests/parsing.rs
 expression: ast
 ---
 Block(

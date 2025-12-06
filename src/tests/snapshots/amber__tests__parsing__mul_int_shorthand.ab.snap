@@ -1,5 +1,5 @@
 ---
-source: src/tests/translation.rs
+source: src/tests/parsing.rs
 expression: ast
 ---
 Block(
@@ -20,7 +20,7 @@ Block(
                     operator: "=",
                     value: Raw(
                         RawFragment {
-                            value: "20",
+                            value: "5",
                         },
                     ),
                 },
@@ -65,7 +65,7 @@ Block(
                                     },
                                 ),
                             ),
-                            op: Div,
+                            op: Mul,
                             quoted: true,
                         },
                     ),
@@ -86,7 +86,7 @@ Block(
                     operator: "=",
                     value: Raw(
                         RawFragment {
-                            value: "35",
+                            value: "7",
                         },
                     ),
                 },
@@ -127,11 +127,11 @@ Block(
                             right: Some(
                                 Raw(
                                     RawFragment {
-                                        value: "5",
+                                        value: "6",
                                     },
                                 ),
                             ),
-                            op: Div,
+                            op: Mul,
                             quoted: true,
                         },
                     ),
