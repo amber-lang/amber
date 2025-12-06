@@ -164,7 +164,7 @@ impl IterLoop {
 
         // Calculate direction
         // dir = from < to ? 1 : -1
-        let dir_val = fragments!("$(( ", from_var.clone(), " < ", to_var.clone(), " ? 1 : -1 ))");
+        let dir_val = fragments!("$(( ", from_var.clone(), " <= ", to_var.clone(), " ? 1 : -1 ))");
         let dir_stmt = VarStmtFragment::new("__dir", Type::Int, dir_val).with_global_id(id);
         let dir_var = meta.push_ephemeral_variable(dir_stmt).with_quotes(false).to_frag();
 
