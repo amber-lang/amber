@@ -15,8 +15,8 @@
 // Le: 1
 // Lt: 1
 
-let left = ["x", "y", "z"]
-let right = ["a", "b", "c"]
+const left = ["x", "y", "z"]
+const right = ["a", "b", "c"]
 
 echo "Gt and Ge"
 echo "Ge: {left >= right}"
@@ -24,8 +24,8 @@ echo "Gt: {left > right}"
 echo "Le: {left <= right}"
 echo "Lt: {left < right}"
 
-let left = ["this", "is", "same"]
-let right = ["this", "is", "same"]
+const left = ["this", "is", "same"]
+const right = ["this", "is", "same"]
 
 echo "Ge and Le (equality)"
 echo "Ge: {left >= right}"
@@ -33,8 +33,8 @@ echo "Gt: {left > right}"
 echo "Le: {left <= right}"
 echo "Lt: {left < right}"
 
-let left = ["a", "b", "c"]
-let right = ["a", "b", "d"]
+const left = ["a", "b", "c"]
+const right = ["a", "b", "d"]
 
 echo "Lt and Le"
 echo "Ge: {left >= right}"

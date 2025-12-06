@@ -3,6 +3,9 @@ name: Amber Release
 on:
   release:
     types: [published]
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 env:
   BIN_NAME: amber
@@ -164,11 +167,41 @@ jobs:
       - name: Show collected files
         run: ls -al dist
 
+      - name: Decide tag
+        id: tag_name
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          if [ '${{ github.event_name }}' = 'schedule' ] || [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            # Check if any nightly release already exists for this SHA
+            SHORT_SHA="${SHORT_SHA:0:7}"
+
+            EXISTING=$(gh release list --limit 100 \
+              | grep "^nightly-" \
+              | grep -- "-${SHORT_SHA}" \
+              || true)
+
+            if [ -n "$EXISTING" ]; then
+              echo "tag_name=skip" >> $GITHUB_OUTPUT
+              echo "Nightly release already exists for SHA ${SHORT_SHA}"
+            else
+              NIGHTLY_TAG="nightly-$(date --iso-8601)-${SHORT_SHA}"
+              echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
+              echo "prerelease=true" >> $GITHUB_OUTPUT
+            fi
+          else
+             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+             echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload to GitHub Release
+        if: steps.tag_name.outputs.tag_name != 'skip'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.RELEASE_PAT }}
           file: dist/*
           file_glob: true
-          tag: ${{ github.event.release.tag_name }}
+          tag: ${{ steps.tag_name.outputs.tag_name }}
           overwrite: true
+          prerelease: ${{ steps.tag_name.outputs.prerelease }}

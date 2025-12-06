@@ -7,6 +7,6 @@ fun test(a) {
     echo a
 }
 
-let a = [1, 2, 3, 4, 5]
+const a = [1, 2, 3, 4, 5]
 test(a)
 echo a

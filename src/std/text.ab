@@ -227,8 +227,8 @@ pub fun parse_int(text: Text): Int? {
 /// ```
 #[allow_absurd_cast]
 pub fun parse_num(text: Text): Num? {
-    let re_int="^-?[0-9]+$"
-    let re_float="^-?[0-9]*\.[0-9]+$"
+    const re_int="^-?[0-9]+$"
+    const re_float="^-?[0-9]*\.[0-9]+$"
 
     $ [[ {text} =~ {re_int} ]] || [[ {text} =~ {re_float} ]] $?
     return text as Num

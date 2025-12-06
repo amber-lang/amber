@@ -1,0 +1,6 @@
+// Output
+// Hello there
+
+import { foo } from "src/tests/warning/test_files/main.ab"
+
+foo()

@@ -8,7 +8,7 @@ import { array_remove_at } from "std/array"
 // Array after 4: (1) [zero]
 
 main {
-    let numbers = ["zero", "one", "two", "three"]
+    const numbers = ["zero", "one", "two", "three"]
     echo "Array before 1: ({len(numbers)}) [{numbers}]"
     array_remove_at(numbers, 1)
     echo "Array after 1: ({len(numbers)}) [{numbers}]"

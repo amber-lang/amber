@@ -7,7 +7,7 @@
 
 main {
     // Do not use loop; we want to test compile time arithmetic.
-    let array = ["zero", "one", "two", "three"]
+    const array = ["zero", "one", "two", "three"]
     echo "Value at 0: \"{array[0]}\""
     echo "Value at 1: \"{array[1]}\""
     echo "Value at 2: \"{array[2]}\""

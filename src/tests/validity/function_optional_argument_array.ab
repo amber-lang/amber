@@ -8,6 +8,6 @@ fun sum_array(a : [Int] = [Int]): Int {
     }
     return sum;
 }
-let x = [100,1000]
-let result = sum_array(x)
+const x = [100,1000]
+const result = sum_array(x)
 echo result

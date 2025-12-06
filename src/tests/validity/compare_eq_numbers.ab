@@ -1,6 +1,6 @@
 // Output
 // 1
 
-let x = 42
-let y = 42
+const x = 42
+const y = 42
 echo x == y

@@ -8,12 +8,12 @@ import { array_find } from "std/array"
 // Index of "four": -1
 
 fun test_index(data: [Text], value: Text): Null {
-    let index = array_find(data, value)
+    const index = array_find(data, value)
     echo "Index of \"{value}\": {index}"
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three", "two", "one", "zero"]
+    const numbers = ["zero", "one", "two", "three", "two", "one", "zero"]
     test_index(numbers, "zero")
     test_index(numbers, "one")
     test_index(numbers, "two")

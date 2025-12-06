@@ -116,8 +116,14 @@ impl ParserMetadata {
             .collect()
     }
 
+    /// Returns a variable and marks it as used
+    pub fn get_var_used(&mut self, name: &str) -> Option<&VariableDecl> {
+        self.mark_var_used(name);
+        self.get_var(name)
+    }
+
     /// Marks a variable as used
-    pub fn mark_var_used(&mut self, name: &str) {
+    fn mark_var_used(&mut self, name: &str) {
         for scope in self.context.scopes.iter_mut().rev() {
             if let Some(var) = scope.vars.get_mut(name) {
                 var.is_used = true;

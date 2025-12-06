@@ -55,9 +55,6 @@ impl TypeCheckModule for VariableSet {
         self.var_type = variable.kind.clone();
         prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
         meta.mark_var_modified(&self.name);
-        if self.is_ref {
-            meta.mark_var_used(&self.name);
-        }
 
         if let Some(ref index_expr) = self.index {
             if !matches!(variable.kind, Type::Array(_)) {

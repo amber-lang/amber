@@ -8,7 +8,7 @@ fun parent_dir(dir: Text): Text {
     return trust $ dirname "{dir}" $
 }
 
-main(args) {
+main {
 	let dir = "/some/dir/name/whatever"
 	let i = 0
 

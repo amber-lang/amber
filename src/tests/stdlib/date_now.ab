@@ -6,6 +6,6 @@ fun get_current_date(): Int {
 }
 
 main {
-    let posix_now = get_current_date()
+    const posix_now = get_current_date()
     if date_now() == posix_now: echo "Succeeded"
 }

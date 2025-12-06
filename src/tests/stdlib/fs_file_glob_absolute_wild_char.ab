@@ -26,11 +26,11 @@ main {
         $ touch {tmpdir}/other.csv $
     }
 
-    let expected = [
+    const expected = [
         "{tmpdir}/file1.txt",
         "{tmpdir}/file2.txt",
     ]
-    let actual = file_glob("{tmpdir}/file?.txt") failed {
+    const actual = file_glob("{tmpdir}/file?.txt") failed {
         echo "FAILED"
     }
     if compare(actual, expected) {
