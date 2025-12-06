@@ -6,7 +6,7 @@ main {
     cd src_dir
     $ touch test.txt $?
     $ tar -czf "filename.tar.gz" "test.txt" $?
-    let package = "{src_dir}/filename.tar.gz"
+    const package = "{src_dir}/filename.tar.gz"
     if not file_exists(package) {
         echo "Compression falis; {package} does not exists"
     }

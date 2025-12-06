@@ -137,7 +137,6 @@ impl TypeCheckModule for FunctionInvocation {
             if *is_ref {
                 if let Some(ExprType::VariableGet(var)) = &arg.value {
                     meta.mark_var_modified(&var.name);
-                    meta.mark_var_used(&var.name);
                 }
             }
         }

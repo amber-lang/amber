@@ -5,7 +5,7 @@ import { array_pop } from "std/array"
 // Cannot pop from empty array
 
 fun test_pop(label: Text, data: [Text]): Null {
-    let value = array_pop(data) failed {
+    const value = array_pop(data) failed {
         echo "Cannot pop from empty array"
         return null
     }
@@ -13,8 +13,8 @@ fun test_pop(label: Text, data: [Text]): Null {
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three"]
-    let empty = [Text]
+    const numbers = ["zero", "one", "two", "three"]
+    const empty = [Text]
     test_pop("numbers", numbers)
     test_pop("empty", empty)
 }

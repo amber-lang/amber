@@ -5,7 +5,7 @@ import { array_last } from "std/array"
 // Last of empty array does not exist
 
 fun test_last(label: Text, data: [Text]): Null {
-    let value = array_last(data) failed {
+    const value = array_last(data) failed {
         echo "Last of empty array does not exist"
         return null
     }
@@ -13,8 +13,8 @@ fun test_last(label: Text, data: [Text]): Null {
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three"]
-    let empty = [Text]
+    const numbers = ["zero", "one", "two", "three"]
+    const empty = [Text]
     test_last("numbers", numbers)
     test_last("empty", empty)
 }

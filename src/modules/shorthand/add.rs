@@ -48,7 +48,6 @@ impl TypeCheckModule for ShorthandAdd {
         let variable = handle_variable_reference(meta, &self.tok, &self.var)?;
         prevent_constant_mutation(meta, &self.tok, &self.var, variable.is_const)?;
         meta.mark_var_modified(&self.var);
-        meta.mark_var_used(&self.var);
         self.kind = variable.kind;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;

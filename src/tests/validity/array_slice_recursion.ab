@@ -6,8 +6,8 @@ fun sum_array(arr: [Num]): Num {
     return arr[length - 1] + sum_array(arr[0..(length - 1)])
 }
 
-let arr = [1, 2, 3, 4, 5]
-let sum = sum_array(arr)
+const arr = [1, 2, 3, 4, 5]
+const sum = sum_array(arr)
 echo sum
 
 // Output

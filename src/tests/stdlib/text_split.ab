@@ -4,6 +4,6 @@ import * from "std/text"
 // banana
 
 main {
-    let array = split("apple,banana,cherry", ",")
+    const array = split("apple,banana,cherry", ",")
     echo array[1]
 }

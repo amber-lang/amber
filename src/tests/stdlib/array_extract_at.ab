@@ -7,12 +7,12 @@ import { array_extract_at } from "std/array"
 // Value at 3: "three" (3) [zero one two]
 
 fun test_extract(data: [Text], index: Num): Null? {
-    let value = array_extract_at(data, index)?
+    const value = array_extract_at(data, index)?
     echo "Value at {index}: \"{value}\" ({len(data)}) [{data}]"
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three"]
+    const numbers = ["zero", "one", "two", "three"]
     for index in 0..4 {
         test_extract(numbers, index)?
     }

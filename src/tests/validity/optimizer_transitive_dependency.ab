@@ -1,10 +1,10 @@
 // Output
 // 1
 
-main(args) {
-    let a = 1
-    let b = a
-    let c = b
-    let d = c
+main {
+    const a = 1
+    const b = a
+    const c = b
+    const d = c
     echo d
 }

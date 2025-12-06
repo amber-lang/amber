@@ -17,9 +17,9 @@ main {
     trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
 
     // Inefficient for large files.
-    let lines = lines("{tmpdir}/numbers1.txt")
-    append_ref(lines, "{tmpdir}/numbers2.txt")
-    for line in lines {
+    let lines_contents = lines("{tmpdir}/numbers1.txt")
+    append_ref(lines_contents, "{tmpdir}/numbers2.txt")
+    for line in lines_contents {
         echo "[{line}]"
     }
 }

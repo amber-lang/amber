@@ -51,10 +51,6 @@ impl TypeCheckModule for VariableGet {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         self.kind = variable.kind.clone();
-        meta.mark_var_used(&self.name);
-
-        self.kind = variable.kind.clone();
-
         Ok(())
     }
 }
