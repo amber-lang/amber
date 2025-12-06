@@ -43,12 +43,13 @@ impl TypeCheckModule for Nameof {
             Some(var_decl) => {
                 self.name.clone_from(&var_decl.name);
                 self.global_id = var_decl.global_id;
-                Ok(())
             }
             None => {
-                error!(meta, self.token.clone(), format!("Variable '{}' not found", self.name))
+                return error!(meta, self.token.clone(), format!("Variable '{}' not found", self.name))
             }
-        }
+        };
+        meta.mark_var_modified(&self.name);
+        Ok(())
     }
 }
 

@@ -17,7 +17,7 @@ fun bash_version(): [Int] {
 /// ```
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
-    const result = ""
+    let result = ""
     if bash_version() >= [4,3] {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
@@ -35,7 +35,7 @@ pub fun replace(source, search, replace) {
 /// ```
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
-    const result = ""
+    let result = ""
     if bash_version() >= [4,3] {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
@@ -107,7 +107,7 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// echo parts[0] // "a"
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
-    const result = [Text]
+    let result = [Text]
     trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
     return result
 }
@@ -237,7 +237,7 @@ pub fun parse_num(text: Text): Num? {
 /// echo chars[0] // "h"
 /// ```
 pub fun split_chars(text: Text): [Text] {
-    const chars = [Text]
+    let chars = [Text]
     trust $ for ((i=0; i<\$\{#{nameof text}}; i++)); do
         {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
     done $

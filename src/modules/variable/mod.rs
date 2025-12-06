@@ -22,7 +22,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "else", "exit", "exited", "fail", "failed",
         "false", "for", "from", "fun", "if",
         "import", "in", "is", "len", "let",
-        "loop", "main", "mv", "name", "nameof",
+        "lines", "loop", "main", "mv", "nameof",
         "not", "null", "or", "pub", "ref",
         "return", "silent", "status", "sudo", "succeeded",
         "then", "trust", "true", "unsafe", "while",
