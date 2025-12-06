@@ -2,9 +2,14 @@
 // This is a workaround to avoid that issue and the import system should be improved in the future.
 #[allow_absurd_cast]
 fun bash_version(): [Int] {
-    const major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
-    const minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
-    const patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Int
+    let major = 0
+    let minor = 0
+    let patch = 0
+    trust $
+        {nameof major}=\$\{BASH_VERSINFO[0]}
+        {nameof minor}=\$\{BASH_VERSINFO[1]}
+        {nameof patch}=\$\{BASH_VERSINFO[2]}
+    $
     return [major, minor, patch]
 }
 
@@ -253,11 +258,8 @@ pub fun split_chars(text: Text): [Text] {
 /// }
 /// ```
 pub fun text_contains(source: Text, search: Text): Bool {
-  const result = trust $ if [[ "{source}" == *"{search}"* ]]; then
-    echo 1
-  fi $
-
-  return result == "1"
+    trust $ [[ "{source}" == *"{search}"* ]] $
+    return status == 0
 }
 
 /// Checks if an array value is in the text.
@@ -376,11 +378,8 @@ pub fun reversed(text: Text): Text {
 /// }
 /// ```
 pub fun starts_with(text: Text, prefix: Text): Bool {
-  const result = trust $ if [[ "{text}" == "{prefix}"* ]]; then
-    echo 1
-  fi $
-
-  return result == "1"
+    trust $ [[ "{text}" == "{prefix}"* ]] $
+    return status == 0
 }
 
 /// Checks if text ends with a value.
@@ -392,11 +391,8 @@ pub fun starts_with(text: Text, prefix: Text): Bool {
 /// }
 /// ```
 pub fun ends_with(text: Text, suffix: Text): Bool {
-  const result = trust $ if [[ "{text}" == *"{suffix}" ]]; then
-    echo 1
-  fi $
-
-  return result == "1"
+    trust $ [[ "{text}" == *"{suffix}" ]] $
+    return status == 0
 }
 
 /// Returns a substring from `text` starting at the given `index` (0-based).
@@ -411,9 +407,11 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 /// echo sub // "world"
 /// ```
 pub fun slice(text: Text, index: Int, length: Int = 0): Text {
+    let result = ""
     if length == 0: length = len(text) - index
-    if length <= 0: return ""
-    return trust $ printf "%.{length}s" "\$\{{nameof text}: {index}}" $
+    if length <= 0: return result
+    trust $ {nameof result}="\$\{{nameof text}: {index}: {length}}" $
+    return result
 }
 
 /// Returns the character from `text` at the specified `index` (0-based).
@@ -426,7 +424,9 @@ pub fun slice(text: Text, index: Int, length: Int = 0): Text {
 /// echo ch // "e"
 /// ```
 pub fun char_at(text: Text, index: Int): Text {
-    return trust $ printf "%.1s" "\$\{{nameof text}: {index}}" $
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}:{index}:1}" $
+    return result
 }
 
 /// Capitalize the first letter of the given `text`.
@@ -463,9 +463,11 @@ pub fun capitalized(text: Text): Text {
 /// ```
 pub fun lpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
-    length = len(text) - length
-    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
-    return pad + text
+    const pad_len = length - len(text)
+    let padding = ""
+    trust $ printf -v {nameof padding} "%{pad_len}s" "" $
+    trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
+    return padding + text
 }
 
 /// Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
@@ -477,9 +479,11 @@ pub fun lpad(text: Text, pad: Text, length: Int): Text {
 /// ```
 pub fun rpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
-    length = len(text) - length
-    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
-    return text + pad
+    const pad_len = length - len(text)
+    let padding = ""
+    trust $ printf -v {nameof padding} "%{pad_len}s" "" $
+    trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
+    return text + padding
 }
 
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
