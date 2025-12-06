@@ -228,7 +228,7 @@ impl IterLoop {
             return FragmentKind::Empty;
         }
         
-        let iter_name = RawFragment::from(get_variable_name(&self.iter_name, self.iter_global_id)).to_frag();
+        let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
         // Define index iterator variable if used
         let (index_init, index_update) = match (self.iter_index.as_ref(), self.iter_index_global_id) {
             (Some(index), Some(global_id)) => {
