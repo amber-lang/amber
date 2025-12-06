@@ -188,13 +188,11 @@ impl IterLoop {
         let cond = fragments!(iter_name.clone(), " * ", dir_var.clone(), " ", op, " ", to_var, " * ", dir_var.clone());
         let update = fragments!(iter_name, "+=", dir_var, index_update);
 
-        let stmt = fragments!(
+        fragments!(
             "for (( ", init, "; ", cond, "; ", update, " )); do\n",
             body,
             "\ndone"
-        );
-        
-        stmt
+        )
     }
     
     fn translate_range_loop(
@@ -253,13 +251,11 @@ impl IterLoop {
         let cond = fragments!(iter_name.clone(), " ", op, " ", raw_fragment!("{to_val}"));
         let update = fragments!(iter_name, step, index_update);
 
-        let loop_frag = fragments!(
+        fragments!(
             "for (( ", init, "; ", cond, "; ", update, " )); do\n",
             body,
             "\ndone"
-        );
-        
-        loop_frag
+        )
     }
 }
 
