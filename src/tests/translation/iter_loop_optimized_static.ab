@@ -52,3 +52,45 @@ echo "From 5 to =0"
 for n in 5..=0 {
     echo n
 }
+// Output
+// 0
+// 1
+// 2
+// 3
+// 4
+// 5
+// 4
+// 3
+// 2
+// 1
+// 5
+// 5
+// 4
+// 3
+// 2
+// 1
+// 0
+
+for i in 0..5 {
+    echo i
+}
+
+for j in 5..0 {
+    echo j
+}
+
+for k in 0..0 {
+    echo k
+}
+
+for l in 5..5 {
+    echo l
+}
+
+for m in 5..=5 {
+    echo m
+}
+
+for n in 5..=0 {
+    echo n
+}
