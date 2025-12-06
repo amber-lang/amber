@@ -19,7 +19,7 @@ env:
 
 jobs:
   preflight:
-    name: Decide Tag
+    name: Preflight
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.tag_name.outputs.tag_name }}
