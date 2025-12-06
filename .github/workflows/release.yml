@@ -20,10 +20,12 @@ jobs:
         arch: [x86_64, aarch64]
         libc: [gnu, musl]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
 
       - name: Install cross
         run: cargo install cross --git https://github.com/cross-rs/cross --tag v0.2.5
@@ -41,16 +43,22 @@ jobs:
           esac
 
       - name: Add Rust target
-        run: rustup target add ${{ steps.triple.outputs.triple }}
+        run: rustup target add ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Build (cross)
-        run: cross build --release --target ${{ steps.triple.outputs.triple }}
+        run: cross build --release --target ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Package tar.xz
         run: |
           mkdir -p dist
           OUT="amber-linux-${{ matrix.libc }}-${{ matrix.arch }}.tar.xz"
-          tar -C target/${{ steps.triple.outputs.triple }}/release -cJf "dist/$OUT" ${BIN_NAME}
+          tar -C target/${TRIPLE}/release -cJf "dist/$OUT" ${BIN_NAME}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (Linux ${{ matrix.libc }} ${{ matrix.arch }})
         uses: actions/upload-artifact@v4
@@ -66,10 +74,12 @@ jobs:
       matrix:
         arch: [x86_64, aarch64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
 
       - name: Compute target triple
         id: triple
@@ -81,16 +91,22 @@ jobs:
           fi
 
       - name: Add Rust target
-        run: rustup target add ${{ steps.triple.outputs.triple }}
+        run: rustup target add ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Build
-        run: cargo build --release --target ${{ steps.triple.outputs.triple }}
+        run: cargo build --release --target ${TRIPLE}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Package tar.xz
         run: |
           mkdir -p dist
           OUT="amber-macos-${{ matrix.arch }}.tar.xz"
-          tar -C target/${{ steps.triple.outputs.triple }}/release -cJf "dist/$OUT" ${BIN_NAME}
+          tar -C target/${TRIPLE}/release -cJf "dist/$OUT" ${BIN_NAME}
+        env:
+          TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (macOS ${{ matrix.arch }})
         uses: actions/upload-artifact@v4
@@ -102,10 +118,12 @@ jobs:
     name: Windows (x86_64)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
 
       - name: Build
         shell: bash
@@ -127,10 +145,12 @@ jobs:
     name: Prepare installers
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
 
       - name: Build native (host)
         run: cargo build --release
@@ -197,7 +217,7 @@ jobs:
 
       - name: Upload to GitHub Release
         if: steps.tag_name.outputs.tag_name != 'skip'
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@6b7fa9f267e90b50a19fef07b3596790bb941741 # v2.11.3
         with:
           repo_token: ${{ secrets.RELEASE_PAT }}
           file: dist/*
