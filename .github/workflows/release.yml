@@ -186,26 +186,36 @@ jobs:
               echo "tag_name=skip" >> $GITHUB_OUTPUT
               echo "Nightly release already exists for SHA ${SHORT_SHA}"
             else
+              echo "Computing LATEST_TAG"
               # Get the latest release tag to determine the next version
               LATEST_TAG=$(gh release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
-              
+              echo "LATEST_TAG: $LATEST_TAG"
               if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
                 LATEST_TAG="0.0.0"
               fi
+              echo "LATEST_TAG: $LATEST_TAG"
               
               IFS='.' read -r -a parts <<< "$LATEST_TAG"
+
+              echo "parts: ${parts[@]}"
+
               MAJOR="${parts[0]}"
               MINOR="${parts[1]}"
               PATCH="${parts[2]}"
 
+              echo "MAJOR: $MAJOR"
+              echo "MINOR: $MINOR"
+              echo "PATCH: $PATCH"
               # Strip "-alpha" suffix if present
               PATCH="${PATCH%%-*}"
               
               # Increment patch version
               PATCH=$((PATCH + 1))
               NEXT_VER="$MAJOR.$MINOR.$PATCH"
+              echo "NEXT_VER: $NEXT_VER"
               
               NIGHTLY_TAG="${NEXT_VER}-nightly-$(date +%Y-%m-%d)-${SHORT_SHA}"
+              echo "NIGHTLY_TAG: $NIGHTLY_TAG"
               
               echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
               echo "prerelease=true" >> $GITHUB_OUTPUT
