@@ -158,7 +158,9 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// echo trimmed // "hello"
 /// ```
 pub fun trim_left(text: Text): Text {
-    return trust $ echo "{text}" | sed -e 's/^[[:space:]]*//' $
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}#"\$\{{nameof text}%%[![:space:]]*}"}" $
+    return result
 }
 
 /// Trims the spaces at end of the text using `sed`.
@@ -169,7 +171,9 @@ pub fun trim_left(text: Text): Text {
 /// echo trimmed // "hello"
 /// ```
 pub fun trim_right(text: Text): Text {
-    return trust $ echo "{text}" | sed -e 's/[[:space:]]*\$//' $
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}%\$\{{nameof text}##*[![:space:]]}}" $
+    return result
 }
 
 /// Trims the spaces from the text input.
@@ -180,7 +184,10 @@ pub fun trim_right(text: Text): Text {
 /// echo trimmed // "hello"
 /// ```
 pub fun trim(text: Text): Text {
-    return trim_left(trim_right(text))
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}#"\$\{{nameof text}%%[![:space:]]*}"}" $
+    trust $ {nameof result}="\$\{{nameof result}%\$\{{nameof result}##*[![:space:]]}}" $
+    return result
 }
 
 /// Makes the text input lowercase using `tr`.

@@ -44,6 +44,9 @@ strip = true
 lto = true
 opt-level = 3
 
+[profile.dev]
+opt-level = 3
+
 [profile.test]
 opt-level = 3
 
