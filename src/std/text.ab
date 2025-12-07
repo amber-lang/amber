@@ -159,7 +159,7 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// ```
 pub fun trim_left(text: Text): Text {
     let result = ""
-    trust $ {nameof result}="\$\{{nameof text}#"\$\{{nameof text}%%[![:space:]]*}"}" $
+    trust $ {nameof result}="\$\{{nameof text}#\$\{{nameof text}%%[![:space:]]*}}" $
     return result
 }
 
@@ -185,7 +185,7 @@ pub fun trim_right(text: Text): Text {
 /// ```
 pub fun trim(text: Text): Text {
     let result = ""
-    trust $ {nameof result}="\$\{{nameof text}#"\$\{{nameof text}%%[![:space:]]*}"}" $
+    trust $ {nameof result}="\$\{{nameof text}#\$\{{nameof text}%%[![:space:]]*}}" $
     trust $ {nameof result}="\$\{{nameof result}%\$\{{nameof result}##*[![:space:]]}}" $
     return result
 }
