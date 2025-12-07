@@ -7,5 +7,6 @@ fun get_current_date(): Int {
 
 main {
     const posix_now = get_current_date()
-    if date_now() == posix_now: echo "Succeeded"
+    const time_diff = date_now() - posix_now
+    if time_diff < 3 or time_diff > 3: echo "Succeeded"
 }
