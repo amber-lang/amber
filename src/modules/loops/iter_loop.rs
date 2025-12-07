@@ -153,7 +153,7 @@ impl IterLoop {
         }
     }
 
-        /// Attempts to optimize range loops at compile-time when bounds are integer literals.
+    /// Attempts to optimize range loops at compile-time when bounds are integer literals.
     /// Falls back to dynamic range loop generation for variable bounds.
     fn translate_range_loop(
         &self, 
