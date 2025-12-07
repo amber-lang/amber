@@ -153,6 +153,41 @@ impl IterLoop {
         }
     }
 
+        /// Attempts to optimize range loops at compile-time when bounds are integer literals.
+    /// Falls back to dynamic range loop generation for variable bounds.
+    fn translate_range_loop(
+        &self, 
+        range: &Range, 
+        meta: &mut TranslateMetadata
+    ) -> FragmentKind {
+        // Static range
+        if let (Some(from_val), Some(to_val)) = (range.from.get_integer_value(), range.to.get_integer_value()) {
+            return self.translate_static_range_loop(range, meta, from_val, to_val);
+        }
+        // Dynamic range
+        let id = self.iter_global_id.expect("No global ID set for loop iterator");
+        let from = range.from.translate(meta);
+        let from_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_start", Type::Int, from).with_global_id(id))
+            .with_quotes(false).to_frag();
+
+        let to = range.to.translate(meta);
+        let to_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_end", Type::Int, to).with_global_id(id))
+            .with_quotes(false).to_frag();
+
+        self.translate_dynamic_range_loop(range, meta, from_var, to_var)
+    }
+
+    /// Defines index iterator variable if used
+    fn translate_range_loop_index_fragments(&self) -> (FragmentKind, FragmentKind) {
+        match (self.iter_index.as_ref(), self.iter_index_global_id) {
+            (Some(index), Some(global_id)) => {
+                let idx_var = get_variable_name(index, Some(global_id));
+                (raw_fragment!(", {idx_var}=0"), raw_fragment!(", {idx_var}++"))
+            },
+            _ => (FragmentKind::Empty, FragmentKind::Empty)
+        }
+    }
+
     fn translate_dynamic_range_loop(
         &self, range: &Range,
         meta: &mut TranslateMetadata,
@@ -170,15 +205,7 @@ impl IterLoop {
 
         // Operator
         let op = raw_fragment!("{}", if range.neq { "<" } else { "<=" });
-
-        // Define index handling if needed
-        let (index_init, index_update) = match (self.iter_index.as_ref(), self.iter_index_global_id) {
-            (Some(index), Some(global_id)) => {
-                let idx_var = get_variable_name(index, Some(global_id));
-                (raw_fragment!(", {idx_var}=0"), raw_fragment!(", {idx_var}++"))
-            },
-            _ => (FragmentKind::Empty, FragmentKind::Empty)
-        };
+        let (index_init, index_update) = self.translate_range_loop_index_fragments();
 
         let body = self.block.translate(meta);
 
@@ -194,28 +221,6 @@ impl IterLoop {
             "\ndone"
         )
     }
-    
-    fn translate_range_loop(
-        &self, 
-        range: &Range, 
-        meta: &mut TranslateMetadata
-    ) -> FragmentKind {
-        // Optimization: Try to resolve range bounds at compile time
-        if let (Some(from_val), Some(to_val)) = (range.from.get_integer_value(), range.to.get_integer_value()) {
-            return self.translate_static_range_loop(range, meta, from_val, to_val);
-        }
-        let id = self.iter_global_id.expect("No global ID set for loop iterator");
-        // Dynamic range
-        let from = range.from.translate(meta);
-        let from_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_start", Type::Int, from).with_global_id(id))
-            .with_quotes(false).to_frag();
-
-        let to = range.to.translate(meta);
-        let to_var = meta.push_ephemeral_variable(VarStmtFragment::new("__range_end", Type::Int, to).with_global_id(id))
-            .with_quotes(false).to_frag();
-
-        self.translate_dynamic_range_loop(range, meta, from_var, to_var)
-    }
 
     fn translate_static_range_loop(
         &self,
@@ -229,14 +234,7 @@ impl IterLoop {
         }
         
         let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
-        // Define index iterator variable if used
-        let (index_init, index_update) = match (self.iter_index.as_ref(), self.iter_index_global_id) {
-            (Some(index), Some(global_id)) => {
-                let idx_var = get_variable_name(index, Some(global_id));
-                (raw_fragment!(", {idx_var}=0"), raw_fragment!(", {idx_var}++"))
-            },
-            _ => (FragmentKind::Empty, FragmentKind::Empty)
-        };
+        let (index_init, index_update) = self.translate_range_loop_index_fragments();
 
         let body = self.block.translate(meta);
         let (op, step) = if from_val <= to_val {(
