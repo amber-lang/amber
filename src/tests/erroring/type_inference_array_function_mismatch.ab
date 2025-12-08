@@ -1,0 +1,10 @@
+// Output
+// 1st argument 'n' of function 'foo' expects type '[Int]', but '[Text]' was given
+
+fun foo(ref n: [Int]) {
+    echo n
+}
+
+let a = []
+a = ["test"]
+foo(a)

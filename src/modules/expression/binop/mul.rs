@@ -54,7 +54,7 @@ impl TypeCheckModule for Mul {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        self.kind = Self::typecheck_allowed_types(meta, "multiplication", &self.left, &self.right, &[
+        self.kind = Self::typecheck_allowed_types(meta, "multiplication", &mut self.left, &mut self.right, &[
             Type::Num,
             Type::Int,
         ])?;

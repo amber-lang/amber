@@ -56,7 +56,7 @@ impl TypeCheckModule for Range {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.from.typecheck(meta)?;
         self.to.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "range operator", &self.from, &self.to, &[Type::Int])?;
+        Self::typecheck_allowed_types(meta, "range operator", &mut self.from, &mut self.to, &[Type::Int])?;
         Ok(())
     }
 }

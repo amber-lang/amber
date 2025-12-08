@@ -126,6 +126,20 @@ impl TypeCheckModule for FunctionInvocation {
             }
         }
 
+        // Check for type inference on reference arguments
+        for (arg_expr, fun_arg) in izip!(&mut self.args, &function_unit.args) {
+            if fun_arg.is_ref {
+                if let (Type::Array(inner), Type::Array(expected_inner)) = (arg_expr.get_type(), &fun_arg.kind) {
+                    if *inner == Type::Generic && **expected_inner != Type::Generic {
+                        if let Some(ExprType::VariableGet(var)) = &arg_expr.value {
+                            meta.update_var_type(&var.name, Type::array_of(*expected_inner.clone()));
+                            arg_expr.kind = Type::array_of(*expected_inner.clone());
+                        }
+                    }
+                }
+            }
+        }
+
         // Validate arguments and get function variant
         let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
         let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();

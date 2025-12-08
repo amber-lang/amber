@@ -1,0 +1,8 @@
+// Output
+// 1
+
+fun foo(arr: [Int]) {
+    echo arr + [1]
+}
+
+foo([])

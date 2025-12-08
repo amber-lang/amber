@@ -142,6 +142,16 @@ impl ParserMetadata {
         }
     }
 
+    /// Updates the type of a variable
+    pub fn update_var_type(&mut self, name: &str, new_type: Type) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.kind = new_type;
+                return;
+            }
+        }
+    }
+
     /* Functions */
 
     /// Generate a new global function id

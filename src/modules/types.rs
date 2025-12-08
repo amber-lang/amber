@@ -26,6 +26,7 @@ impl Type {
             (_, Type::Generic) => true,
             (Type::Int, Type::Num) => true,
             (Type::Array(current), Type::Array(other)) => match (&**current, &**other) {
+                (Type::Generic, other) if *other != Type::Generic => true,
                 (current, Type::Generic) if *current != Type::Generic => true,
                 (Type::Int, Type::Num) => true,
                 _ => false
@@ -173,11 +174,11 @@ mod tests {
     }
 
     #[test]
-    fn generic_array_is_not_a_subset_of_concrete_array() {
+    fn generic_array_is_a_subset_of_concrete_array() {
         let a = Type::Array(Box::new(Type::Text));
         let b = Type::Array(Box::new(Type::Generic));
 
-        assert!(!b.is_subset_of(&a));
+        assert!(b.is_subset_of(&a));
     }
 
     #[test]
@@ -185,6 +186,13 @@ mod tests {
         let a = Type::Array(Box::new(Type::Text));
 
         assert!(!a.is_subset_of(&a));
+    }
+
+    #[test]
+    fn generic_array_can_be_assigned_to_concrete_in_match() {
+        let generic = Type::Array(Box::new(Type::Generic));
+        let concrete = Type::Array(Box::new(Type::Text));
+        assert!(generic.is_subset_of(&concrete));
     }
 
     #[test]
