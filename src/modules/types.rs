@@ -189,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn generic_array_can_be_assigned_to_concrete_in_match() {
+    fn generic_array_is_subset_of_concrete_array_for_type_inference() {
         let generic = Type::Array(Box::new(Type::Generic));
         let concrete = Type::Array(Box::new(Type::Text));
         assert!(generic.is_subset_of(&concrete));
