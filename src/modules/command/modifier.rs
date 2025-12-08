@@ -25,7 +25,7 @@ impl CommandModifier {
     pub fn use_modifiers<F>(
         &mut self, meta: &mut ParserMetadata, context: F
     ) -> SyntaxResult where F: FnOnce(&mut Self, &mut ParserMetadata) -> SyntaxResult {
-         // The setter returns the old value
+        // The setter returns the old value
         let old_trust = meta.context.set_is_trust_ctx(self.is_trust || meta.context.is_trust_ctx);
         let result = context(self, meta);
         meta.context.set_is_trust_ctx(old_trust);
