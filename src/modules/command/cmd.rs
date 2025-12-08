@@ -1,4 +1,5 @@
 use crate::modules::types::{Type, Typed};
+
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
@@ -60,10 +61,12 @@ impl SyntaxModule<ParserMetadata> for Command {
 
 impl TypeCheckModule for Command {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        for interp in self.interps.iter_mut() {
-            interp.typecheck(meta)?;
-        }
-        self.failure_handler.typecheck(meta)
+         self.modifier.use_modifiers(meta, |_, meta| {
+            for interp in self.interps.iter_mut() {
+                interp.typecheck(meta)?;
+            }
+            self.failure_handler.typecheck(meta)
+         })
     }
 }
 
