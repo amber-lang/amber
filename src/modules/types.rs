@@ -77,7 +77,7 @@ impl Display for Type {
                 } else {
                     write!(f, "[{t}]")
                 },
-            Type::Union(types) => write!(f, "{}", types.iter().map(|t| t.to_string()).collect::<Vec<String>>().join(" | ")),
+            Type::Union(types) => write!(f, "{}", types.iter().map(|t| t.to_string()).join(" | ")),
             Type::Generic => write!(f, "Generic")
         }
     }
