@@ -10,7 +10,8 @@ use std::process::{Command, Stdio};
 pub mod cli;
 pub mod extra;
 pub mod postprocessor;
-pub mod translation;
+pub mod translating;
+pub mod compiling;
 pub mod optimizing;
 mod stdlib;
 mod validity;
@@ -48,20 +49,9 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
         TestOutcomeTarget::Success => match evaluated {
             Ok(stdout) => {
                 let stdout = stdout.trim_end_matches('\n');
-                
-                // Filter out warnings if expected result doesn't look like it expects warnings
-                let stdout_filtered = if !result.contains("Unused variable") && !result.contains("is never modified") {
-                     stdout.lines()
-                        .filter(|line| !line.starts_with("Unused variable") && !line.contains("is never modified"))
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                } else {
-                    stdout.to_string()
-                };
-
-                if stdout_filtered != SUCCEEDED {
+                if stdout != SUCCEEDED {
                     let result = result.trim_end_matches('\n');
-                    assert_eq!(stdout_filtered, result)
+                    assert_eq!(stdout, result)
                 }
             }
             Err(err) => {

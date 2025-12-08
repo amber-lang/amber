@@ -1,5 +1,5 @@
 ---
-source: src/tests/translation.rs
+source: src/tests/translating.rs
 expression: ast
 ---
 Block(
@@ -20,7 +20,7 @@ Block(
                     operator: "=",
                     value: Raw(
                         RawFragment {
-                            value: "20.5",
+                            value: "5.5",
                         },
                     ),
                 },
@@ -66,12 +66,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '-' ",
+                                                value: " '*' ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "8.2",
+                                                value: "4.2",
                                             },
                                         ),
                                         Raw(
@@ -123,7 +123,7 @@ Block(
                     operator: "=",
                     value: Raw(
                         RawFragment {
-                            value: "50.8",
+                            value: "7.1",
                         },
                     ),
                 },
@@ -169,12 +169,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '-' ",
+                                                value: " '*' ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "25.3",
+                                                value: "6.8",
                                             },
                                         ),
                                         Raw(

@@ -6,6 +6,6 @@ trust silent {
     $ non-existent command $
 }
 // Test for expression
-let _ = silent trust $ non-existent command $
+const _ = silent trust $ non-existent command $
 // Test for single statement
 silent trust $ non-existent command $

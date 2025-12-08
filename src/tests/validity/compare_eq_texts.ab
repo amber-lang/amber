@@ -1,6 +1,6 @@
 // Output
 // 1
 
-let x = "Hello World"
-let y = "Hello World"
+const x = "Hello World"
+const y = "Hello World"
 echo x == y

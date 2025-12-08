@@ -27,14 +27,14 @@ main {
     }
     cd tmpdir
 
-    let expected = [
+    const expected = [
         "file.txt",
         "file1.txt",
         "file2.txt",
         "file99.txt",
         "other.csv",
     ]
-    let actual = file_glob_all(["missing*", "file*.txt", "other*.csv"]) failed {
+    const actual = file_glob_all(["missing*", "file*.txt", "other*.csv"]) failed {
         echo "FAILED"
     }
     if compare(actual, expected) {

@@ -22,7 +22,7 @@ main {
     }
     $ rmdir {path} $?
     // It is hard to test auto delete functionality. Just creating here only.
-    const empty_dir = temp_dir_create("should-not-exist-after-test-ends-1-XXXX", true)?
+    temp_dir_create("should-not-exist-after-test-ends-1-XXXX", true)?
     const file_containng_dir = temp_dir_create("should-not-exist-after-test-ends-2-XXXX", true, true)?
     $ touch "{file_containng_dir}/test.txt" $?
 

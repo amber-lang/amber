@@ -1,5 +1,5 @@
 // Output
 // welcome to wonderful world
 
-let x = "welcome {"to"} wonderful {"world"}"
-echo x 
+const x = "welcome {"to"} wonderful {"world"}"
+echo x

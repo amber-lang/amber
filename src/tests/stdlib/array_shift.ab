@@ -5,7 +5,7 @@ import { array_shift } from "std/array"
 // First of empty array does not exist
 
 fun test_shift(label: Text, data: [Text]): Null {
-    let value = array_shift(data) failed {
+    const value = array_shift(data) failed {
         echo "First of empty array does not exist"
         return null
     }
@@ -13,8 +13,8 @@ fun test_shift(label: Text, data: [Text]): Null {
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three"]
-    let empty = [Text]
+    const numbers = ["zero", "one", "two", "three"]
+    const empty = [Text]
     test_shift("numbers", numbers)
     test_shift("empty", empty)
 }

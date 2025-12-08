@@ -12,9 +12,9 @@ main {
     trust $ echo -e 'one\ntwo three four\n\nfive\n  six  ' >{tmpdir}/numbers.txt $
 
     // Inefficient for large files.
-    let lines = ["a", "b", "c"]
-    lines = lines("{tmpdir}/numbers.txt")
-    for line in lines {
+    let lines_contents = ["a", "b", "c"]
+    lines_contents = lines("{tmpdir}/numbers.txt")
+    for line in lines_contents {
         echo "[{line}]"
     }
 }

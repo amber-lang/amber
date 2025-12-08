@@ -17,32 +17,22 @@ pub fn variable_name_extensions() -> Vec<char> {
 
 pub fn variable_name_keywords() -> Vec<&'static str> {
     vec![
-        // Literals
-        "true", "false", "null",
-        // Variable keywords
-        "let", "as", "is", "const",
-        // Control flow keywords
-        "if", "then", "else",
-        // Loop keywords
-        "for", "loop", "break", "continue", "in", "while",
-        // Module keywords
-        "pub", "import", "from",
-        // Function keywords
-        "fun", "return", "ref", "fail", "failed", "succeeded", "then",
-        // Types
-        "Text", "Number", "Bool", "Null",
-        // Command Modifiers
-        "silent", "trust", "sudo",
-        // Misc
-        "echo", "status", "nameof", "mv", "cd",
-        "exit", "len",
+        "Bool", "Null", "Number", "Text", "and", "as",
+        "break", "cd", "const", "continue", "echo",
+        "else", "exit", "exited", "fail", "failed",
+        "false", "for", "from", "fun", "if",
+        "import", "in", "is", "len", "let",
+        "lines", "loop", "main", "mv", "nameof",
+        "not", "null", "or", "pub", "ref",
+        "return", "silent", "status", "sudo", "succeeded",
+        "then", "trust", "true", "unsafe", "while",
     ]
 }
 
 
 pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
-    match meta.get_var(name) {
+    match meta.get_var_used(name) {
         Some(variable_unit) => Ok(variable_unit.clone()),
         None => {
             let message = format!("Variable '{name}' does not exist");

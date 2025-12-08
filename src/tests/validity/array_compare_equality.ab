@@ -1,0 +1,16 @@
+// Output
+// 0
+// 0
+// 1
+
+const a = [1]
+const b = [2,3]
+echo a == b 
+
+const c = [1]
+const d = [2]
+echo c == d 
+
+const e = [1, 2]
+const f = [1, 2]
+echo e == f

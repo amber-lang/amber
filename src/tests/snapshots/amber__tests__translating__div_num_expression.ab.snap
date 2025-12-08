@@ -1,5 +1,5 @@
 ---
-source: src/tests/translation.rs
+source: src/tests/translating.rs
 expression: ast
 ---
 Block(
@@ -25,17 +25,17 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "5.5",
+                                                    value: "10.5",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: " '*' ",
+                                                    value: " '/' ",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "3.2",
+                                                    value: "2.1",
                                                 },
                                             ),
                                             Raw(
@@ -104,12 +104,12 @@ Block(
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "2.1",
+                                                                        value: "20.4",
                                                                     },
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: " '*' ",
+                                                                        value: " '/' ",
                                                                     },
                                                                 ),
                                                                 Raw(
@@ -151,12 +151,12 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: " '*' ",
+                                                    value: " '/' ",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "6.3",
+                                                    value: "2.0",
                                                 },
                                             ),
                                             Raw(
@@ -235,17 +235,17 @@ Block(
                                                                                     ),
                                                                                     Raw(
                                                                                         RawFragment {
-                                                                                            value: "1.0",
+                                                                                            value: "100.0",
                                                                                         },
                                                                                     ),
                                                                                     Raw(
                                                                                         RawFragment {
-                                                                                            value: " '*' ",
+                                                                                            value: " '/' ",
                                                                                         },
                                                                                     ),
                                                                                     Raw(
                                                                                         RawFragment {
-                                                                                            value: "2.5",
+                                                                                            value: "5.0",
                                                                                         },
                                                                                     ),
                                                                                     Raw(
@@ -282,12 +282,12 @@ Block(
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: " '*' ",
+                                                                        value: " '/' ",
                                                                     },
                                                                 ),
                                                                 Raw(
                                                                     RawFragment {
-                                                                        value: "3.1",
+                                                                        value: "2.5",
                                                                     },
                                                                 ),
                                                                 Raw(
@@ -324,12 +324,12 @@ Block(
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: " '*' ",
+                                                    value: " '/' ",
                                                 },
                                             ),
                                             Raw(
                                                 RawFragment {
-                                                    value: "4.7",
+                                                    value: "2.0",
                                                 },
                                             ),
                                             Raw(

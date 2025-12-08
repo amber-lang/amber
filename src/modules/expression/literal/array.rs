@@ -76,7 +76,7 @@ impl TypeCheckModule for Array {
             expr.typecheck(meta)?;
             // Handle nested arrays
             if expr.get_type().is_array() {
-                let pos = expr.get_position(meta);
+                let pos = expr.get_position();
                 return error_pos!(meta, pos, "Arrays cannot be nested due to the Bash limitations")
             }
         }
@@ -97,7 +97,7 @@ impl TypeCheckModule for Array {
                 for expr in &self.exprs {
                     let expr_type = expr.get_type();
                     if expr_type != **expected_type {
-                        let pos = expr.get_position(meta);
+                        let pos = expr.get_position();
                         return error_pos!(meta, pos, format!("Expected array value of type '{expected_type}'"))
                     }
                 }
@@ -110,7 +110,7 @@ impl TypeCheckModule for Array {
             for expr in &self.exprs[1..] {
                 let expr_type = expr.get_type();
                 if expr_type != **element_type {
-                    let pos = expr.get_position(meta);
+                    let pos = expr.get_position();
                     return error_pos!(meta, pos, format!("Array elements must have the same type. Expected '{}', found '{}'", element_type, expr_type));
                 }
             }

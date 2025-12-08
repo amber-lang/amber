@@ -18,7 +18,7 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<FragmentKind> {
 }
 
 /// Autoload the Amber test files in translation
-#[test_resources("src/tests/translation/*.ab")]
+#[test_resources("src/tests/translating/*.ab")]
 fn test_translation(input: &str) {
     let code = fs::read_to_string(input)
         .unwrap_or_else(|_| panic!("Failed to open {input} test file"));

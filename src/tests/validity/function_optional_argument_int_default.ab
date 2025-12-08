@@ -3,5 +3,5 @@
 fun addition(a: Num, b: Num = 100): Num {
     return a + b
 }
-let result = addition(10)
+const result = addition(10)
 echo result

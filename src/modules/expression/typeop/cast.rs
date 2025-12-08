@@ -52,9 +52,7 @@ impl TypeCheckModule for Cast {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
 
-        let begin = meta.get_token_at(self.expr.pos.0);
-        let end = meta.get_current_token();
-        let pos = PositionInfo::from_between_tokens(meta, begin, end);
+        let pos = self.expr.get_position();
         if !meta.context.cc_flags.contains(&CCFlags::AllowAbsurdCast) {
             let flag_name = get_ccflag_name(CCFlags::AllowAbsurdCast);
             let l_type = self.expr.get_type();

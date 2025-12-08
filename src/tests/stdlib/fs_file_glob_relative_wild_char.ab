@@ -27,11 +27,11 @@ main {
     }
     cd tmpdir
 
-    let expected = [
+    const expected = [
         "file1.txt",
         "file2.txt",
     ]
-    let actual = file_glob("file?.txt") failed {
+    const actual = file_glob("file?.txt") failed {
         echo "FAILED"
     }
     if compare(actual, expected) {

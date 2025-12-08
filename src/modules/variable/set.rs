@@ -55,9 +55,6 @@ impl TypeCheckModule for VariableSet {
         self.var_type = variable.kind.clone();
         prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
         meta.mark_var_modified(&self.name);
-        if self.is_ref {
-            meta.mark_var_used(&self.name);
-        }
 
         if let Some(ref index_expr) = self.index {
             if !matches!(variable.kind, Type::Array(_)) {
@@ -74,13 +71,13 @@ impl TypeCheckModule for VariableSet {
         if self.index.is_some() {
             if let Type::Array(kind) = &self.var_type {
                 if !right_type.is_allowed_in(kind) {
-                    let tok = self.expr.get_position(meta);
+                    let tok = self.expr.get_position();
                     return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
             }
         }
         else if !right_type.is_allowed_in(&self.var_type) {
-            let tok = self.expr.get_position(meta);
+            let tok = self.expr.get_position();
             return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
         }
 

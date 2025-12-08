@@ -102,15 +102,15 @@ impl Range {
         let expr = if self.neq {
             fragments!(
                 "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
-                "seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
+                "seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
                 "elif [ ", from_var.clone(), " -lt ", to_var.clone(), " ]; then ",
-                "seq -- ", from_var.clone(), " ", forward_to, "; fi"
+                "seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, "; fi"
             )
         } else {
             fragments!(
                 "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
-                "seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
-                "else seq -- ", from_var.clone(), " ", forward_to, "; fi"
+                "seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
+                "else seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, "; fi"
             )
         };
 
@@ -125,14 +125,20 @@ impl Range {
     /// Generate a forward seq command for compile-time ranges
     fn generate_forward_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val - 1 } else { to_val };
-        let expr = fragments!("seq -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted));
+        let expr = fragments!(
+            "seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted),
+            " || seq -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted)
+        );
         SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
 
     /// Generate a reverse seq command for compile-time ranges
     fn generate_reverse_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val + 1 } else { to_val };
-        let expr = fragments!("seq -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted));
+        let expr = fragments!(
+            "seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted),
+            " || seq -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted)
+        );
         SubprocessFragment::new(expr).with_quotes(false).to_frag()
     }
 

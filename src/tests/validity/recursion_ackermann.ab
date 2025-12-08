@@ -11,5 +11,5 @@ fun ackermann(m: Num, n: Num): Num {
     return ackermann(m - 1, ackermann(m, n - 1))
 }
 
-let ack22 = ackermann(2, 2)
+const ack22 = ackermann(2, 2)
 echo ack22

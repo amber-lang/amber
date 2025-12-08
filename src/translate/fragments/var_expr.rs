@@ -146,6 +146,14 @@ impl VarExprFragment {
         get_variable_name(&self.name, self.global_id)
     }
 
+    pub fn get_index_typename(&self) -> String {
+        match self.index.as_deref() {
+            Some(VarIndexValue::Index(_)) => "index".to_string(),
+            Some(VarIndexValue::Range(_, _)) => "range".to_string(),
+            None => "access".to_string(),
+        }
+    }
+
     // Returns the variable name in the bash context Ex. "varname"
     pub fn render_bash_reference(self, meta: &mut TranslateMetadata) -> String {
         let dollar = meta.gen_dollar();

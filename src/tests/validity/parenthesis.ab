@@ -1,8 +1,8 @@
 // Output
 // 69
 
-let x = 21
-let y = 2
-let z = 6
-let a = 2
+const x = 21
+const y = 2
+const z = 6
+const a = 2
 echo (x + y) * z / a

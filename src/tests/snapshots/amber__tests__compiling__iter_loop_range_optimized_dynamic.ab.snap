@@ -1,0 +1,83 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+start_0=0
+end_1=5
+echo "Forward Exclusive ${start_0}..${end_1}"
+__range_start_2="${start_0}"
+__range_end_2="${end_1}"
+__dir_2=$(( ${__range_start_2} <= ${__range_end_2} ? 1 : -1 ))
+for (( i_2=${__range_start_2}; i_2 * ${__dir_2} < ${__range_end_2} * ${__dir_2}; i_2+=${__dir_2} )); do
+    echo "${i_2}"
+done
+echo "Forward Inclusive ${start_0}..=${end_1}"
+__range_start_3="${start_0}"
+__range_end_3="${end_1}"
+__dir_3=$(( ${__range_start_3} <= ${__range_end_3} ? 1 : -1 ))
+for (( i_3=${__range_start_3}; i_3 * ${__dir_3} <= ${__range_end_3} * ${__dir_3}; i_3+=${__dir_3} )); do
+    echo "${i_3}"
+done
+r_start_4=5
+r_end_5=0
+echo "Reverse Exclusive ${r_start_4}..${r_end_5}"
+__range_start_6="${r_start_4}"
+__range_end_6="${r_end_5}"
+__dir_6=$(( ${__range_start_6} <= ${__range_end_6} ? 1 : -1 ))
+for (( i_6=${__range_start_6}; i_6 * ${__dir_6} < ${__range_end_6} * ${__dir_6}; i_6+=${__dir_6} )); do
+    echo "${i_6}"
+done
+echo "Reverse Inclusive ${r_start_4}..=${r_end_5}"
+__range_start_7="${r_start_4}"
+__range_end_7="${r_end_5}"
+__dir_7=$(( ${__range_start_7} <= ${__range_end_7} ? 1 : -1 ))
+for (( i_7=${__range_start_7}; i_7 * ${__dir_7} <= ${__range_end_7} * ${__dir_7}; i_7+=${__dir_7} )); do
+    echo "${i_7}"
+done
+eq_val_8=5
+echo "Empty (Equal) ${eq_val_8}..${eq_val_8}"
+__range_start_9="${eq_val_8}"
+__range_end_9="${eq_val_8}"
+__dir_9=$(( ${__range_start_9} <= ${__range_end_9} ? 1 : -1 ))
+for (( i_9=${__range_start_9}; i_9 * ${__dir_9} < ${__range_end_9} * ${__dir_9}; i_9+=${__dir_9} )); do
+    echo "${i_9}"
+done
+echo "Single (Equal Inclusive) ${eq_val_8}..=${eq_val_8}"
+__range_start_10="${eq_val_8}"
+__range_end_10="${eq_val_8}"
+__dir_10=$(( ${__range_start_10} <= ${__range_end_10} ? 1 : -1 ))
+for (( i_10=${__range_start_10}; i_10 * ${__dir_10} <= ${__range_end_10} * ${__dir_10}; i_10+=${__dir_10} )); do
+    echo "${i_10}"
+done
+neg_start_11=-5
+neg_end_12=-2
+echo "Negative Forward ${neg_start_11}..${neg_end_12}"
+__range_start_13="${neg_start_11}"
+__range_end_13="${neg_end_12}"
+__dir_13=$(( ${__range_start_13} <= ${__range_end_13} ? 1 : -1 ))
+for (( i_13=${__range_start_13}; i_13 * ${__dir_13} < ${__range_end_13} * ${__dir_13}; i_13+=${__dir_13} )); do
+    echo "${i_13}"
+done
+echo "Negative Reverse ${neg_end_12}..${neg_start_11}"
+__range_start_14="${neg_end_12}"
+__range_end_14="${neg_start_11}"
+__dir_14=$(( ${__range_start_14} <= ${__range_end_14} ? 1 : -1 ))
+for (( i_14=${__range_start_14}; i_14 * ${__dir_14} < ${__range_end_14} * ${__dir_14}; i_14+=${__dir_14} )); do
+    echo "${i_14}"
+done
+echo "Expressions (${start_0}+1)..(${end_1}*1)"
+__range_start_15="$(( ${start_0} + 1 ))"
+__range_end_15="$(( ${end_1} * 1 ))"
+__dir_15=$(( ${__range_start_15} <= ${__range_end_15} ? 1 : -1 ))
+for (( i_15=${__range_start_15}; i_15 * ${__dir_15} < ${__range_end_15} * ${__dir_15}; i_15+=${__dir_15} )); do
+    echo "${i_15}"
+done
+echo "With Index 2..5"
+idx_start_16=2
+idx_end_17=5
+__range_start_18="${idx_start_16}"
+__range_end_18="${idx_end_17}"
+__dir_18=$(( ${__range_start_18} <= ${__range_end_18} ? 1 : -1 ))
+for (( val_18=${__range_start_18}, idx_19=0; val_18 * ${__dir_18} < ${__range_end_18} * ${__dir_18}; val_18+=${__dir_18}, idx_19++ )); do
+    echo "${val_18} ${idx_19}"
+done

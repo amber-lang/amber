@@ -1,5 +1,5 @@
 ---
-source: src/tests/translation.rs
+source: src/tests/translating.rs
 expression: ast
 ---
 Block(
@@ -18,18 +18,18 @@ Block(
                                 left: Some(
                                     Raw(
                                         RawFragment {
-                                            value: "15",
+                                            value: "10",
                                         },
                                     ),
                                 ),
                                 right: Some(
                                     Raw(
                                         RawFragment {
-                                            value: "45",
+                                            value: "3",
                                         },
                                     ),
                                 ),
-                                op: Add,
+                                op: Modulo,
                                 quoted: true,
                             },
                         ),
@@ -53,18 +53,18 @@ Block(
                                             left: Some(
                                                 Raw(
                                                     RawFragment {
-                                                        value: "39",
+                                                        value: "20",
                                                     },
                                                 ),
                                             ),
                                             right: Some(
                                                 Raw(
                                                     RawFragment {
-                                                        value: "21",
+                                                        value: "6",
                                                     },
                                                 ),
                                             ),
-                                            op: Add,
+                                            op: Modulo,
                                             quoted: true,
                                         },
                                     ),
@@ -72,11 +72,11 @@ Block(
                                 right: Some(
                                     Raw(
                                         RawFragment {
-                                            value: "80",
+                                            value: "3",
                                         },
                                     ),
                                 ),
-                                op: Add,
+                                op: Modulo,
                                 quoted: true,
                             },
                         ),
@@ -103,18 +103,18 @@ Block(
                                                         left: Some(
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "3",
+                                                                    value: "100",
                                                                 },
                                                             ),
                                                         ),
                                                         right: Some(
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "9",
+                                                                    value: "7",
                                                                 },
                                                             ),
                                                         ),
-                                                        op: Add,
+                                                        op: Modulo,
                                                         quoted: true,
                                                     },
                                                 ),
@@ -122,11 +122,11 @@ Block(
                                             right: Some(
                                                 Raw(
                                                     RawFragment {
-                                                        value: "648",
+                                                        value: "3",
                                                     },
                                                 ),
                                             ),
-                                            op: Add,
+                                            op: Modulo,
                                             quoted: true,
                                         },
                                     ),
@@ -134,11 +134,11 @@ Block(
                                 right: Some(
                                     Raw(
                                         RawFragment {
-                                            value: "1232",
+                                            value: "2",
                                         },
                                     ),
                                 ),
-                                op: Add,
+                                op: Modulo,
                                 quoted: true,
                             },
                         ),

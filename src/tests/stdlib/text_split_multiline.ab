@@ -5,6 +5,6 @@ import * from "std/text"
 // ana cherry
 
 main {
-    let array = split("apple,ban\nana,cherry", ",")
+    const array = split("apple,ban\nana,cherry", ",")
     echo array
 }

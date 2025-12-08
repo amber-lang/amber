@@ -35,7 +35,7 @@ impl TypeCheckModule for Exit {
 
             let code_type = code_expr.get_type();
             if code_type != Type::Int {
-                let position = code_expr.get_position(meta);
+                let position = code_expr.get_position();
                 return error_pos!(meta, position => {
                     message: "Builtin function `exit` can only be used with values of type Int",
                     comment: format!("Given type: {}, expected type: {}", code_type, Type::Int)

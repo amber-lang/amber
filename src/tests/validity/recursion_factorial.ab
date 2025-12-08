@@ -8,5 +8,5 @@ fun factorial(n: Num): Num {
     return n * factorial(n - 1)
 }
 
-let f5 = factorial(5)
+const f5 = factorial(5)
 echo f5

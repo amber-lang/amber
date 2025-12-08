@@ -4,7 +4,7 @@ main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     cd tmpdir
     trust file_write("test.txt", "Succeeded")
-    let f = file_read("test.txt") failed {
+    const f = file_read("test.txt") failed {
         echo "Failed" 
     }
     echo f

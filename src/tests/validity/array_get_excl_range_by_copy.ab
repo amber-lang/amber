@@ -33,13 +33,13 @@
 fun test_range(array) {
     for begin in -1..=4 {
         for end in 0..=4 {
-            let slice = array[begin..end]
+            const slice = array[begin..end]
             echo "Values at {begin}..{end}: ({len(slice)}) [{slice}]"
         }
     }
 }
 
 main {
-    let array = ["zero", "one", "two"]
+    const array = ["zero", "one", "two"]
     test_range(array)
 }
