@@ -94,7 +94,7 @@ KEYWORD_WHILE = 'while' ;
 ANY_CHAR = ? any character ? ;
 LETTER = 'A'..'Z' | 'a'..'z' ;
 DIGIT = '0'..'9' ;
-TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
+TYPE = ( 'Text' | 'Num' | 'Bool' | 'Null' ), { '|', TYPE };
 UNARY_OP = '-' | KEYWORD_NOT ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | KEYWORD_AND | KEYWORD_OR | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 VISIBILITY = KEYWORD_PUB ;

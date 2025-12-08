@@ -1,0 +1,8 @@
+// Output
+// 1st argument 'x' of function 'foo' expects type 'Int | Bool', but 'Text' was given
+
+fun foo(x: Int | Bool) {
+    echo x
+}
+
+foo("hello")

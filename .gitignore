@@ -1,4 +1,5 @@
 /target
+.agent/
 
 # Test files
 test*.ab
@@ -16,4 +17,3 @@ flamegraph.svg
 # Nixos
 .direnv
 /result
-
