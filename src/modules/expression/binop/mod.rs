@@ -5,7 +5,6 @@ use crate::utils::pluralize;
 use super::super::expression::expr::{Expr, ExprType};
 use crate::modules::typecheck::TypeCheckModule;
 
-
 pub mod add;
 pub mod sub;
 pub mod mul;
