@@ -60,12 +60,12 @@ impl SyntaxModule<ParserMetadata> for Command {
 
 impl TypeCheckModule for Command {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-         self.modifier.use_modifiers(meta, |_, meta| {
+        self.modifier.use_modifiers(meta, |_, meta| {
             for interp in self.interps.iter_mut() {
                 interp.typecheck(meta)?;
             }
             self.failure_handler.typecheck(meta)
-         })
+        })
     }
 }
 
