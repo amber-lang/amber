@@ -26,7 +26,6 @@ impl Type {
             (_, Type::Generic) => true,
             (Type::Int, Type::Num) => true,
             (Type::Array(current), Type::Array(other)) => match (&**current, &**other) {
-                (Type::Generic, other) if *other != Type::Generic => true,
                 (current, Type::Generic) if *current != Type::Generic => true,
                 (Type::Int, Type::Num) => true,
                 _ => false
@@ -36,7 +35,15 @@ impl Type {
     }
 
     pub fn is_allowed_in(&self, other: &Type) -> bool {
-        self == other || self.is_subset_of(other)
+        if self == other || self.is_subset_of(other) {
+            return true;
+        }
+
+        if let (Type::Array(const_type), Type::Array(other_type)) = (self, other) {
+            return **const_type == Type::Generic && **other_type != Type::Generic;
+        }
+
+        false
     }
 
     pub fn is_array(&self) -> bool {
@@ -174,11 +181,12 @@ mod tests {
     }
 
     #[test]
-    fn generic_array_is_a_subset_of_concrete_array() {
+    fn generic_array_is_not_a_subset_of_concrete_array() {
         let a = Type::Array(Box::new(Type::Text));
         let b = Type::Array(Box::new(Type::Generic));
 
-        assert!(b.is_subset_of(&a));
+        assert!(!b.is_subset_of(&a));
+        assert!(b.is_allowed_in(&a));
     }
 
     #[test]
@@ -186,13 +194,6 @@ mod tests {
         let a = Type::Array(Box::new(Type::Text));
 
         assert!(!a.is_subset_of(&a));
-    }
-
-    #[test]
-    fn generic_array_is_subset_of_concrete_array_for_type_inference() {
-        let generic = Type::Array(Box::new(Type::Generic));
-        let concrete = Type::Array(Box::new(Type::Text));
-        assert!(generic.is_subset_of(&concrete));
     }
 
     #[test]
