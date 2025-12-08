@@ -1,9 +1,7 @@
 use heraclitus_compiler::prelude::*;
-
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::utils::metadata::ParserMetadata;
-use crate::modules::variable::variable_name_extensions;
 
 #[derive(Debug, Clone)]
 pub struct Test {
@@ -36,7 +34,7 @@ impl SyntaxModule<ParserMetadata> for Test {
                     self.name = token.word.trim_matches('"').to_string();
                     meta.set_index(meta.get_index() + 1);
                 } else {
-                    self.name = variable(meta, variable_name_extensions())?;
+                    return error!(meta, Some(token.clone()), "Test name must be a string literal");
                 }
             }
         }

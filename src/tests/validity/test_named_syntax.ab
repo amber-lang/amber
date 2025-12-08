@@ -1,0 +1,14 @@
+// Output
+// main
+
+test "foo" {
+    echo "foo"
+}
+
+test {
+    echo "unnamed"
+}
+
+main {
+    echo "main"
+}

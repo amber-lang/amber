@@ -1,0 +1,6 @@
+// Output
+// Test with name 'foo' already exists
+
+test "foo" {}
+
+test "foo" {}
