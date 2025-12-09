@@ -233,6 +233,14 @@ jobs:
       - name: Show collected files
         run: ls -al dist
 
+      - name: Delete old Nightly (Rolling Tag)
+        if: needs.preflight.outputs.tag_name == 'nightly'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: |
+          # We delete the old nightly tag so that the newest nightly tag points to the latest release
+          gh release delete nightly --cleanup-tag -y || true
+
       - name: Upload to GitHub Release
         uses: svenstaro/upload-release-action@v2
         with:
