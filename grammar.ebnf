@@ -85,6 +85,7 @@ KEYWORD_SILENT = 'silent' ;
 KEYWORD_STATUS = 'status' ;
 KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
+KEYWORD_TEST = 'test' ;
 KEYWORD_THEN = 'then' ;
 KEYWORD_TRUST = 'trust' ;
 KEYWORD_EXITED = 'exited' ;
@@ -216,6 +217,5 @@ builtin_lines = KEYWORD_LINES, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
 
 (* Test *)
-KEYWORD_TEST = 'test' ;
 test_name = '"', { ANY_CHAR }, '"' ;
 test = KEYWORD_TEST, [ test_name ], block ;
