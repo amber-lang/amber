@@ -66,7 +66,7 @@ enum CommandKind {
     Docs(DocsCommand),
     /// Generate Bash completion script
     Completion,
-    /// Run tests
+    /// Run Amber tests
     Test(TestCommand),
 }
 
