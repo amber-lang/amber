@@ -142,7 +142,7 @@ parentheses = '(', expression, ')' ;
 
 (* Failure handler *)
 failure_propagation = '?';
-failure_block = KEYWORD_FAILED, {'(', identifier, ')'}, block ;
+failure_block = KEYWORD_FAILED, [ '(', identifier, ')' ], block ;
 failure_handler = failure_propagation | failure_block ;
 
 (* Success handler *)
@@ -150,7 +150,7 @@ success_block = KEYWORD_SUCCEEDED, block ;
 success_handler = success_block ;
 
 (* Exited handler *)
-exited_block = KEYWORD_EXITED, {'(', identifier, ')'}, block ;
+exited_block = KEYWORD_EXITED, [ '(', identifier, ')' ], block ;
 exited_handler = exited_block ;
 
 (* All handlers combined *)
@@ -217,4 +217,5 @@ builtin_nameof = KEYWORD_NAMEOF, expression ;
 
 (* Test *)
 KEYWORD_TEST = 'test' ;
-test = KEYWORD_TEST, block ;
+test_name = '"', { ANY_CHAR }, '"' ;
+test = KEYWORD_TEST, [ test_name ], block ;
