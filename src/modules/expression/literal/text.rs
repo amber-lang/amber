@@ -48,7 +48,18 @@ impl TranslateModule for Text {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Translate all interpolations
         let interps = self.interps.iter()
-            .map(|item| item.translate(meta).with_quotes(false))
+            .map(|item| {
+                let frag = item.translate(meta).with_quotes(false);
+                // ShellCheck SC2145: Use [*] for array interpolation to treat array as single string argument
+                if let FragmentKind::VarExpr(mut var) = frag {
+                    if var.kind.is_array() {
+                        var = var.with_array_to_string(true);
+                    }
+                    var.to_frag()
+                } else {
+                    frag
+                }
+            })
             .collect::<Vec<FragmentKind>>();
         InterpolableFragment::new(self.strings.clone(), interps, InterpolableRenderType::StringLiteral).to_frag()
     }

@@ -66,8 +66,8 @@ for (( i_14=${__range_start_14}; i_14 * ${__dir_14} < ${__range_end_14} * ${__di
     echo "${i_14}"
 done
 echo "Expressions (${start_0}+1)..(${end_1}*1)"
-__range_start_15="$(( ${start_0} + 1 ))"
-__range_end_15="$(( ${end_1} * 1 ))"
+__range_start_15="$(( start_0 + 1 ))"
+__range_end_15="$(( end_1 * 1 ))"
 __dir_15=$(( ${__range_start_15} <= ${__range_end_15} ? 1 : -1 ))
 for (( i_15=${__range_start_15}; i_15 * ${__dir_15} < ${__range_end_15} * ${__dir_15}; i_15+=${__dir_15} )); do
     echo "${i_15}"

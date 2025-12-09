@@ -74,6 +74,7 @@ impl TranslateModule for Range {
 }
 
 impl Range {
+    // ShellCheck SC2046: We use `paste -sd " " -` to ensure space-separated output for compliance
     /// Generate a range at compile time when both operands are numeric literals
     fn generate_compile_time_range(&self, from_val: isize, to_val: isize) -> FragmentKind {
         if self.neq && from_val == to_val {
@@ -102,19 +103,19 @@ impl Range {
         let expr = if self.neq {
             fragments!(
                 "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
-                "seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
+                "(seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, ") | paste -sd \" \" -; ",
                 "elif [ ", from_var.clone(), " -lt ", to_var.clone(), " ]; then ",
-                "seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, "; fi"
+                "(seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, ") | paste -sd \" \" -; fi"
             )
         } else {
             fragments!(
                 "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
-                "seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, "; ",
-                "else seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, "; fi"
+                "(seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, ") | paste -sd \" \" -; ",
+                "else (seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, ") | paste -sd \" \" -; fi"
             )
         };
 
-        SubprocessFragment::new(expr).with_quotes(false).to_frag()
+        SubprocessFragment::new(expr).to_frag()
     }
 
     /// Check if this is a reverse range (start > end or equal with exclusive operator)
@@ -126,20 +127,22 @@ impl Range {
     fn generate_forward_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val - 1 } else { to_val };
         let expr = fragments!(
-            "seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted),
-            " || seq -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted)
+            "(seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted),
+            " || seq -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted),
+            ") | paste -sd \" \" -"
         );
-        SubprocessFragment::new(expr).with_quotes(false).to_frag()
+        SubprocessFragment::new(expr).to_frag()
     }
 
     /// Generate a reverse seq command for compile-time ranges
     fn generate_reverse_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val + 1 } else { to_val };
         let expr = fragments!(
-            "seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted),
-            " || seq -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted)
+            "(seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted),
+            " || seq -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted),
+            ") | paste -sd \" \" -"
         );
-        SubprocessFragment::new(expr).with_quotes(false).to_frag()
+        SubprocessFragment::new(expr).to_frag()
     }
 
     /// Adjust the end value for forward ranges (runtime)
