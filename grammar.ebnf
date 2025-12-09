@@ -38,7 +38,7 @@ expression =
     function_call |
     function_call_failed |
     identifier |
-    list |
+    array |
     null |
     number |
     parentheses |
@@ -119,10 +119,10 @@ boolean = 'true' | 'false' ;
 (* `Null` literal *)
 null = 'null' ;
 
-(* `List` literal *)
-empty_list = '[', TYPE, ']' ;
-full_list = '[', [ expression, { ',', expression } ], ']' ;
-list = empty_list | full_list ;
+(* `Array` literal *)
+empty_array = '[', [ TYPE ], ']' ;
+full_array = '[', [ expression, { ',', expression } ], ']' ;
+array = empty_array | full_array ;
 
 (* Command expression *)
 (* The ordering of command modifiers doesn't matter *)
