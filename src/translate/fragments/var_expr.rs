@@ -192,7 +192,7 @@ impl VarExprFragment {
         if self.is_ref {
             self.render_deref_variable(meta, prefix, &name, &suffix)
         } else if self.is_math_var && !self.is_length && default_is_none && index_is_none {
-            format!("{name}")
+            name.to_string()
         } else {
             let quote = if self.is_quoted { meta.gen_quote() } else { "" };
             let dollar = meta.gen_dollar();
