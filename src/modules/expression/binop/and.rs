@@ -52,7 +52,9 @@ impl TypeCheckModule for And {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_equality(meta, &self.left, &self.right)?;
+        Self::typecheck_allowed_types(meta, "logical AND", &mut self.left, &mut self.right, &[
+            Type::Bool,
+        ])?;
         Ok(())
     }
 }

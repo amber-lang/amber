@@ -1,0 +1,15 @@
+// Output
+// 99
+
+fun deep3(ref arr: [Int]) {
+    arr += [99]
+}
+fun deep2(ref arr: [Int]) {
+    deep3(arr)
+}
+fun deep1(ref arr: [Int]) {
+    deep2(arr)
+}
+let d = []
+deep1(d)
+echo d

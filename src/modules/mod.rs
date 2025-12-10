@@ -10,6 +10,7 @@ pub mod function;
 pub mod types;
 pub mod imports;
 pub mod main;
+pub mod test;
 pub mod builtin;
 pub mod prelude;
 pub mod typecheck;

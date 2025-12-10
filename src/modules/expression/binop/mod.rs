@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::metadata::ParserMetadata;
 use crate::utils::pluralize;
-use super::super::expression::expr::Expr;
+use super::super::expression::expr::{Expr, ExprType};
 use crate::modules::typecheck::TypeCheckModule;
 
 pub mod add;
@@ -28,8 +28,8 @@ pub trait BinOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
     fn typecheck_allowed_types(
         meta: &mut ParserMetadata,
         operator: &str,
-        left: &Expr,
-        right: &Expr,
+        left: &mut Expr,
+        right: &mut Expr,
         allowed_types: &[Type],
     ) -> Result<Type, Failure> {
         let left_type = left.get_type();
@@ -51,12 +51,30 @@ pub trait BinOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
 
     fn typecheck_equality(
         meta: &mut ParserMetadata,
-        left: &Expr,
-        right: &Expr,
+        left: &mut Expr,
+        right: &mut Expr,
     ) -> Result<Type, Failure> {
         match (left.get_type(), right.get_type()) {
             (Type::Int, Type::Num) | (Type::Num, Type::Int) => {
                 Ok(Type::Num)
+            }
+            // Array type inference
+            (Type::Array(left_inner), Type::Array(right_inner)) if *left_inner == Type::Generic || *right_inner == Type::Generic => {
+                if *left_inner == Type::Generic && *right_inner != Type::Generic {
+                    if let Some(ExprType::VariableGet(var)) = &left.value {
+                        meta.update_var_type(&var.name, Type::Array(right_inner.clone()));
+                    }
+                    left.kind = Type::Array(right_inner.clone());
+                    Ok(Type::Array(right_inner))
+                } else if *left_inner != Type::Generic && *right_inner == Type::Generic {
+                    if let Some(ExprType::VariableGet(var)) = &right.value {
+                        meta.update_var_type(&var.name, Type::Array(left_inner.clone()));
+                    }
+                    right.kind = Type::Array(left_inner.clone());
+                    Ok(Type::Array(left_inner))
+                } else {
+                    Ok(Type::Array(Box::new(Type::Generic)))
+                }
             }
             (left_type, right_type) => {
                 if left_type != right_type {

@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.tag_name.outputs.tag_name }}
+      release_name: ${{ steps.tag_name.outputs.release_name }}
       prerelease: ${{ steps.tag_name.outputs.prerelease }}
     steps:
       - name: Decide tag
@@ -34,44 +35,42 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           if [ '${{ github.event_name }}' = 'schedule' ] || [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
-            # Check if any nightly release already exists for this SHA
+            # Get the latest release tag to determine the next version
+            LATEST_TAG=$(gh --repo $REPO release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
             SHORT_SHA="${COMMIT_SHA:0:7}"
 
-            EXISTING=$(gh --repo $REPO release list --limit 100 \
-              | grep "nightly" \
-              | grep "${SHORT_SHA}" \
-              || true)
-
-            if [ -n "$EXISTING" ]; then
+            # Skip if the nightly release already exists for this commit
+            EXISTING_TITLE=$(gh --repo $REPO release view nightly --json name --jq '.name' || true)
+            if [[ "$EXISTING_TITLE" == *"$SHORT_SHA"* ]]; then
+              echo "Nightly release already exists for ${SHORT_SHA} (Title: ${EXISTING_TITLE}). Skipping."
               echo "tag_name=skip" >> $GITHUB_OUTPUT
-              echo "Nightly release already exists for SHA ${SHORT_SHA}"
-            else
-              # Get the latest release tag to determine the next version
-              LATEST_TAG=$(gh --repo $REPO release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
-              
-              if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
-                LATEST_TAG="0.0.0"
-              fi
-              
-              IFS='.' read -r -a parts <<< "$LATEST_TAG"
-              MAJOR="${parts[0]}"
-              MINOR="${parts[1]}"
-              PATCH="${parts[2]}"
-
-              # Strip "-alpha" suffix if present
-              PATCH="${PATCH%%-*}"
-              
-              # Increment patch version
-              PATCH=$((PATCH + 1))
-              NEXT_VER="$MAJOR.$MINOR.$PATCH"
-              
-              NIGHTLY_TAG="${NEXT_VER}-nightly-$(date +%Y-%m-%d)-${SHORT_SHA}"
-              
-              echo "tag_name=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
-              echo "prerelease=true" >> $GITHUB_OUTPUT
+              exit 0
             fi
+              
+            if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+              LATEST_TAG="0.0.0"
+            fi
+              
+            IFS='.' read -r -a parts <<< "$LATEST_TAG"
+            MAJOR="${parts[0]}"
+            MINOR="${parts[1]}"
+            PATCH="${parts[2]}"
+
+            # Strip "-alpha" suffix if present
+            PATCH="${PATCH%%-*}"
+              
+            # Increment patch version
+            PATCH=$((PATCH + 1))
+            NEXT_VER="$MAJOR.$MINOR.$PATCH"
+              
+            RELEASE_NAME="${NEXT_VER}-nightly-$(date +%Y-%m-%d)-${SHORT_SHA}"
+              
+            echo "tag_name=nightly" >> $GITHUB_OUTPUT
+            echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
           else
              echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+             echo "release_name=$TAG_NAME" >> $GITHUB_OUTPUT
              echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
 
@@ -242,6 +241,14 @@ jobs:
       - name: Show collected files
         run: ls -al dist
 
+      - name: Delete old Nightly (Rolling Tag)
+        if: needs.preflight.outputs.tag_name == 'nightly'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: |
+          # We delete the old nightly tag so that the newest nightly tag points to the latest release
+          gh release delete nightly --cleanup-tag -y || true
+
       - name: Upload to GitHub Release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -249,6 +256,6 @@ jobs:
           file: dist/*
           file_glob: true
           tag: ${{ needs.preflight.outputs.tag_name }}
-          release_name: ${{ needs.preflight.outputs.tag_name }}
+          release_name: ${{ needs.preflight.outputs.release_name }}
           overwrite: true
           prerelease: ${{ needs.preflight.outputs.prerelease }}

@@ -53,8 +53,22 @@ impl FragmentRenderable for ArithmeticFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let dollar = meta.gen_dollar();
         let op = self.operator_to_string().to_string();
-        let left = self.left.unwrap_or_default().with_quotes(false).to_string(meta);
-        let right = self.right.unwrap_or_default().with_quotes(false).to_string(meta);
+        let left = self.left.unwrap_or_default().with_quotes(false);
+        let right = self.right.unwrap_or_default().with_quotes(false);
+        
+        // ShellCheck SC2004: We enable is_math_var to avoid unnecessary ${} wrapping in arithmetic expressions
+        let left = if let FragmentKind::VarExpr(var) = left {
+            var.with_math_var(true).to_string(meta)
+        } else {
+            left.to_string(meta)
+        };
+
+        let right = if let FragmentKind::VarExpr(var) = right {
+            var.with_math_var(true).to_string(meta)
+        } else {
+            right.to_string(meta)
+        };
+
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         let expr = [left, op, right].iter().filter(|x| !x.is_empty()).join(" ");
         format!("{quote}{dollar}(( {expr} )){quote}")

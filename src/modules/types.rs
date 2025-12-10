@@ -12,6 +12,7 @@ pub enum Type {
     Num,
     Int,
     Array(Box<Type>),
+    Union(Vec<Type>),
     Generic
 }
 
@@ -23,24 +24,37 @@ impl Type {
 
     pub fn is_subset_of(&self, other: &Type) -> bool {
         match (self, other) {
+            (Type::Generic, Type::Generic) => false,
             (_, Type::Generic) => true,
             (Type::Int, Type::Num) => true,
             (Type::Array(current), Type::Array(other)) => match (&**current, &**other) {
                 (current, Type::Generic) if *current != Type::Generic => true,
                 (Type::Int, Type::Num) => true,
-                _ => false
+                (a, b) => a.is_subset_of(b),
             },
+            (Type::Union(types), other) => types.iter().all(|t| t.is_allowed_in(other)),
+            (other, Type::Union(types)) => types.iter().any(|t| other.is_allowed_in(t)),
             _ => false
         }
     }
 
     pub fn is_allowed_in(&self, other: &Type) -> bool {
-        self == other || self.is_subset_of(other)
+        if self == other || self.is_subset_of(other) {
+            return true;
+        }
+
+        if let (Type::Array(const_type), Type::Array(other_type)) = (self, other) {
+            return **const_type == Type::Generic && **other_type != Type::Generic;
+        }
+
+        false
     }
 
     pub fn is_array(&self) -> bool {
         matches!(self, Type::Array(_))
     }
+
+
 
     pub fn pretty_join(types: &[Self], op: &str) -> String {
         let mut all_types = types.iter().map(|kind| kind.to_string()).collect_vec();
@@ -71,6 +85,7 @@ impl Display for Type {
                 } else {
                     write!(f, "[{t}]")
                 },
+            Type::Union(types) => write!(f, "{}", types.iter().map(|t| t.to_string()).join(" | ")),
             Type::Generic => write!(f, "Generic")
         }
     }
@@ -89,6 +104,32 @@ pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
 
 // Tries to parse the type - if it fails, it fails quietly
 pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
+    let mut left = try_parse_simple_type(meta)?;
+    // Parse union type
+    while token(meta, "|").is_ok() {
+        let right = try_parse_simple_type(meta)?;
+        left = match (left, right) {
+            (Type::Union(mut left_types), Type::Union(mut right_types)) => {
+                left_types.append(&mut right_types);
+                Type::Union(left_types)
+            },
+            (Type::Union(mut left_types), right) => {
+                left_types.push(right);
+                Type::Union(left_types)
+            },
+            (left, Type::Union(mut right_types)) => {
+                let mut left_types = vec![left];
+                left_types.append(&mut right_types);
+                Type::Union(left_types)
+            },
+            (left, right) => Type::Union(vec![left, right])
+        }
+    }
+
+    Ok(left)
+}
+
+fn try_parse_simple_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
     let res = match tok.clone() {
         Some(matched_token) => {
@@ -178,6 +219,7 @@ mod tests {
         let b = Type::Array(Box::new(Type::Generic));
 
         assert!(!b.is_subset_of(&a));
+        assert!(b.is_allowed_in(&a));
     }
 
     #[test]

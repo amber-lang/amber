@@ -5,9 +5,9 @@ expression: output
 a_0=10
 while :
 do
-    if [ "$(( ${a_0} <= 0 ))" != 0 ]; then
+    if [ "$(( a_0 <= 0 ))" != 0 ]; then
         break
     fi
     echo "${a_0}"
-    a_0="$(( ${a_0} - 1 ))"
+    a_0="$(( a_0 - 1 ))"
 done

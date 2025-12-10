@@ -38,6 +38,7 @@ use crate::modules::function::{
 };
 use crate::modules::imports::import::Import;
 use crate::modules::main::Main;
+use crate::modules::test::Test;
 use crate::modules::builtin::{
     echo::Echo,
     mv::Mv,
@@ -69,6 +70,7 @@ pub enum StmtType {
     Fail(Fail),
     Import(Import),
     Main(Main),
+    Test(Test),
     Cd(Cd),
     Echo(Echo),
     Mv(Mv),
@@ -109,7 +111,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             // Imports
             Import,
             // Functions
-            FunctionDeclaration, Main, Return, Fail,
+            FunctionDeclaration, Main, Test, Return, Fail,
             // Loops
             InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
             // Conditions
@@ -145,7 +147,7 @@ impl TypeCheckModule for Statement {
             Exit, Expr, Fail, FunctionDeclaration, IfChain, IfCondition,
             Import, InfiniteLoop, IterLoop, Main, Mv, Return, ShorthandAdd,
             ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
-            VariableInit, VariableSet, WhileLoop
+            Test, VariableInit, VariableSet, WhileLoop
         ]);
         Ok(())
     }
@@ -158,7 +160,7 @@ impl TranslateModule for Statement {
         // This is a workaround that handles $(...) which cannot be used as a statement
         translate_statement!(statement, [
             Import,
-            FunctionDeclaration, Main, Return, Fail,
+            FunctionDeclaration, Main, Test, Return, Fail,
             InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
             IfChain, IfCondition,
             CommandModifier, Echo, Mv, Cd, Exit, Command,
@@ -185,7 +187,7 @@ impl DocumentationModule for Statement {
         let statement = self.value.as_ref().unwrap();
         document_statement!(statement, [
             Import,
-            FunctionDeclaration, Main, Return, Fail,
+            FunctionDeclaration, Main, Test, Return, Fail,
             InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
             IfChain, IfCondition,
             CommandModifier, Echo, Mv, Cd, Exit, Command,

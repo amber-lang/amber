@@ -183,7 +183,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
                 if let Ok(word) = next_word {
                     return error!(meta, next_tok => {
                         message: format!("Cannot use both '{keyword}' and '{word}' blocks for the same command"),
-                        comment: "Use either '{keyword}' to handle both success and failure, 'failed' or 'succeeded' blocks, but not both"
+                        comment: format!("Use either '{keyword}' to handle both success and failure, 'failed' or 'succeeded' blocks, but not both")
                     });
                 }
             }

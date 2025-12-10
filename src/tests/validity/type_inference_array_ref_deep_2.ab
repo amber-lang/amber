@@ -1,0 +1,12 @@
+// Output
+// 10
+
+fun level2(ref arr: [Int]) {
+    arr += [10]
+}
+fun level1(ref arr: [Int]) {
+    level2(arr)
+}
+let a = []
+level1(a)
+echo a

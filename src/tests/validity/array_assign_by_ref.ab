@@ -2,11 +2,11 @@
 // 1 2 42 4 5
 // 1 2 42 4 5
 
-fun test(ref a) {
+fun test_func(ref a) {
     a[2] = 42
     echo a
 }
 
 let a = [1, 2, 3, 4, 5]
-test(a)
+test_func(a)
 echo a

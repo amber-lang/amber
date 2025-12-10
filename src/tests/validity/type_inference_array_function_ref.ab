@@ -1,0 +1,19 @@
+// Output
+// 5
+// Hello
+
+fun foo(ref arg: [Int]) {
+    arg += [5]
+}
+
+let a = []
+foo(a)
+echo a
+
+fun bar(ref arg, val) {
+    arg += [val]
+}
+
+let b = []
+bar(b, "Hello")
+echo b

@@ -11,12 +11,13 @@ use super::TernOp;
 pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Box<Expr>,
-    false_expr: Box<Expr>
+    false_expr: Box<Expr>,
+    kind: Type
 }
 
 impl Typed for Ternary {
     fn get_type(&self) -> Type {
-        self.true_expr.get_type()
+        self.kind.clone()
     }
 }
 
@@ -51,7 +52,8 @@ impl SyntaxModule<ParserMetadata> for Ternary {
         Ternary {
             cond: Box::new(Expr::new()),
             true_expr: Box::new(Expr::new()),
-            false_expr: Box::new(Expr::new())
+            false_expr: Box::new(Expr::new()),
+            kind: Type::Null
         }
     }
 
@@ -71,13 +73,34 @@ impl TypeCheckModule for Ternary {
 
         self.true_expr.typecheck(meta)?;
         self.false_expr.typecheck(meta)?;
-        if self.true_expr.get_type() != self.false_expr.get_type() {
+        
+        let true_type = self.true_expr.get_type();
+        let false_type = self.false_expr.get_type();
+        
+        if true_type == false_type {
+            self.kind = true_type;
+        } else {
+            // Handle Array type inference
+            let mut resolved_type = None;
+            if let (Type::Array(t), Type::Array(f)) = (&true_type, &false_type) {
+                if **t == Type::Generic && **f != Type::Generic {
+                    resolved_type = Some(false_type.clone());
+                } else if **t != Type::Generic && **f == Type::Generic {
+                    resolved_type = Some(true_type.clone());
+                }
+            }
+             
+            if let Some(kind) = resolved_type {
+                self.kind = kind;
+                return Ok(());
+            }
+
             let pos = get_binop_position_info(meta, &self.true_expr, &self.false_expr);
             let msg = Message::new_err_at_position(meta, pos)
                 .message("Ternary operation can only evaluate to value of one type.")
                 .comment(format!("Provided branches of type '{}' and '{}'.",
-                    self.true_expr.get_type(),
-                    self.false_expr.get_type()));
+                    true_type,
+                    false_type));
             return Err(Failure::Loud(msg));
         }
         Ok(())

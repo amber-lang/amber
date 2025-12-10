@@ -82,7 +82,7 @@ impl TypeCheckModule for Main {
 
 impl TranslateModule for Main {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if self.is_skipped {
+        if self.is_skipped || meta.test_mode {
             FragmentKind::Empty
         } else {
             let quote = meta.gen_quote();

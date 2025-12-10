@@ -1,0 +1,11 @@
+// Output
+// 1
+// 1 2 3
+
+let array = []
+array += [1]
+echo array
+
+let array2 = []
+array2 = [1, 2, 3]
+echo array2

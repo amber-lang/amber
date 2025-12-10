@@ -197,6 +197,8 @@ pub struct Context {
     /// Determines if the context is in a trust block
     #[context]
     pub is_trust_ctx: bool,
+    /// Determines if the context is in a test block
+    pub is_test_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
     /// The return type of the currently parsed function
@@ -219,6 +221,7 @@ impl Context {
             is_loop_ctx: false,
             is_main_ctx: false,
             is_trust_ctx: false,
+            is_test_ctx: false,
             pub_funs: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new(),
