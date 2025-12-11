@@ -33,7 +33,7 @@ impl SyntaxModule<ParserMetadata> for LinesInvocation {
         let mut path = Expr::new();
         syntax(meta, &mut path)?;
         token(meta, ")")?;
-        self.path = Box::new(Some(path));
+        *self.path = Some(path);
         Ok(())
     }
 }

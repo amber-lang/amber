@@ -22,11 +22,11 @@ impl Typed for Add {
 
 impl BinOp for Add {
     fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);
+        *self.right = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
