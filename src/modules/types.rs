@@ -54,6 +54,15 @@ impl Type {
         matches!(self, Type::Array(_))
     }
 
+    pub fn is_strictly_typed(&self) -> bool {
+        match self {
+            Type::Generic => false,
+            Type::Union(_) => false,
+            Type::Array(inner) => inner.is_strictly_typed(),
+            _ => true,
+        }
+    }
+
 
 
     pub fn pretty_join(types: &[Self], op: &str) -> String {

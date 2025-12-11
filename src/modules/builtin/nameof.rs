@@ -4,12 +4,14 @@ use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
+use crate::raw_fragment;
 
 #[derive(Debug, Clone)]
 pub struct Nameof {
     name: String,
     token: Option<Token>,
     global_id: Option<usize>,
+    function_info: Option<(usize, usize)>,
 }
 
 impl Typed for Nameof {
@@ -26,6 +28,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
             name: String::new(),
             token: None,
             global_id: None,
+            function_info: None,
         }
     }
 
@@ -43,22 +46,42 @@ impl TypeCheckModule for Nameof {
             Some(var_decl) => {
                 self.name.clone_from(&var_decl.name);
                 self.global_id = var_decl.global_id;
+                meta.mark_var_modified(&self.name);
             }
             None => {
-                return error!(meta, self.token.clone(), format!("Variable '{}' not found", self.name))
+                // If variable not found, try to find a function
+                match meta.get_fun_declaration(&self.name) {
+                    Some(fun_decl) => {
+                        // Check if the function is strictly typed
+                        if !fun_decl.args.iter().all(|arg| arg.kind.is_strictly_typed()) {
+                            return error!(meta, self.token.clone(), 
+                                format!("Function '{}' is not strictly typed", self.name),
+                                "All function parameters have to be of concrete type"
+                            )
+                        }
+                        // Since strictly typed functions are compiled eagerly, we can assume variant 0 exists
+                        self.function_info = Some((fun_decl.id, 0));
+                    }
+                    None => return error!(meta, self.token.clone(), format!("Variable or function '{}' not found", self.name))
+                }
             }
         };
-        meta.mark_var_modified(&self.name);
         Ok(())
     }
 }
 
 impl TranslateModule for Nameof {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        VarExprFragment::new(&self.name, Type::Text)
-            .with_global_id(self.global_id)
-            .with_render_type(VarRenderType::NameOf)
-            .to_frag()
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        if let Some((id, variant)) = self.function_info {
+            let prefix = meta.gen_variable_prefix(&self.name);
+            let name = format!("{}{}__{}_v{}", prefix, self.name, id, variant);
+            raw_fragment!("{}", name)
+        } else {
+            VarExprFragment::new(&self.name, Type::Text)
+                .with_global_id(self.global_id)
+                .with_render_type(VarRenderType::NameOf)
+                .to_frag()
+        }
     }
 }
 

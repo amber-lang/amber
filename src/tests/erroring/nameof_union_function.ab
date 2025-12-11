@@ -1,0 +1,8 @@
+// Output
+// Function 'foo' is not strictly typed
+
+fun foo(a: Text | Num) {
+    echo a
+}
+
+echo nameof foo

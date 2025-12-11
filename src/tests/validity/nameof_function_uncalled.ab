@@ -1,0 +1,8 @@
+// Output
+// hello
+
+fun foo() {
+    echo "hello"
+}
+
+trust $ {nameof foo} $
