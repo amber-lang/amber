@@ -1,4 +1,5 @@
 use crate::modules::prelude::*;
+use crate::modules::function::invocation_utils::run_function_with_args;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::module::TranslateModule;
@@ -49,8 +50,9 @@ impl TypeCheckModule for Nameof {
                 meta.mark_var_modified(&self.name);
             }
             None => {
-                // If variable not found, try to find a function
-                match meta.get_fun_declaration(&self.name) {
+                let fun_decl_opt = meta.get_fun_declaration(&self.name).cloned();
+
+                match fun_decl_opt {
                     Some(fun_decl) => {
                         // Check if the function is strictly typed
                         if !fun_decl.args.iter().all(|arg| arg.kind.is_strictly_typed()) {
@@ -59,8 +61,24 @@ impl TypeCheckModule for Nameof {
                                 "All function parameters have to be of concrete type"
                             )
                         }
-                        // Since strictly typed functions are compiled eagerly, we can assume variant 0 exists
-                        self.function_info = Some((fun_decl.id, 0));
+                        let args_types: Vec<Type> = fun_decl.args.iter().map(|arg| arg.kind.clone()).collect();
+                        let fun_instance = meta.fun_cache.get_instances(fun_decl.id).unwrap().iter().find(|fun| fun.args == args_types);
+                        
+                        // Check if the function variant is already compiled
+                        let variant_id = match fun_instance {
+                            Some(fun_instance) => fun_instance.variant_id,
+                            None => {
+                                // Compile the function on demand to get the variant ID
+                                run_function_with_args(
+                                    meta, 
+                                    fun_decl.clone(), 
+                                    &args_types, 
+                                    self.token.clone()
+                                )?.1
+                            }
+                        };
+
+                        self.function_info = Some((fun_decl.id, variant_id));
                     }
                     None => return error!(meta, self.token.clone(), format!("Variable or function '{}' not found", self.name))
                 }

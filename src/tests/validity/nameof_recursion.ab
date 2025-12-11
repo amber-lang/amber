@@ -1,0 +1,28 @@
+// Output
+// True
+// True
+// Compiled
+
+fun is_even(n: Int): Bool {
+    if n == 0 {
+        echo "True"
+        return true
+    }
+    return is_odd(n - 1)
+}
+
+fun is_odd(n: Int): Bool {
+    if n == 0 {
+        echo "False"
+        return false
+    }
+    return is_even(n - 1)
+}
+
+$ {nameof is_even} 2 $ failed {
+    echo "Failed 2"
+}
+$ {nameof is_odd} 3 $ failed {
+    echo "Failed 3"
+}
+echo "Compiled"

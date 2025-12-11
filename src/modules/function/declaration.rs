@@ -1,5 +1,4 @@
 use crate::raw_fragment;
-use crate::modules::function::invocation_utils::run_function_with_args;
 use crate::translate::fragments::get_variable_name;
 use std::collections::HashSet;
 use std::ffi::OsStr;
@@ -346,18 +345,6 @@ impl TypeCheckModule for FunctionDeclaration {
                 ctx,
                 block,
             )?;
-
-            // Compile function eagerly if it's strictly typed (required for nameof operator)
-            if self.args.iter().all(|arg| arg.kind.is_strictly_typed()) {
-                let fun_decl = meta.get_fun_declaration(&self.name).unwrap().clone();
-                let args_types: Vec<Type> = fun_decl.args.iter().map(|arg| arg.kind.clone()).collect();
-                let _ = run_function_with_args(
-                    meta, 
-                    fun_decl.clone(), 
-                    &args_types, 
-                    self.name_token.clone()
-                );
-            }
 
             Ok(())
         })
