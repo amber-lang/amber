@@ -91,7 +91,11 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.failure_handler.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
 
             // Try to parse the failed block if present (optional in parse phase)
-            syntax(meta, &mut self.failure_handler).ok();
+            if let Err(err) = syntax(meta, &mut self.failure_handler) {
+                if let Failure::Loud(msg) = err {
+                    return Err(Failure::Loud(msg));
+                }
+            }
 
             Ok(())
         })
