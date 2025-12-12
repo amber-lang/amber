@@ -41,7 +41,7 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
     let full_headers = "";  
     if {
         is_command("curl") {
-            let post_data = len(data) > 0 then "-d {data}" else ""
+            const post_data = len(data) > 0 then "-d {data}" else ""
             if len(headers[0]) > 0 {
                 for header in headers {
                     full_headers = full_headers + " -H \"{header}\""
@@ -53,7 +53,7 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
             return output
         }
         is_command("wget") {
-            let post_data = len(data) > 0 then "--body-data {data}" else ""
+            const post_data = len(data) > 0 then "--body-data {data}" else ""
             if len(headers[0]) > 0: for header in headers {
                 full_headers = full_headers + " --header='{header}'"
             }
@@ -74,7 +74,7 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                     port = parse_int(parts[0])?;
                     path = parts[1];
                 } else {
-                    let parts = split(url, "/")
+                    const parts = split(url, "/")
                     url = parts[0];
                     path = len(parts[1]) > 0 then parts[1] else ""
                 }
