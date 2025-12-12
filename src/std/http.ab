@@ -35,7 +35,10 @@ pub fun file_download(url: Text, path: Text): Null? {
 /// ```ab
 /// let response = trust fetch("https://example.com")
 ///
-/// let post_request = trust fetch("https://example.com", "POST", "hello world!", [ "content-type: text/plain" ]) // POST request
+/// // POST request example
+/// let post_request = trust fetch("https://example.com", "POST", "hello world!", [
+///     "content-type: text/plain"
+/// ])
 /// ```
 pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] = [""]): Text? {
     let full_headers = "";  
