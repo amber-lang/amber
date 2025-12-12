@@ -1,0 +1,8 @@
+import * from "std/http"
+
+main {
+    trust fetch("https://example.com")
+    if status == 0 {
+        echo "Succeeded"
+    }
+}
