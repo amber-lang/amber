@@ -12,7 +12,7 @@ pub struct Nameof {
     name: String,
     token: Option<Token>,
     global_id: Option<usize>,
-    function_info: Option<(usize, usize)>,
+    function_variant: Option<(usize, usize)>,
 }
 
 impl Typed for Nameof {
@@ -29,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
             name: String::new(),
             token: None,
             global_id: None,
-            function_info: None,
+            function_variant: None,
         }
     }
 
@@ -78,7 +78,7 @@ impl TypeCheckModule for Nameof {
                             }
                         };
 
-                        self.function_info = Some((fun_decl.id, variant_id));
+                        self.function_variant = Some((fun_decl.id, variant_id));
                     }
                     None => return error!(meta, self.token.clone(), format!("Variable or function '{}' not found", self.name))
                 }
@@ -90,10 +90,10 @@ impl TypeCheckModule for Nameof {
 
 impl TranslateModule for Nameof {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if let Some((id, variant)) = self.function_info {
+        if let Some((id, variant)) = self.function_variant {
             let prefix = meta.gen_variable_prefix(&self.name);
-            let name = format!("{}{}__{}_v{}", prefix, self.name, id, variant);
-            raw_fragment!("{}", name)
+            let name = format!("{prefix}{}__{id}_v{variant}", self.name);
+            raw_fragment!("{name}")
         } else {
             VarExprFragment::new(&self.name, Type::Text)
                 .with_global_id(self.global_id)
