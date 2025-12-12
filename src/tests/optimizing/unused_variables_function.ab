@@ -1,5 +1,5 @@
 fun foo() {
-  trust $ touch file.txt $
+  touch file.txt
 }
 
 let a = foo()

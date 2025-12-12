@@ -5,7 +5,7 @@ main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true) failed {
         echo "It wasn't possible to create the folder"
     }
-    $ touch {tmpdir}/amber-symbolic $ failed {
+    touch {tmpdir}/amber-symbolic failed {
         echo "It wasn't possible to create {tmpdir}/amber-symbolic"
     }
     const owner = trust $ whoami $

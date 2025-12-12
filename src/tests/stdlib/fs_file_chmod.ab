@@ -5,7 +5,7 @@ import { file_chmod, temp_dir_create } from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ touch {tmpdir}/amber-symbolic $
+    touch {tmpdir}/amber-symbolic
     trust file_chmod("{tmpdir}/amber-symbolic", "+x")
     if status == 0 {
         echo "created"

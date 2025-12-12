@@ -1,2 +1,2 @@
-let a = trust $ touch file.txt $
+let a = touch file.txt
 echo "The `file.txt` must be created even if `a` is not used"

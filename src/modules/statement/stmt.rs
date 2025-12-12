@@ -44,6 +44,7 @@ use crate::modules::builtin::{
     mv::Mv,
     cd::Cd,
     exit::Exit,
+    touch::Touch
 };
 use super::comment_doc::CommentDoc;
 use super::comment::Comment;
@@ -74,6 +75,7 @@ pub enum StmtType {
     Cd(Cd),
     Echo(Echo),
     Mv(Mv),
+    Touch(Touch),
     Exit(Exit),
     Command(Command),
     CommandModifier(CommandModifier),
