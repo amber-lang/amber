@@ -72,7 +72,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
 
         // Check for ? operator first
         if token(meta, "?").is_ok() {
-            if !meta.context.is_fun_ctx && !meta.context.is_main_ctx && !meta.context.is_trust_ctx {
+            if !meta.context.is_fun_ctx && !meta.context.is_main_ctx {
                 return error!(meta, tok, "The '?' operator can only be used in the main block or inside a function body")
             }
             self.is_question_mark = true;
@@ -154,17 +154,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
                         self.is_parsed = true;
                         return Ok(());
                     } else {
-                        match (self.function_name.clone(), self.error_position.clone()) {
-                            (Some(fun_name), Some(pos)) => {
-                                return error_pos!(meta, pos, format!("Failed function call '{fun_name}' must be followed by an 'exited', 'succeeded' or 'failed' block, statement or operator '?'"))
-                            }
-                            (None, Some(pos)) => {
-                                return error_pos!(meta, pos, format!("Failed command must be followed by an 'exited', 'succeeded' or 'failed' block, statement or operator '?'"))
-                            }
-                            _ => {
-                                return error!(meta, tok, format!("Failure handler expression must be followed by an 'exited', 'succeeded' or 'failed' block, statement or operator '?'"))
-                            }
-                        }
+                        return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
                     }
                 }
             }
