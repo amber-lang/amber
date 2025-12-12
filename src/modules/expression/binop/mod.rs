@@ -4,6 +4,7 @@ use crate::utils::metadata::ParserMetadata;
 use crate::utils::pluralize;
 use super::super::expression::expr::{Expr, ExprType};
 use crate::modules::typecheck::TypeCheckModule;
+use crate::utils::pretty_join;
 
 pub mod add;
 pub mod sub;
@@ -37,7 +38,7 @@ pub trait BinOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
         let left_match = allowed_types.iter().any(|types| left_type.is_allowed_in(types));
         let right_match = allowed_types.iter().any(|types| right_type.is_allowed_in(types));
         if !left_match || !right_match {
-            let pretty_types = Type::pretty_join(allowed_types, "and");
+            let pretty_types = pretty_join(allowed_types, "and");
             let comment = pluralize(allowed_types.len(), "Allowed type is", "Allowed types are");
             let pos = get_binop_position_info(meta, left, right);
             let message = Message::new_err_at_position(meta, pos)

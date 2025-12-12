@@ -57,7 +57,7 @@ impl TypeCheckModule for Nameof {
                         // Check if the function is strictly typed
                         if !fun_decl.args.iter().all(|arg| arg.kind.is_strictly_typed()) {
                             return error!(meta, self.token.clone(), 
-                                format!("Function '{}' is not strictly typed", self.name),
+                                format!("Function '{}' must be strictly typed to be used with 'nameof'.", self.name),
                                 "All function parameters have to be of concrete type"
                             )
                         }

@@ -1,5 +1,5 @@
 // Output
-// Function 'foo' is not strictly typed
+// Function 'foo' must be strictly typed to be used with 'nameof'.
 
 fun foo(a: []) {
     echo a

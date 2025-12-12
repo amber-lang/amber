@@ -62,23 +62,6 @@ impl Type {
             _ => true,
         }
     }
-
-
-
-    pub fn pretty_join(types: &[Self], op: &str) -> String {
-        let mut all_types = types.iter().map(|kind| kind.to_string()).collect_vec();
-        let last_item = all_types.pop();
-        let comma_separated = all_types.iter().join(", ");
-        if let Some(last) = last_item {
-            if types.len() == 1 {
-                last
-            } else {
-                [comma_separated, last].join(&format!(" {op} "))
-            }
-        } else {
-            comma_separated
-        }
-    }
 }
 
 impl Display for Type {
