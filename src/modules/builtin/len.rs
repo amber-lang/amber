@@ -20,7 +20,7 @@ impl Typed for Len {
 
 impl UnOp for Len {
     fn set_expr(&mut self, expr: Expr) {
-        self.value = Box::new(expr);
+        *self.value = expr;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
