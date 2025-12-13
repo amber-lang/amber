@@ -29,7 +29,7 @@ impl FailureType {
 pub struct FailureHandler {
     pub is_parsed: bool,
     pub failure_type: FailureType,
-    is_question_mark: bool,
+    pub is_question_mark: bool,
     error_position: Option<PositionInfo>,
     function_name: Option<String>,
     is_main: bool,
