@@ -6,7 +6,7 @@ import { array_extract_at } from "std/array"
 // Value at 2: "two" (3) [zero one three]
 // Value at 3: "three" (3) [zero one two]
 
-fun test_extract(data: [Text], index: Num): Null? {
+fun test_extract(data: [Text], index: Int): Null? {
     const value = array_extract_at(data, index)?
     echo "Value at {index}: \"{value}\" ({len(data)}) [{data}]"
 }

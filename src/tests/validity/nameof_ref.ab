@@ -1,0 +1,18 @@
+// Output
+// 2
+// 1
+
+fun swap(ref a: Int, ref b: Int) {
+    const tmp = a
+    a = b
+    b = tmp
+}
+
+trust $ 
+a=1
+b=2
+{nameof swap} a b
+echo "\$\{a}"
+echo "\$\{b}"
+$
+

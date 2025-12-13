@@ -345,6 +345,7 @@ impl TypeCheckModule for FunctionDeclaration {
                 ctx,
                 block,
             )?;
+
             Ok(())
         })
     }
