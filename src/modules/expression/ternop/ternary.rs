@@ -23,15 +23,15 @@ impl Typed for Ternary {
 
 impl TernOp for Ternary {
     fn set_left(&mut self, left: Expr) {
-        self.cond = Box::new(left);
+        *self.cond = left;
     }
 
     fn set_middle(&mut self, middle: Expr) {
-        self.true_expr = Box::new(middle);
+        *self.true_expr = middle;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.false_expr = Box::new(right);
+        *self.false_expr = right;
     }
 
     fn parse_operator_left(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {

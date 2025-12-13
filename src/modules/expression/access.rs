@@ -45,7 +45,7 @@ impl Access {
     }
 
     pub fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     pub fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -65,7 +65,7 @@ impl SyntaxModule<ParserMetadata> for Access {
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
         token(meta, "]")?;
-        self.index = Box::new(Some(index));
+        *self.index = Some(index);
         Ok(())
     }
 }

@@ -12,7 +12,7 @@ import { array_remove_at } from "std/array"
 // Array after 3: (3) [zero one two]
 // Array after 4: (4) [zero one two three]
 
-fun test_remove(data: [Text], index: Num): Null {
+fun test_remove(data: [Text], index: Int): Null {
     array_remove_at(data, index)
     echo "Array after {index}: ({len(data)}) [{data}]"
 }

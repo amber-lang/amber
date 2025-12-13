@@ -24,7 +24,7 @@ fn ordinal_number(index: usize) -> String {
     result
 }
 
-fn run_function_with_args(
+pub fn run_function_with_args(
     meta: &mut ParserMetadata,
     mut fun: FunctionDecl,
     args: &[Type],

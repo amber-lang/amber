@@ -20,7 +20,7 @@ impl Typed for Is {
 
 impl TypeOp for Is {
     fn set_left(&mut self, left: Expr) {
-        self.expr = Box::new(left);
+        *self.expr = left;
     }
 
     fn set_right(&mut self, right: Type) {

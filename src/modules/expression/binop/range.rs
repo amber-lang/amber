@@ -22,11 +22,11 @@ impl Typed for Range {
 
 impl BinOp for Range {
     fn set_left(&mut self, left: Expr) {
-        self.from = Box::new(left);
+        *self.from = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.to = Box::new(right);
+        *self.to = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {

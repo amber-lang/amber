@@ -1,0 +1,8 @@
+// Output
+// Function 'foo' must be strictly typed to be used with 'nameof'.
+
+fun foo(a: Text | Num) {
+    echo a
+}
+
+echo nameof foo
