@@ -65,6 +65,14 @@ impl TranslateModule for Text {
     }
 }
 
+impl Text {
+    /// Check if the first character is not a dash (safe for echo command)
+    /// Even with interpolations, if the first literal part doesn't start with dash, it's safe
+    pub fn is_echo_safe_literal(&self) -> bool {
+        self.strings.first().map_or(false, |s| !s.starts_with('-'))
+    }
+}
+
 impl DocumentationModule for Text {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
