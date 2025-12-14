@@ -1,4 +1,4 @@
-use std::mem::swap;
+
 
 use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
@@ -42,29 +42,31 @@ impl SyntaxModule<ParserMetadata> for Mv {
 
 impl TypeCheckModule for Mv {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.source.typecheck(meta)?;
-        self.destination.typecheck(meta)?;
-        self.failure_handler.typecheck(meta)?;
+        self.modifier.use_modifiers(meta, |_, meta| {
+            self.source.typecheck(meta)?;
+            self.destination.typecheck(meta)?;
+            self.failure_handler.typecheck(meta)?;
 
-        let source_type = self.source.get_type();
-        if source_type != Type::Text {
-            let position = self.source.get_position();
-            return error_pos!(meta, position => {
-                message: "Builtin function `mv` can only be used with values of type Text",
-                comment: format!("Given type: {}, expected type: {}", source_type, Type::Text)
-            });
-        }
+            let source_type = self.source.get_type();
+            if source_type != Type::Text {
+                let position = self.source.get_position();
+                return error_pos!(meta, position => {
+                    message: "Builtin function `mv` can only be used with values of type Text",
+                    comment: format!("Given type: {}, expected type: {}", source_type, Type::Text)
+                });
+            }
 
-        let dest_type = self.destination.get_type();
-        if dest_type != Type::Text {
-            let position = self.destination.get_position();
-            return error_pos!(meta, position => {
-                message: "Builtin function `mv` can only be used with values of type Text",
-                comment: format!("Given type: {}, expected type: {}", dest_type, Type::Text)
-            });
-        }
+            let dest_type = self.destination.get_type();
+            if dest_type != Type::Text {
+                let position = self.destination.get_position();
+                return error_pos!(meta, position => {
+                    message: "Builtin function `mv` can only be used with values of type Text",
+                    comment: format!("Given type: {}, expected type: {}", dest_type, Type::Text)
+                });
+            }
 
-        Ok(())
+            Ok(())
+        })
     }
 }
 
@@ -73,10 +75,9 @@ impl TranslateModule for Mv {
         let source = self.source.translate(meta);
         let destination = self.destination.translate(meta);
         let handler = self.failure_handler.translate(meta);
-        let mut is_silent = self.modifier.is_silent || meta.silenced;
-        swap(&mut is_silent, &mut meta.silenced);
-        let silent = meta.gen_silent().to_frag();
-        swap(&mut is_silent, &mut meta.silenced);
+        let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
+            meta.gen_silent().to_frag()
+        });
         BlockFragment::new(vec![
             fragments!("mv ", source, " ", destination, silent),
             handler,

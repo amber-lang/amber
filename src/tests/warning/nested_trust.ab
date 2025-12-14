@@ -1,0 +1,14 @@
+// Output
+// Done
+
+fun foo(arg) {
+    if arg == 0: fail 1
+    return arg
+}
+
+fun bar() {
+    return 42
+}
+
+trust foo(bar())
+echo "Done"

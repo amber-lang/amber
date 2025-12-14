@@ -1,0 +1,7 @@
+// Output
+// Expected both operands to be of the same type, but got '[Int]' and '[Text]'.
+
+let a = []
+a = a + [1]
+a = a + ["test"]
+echo a

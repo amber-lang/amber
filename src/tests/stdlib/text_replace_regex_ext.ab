@@ -8,6 +8,7 @@ import * from "std/text"
 // aeon aeons eon eons
 // #path#to#file.txt
 // Succeeded
+// Put number (255) in brackets
 
 main {
     // One or more matching
@@ -24,4 +25,6 @@ main {
     echo replace_regex("/path/to/file.txt", "/", "#", true)
     // A pipe (|) should be treated as OR in POSIX Standards ERE.
     echo replace_regex(".tar.gz", "\.(tar\.gz|tgz)$", "Succeeded", true)
+    // Capture groups
+    echo replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true)
 }

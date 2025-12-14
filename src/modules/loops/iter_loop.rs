@@ -12,18 +12,19 @@ use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::modules::block::Block;
 use crate::{fragments, raw_fragment};
 use crate::modules::prelude::*;
+use crate::modules::loops::utils::iter_loop_range::IterLoopRange;
 
 #[derive(Debug, Clone)]
 pub struct IterLoop {
-    block: Block,
-    iter_expr: Expr,
-    iter_index: Option<String>,
-    iter_index_global_id: Option<usize>,
-    iter_name: String,
-    iter_name_tok: Option<Token>,
-    iter_global_id: Option<usize>,
-    iter_type: Type,
-    iter_index_tok: Option<Token>,
+    pub block: Block,
+    pub iter_expr: Expr,
+    pub iter_index: Option<String>,
+    pub iter_index_global_id: Option<usize>,
+    pub iter_name: String,
+    pub iter_name_tok: Option<Token>,
+    pub iter_global_id: Option<usize>,
+    pub iter_type: Type,
+    pub iter_index_tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for IterLoop {
@@ -65,6 +66,14 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let iter_path = self.translate_path(meta);
+        
+        // Optimize range loops
+        if iter_path.is_none() {
+            if let Some(ExprType::Range(range)) = &self.iter_expr.value {
+                return self.translate_range_loop(range, meta);
+            }
+        }
+
         let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
 
         let for_loop_prefix = match iter_path.is_some() {

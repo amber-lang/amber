@@ -1,5 +1,6 @@
 import * from "std/env"
-
+import * from "std/text"
+import { array_contains } from "std/array"
 /// Downloads a file from a given URL and saves it to a specified path using available command-line tools.
 ///
 /// It checks for the availability of common command-line tools (`curl`, `wget`, and `aria2c`, in order) and uses the first available tool to perform the download.
@@ -22,6 +23,95 @@ pub fun file_download(url: Text, path: Text): Null? {
         }
         else {
             fail 1
+        }
+    }
+}
+
+/// Makes a HTTP request using available command-line tools or bash's network sockets as failover.
+///
+/// For POST requests with a custom data type, you should include `content-type` header in `headers[]`.
+/// 
+/// ### Usage
+/// ```ab
+/// let response = trust fetch("https://example.com")
+///
+/// // POST request example
+/// let post_request = trust fetch("https://example.com", "POST", "hello world!", [
+///     "content-type: text/plain"
+/// ])
+/// ```
+pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] = [""]): Text? {
+    let full_headers = "";  
+    if {
+        is_command("curl") {
+            const post_data = len(data) > 0 then "-d {data}" else ""
+
+            if len(headers[0]) > 0: for header in headers {
+                full_headers = full_headers + " -H \"{header}\""
+            }
+
+            const output = trust $ curl -L "{url}" --silent -S -X {method} {full_headers} {post_data} 2>&1 $ 
+
+            if status > 0: echo_error("curl request failed with error: {output}", status)
+            return output
+        }
+        is_command("wget") {
+            const post_data = len(data) > 0 then "--body-data {data}" else ""
+            if len(headers[0]) > 0: for header in headers {
+                full_headers = full_headers + " --header='{header}'"
+            }
+            return $ wget "{url}" -qO- --method="{method}" {full_headers} {post_data} $ failed {
+                echo_error("wget request failed with exit code {status}", status)
+            }
+        }
+        else {
+            if match_regex(url, "http://") {
+                let port = 80;
+                let path = "";
+                url = replace(url, "http://", "")
+                let parts = split_lines(replace_one(url,"/","\n")) // split host and path
+                url = parts[0];
+
+                if match_regex(url,":([0-9][0-9]+)", true) { // https://github.com/amber-lang/amber/pull/906#discussion_r2616210649
+                    path = parts[1];
+                    parts = split_lines(replace_one(url,":","\n")); // split IP/domain and port
+                    url = parts[0];
+                    port = parse_int(parts[1])?;
+                } else {
+                    path = len(parts[1]) > 0 then parts[1] else ""
+                }
+
+                if len(headers[0]) > 1: for header in headers {
+                    full_headers = full_headers + "{header}\r\n"
+                }
+
+                if len(data) > 0 {
+                    full_headers = full_headers + "content-length: {len(data)}\r\n" 
+                    if len(headers[0]) == 0: full_headers = full_headers + "content-type: application/x-www-form-urlencoded\r\n" 
+                    full_headers = full_headers + "\r\n{data}\r\n"
+                }
+                
+              $ exec 3<>/dev/tcp/{url}/{port} $ succeeded {
+                let http_code = 0;
+                url = port != 80 then "{url}:{port}" else url
+                const vers = bash_version()
+                trust $ printf "%s\r\n" "{method} /{path} HTTP/1.1\r\nhost: {url}\r\nconnection: close\r\nuser-agent: Amber/bash-{vers[0]}.{vers[1]}.{vers[2]}\r\naccept: */*\r\n{full_headers}" >&3 $
+                trust $
+                  read _ {nameof http_code} _ <&3
+                  while IFS= read -r line; do 
+                    [[ "\$line" == \$'\r' || -z "\$line" ]] && break 
+                  done <&3 
+                $
+                if http_code > 226 { // all official HTTP 2** codes go up to 226
+                    return "{http_code}" // as for now, the best way is to return HTTP code since exit codes can't be >255
+                } else {
+                    return trust $ cat <&3 && exec 3>&- $
+                }
+              }
+              echo_error("Request failed with exit code {status}", status)
+            } else {
+              echo_error("No connection method is available, aborting", 1)
+            }
         }
     }
 }

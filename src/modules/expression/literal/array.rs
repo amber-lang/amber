@@ -29,7 +29,8 @@ impl SyntaxModule<ParserMetadata> for Array {
         token(meta, "[")?;
         let tok = meta.get_current_token();
         if token(meta, "]").is_ok() {
-            return error!(meta, tok, "Expected array type or value before ']'", "Eg. insert 'Num' for empty array or '1, 2, 3' for array with values")
+            self.kind = Type::Array(Box::new(Type::Generic));
+            return Ok(())
         }
         // Try to parse array type
         match try_parse_type(meta) {
@@ -46,6 +47,10 @@ impl SyntaxModule<ParserMetadata> for Array {
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
+                    // Skip comments and newlines
+                    if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                        continue;
+                    }
                     if token(meta, "]").is_ok() {
                         break;
                     }

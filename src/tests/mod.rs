@@ -10,12 +10,14 @@ use std::process::{Command, Stdio};
 pub mod cli;
 pub mod extra;
 pub mod postprocessor;
-pub mod translation;
+pub mod translating;
+pub mod compiling;
 pub mod optimizing;
 mod stdlib;
 mod validity;
 mod erroring;
 mod warning;
+mod test_mode;
 
 #[macro_export]
 macro_rules! unwrap_fragment {

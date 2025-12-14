@@ -70,15 +70,33 @@ impl TypeCheckModule for VariableSet {
 
         if self.index.is_some() {
             if let Type::Array(kind) = &self.var_type {
+                // Handle type inference
+                if **kind == Type::Generic {
+                    let new_type = Type::array_of(right_type.clone());
+                    meta.update_var_type(&self.name, new_type.clone());
+                    self.var_type = new_type;
+                    return Ok(());
+                }
+
                 if !right_type.is_allowed_in(kind) {
                     let tok = self.expr.get_position();
                     return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
                 }
             }
-        }
-        else if !right_type.is_allowed_in(&self.var_type) {
-            let tok = self.expr.get_position();
-            return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
+        } else {
+            // Check for type inference
+            if let (Type::Array(inner_var), Type::Array(inner_right)) = (&self.var_type, &right_type) {
+                if **inner_var == Type::Generic && **inner_right != Type::Generic {
+                    meta.update_var_type(&self.name, right_type.clone());
+                    self.var_type = right_type;
+                    return Ok(());
+                }
+            }
+
+            if !right_type.is_allowed_in(&self.var_type) {
+                let tok = self.expr.get_position();
+                return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
+            }
         }
 
         Ok(())

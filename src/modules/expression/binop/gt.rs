@@ -20,11 +20,11 @@ impl Typed for Gt {
 
 impl BinOp for Gt {
     fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);
+        *self.right = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -52,7 +52,7 @@ impl TypeCheckModule for Gt {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "comparison", &self.left, &self.right, &[
+        Self::typecheck_allowed_types(meta, "comparison", &mut self.left, &mut self.right, &[
             Type::Num,
             Type::Int,
             Type::Text,

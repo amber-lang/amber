@@ -38,6 +38,8 @@ pub struct VarExprFragment {
     pub is_quoted: bool,
     // Bash's `${array[*]}` expansion
     pub is_array_to_string: bool,
+    // Variable is inside an arithmetic expression
+    pub is_math_var: bool,
     pub render_type: VarRenderType,
     // Amber's array subscript like `arr[0]` or `arr[1..5]`
     pub index: Option<Box<VarIndexValue>>,
@@ -54,6 +56,7 @@ impl Default for VarExprFragment {
             is_ref: false,
             is_length: false,
             is_array_to_string: false,
+            is_math_var: false,
             is_quoted: true,
             render_type: VarRenderType::BashValue,
             index: None,
@@ -83,6 +86,11 @@ impl VarExprFragment {
 
     pub fn with_array_to_string(mut self, is_array_to_string: bool) -> Self {
         self.is_array_to_string = is_array_to_string;
+        self
+    }
+
+    pub fn with_math_var(mut self, is_math_var: bool) -> Self {
+        self.is_math_var = is_math_var;
         self
     }
 
@@ -176,11 +184,15 @@ impl VarExprFragment {
         let name = self.get_name();
         let index = self.index.take();
         let default_value = self.default_value.take();
+        let index_is_none = index.is_none();
+        let default_is_none = default_value.is_none();
         let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index, default_value);
 
         if self.is_ref {
             self.render_deref_variable(meta, prefix, &name, &suffix)
+        } else if self.is_math_var && !self.is_length && default_is_none && index_is_none {
+            name.to_string()
         } else {
             let quote = if self.is_quoted { meta.gen_quote() } else { "" };
             let dollar = meta.gen_dollar();
@@ -242,7 +254,7 @@ impl VarExprFragment {
             return format!("{quote}{dollar}{{!{name}}}{quote}");
         }
         let id = meta.gen_value_id();
-        let eval_value = format!("{prefix}${{{name}}}{suffix}");
+        let eval_value = format!("{prefix}${{{name}[0]}}{suffix}");
         let var_name = format!("{name}_deref_{id}");
         meta.stmt_queue.push_back(RawFragment::from(
             format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")

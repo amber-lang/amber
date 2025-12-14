@@ -144,6 +144,10 @@ impl SyntaxModule<ParserMetadata> for Import {
                 let mut exports = vec![];
                 if token(meta, "}").is_err() {
                     loop {
+                        // Skip comments and newlines
+                        if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                            continue;
+                        }
                         let tok = meta.get_current_token();
                         // Check for incorrect use of '*' inside import closure
                         if token(meta, "*").is_ok() {
@@ -163,6 +167,10 @@ impl SyntaxModule<ParserMetadata> for Import {
                         }
                         match token(meta, ",") {
                             Ok(_) => {
+                                // Skip comments and newlines after comma
+                                while token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                                    // Keep consuming
+                                }
                                 if token(meta, "}").is_ok() {
                                     break
                                 }

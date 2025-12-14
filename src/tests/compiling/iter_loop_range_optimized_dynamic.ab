@@ -1,0 +1,60 @@
+let start = 0
+let end = 5
+
+echo "Forward Exclusive {start}..{end}"
+for i in start..end {
+    echo i
+}
+
+echo "Forward Inclusive {start}..={end}"
+for i in start..=end {
+    echo i
+}
+
+let r_start = 5
+let r_end = 0
+
+echo "Reverse Exclusive {r_start}..{r_end}"
+for i in r_start..r_end {
+    echo i
+}
+
+echo "Reverse Inclusive {r_start}..={r_end}"
+for i in r_start..=r_end {
+    echo i
+}
+
+let eq_val = 5
+echo "Empty (Equal) {eq_val}..{eq_val}"
+for i in eq_val..eq_val {
+    echo i
+}
+
+echo "Single (Equal Inclusive) {eq_val}..={eq_val}"
+for i in eq_val..=eq_val {
+    echo i
+}
+
+let neg_start = -5
+let neg_end = -2
+echo "Negative Forward {neg_start}..{neg_end}"
+for i in neg_start..neg_end {
+    echo i
+}
+
+echo "Negative Reverse {neg_end}..{neg_start}"
+for i in neg_end..neg_start {
+    echo i
+}
+
+echo "Expressions ({start}+1)..({end}*1)"
+for i in (start+1)..(end*1) {
+    echo i
+}
+
+echo "With Index 2..5"
+let idx_start = 2
+let idx_end = 5
+for idx, val in idx_start..idx_end {
+    echo "{val} {idx}"
+}

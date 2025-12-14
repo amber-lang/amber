@@ -1,0 +1,18 @@
+// Output
+// 0
+// 1
+// 0
+// 1
+// 1
+
+let a = []
+echo a > [1]
+echo a < [1]
+echo a >= [1]
+echo a <= [1]
+
+// Persistence of type narrowing
+let b = []
+b < [1]
+b += [1]
+echo b

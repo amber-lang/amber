@@ -21,11 +21,11 @@ impl Typed for Neq {
 
 impl BinOp for Neq {
     fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);
+        *self.right = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -53,7 +53,7 @@ impl TypeCheckModule for Neq {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_equality(meta, &self.left, &self.right)?;
+        Self::typecheck_equality(meta, &mut self.left, &mut self.right)?;
         Ok(())
     }
 }

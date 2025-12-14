@@ -4,7 +4,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::variable::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
 use crate::translate::compute::translate_computation_eval;
 use crate::translate::{compute::ArithOp, module::TranslateModule};
-use crate::modules::types::Type;
+use crate::modules::types::{Type, Typed};
 
 use super::shorthand_typecheck_allowed_types;
 
@@ -52,6 +52,15 @@ impl TypeCheckModule for ShorthandAdd {
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
         
+        let right_type = self.expr.get_type();
+        if let (Type::Array(inner_left), Type::Array(inner_right)) = (&self.kind, &right_type) {
+            if *inner_left.as_ref() == Type::Generic && *inner_right.as_ref() != Type::Generic {
+                meta.update_var_type(&self.var, right_type.clone());
+                self.kind = right_type;
+                return Ok(());
+            }
+        }
+
         shorthand_typecheck_allowed_types(meta, "add", &self.kind, &self.expr, &[
             Type::Num,
             Type::Int,

@@ -7,6 +7,8 @@ mod translate;
 mod utils;
 mod optimizer;
 
+mod testing;
+
 pub mod built_info {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
@@ -64,6 +66,8 @@ enum CommandKind {
     Docs(DocsCommand),
     /// Generate Bash completion script
     Completion,
+    /// Run Amber tests
+    Test(TestCommand),
 }
 
 #[derive(Args, Clone, Debug)]
@@ -135,41 +139,65 @@ struct DocsCommand {
     usage: bool,
 }
 
+#[derive(Args, Clone, Debug)]
+pub struct TestCommand {
+    /// Input filename or directory ('-' to read from stdin)
+    #[arg(default_value = ".")]
+    pub input: PathBuf,
+
+    /// Arguments passed to Amber script
+    #[arg(trailing_var_arg = true)]
+    pub args: Vec<String>,
+
+    /// Disable a postprocessor
+    /// Available postprocessors: 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
+    #[arg(long, verbatim_doc_comment)]
+    pub no_proc: Vec<String>,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-    if let Some(command) = cli.command {
+    let exit_code = if let Some(command) = cli.command {
         match command {
-            CommandKind::Eval(command) => {
-                handle_eval(command)?;
-            }
+            CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
                 let (code, messages) = compile_input(command.input, options);
-                execute_output(code, command.args, messages)?;
+                execute_output(code, command.args, messages)?
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
                 compile_input(command.input, options);
+                0
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify);
+                let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
+                0
             }
             CommandKind::Docs(command) => {
                 handle_docs(command)?;
+                0
             }
             CommandKind::Completion => {
                 handle_completion();
+                0
             }
+            CommandKind::Test(command) => testing::handle_test(command)?,
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false);
+        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None);
         let (code, messages) = compile_input(input, options);
-        execute_output(code, cli.args, messages)?;
-    }
-    Ok(())
+        execute_output(code, cli.args, messages)?
+    } else {
+        0
+    };
+
+    std::process::exit(exit_code);
 }
 
 fn create_output(command: &BuildCommand) -> PathBuf {
@@ -208,12 +236,12 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
     (bash_code, !messages.is_empty())
 }
 
-fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<(), Box<dyn Error>> {
+fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<i32, Box<dyn Error>> {
     if messages {
         render_dash();
     }
     let exit_status = AmberCompiler::execute(code, args)?;
-    std::process::exit(exit_status.code().unwrap_or(1));
+    Ok(exit_status.code().unwrap_or(1))
 }
 
 fn write_output(output: PathBuf, code: String) {
@@ -234,7 +262,7 @@ fn write_output(output: PathBuf, code: String) {
     }
 }
 
-fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
+fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
@@ -242,11 +270,11 @@ fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
             let exit_status = AmberCompiler::execute(code, vec![])?;
-            std::process::exit(exit_status.code().unwrap_or(1));
+            Ok(exit_status.code().unwrap_or(1))
         }
         Err(err) => {
             err.show();
-            std::process::exit(1);
+            Ok(1)
         }
     }
 }
@@ -300,7 +328,7 @@ fn handle_err(err: std::io::Error) -> ! {
 
 #[inline]
 #[allow(unused_must_use)]
-fn render_dash() {
+pub fn render_dash() {
     let str = "%.s─".dimmed();
     Command::new("bash")
         .arg("-c")

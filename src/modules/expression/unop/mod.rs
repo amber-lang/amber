@@ -2,6 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::{modules::types::{Type, Typed}, utils::{pluralize, ParserMetadata}};
 use super::expr::Expr;
 use crate::modules::typecheck::TypeCheckModule;
+use crate::utils::pretty_join;
 
 pub mod not;
 pub mod neg;
@@ -21,7 +22,7 @@ pub trait UnOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
         if !expr_match {
             let message = expr.get_error_message(meta);
             let msg = format!("Cannot perform {operator} on value of type '{expr_type}'");
-            let pretty_types = Type::pretty_join(allowed_types, "and");
+            let pretty_types = pretty_join(allowed_types, "and");
             let sentence = pluralize(allowed_types.len(), "Allowed type is", "Allowed types are");
             let comment = format!("{sentence} {pretty_types}.");
             Err(Failure::Loud((message).message(msg).comment(comment)))

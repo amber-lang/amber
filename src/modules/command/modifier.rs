@@ -1,11 +1,12 @@
-use std::mem::swap;
+use amber_meta::ContextManager;
 use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::block::Block;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, ContextManager)]
 pub struct CommandModifier {
     pub block: Option<Box<Block>>,
+    #[context]
     pub is_trust: bool,
     pub is_silent: bool,
     pub is_sudo: bool
@@ -24,15 +25,10 @@ impl CommandModifier {
     pub fn use_modifiers<F>(
         &mut self, meta: &mut ParserMetadata, context: F
     ) -> SyntaxResult where F: FnOnce(&mut Self, &mut ParserMetadata) -> SyntaxResult {
-        let mut is_trust_holder = self.is_trust;
-        if self.is_trust {
-            swap(&mut is_trust_holder, &mut meta.context.is_trust_ctx);
-        }
+        // The setter returns the old value
+        let old_trust = meta.context.set_is_trust_ctx(self.is_trust || meta.context.is_trust_ctx);
         let result = context(self, meta);
-        // Swap back the value
-        if self.is_trust {
-            swap(&mut is_trust_holder, &mut meta.context.is_trust_ctx);
-        }
+        meta.context.set_is_trust_ctx(old_trust);
         result
     }
 

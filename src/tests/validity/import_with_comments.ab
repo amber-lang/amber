@@ -1,0 +1,10 @@
+// Test import statement with comments between items
+import {
+    split_chars,
+    // Text utilities
+    text_contains,
+    // More utilities
+    replace
+} from "std/text"
+
+echo "Succeeded"

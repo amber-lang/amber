@@ -22,6 +22,7 @@ statement_global =
     import_all |
     import_ids |
     main |
+    test |
     statement_local ;
 
 (* Block *)
@@ -38,7 +39,7 @@ expression =
     function_call |
     function_call_failed |
     identifier |
-    list |
+    array |
     null |
     number |
     parentheses |
@@ -84,6 +85,7 @@ KEYWORD_SILENT = 'silent' ;
 KEYWORD_STATUS = 'status' ;
 KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
+KEYWORD_TEST = 'test' ;
 KEYWORD_THEN = 'then' ;
 KEYWORD_TRUST = 'trust' ;
 KEYWORD_EXITED = 'exited' ;
@@ -94,7 +96,8 @@ KEYWORD_WHILE = 'while' ;
 ANY_CHAR = ? any character ? ;
 LETTER = 'A'..'Z' | 'a'..'z' ;
 DIGIT = '0'..'9' ;
-TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
+TYPE = SIMPLE_TYPE, { '|', SIMPLE_TYPE } ;
+SIMPLE_TYPE = 'Text' | 'Num' | 'Bool' | 'Null' | 'Int' | '[', TYPE, ']' ;
 UNARY_OP = '-' | KEYWORD_NOT ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | KEYWORD_AND | KEYWORD_OR | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 VISIBILITY = KEYWORD_PUB ;
@@ -119,10 +122,10 @@ boolean = 'true' | 'false' ;
 (* `Null` literal *)
 null = 'null' ;
 
-(* `List` literal *)
-empty_list = '[', TYPE, ']' ;
-full_list = '[', [ expression, { ',', expression } ], ']' ;
-list = empty_list | full_list ;
+(* `Array` literal *)
+empty_array = '[', [ TYPE ], ']' ;
+full_array = '[', [ expression, { ',', expression } ], ']' ;
+array = empty_array | full_array ;
 
 (* Command expression *)
 (* The ordering of command modifiers doesn't matter *)
@@ -141,7 +144,7 @@ parentheses = '(', expression, ')' ;
 
 (* Failure handler *)
 failure_propagation = '?';
-failure_block = KEYWORD_FAILED, {'(', identifier, ')'}, block ;
+failure_block = KEYWORD_FAILED, [ '(', identifier, ')' ], block ;
 failure_handler = failure_propagation | failure_block ;
 
 (* Success handler *)
@@ -149,7 +152,7 @@ success_block = KEYWORD_SUCCEEDED, block ;
 success_handler = success_block ;
 
 (* Exited handler *)
-exited_block = KEYWORD_EXITED, {'(', identifier, ')'}, block ;
+exited_block = KEYWORD_EXITED, [ '(', identifier, ')' ], block ;
 exited_handler = exited_block ;
 
 (* All handlers combined *)
@@ -213,3 +216,7 @@ builtins_expression =
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
+
+(* Test *)
+test_name = '"', { ANY_CHAR }, '"' ;
+test = KEYWORD_TEST, [ test_name ], block ;

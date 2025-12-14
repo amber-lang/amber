@@ -1,0 +1,11 @@
+// Output
+// Hello!
+// Hello!
+
+fun foo(): Null {
+    echo "Hello!"
+}
+
+foo()
+
+trust $ {nameof foo} $

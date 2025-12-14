@@ -1,0 +1,26 @@
+/// Asserts that a boolean condition is true. Fails the test with exit code `1` if false.
+/// ### Usage
+/// ```ab
+/// let user_age = 18
+/// assert(user_age >= 18)
+/// ```
+pub fun assert(condition: Bool) {
+    if not condition {
+        echo "Assertion failed"
+        fail 1
+    }
+}
+
+/// Asserts that two values are equal. Fails the test with exit code `1` if they are not equal.
+/// ### Usage
+/// ```ab
+/// let expected = [1, 2, 3]
+/// let actual = [1, 2, 3]
+/// assert_eq(expected, actual)
+/// ```
+pub fun assert_eq(left, right) {
+    if left != right {
+        echo "Assertion failed: {left} != {right}"
+        fail 1
+    }
+}

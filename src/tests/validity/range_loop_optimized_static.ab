@@ -1,0 +1,54 @@
+// Output
+// From 0 to 5
+// 0
+// 1
+// 2
+// 3
+// 4
+// From 5 to 0
+// 5
+// 4
+// 3
+// 2
+// 1
+// From 0 to 0
+// From 5 to 5
+// From 5 to =5
+// 5
+// From 5 to =0
+// 5
+// 4
+// 3
+// 2
+// 1
+// 0
+
+echo "From 0 to 5"
+for i in 0..5 {
+    echo i
+}
+
+echo "From 5 to 0"
+for j in 5..0 {
+    echo j
+}
+
+echo "From 0 to 0"
+for k in 0..0 {
+    echo k
+}
+
+echo "From 5 to 5"
+for l in 5..5 {
+    echo l
+}
+
+echo "From 5 to =5"
+for m in 5..=5 {
+    echo m
+}
+
+echo "From 5 to =0"
+for n in 5..=0 {
+    echo n
+}

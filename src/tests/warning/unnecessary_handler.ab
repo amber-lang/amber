@@ -1,0 +1,10 @@
+// Output
+// Function 'foo' cannot fail
+
+fun foo(): Num {
+    return 1
+}
+
+foo() failed {
+    echo "This should warn"
+}

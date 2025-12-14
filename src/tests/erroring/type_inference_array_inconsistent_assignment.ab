@@ -1,0 +1,7 @@
+// Output
+// Cannot assign value of type '[Text]' to a variable of type '[Int]'
+
+let a = []
+a = [1]
+a = ["test"]
+echo a

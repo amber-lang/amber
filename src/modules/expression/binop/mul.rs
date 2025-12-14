@@ -21,11 +21,11 @@ impl Typed for Mul {
 
 impl BinOp for Mul {
     fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);
+        *self.right = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -54,7 +54,7 @@ impl TypeCheckModule for Mul {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        self.kind = Self::typecheck_allowed_types(meta, "multiplication", &self.left, &self.right, &[
+        self.kind = Self::typecheck_allowed_types(meta, "multiplication", &mut self.left, &mut self.right, &[
             Type::Num,
             Type::Int,
         ])?;

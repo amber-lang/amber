@@ -32,6 +32,8 @@ pub struct ParserMetadata {
     pub doc_usage: bool,
     /// List of functions that are currently being parsed
     pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
+    /// List of test names found in the file
+    pub test_names: Vec<String>,
 }
 
 impl ParserMetadata {
@@ -142,6 +144,16 @@ impl ParserMetadata {
         }
     }
 
+    /// Updates the type of a variable
+    pub fn update_var_type(&mut self, name: &str, new_type: Type) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.kind = new_type;
+                return;
+            }
+        }
+    }
+
     /* Functions */
 
     /// Generate a new global function id
@@ -226,6 +238,7 @@ impl Metadata for ParserMetadata {
             messages: Vec::new(),
             doc_usage: false,
             parsing_functions: HashMap::new(),
+            test_names: Vec::new(),
         }
     }
 

@@ -69,13 +69,14 @@ fun sed_version(): Int {
 }
 
 /// Replaces all occurrences of a regex pattern in the content with the provided replace text.
-///
-/// Function uses `sed`
+/// Function uses `sed` and supports capture groups syntax in extended mode.
 ///
 /// ### Usage
 /// ```ab
 /// let result = replace_regex("test123", "[0-9]+", "456", true)
 /// echo result // "test456"
+/// // Also supports replace regex
+/// echo replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true); // Put number (255) in brackets
 /// ```
 pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: Bool = false): Text {
     trust {
@@ -158,7 +159,9 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// echo trimmed // "hello"
 /// ```
 pub fun trim_left(text: Text): Text {
-    return trust $ echo "{text}" | sed -e 's/^[[:space:]]*//' $
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}#\$\{{nameof text}%%[![:space:]]*}}" $
+    return result
 }
 
 /// Trims the spaces at end of the text using `sed`.
@@ -169,7 +172,9 @@ pub fun trim_left(text: Text): Text {
 /// echo trimmed // "hello"
 /// ```
 pub fun trim_right(text: Text): Text {
-    return trust $ echo "{text}" | sed -e 's/[[:space:]]*\$//' $
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}%\$\{{nameof text}##*[![:space:]]}}" $
+    return result
 }
 
 /// Trims the spaces from the text input.
@@ -180,7 +185,10 @@ pub fun trim_right(text: Text): Text {
 /// echo trimmed // "hello"
 /// ```
 pub fun trim(text: Text): Text {
-    return trim_left(trim_right(text))
+    let result = ""
+    trust $ {nameof result}="\$\{{nameof text}#\$\{{nameof text}%%[![:space:]]*}}" $
+    trust $ {nameof result}="\$\{{nameof result}%\$\{{nameof result}##*[![:space:]]}}" $
+    return result
 }
 
 /// Makes the text input lowercase using `tr`.

@@ -1,0 +1,13 @@
+// Output
+// 1
+// 2
+
+fun two_vars(ref a: [Int], ref b: [Int]) {
+    a += [1]
+    b += [2]
+}
+let x = []
+let y = []
+two_vars(x, y)
+echo x
+echo y

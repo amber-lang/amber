@@ -1,3 +1,5 @@
+#!/usr/bin/env amber
+
 import { file_glob } from "std/fs"
 import { echo_colored } from "std/env"
 

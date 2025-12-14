@@ -20,11 +20,11 @@ impl Typed for And {
 
 impl BinOp for And {
     fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);
+        *self.right = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -52,7 +52,9 @@ impl TypeCheckModule for And {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_equality(meta, &self.left, &self.right)?;
+        Self::typecheck_allowed_types(meta, "logical AND", &mut self.left, &mut self.right, &[
+            Type::Bool,
+        ])?;
         Ok(())
     }
 }

@@ -24,7 +24,7 @@ impl Typed for Neg {
 
 impl UnOp for Neg {
     fn set_expr(&mut self, expr: Expr) {
-        self.expr = Box::new(expr);
+        *self.expr = expr;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
