@@ -44,7 +44,7 @@ pub fun file_read(path: Text): Text? {
 /// file_write("output.txt", "Hello, World!")
 /// ```
 pub fun file_write(path: Text, content: Text): Text? {
-    return $ echo "{content}" > "{path}" $?
+    return $ printf '%s\n' "{content}" > "{path}" $?
 }
 
 /// Appends content to a file.
@@ -56,7 +56,7 @@ pub fun file_write(path: Text, content: Text): Text? {
 /// file_append("log.txt", "New log entry")
 /// ```
 pub fun file_append(path: Text, content: Text): Text? {
-    return $ echo "{content}" >> "{path}" $?
+    return $ printf '%s\n' "{content}" >> "{path}" $?
 }
 
 /// Creates a symbolic link.
