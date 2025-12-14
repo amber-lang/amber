@@ -91,7 +91,9 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             self.failure_handler.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
 
             // Try to parse the failed block if present (optional in parse phase)
-            syntax(meta, &mut self.failure_handler).ok();
+            if let Err(Failure::Loud(msg)) = syntax(meta, &mut self.failure_handler) {
+                return Err(Failure::Loud(msg));
+            }
 
             Ok(())
         })
@@ -100,7 +102,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
 
 impl TypeCheckModule for FunctionInvocation {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.modifier.use_modifiers(meta, |_, meta| {
+        self.modifier.use_modifiers(meta, |modifier, meta| {
             // Type-check all arguments first
             for arg in &mut self.args {
                 arg.typecheck(meta)?;
@@ -157,6 +159,13 @@ impl TypeCheckModule for FunctionInvocation {
             }
 
             // Handle failable function logic
+            if modifier.is_trust && self.failure_handler.is_question_mark {
+                return error!(meta, self.name_tok.clone() => {
+                    message: "The '?' operator cannot be used with the 'trust' modifier because 'trust' ignores failure while '?' propagates it",
+                    comment: "You should use either 'trust' or '?' but not both"
+                });
+            }
+
             self.is_failable = function_unit.is_failable;
             if self.is_failable {
                 if !self.failure_handler.is_parsed && !meta.context.is_trust_ctx {

@@ -48,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Command {
                 Err(Failure::Quiet(_)) => {
                     // No failure handler found
                     error!(meta, tok => {
-                        message: "Every command statement must handle execution result",
+                        message: "Failed command must be followed by an 'exited', 'succeeded' or 'failed' block, statement or operator '?'",
                         comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
                     })
                 },
@@ -60,10 +60,15 @@ impl SyntaxModule<ParserMetadata> for Command {
 
 impl TypeCheckModule for Command {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        self.modifier.use_modifiers(meta, |_, meta| {
+        self.modifier.use_modifiers(meta, |modifier, meta| {
             for interp in self.interps.iter_mut() {
                 interp.typecheck(meta)?;
             }
+            if modifier.is_trust && self.failure_handler.is_question_mark {
+                let tok = meta.get_current_token();
+                return error!(meta, tok, "The '?' operator cannot be used with the 'trust' modifier because 'trust' ignores failure while '?' propagates it");
+            }
+
             self.failure_handler.typecheck(meta)
         })
     }
