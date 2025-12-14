@@ -22,10 +22,10 @@ pub fun math_sum(list) {
 #[allow_absurd_cast]
 pub fun math_round(number: Num): Int {
     if number > 0 {
-        return trust $ printf '%s\n' "({number}+0.5)/1" | bc $ as Int
+        return trust $ echo "({number}+0.5)/1" | bc $ as Int
     }
 
-    return trust $ printf '%s\n' "({number}-0.5)/1" | bc $ as Int
+    return trust $ echo "({number}-0.5)/1" | bc $ as Int
 }
 
 /// Returns the largest integer less than or equal to a number
