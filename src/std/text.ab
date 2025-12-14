@@ -148,7 +148,7 @@ pub fun split_words(text: Text): [Text] {
 /// echo joined // "a,b,c"
 /// ```
 pub fun join(list: [Text], delimiter: Text): Text {
-    return trust $ IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}" $
+    return trust $ IFS="{delimiter}" ; printf "%s\n" "\$\{{nameof list}[*]}" $
 }
 
 /// Trims the spaces at top of the text using `sed`.
@@ -374,7 +374,7 @@ pub fun match_regex_any(text: Text, terms: [Text]): Bool {
 /// echo reversed_text // "olleh"
 /// ```
 pub fun reversed(text: Text): Text {
-    return trust $ echo "{text}" | rev $
+    return trust $ rev <<< "{text}" $
 }
 
 /// Checks if text starts with a value.
