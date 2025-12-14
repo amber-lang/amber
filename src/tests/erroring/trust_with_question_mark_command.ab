@@ -1,0 +1,6 @@
+// Output
+// The '?' operator cannot be used with the 'trust' modifier because 'trust' ignores failure while '?' propagates it
+
+main {
+    trust $ echo $?
+}

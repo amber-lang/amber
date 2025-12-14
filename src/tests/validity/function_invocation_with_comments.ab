@@ -1,0 +1,17 @@
+// Output
+// Result: 15
+
+// Test function invocation with comments between arguments
+fun add(a: Num, b: Num, c: Num): Num {
+    return a + b + c
+}
+
+let result = add(
+    5,
+    // Second argument
+    7,
+    // Third argument
+    3
+)
+
+echo "Result: {result}"

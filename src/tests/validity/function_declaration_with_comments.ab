@@ -1,0 +1,16 @@
+// Output
+// Sum: 60
+
+// Test function declaration with comments between parameters
+fun calculate(
+    x: Num,
+    // Second parameter
+    y: Num,
+    // Third parameter
+    z: Num
+): Num {
+    return x + y + z
+}
+
+let sum = calculate(10, 20, 30)
+echo "Sum: {sum}"
