@@ -36,6 +36,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         self.index = handle_index_accessor(meta, false)?;
+
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
         Ok(())

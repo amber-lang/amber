@@ -48,19 +48,15 @@ impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
                 break;
             }
         }
-        context!({
-            token(meta, "]")?;
-            context!({
-                token(meta, "=")?;
-                syntax(meta, &mut *self.expr)?;
-                self.is_fun_ctx = meta.context.is_fun_ctx;
-                Ok(())
-            }, |position| {
-                error_pos!(meta, position, format!("Expected '=' after destructuring '{}'", self.names.join(", ")))
-            })
-        }, |position| {
-            error_pos!(meta, position, format!("Expected ']' after destructuring '{}'", self.names.join(", ")))
-        })
+        if let Err(err) = token(meta, "]") {
+            return error_pos!(meta, err.unwrap_quiet(), format!("Expected ']' after destructuring '{}'", self.names.join(", ")))
+        }
+        if let Err(err) = token(meta, "=") {
+            return error_pos!(meta, err.unwrap_quiet(), format!("Expected '=' after destructuring '{}'", self.names.join(", ")))
+        }
+        syntax(meta, &mut *self.expr)?;
+        self.is_fun_ctx = meta.context.is_fun_ctx;
+        Ok(())
     }
 }
 

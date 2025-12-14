@@ -1,0 +1,13 @@
+// Output
+// 1
+// 0
+// 1 0 0
+
+let data = [true, false, false]
+let a = false;
+let b = false;
+[a, b] = data
+echo a
+echo b
+echo data
+

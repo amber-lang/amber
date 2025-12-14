@@ -10,6 +10,7 @@ use similar_string::find_best_similarity;
 pub mod init;
 pub mod init_destruct;
 pub mod set;
+pub mod set_destruct;
 pub mod get;
 
 pub fn variable_name_extensions() -> Vec<char> {
