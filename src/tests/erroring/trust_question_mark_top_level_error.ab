@@ -1,0 +1,6 @@
+// Output
+// The '?' operator can only be used in the main block or inside a function body
+
+echo "Before failure"
+silent trust $ false $?
+echo "After failure"

@@ -1,0 +1,13 @@
+import { fetch } from "std/http"
+import { text_contains } from "std/text"
+main {
+    if not text_contains(fetch("http://echo.free.beeceptor.com")?, "GET"): fail 1
+
+    if not text_contains(fetch("http://echo.free.beeceptor.com", "POST")?, "POST"): fail 1
+
+    if not text_contains(fetch("http://echo.free.beeceptor.com", "PUT")?, "PUT"): fail 1
+
+    if not text_contains(fetch("http://echo.free.beeceptor.com", "DELETE")?, "DELETE"): fail 1
+
+    echo "Succeeded"
+}

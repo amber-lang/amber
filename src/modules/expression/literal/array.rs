@@ -47,6 +47,10 @@ impl SyntaxModule<ParserMetadata> for Array {
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
+                    // Skip comments and newlines
+                    if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                        continue;
+                    }
                     if token(meta, "]").is_ok() {
                         break;
                     }
