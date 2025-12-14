@@ -93,10 +93,8 @@ impl TypeCheckModule for VariableSetDestruct {
                 } else if !inner_expr_type.is_allowed_in(kind) {
                      return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to an array of '{kind}'"));
                 }
-            } else {
-                 if !inner_expr_type.is_allowed_in(&variable.kind) {
-                    return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to a variable of type '{}'", variable.kind));
-                }
+            } else if !inner_expr_type.is_allowed_in(&variable.kind) {
+                return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to a variable of type '{}'", variable.kind));
             }
         }
 

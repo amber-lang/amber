@@ -59,18 +59,17 @@ impl Access {
 
     fn is_destruct(&self, meta: &mut ParserMetadata) -> bool {
         let index = meta.get_index();
-        if let Err(_) = token(meta, "[") {
+        if token(meta, "[").is_err() {
             meta.set_index(index);
             return false;
         }
-
         loop {
-            if let Err(_) = variable(meta, variable_name_extensions()) {
+            if variable(meta, variable_name_extensions()).is_err() {
                 meta.set_index(index);
                 return false;
             }
-            if let Err(_) = token(meta, ",") {
-                if let Ok(_) = token(meta, "]") {
+            if token(meta, ",").is_err() {
+                if token(meta, "]").is_ok() {
                     break;
                 } else {
                     meta.set_index(index);
@@ -78,7 +77,7 @@ impl Access {
                 }
             }
         }
-        if let Err(_) = token(meta, "=") {
+        if token(meta, "=").is_err() {
             meta.set_index(index);
             return false;
         }
