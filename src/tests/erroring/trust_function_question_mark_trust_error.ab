@@ -1,0 +1,8 @@
+// Output
+// The '?' operator can only be used in the main block or inside a function body
+
+fun foo(): Null? {
+    fail 1
+}
+
+trust foo()?
