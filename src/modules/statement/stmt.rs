@@ -6,6 +6,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
+    init_destruct::VariableInitDestruct,
     set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
@@ -47,6 +48,7 @@ use super::comment::Comment;
 pub enum StatementType {
     Expr(Expr),
     VariableInit(VariableInit),
+    VariableInitDestruct(VariableInitDestruct),
     VariableSet(VariableSet),
     IfCondition(IfCondition),
     IfChain(IfChain),
@@ -135,6 +137,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+<<<<<<< Updated upstream
         let mut error = None;
         let statements = self.get_modules();
         for statement in statements {
@@ -146,10 +149,56 @@ impl SyntaxModule<ParserMetadata> for Statement {
                         Failure::Loud(err) => return Err(Failure::Loud(err)),
                         Failure::Quiet(err) => error = Some(err)
                     }
+=======
+        // Order matters here
+        parse_statement!([
+            // Imports
+            Import,
+            // Functions
+            FunctionDeclaration, Main, Test, Return, Fail,
+            // Loops
+            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
+            // Conditions
+            IfChain, IfCondition,
+            // Command
+            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            // Variables
+            VariableInitDestruct, VariableInit, VariableSet,
+            // Short hand
+            ShorthandAdd, ShorthandSub,
+            ShorthandMul, ShorthandDiv,
+            ShorthandModulo,
+            // Comment doc
+            CommentDoc, Comment,
+            // Expression
+            Expr
+        ], |module, cons| {
+            match syntax(meta, &mut module) {
+                Ok(()) => {
+                    self.value = Some(cons(module));
+                    Ok(())
+>>>>>>> Stashed changes
                 }
             }
+<<<<<<< Updated upstream
         }
         Err(Failure::Quiet(error.unwrap()))
+=======
+        })
+    }
+}
+
+impl TypeCheckModule for Statement {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        typecheck_statement!(meta, self.value.as_mut().unwrap(), [
+            Break, Cd, Command, CommandModifier, Comment, CommentDoc, Continue, Echo,
+            Exit, Expr, Fail, FunctionDeclaration, IfChain, IfCondition,
+            Import, InfiniteLoop, IterLoop, Main, Mv, Return, ShorthandAdd,
+            ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
+            Test, VariableInit, VariableInitDestruct, VariableSet, WhileLoop
+        ]);
+        Ok(())
+>>>>>>> Stashed changes
     }
 }
 
@@ -158,6 +207,7 @@ impl TranslateModule for Statement {
         // Translate the staxtement
         let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
+<<<<<<< Updated upstream
         match statement {
             StatementType::Expr(expr) => {
                 match &expr.value {
@@ -172,6 +222,26 @@ impl TranslateModule for Statement {
             },
             _ => {
                 self.translate_match(meta, statement)
+=======
+        translate_statement!(statement, [
+            Import,
+            FunctionDeclaration, Main, Test, Return, Fail,
+            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
+            IfChain, IfCondition,
+            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            VariableInit, VariableInitDestruct, VariableSet,
+            ShorthandAdd, ShorthandSub,
+            ShorthandMul, ShorthandDiv,
+            ShorthandModulo,
+            CommentDoc, Comment,
+            Expr
+        ], |inner_module| {
+            if let StmtType::Expr(_) = statement {
+                inner_module.translate(meta);
+                FragmentKind::Empty
+            } else {
+                inner_module.translate(meta)
+>>>>>>> Stashed changes
             }
         }
     }
@@ -180,7 +250,24 @@ impl TranslateModule for Statement {
 impl DocumentationModule for Statement {
     fn document(&self, meta: &ParserMetadata) -> String {
         // Document the statement
+<<<<<<< Updated upstream
         let documented = self.document_match(meta, self.value.as_ref().unwrap());
         documented
+=======
+        let statement = self.value.as_ref().unwrap();
+        document_statement!(statement, [
+            Import,
+            FunctionDeclaration, Main, Test, Return, Fail,
+            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
+            IfChain, IfCondition,
+            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            VariableInit, VariableInitDestruct, VariableSet,
+            ShorthandAdd, ShorthandSub,
+            ShorthandMul, ShorthandDiv,
+            ShorthandModulo,
+            CommentDoc, Comment,
+            Expr
+        ], inner_module, inner_module.document(meta))
+>>>>>>> Stashed changes
     }
 }

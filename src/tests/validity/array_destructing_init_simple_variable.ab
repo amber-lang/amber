@@ -1,0 +1,14 @@
+// Output
+// First 10
+// Second 9
+// Third 8
+// Fourth 7
+// Array 10 9 8 7 6 5 4 3 2 1
+
+let array = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+let [a, b, c, d] = array
+echo "First {a}"
+echo "Second {b}"
+echo "Third {c}"
+echo "Fourth {d}"
+echo "Array {array}"
