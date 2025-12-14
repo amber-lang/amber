@@ -4,6 +4,7 @@ use crate::docs::module::DocumentationModule;
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
+use crate::modules::variable::get_default_value_fragment;
 use crate::modules::types::{Typed, Type};
 use crate::translate::fragments::var_expr::VarIndexValue;
 use crate::raw_fragment;
@@ -55,12 +56,19 @@ impl TypeCheckModule for VariableSetDestruct {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
         
-        // Ensure the expression is an array
-        let inner_type = match self.expr.get_type() {
+        // Ensure the expression is an array of known type
+        let inner_expr_type = match self.expr.get_type() {
+            Type::Array(inner) if *inner == Type::Generic => {
+                let pos = self.expr.get_position();
+                return error_pos!(meta, pos => {
+                    message: "Cannot destructure array because its concrete type is unknown",
+                    comment: "Please add an explicit type annotation to this array value before destructuring"
+                });
+            },
             Type::Array(inner) => *inner,
             _ => {
-                let tok = self.toks.first().cloned().flatten();
-                return error!(meta, tok, format!("Destructuring assignment requires an array type, but received '{}'", self.expr.get_type()));
+                let pos = self.expr.get_position();
+                return error_pos!(meta, pos, format!("Destructuring assignment requires an array type, but received '{}'", self.expr.get_type()));
             }
         };
 
@@ -73,22 +81,21 @@ impl TypeCheckModule for VariableSetDestruct {
             prevent_constant_mutation(meta, tok, name, variable.is_const)?;
             meta.mark_var_modified(name);
 
-            // Type checking logic similar to VariableSet
             if let Type::Array(kind) = &variable.kind {
                 // Handle type inference for generic arrays or incompatible types
                 if **kind == Type::Generic {
-                    let new_type = Type::array_of(inner_type.clone());
+                    let new_type = Type::array_of(inner_expr_type.clone());
                     meta.update_var_type(name, new_type);
                     // We need to update our stored type as well to reflect the change
                     if let Some(last) = self.var_types.last_mut() {
-                        *last = Type::array_of(inner_type.clone());
+                        *last = Type::array_of(inner_expr_type.clone());
                     }
-                } else if !inner_type.is_allowed_in(kind) {
-                     return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_type}' to an array of '{kind}'"));
+                } else if !inner_expr_type.is_allowed_in(kind) {
+                     return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to an array of '{kind}'"));
                 }
             } else {
-                 if !inner_type.is_allowed_in(&variable.kind) {
-                    return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_type}' to a variable of type '{}'", variable.kind));
+                 if !inner_expr_type.is_allowed_in(&variable.kind) {
+                    return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to a variable of type '{}'", variable.kind));
                 }
             }
         }
@@ -105,64 +112,21 @@ impl TranslateModule for VariableSetDestruct {
         // Assign expression to temp array
         let temp_array_name = format!("array_destruct_{}", meta.gen_value_id());
         let assign_temp = VarStmtFragment::new(&temp_array_name, self.expr.get_type(), expr)
-            .with_local(false) // Temporary variables usually don't need to be strictly local in this context, or it depends on scope. 
-             // However, strictly speaking, destructuring happens in a scope. 
-             // Let's check init_destruct.rs: .with_local(self.is_fun_ctx). 
-             // Here we are in a set specific context. Let's assume false or check context if possible.
-             // Actually `VariableSet` doesn't use `is_fun_ctx` for localness in that way usually, it sets global_id.
-             // But for a temp variable, we want it declared.
-             // If we are inside a function, we want it local.
-             // But valid `VariableSetDestruct` doesn't carry `is_fun_ctx`. `VariableInitDestruct` does.
-             // In `VariableSet`, we just emit `VarStmtFragment`.
-             // `VarStmtFragment` defaults to local if not global_id is set? No.
-             // Let's look at `VariableSet::translate`: uses `VarStmtFragment::new`...
-             // Wait, `VariableSet` updates an EXISTING variable.
-             // Here we need to creating a NEW TEMPORARY variable for the array.
-             // And then update EXISTING variables.
-             
-             // The temp array should probably be local if we are in a function?
-             // But we don't track `is_fun_ctx` in `VariableSetDestruct`.
-             // We can infer it or just make it standard.
-             // If we look at `init_destruct.rs`, it uses `self.is_fun_ctx`.
-             // `VariableSetDestruct` does NOT have `is_fun_ctx`.
-             // However, `TranslateMetadata` doesn't strictly track "am I in a function" easily visible here?
-             // Actually, usually `Fragment` handles this.
-             // Let's use `.with_local(true)` if we want `local` keyword, which is safer for temp vars inside functions?
-             // But if we are global, `local` is invalid?
-             // Amber compiles to shell. `local` is only valid in functions.
-             // IF we are at top level, we shouldn't use `local`.
-             // We lack `is_fun_ctx` here.
-             // Does `ParserMetadata` know? Yes. But `TranslateMetadata`?
-             // Maybe we should just use a standard assignment provided by `VarStmtFragment`.
-             // If it's a new variable (temp), we might want `local` if in function.
-             // BUT `VariableSetDestruct` didn't capture `is_fun_ctx` in `parse`!
-             // `VariableInitDestruct` DOES capture it.
-             // I should probably add `is_fun_ctx` to `VariableSetDestruct` struct and capturing it in `parse`.
+            .with_local(false)
             .with_optimization_when_unused(false);
-
-        // However, I cannot change `parse` signature easily right now without editing struct definition.
-        // Let's modify struct definition first if needed.
-        // WAIT. `VariableInitDestruct` captures it in `parse`. I can too.
-        // But simply, if I don't use `local`, it might leak to global scope in Bash.
-        // That's acceptable for a temp variable `array_destruct_...` which is unique ID anyway.
-        // So I will just stick with default (not forcing local) for now to minimize changes, 
-        // OR I should update struct. 
-        // Let's look at `VariableSetDestruct` struct again.
-             
         fragments.push(assign_temp.clone().to_frag());
 
         let inner_type = match self.expr.get_type() {
             Type::Array(t) => *t,
-            _ => Type::Generic, 
+            _ => unreachable!("Type of expression is not an array in set destructuring"), 
         };
 
         for (i, name) in self.names.iter().enumerate() {
-            // value = temp_array[i]
              let assign_expr = VarExprFragment::from_stmt(&assign_temp)
                 .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
+                .with_default_value(get_default_value_fragment(&inner_type))
                 .to_frag();
 
-            // v = value
             let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)
                 .with_global_id(self.global_ids[i])
                 .with_ref(self.is_refs[i])

@@ -1,0 +1,9 @@
+// Output
+// 1
+// 0
+// 0
+
+let [a, b, c] = [1]
+echo a
+echo b
+echo c

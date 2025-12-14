@@ -5,6 +5,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::expression::expr::Expr;
 use crate::raw_fragment;
 use crate::translate::fragments::var_expr::VarIndexValue;
+use crate::modules::variable::get_default_value_fragment;
 use super::{variable_name_extensions, handle_identifier_name};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
@@ -64,11 +65,19 @@ impl TypeCheckModule for VariableInitDestruct {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
         
+        // Ensure the expression is an array of known type
         let inner_type = match self.expr.get_type() {
+            Type::Array(inner) if *inner == Type::Generic => {
+                let pos = self.expr.get_position();
+                return error_pos!(meta, pos => {
+                    message: "Cannot destructure array because its concrete type is unknown",
+                    comment: "Please add an explicit type annotation to this array value before destructuring"
+                });
+            },
             Type::Array(inner) => *inner,
             _ => {
-                let tok = self.toks[0].clone();
-                return error!(meta, tok, format!("Destructuring initialization requires an array type, but received '{}'", self.expr.get_type()));
+                let pos = self.expr.get_position();
+                return error_pos!(meta, pos, format!("Destructuring initialization requires an array type, but received '{}'", self.expr.get_type()));
             }
         };
         
@@ -101,12 +110,13 @@ impl TranslateModule for VariableInitDestruct {
         
         let inner_type = match self.expr.get_type() {
             Type::Array(t) => *t,
-            _ => Type::Generic, 
+            _ => unreachable!("Type of expression is not an array in init destructuring"), 
         };
         
         for (i, name) in self.names.iter().enumerate() {
             let assign_expr = VarExprFragment::from_stmt(&assign_temp)
                 .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
+                .with_default_value(get_default_value_fragment(&inner_type))
                 .to_frag();
             
             let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)

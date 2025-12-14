@@ -37,7 +37,7 @@ pub fn remove_ephemeral_variables(ast: &mut FragmentKind) {
                     let value = if let FragmentKind::VarStmt(first) = &block.statements[i] {
                         first.value.clone()
                     } else {
-                        panic!("Expected VarStmt");
+                        unreachable!("Expected VarStmt");
                     };
 
                     // Update the second statement to use the value from the first

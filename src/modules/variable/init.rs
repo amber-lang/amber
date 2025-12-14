@@ -36,7 +36,6 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         self.is_const = keyword == "const";
         self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-
         if let Err(err) = token(meta, "=") {
             return error_pos!(meta, err.unwrap_quiet(), format!("Expected '=' after variable name '{}'", self.name))
         }
