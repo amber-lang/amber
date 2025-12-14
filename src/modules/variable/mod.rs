@@ -8,6 +8,7 @@ use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 
 pub mod init;
+pub mod init_destruct;
 pub mod set;
 pub mod get;
 

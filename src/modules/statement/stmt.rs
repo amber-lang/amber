@@ -6,6 +6,7 @@ use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
+    init_destruct::VariableInitDestruct,
     set::VariableSet,
 };
 use crate::modules::command::modifier::CommandModifier;
@@ -52,6 +53,7 @@ use super::comment::Comment;
 pub enum StmtType {
     Expr(Expr),
     VariableInit(VariableInit),
+    VariableInitDestruct(VariableInitDestruct),
     VariableSet(VariableSet),
     IfCondition(IfCondition),
     IfChain(IfChain),
@@ -119,7 +121,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             // Command
             CommandModifier, Echo, Mv, Cd, Exit, Command,
             // Variables
-            VariableInit, VariableSet,
+            VariableInitDestruct, VariableInit, VariableSet,
             // Short hand
             ShorthandAdd, ShorthandSub,
             ShorthandMul, ShorthandDiv,
@@ -147,7 +149,7 @@ impl TypeCheckModule for Statement {
             Exit, Expr, Fail, FunctionDeclaration, IfChain, IfCondition,
             Import, InfiniteLoop, IterLoop, Main, Mv, Return, ShorthandAdd,
             ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
-            Test, VariableInit, VariableSet, WhileLoop
+            Test, VariableInit, VariableInitDestruct, VariableSet, WhileLoop
         ]);
         Ok(())
     }
@@ -164,7 +166,7 @@ impl TranslateModule for Statement {
             InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
             IfChain, IfCondition,
             CommandModifier, Echo, Mv, Cd, Exit, Command,
-            VariableInit, VariableSet,
+            VariableInit, VariableInitDestruct, VariableSet,
             ShorthandAdd, ShorthandSub,
             ShorthandMul, ShorthandDiv,
             ShorthandModulo,
@@ -191,7 +193,7 @@ impl DocumentationModule for Statement {
             InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
             IfChain, IfCondition,
             CommandModifier, Echo, Mv, Cd, Exit, Command,
-            VariableInit, VariableSet,
+            VariableInit, VariableInitDestruct, VariableSet,
             ShorthandAdd, ShorthandSub,
             ShorthandMul, ShorthandDiv,
             ShorthandModulo,
