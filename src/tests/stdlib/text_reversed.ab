@@ -2,7 +2,9 @@ import * from "std/text"
 
 // Output
 // dlrow olleh
+// E-
 
 main {
     echo reversed("hello world")
+    echo reversed("-E")
 } 

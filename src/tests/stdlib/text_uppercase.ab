@@ -2,7 +2,9 @@ import * from "std/text"
 
 // Output
 // HELLO WORLD
+// -N
 
 main {
     echo uppercase("hello world")
+    echo uppercase("-n")
 } 
