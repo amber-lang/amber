@@ -85,8 +85,5 @@ fn is_safe_literal(interpolable: &InterpolableFragment) -> bool {
         return true;
     };
 
-    match first_chunk.chars().next() {
-        Some('-') => false,
-        _ => true,
-    }
+    !matches!(first_chunk.chars().next(), Some('-'))
 }
