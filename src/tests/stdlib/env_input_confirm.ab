@@ -1,12 +1,16 @@
 import * from "std/env"
+import { temp_dir_create } from "std/fs"
 
 main {
-    trust $ echo "Y" > /tmp/test_confirm $
-    trust $ exec 0< /tmp/test_confirm $
+    const tmpdir = temp_dir_create("amber-confirm-test-XXXX", true, true)?
+    const test_file = "{tmpdir}/test_confirm"
+    trust $ echo "Y" > {test_file} $
+    trust $ exec 0< {test_file} $
     if input_confirm("Yes"): echo "Confirm Yes"
-    trust $ echo "N" > /tmp/test_confirm $
+    trust $ echo "N" > {test_file} $
+    trust $ exec 0< {test_file} $
     if not input_confirm("No"): echo "Confirm No"
-    trust $ echo "" > /tmp/test_confirm $
+    trust $ echo "" > {test_file} $
+    trust $ exec 0< {test_file} $
     if input_confirm("Default", true): echo "Confirm Default"
-    trust $ rm /tmp/test_confirm $
 }

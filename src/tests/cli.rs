@@ -104,3 +104,153 @@ fn test_filtering() {
          assert!(display.contains("foo"), "Test {} should contain 'foo'", display);
     }
 }
+
+#[test]
+fn test_input_prompt_stdin() {
+    // Amber code using input_prompt
+    let amber_code = r#"
+        import { input_prompt } from "std/env"
+        
+        main {
+            const name = input_prompt("Enter name: ")
+            echo "Hello {name}"
+        }
+        "#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, bash_code) = compiler.compile().unwrap();
+    
+    // Assert no warnings
+    if !messages.is_empty() {
+        for msg in messages {
+            println!("{:?}", msg);
+        }
+        panic!("Compilation failed with warnings/errors");
+    }
+    
+    // Execute the bash code with stdin input
+    // We pipe "World" into the process
+    let mut child = std::process::Command::new("bash")
+        .arg("-c")
+        .arg(bash_code)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn bash");
+        
+    {
+        use std::io::Write;
+        // We run this in a block to ensure stdin is closed after writing
+        let stdin = child.stdin.as_mut().expect("Failed to open stdin");
+        stdin.write_all(b"World\n").expect("Failed to write to stdin");
+    }
+    
+    let output = child.wait_with_output().expect("Failed to read stdout");
+    
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Hello World"));
+}
+
+#[test]
+fn test_input_hidden_stdin() {
+    // Amber code using input_hidden
+    let amber_code = r#"
+        import { input_hidden } from "std/env"
+        
+        main {
+            const secret = input_hidden("Enter secret: ")
+            echo "Secret: {secret}"
+        }
+        "#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, bash_code) = compiler.compile().unwrap();
+    
+    // Assert no warnings
+    if !messages.is_empty() {
+        for msg in messages {
+            println!("{:?}", msg);
+        }
+        panic!("Compilation failed with warnings/errors");
+    }
+    
+    // Execute the bash code with stdin input
+    // We pipe "SecretCode" into the process
+    let mut child = std::process::Command::new("bash")
+        .arg("-c")
+        .arg(bash_code)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn bash");
+        
+    {
+        use std::io::Write;
+        // We run this in a block to ensure stdin is closed after writing
+        let stdin = child.stdin.as_mut().expect("Failed to open stdin");
+        stdin.write_all(b"SecretCode\n").expect("Failed to write to stdin");
+    }
+    
+    let output = child.wait_with_output().expect("Failed to read stdout");
+    
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Secret: SecretCode"));
+}
+
+#[test]
+fn test_input_confirm_stdin() {
+    // Amber code using input_confirm
+    let amber_code = r#"
+        import { input_confirm } from "std/env"
+        
+        main {
+            if input_confirm("Continue?", false) {
+                echo "Continued"
+            } else {
+                echo "Aborted"
+            }
+        }
+        "#;
+    
+    // Amber compiler setup and parse
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, bash_code) = compiler.compile().unwrap();
+    
+    // Assert no warnings
+    if !messages.is_empty() {
+        for msg in messages {
+            println!("{:?}", msg);
+        }
+        panic!("Compilation failed with warnings/errors");
+    }
+    
+    // Execute the bash code with stdin input
+    // We pipe "y" into the process
+    let mut child = std::process::Command::new("bash")
+        .arg("-c")
+        .arg(bash_code)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn bash");
+        
+    {
+        use std::io::Write;
+        // We run this in a block to ensure stdin is closed after writing
+        let stdin = child.stdin.as_mut().expect("Failed to open stdin");
+        stdin.write_all(b"y").expect("Failed to write to stdin");
+    }
+    
+    let output = child.wait_with_output().expect("Failed to read stdout");
+    
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Continued"));
+}
