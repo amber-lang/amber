@@ -203,7 +203,7 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
         }
         combined = join(items, " ")
     }
-    const files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && echo \\"\\\$file\\"; done" $?
+    const files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && printf \"%s\\n\" \\"\\\$file\\"; done" $?
     return split(files, "\n")
 }
 
