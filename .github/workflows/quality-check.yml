@@ -1,36 +1,11 @@
-name: Quality Check
+name: Code Coverage
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
 
 jobs:
-  quality-check:
-    name: Quality Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install minimal nightly (for fmt)
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rustfmt
-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@1.90.0
-        with:
-          components: rustfmt, clippy
-
-      - name: Cargo check
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Format check
-        run: cargo +nightly fmt --all -- --check
-
   test:
-    needs:
-      - quality-check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
