@@ -35,7 +35,7 @@ jobs:
     name: Rust build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
@@ -83,7 +83,7 @@ jobs:
           - sed: BusyBox_sed
             bash_docker_image: "bash:latest"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - uses: awalsh128/cache-apt-pkgs-action@latest
@@ -138,7 +138,7 @@ jobs:
     name: Rust tests on a native macOS Bash
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
@@ -158,7 +158,7 @@ jobs:
     name: Clippy tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - uses: r7kamura/rust-problem-matchers@9fe7ca9f6550e5d6358e179d451cc25ea6b54f98 # v1.5.0
