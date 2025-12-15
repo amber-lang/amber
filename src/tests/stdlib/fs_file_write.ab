@@ -1,3 +1,6 @@
+// Output
+// Succeeded
+// 2
 import * from "std/fs"
 
 main {
@@ -5,7 +8,13 @@ main {
     cd tmpdir
     trust file_write("test.txt", "Succeeded")
     const f = file_read("test.txt") failed {
-        echo "Failed" 
+        echo "Failed"
     }
     echo f
+
+    trust file_write("dash.txt", "-E")
+    const d = file_read("dash.txt") failed {
+        echo "Failed"
+    }
+    echo len(d)
 }

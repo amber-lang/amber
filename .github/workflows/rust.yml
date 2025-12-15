@@ -36,7 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v4
         with:
@@ -82,6 +84,8 @@ jobs:
             bash_docker_image: "bash:latest"
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: bc
@@ -90,7 +94,7 @@ jobs:
         run: |
           sudo curl https://github.com/b1ek/bshchk/releases/download/1.1/bshchk.linux.amd64 -L -o /usr/bin/bshchk
           sudo chmod +x /usr/bin/bshchk
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v4
         with:
@@ -135,7 +139,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v4
         with:
@@ -153,8 +159,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: r7kamura/rust-problem-matchers@v1
-      - uses: dtolnay/rust-toolchain@stable
+        with:
+          persist-credentials: false
+      - uses: r7kamura/rust-problem-matchers@9fe7ca9f6550e5d6358e179d451cc25ea6b54f98 # v1.5.0
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v4
         with:

@@ -451,11 +451,11 @@ pub fun capitalized(text: Text): Text {
             return text
         }
         if bash_version() >= [4] {
-            return $ echo "\$\{{nameof text}^}" $
+            return $ printf '%s\n' "\$\{{nameof text}^}" $
         }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+            return $ printf '%s\n' "{text}" | sed "s/^\(.\)/\U\1/" $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
