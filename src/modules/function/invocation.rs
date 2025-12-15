@@ -208,7 +208,7 @@ impl TranslateModule for FunctionInvocation {
                     fragments!(temp_var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]")
                 },
                 FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
-                _ if *is_ref => panic!("Reference value accepts only variables"),
+                _ if *is_ref => unreachable!("Reference value accepts only variables"),
                 var => var
             }).collect::<Vec<FragmentKind>>();
             let args = ListFragment::new(args).with_spaces().to_frag();

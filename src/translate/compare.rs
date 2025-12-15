@@ -167,13 +167,13 @@ pub fn translate_array_lexical_comparison(
         Type::Num => fragments!("(( ", translate_float_computation(meta, op.to_arith_op(), Some(left_helper_expr.clone().to_frag()), Some(right_helper_expr.clone().to_frag())), " != 0 ))"),
         Type::Int => fragments!("(( ", left_helper_expr.clone().to_frag(), op.to_frag(), right_helper_expr.clone().to_frag(), " ))"),
         Type::Text => fragments!("[[ ", left_helper_expr.clone().to_frag(), op.to_frag(), right_helper_expr.clone().to_frag(), " ]]"),
-        _ => panic!("Unsupported type {kind} in array lexical comparison")
+        _ => unreachable!("Unsupported type {kind} in array lexical comparison")
     };
     let elif_cond = match kind {
         Type::Num => fragments!("(( ", translate_float_computation(meta, inv_op.to_arith_op(), Some(left_helper_expr.to_frag()), Some(right_helper_expr.to_frag())), " != 0 ))"),
         Type::Int => fragments!("(( ", left_helper_expr.to_frag(), inv_op.to_frag(), right_helper_expr.to_frag(), " ))"),
         Type::Text => fragments!("[[ ", left_helper_expr.to_frag(), inv_op.to_frag(), right_helper_expr.to_frag(), " ]]"),
-        _ => panic!("Unsupported type {kind} in array lexical comparison")
+        _ => unreachable!("Unsupported type {kind} in array lexical comparison")
     };
     // If statement that compares two values of the arrays
     let if_stmt = BlockFragment::new(vec![

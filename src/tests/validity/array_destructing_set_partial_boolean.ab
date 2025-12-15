@@ -1,0 +1,12 @@
+// Output
+// 1
+// 1
+// 0
+
+let a = true
+let b = false
+let c = true
+[a, b, c] = [true, true]
+echo a
+echo b
+echo c

@@ -36,6 +36,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
         self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         self.index = handle_index_accessor(meta, false)?;
+
         token(meta, "=")?;
         syntax(meta, &mut *self.expr)?;
         Ok(())
@@ -66,36 +67,36 @@ impl TypeCheckModule for VariableSet {
             validate_index_accessor(meta, index_expr, false, PositionInfo::from_token(meta, self.tok.clone()))?;
         }
 
-        let right_type = self.expr.get_type();
+        let expr_type = self.expr.get_type();
 
         if self.index.is_some() {
             if let Type::Array(kind) = &self.var_type {
                 // Handle type inference
                 if **kind == Type::Generic {
-                    let new_type = Type::array_of(right_type.clone());
+                    let new_type = Type::array_of(expr_type.clone());
                     meta.update_var_type(&self.name, new_type.clone());
                     self.var_type = new_type;
                     return Ok(());
                 }
 
-                if !right_type.is_allowed_in(kind) {
+                if !expr_type.is_allowed_in(kind) {
                     let tok = self.expr.get_position();
-                    return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to an array of '{kind}'"));
+                    return error_pos!(meta, tok, format!("Cannot assign value of type '{expr_type}' to an array of '{kind}'"));
                 }
             }
         } else {
             // Check for type inference
-            if let (Type::Array(inner_var), Type::Array(inner_right)) = (&self.var_type, &right_type) {
+            if let (Type::Array(inner_var), Type::Array(inner_right)) = (&self.var_type, &expr_type) {
                 if **inner_var == Type::Generic && **inner_right != Type::Generic {
-                    meta.update_var_type(&self.name, right_type.clone());
-                    self.var_type = right_type;
+                    meta.update_var_type(&self.name, expr_type.clone());
+                    self.var_type = expr_type;
                     return Ok(());
                 }
             }
 
-            if !right_type.is_allowed_in(&self.var_type) {
+            if !expr_type.is_allowed_in(&self.var_type) {
                 let tok = self.expr.get_position();
-                return error_pos!(meta, tok, format!("Cannot assign value of type '{right_type}' to a variable of type '{}'", self.var_type));
+                return error_pos!(meta, tok, format!("Cannot assign value of type '{expr_type}' to a variable of type '{}'", self.var_type));
             }
         }
 

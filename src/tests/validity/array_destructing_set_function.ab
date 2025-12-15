@@ -1,0 +1,13 @@
+// Output
+// mobile
+// desktop
+
+fun foo(): [Text] {
+    return ["mobile", "desktop"]
+}
+
+let a = "";
+let b = "";
+[a, b] = foo()
+echo a
+echo b

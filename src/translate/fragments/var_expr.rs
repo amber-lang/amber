@@ -185,13 +185,12 @@ impl VarExprFragment {
         let index = self.index.take();
         let default_value = self.default_value.take();
         let index_is_none = index.is_none();
-        let default_is_none = default_value.is_none();
         let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index, default_value);
 
         if self.is_ref {
             self.render_deref_variable(meta, prefix, &name, &suffix)
-        } else if self.is_math_var && !self.is_length && default_is_none && index_is_none {
+        } else if self.is_math_var && !self.is_length && index_is_none {
             name.to_string()
         } else {
             let quote = if self.is_quoted { meta.gen_quote() } else { "" };
@@ -223,7 +222,7 @@ impl VarExprFragment {
         match (&self.kind, index.map(|var| *var)) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
                 if self.default_value.is_some() {
-                    panic!("It's impossible to render default value when slicing");
+                    unreachable!("It's impossible to render default value when slicing");
                 }
                 let offset = offset.with_quotes(false).to_string(meta);
                 let length = length.with_quotes(false).to_string(meta);

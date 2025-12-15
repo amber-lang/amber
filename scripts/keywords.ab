@@ -5,7 +5,7 @@ import {
     starts_with,
 } from "std/text"
 
-main(args) {
+main {
     let keywords = [Text]
     let should_append = false
     for line in lines("grammar.ebnf") {
@@ -18,7 +18,7 @@ main(args) {
             }
         }
     }
-    let result = $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
+    const result = $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
         echo "Something went wrong while sorting the keywords"
     }
     for item in split_words(result) {

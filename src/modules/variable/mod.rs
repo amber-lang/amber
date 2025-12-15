@@ -8,8 +8,21 @@ use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 
 pub mod init;
+pub mod init_destruct;
 pub mod set;
+pub mod set_destruct;
 pub mod get;
+use crate::raw_fragment;
+use crate::translate::fragments::fragment::{FragmentKind, FragmentRenderable};
+use crate::translate::fragments::raw::RawFragment;
+
+pub fn get_default_value_fragment(kind: &Type) -> Option<FragmentKind> {
+    match kind {
+        Type::Array(_) => Some(raw_fragment!("()")),
+        Type::Num | Type::Int | Type::Bool => Some(raw_fragment!("0")),
+        _ => None,
+    }
+}
 
 pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']

@@ -1,3 +1,7 @@
+// Output
+// Succeeded
+// 2
+
 import * from "std/fs"
 
 main {
@@ -6,7 +10,14 @@ main {
     trust $ touch test.txt $
     trust file_append("test.txt", "Succeeded")
     const f = file_read("test.txt") failed {
-        echo "Failed" 
+        echo "Failed"
     }
     echo f
+
+    trust $ touch dash.txt $
+    trust file_append("dash.txt", "-n")
+    const d = file_read("dash.txt") failed {
+        echo "Failed"
+    }
+    echo len(d)
 }
