@@ -189,7 +189,7 @@ jobs:
           apt-get install -y bc
 
       - name: Test coverage
-        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+        run: cargo tarpaulin --verbose --all-features --ignore-panics --workspace --timeout 120 --out xml
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
