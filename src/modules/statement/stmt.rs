@@ -6,7 +6,9 @@ use crate::modules::expression::expr::Expr;
 use crate::translate::module::TranslateModule;
 use crate::modules::variable::{
     init::VariableInit,
+    init_destruct::VariableInitDestruct,
     set::VariableSet,
+    set_destruct::VariableSetDestruct
 };
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::command::cmd::Command;
@@ -52,7 +54,9 @@ use super::comment::Comment;
 pub enum StmtType {
     Expr(Expr),
     VariableInit(VariableInit),
+    VariableInitDestruct(VariableInitDestruct),
     VariableSet(VariableSet),
+    VariableSetDestruct(VariableSetDestruct),
     IfCondition(IfCondition),
     IfChain(IfChain),
     ShorthandAdd(ShorthandAdd),
@@ -119,7 +123,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             // Command
             CommandModifier, Echo, Mv, Cd, Exit, Command,
             // Variables
-            VariableInit, VariableSet,
+            VariableInitDestruct, VariableSetDestruct, VariableInit, VariableSet,
             // Short hand
             ShorthandAdd, ShorthandSub,
             ShorthandMul, ShorthandDiv,
@@ -143,11 +147,13 @@ impl SyntaxModule<ParserMetadata> for Statement {
 impl TypeCheckModule for Statement {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         typecheck_statement!(meta, self.value.as_mut().unwrap(), [
-            Break, Cd, Command, CommandModifier, Comment, CommentDoc, Continue, Echo,
-            Exit, Expr, Fail, FunctionDeclaration, IfChain, IfCondition,
-            Import, InfiniteLoop, IterLoop, Main, Mv, Return, ShorthandAdd,
-            ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
-            Test, VariableInit, VariableSet, WhileLoop
+            Break, Cd, Command, CommandModifier, Comment,
+            CommentDoc, Continue, Echo, Exit, Expr,
+            Fail, FunctionDeclaration, IfChain, IfCondition, Import,
+            InfiniteLoop, IterLoop, Main, Mv, Return,
+            ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
+            Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
+            WhileLoop
         ]);
         Ok(())
     }
@@ -155,21 +161,16 @@ impl TypeCheckModule for Statement {
 
 impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Translate the staxtement
-        let statement = self.value.as_ref().unwrap();
         // This is a workaround that handles $(...) which cannot be used as a statement
+        let statement = self.value.as_ref().unwrap();
         translate_statement!(statement, [
-            Import,
-            FunctionDeclaration, Main, Test, Return, Fail,
-            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
-            IfChain, IfCondition,
-            CommandModifier, Echo, Mv, Cd, Exit, Command,
-            VariableInit, VariableSet,
-            ShorthandAdd, ShorthandSub,
-            ShorthandMul, ShorthandDiv,
-            ShorthandModulo,
-            CommentDoc, Comment,
-            Expr
+            Break, Cd, Command, CommandModifier, Comment,
+            CommentDoc, Continue, Echo, Exit, Expr,
+            Fail, FunctionDeclaration, IfChain, IfCondition, Import,
+            InfiniteLoop, IterLoop, Main, Mv, Return,
+            ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
+            Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
+            WhileLoop
         ], |inner_module| {
             if let StmtType::Expr(_) = statement {
                 inner_module.translate(meta);
@@ -183,20 +184,14 @@ impl TranslateModule for Statement {
 
 impl DocumentationModule for Statement {
     fn document(&self, meta: &ParserMetadata) -> String {
-        // Document the statement
-        let statement = self.value.as_ref().unwrap();
-        document_statement!(statement, [
-            Import,
-            FunctionDeclaration, Main, Test, Return, Fail,
-            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
-            IfChain, IfCondition,
-            CommandModifier, Echo, Mv, Cd, Exit, Command,
-            VariableInit, VariableSet,
-            ShorthandAdd, ShorthandSub,
-            ShorthandMul, ShorthandDiv,
-            ShorthandModulo,
-            CommentDoc, Comment,
-            Expr
+        document_statement!(self.value.as_ref().unwrap(), [
+            Break, Cd, Command, CommandModifier, Comment,
+            CommentDoc, Continue, Echo, Exit, Expr,
+            Fail, FunctionDeclaration, IfChain, IfCondition, Import,
+            InfiniteLoop, IterLoop, Main, Mv, Return,
+            ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
+            Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
+            WhileLoop
         ], inner_module, inner_module.document(meta))
     }
 }

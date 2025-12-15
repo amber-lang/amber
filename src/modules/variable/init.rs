@@ -36,14 +36,12 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         self.is_const = keyword == "const";
         self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
-        context!({
-            token(meta, "=")?;
-            syntax(meta, &mut *self.expr)?;
-            self.is_fun_ctx = meta.context.is_fun_ctx;
-            Ok(())
-        }, |position| {
-            error_pos!(meta, position, format!("Expected '=' after variable name '{}'", self.name))
-        })
+        if let Err(err) = token(meta, "=") {
+            return error_pos!(meta, err.unwrap_quiet(), format!("Expected '=' after variable name '{}'", self.name))
+        }
+        syntax(meta, &mut *self.expr)?;
+        self.is_fun_ctx = meta.context.is_fun_ctx;
+        Ok(())
     }
 }
 

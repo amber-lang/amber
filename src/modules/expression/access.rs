@@ -2,7 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Typed, Type};
-use crate::modules::variable::validate_index_accessor;
+use crate::modules::variable::{validate_index_accessor, variable_name_extensions};
 use crate::modules::typecheck::TypeCheckModule;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -49,8 +49,40 @@ impl Access {
     }
 
     pub fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Check if it's a destructuring assignment
+        if self.is_destruct(meta) {
+            return Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
+        }
         token(meta, "[")?;
         Ok(())
+    }
+
+    fn is_destruct(&self, meta: &mut ParserMetadata) -> bool {
+        let index = meta.get_index();
+        if token(meta, "[").is_err() {
+            meta.set_index(index);
+            return false;
+        }
+        loop {
+            if variable(meta, variable_name_extensions()).is_err() {
+                meta.set_index(index);
+                return false;
+            }
+            if token(meta, ",").is_err() {
+                if token(meta, "]").is_ok() {
+                    break;
+                } else {
+                    meta.set_index(index);
+                    return false;
+                }
+            }
+        }
+        if token(meta, "=").is_err() {
+            meta.set_index(index);
+            return false;
+        }
+        meta.set_index(index);
+        true
     }
 }
 

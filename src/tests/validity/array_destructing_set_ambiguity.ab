@@ -1,0 +1,12 @@
+// Output
+// 1
+// 1
+// 1
+
+let c = 1
+let a = 1
+let b = 1
+[a, b, c] = [1, 1, 1]
+echo a
+echo b
+echo c
