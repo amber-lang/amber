@@ -173,3 +173,24 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
+  coverage:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:develop-nightly
+      options: --security-opt seccomp=unconfined
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test coverage
+        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          files: ./coverage_output/cobertura.xml
+          verbose: true
