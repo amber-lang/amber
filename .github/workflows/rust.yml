@@ -183,6 +183,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install Amber dependencies
+        run: |
+          apt-get update
+          apt-get install -y bc
 
       - name: Test coverage
         run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
