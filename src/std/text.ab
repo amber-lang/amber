@@ -91,16 +91,16 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option
             if sed_version == SED_VERSION_GNU {
-                return $ echo "{source}" | sed -r -e "s/{search}/{replace_text}/g" $
+                return $ printf '%s\n' "{source}" | sed -r -e "s/{search}/{replace_text}/g" $
             } else {
-                return $ echo "{source}" | sed -E -e "s/{search}/{replace_text}/g" $
+                return $ printf '%s\n' "{source}" | sed -E -e "s/{search}/{replace_text}/g" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            return $ echo "{source}" | sed -e "s/{search}/{replace_text}/g" $
+            return $ printf '%s\n' "{source}" | sed -e "s/{search}/{replace_text}/g" $
         }
     }
 }
@@ -199,7 +199,7 @@ pub fun trim(text: Text): Text {
 /// echo lower // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    return trust $ echo "{text}" | tr '[:upper:]' '[:lower:]' $
+    return trust $ printf '%s\n' "{text}" | tr '[:upper:]' '[:lower:]' $
 }
 
 /// Makes the text input uppercase using `tr`.
@@ -210,7 +210,7 @@ pub fun lowercase(text: Text): Text {
 /// echo upper // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    return trust $ echo "{text}" | tr '[:lower:]' '[:upper:]' $
+    return trust $ printf '%s\n' "{text}" | tr '[:lower:]' '[:upper:]' $
 }
 
 /// Attempts to parse a given text into an `Int` number.
@@ -330,16 +330,16 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
             if sed_version == SED_VERSION_GNU {
                 // '\b' is not in POSIX standards. Disable it
                 search = replace(search, "\b", "\\b")
-                output = $ echo "{source}" | sed -r -ne "/{search}/p" $
+                output = $ printf '%s\n' "{source}" | sed -r -ne "/{search}/p" $
             } else {
-                output = $ echo "{source}" | sed -E -ne "/{search}/p" $
+                output = $ printf '%s\n' "{source}" | sed -E -ne "/{search}/p" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            output = $ echo "{source}" | sed -ne "/{search}/p" $
+            output = $ printf '%s\n' "{source}" | sed -ne "/{search}/p" $
         }
         if output != "" {
             return true
@@ -374,7 +374,7 @@ pub fun match_regex_any(text: Text, terms: [Text]): Bool {
 /// echo reversed_text // "olleh"
 /// ```
 pub fun reversed(text: Text): Text {
-    return trust $ echo "{text}" | rev $
+    return trust $ printf '%s\n' "{text}" | rev $
 }
 
 /// Checks if text starts with a value.
@@ -451,11 +451,11 @@ pub fun capitalized(text: Text): Text {
             return text
         }
         if bash_version() >= [4] {
-            return $ echo "\$\{{nameof text}^}" $
+            return $ printf '%s\n' "\$\{{nameof text}^}" $
         }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+            return $ printf '%s\n' "{text}" | sed "s/^\(.\)/\U\1/" $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
