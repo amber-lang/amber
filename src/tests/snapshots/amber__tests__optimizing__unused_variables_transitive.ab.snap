@@ -3,4 +3,4 @@ source: src/tests/optimizing.rs
 assertion_line: 34
 expression: output
 ---
-printf '%s\n' "All variables are unused"
+echo "All variables are unused"

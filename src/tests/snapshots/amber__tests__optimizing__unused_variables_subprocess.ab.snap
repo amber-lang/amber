@@ -4,4 +4,4 @@ assertion_line: 34
 expression: output
 ---
 command_0="$(touch file.txt)"
-printf '%s\n' "The \`file.txt\` must be created even if \`a\` is not used"
+echo "The \`file.txt\` must be created even if \`a\` is not used"
