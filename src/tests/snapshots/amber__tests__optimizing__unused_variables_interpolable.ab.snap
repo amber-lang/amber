@@ -1,6 +1,7 @@
 ---
 source: src/tests/optimizing.rs
+assertion_line: 34
 expression: output
 ---
 b_1=20
-echo "The answer is ${b_1}."
+printf '%s\n' "The answer is ${b_1}."

@@ -1,5 +1,6 @@
 ---
 source: src/tests/optimizing.rs
+assertion_line: 34
 expression: output
 ---
 a_0=10
@@ -8,6 +9,6 @@ do
     if [ "$(( a_0 <= 0 ))" != 0 ]; then
         break
     fi
-    echo "${a_0}"
+    printf '%s\n' "${a_0}"
     a_0="$(( a_0 - 1 ))"
 done

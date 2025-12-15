@@ -1,5 +1,6 @@
 ---
 source: src/tests/translating.rs
+assertion_line: 31
 expression: ast
 ---
 Block(
@@ -101,7 +102,7 @@ Block(
                                             values: [
                                                 Raw(
                                                     RawFragment {
-                                                        value: "echo ",
+                                                        value: "printf '%s\\n' ",
                                                     },
                                                 ),
                                                 Interpolable(
@@ -352,7 +353,7 @@ Block(
                                             values: [
                                                 Raw(
                                                     RawFragment {
-                                                        value: "echo ",
+                                                        value: "printf '%s\\n' ",
                                                     },
                                                 ),
                                                 Interpolable(
@@ -411,7 +412,7 @@ Block(
                                             values: [
                                                 Raw(
                                                     RawFragment {
-                                                        value: "echo ",
+                                                        value: "printf '%s\\n' ",
                                                     },
                                                 ),
                                                 Interpolable(

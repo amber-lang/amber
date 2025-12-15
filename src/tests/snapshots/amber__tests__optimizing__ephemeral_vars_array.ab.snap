@@ -1,6 +1,7 @@
 ---
 source: src/tests/optimizing.rs
+assertion_line: 34
 expression: output
 ---
 array_0=(1 2 3)
-echo "${array_0[@]}"
+printf '%s\n' "${array_0[*]}"

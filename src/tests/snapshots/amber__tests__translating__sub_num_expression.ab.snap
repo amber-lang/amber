@@ -1,5 +1,6 @@
 ---
 source: src/tests/translating.rs
+assertion_line: 31
 expression: ast
 ---
 Block(
@@ -10,7 +11,7 @@ Block(
                     values: [
                         Raw(
                             RawFragment {
-                                value: "echo ",
+                                value: "printf '%s\\n' ",
                             },
                         ),
                         Subprocess(
@@ -79,7 +80,7 @@ Block(
                     values: [
                         Raw(
                             RawFragment {
-                                value: "echo ",
+                                value: "printf '%s\\n' ",
                             },
                         ),
                         Subprocess(
@@ -200,7 +201,7 @@ Block(
                     values: [
                         Raw(
                             RawFragment {
-                                value: "echo ",
+                                value: "printf '%s\\n' ",
                             },
                         ),
                         Subprocess(
