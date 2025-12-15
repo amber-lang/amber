@@ -1,0 +1,52 @@
+flags:
+  0.3.4-alpha:
+    paths:
+      - src/grammar/alpha034/
+      - src/analysis/alpha034/
+  0.3.5-alpha:
+    paths:
+      - src/grammar/alpha035/
+      - src/analysis/alpha035/
+  0.4.0-alpha:
+    paths:
+      - src/grammar/alpha040/
+      - src/analysis/alpha040/
+  0.5.0-alpha:
+    paths:
+      - src/grammar/alpha050/
+      - src/analysis/alpha050/
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 0%
+        base: auto
+        if_not_found: success
+        informational: false
+        flags:
+          - 0.3.4-alpha
+          - 0.3.5-alpha
+          - 0.4.0-alpha
+      0.3.4-alpha:
+        flags:
+          - 0.3.4-alpha
+      0.3.5-alpha:
+        flags:
+          - 0.3.5-alpha
+      0.4.0-alpha:
+        flags:
+          - 0.4.0-alpha
+      0.5.0-alpha:
+        flags:
+          - 0.5.0-alpha
+    patch:
+      default:
+        target: 80%
+
+comment:
+  layout: " diff, flags, files"
+  behavior: default
+  require_changes: true  # if true: only post the comment if coverage changes
+  hide_project_coverage: false # [true :: only show coverage on the git diff aka patch coverage]]
