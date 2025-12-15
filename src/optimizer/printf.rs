@@ -2,6 +2,8 @@ use crate::modules::prelude::*;
 use crate::translate::fragments::interpolable::InterpolableRenderType;
 use crate::translate::fragments::var_expr::VarIndexValue;
 
+// This optimizer replaces printf with echo when the text is a literal and does not start with a dash (-) character.
+
 const PRINTF_LITERAL_PREFIX: &str = "printf '%s\\n' ";
 
 pub fn optimize_printf_literals(ast: &mut FragmentKind) {
