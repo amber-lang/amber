@@ -244,10 +244,35 @@ jobs:
           name: scripts-deb
           path: dist/*
 
+  keywords:
+    name: Print keywords
+    if: needs.preflight.outputs.tag_name != 'skip'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - uses: lens0021/setup-amber@4e982a9c24ffe1101102784ce81ec457fc531716 # v2.1.0
+        with:
+          amber-version: 0.5.1-alpha
+
+      - name: Create keywords file
+        run: |
+          amber scripts/keywords.ab > keywords.txt
+          cat keywords.txt
+
+      - name: Upload artifacts (scripts & deb)
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+        with:
+          name: keywords
+          path: keywords.txt
+
   publish:
     name: Publish Release Assets
     runs-on: ubuntu-latest
-    needs: [preflight, linux, macos, windows, installers]
+    needs: [preflight, linux, macos, windows, installers, keywords]
     if: needs.preflight.outputs.tag_name != 'skip'
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
