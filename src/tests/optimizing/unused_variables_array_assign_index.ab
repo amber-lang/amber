@@ -1,0 +1,8 @@
+fun foo(): Int {
+    return 0
+}
+
+let x = foo()
+let arr = [""]
+arr[x] = "A"
+echo arr[0]

@@ -174,6 +174,10 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                 meta.symbols.push_back(SymbolType::Statement(var_stmt.get_name(), dependencies));
             } else {
                 find_unused_variables(&var_stmt.value, meta);
+                if let Some(index) = &var_stmt.index {
+                    find_unused_variables(index, meta);
+                }
+
             }
 
         }
@@ -191,6 +195,9 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                         find_unused_variables(end, meta);
                     }
                 }
+            }
+            if let Some(default_value) = &var_expr.default_value {
+                find_unused_variables(default_value, meta);
             }
         }
         FragmentKind::Subprocess(subprocess) => {
