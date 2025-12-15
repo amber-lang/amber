@@ -226,7 +226,8 @@ impl VarExprFragment {
                 }
                 let offset = offset.with_quotes(false).to_string(meta);
                 let length = length.with_quotes(false).to_string(meta);
-                format!("[@]:{offset}:{length}")
+                let slice = if self.is_array_to_string { "[*]" } else { "[@]" };
+                format!("{slice}:{offset}:{length}")
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);

@@ -43,7 +43,15 @@ impl TypeCheckModule for Echo {
 
 impl TranslateModule for Echo {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("echo ", self.value.translate(meta))
+        let value = self.value.translate(meta);
+        let value = match value {
+            FragmentKind::VarExpr(var) if var.kind.is_array() => {
+                FragmentKind::VarExpr(var.with_array_to_string(true))
+            }
+            other => other,
+        };
+
+        fragments!("printf '%s\\n' ", value)
     }
 }
 
