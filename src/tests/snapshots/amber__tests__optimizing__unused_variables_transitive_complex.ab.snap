@@ -1,6 +1,5 @@
 ---
 source: src/tests/optimizing.rs
-assertion_line: 34
 expression: output
 ---
 a_1=10
@@ -9,4 +8,4 @@ c_3="${a_1}"
 if [ 1 != 0 ]; then
     c_3="${b_2}"
 fi
-printf '%s\n' "${c_3}"
+echo "${c_3}"

@@ -1,8 +1,7 @@
 ---
 source: src/tests/optimizing.rs
-assertion_line: 34
 expression: output
 ---
 outer_0=10
 inner_2="${outer_0}"
-printf '%s\n' "${inner_2}"
+echo "${inner_2}"

@@ -1,6 +1,5 @@
 ---
 source: src/tests/optimizing.rs
-assertion_line: 34
 expression: output
 ---
 foo__0_v0() {

@@ -1,4 +1,3 @@
-use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
@@ -44,6 +43,7 @@ impl TypeCheckModule for Echo {
 impl TranslateModule for Echo {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
+        // If the variable is an array, it's always passed as a variable expression
         let value = match value {
             FragmentKind::VarExpr(var) if var.kind.is_array() => {
                 FragmentKind::VarExpr(var.with_array_to_string(true))
@@ -51,7 +51,7 @@ impl TranslateModule for Echo {
             other => other,
         };
 
-        fragments!("printf '%s\\n' ", value)
+        FragmentKind::Log(LogFragment::new(value))
     }
 }
 

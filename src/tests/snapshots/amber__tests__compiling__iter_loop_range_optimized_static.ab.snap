@@ -1,23 +1,22 @@
 ---
 source: src/tests/compiling.rs
-assertion_line: 34
 expression: ast
 ---
-printf '%s\n' "From 0 to 5"
+echo "From 0 to 5"
 for (( i_0=0; i_0 < 5; i_0++ )); do
-    printf '%s\n' "${i_0}"
+    echo "${i_0}"
 done
-printf '%s\n' "From 5 to 0"
+echo "From 5 to 0"
 for (( j_1=5; j_1 > 0; j_1-- )); do
-    printf '%s\n' "${j_1}"
+    echo "${j_1}"
 done
-printf '%s\n' "From 0 to 0"
-printf '%s\n' "From 5 to 5"
-printf '%s\n' "From 5 to =5"
+echo "From 0 to 0"
+echo "From 5 to 5"
+echo "From 5 to =5"
 for (( m_4=5; m_4 <= 5; m_4++ )); do
-    printf '%s\n' "${m_4}"
+    echo "${m_4}"
 done
-printf '%s\n' "From 5 to =0"
+echo "From 5 to =0"
 for (( n_5=5; n_5 >= 0; n_5-- )); do
-    printf '%s\n' "${n_5}"
+    echo "${n_5}"
 done

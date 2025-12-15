@@ -1,14 +1,11 @@
 use crate::modules::prelude::*;
 use unused_vars::remove_unused_variables;
 use ephemeral_vars::remove_ephemeral_variables;
-use printf::optimize_printf_literals;
 
 pub mod ephemeral_vars;
 pub mod unused_vars;
-pub mod printf;
 
 pub fn optimize_fragments(ast: &mut FragmentKind) {
-    optimize_printf_literals(ast);
     remove_unused_variables(ast);
     remove_ephemeral_variables(ast);
 }

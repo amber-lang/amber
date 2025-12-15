@@ -1,9 +1,8 @@
 ---
 source: src/tests/optimizing.rs
-assertion_line: 34
 expression: output
 ---
 a_0=10
 c_2=30
 array_0=("${a_0}" "${c_2}")
-printf '%s\n' "${array_0[*]}"
+echo "${array_0[*]}"
