@@ -17,9 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        id: cache-zizmor
         with:
-          path: ${{ github.workspace }}/.tools
-          key: zizmor-{{ env.ZIZMOR_VERSION }}
+          path: ~/.tools
+          key: zizmor-${{ env.ZIZMOR_VERSION }}
           restore-keys: zizmor-
 
       - name: Install zizmor
@@ -27,6 +28,7 @@ jobs:
           if [ "${{ steps.cache-zizmor.outputs.cache-hit }}" != "true" ]; then
             curl -Lo zizmor.tar.gz "https://github.com/zizmorcore/zizmor/releases/download/$ZIZMOR_VERSION/zizmor-x86_64-unknown-linux-gnu.tar.gz"
             tar -xvzf zizmor.tar.gz
+            mkdir -p "$HOME/.tools"
             install zizmor "$HOME/.tools"
           fi
           echo "$HOME/.tools" >> $GITHUB_PATH
