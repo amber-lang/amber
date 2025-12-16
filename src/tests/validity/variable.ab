@@ -5,4 +5,4 @@
 let x = 42
 echo(x)
 x = 21
-echo(x )
+echo(x)
