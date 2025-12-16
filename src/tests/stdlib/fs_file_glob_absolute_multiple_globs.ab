@@ -34,12 +34,12 @@ main {
         "{tmpdir}/other.csv",
     ]
     const actual = file_glob_all(["{tmpdir}/missing*", "{tmpdir}/file*.txt", "{tmpdir}/other*.csv"]) failed {
-        echo "FAILED"
+        echo("FAILED")
     }
     if compare(actual, expected) {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Expected: {expected}"
-        echo "Actual: {actual}"
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
     }
 }

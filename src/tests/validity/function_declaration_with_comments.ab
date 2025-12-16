@@ -13,4 +13,4 @@ fun calculate(
 }
 
 let sum = calculate(10, 20, 30)
-echo "Sum: {sum}"
+echo("Sum: {sum}")

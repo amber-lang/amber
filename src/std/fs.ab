@@ -73,7 +73,7 @@ pub fun symlink_create(origin: Text, destination: Text): Null? {
         return null
     }
 
-    echo "The file {origin} doesn't exist!"
+    echo("The file {origin} doesn't exist!")
     fail 1
 }
 
@@ -111,7 +111,7 @@ pub fun temp_dir_create(
     force_delete: Bool = false
 ): Text? {
     if trim(template) == "" {
-        echo "The template cannot be an empty string!"
+        echo("The template cannot be an empty string!")
         fail 1
     }
 
@@ -124,17 +124,17 @@ pub fun temp_dir_create(
         filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
     }
     if filename == "" {
-        echo "Failed to make a temporary directory"
+        echo("Failed to make a temporary directory")
         fail 1
     }
     if auto_delete {
         if force_delete {
             $ trap 'rm -rf {filename}' EXIT $ failed {
-                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+                echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
             }
         } else {
             $ trap 'rmdir {filename}' EXIT $ failed {
-                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+                echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
             }
         }
     }
@@ -155,7 +155,7 @@ pub fun file_chmod(path: Text, mode: Text): Null? {
         return null
     }
 
-    echo "The file {path} doesn't exist!"
+    echo("The file {path} doesn't exist!")
     fail 1
 }
 
@@ -173,7 +173,7 @@ pub fun file_chown(path: Text, user: Text): Null? {
         return null
     }
 
-    echo "The file {path} doesn't exist!"
+    echo("The file {path} doesn't exist!")
     fail 1
 }
 
@@ -241,12 +241,12 @@ pub fun file_extract(path: Text, target: Text): Null? {
             match_regex(path, "\.7z$"): $ 7z -y "{path}" -o "{target}" $?
             match_regex(path, "\.\(zip\|war\|jar\)$"): $ unzip "{path}" -d "{target}" $?
             else {
-                echo "Error: Unsupported file type"
+                echo("Error: Unsupported file type")
                 fail 3
             }
         }
     } else {
-        echo "Error: File not found"
+        echo("Error: File not found")
         fail 2
     }
 }

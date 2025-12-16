@@ -7,8 +7,8 @@ import * from "std/math"
 // -2
 
 main {
-    echo math_round(1.1);
-    echo math_round(1.5);
-    echo math_round(-1.1);
-    echo math_round(-1.5);
+    echo(math_round(1.1));
+    echo(math_round(1.5));
+    echo(math_round(-1.1));
+    echo(math_round(-1.5));
 }

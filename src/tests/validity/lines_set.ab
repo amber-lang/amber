@@ -15,6 +15,6 @@ main {
     let lines_contents = ["a", "b", "c"]
     lines_contents = lines("{tmpdir}/numbers.txt")
     for line in lines_contents {
-        echo "[{line}]"
+        echo("[{line}]")
     }
 }

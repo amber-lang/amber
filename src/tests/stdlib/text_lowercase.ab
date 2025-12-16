@@ -4,5 +4,5 @@ import * from "std/text"
 // hello world
 
 main {
-    echo lowercase("HELLO WORLD")
+    echo(lowercase("HELLO WORLD"))
 } 

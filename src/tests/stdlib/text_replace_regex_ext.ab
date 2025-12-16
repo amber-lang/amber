@@ -12,19 +12,19 @@ import * from "std/text"
 
 main {
     // One or more matching
-    echo replace_regex("aaa", "a+", "z", true)
+    echo(replace_regex("aaa", "a+", "z", true))
     // Single character bracket expression
-    echo replace_regex("abc", "[ab]", "c", true)
+    echo(replace_regex("abc", "[ab]", "c", true))
     // Range bracket expression
-    echo replace_regex("E", "[A-Z]", "E", true)
+    echo(replace_regex("E", "[A-Z]", "E", true))
     // Combination of bracket exp, caupturing group and one or more
-    echo replace_regex("abc123def", "([0-9]+)", "[\1]", true)
+    echo(replace_regex("abc123def", "([0-9]+)", "[\1]", true))
     // Word boundary should not be handled, because it is not POSIX standard
-    echo replace_regex("aeon aeons eon eons", "\beon\b", "###", true)
+    echo(replace_regex("aeon aeons eon eons", "\beon\b", "###", true))
     // Replacing forward slash
-    echo replace_regex("/path/to/file.txt", "/", "#", true)
+    echo(replace_regex("/path/to/file.txt", "/", "#", true))
     // A pipe (|) should be treated as OR in POSIX Standards ERE.
-    echo replace_regex(".tar.gz", "\.(tar\.gz|tgz)$", "Succeeded", true)
+    echo(replace_regex(".tar.gz", "\.(tar\.gz|tgz)$", "Succeeded", true))
     // Capture groups
-    echo replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true)
+    echo(replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true))
 }

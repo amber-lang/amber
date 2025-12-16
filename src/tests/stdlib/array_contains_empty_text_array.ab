@@ -6,8 +6,8 @@ import * from "std/array"
 main {
     const array = [Text]
     if array_contains(array, " ") {
-        echo "Found"
+        echo("Found")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

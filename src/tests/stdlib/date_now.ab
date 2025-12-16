@@ -8,5 +8,5 @@ fun get_current_date(): Int {
 
 main {
     const posix_now = get_current_date()
-    if math_abs(date_now() - posix_now) < 3: echo "Succeeded"
+    if math_abs(date_now() - posix_now) < 3: echo("Succeeded")
 }

@@ -6,5 +6,5 @@ fun foo(): Num {
 }
 
 foo() failed {
-    echo "This should warn"
+    echo("This should warn")
 }

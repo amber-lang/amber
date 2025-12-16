@@ -48,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Command {
                 Err(Failure::Quiet(_)) => {
                     // No failure handler found
                     error!(meta, tok => {
-                        message: "Failed command must be followed by an 'exited', 'succeeded' or 'failed' block, statement or operator '?'",
+                        message: "The command can potentially fail. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
                         comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
                     })
                 },

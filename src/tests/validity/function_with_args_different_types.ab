@@ -5,5 +5,5 @@
 fun test(a, b) {
     return a + b
 }
-echo test("Hello", "World")
-echo test(11, 42)
+echo(test("Hello", "World"))
+echo(test(11, 42))

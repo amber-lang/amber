@@ -3,4 +3,4 @@
 
 const a = .2
 const b = .1
-echo a + b
+echo(a + b)

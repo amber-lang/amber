@@ -4,8 +4,8 @@ main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust $ touch {tmpdir}/test.txt $
     if file_exists("{tmpdir}/test.txt") {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

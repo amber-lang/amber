@@ -6,8 +6,8 @@ import * from "std/array"
 main {
     const array = ["foo", "bar", "baz"]
     if array_contains(array, "oo ba") {
-        echo "Found"
+        echo("Found")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

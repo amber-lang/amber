@@ -3,7 +3,7 @@
 // Hello Hi
 
 fun test_func(arr: []): Null {
-        echo arr
+    echo(arr)
 }
 
 test_func([1, 2, 3])

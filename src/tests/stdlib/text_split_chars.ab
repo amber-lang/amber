@@ -4,5 +4,5 @@ import * from "std/text"
 // h e l l o
 
 main {
-    echo split_chars("hello")
+    echo(split_chars("hello"))
 } 

@@ -4,4 +4,4 @@
 fun test(a, b) {
     return "{a} {b}"
 }
-echo test("Hello", "World")
+echo(test("Hello", "World"))

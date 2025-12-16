@@ -2,4 +2,4 @@
 // welcome to wonderful world
 
 const x = "welcome {"to"} wonderful {"world"}"
-echo x
+echo(x)

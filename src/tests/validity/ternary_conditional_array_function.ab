@@ -6,7 +6,7 @@
 
 fun foo(val) {
     for item in val {
-        echo item
+        echo(item)
     }
 }
 

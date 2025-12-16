@@ -5,12 +5,12 @@
 
 const a = [1]
 const b = [2,3]
-echo a == b 
+echo(a == b)
 
 const c = [1]
 const d = [2]
-echo c == d 
+echo(c == d)
 
 const e = [1, 2]
 const f = [1, 2]
-echo e == f
+echo(e == f)

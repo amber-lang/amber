@@ -3,4 +3,4 @@ import * from "src/tests/validity/test_files/is_even.ab"
 // Output
 // even
 
-echo is_even(10)
+echo(is_even(10))

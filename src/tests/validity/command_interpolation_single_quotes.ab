@@ -27,7 +27,7 @@ trust $ echo "a'b{str}c'd" $
 trust $ echo '{str} {str}' $
 trust $ echo "{str} {str}" $
 trust $ echo '"a'b $
-echo "---"
+echo("---")
 // Reallife examples
 trust $ printf '{str}\\n' $
 trust $ echo 'a b c d e' | cut -d'{space}' -f3 $

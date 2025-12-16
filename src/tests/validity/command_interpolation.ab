@@ -1,4 +1,4 @@
 // Output
 // Hello World
 
-echo trust $ echo { trust $ echo Hello World $ } $
+echo(trust $ echo { trust $ echo Hello World $ } $)

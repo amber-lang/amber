@@ -14,6 +14,6 @@ main {
     // Inefficient for large files.
     const lines_contents = lines("{tmpdir}/numbers1.txt") + ["", "five", "  six  "]
     for line in lines_contents {
-        echo "[{line}]"
+        echo("[{line}]")
     }
 }

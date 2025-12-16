@@ -6,4 +6,4 @@ fun test_func() {
     return 42
 }
 
-test_func() failed: echo "Succeeded"
+test_func() failed: echo("Succeeded")

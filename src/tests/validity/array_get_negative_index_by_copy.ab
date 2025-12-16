@@ -14,7 +14,7 @@ fun bash_version(): Int {
 
 fun test_index(array) {
     for index in -4..=-1 {
-        echo "Value at {index}: \"{array[index]}\""
+        echo("Value at {index}: \"{array[index]}\"")
     }
 }
 
@@ -24,6 +24,6 @@ main {
         test_index(array)
     } else {
         // Negative indexing is not supported before Bash 4.2.
-        echo "Succeeded"
+        echo("Succeeded")
     }
 }

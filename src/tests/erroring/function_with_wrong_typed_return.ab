@@ -4,4 +4,4 @@
 pub fun test(): Num {
     return "Hello, World!"
 }
-echo test()
+echo(test())

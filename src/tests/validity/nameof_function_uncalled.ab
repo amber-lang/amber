@@ -2,7 +2,7 @@
 // hello
 
 fun foo() {
-    echo "hello"
+    echo("hello")
 }
 
 trust $ {nameof foo} $

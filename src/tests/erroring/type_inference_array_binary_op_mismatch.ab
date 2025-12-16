@@ -4,4 +4,4 @@
 let a = []
 a = a + [1]
 a = a + ["test"]
-echo a
+echo(a)

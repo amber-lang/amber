@@ -5,8 +5,8 @@
 
 let a = 5.5
 let b = 2.0
-echo a % b
+echo(a % b)
 
 let c = 5
-echo a % c
-echo c % a
+echo(a % c)
+echo(c % a)

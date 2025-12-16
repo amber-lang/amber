@@ -6,7 +6,7 @@
 /// ```
 pub fun assert(condition: Bool) {
     if not condition {
-        echo "Assertion failed"
+        echo("Assertion failed")
         fail 1
     }
 }
@@ -20,7 +20,7 @@ pub fun assert(condition: Bool) {
 /// ```
 pub fun assert_eq(left, right) {
     if left != right {
-        echo "Assertion failed: {left} != {right}"
+        echo("Assertion failed: {left} != {right}")
         fail 1
     }
 }

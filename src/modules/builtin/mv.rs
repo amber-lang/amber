@@ -31,10 +31,36 @@ impl SyntaxModule<ParserMetadata> for Mv {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
+            let position = meta.get_index();
             token(meta, "mv")?;
-            syntax(meta, &mut *self.source)?;
-            syntax(meta, &mut *self.destination)?;
-            syntax(meta, &mut self.failure_handler)?;
+
+            if token(meta, "(").is_ok() {
+                syntax(meta, &mut *self.source)?;
+                token(meta, ",")?;
+                syntax(meta, &mut *self.destination)?;
+                token(meta, ")")?;
+            } else {
+                let tok = meta.get_token_at(position);
+                let warning = Message::new_warn_at_token(meta, tok)
+                    .message("Calling a builtin without parentheses is deprecated");
+                meta.add_message(warning);
+
+                syntax(meta, &mut *self.source)?;
+                syntax(meta, &mut *self.destination)?;
+            }
+
+            // Handle optional failure handler (failed/succeeded/exited blocks)
+            if let Err(e) = syntax(meta, &mut self.failure_handler) {
+                match e {
+                    Failure::Quiet(pos) => {
+                        return error_pos!(meta, pos => {
+                            message: "The `mv` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
+                            comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
+                        });
+                    },
+                    _ => return Err(e)
+                }
+            }
             Ok(())
         })
     }

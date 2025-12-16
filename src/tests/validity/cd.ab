@@ -1,5 +1,5 @@
 // Output
 // /tmp
 
-cd "/tmp/"
+cd("/tmp/")
 trust $ pwd $

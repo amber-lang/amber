@@ -8,7 +8,7 @@ fun sum_array(arr: [Num]): Num {
 
 const arr = [1, 2, 3, 4, 5]
 const sum = sum_array(arr)
-echo sum
+echo(sum)
 
 // Output
 // 15

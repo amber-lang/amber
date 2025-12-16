@@ -6,7 +6,7 @@ import { match_regex } from "std/text"
 
 main {
     // $ end of string
-    echo match_regex("Hello World", " World$") then "Succeeded" else ""
+    echo(match_regex("Hello World", " World$") then "Succeeded" else "")
     // A pipe (|) should be treated as a literal character in POSIX Standards BRE.
-    echo match_regex("to be", "to be|not to be") then "" else "Succeeded"
+    echo(match_regex("to be", "to be|not to be") then "" else "Succeeded")
 }

@@ -9,4 +9,4 @@ fun factorial(n: Num): Num {
 }
 
 const f5 = factorial(5)
-echo f5
+echo(f5)

@@ -5,6 +5,6 @@ import * from "std/text"
 // E-
 
 main {
-    echo reversed("hello world")
-    echo reversed("-E")
+    echo(reversed("hello world"))
+    echo(reversed("-E"))
 } 

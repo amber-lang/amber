@@ -4,6 +4,6 @@
 
 main {
     $ echo "test" $ exited(code) {
-        echo "Test passed with code: {code}"
+        echo("Test passed with code: {code}")
     }
 }

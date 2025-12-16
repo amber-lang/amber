@@ -9,5 +9,5 @@ fun two_vars(ref a: [Int], ref b: [Int]) {
 let x = []
 let y = []
 two_vars(x, y)
-echo x
-echo y
+echo(x)
+echo(y)

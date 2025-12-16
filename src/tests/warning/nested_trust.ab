@@ -11,4 +11,4 @@ fun bar() {
 }
 
 trust foo(bar())
-echo "Done"
+echo("Done")

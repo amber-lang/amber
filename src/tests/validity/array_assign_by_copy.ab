@@ -4,9 +4,9 @@
 
 fun test_func(a) {
     a[2] = 42
-    echo a
+    echo(a)
 }
 
 const a = [1, 2, 3, 4, 5]
 test_func(a)
-echo a
+echo(a)

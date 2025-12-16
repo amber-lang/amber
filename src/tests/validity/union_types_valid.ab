@@ -8,7 +8,7 @@
 // 1 0
 
 fun foo(x: Int | Bool | Text) {
-    echo x
+    echo(x)
 }
 
 foo(1)
@@ -16,14 +16,14 @@ foo(true)
 foo("hello")
 
 fun bar(x: [Int] | [Bool]) {
-    echo x
+    echo(x)
 }
 
 bar([1, 2])
 bar([true, false])
 
 fun baz(x: [Int | Bool]) {
-    echo x
+    echo(x)
 }
 
 baz([1, 2])

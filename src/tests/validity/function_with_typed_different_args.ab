@@ -3,7 +3,7 @@
 // Hello
 
 fun test_func(a: Num, b: Text) {
-    echo a
-    echo b
+    echo(a)
+    echo(b)
 }
 test_func(11, "Hello")

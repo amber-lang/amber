@@ -2,7 +2,7 @@
 // Cannot use both 'succeeded' and 'failed' blocks for the same command
 
 $ echo "test" $ succeeded {
-    echo "Success!"
+    echo("Success!")
 } failed {
-    echo "Failed!"
+    echo("Failed!")
 }

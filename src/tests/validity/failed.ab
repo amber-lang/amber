@@ -12,5 +12,5 @@ main {
         $ you_do_not_have_this $ failed: requirements[2] = false
     }
 
-    echo requirements
+    echo(requirements)
 }

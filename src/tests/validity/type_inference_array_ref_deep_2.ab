@@ -9,4 +9,4 @@ fun level1(ref arr: [Int]) {
 }
 let a = []
 level1(a)
-echo a
+echo(a)

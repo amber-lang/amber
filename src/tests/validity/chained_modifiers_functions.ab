@@ -3,12 +3,12 @@
 // two
 
 fun foo(a) {
-    echo a
+    echo(a)
     fail 1
 }
 
 fun bar() {
-    echo "this should not appear"
+    echo("this should not appear")
 }
 
 trust foo("one")

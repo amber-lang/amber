@@ -6,18 +6,18 @@ import * from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    cd tmpdir
+    cd(tmpdir)
     trust $ touch test.txt $
     trust file_append("test.txt", "Succeeded")
     const f = file_read("test.txt") failed {
-        echo "Failed"
+        echo("Failed")
     }
-    echo f
+    echo(f)
 
     trust $ touch dash.txt $
     trust file_append("dash.txt", "-n")
     const d = file_read("dash.txt") failed {
-        echo "Failed"
+        echo("Failed")
     }
-    echo len(d)
+    echo(len(d))
 }

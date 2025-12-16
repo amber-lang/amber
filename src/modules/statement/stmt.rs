@@ -121,7 +121,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             // Conditions
             IfChain, IfCondition,
             // Command
-            CommandModifier, Echo, Mv, Cd, Exit, Command,
+            Echo, Mv, Cd, Exit, CommandModifier, Command,
             // Variables
             VariableInitDestruct, VariableSetDestruct, VariableInit, VariableSet,
             // Short hand

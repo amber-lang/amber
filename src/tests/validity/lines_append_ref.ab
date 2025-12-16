@@ -20,6 +20,6 @@ main {
     let lines_contents = lines("{tmpdir}/numbers1.txt")
     append_ref(lines_contents, "{tmpdir}/numbers2.txt")
     for line in lines_contents {
-        echo "[{line}]"
+        echo("[{line}]")
     }
 }

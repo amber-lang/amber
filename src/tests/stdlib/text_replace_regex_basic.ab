@@ -8,13 +8,13 @@ import * from "std/text"
 // #path#to#file.txt
 
 main {
-    echo replace_regex("aeon aeons eon eons", " eon ", " ### ")
+    echo(replace_regex("aeon aeons eon eons", " eon ", " ### "))
     // Combination of bracket exp and one or more
-    echo replace_regex("abc123def", "\([0-9][0-9]*\)", "[\1]")
+    echo(replace_regex("abc123def", "\([0-9][0-9]*\)", "[\1]"))
     // Ending position of the string
-    echo replace_regex("foo", "foo$", "###")
+    echo(replace_regex("foo", "foo$", "###"))
     // A pipe (|) should be treated as a literal character in POSIX Standards BRE.
-    echo replace_regex(".tar.gz", "\.\(tar\.gz\|tgz\)$", "Failed")
+    echo(replace_regex(".tar.gz", "\.\(tar\.gz\|tgz\)$", "Failed"))
     // Replacing forward slash failed
-    echo replace_regex("/path/to/file.txt", "/", "#")
+    echo(replace_regex("/path/to/file.txt", "/", "#"))
 }

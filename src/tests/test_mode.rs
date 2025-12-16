@@ -6,11 +6,11 @@ fn test_test_mode() {
     let code = r#"
         import { assert } from "std/test"
         test {
-            echo "Test executed"
+            echo("Test executed")
             assert(true)?
         }
         main {
-            echo "Main executed"
+            echo("Main executed")
         }
     "#;
     
@@ -29,11 +29,11 @@ fn test_default_mode_skips_test() {
     let code = r#"
         import { assert } from "std/test"
         test {
-            echo "Test executed"
+            echo("Test executed")
             assert(false)?
         }
         main {
-            echo "Main executed"
+            echo("Main executed")
         }
     "#;
     

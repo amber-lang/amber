@@ -4,6 +4,6 @@
 const x = 42
 const y = 24
 if {
-    x == y: echo x
-    else: echo y
+    x == y: echo(x)
+    else: echo(y)
 }

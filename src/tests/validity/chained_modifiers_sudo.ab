@@ -7,14 +7,14 @@ main {
     // Read first line of sudoers file
     sudo silent $ head -n1 /etc/sudoers $ exited(code): if {
         code == 0:
-            echo "Succeeded"
+            echo("Succeeded")
         // Case when user is not a root
         code == 1 and trust $ id -u $ != "0":
-            echo "Succeeded"
+            echo("Succeeded")
         // Case when sudo command is not installed
         code == 127:
-            echo "Succeeded"
+            echo("Succeeded")
         else:
-            echo "Unexpected behaviour: {code}"
+            echo("Unexpected behaviour: {code}")
     }
 }

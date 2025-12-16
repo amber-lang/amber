@@ -9,7 +9,7 @@ import { text_contains_any } from "std/text"
 
 fun test_multiple(label, text, terms) {
     const result = text_contains_any(text, terms)
-    echo "{label}: {result}"
+    echo("{label}: {result}")
 }
 
 main {

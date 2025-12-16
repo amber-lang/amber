@@ -14,4 +14,4 @@ let result = add(
     3
 )
 
-echo "Result: {result}"
+echo("Result: {result}")

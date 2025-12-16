@@ -6,7 +6,7 @@
 // \z
 // \e
 
-echo "\/"
-echo "\p"
-echo "\z"
-echo "\e"
+echo("\/")
+echo("\p")
+echo("\z")
+echo("\e")

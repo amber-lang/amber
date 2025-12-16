@@ -12,4 +12,4 @@ fun ackermann(m: Num, n: Num): Num {
 }
 
 const ack22 = ackermann(2, 2)
-echo ack22
+echo(ack22)

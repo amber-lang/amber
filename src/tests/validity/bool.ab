@@ -2,5 +2,5 @@
 // 1
 // 0
 
-echo true 
-echo false
+echo(true )
+echo(false)

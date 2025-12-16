@@ -2,7 +2,7 @@
 // The '?' operator can only be used in the main block or inside a function body
 
 fun foo() {
-    echo "test"
+    echo("test")
 }
 
 trust foo()?

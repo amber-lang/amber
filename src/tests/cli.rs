@@ -37,7 +37,7 @@ fn main_args_passed_correctly() {
     let amber_code = r#"
         main(args) {
             for arg in args {
-                echo arg
+                echo(arg)
             }
         }
         "#;
@@ -113,7 +113,7 @@ fn test_input_prompt_stdin() {
         
         main {
             const name = input_prompt("Enter name: ")
-            echo "Hello {name}"
+            echo("Hello {name}")
         }
         "#;
     
@@ -162,7 +162,7 @@ fn test_input_hidden_stdin() {
         
         main {
             const secret = input_hidden("Enter secret: ")
-            echo "Secret: {secret}"
+            echo("Secret: {secret}")
         }
         "#;
     
@@ -211,9 +211,9 @@ fn test_input_confirm_stdin() {
         
         main {
             if input_confirm("Continue?", false) {
-                echo "Continued"
+                echo("Continued")
             } else {
-                echo "Aborted"
+                echo("Aborted")
             }
         }
         "#;

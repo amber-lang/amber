@@ -26,51 +26,51 @@
 
 const a = 0
 const b = 10
-echo a..b
-echo a..=b
-echo "---"
+echo(a..b)
+echo(a..=b)
+echo("---")
 
 const a = -5
 const b = 10
-echo a..b
-echo a..=b
+echo(a..b)
+echo(a..=b)
 
-echo "---"
+echo("---")
 const a = -5
 const b = -1
-echo a..b
-echo a..=b
+echo(a..b)
+echo(a..=b)
 
-echo "---"
+echo("---")
 const a = -5
 const b = -10
-echo a..b
-echo a..=b
+echo(a..b)
+echo(a..=b)
 
-echo "---"
+echo("---")
 const a = 5
 const b = -10
-echo a..b
-echo a..=b
+echo(a..b)
+echo(a..=b)
 
-echo "---"
+echo("---")
 const c = -5
-echo c..=c
+echo(c..=c)
 
 const c = 0
-echo c..=c
+echo(c..=c)
 
 const c = 5
-echo c..=c
-echo "---"
+echo(c..=c)
+echo("---")
 
-echo "<3 empty lines>"
+echo("<3 empty lines>")
 const c = 0
-echo c..c
+echo(c..c)
 
 const c = 5
-echo c..c
+echo(c..c)
 
 const c = -5
-echo c..c
-echo "---"
+echo(c..c)
+echo("---")

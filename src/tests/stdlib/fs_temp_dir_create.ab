@@ -11,13 +11,13 @@ main {
     const filename = filename(path)
     if {
         not starts_with(filename, "amber-") {
-            echo "filename should start with \"amber-\", {filename} given"
+            echo("filename should start with \"amber-\", {filename} given")
         }
         len(filename) != len("amber-XXXX") {
-            echo "The length of filename should be {len("amber-XXXX")}. {filename} given"
+            echo("The length of filename should be {len("amber-XXXX")}. {filename} given")
         }
         dir_exists(path) {
-            echo "Succeeded"
+            echo("Succeeded")
         }
     }
     $ rmdir {path} $?

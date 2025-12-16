@@ -9,16 +9,16 @@ main {
     trust $ touch {tmpdir}/amber-symbolic $
     trust symlink_create("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link")
     if status == 0 {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "failed"
+        echo("failed")
     }
     trust $ touch {tmpdir}/amber-symbolic $
     trust $ touch {tmpdir}/amber-symbolic-link $
     trust symlink_create("{tmpdir}/amber-symbolic", "{tmpdir}/amber-symbolic-link")
     if status == 0 {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "failed"
+        echo("failed")
     }
 } 

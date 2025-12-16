@@ -11,9 +11,9 @@ import * from "std/text"
 // tri
 
 main {
-    echo replace_one("one one one", "one", "TWO")
-    echo replace_one("a\\b\\c\\d", "\\", "\\\\")
-    echo replace_one("first\nsecond\nthird\nfourth", "\n", "..")
+    echo(replace_one("one one one", "one", "TWO"))
+    echo(replace_one("a\\b\\c\\d", "\\", "\\\\"))
+    echo(replace_one("first\nsecond\nthird\nfourth", "\n", ".."))
     // other newlines should not be touched
-    echo replace_one("mono\ndo\ntri", "do\n", "di\n")
+    echo(replace_one("mono\ndo\ntri", "do\n", "di\n"))
 }

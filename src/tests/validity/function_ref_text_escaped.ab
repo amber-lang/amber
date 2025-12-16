@@ -4,4 +4,4 @@ fun test_func(ref a) {
 
 let a = "Goodbye World"
 test_func(a)
-echo a
+echo(a)

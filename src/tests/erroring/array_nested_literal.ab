@@ -2,4 +2,4 @@
 // Arrays cannot be nested due to the Bash limitations
 
 let a = [[1,2,3], [5]]
-echo a
+echo(a)

@@ -34,7 +34,7 @@ fun test_range(array) {
     for begin in -1..=4 {
         for end in -1..=3 {
             const slice = array[begin..=end]
-            echo "Values at {begin}..={end}: ({len(slice)}) [{slice}]"
+            echo("Values at {begin}..={end}: ({len(slice)}) [{slice}]")
         }
     }
 }

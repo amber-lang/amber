@@ -6,10 +6,10 @@ import { array_pop } from "std/array"
 
 fun test_pop(label: Text, data: [Text]): Null {
     const value = array_pop(data) failed {
-        echo "Cannot pop from empty array"
+        echo("Cannot pop from empty array")
         return null
     }
-    echo "Popped from {label}: \"{value}\" ({len(data)}) [{data}]"
+    echo("Popped from {label}: \"{value}\" ({len(data)}) [{data}]")
 }
 
 main {

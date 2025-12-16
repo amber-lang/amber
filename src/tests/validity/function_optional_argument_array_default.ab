@@ -9,4 +9,4 @@ fun sum_array(a : [Int] = [100,200,300,400]): Int {
     return sum;
 }
 const result = sum_array();
-echo result
+echo(result)

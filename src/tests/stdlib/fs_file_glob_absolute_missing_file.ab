@@ -16,9 +16,9 @@ main {
     }
 
     const files = file_glob("{tmpdir}/missing*") failed {
-        echo "FAILED"
+        echo("FAILED")
     }
     for file in files {
-        echo "[{file}]"
+        echo("[{file}]")
     }
 }

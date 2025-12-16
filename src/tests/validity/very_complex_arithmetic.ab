@@ -5,4 +5,4 @@ const x = 21
 const y = 2
 const z = 6
 const a = 4
-echo x + y * z / a
+echo(x + y * z / a)

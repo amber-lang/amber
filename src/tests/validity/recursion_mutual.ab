@@ -18,7 +18,7 @@ fun is_odd(n: Num): Bool {
     return is_even(n - 1)
 }
 
-echo is_even(10)
-echo is_odd(11)
-echo is_even(11)
-echo is_odd(10)
+echo(is_even(10))
+echo(is_odd(11))
+echo(is_even(11))
+echo(is_odd(10))

@@ -2,10 +2,10 @@ import { is_command } from "std/env"
 
 main {
     if is_command("cat") {
-        echo "Succeeded"
+        echo("Succeeded")
     }
 
     if is_command("this_is_not_command_amber") {
-        echo "exist-error"
+        echo("exist-error")
     }
 } 

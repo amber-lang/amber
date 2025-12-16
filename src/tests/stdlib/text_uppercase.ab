@@ -5,6 +5,6 @@ import * from "std/text"
 // -N
 
 main {
-    echo uppercase("hello world")
-    echo uppercase("-n")
+    echo(uppercase("hello world"))
+    echo(uppercase("-n"))
 } 

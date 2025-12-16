@@ -18,9 +18,9 @@ main {
 
     // Efficient for large files.
     for line in lines("{tmpdir}/numbers.txt") {
-        echo "[{line}]"
+        echo("[{line}]")
     }
     for index, line in lines("{tmpdir}/numbers.txt") {
-        echo "{index} [{line}]"
+        echo("{index} [{line}]")
     }
 }

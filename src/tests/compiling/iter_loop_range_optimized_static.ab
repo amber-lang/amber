@@ -1,29 +1,29 @@
-echo "From 0 to 5"
+echo("From 0 to 5")
 for i in 0..5 {
-    echo i
+    echo(i)
 }
 
-echo "From 5 to 0"
+echo("From 5 to 0")
 for j in 5..0 {
-    echo j
+    echo(j)
 }
 
-echo "From 0 to 0"
+echo("From 0 to 0")
 for k in 0..0 {
-    echo k
+    echo(k)
 }
 
-echo "From 5 to 5"
+echo("From 5 to 5")
 for l in 5..5 {
-    echo l
+    echo(l)
 }
 
-echo "From 5 to =5"
+echo("From 5 to =5")
 for m in 5..=5 {
-    echo m
+    echo(m)
 }
 
-echo "From 5 to =0"
+echo("From 5 to =0")
 for n in 5..=0 {
-    echo n
+    echo(n)
 }

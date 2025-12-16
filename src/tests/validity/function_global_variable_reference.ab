@@ -1,7 +1,7 @@
 let hello = false
 
 fun echo_hello(): Null {
-    echo "Hello"
+    echo("Hello")
     hello = true
 }
 
@@ -9,7 +9,7 @@ pub fun echo_world(): Null {
     if not hello {
         echo_hello()
     }
-    echo "World"
+    echo("World")
 }
 
 echo_world()

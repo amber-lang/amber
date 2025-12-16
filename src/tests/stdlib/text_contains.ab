@@ -1,5 +1,5 @@
 import { text_contains } from "std/text"
 
 if text_contains("Hello World", "World") {
-    echo "Succeeded"
+    echo("Succeeded")
 }
