@@ -1,6 +1,7 @@
 // Output
 // 1 2 3
 
+#[allow_dead_code]
 fun test(arr: [Int]): []? {
     if false { fail 1 }
     return arr

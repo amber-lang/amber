@@ -1,8 +1,13 @@
 // Output
 // Chain success
 
-if {
-    false { undefined_chain_func1() }
-    true { echo "Chain success" }
-    false { undefined_chain_func2() }
+#[allow_dead_code]
+fun run() {
+    if {
+        false { undefined_chain_func1() }
+        true { echo "Chain success" }
+        false { undefined_chain_func2() }
+    }
 }
+
+run()

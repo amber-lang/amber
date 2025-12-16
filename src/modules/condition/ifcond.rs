@@ -25,6 +25,18 @@ impl IfCondition {
         }
         Ok(())
     }
+
+    fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, is_true_branch: bool) {
+        if meta.context.cc_flags.contains(&CCFlags::AllowDeadCode) {
+            return;
+        }
+        let flag_name = get_ccflag_name(CCFlags::AllowDeadCode);
+        let branch = if is_true_branch { "if" } else { "else" };
+        let message = Message::new_warn_at_position(meta, pos)
+            .message(format!("Condition is always {}, '{branch}' block will never execute", !is_true_branch))
+            .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
+        meta.add_message(message);
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for IfCondition {
@@ -70,6 +82,10 @@ impl TypeCheckModule for IfCondition {
         match self.expr.analyze_control_flow() {
             Some(true) => {
                 // Condition always true
+                if self.false_block.is_some() {
+                    let pos = self.expr.get_position();
+                    Self::warn_dead_code(meta, pos, false);
+                }
                 self.false_block = None;
                  
                 let (true_facts, _) = self.expr.extract_facts();
@@ -81,6 +97,8 @@ impl TypeCheckModule for IfCondition {
             },
             Some(false) => {
                 // Condition always false
+                let pos = self.expr.get_position();
+                Self::warn_dead_code(meta, pos, true);
                 self.true_block = None;
                  
                 let (_, false_facts) = self.expr.extract_facts();

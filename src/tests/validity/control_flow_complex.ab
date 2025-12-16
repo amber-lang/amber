@@ -2,13 +2,18 @@
 // Test passed
 // Test passed
 
-if true and false {
-    undefined_complex1()
-}
-echo "Test passed"
-
-if false or true {
+#[allow_dead_code]
+fun run() {
+    if true and false {
+        undefined_complex1()
+    }
     echo "Test passed"
-} else {
-    undefined_complex2()
+
+    if false or true {
+        echo "Test passed"
+    } else {
+        undefined_complex2()
+    }
 }
+
+run()

@@ -3,11 +3,25 @@ use crate::modules::prelude::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
+use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
     cond_blocks: Vec<(Expr, Block)>,
-    false_block: Option<Box<Block>>
+    false_block: Option<Box<Block>>,
+}
+
+impl IfChain {
+    fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, reason: &str) {
+        if meta.context.cc_flags.contains(&CCFlags::AllowDeadCode) {
+            return;
+        }
+        let flag_name = get_ccflag_name(CCFlags::AllowDeadCode);
+        let message = Message::new_warn_at_position(meta, pos)
+            .message(reason)
+            .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
+        meta.add_message(message);
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for IfChain {
@@ -16,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
     fn new() -> Self {
         IfChain {
             cond_blocks: vec![],
-            false_block: None
+            false_block: None,
         }
     }
 
@@ -59,13 +73,18 @@ impl TypeCheckModule for IfChain {
         let old_chain = std::mem::take(&mut self.cond_blocks);
         let mut new_chain = Vec::new();
         let mut chain_deadcode = false;
+        // Used for warning about unreachable conditions
+        let mut first_true_pos: Option<PositionInfo> = None;
 
         for (mut cond, mut block) in old_chain {
+            cond.typecheck(meta)?;
+            let pos = cond.get_position();
+
             if chain_deadcode {
+                Self::warn_dead_code(meta, pos, "Condition is unreachable, previous condition is always true");
                 continue;
             }
 
-            cond.typecheck(meta)?;
             match cond.analyze_control_flow() {
                 Some(true) => {
                     let (facts, _) = cond.extract_facts();
@@ -74,10 +93,10 @@ impl TypeCheckModule for IfChain {
                     })?;
                     new_chain.push((cond, block));
                     chain_deadcode = true;
-                    self.false_block = None;
+                    first_true_pos = Some(pos);
                 },
                 Some(false) => {
-                    // Dead block, drop it
+                    Self::warn_dead_code(meta, pos, "Condition is always false, block will never execute");
                 },
                 None => {
                     let (facts, _) = cond.extract_facts();
@@ -91,10 +110,15 @@ impl TypeCheckModule for IfChain {
 
         self.cond_blocks = new_chain;
 
-        if !chain_deadcode {
-            if let Some(false_block) = &mut self.false_block {
-                false_block.typecheck(meta)?;
+        if chain_deadcode {
+            if self.false_block.is_some() {
+                if let Some(pos) = first_true_pos {
+                    Self::warn_dead_code(meta, pos, "Condition is always true, 'else' block will never execute");
+                }
             }
+            self.false_block = None;
+        } else if let Some(false_block) = &mut self.false_block {
+            false_block.typecheck(meta)?;
         }
 
         Ok(())

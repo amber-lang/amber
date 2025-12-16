@@ -8,7 +8,8 @@ fun test_narrowing(a: Text | Int, b: Text | Int) {
     }
 }
 
-main {
+#[allow_dead_code]
+fun run() {
     test_narrowing(10, 20)
     
     if false or (true and true) {
@@ -17,3 +18,5 @@ main {
         undefined_complex_parentheses()
     }
 }
+
+run()
