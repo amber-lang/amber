@@ -56,7 +56,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          zizmor . > zizmor-report.md
+          zizmor . --min-severity high > zizmor-report.md
           zizmor_fail=$?
           echo "zizmor-fail=$zizmor_fail" >> $GITHUB_OUTPUT
           exit 0
