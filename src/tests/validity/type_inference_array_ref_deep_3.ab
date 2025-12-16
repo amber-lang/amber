@@ -12,4 +12,4 @@ fun deep1(ref arr: [Int]) {
 }
 let d = []
 deep1(d)
-echo d
+echo(d)

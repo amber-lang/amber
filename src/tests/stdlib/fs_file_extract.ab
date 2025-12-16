@@ -3,21 +3,21 @@ import { array_contains } from "std/array"
 
 main {
     const src_dir = temp_dir_create("amber-test-src-XXXX")?
-    cd src_dir
+    cd(src_dir)
     $ touch test.txt $?
     $ tar -czf "filename.tar.gz" "test.txt" $?
     const package = "{src_dir}/filename.tar.gz"
     if not file_exists(package) {
-        echo "Compression falis; {package} does not exists"
+        echo("Compression falis; {package} does not exists")
     }
 
     const dist_dir = temp_dir_create("amber-test-dist-XXXX")?
     file_extract(package, dist_dir)?
 
     if file_exists("{dist_dir}/test.txt") {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Extraction fails: {dist_dir}/test.txt does not exist"
+        echo("Extraction fails: {dist_dir}/test.txt does not exist")
     }
 
     $ rm -rf {src_dir} {dist_dir} $?

@@ -6,4 +6,4 @@ fun addition(a: Num, b: Num = 100): Num {
 }
 
 const result = addition(10, 1000)
-echo result
+echo(result)

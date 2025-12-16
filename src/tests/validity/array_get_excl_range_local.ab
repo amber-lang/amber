@@ -31,7 +31,7 @@
 // Values at 4..4: (0) []
 
 fun show_range(label, array) {
-    echo "Values at {label}: ({len(array)}) [{array}]"
+    echo("Values at {label}: ({len(array)}) [{array}]")
 }
 
 main {

@@ -1,4 +1,4 @@
 let var = "abc"
 let var = "Succeeded"
 
-echo var
+echo(var)

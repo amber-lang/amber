@@ -9,10 +9,10 @@ import { array_filled } from "std/array"
 // [  ]
 
 main {
-    echo "[{array_filled(3)}]"
-    echo "[{array_filled(3, 0)}]"
-    echo "[{array_filled(3, .5)}]"
-    echo "[{array_filled(3, "a")}]"
-    echo "[{array_filled(3, false)}]"
-    echo "[{array_filled(3, null)}]"
+    echo("[{array_filled(3)}]")
+    echo("[{array_filled(3, 0)}]")
+    echo("[{array_filled(3, .5)}]")
+    echo("[{array_filled(3, "a")}]")
+    echo("[{array_filled(3, false)}]")
+    echo("[{array_filled(3, null)}]")
 }

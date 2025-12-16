@@ -8,5 +8,5 @@ fun foo(a): [Int] {
 }
 
 let [a, b] = foo(3)
-echo "First {a}"
-echo "Second {b}"
+echo("First {a}")
+echo("Second {b}")

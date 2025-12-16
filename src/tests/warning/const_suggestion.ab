@@ -4,5 +4,5 @@
 
 main {
     let const_candidate = 1
-    echo const_candidate
+    echo(const_candidate)
 }

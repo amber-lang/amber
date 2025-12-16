@@ -10,4 +10,4 @@ fun post_order(n: Num): Null {
 }
 
 post_order(3)
-echo collection
+echo(collection)

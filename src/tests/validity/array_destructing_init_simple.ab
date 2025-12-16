@@ -3,5 +3,5 @@
 // Second banana
 
 let [a, b] = ["apple", "banana", "cherry"]
-echo "First {a}"
-echo "Second {b}"
+echo("First {a}")
+echo("Second {b}")

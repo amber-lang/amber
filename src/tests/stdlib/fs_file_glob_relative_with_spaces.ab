@@ -25,19 +25,19 @@ main {
         $ touch {tmpdir}/file99.txt $
         $ touch {tmpdir}/other.csv $
     }
-    cd tmpdir
+    cd(tmpdir)
 
     const expected = [
         "1st file with spaces.txt",
         "2nd file with spaces.txt",
     ]
     const actual = file_glob("*with spaces*") failed {
-        echo "FAILED"
+        echo("FAILED")
     }
     if compare(actual, expected) {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Expected: {expected}"
-        echo "Actual: {actual}"
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
     }
 }

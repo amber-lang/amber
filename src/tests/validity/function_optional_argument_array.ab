@@ -10,4 +10,4 @@ fun sum_array(a : [Int] = [Int]): Int {
 }
 const x = [100,1000]
 const result = sum_array(x)
-echo result
+echo(result)

@@ -5,5 +5,5 @@
 let a = 1;
 let b = 2;
 [a, b] = [3, 4]
-echo a
-echo b
+echo(a)
+echo(b)

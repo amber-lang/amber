@@ -1,0 +1,11 @@
+// Output
+// Deprecated usage of 'echo' without parentheses. Use 'echo(...)' instead.
+// Deprecated usage of 'cd' without parentheses. Use 'cd(...)' instead.
+// Deprecated usage of 'exit' without parentheses. Use 'exit(...)' instead.
+// Deprecated usage of 'mv' without parentheses. Use 'mv(..., ...)' instead.
+// hello
+
+echo "hello"
+cd "."
+exit 0
+trust mv "a" "b"

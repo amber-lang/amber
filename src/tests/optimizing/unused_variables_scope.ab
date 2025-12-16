@@ -3,6 +3,6 @@ let outer_b = 20
 {
     let inner_a = 30
     let inner_b = 40
-    echo inner_a
-    echo outer_a
+    echo(inner_a)
+    echo(outer_a)
 }

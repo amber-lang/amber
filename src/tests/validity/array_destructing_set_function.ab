@@ -9,5 +9,5 @@ fun foo(): [Text] {
 let a = "";
 let b = "";
 [a, b] = foo()
-echo a
-echo b
+echo(a)
+echo(b)

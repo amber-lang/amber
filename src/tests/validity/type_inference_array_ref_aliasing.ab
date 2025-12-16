@@ -7,4 +7,4 @@ fun two_vars(ref a: [Int], ref b: [Int]) {
 }
 let z = []
 two_vars(z, z)
-echo z
+echo(z)

@@ -2,7 +2,7 @@
 // 1
 
 fun foo(arr: [Int]) {
-    echo arr + [1]
+    echo(arr + [1])
 }
 
 foo([])

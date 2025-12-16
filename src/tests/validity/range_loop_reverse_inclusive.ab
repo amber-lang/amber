@@ -6,5 +6,5 @@
 // 1
 
 for i in 5..=1 {
-    echo i
+    echo(i)
 }

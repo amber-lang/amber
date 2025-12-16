@@ -4,12 +4,12 @@
 
 fun foo() {
     silent $ you_do_not_have_this $ failed {
-        echo "Failed captured"
+        echo("Failed captured")
         fail 5
     }
-    echo "This should never happen"
+    echo("This should never happen")
 }
 
-echo foo() failed {
-    echo "Failed with error {status}"
-}
+echo(foo() failed {
+    echo("Failed with error {status}")
+})

@@ -2,7 +2,7 @@
 // You should be able to see this message
 
 fun foo(val) {
-    echo val
+    echo(val)
 }
 
 const property = 25

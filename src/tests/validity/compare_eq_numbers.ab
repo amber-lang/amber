@@ -3,4 +3,4 @@
 
 const x = 42
 const y = 42
-echo x == y
+echo(x == y)

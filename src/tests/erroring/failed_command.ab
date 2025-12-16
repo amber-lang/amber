@@ -1,5 +1,5 @@
 // Output
-// Failed command must be followed by an 'exited', 'succeeded' or 'failed' block, statement or operator '?'
+// The command can potentially fail. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.
 
-echo $ echo "Hello, this will not fail" $
-echo $ echo "This is my first amber command" $
+echo($ echo "Hello, this will not fail" $)
+echo($ echo "This is my first amber command" $)

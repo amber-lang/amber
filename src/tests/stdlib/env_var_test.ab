@@ -3,10 +3,10 @@ import * from "std/env"
 main {
     trust $ test_var_isset="test" $
     if env_var_test("test_var_isset") {
-        echo "Succeeded"
+        echo("Succeeded")
     }
 
     if env_var_test("test_var_isset2") {
-        echo "test_var_isset2"
+        echo("test_var_isset2")
     }
 } 

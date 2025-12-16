@@ -4,5 +4,5 @@ import * from "std/env"
 // Hello \\v Amber %%T
 
 main {
-    echo escaped("Hello \\v Amber %T")
+    echo(escaped("Hello \\v Amber %T"))
 }

@@ -3,4 +3,4 @@
 
 let x = "Hello "
 x += "World"
-echo x
+echo(x)

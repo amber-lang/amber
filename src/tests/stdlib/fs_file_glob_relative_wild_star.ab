@@ -25,7 +25,7 @@ main {
         $ touch {tmpdir}/file99.txt $
         $ touch {tmpdir}/other.csv $
     }
-    cd tmpdir
+    cd(tmpdir)
 
     const expected = [
         "file.txt",
@@ -34,12 +34,12 @@ main {
         "file99.txt",
     ]
     const actual = file_glob("file*.txt") failed {
-        echo "FAILED"
+        echo("FAILED")
     }
     if compare(actual, expected) {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Expected: {expected}"
-        echo "Actual: {actual}"
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
     }
 }

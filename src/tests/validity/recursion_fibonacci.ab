@@ -9,4 +9,4 @@ fun fibonacci(n: Num): Num {
 }
 
 let fib6 = fibonacci(6)
-echo fib6
+echo(fib6)

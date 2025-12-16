@@ -14,12 +14,12 @@ main {
         $ touch {tmpdir}/file99.txt $
         $ touch {tmpdir}/other.csv $
     }
-    cd tmpdir
+    cd(tmpdir)
 
     const files = file_glob("missing*") failed {
-        echo "FAILED"
+        echo("FAILED")
     }
     for file in files {
-        echo "[{file}]"
+        echo("[{file}]")
     }
 }

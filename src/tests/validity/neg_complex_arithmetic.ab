@@ -4,4 +4,4 @@
 const x = 21
 const y = -2
 const z = 6
-echo x - y * z / -4
+echo(x - y * z / -4)

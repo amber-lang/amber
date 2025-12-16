@@ -8,6 +8,6 @@ main {
     trust $ touch {tmpdir}/amber-symbolic $
     trust file_chmod("{tmpdir}/amber-symbolic", "+x")
     if status == 0 {
-        echo "created"
+        echo("created")
     }
 } 

@@ -6,6 +6,6 @@ fun test_failable(): Num? {
 }
 
 test_failable() succeeded {
-    echo "This should not print!"
+    echo("This should not print!")
 }
-echo "Succeeded"
+echo("Succeeded")

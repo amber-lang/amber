@@ -2,7 +2,7 @@ const value = 12
 let hello = "there"
 
 pub fun foo() {
-    echo "Hello {hello}"
+    echo("Hello {hello}")
 }
 
 pub fun bar() {

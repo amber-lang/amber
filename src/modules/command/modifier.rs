@@ -32,7 +32,7 @@ impl CommandModifier {
         result
     }
 
-    fn parse_modifier_sequence(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+    pub fn parse_modifier_sequence(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         loop {
             match meta.get_current_token() {
                 Some(tok) => {

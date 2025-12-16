@@ -5,6 +5,6 @@ import * from "std/date"
 // 1234000000
 
 main {
-    echo date_format_posix(1234000000, "%F %T", true)?
-    echo date_from_posix("2009-02-07 09:46:40", "%F %T", true)?
+    echo(date_format_posix(1234000000, "%F %T", true)?)
+    echo(date_from_posix("2009-02-07 09:46:40", "%F %T", true)?)
 }

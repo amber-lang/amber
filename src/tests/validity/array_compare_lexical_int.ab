@@ -18,26 +18,26 @@
 const left = [11, 11, 11]
 const right = [9, 9, 9]
 
-echo "Gt and Ge"
-echo "Ge: {left >= right}"
-echo "Gt: {left > right}"
-echo "Le: {left <= right}"
-echo "Lt: {left < right}"
+echo("Gt and Ge")
+echo("Ge: {left >= right}")
+echo("Gt: {left > right}")
+echo("Le: {left <= right}")
+echo("Lt: {left < right}")
 
 const left = [3, 2, 1]
 const right = [3, 2, 1]
 
-echo "Ge and Le (equality)"
-echo "Ge: {left >= right}"
-echo "Gt: {left > right}"
-echo "Le: {left <= right}"
-echo "Lt: {left < right}"
+echo("Ge and Le (equality)")
+echo("Ge: {left >= right}")
+echo("Gt: {left > right}")
+echo("Le: {left <= right}")
+echo("Lt: {left < right}")
 
 const left = [15, 20, 20]
 const right = [15, 20, 25]
 
-echo "Lt and Le"
-echo "Ge: {left >= right}"
-echo "Gt: {left > right}"
-echo "Le: {left <= right}"
-echo "Lt: {left < right}"
+echo("Lt and Le")
+echo("Ge: {left >= right}")
+echo("Gt: {left > right}")
+echo("Le: {left <= right}")
+echo("Lt: {left < right}")

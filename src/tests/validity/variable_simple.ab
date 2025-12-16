@@ -2,4 +2,4 @@
 // 1
 
 let a = 1
-echo a
+echo(a)

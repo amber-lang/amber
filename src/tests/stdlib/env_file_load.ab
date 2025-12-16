@@ -6,10 +6,10 @@ import { file_write, temp_dir_create } from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    cd tmpdir
+    cd(tmpdir)
     trust file_write(".env", "TEST=1")
     env_file_load()
     if env_var_load("TEST") == "1" {
-        echo "yes"
+        echo("yes")
     }
 } 

@@ -8,7 +8,7 @@ import { array_extract_at } from "std/array"
 
 fun test_extract(data: [Text], index: Int): Null? {
     const value = array_extract_at(data, index)?
-    echo "Value at {index}: \"{value}\" ({len(data)}) [{data}]"
+    echo("Value at {index}: \"{value}\" ({len(data)}) [{data}]")
 }
 
 main {

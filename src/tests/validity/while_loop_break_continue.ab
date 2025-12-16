@@ -15,6 +15,6 @@ main {
         if i == 7 {
             break
         }
-        echo i
+        echo(i)
     }
 }

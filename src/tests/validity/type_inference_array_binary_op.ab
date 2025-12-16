@@ -4,7 +4,7 @@
 
 
 let a = [1, 2, 3] + []
-echo a
+echo(a)
 
 let b = [] + [4, 5, 6]
-echo b
+echo(b)

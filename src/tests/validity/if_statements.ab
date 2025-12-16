@@ -4,7 +4,7 @@
 const x = 42
 const y = 24
 if x == y {
-    echo x
+    echo(x)
 } else {
-    echo y
+    echo(y)
 }

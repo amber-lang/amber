@@ -8,4 +8,4 @@ const a = 24 > 12
     else (12 > 6
         then 24
         else 12)
-echo a
+echo(a)

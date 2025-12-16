@@ -12,21 +12,21 @@ const x = 42
 
 fun foo() {
     const x = 12
-    echo "Init: {x}"
+    echo("Init: {x}")
 
     for i in [1, 2, 3] {
         const x = i
-        echo "Looping: {x}"
+        echo("Looping: {x}")
     }
-    echo "Middle: {x}"
+    echo("Middle: {x}")
 
     if x >= 12 {
         const x = 24
-        echo "If: {x}"
+        echo("If: {x}")
     }
-    echo "End: {x}"
+    echo("End: {x}")
 }
 
 foo()
 
-echo "Outer: {x}"
+echo("Outer: {x}")

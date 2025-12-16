@@ -5,4 +5,4 @@ fun foo(): Int {
 let x = foo()
 let arr = [""]
 arr[x] = "A"
-echo arr[0]
+echo(arr[0])

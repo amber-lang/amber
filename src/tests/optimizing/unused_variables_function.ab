@@ -3,4 +3,4 @@ fun foo() {
 }
 
 let a = foo()
-echo "The `file.txt` must be created even if `a` is not used"
+echo("The `file.txt` must be created even if `a` is not used")

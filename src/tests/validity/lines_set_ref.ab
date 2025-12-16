@@ -19,6 +19,6 @@ main {
     let lines_contents = ["a", "b", "c"]
     set_ref(lines_contents, "{tmpdir}/numbers.txt")
     for line in lines_contents {
-        echo "[{line}]"
+        echo("[{line}]")
     }
 }

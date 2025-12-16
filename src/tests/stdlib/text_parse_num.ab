@@ -9,10 +9,10 @@ import * from "std/text"
 // 0
 
 main {
-    echo parse_num("123")?
-    echo parse_num("-123")?
-    echo parse_num("3.14")?
-    echo parse_num(".15")?
-    echo parse_num("-456.789")?
-    echo parse_num("0")?
+    echo(parse_num("123")?)
+    echo(parse_num("-123")?)
+    echo(parse_num("3.14")?)
+    echo(parse_num(".15")?)
+    echo(parse_num("-456.789")?)
+    echo(parse_num("0")?)
 }

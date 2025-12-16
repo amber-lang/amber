@@ -2,13 +2,13 @@
 // main
 
 test "foo" {
-    echo "foo"
+    echo("foo")
 }
 
 test {
-    echo "unnamed"
+    echo("unnamed")
 }
 
 main {
-    echo "main"
+    echo("main")
 }

@@ -10,7 +10,7 @@ const arr1 = [
     // Another comment
     3
 ]
-echo arr1
+echo(arr1)
 
 const arr2 = [
     "a",
@@ -23,4 +23,4 @@ const arr2 = [
     "c",
     // Trailing comment
 ]
-echo arr2
+echo(arr2)

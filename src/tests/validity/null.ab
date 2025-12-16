@@ -1,2 +1,2 @@
 const a = null
-echo a
+echo(a)

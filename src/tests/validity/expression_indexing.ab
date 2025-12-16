@@ -1,19 +1,19 @@
 // Array literal indexing
-echo [1, 2, 3][0]
+echo([1, 2, 3][0])
 
 // Range indexing on array literal
-echo [1, 2, 3][0..2]
+echo([1, 2, 3][0..2])
 
 // Function call indexing
 fun foo(): [Num] {
     return [4, 5, 6]
 }
-echo foo()[1]
+echo(foo()[1])
 
 // Indexing with expression
 const i = 1
-echo [10, 20, 30][i + 1]
-echo ([[1, 2, 3][1]])[0]
+echo([10, 20, 30][i + 1])
+echo(([[1, 2, 3][1]])[0])
 
 // Output
 // 1

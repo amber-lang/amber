@@ -1,4 +1,4 @@
 let a = 10
 let b = a
 let c = b
-echo "All variables are unused"
+echo("All variables are unused")

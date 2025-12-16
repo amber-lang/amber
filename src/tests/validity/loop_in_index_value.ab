@@ -12,6 +12,6 @@
 
 const a = [1, 2, 3, 4, 5]
 for i, v in a {
-    echo i
-    echo v
+    echo(i)
+    echo(v)
 }

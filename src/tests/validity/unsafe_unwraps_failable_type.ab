@@ -6,4 +6,4 @@ fun test(): Num? {
     return 42
 }
 
-if trust test() is Num: echo "Succeeded"
+if trust test() is Num: echo("Succeeded")

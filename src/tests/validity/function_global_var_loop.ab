@@ -7,7 +7,7 @@ fun add_numbers(): Null {
 }
 
 add_numbers()
-echo sum
+echo(sum)
 
 // Output
 // 10

@@ -9,7 +9,7 @@ import { array_filled } from "std/array"
 
 fun test_size(size: Int): Null {
     const array = array_filled(size, 0)
-    echo "Array length for size={size}: {len(array)}"
+    echo("Array length for size={size}: {len(array)}")
 }
 
 main {

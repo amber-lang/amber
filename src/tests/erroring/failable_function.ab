@@ -2,13 +2,13 @@
 // Function 'foo' can potentially fail but is left unhandled.
 
 fun foo(a: Text, b: Num): Null? {
-    echo a + " World"
-    echo b * 2
+    echo(a + " World")
+    echo(b * 2)
     fail 1
 }
 
 const a = "Hello"
 const b = 21
 
-echo foo(a, b)
-echo foo("This", 12)
+echo(foo(a, b))
+echo(foo("This", 12))

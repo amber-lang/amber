@@ -6,10 +6,10 @@ import { array_first } from "std/array"
 
 fun test_first(label: Text, data: [Text]): Null {
     const value = array_first(data) failed {
-        echo "First of empty array does not exist"
+        echo("First of empty array does not exist")
         return null
     }
-    echo "First of {label}: \"{value}\" ({len(data)}) [{data}]"
+    echo("First of {label}: \"{value}\" ({len(data)}) [{data}]")
 }
 
 main {

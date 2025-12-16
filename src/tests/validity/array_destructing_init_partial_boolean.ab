@@ -4,6 +4,6 @@
 // 0
 
 let [a, b, c] = [true, true]
-echo a
-echo b
-echo c
+echo(a)
+echo(b)
+echo(c)

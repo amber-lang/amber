@@ -5,4 +5,4 @@ let c = a
 if true {
     c = b
 }
-echo c
+echo(c)

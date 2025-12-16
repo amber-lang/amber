@@ -6,7 +6,7 @@ import * from "std/text"
 // 0
 
 main {
-    echo parse_int("123")?
-    echo parse_int("-12")?
-    echo parse_int("0")?
+    echo(parse_int("123")?)
+    echo(parse_int("-12")?)
+    echo(parse_int("0")?)
 }

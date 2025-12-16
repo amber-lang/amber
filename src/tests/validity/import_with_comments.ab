@@ -7,4 +7,4 @@ import {
     replace
 } from "std/text"
 
-echo "Succeeded"
+echo("Succeeded")

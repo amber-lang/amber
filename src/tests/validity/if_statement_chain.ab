@@ -5,6 +5,6 @@ const x = 42
 const y = 42
 if {
     x == y {
-        echo x
+        echo(x)
     }
 }
