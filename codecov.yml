@@ -11,6 +11,11 @@ coverage:
       default:
         target: 80%
 
+ignore:
+  - "**/tests/**"
+  - "**/test_*.rs"
+  - "**/build.rs"
+
 comment:
   layout: " diff, flags, files"
   behavior: default
