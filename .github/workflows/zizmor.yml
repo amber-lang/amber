@@ -72,7 +72,7 @@ jobs:
             cat zizmor-report.md
             echo '```'
           } >> issue-body.md
-          issue_number=$(gh issue list --label "zizmor" --state open --json number --jq '.[0].number' || echo "")
+          issue_number=$(gh issue list --search "Security: zizmor findings" --state open --json number --jq '.[0].number' || echo "")
           echo "issue_number=$issue_number" >> $GITHUB_OUTPUT
 
       - uses: peter-evans/create-issue-from-file@e8ef132d6df98ed982188e460ebb3b5d4ef3a9cd # v5.0.1
