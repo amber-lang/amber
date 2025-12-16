@@ -6,9 +6,9 @@
 // foo bar
 
 
-echo "foo"
-echo ["-foo", "bar"]
-echo ""
-echo "-foo"
+echo("foo")
+echo(["-foo", "bar"])
+echo("")
+echo("-foo")
 let bar = "bar"
-echo "foo {bar}"
+echo("foo {bar}")
