@@ -1,0 +1,19 @@
+// Output
+// 30
+// Test passed
+
+fun test_narrowing(a: Text | Int, b: Text | Int) {
+    if (a is Int) and (b is Int) {
+        echo a + b
+    }
+}
+
+main {
+    test_narrowing(10, 20)
+    
+    if false or (true and true) {
+        echo "Test passed"
+    } else {
+        undefined_complex_parentheses()
+    }
+}
