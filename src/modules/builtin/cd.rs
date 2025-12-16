@@ -26,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for Cd {
         } else {
             let tok = meta.get_token_at(position);
             let warning = Message::new_warn_at_token(meta, tok)
-                .message("Deprecated usage of 'cd' without parentheses. Use 'cd(...)' instead.");
+                .message("Calling a builtin without parentheses is deprecated");
             meta.add_message(warning);
             syntax(meta, &mut self.value)?;
         }

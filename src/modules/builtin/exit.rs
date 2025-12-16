@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for Exit {
         } else {
             let tok = meta.get_token_at(position);
             let warning = Message::new_warn_at_token(meta, tok)
-                .message("Deprecated usage of 'exit' without parentheses. Use 'exit(...)' instead.");
+                .message("Calling a builtin without parentheses is deprecated");
             meta.add_message(warning);
 
             let mut code_expr = Expr::new();

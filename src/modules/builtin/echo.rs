@@ -27,7 +27,7 @@ impl SyntaxModule<ParserMetadata> for Echo {
         } else {
             let tok = meta.get_token_at(position);
             let warning = Message::new_warn_at_token(meta, tok)
-                .message("Deprecated usage of 'echo' without parentheses. Use 'echo(...)' instead.");
+                .message("Calling a builtin without parentheses is deprecated");
             meta.add_message(warning);
             syntax(meta, &mut *self.value)?;
         }
