@@ -38,6 +38,7 @@ jobs:
           persist-credentials: false
 
       - name: Try automatic fix
+        continue-on-error: true
         run: |
           zizmor . --fix
 
