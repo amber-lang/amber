@@ -177,24 +177,24 @@ jobs:
     needs:
       - test
     runs-on: ubuntu-latest
-    container:
-      image: xd009642/tarpaulin:develop-nightly
-      options: --security-opt seccomp=unconfined
+    env:
+      TARPAULIN_VERSION: 0.34.1
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Install Amber dependencies
-        run: |
-          apt-get update
-          apt-get install -y bc
-
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+      - name: Cache tarpaulin
+        uses: actions/cache@v4
+        id: cache-tarpaulin
+        with:
+          path: ~/.cargo/bin/cargo-tarpaulin
+          key: ${{ runner.os }}-cargo-tarpaulin-${{ env.TARPAULIN_VERSION }}
+      - run: cargo install cargo-tarpaulin --version ${{ env.TARPAULIN_VERSION }} --locked
+        if: steps.cache-tarpaulin.outputs.cache-hit != 'true'
       - name: Test coverage
         run: cargo tarpaulin --verbose --all-features --ignore-panics --workspace --timeout 120 --out xml
-
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
-          files: ./coverage_output/cobertura.xml
           verbose: true
