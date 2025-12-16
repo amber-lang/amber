@@ -1,0 +1,7 @@
+// Output
+// Test passed
+
+if false {
+    undefined_function_in_dead_code()
+}
+echo "Test passed"

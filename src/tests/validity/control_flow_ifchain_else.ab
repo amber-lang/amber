@@ -1,0 +1,7 @@
+// Output
+// Else success
+
+if {
+    false { undefined_chain_func() }
+    else { echo "Else success" }
+}

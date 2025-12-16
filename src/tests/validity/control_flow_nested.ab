@@ -1,0 +1,10 @@
+// Output
+// Nested else success
+
+if true {
+    if false {
+        undefined_nested()
+    } else {
+        echo "Nested else success"
+    }
+}

@@ -34,6 +34,8 @@ pub struct ParserMetadata {
     pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
     /// List of test names found in the file
     pub test_names: Vec<String>,
+    /// Stack of narrowed types for control flow analysis
+    pub narrowed_types: Vec<HashMap<String, Type>>,
 }
 
 impl ParserMetadata {
@@ -223,6 +225,20 @@ impl ParserMetadata {
             .flat_map(|scope| scope.get_fun_names())
             .collect()
     }
+
+    pub fn get_narrowed_type(&self, name: &str) -> Option<&Type> {
+        self.narrowed_types.iter().rev().find_map(|map| map.get(name))
+    }
+
+    pub fn with_narrowed_scope<B>(&mut self, facts: HashMap<String, Type>, mut body: B) -> SyntaxResult
+    where
+        B: FnMut(&mut Self) -> SyntaxResult,
+    {
+        self.narrowed_types.push(facts);
+        let result = body(self);
+        self.narrowed_types.pop();
+        result
+    }
 }
 
 impl Metadata for ParserMetadata {
@@ -239,8 +255,10 @@ impl Metadata for ParserMetadata {
             doc_usage: false,
             parsing_functions: HashMap::new(),
             test_names: Vec::new(),
+            narrowed_types: Vec::new(),
         }
     }
+
 
     fn get_token_at(&self, index: usize) -> Option<Token> {
         self.context.expr.get(index).cloned()

@@ -1,0 +1,14 @@
+// Output
+// Test passed
+// Test passed
+
+if true and false {
+    undefined_complex1()
+}
+echo "Test passed"
+
+if false or true {
+    echo "Test passed"
+} else {
+    undefined_complex2()
+}

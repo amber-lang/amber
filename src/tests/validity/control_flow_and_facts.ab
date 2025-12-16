@@ -1,0 +1,10 @@
+// Output
+// 30
+
+fun test_and(a: Text | Int, b: Text | Int) {
+    if a is Int and b is Int {
+        const result = a + b
+        echo result
+    }
+}
+test_and(10, 20)

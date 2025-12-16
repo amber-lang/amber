@@ -62,6 +62,23 @@ impl Type {
             _ => true,
         }
     }
+
+    // Checks if two types can possibly intersect
+    pub fn can_intersect(&self, other: &Type) -> bool {
+        match (self, other) {
+            (a, b) if a == b => true,
+            (Type::Int, Type::Num) | (Type::Num, Type::Int) => true,
+            // Union types
+            (Type::Union(types), target) => types.iter().any(|t| t.can_intersect(target)),
+            (target, Type::Union(types)) => types.iter().any(|t| target.can_intersect(t)),
+            // Array types
+            (Type::Array(inner_a), Type::Array(inner_b)) => inner_a.can_intersect(inner_b),
+            // Generic can be anything
+            (Type::Generic, _) | (_, Type::Generic) => true,
+            // Different primitive types never intersect
+            _ => false
+        }
+    }
 }
 
 impl Display for Type {

@@ -46,7 +46,13 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var_used(name) {
-        Some(variable_unit) => Ok(variable_unit.clone()),
+        Some(variable_unit) => {
+            let mut var = variable_unit.clone();
+            if let Some(narrowed) = meta.get_narrowed_type(name) {
+                var.kind = narrowed.clone();
+            }
+            Ok(var)
+        },
         None => {
             let message = format!("Variable '{name}' does not exist");
             // Find other similar variable if exists

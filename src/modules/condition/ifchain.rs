@@ -53,17 +53,48 @@ impl SyntaxModule<ParserMetadata> for IfChain {
     }
 }
 
+
 impl TypeCheckModule for IfChain {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type-check all condition-block pairs
-        for (cond, block) in &mut self.cond_blocks {
+        let old_chain = std::mem::take(&mut self.cond_blocks);
+        let mut new_chain = Vec::new();
+        let mut chain_deadcode = false;
+
+        for (mut cond, mut block) in old_chain {
+            if chain_deadcode {
+                continue;
+            }
+
             cond.typecheck(meta)?;
-            block.typecheck(meta)?;
+            match cond.analyze_control_flow() {
+                Some(true) => {
+                    let (facts, _) = cond.extract_facts();
+                    meta.with_narrowed_scope(facts, |meta| {
+                        block.typecheck(meta)
+                    })?;
+                    new_chain.push((cond, block));
+                    chain_deadcode = true;
+                    self.false_block = None;
+                },
+                Some(false) => {
+                    // Dead block, drop it
+                },
+                None => {
+                    let (facts, _) = cond.extract_facts();
+                    meta.with_narrowed_scope(facts, |meta| {
+                        block.typecheck(meta)
+                    })?;
+                    new_chain.push((cond, block));
+                }
+            }
         }
 
-        // Type-check the false block if it exists
-        if let Some(false_block) = &mut self.false_block {
-            false_block.typecheck(meta)?;
+        self.cond_blocks = new_chain;
+
+        if !chain_deadcode {
+            if let Some(false_block) = &mut self.false_block {
+                false_block.typecheck(meta)?;
+            }
         }
 
         Ok(())
@@ -72,6 +103,20 @@ impl TypeCheckModule for IfChain {
 
 impl TranslateModule for IfChain {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        if self.cond_blocks.is_empty() {
+            if let Some(false_block) = &self.false_block {
+                return false_block.translate(meta);
+            }
+            return FragmentKind::Empty;
+        }
+        
+        // In case of when only the first condition is true, we can just leave the truth block without any condition
+        if let Some((first_cond, first_block)) = self.cond_blocks.first() {
+            if first_cond.analyze_control_flow() == Some(true) {
+                return first_block.translate(meta);
+            }
+        }
+
         let mut result = vec![];
         let mut is_first = true;
         for (cond, block) in self.cond_blocks.iter() {
@@ -92,6 +137,7 @@ impl TranslateModule for IfChain {
         BlockFragment::new(result, false).to_frag()
     }
 }
+
 
 impl DocumentationModule for IfChain {
     fn document(&self, _meta: &ParserMetadata) -> String {
