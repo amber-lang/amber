@@ -193,7 +193,7 @@ jobs:
       - run: cargo install cargo-llvm-cov --version ${{ env.LLVM_COV_VERSION }} --locked
         if: steps.cache-llvm-cov.outputs.cache-hit != 'true'
       - name: Test coverage
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path cobertura.xml
+        run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
