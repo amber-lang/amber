@@ -7,12 +7,12 @@ fun run() {
     if 1 is Text {
         undefined_obvious_false()
     }
-    echo "Test passed"
+    echo("Test passed")
 
     if "hello" is Int {
         undefined_obvious_false2()
     }
-    echo "Test passed"
+    echo("Test passed")
 }
 
 run()

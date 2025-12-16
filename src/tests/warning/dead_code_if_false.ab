@@ -3,6 +3,6 @@
 // done
 
 if false {
-    echo "never"
+    echo("never")
 }
-echo "done"
+echo("done")

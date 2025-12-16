@@ -7,10 +7,10 @@ fun run() {
     if true and false {
         undefined_complex1()
     }
-    echo "Test passed"
+    echo("Test passed")
 
     if false or true {
-        echo "Test passed"
+        echo("Test passed")
     } else {
         undefined_complex2()
     }

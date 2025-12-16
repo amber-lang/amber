@@ -3,6 +3,6 @@
 // done
 
 if 1 is Text {
-    echo "never"
+    echo("never")
 }
-echo "done"
+echo("done")

@@ -4,7 +4,7 @@
 
 fun test_narrowing(a: Text | Int, b: Text | Int) {
     if (a is Int) and (b is Int) {
-        echo a + b
+        echo(a + b)
     }
 }
 
@@ -13,7 +13,7 @@ fun run() {
     test_narrowing(10, 20)
     
     if false or (true and true) {
-        echo "Test passed"
+        echo("Test passed")
     } else {
         undefined_complex_parentheses()
     }

@@ -7,7 +7,7 @@ fun run() {
         if false {
             undefined_nested()
         } else {
-            echo "Nested else success"
+            echo("Nested else success")
         }
     }
 }

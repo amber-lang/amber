@@ -3,7 +3,7 @@
 // done
 
 if true {
-    echo "done"
+    echo("done")
 } else {
-    echo "never"
+    echo("never")
 }

@@ -5,8 +5,8 @@
 // done
 
 if {
-    false { echo "never1" }
-    true { echo "done" }
-    false { echo "never2" }
-    else { echo "never3" }
+    false: echo("never1")
+    true: echo("done")
+    false: echo("never2")
+    else: echo("never3")
 }

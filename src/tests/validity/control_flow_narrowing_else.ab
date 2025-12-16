@@ -4,9 +4,9 @@
 #[allow_dead_code]
 fun test_narrow_else(x: Text | Int) {
     if x is Int {
-        echo "is int"
+        echo("is int")
     } else {
-        echo x + x
+        echo(x + x)
     }
 }
 
