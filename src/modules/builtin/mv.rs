@@ -31,7 +31,6 @@ impl SyntaxModule<ParserMetadata> for Mv {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
-            // Manual check for 'mv' keyword to avoid conflict with reserved keyword check
             let position = meta.get_index();
             token(meta, "mv")?;
 
