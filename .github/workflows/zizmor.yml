@@ -20,7 +20,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.tools
           key: zizmor-{{ env.ZIZMOR_VERSION }}
-          restore-key: zizmor-
+          restore-keys: zizmor-
 
       - name: Install zizmor
         run: |
