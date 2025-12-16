@@ -48,7 +48,34 @@ jobs:
           branch: bot-zizmor-fix
           title: *title
 
-      - name: Report remaning issues
+      - name: Check for security issues
+        id: zizmor-check
+        continue-on-error: true
         run: |
-          zizmor . --format github
+          set +e
+          zizmor . > zizmor-report.md
+          zizmor_fail=$?
+          echo "zizmor-fail=$zizmor_fail" >> $GITHUB_OUTPUT
+          exit 0
+
+      - name: Write issue body
+        id: after-zizmor
+        if: steps.zizmor-check.outputs.zizmor-fail != '0'
+        run: |
+          {
+            echo '**Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            echo '**Commit:** ${{ github.sha }}'
+            echo '```'
+            cat zizmor-report.md
+            echo '```'
+          } >> issue-body.md
+          issue_number=$(gh issue list --label "zizmor" --state open --json number --jq '.[0].number' || echo "")
+          echo "issue_number=$issue_number" >> $GITHUB_OUTPUT
+
+      - uses: peter-evans/create-issue-from-file@e8ef132d6df98ed982188e460ebb3b5d4ef3a9cd # v5.0.1
+        if: steps.zizmor-check.outputs.zizmor-fail != '0'
+        with:
+          title: "Security: zizmor findings"
+          content-filepath: issue-body.md
+          issue-number: ${{ steps.after-zizmor.outputs.issue_number }}
 
