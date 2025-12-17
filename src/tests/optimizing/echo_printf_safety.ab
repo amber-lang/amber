@@ -1,4 +1,4 @@
-let bar = "bar"
+const bar = "bar"
 echo("foo")
 echo(["-foo", "bar"])
 echo(["-foo {bar} foobar", "bar"])
