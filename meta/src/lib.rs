@@ -1,3 +1,4 @@
+mod dispatch;
 mod helper;
 mod manager;
 mod utils;
@@ -6,7 +7,7 @@ use crate::helper::HelperVisitor;
 use crate::manager::ManagerVisitor;
 use proc_macro::TokenStream;
 use syn::visit::Visit;
-use syn::*;
+use syn::{DeriveInput, ItemStruct, parse_macro_input};
 
 /// Derive macro `ContextManager` allows changes to be made to annotated
 /// fields on a struct, with automatic reset on early error return.
@@ -100,5 +101,21 @@ pub fn context_helper(input: TokenStream) -> TokenStream {
     let mut visitor = HelperVisitor::new(&input.ident);
     visitor.visit_item_struct(&input);
     let output = visitor.make_block();
+    TokenStream::from(output)
+}
+
+/// Derive macro `StatementDispatch` generates trait implementations for
+/// `TypeCheckModule`, `TranslateModule`, and `DocumentationModule` for
+/// statement enums.
+///
+/// Each enum variant must be a tuple variant with exactly one field.
+/// The generated implementations dispatch to the inner type's implementation.
+///
+/// Use `#[dispatch(translate_discard)]` on a variant to make its
+/// `translate` method discard the result and return `FragmentKind::Empty`.
+#[proc_macro_derive(StatementDispatch, attributes(dispatch))]
+pub fn statement_dispatch(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let output = dispatch::generate_dispatch(&input);
     TokenStream::from(output)
 }
