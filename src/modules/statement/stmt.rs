@@ -152,7 +152,7 @@ impl TypeCheckModule for Statement {
             Break, Cd, Command, CommandModifier, Comment,
             CommentDoc, Continue, Echo, Exit, Expr,
             Fail, FunctionDeclaration, IfChain, IfCondition, Import,
-            InfiniteLoop, IterLoop, Main, Mv, Return,
+            InfiniteLoop, IterLoop, Main, Mv, Touch, Return,
             ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
             Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
             WhileLoop
