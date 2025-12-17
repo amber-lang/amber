@@ -39,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             loop {
                 if meta
                     .get_current_token()
-                    .map_or(false, |t| t.word.starts_with("//"))
+                    .is_some_and(|t| t.word.starts_with("//"))
                 {
                     let mut comment = Comment::new();
                     syntax(meta, &mut comment)?;
