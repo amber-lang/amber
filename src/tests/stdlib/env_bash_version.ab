@@ -11,8 +11,8 @@ main {
     const bash_verinfo = trust $ echo \$\{BASH_VERSINFO[@]:0:3} $
 
     if bash_verinfo == bash_version_to_text(version) {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Bash versions are not matching {version} vs {bash_verinfo}"
+        echo("Bash versions are not matching {version} vs {bash_verinfo}")
     }
 }

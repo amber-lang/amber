@@ -177,6 +177,10 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             // Get the arguments
             token(meta, "(")?;
             loop {
+                // Skip comments and newlines
+                if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                    continue;
+                }
                 if token(meta, ")").is_ok() {
                     break;
                 }

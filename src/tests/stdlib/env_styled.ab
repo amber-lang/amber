@@ -4,5 +4,5 @@ import * from "std/env"
 // \x1b[31;1;42mHello Amber!\x1b[0m
 
 main {
-    echo styled("Hello Amber!", 31, 1, 42)
+    echo(styled("Hello Amber!", 31, 1, 42))
 } 

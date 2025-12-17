@@ -18,8 +18,19 @@ impl SyntaxModule<ParserMetadata> for Echo {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
         token(meta, "echo")?;
-        syntax(meta, &mut *self.value)?;
+
+        if token(meta, "(").is_ok() {
+            syntax(meta, &mut *self.value)?;
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling a builtin without parentheses is deprecated");
+            meta.add_message(warning);
+            syntax(meta, &mut *self.value)?;
+        }
         Ok(())
     }
 }

@@ -5,6 +5,6 @@ import * from "std/text"
 // aaa
 
 main {
-    echo rpad("a", "b", 3); 
-    echo rpad("aaa", "b", 3); 
+    echo(rpad("a", "b", 3))
+    echo(rpad("aaa", "b", 3))
 }

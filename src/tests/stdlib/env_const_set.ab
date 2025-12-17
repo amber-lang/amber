@@ -7,5 +7,5 @@ main {
     env_const_set("test_shell_constant_set", "Succe") failed {
         str += "eded"
     }
-    echo str
+    echo(str)
 } 

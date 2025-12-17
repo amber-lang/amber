@@ -9,15 +9,15 @@ fun return_generic(): [] {
 
 fun test_func(arr: []) {
         if arr is [] {
-                echo "Generic"
+                echo("Generic")
         }
 
         if arr is [Int] {
-                echo "Number"
+                echo("Number")
         }
 
         if arr is [Text] {
-                echo "Text"
+                echo("Text")
         }
 }
 

@@ -6,7 +6,7 @@ import * from "std/text"
 // world
 
 main {
-    echo slice("hello world", 6, 5); 
-    echo slice("hello world", 6); 
-    echo slice("hello world", -5, 5); 
+    echo(slice("hello world", 6, 5))
+    echo(slice("hello world", 6))
+    echo(slice("hello world", -5, 5))
 }

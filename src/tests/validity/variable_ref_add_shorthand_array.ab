@@ -7,4 +7,4 @@ fun foo(ref a) {
 
 let a = [1, 2, 3]
 foo(a)
-echo a
+echo(a)

@@ -5,12 +5,12 @@
 
 let x = 16
 x += 48
-echo x
+echo(x)
 
 let y = 32.75
 y += 17.5
-echo y
+echo(y)
 
 let z = 64.10
 z += 35
-echo z
+echo(z)

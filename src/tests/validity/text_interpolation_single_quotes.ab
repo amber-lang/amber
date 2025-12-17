@@ -14,13 +14,13 @@
 const str = "ABC"
 const space = " "
 
-echo "'"
-echo "''"
-echo "a'b"
-echo "'ABC'"
-echo "a'b{str}c'd"
-echo "'{str}'"
-echo "'{str} {str}'"
-echo "'{str}"
-echo "{str}'"
-echo "'\"a'b"
+echo("'")
+echo("''")
+echo("a'b")
+echo("'ABC'")
+echo("a'b{str}c'd")
+echo("'{str}'")
+echo("'{str} {str}'")
+echo("'{str}")
+echo("{str}'")
+echo("'\"a'b")

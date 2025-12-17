@@ -1,6 +1,6 @@
 let a = 10
 loop {
     if a <= 0: break
-    echo a
+    echo(a)
     a -= 1
 }

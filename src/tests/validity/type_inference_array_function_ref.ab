@@ -8,7 +8,7 @@ fun foo(ref arg: [Int]) {
 
 let a = []
 foo(a)
-echo a
+echo(a)
 
 fun bar(ref arg, val) {
     arg += [val]
@@ -16,4 +16,4 @@ fun bar(ref arg, val) {
 
 let b = []
 bar(b, "Hello")
-echo b
+echo(b)

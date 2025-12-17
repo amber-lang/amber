@@ -1,10 +1,10 @@
 for item in [1, 2, 3] {
-    echo "Item: {item}"
+    echo("Item: {item}")
 }
 
 let items = ["A", "B", "C"]
 
 for index, item in [1, 2, 3] {
-    echo "Index: {index}, Item: {item}"
-    echo "Item from list: {items[index]}"
+    echo("Index: {index}, Item: {item}")
+    echo("Item from list: {items[index]}")
 }

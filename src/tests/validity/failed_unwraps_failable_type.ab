@@ -6,6 +6,6 @@ fun failable(): Num? {
     return 1
 }
 
-const a = failable() failed: echo "Failed"
+const a = failable() failed: echo("Failed")
 
-if a is Num: echo "Succeeded"
+if a is Num: echo("Succeeded")

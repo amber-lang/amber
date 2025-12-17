@@ -2,5 +2,5 @@ import * from "std/env"
 
 main {
     trust $ export test_shell_var_get="Succeeded" $
-    echo trust env_var_get("test_shell_var_get")
+    echo(trust env_var_get("test_shell_var_get"))
 }

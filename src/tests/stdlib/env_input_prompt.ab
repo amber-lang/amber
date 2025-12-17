@@ -10,5 +10,5 @@ main {
     trust $ echo "Amber" >> {test_file} $
     trust $ exec 0< {test_file} $
     const name = input_prompt("Please enter your name:")
-    echo "Hello, " + name
+    echo("Hello, " + name)
 }

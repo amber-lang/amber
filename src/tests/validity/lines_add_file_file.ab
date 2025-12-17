@@ -14,6 +14,6 @@ main {
     // Inefficient for large files.
     const line_values = lines("{tmpdir}/numbers1.txt") + lines("{tmpdir}/numbers2.txt")
     for line in line_values {
-        echo "[{line}]"
+        echo("[{line}]")
     }
 }

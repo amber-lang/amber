@@ -5,7 +5,7 @@
 
 fun is_even(n: Int): Bool {
     if n == 0 {
-        echo "True"
+        echo("True")
         return true
     }
     return is_odd(n - 1)
@@ -13,16 +13,16 @@ fun is_even(n: Int): Bool {
 
 fun is_odd(n: Int): Bool {
     if n == 0 {
-        echo "False"
+        echo("False")
         return false
     }
     return is_even(n - 1)
 }
 
 $ {nameof is_even} 2 $ failed {
-    echo "Failed 2"
+    echo("Failed 2")
 }
 $ {nameof is_odd} 3 $ failed {
-    echo "Failed 3"
+    echo("Failed 3")
 }
-echo "Compiled"
+echo("Compiled")

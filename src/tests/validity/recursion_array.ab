@@ -10,4 +10,4 @@ fun sum_array(arr: [Num], index: Num): Num {
 
 const arr = [1, 2, 3, 4, 5]
 const sum = sum_array(arr, 4)
-echo sum
+echo(sum)

@@ -9,7 +9,7 @@ fun update_status(): Null {
 }
 
 update_status()
-echo app_status
+echo(app_status)
 
 // Output
 // active

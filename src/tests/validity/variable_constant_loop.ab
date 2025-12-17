@@ -7,12 +7,12 @@
 
 main {
     const x = 42
-    echo "Before: {x}"
+    echo("Before: {x}")
 
     for i in [1, 2, 3] {
         const x = i
-        echo "Looping: {x}"
+        echo("Looping: {x}")
     }
 
-    echo "After: {x}"
+    echo("After: {x}")
 }

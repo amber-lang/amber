@@ -9,7 +9,7 @@ import { array_find } from "std/array"
 
 fun test_index(data: [Text], value: Text): Null {
     const index = array_find(data, value)
-    echo "Index of \"{value}\": {index}"
+    echo("Index of \"{value}\": {index}")
 }
 
 main {

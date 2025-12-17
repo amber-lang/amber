@@ -2,7 +2,7 @@
 // 1st argument 'n' of function 'foo' expects type '[Int]', but '[Text]' was given
 
 fun foo(ref n: [Int]) {
-    echo n
+    echo(n)
 }
 
 let a = []

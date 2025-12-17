@@ -3,6 +3,6 @@
 // 21
 
 let x = 42
-echo x
+echo(x)
 x = 21
-echo x 
+echo(x)

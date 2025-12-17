@@ -8,4 +8,4 @@ fun safe_division(a: Num, b: Num): Num? {
 }
 
 let result = trust safe_division(24, 4)
-echo "{result}, {status}"
+echo("{result}, {status}")

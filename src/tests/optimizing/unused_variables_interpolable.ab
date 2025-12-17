@@ -1,4 +1,4 @@
 let a = 10
 let b = 20
 let c = 30
-echo "The answer is {b}."
+echo("The answer is {b}.")

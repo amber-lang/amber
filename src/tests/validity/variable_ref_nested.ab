@@ -5,9 +5,9 @@
 // 3
 
 fun bar(ref val, ref arr) {
-    echo val
+    echo(val)
     for i in arr {
-        echo i
+        echo(i)
     }
 }
 

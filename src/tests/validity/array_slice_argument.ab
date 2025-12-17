@@ -3,7 +3,7 @@ fun foo(arr: [Num]): Text {
 }
 
 const arr = [1, 2, 3]
-echo foo(arr[1..3])
+echo(foo(arr[1..3]))
 
 // Output
 // Value: 2

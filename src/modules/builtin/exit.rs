@@ -17,13 +17,25 @@ impl SyntaxModule<ParserMetadata> for Exit {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
         token(meta, "exit")?;
 
-        let mut code_expr = Expr::new();
-        if syntax(meta, &mut code_expr).is_ok() {
+        if token(meta, "(").is_ok() {
+            let mut code_expr = Expr::new();
+            syntax(meta, &mut code_expr)?;
             self.code = Some(code_expr);
-        }
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling a builtin without parentheses is deprecated");
+            meta.add_message(warning);
 
+            let mut code_expr = Expr::new();
+            if syntax(meta, &mut code_expr).is_ok() {
+                self.code = Some(code_expr);
+            }
+        }
         Ok(())
     }
 }

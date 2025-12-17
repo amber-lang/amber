@@ -9,6 +9,6 @@ fun func1(args: Bool): Text {
 }
 
 main(args) {
-    echo func1(true)
-    echo len(args)
+    echo(func1(true))
+    echo(len(args))
 }

@@ -4,4 +4,4 @@
 fun test(a: Num, b: Num) {
     return a + b
 }
-echo test(11, 42)
+echo(test(11, 42))

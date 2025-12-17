@@ -4,8 +4,8 @@
 
 let array = []
 array += [1]
-echo array
+echo(array)
 
 let array2 = []
 array2 = [1, 2, 3]
-echo array2
+echo(array2)

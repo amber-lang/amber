@@ -9,7 +9,7 @@ import { array_find_all } from "std/array"
 
 fun test_search(data: [Text], value: Text): Null {
     const indices = array_find_all(data, value)
-    echo "Indices of \"{value}\": [{indices}]"
+    echo("Indices of \"{value}\": [{indices}]")
 }
 
 main {

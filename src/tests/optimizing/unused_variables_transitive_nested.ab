@@ -3,5 +3,5 @@ let outer_unused = 20
 {
     let inner = outer
     let inner_unused = outer_unused
-    echo inner
+    echo(inner)
 }

@@ -7,22 +7,22 @@
 
 main {
     const x = 42
-    echo "Outer: {x}"
+    echo("Outer: {x}")
 
     if x > 12 {
         const x = 12
-        echo "If: {x}"
+        echo("If: {x}")
     }
 
-    echo "Outer: {x}"
+    echo("Outer: {x}")
 
     if x < 12 {
         const x = 12
-        echo "If: {x}"
+        echo("If: {x}")
     } else {
         const x = 24
-        echo "Else: {x}"
+        echo("Else: {x}")
     }
 
-    echo "Outer: {x}"
+    echo("Outer: {x}")
 }

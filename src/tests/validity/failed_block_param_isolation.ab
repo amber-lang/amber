@@ -6,7 +6,7 @@
 main {
     silent $ you_do_not_have_this $ failed(error) {
         trust $ true $
-        echo "Exit code: {error}"
+        echo("Exit code: {error}")
     }
-    echo status
+    echo(status)
 }

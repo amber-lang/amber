@@ -9,13 +9,13 @@ import { array_remove_at } from "std/array"
 
 main {
     const numbers = ["zero", "one", "two", "three"]
-    echo "Array before 1: ({len(numbers)}) [{numbers}]"
+    echo("Array before 1: ({len(numbers)}) [{numbers}]")
     array_remove_at(numbers, 1)
-    echo "Array after 1: ({len(numbers)}) [{numbers}]"
+    echo("Array after 1: ({len(numbers)}) [{numbers}]")
     array_remove_at(numbers, 1)
-    echo "Array after 2: ({len(numbers)}) [{numbers}]"
+    echo("Array after 2: ({len(numbers)}) [{numbers}]")
     array_remove_at(numbers, 1)
-    echo "Array after 3: ({len(numbers)}) [{numbers}]"
+    echo("Array after 3: ({len(numbers)}) [{numbers}]")
     array_remove_at(numbers, 1)
-    echo "Array after 4: ({len(numbers)}) [{numbers}]"
+    echo("Array after 4: ({len(numbers)}) [{numbers}]")
 }

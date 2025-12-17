@@ -6,4 +6,4 @@ pub fun test(): Num? {
     return 42
 }
 
-echo test() failed: echo "Succeeded"
+echo(test() failed: echo("Succeeded"))

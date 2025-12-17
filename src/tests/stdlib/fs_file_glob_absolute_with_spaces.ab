@@ -31,12 +31,12 @@ main {
         "{tmpdir}/2nd file with spaces.txt",
     ]
     const actual = file_glob("{tmpdir}/*with spaces*") failed {
-        echo "FAILED"
+        echo("FAILED")
     }
     if compare(actual, expected) {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Expected: {expected}"
-        echo "Actual: {actual}"
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
     }
 }

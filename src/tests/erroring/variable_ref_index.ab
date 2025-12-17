@@ -2,7 +2,7 @@
 // Cannot pass 1st argument 'value' as a reference to the function 'foo' because it is not a variable
 
 fun foo(ref value) {
-    echo value
+    echo(value)
 }
 
 let array = [1, 2, 3]

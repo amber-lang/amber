@@ -13,5 +13,5 @@ let b = 24
 
 swap(a, b)
 
-echo a
-echo b
+echo(a)
+echo(b)

@@ -14,7 +14,7 @@ import { array_remove_at } from "std/array"
 
 fun test_remove(data: [Text], index: Int): Null {
     array_remove_at(data, index)
-    echo "Array after {index}: ({len(data)}) [{data}]"
+    echo("Array after {index}: ({len(data)}) [{data}]")
 }
 
 main {

@@ -9,7 +9,7 @@ import { match_regex_any } from "std/text"
 
 fun test_multiple(label, text, terms) {
     const result = match_regex_any(text, terms)
-    echo "{label}: {result}"
+    echo("{label}: {result}")
 }
 
 main {

@@ -7,7 +7,7 @@
 
 fun test_index(ref byref) {
     for index in 0..=4 {
-        echo "Value at {index}: \"{byref[index]}\""
+        echo("Value at {index}: \"{byref[index]}\"")
     }
 }
 

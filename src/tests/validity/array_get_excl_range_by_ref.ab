@@ -34,7 +34,7 @@ fun test_range(ref byref) {
     for begin in -1..=4 {
         for end in 0..=4 {
             const slice = byref[begin..end]
-            echo "Values at {begin}..{end}: ({len(slice)}) [{slice}]"
+            echo("Values at {begin}..{end}: ({len(slice)}) [{slice}]")
         }
     }
 }

@@ -13,17 +13,17 @@
 const left = [1.12, 2.32, 3.43, -10.23, -15.32, -20.32]
 const right = [1.12, 2.32, 3.43]
 
-echo "Gt and Ge"
-echo "Ge: {left >= right}"
-echo "Gt: {left > right}"
-echo "Le: {left <= right}"
-echo "Lt: {left < right}"
+echo("Gt and Ge")
+echo("Ge: {left >= right}")
+echo("Gt: {left > right}")
+echo("Le: {left <= right}")
+echo("Lt: {left < right}")
 
 const left = [1.21, 2.21, 3.14]
 const right = [1.21, 2.21, 3.14, 0.0, -1.0]
 
-echo "Lt and Le"
-echo "Ge: {left >= right}"
-echo "Gt: {left > right}"
-echo "Le: {left <= right}"
-echo "Lt: {left < right}"
+echo("Lt and Le")
+echo("Ge: {left >= right}")
+echo("Gt: {left > right}")
+echo("Le: {left <= right}")
+echo("Lt: {left < right}")

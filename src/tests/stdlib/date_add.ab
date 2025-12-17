@@ -3,6 +3,6 @@ import * from "std/date"
 main {
     const date = date_from_posix("2009-02-07 09:46:40")?
     if date_add(date, 17, "days")? == date_from_posix("2009-02-24 09:46:40")? {
-        echo "Succeeded"
+        echo("Succeeded")
     }
 }

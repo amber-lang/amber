@@ -24,33 +24,33 @@
 //
 // ---
 
-echo 0..10
-echo 0..=10
+echo(0..10)
+echo(0..=10)
 
-echo "---"
-echo -5..10
-echo -5..=10
+echo("---")
+echo(-5..10)
+echo(-5..=10)
 
-echo "---"
-echo -5..-1
-echo -5..=-1
+echo("---")
+echo(-5..-1)
+echo(-5..=-1)
 
-echo "---"
-echo -5..-10
-echo -5..=-10
+echo("---")
+echo(-5..-10)
+echo(-5..=-10)
 
-echo "---"
-echo 5..-10
-echo 5..=-10
+echo("---")
+echo(5..-10)
+echo(5..=-10)
 
-echo "---"
-echo -5..=-5
-echo 0..=0
-echo 5..=5
+echo("---")
+echo(-5..=-5)
+echo(0..=0)
+echo(5..=5)
 
-echo "---"
-echo "<3 empty lines>"
-echo 0..0
-echo 5..5
-echo -5..-5
-echo "---"
+echo("---")
+echo("<3 empty lines>")
+echo(0..0)
+echo(5..5)
+echo(-5..-5)
+echo("---")

@@ -14,15 +14,15 @@ main {
 
 	loop {
 		i = i + 1
-		echo "dir: {dir}"
+		echo("dir: {dir}")
 
 		if dir == "/some/dir" {
-			echo "success: {dir}"
+			echo("success: {dir}")
 			break
 		}
 
 		dir = parent_dir(dir)
-		// echo "new_dir1: {dir}"
+		// echo("new_dir1: {dir}")
 
 		if i > 5 {
 			break

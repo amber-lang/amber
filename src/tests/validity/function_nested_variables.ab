@@ -4,13 +4,13 @@
 
 fun bar() {
     const result = 12
-    echo result
+    echo(result)
 }
 
 fun foo() {
     const result = 42
     bar()
-    echo result
+    echo(result)
 }
 
 foo()

@@ -3,8 +3,8 @@
 
 main {
     $ echo "test" $ exited(code) {
-        echo "Success!"
+        echo("Success!")
     } failed {
-        echo "Failed!"
+        echo("Failed!")
     }
 }

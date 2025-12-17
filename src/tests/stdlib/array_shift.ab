@@ -6,10 +6,10 @@ import { array_shift } from "std/array"
 
 fun test_shift(label: Text, data: [Text]): Null {
     const value = array_shift(data) failed {
-        echo "First of empty array does not exist"
+        echo("First of empty array does not exist")
         return null
     }
-    echo "Shifted from {label}: \"{value}\" ({len(data)}) [{data}]"
+    echo("Shifted from {label}: \"{value}\" ({len(data)}) [{data}]")
 }
 
 main {

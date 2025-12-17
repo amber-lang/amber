@@ -6,6 +6,6 @@ import { split_lines } from "std/text"
 
 main {
     for line in split_lines("hello\nworld") {
-        echo "line: " + line
+        echo("line: " + line)
     }
 } 

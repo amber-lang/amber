@@ -2,21 +2,21 @@
 // inner_c
 
 fun inner_c() {
-    echo "inner_c"
+    echo("inner_c")
     fail
 }
 
 fun inner_b() {
     inner_c()?
-    echo "inner_b"
+    echo("inner_b")
 }
 
 fun inner_a() {
     inner_b()?
-    echo "inner_a"
+    echo("inner_a")
 }
 
 main {
     inner_a()?
-    echo "main"
+    echo("main")
 }

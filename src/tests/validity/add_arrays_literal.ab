@@ -3,4 +3,4 @@
 
 const a = [1, 2, 3, 4, 5]
 const c = a + [6, 7, 8, 9, 10]
-echo c
+echo(c)

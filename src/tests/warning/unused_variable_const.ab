@@ -4,5 +4,5 @@
 
 main {
     const unused_var = [1, 2, 3]
-    echo 1
+    echo(1)
 }

@@ -5,5 +5,5 @@ import * from "std/text"
 
 main {
     const array = split("apple,banana,cherry", ",")
-    echo array[1]
+    echo(array[1])
 }

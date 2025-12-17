@@ -8,8 +8,8 @@ fun foo(ref a) {
 
 let a = 24
 foo(a)
-echo a
+echo(a)
 
 let a = 11.11
 foo(a)
-echo a
+echo(a)

@@ -9,4 +9,4 @@ fun set() {
 let var = "Succeeded"
 set()
 
-echo var
+echo(var)

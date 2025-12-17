@@ -7,7 +7,7 @@
 
 fun test_index(array) {
     for index in 0..=4 {
-        echo "Value at {index}: \"{array[index]}\""
+        echo("Value at {index}: \"{array[index]}\"")
     }
 }
 
