@@ -75,23 +75,21 @@ impl TypeCheckModule for Ternary {
         match self.cond.analyze_control_flow() {
             Some(true) => {
                 let (facts, _) = self.cond.extract_facts();
-                if let Some(true_expr) = &mut self.true_expr {
-                    meta.with_narrowed_scope(facts, |meta| {
-                        true_expr.typecheck(meta)
-                    })?;
-                    self.kind = true_expr.get_type();
-                }
+                let true_expr = self.true_expr.as_mut().unwrap();
+                meta.with_narrowed_scope(facts, |meta| {
+                    true_expr.typecheck(meta)
+                })?;
+                self.kind = true_expr.get_type();
                 self.false_expr = None;
                 return Ok(());
             },
             Some(false) => {
                 let (_, facts) = self.cond.extract_facts();
-                if let Some(false_expr) = &mut self.false_expr {
-                    meta.with_narrowed_scope(facts, |meta| {
-                        false_expr.typecheck(meta)
-                    })?;
-                    self.kind = false_expr.get_type();
-                }
+                let false_expr = self.false_expr.as_mut().unwrap();
+                meta.with_narrowed_scope(facts, |meta| {
+                    false_expr.typecheck(meta)
+                })?;
+                self.kind = false_expr.get_type();
                 self.true_expr = None;
                 return Ok(());
             },
@@ -99,20 +97,18 @@ impl TypeCheckModule for Ternary {
         }
 
         let (true_facts, false_facts) = self.cond.extract_facts();
-        if let Some(true_expr) = &mut self.true_expr {
-            meta.with_narrowed_scope(true_facts, |meta| {
-                true_expr.typecheck(meta)
-            })?;
-        }
-        if let Some(false_expr) = &mut self.false_expr {
-            meta.with_narrowed_scope(false_facts, |meta| {
-                false_expr.typecheck(meta)
-            })?;
-        }
+        let true_expr = self.true_expr.as_mut().unwrap();
+        let false_expr = self.false_expr.as_mut().unwrap();
+        meta.with_narrowed_scope(true_facts, |meta| {
+            true_expr.typecheck(meta)
+        })?;
+        meta.with_narrowed_scope(false_facts, |meta| {
+            false_expr.typecheck(meta)
+        })?;
         
         // Unification Logic for dynamic case
-        let true_type = self.true_expr.as_ref().map(|e| e.get_type()).unwrap_or(Type::Null);
-        let false_type = self.false_expr.as_ref().map(|e| e.get_type()).unwrap_or(Type::Null);
+        let true_type = true_expr.get_type();
+        let false_type = false_expr.get_type();
         
         if true_type == false_type {
             self.kind = true_type;
