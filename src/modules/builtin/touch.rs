@@ -49,6 +49,6 @@ impl TranslateModule for Touch {
 
 impl DocumentationModule for Touch {
     fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
+        String::new()
     }
 }

@@ -123,7 +123,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             // Conditions
             IfChain, IfCondition,
             // Command
-            Echo, Mv, Cd, Exit, CommandModifier, Command,
+            Echo, Mv, Cd, Exit, Touch, CommandModifier, Command,
             // Variables
             VariableInitDestruct, VariableSetDestruct, VariableInit, VariableSet,
             // Short hand
