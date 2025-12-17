@@ -1,0 +1,23 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 0%
+        base: auto
+        if_not_found: success
+        informational: false
+    patch:
+      default:
+        target: 80%
+
+ignore:
+  - "**/tests/**"
+  - "**/test_*.rs"
+  - "**/build.rs"
+
+comment:
+  layout: " diff, flags, files"
+  behavior: default
+  require_changes: true  # if true: only post the comment if coverage changes
+  hide_project_coverage: false # [true :: only show coverage on the git diff aka patch coverage]]
