@@ -15,39 +15,39 @@ impl LogFragment {
         }
     }
 
-    fn should_use_echo(&self, fragment: &FragmentKind) -> bool {
+    fn should_use_printf(&self, fragment: &FragmentKind) -> bool {
         match fragment {
             FragmentKind::VarExpr(var) => {
                 if matches!(var.kind, Type::Text) {
-                    return false;
+                    return true;
                 }
                 if let Type::Array(inner) = &var.kind {
                     if matches!(**inner, Type::Text) {
-                        return false;
+                        return true;
                     }
                 }
-                true
+                false
             }
             FragmentKind::Interpolable(interpolable) => {
                 if interpolable.render_type != InterpolableRenderType::StringLiteral {
-                    return false;
+                    return true;
                 }
                 // Check first string chunk
                 if let Some(first) = interpolable.strings.front() {
-                     !first.is_empty() && !first.starts_with('-')
+                     first.is_empty() || first.starts_with('-')
                 } else {
-                     false
+                     true
                 }
             }
             FragmentKind::List(list) => {
                 if let Some(first) = list.values.first() {
-                    self.should_use_echo(first)
+                    self.should_use_printf(first)
                 } else {
-                    true
+                    false
                 }
             }
-            FragmentKind::Raw(_) | FragmentKind::Arithmetic(_) => true,
-            _ => false,
+            FragmentKind::Raw(_) | FragmentKind::Arithmetic(_) => false,
+            _ => true,
         }
     }
 }
@@ -55,10 +55,10 @@ impl LogFragment {
 
 impl FragmentRenderable for LogFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-        if self.should_use_echo(&self.value) {
-            format!("echo {}", self.value.to_string(meta))
-        } else {
+        if self.should_use_printf(&self.value) {
             format!("printf '%s\\n' {}", self.value.to_string(meta))
+        } else {
+            format!("echo {}", self.value.to_string(meta))
         }
     }
 
