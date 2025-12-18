@@ -36,10 +36,17 @@ pub struct ParserMetadata {
     pub test_names: Vec<String>,
     /// Stack of narrowed types for control flow analysis
     pub narrowed_types: Vec<HashMap<String, Type>>,
+    /// Suppress warnings during monomorphic function re-typechecking
+    #[context]
+    pub suppress_warnings: bool,
 }
 
 impl ParserMetadata {
     pub fn add_message(&mut self, message: Message) {
+        // Skip warnings if we're in a suppressed context
+        if self.suppress_warnings && matches!(message.kind, MessageType::Warning) {
+            return;
+        }
         self.messages.push(message);
     }
 }
@@ -256,6 +263,7 @@ impl Metadata for ParserMetadata {
             parsing_functions: HashMap::new(),
             test_names: Vec::new(),
             narrowed_types: Vec::new(),
+            suppress_warnings: false,
         }
     }
 

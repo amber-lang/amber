@@ -43,6 +43,10 @@ impl Type {
             return true;
         }
 
+        if self == &Type::Generic {
+            return true;
+        }
+
         if let (Type::Array(const_type), Type::Array(other_type)) = (self, other) {
             return **const_type == Type::Generic && **other_type != Type::Generic;
         }
