@@ -1,0 +1,4 @@
+// Output
+// Variable 'my_variable' does not exist
+
+my_variable = 1
