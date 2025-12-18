@@ -4,11 +4,12 @@ use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
+use crate::modules::statement::comment::Comment;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
-    cond_blocks: Vec<(Expr, Block)>,
-    false_block: Option<Box<Block>>,
+    cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
+    false_block: Option<(Vec<Comment>, Box<Block>)>
 }
 
 impl IfChain {
@@ -39,17 +40,36 @@ impl SyntaxModule<ParserMetadata> for IfChain {
         // Parse true block
         token(meta, "{")?;
         loop {
+            let mut comments = vec![];
             let mut cond = Expr::new();
             let mut block = Block::new().with_needs_noop().with_condition();
-            // Handle comments and empty lines
-            if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+
+            // Handle new lines
+            if token_by(meta, |token| token.starts_with('\n')).is_ok() {
                 continue
             }
+
+            // Handle comments
+            loop {
+                if meta
+                    .get_current_token()
+                    .is_some_and(|t| t.word.starts_with("//"))
+                {
+                    let mut comment = Comment::new();
+                    syntax(meta, &mut comment)?;
+                    comments.push(comment);
+
+                    let _ = token_by(meta, |t| t.starts_with('\n'));
+                } else {
+                    break;
+                }
+            }
+
             // Handle else keyword
             if token(meta, "else").is_ok() {
                 let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
                 syntax(meta, &mut *false_block)?;
-                self.false_block = Some(false_block);
+                self.false_block = Some((comments, false_block));
                 if token(meta, "}").is_err() {
                   return error!(meta, meta.get_current_token(), "Expected `else` condition to be the last in the if chain")?
                 }
@@ -62,7 +82,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             syntax(meta, &mut cond)?;
             syntax(meta, &mut block)?;
 
-            self.cond_blocks.push((cond, block));
+            self.cond_blocks.push((comments, cond, block));
         }
     }
 }
@@ -76,7 +96,10 @@ impl TypeCheckModule for IfChain {
         // Used for warning about unreachable conditions
         let mut first_true_pos: Option<PositionInfo> = None;
 
-        for (mut cond, mut block) in old_chain {
+        for (mut comments, mut cond, mut block) in old_chain {
+            for comment in comments.iter_mut() {
+                comment.typecheck(meta)?;
+            }
             cond.typecheck(meta)?;
             let pos = cond.get_position();
 
@@ -91,7 +114,7 @@ impl TypeCheckModule for IfChain {
                     meta.with_narrowed_scope(facts, |meta| {
                         block.typecheck(meta)
                     })?;
-                    new_chain.push((cond, block));
+                    new_chain.push((comments, cond, block));
                     chain_deadcode = true;
                     first_true_pos = Some(pos);
                 },
@@ -103,7 +126,7 @@ impl TypeCheckModule for IfChain {
                     meta.with_narrowed_scope(facts, |meta| {
                         block.typecheck(meta)
                     })?;
-                    new_chain.push((cond, block));
+                    new_chain.push((comments, cond, block));
                 }
             }
         }
@@ -117,7 +140,10 @@ impl TypeCheckModule for IfChain {
                 }
             }
             self.false_block = None;
-        } else if let Some(false_block) = &mut self.false_block {
+        } else if let Some((comments, false_block)) = &mut self.false_block {
+            for comment in comments {
+                comment.typecheck(meta)?;
+            }
             false_block.typecheck(meta)?;
         }
 
@@ -128,14 +154,14 @@ impl TypeCheckModule for IfChain {
 impl TranslateModule for IfChain {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.cond_blocks.is_empty() {
-            if let Some(false_block) = &self.false_block {
+            if let Some((_, false_block)) = &self.false_block {
                 return false_block.translate(meta);
             }
             return FragmentKind::Empty;
         }
         
         // In case of when only the first condition is true, we can just leave the truth block without any condition
-        if let Some((first_cond, first_block)) = self.cond_blocks.first() {
+        if let Some((_, first_cond, first_block)) = self.cond_blocks.first() {
             if first_cond.analyze_control_flow() == Some(true) {
                 return first_block.translate(meta);
             }
@@ -143,7 +169,10 @@ impl TranslateModule for IfChain {
 
         let mut result = vec![];
         let mut is_first = true;
-        for (cond, block) in self.cond_blocks.iter() {
+        for (comments, cond, block) in self.cond_blocks.iter() {
+            for comment in comments {
+                result.push(comment.translate(meta));
+            }
             if is_first {
                 result.push(fragments!("if [ ", cond.translate(meta), " != 0 ]; then"));
                 result.push(block.translate(meta));
@@ -153,7 +182,10 @@ impl TranslateModule for IfChain {
                 result.push(block.translate(meta));
             }
         }
-        if let Some(false_block) = &self.false_block {
+        if let Some((comments, false_block)) = &self.false_block {
+            for comment in comments {
+                result.push(comment.translate(meta));
+            }
             result.push(fragments!("else"));
             result.push(false_block.translate(meta));
         }

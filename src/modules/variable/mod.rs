@@ -145,7 +145,7 @@ pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool,
 fn allow_index_accessor(index: &Expr, range: bool) -> bool {
     match (&index.kind, &index.value) {
         (t, _) if t.is_allowed_in(&Type::Int) => true,
-        (Type::Array(_), Some(ExprType::Range(_))) => range,
+        (t, Some(ExprType::Range(_))) if t.is_allowed_in(&Type::array_of(Type::Generic)) => range,
         _ => false,
     }
 }

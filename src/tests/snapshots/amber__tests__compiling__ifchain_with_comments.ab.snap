@@ -1,0 +1,17 @@
+---
+source: src/tests/compiling.rs
+assertion_line: 34
+expression: ast
+---
+x_0=1
+# Check for large values
+if [ "$(( x_0 > 10 ))" != 0 ]; then
+    echo "large"
+# Then for the second check
+# Check for medium values
+elif [ "$(( x_0 > 5 ))" != 0 ]; then
+    echo "medium"
+# Otherwise it's small
+else
+    echo "small"
+fi
