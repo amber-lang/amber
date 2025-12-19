@@ -20,6 +20,7 @@ impl Is {
     pub fn analyze_control_flow(&self) -> Option<bool> {
         let expr_type = self.expr.get_type();
         
+        
         // If types are identical, it's always true
         if expr_type == self.kind {
             return Some(true);
@@ -37,7 +38,14 @@ impl Is {
         if let Some(ExprType::VariableGet(var)) = &self.expr.value {
             let mut true_facts = HashMap::new();
             true_facts.insert(var.name.clone(), self.kind.clone());
-            return (true_facts, HashMap::new());
+            
+            let mut false_facts = HashMap::new();
+            // Calculate false facts (narrowing in else branch)
+            if let Some(type_false) = self.expr.get_type().exclude(&self.kind) {
+                false_facts.insert(var.name.clone(), type_false);
+            }
+            
+            return (true_facts, false_facts);
         }
         (HashMap::new(), HashMap::new())
     }

@@ -2,10 +2,7 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
-
 use super::BinOp;
-
-
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]

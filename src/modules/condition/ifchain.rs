@@ -5,6 +5,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
 use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
 use crate::modules::statement::comment::Comment;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
@@ -95,12 +96,16 @@ impl TypeCheckModule for IfChain {
         let mut chain_deadcode = false;
         // Used for warning about unreachable conditions
         let mut first_true_pos: Option<PositionInfo> = None;
+        let mut accumulated_neg_facts = HashMap::new();
 
         for (mut comments, mut cond, mut block) in old_chain {
             for comment in comments.iter_mut() {
                 comment.typecheck(meta)?;
             }
-            cond.typecheck(meta)?;
+            // Typecheck condition with accumulated negative facts
+            meta.with_narrowed_scope(accumulated_neg_facts.clone(), |meta| {
+                cond.typecheck(meta)
+            })?;
             let pos = cond.get_position();
 
             if chain_deadcode {
@@ -111,7 +116,11 @@ impl TypeCheckModule for IfChain {
             match cond.analyze_control_flow() {
                 Some(true) => {
                     let (facts, _) = cond.extract_facts();
-                    meta.with_narrowed_scope(facts, |meta| {
+                    // Merge accumulated negative facts with current positive facts for the block
+                    let mut block_facts = accumulated_neg_facts.clone();
+                    block_facts.extend(facts);
+                    
+                    meta.with_narrowed_scope(block_facts, |meta| {
                         block.typecheck(meta)
                     })?;
                     new_chain.push((comments, cond, block));
@@ -122,10 +131,17 @@ impl TypeCheckModule for IfChain {
                     Self::warn_dead_code(meta, pos, "Condition is always false, block will never execute");
                 },
                 None => {
-                    let (facts, _) = cond.extract_facts();
-                    meta.with_narrowed_scope(facts, |meta| {
+                    let (facts, neg_facts) = cond.extract_facts();
+                    // Merge accumulated negative facts with current positive facts for the block
+                    let mut block_facts = accumulated_neg_facts.clone();
+                    block_facts.extend(facts);
+
+                    meta.with_narrowed_scope(block_facts, |meta| {
                         block.typecheck(meta)
                     })?;
+                    // Add current negative facts to the accumulated set for next branches
+                    accumulated_neg_facts.extend(neg_facts);
+                    
                     new_chain.push((comments, cond, block));
                 }
             }
@@ -144,7 +160,9 @@ impl TypeCheckModule for IfChain {
             for comment in comments {
                 comment.typecheck(meta)?;
             }
-            false_block.typecheck(meta)?;
+            meta.with_narrowed_scope(accumulated_neg_facts, |meta| {
+                false_block.typecheck(meta)
+            })?;
         }
 
         Ok(())

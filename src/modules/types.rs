@@ -38,12 +38,41 @@ impl Type {
         }
     }
 
-    pub fn is_allowed_in(&self, other: &Type) -> bool {
-        if self == other || self.is_subset_of(other) {
-            return true;
-        }
+    pub fn is_subseteq_of(&self, other: &Type) -> bool {
+        self == other || self.is_subset_of(other)
+    }
 
-        if self == &Type::Generic {
+    /// Excludes a type from the current type
+    pub fn exclude(&self, other: &Type) -> Option<Type> {
+        match self {
+            Type::Union(types) => {
+                let mut new_types = Vec::new();
+                // Iterate over all types and exclude the type from the union
+                for t in types {
+                    if let Some(remaining) = t.exclude(other) {
+                         new_types.push(remaining);
+                    }
+                }
+                if new_types.is_empty() {
+                    None
+                } else if new_types.len() == 1 {
+                    Some(new_types[0].clone())
+                } else {
+                    Some(Type::Union(new_types))
+                }
+            },
+            t => {
+                if t.is_subseteq_of(other) {
+                    None
+                } else {
+                    Some(t.clone())
+                }
+            }
+        }
+    }
+
+    pub fn is_allowed_in(&self, other: &Type) -> bool {
+        if self == &Type::Generic || self.is_subseteq_of(other) {
             return true;
         }
 
