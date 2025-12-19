@@ -1,0 +1,12 @@
+import { sort_lines_numeric } from "std/text"
+
+// Output
+// 1
+// 2
+// 10
+// 20
+// 100
+
+main {
+    echo(sort_lines_numeric("10\n2\n100\n1\n20"))
+}

@@ -504,3 +504,95 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
 pub fun zfill(text: Text, length: Int): Text {
     return lpad(text, "0", length)
 }
+
+/// Counts the number of lines in the given text.
+///
+/// ### Usage
+/// ```ab
+/// let count = lines_count("one\ntwo\nthree")
+/// echo count // 3
+/// ```
+#[allow_absurd_cast]
+pub fun lines_count(text: Text): Int {
+    if text == "": return 0
+    return trust $ printf "%s\n" "\${nameof text}" | wc -l | tr -d ' ' $ as Int
+}
+
+/// Counts the number of words in the given text.
+///
+/// ### Usage
+/// ```ab
+/// let count = words_count("hello world foo")
+/// echo count // 3
+/// ```
+#[allow_absurd_cast]
+pub fun words_count(text: Text): Int {
+    return trust $ printf "%s" "\${nameof text}" | wc -w | tr -d ' ' $ as Int
+}
+
+/// Counts the number of characters in the given text.
+///
+/// ### Usage
+/// ```ab
+/// let count = chars_count("hello")
+/// echo count // 5
+/// ```
+#[allow_absurd_cast]
+pub fun chars_count(text: Text): Int {
+    return trust $ printf "%s" "\${nameof text}" | wc -m | tr -d ' ' $ as Int
+}
+
+/// Sorts lines of text in ascending order.
+///
+/// ### Usage
+/// ```ab
+/// let sorted = sort_lines("banana\napple\ncherry")
+/// echo sorted // "apple\nbanana\ncherry"
+/// ```
+pub fun sort_lines(text: Text): Text {
+    return trust $ printf "%s" "\${nameof text}" | sort $
+}
+
+/// Sorts lines of text in descending order.
+///
+/// ### Usage
+/// ```ab
+/// let sorted = sort_lines_desc("banana\napple\ncherry")
+/// echo sorted // "cherry\nbanana\napple"
+/// ```
+pub fun sort_lines_desc(text: Text): Text {
+    return trust $ printf "%s" "\${nameof text}" | sort -r $
+}
+
+/// Sorts lines of text numerically.
+///
+/// ### Usage
+/// ```ab
+/// let sorted = sort_lines_numeric("10\n2\n1")
+/// echo sorted // "1\n2\n10"
+/// ```
+pub fun sort_lines_numeric(text: Text): Text {
+    return trust $ printf "%s" "\${nameof text}" | sort -n $
+}
+
+/// Removes consecutive duplicate lines from text.
+///
+/// ### Usage
+/// ```ab
+/// let result = uniq_lines("foo\nfoo\nbar\nbar\nbaz")
+/// echo result // "foo\nbar\nbaz"
+/// ```
+pub fun uniq_lines(text: Text): Text {
+    return trust $ printf "%s" "\${nameof text}" | uniq $
+}
+
+/// Removes all duplicate lines from text (not just consecutive).
+///
+/// ### Usage
+/// ```ab
+/// let result = uniq_all_lines("foo\nbar\nfoo\nbaz\nbar")
+/// echo result // "foo\nbar\nbaz"
+/// ```
+pub fun uniq_all_lines(text: Text): Text {
+    return trust $ printf "%s" "\${nameof text}" | awk '!seen[\$0]++' $
+}

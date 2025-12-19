@@ -1,0 +1,11 @@
+import { uniq_all_lines } from "std/text"
+
+// Output
+// foo
+// bar
+// baz
+
+main {
+    // Unlike uniq_lines, this removes ALL duplicates not just consecutive ones
+    echo(uniq_all_lines("foo\nbar\nfoo\nbaz\nbar"))
+}
