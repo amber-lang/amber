@@ -5,145 +5,121 @@ expression: ast
 Block(
     BlockFragment {
         statements: [
-            List(
-                ListFragment {
-                    values: [
-                        Raw(
-                            RawFragment {
-                                value: "echo ",
-                            },
-                        ),
-                        Arithmetic(
-                            ArithmeticFragment {
-                                left: Some(
-                                    Raw(
-                                        RawFragment {
-                                            value: "5",
-                                        },
-                                    ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "5",
+                                    },
                                 ),
-                                right: Some(
-                                    Raw(
-                                        RawFragment {
-                                            value: "3",
-                                        },
-                                    ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "3",
+                                    },
                                 ),
-                                op: Mul,
-                                quoted: true,
-                            },
-                        ),
-                    ],
-                    separator: Empty,
+                            ),
+                            op: Mul,
+                            quoted: true,
+                        },
+                    ),
                 },
             ),
-            List(
-                ListFragment {
-                    values: [
-                        Raw(
-                            RawFragment {
-                                value: "echo ",
-                            },
-                        ),
-                        Arithmetic(
-                            ArithmeticFragment {
-                                left: Some(
-                                    Arithmetic(
-                                        ArithmeticFragment {
-                                            left: Some(
-                                                Raw(
-                                                    RawFragment {
-                                                        value: "2",
-                                                    },
-                                                ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Arithmetic(
+                                    ArithmeticFragment {
+                                        left: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "2",
+                                                },
                                             ),
-                                            right: Some(
-                                                Raw(
-                                                    RawFragment {
-                                                        value: "4",
-                                                    },
-                                                ),
+                                        ),
+                                        right: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "4",
+                                                },
                                             ),
-                                            op: Mul,
-                                            quoted: true,
-                                        },
-                                    ),
+                                        ),
+                                        op: Mul,
+                                        quoted: true,
+                                    },
                                 ),
-                                right: Some(
-                                    Raw(
-                                        RawFragment {
-                                            value: "6",
-                                        },
-                                    ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "6",
+                                    },
                                 ),
-                                op: Mul,
-                                quoted: true,
-                            },
-                        ),
-                    ],
-                    separator: Empty,
+                            ),
+                            op: Mul,
+                            quoted: true,
+                        },
+                    ),
                 },
             ),
-            List(
-                ListFragment {
-                    values: [
-                        Raw(
-                            RawFragment {
-                                value: "echo ",
-                            },
-                        ),
-                        Arithmetic(
-                            ArithmeticFragment {
-                                left: Some(
-                                    Arithmetic(
-                                        ArithmeticFragment {
-                                            left: Some(
-                                                Arithmetic(
-                                                    ArithmeticFragment {
-                                                        left: Some(
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: "1",
-                                                                },
-                                                            ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Arithmetic(
+                                    ArithmeticFragment {
+                                        left: Some(
+                                            Arithmetic(
+                                                ArithmeticFragment {
+                                                    left: Some(
+                                                        Raw(
+                                                            RawFragment {
+                                                                value: "1",
+                                                            },
                                                         ),
-                                                        right: Some(
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: "2",
-                                                                },
-                                                            ),
+                                                    ),
+                                                    right: Some(
+                                                        Raw(
+                                                            RawFragment {
+                                                                value: "2",
+                                                            },
                                                         ),
-                                                        op: Mul,
-                                                        quoted: true,
-                                                    },
-                                                ),
+                                                    ),
+                                                    op: Mul,
+                                                    quoted: true,
+                                                },
                                             ),
-                                            right: Some(
-                                                Raw(
-                                                    RawFragment {
-                                                        value: "3",
-                                                    },
-                                                ),
+                                        ),
+                                        right: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "3",
+                                                },
                                             ),
-                                            op: Mul,
-                                            quoted: true,
-                                        },
-                                    ),
+                                        ),
+                                        op: Mul,
+                                        quoted: true,
+                                    },
                                 ),
-                                right: Some(
-                                    Raw(
-                                        RawFragment {
-                                            value: "4",
-                                        },
-                                    ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "4",
+                                    },
                                 ),
-                                op: Mul,
-                                quoted: true,
-                            },
-                        ),
-                    ],
-                    separator: Empty,
+                            ),
+                            op: Mul,
+                            quoted: true,
+                        },
+                    ),
                 },
             ),
         ],

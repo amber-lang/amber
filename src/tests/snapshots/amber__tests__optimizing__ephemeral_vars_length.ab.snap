@@ -1,7 +1,8 @@
 ---
 source: src/tests/optimizing.rs
+assertion_line: 34
 expression: output
 ---
 a_0="this is interesting"
 __length_0="${a_0}"
-echo "${#__length_0}"
+printf '%s\n' "${#__length_0}"

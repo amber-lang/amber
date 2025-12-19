@@ -7,6 +7,7 @@ use super::{
     subprocess::SubprocessFragment,
     var_expr::VarExprFragment,
     var_stmt::VarStmtFragment,
+    log::LogFragment,
 };
 use crate::{translate::fragments::arithmetic::ArithmeticFragment, utils::TranslateMetadata};
 
@@ -26,6 +27,7 @@ pub enum FragmentKind {
     Subprocess(SubprocessFragment),
     Arithmetic(ArithmeticFragment),
     Comment(CommentFragment),
+    Log(LogFragment),
     #[default] Empty
 }
 
@@ -46,6 +48,7 @@ impl FragmentKind {
             FragmentKind::Comment(_) => true,
             FragmentKind::Block(block) => block.is_empty_logic(),
             FragmentKind::List(list) => list.is_empty_logic(),
+            FragmentKind::Log(log) => log.value.is_empty_logic(),
             _ => false,
         }
     }
@@ -58,6 +61,7 @@ impl FragmentKind {
             FragmentKind::List(list) => list.values.iter().any(|item| item.is_mutating()),
             FragmentKind::Arithmetic(arithmetic) => arithmetic.left.as_ref().as_ref().is_some_and(|l| l.is_mutating())
                 || arithmetic.right.as_ref().as_ref().is_some_and(|r| r.is_mutating()),
+            FragmentKind::Log(log) => log.value.is_mutating(),
             FragmentKind::Subprocess(_) => true,
             _ => false,
         }
@@ -71,6 +75,7 @@ impl FragmentKind {
             FragmentKind::List(list) => list.values.iter().any(|item| item.is_running_command()),
             FragmentKind::Arithmetic(arithmetic) => arithmetic.left.as_ref().as_ref().is_some_and(|l| l.is_running_command())
                 || arithmetic.right.as_ref().as_ref().is_some_and(|r| r.is_running_command()),
+            FragmentKind::Log(log) => log.value.is_running_command(),
             FragmentKind::Subprocess(_) => true,
             _ => false,
         }
@@ -89,6 +94,7 @@ impl FragmentRenderable for FragmentKind {
             FragmentKind::Subprocess(subprocess) => subprocess.to_string(meta),
             FragmentKind::Arithmetic(arithmetic) => arithmetic.to_string(meta),
             FragmentKind::Comment(comment) => comment.to_string(meta),
+            FragmentKind::Log(log) => log.to_string(meta),
             FragmentKind::Empty => String::new(),
         }
     }

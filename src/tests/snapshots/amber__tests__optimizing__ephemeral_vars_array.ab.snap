@@ -3,4 +3,4 @@ source: src/tests/optimizing.rs
 expression: output
 ---
 array_0=(1 2 3)
-echo "${array_0[@]}"
+echo "${array_0[*]}"
