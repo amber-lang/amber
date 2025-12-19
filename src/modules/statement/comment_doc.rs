@@ -23,6 +23,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                 if token.word.starts_with("///") {
                     self.value = token.word[3..].trim().to_string();
                     meta.increment_index();
+                    let mut inside_code_block = false;
                     while let Some(token) = meta.get_current_token() {
                         let is_token_underneath = token.pos.0 == col + 1;
                         let last_char = self.value.chars().last().unwrap_or('\n');
@@ -36,16 +37,35 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                             // Update the column of the last comment
                             col = token.pos.0;
                             meta.increment_index();
-                            // If the comment signifies a paragraph break, we add two newlines
-                            if token.word[3..].trim().is_empty() {
-                                if last_char == '\n' {
-                                    continue;
+
+                            let line = &token.word[3..];
+                            let trimmed_line = &line.trim();
+
+                            if trimmed_line.is_empty() {
+                                // If the comment signifies a paragraph break, we add two newlines
+                                if last_char != '\n' {
+                                    self.value.push_str("\n\n");
                                 }
-                                self.value.push_str("\n\n");
-                                continue;
+                            } else {
+                                if last_char != '\n' { self.value.push(' ') }
+                                match *trimmed_line {
+                                    "```ab" => {
+                                        inside_code_block = true;
+                                        self.value.push_str(trimmed_line);
+                                    },
+                                    "```" => {
+                                        inside_code_block = false;
+                                        self.value.push_str(trimmed_line);
+                                    },
+                                    // Add code lines without trimming the start
+                                    _ if inside_code_block => {
+                                        self.value.push_str(line[1..].trim_end());
+                                    },
+                                    _ => {
+                                        self.value.push_str(trimmed_line);
+                                    }
+                                }
                             }
-                            let delimiter = if last_char == '\n' { "" } else { " " };
-                            self.value.push_str(&format!("{}{}", delimiter, token.word[3..].trim()));
                         } else {
                             break;
                         }
