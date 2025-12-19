@@ -6,10 +6,24 @@ use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
 use super::UnOp;
 
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 pub struct Not {
     expr: Box<Expr>
 }
+
+impl Not {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        self.expr.analyze_control_flow().map(|b| !b)
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        let (true_facts, false_facts) = self.expr.extract_facts();
+        (false_facts, true_facts)
+    }
+}
+
 
 impl Typed for Not {
     fn get_type(&self) -> Type {

@@ -34,10 +34,19 @@ pub struct ParserMetadata {
     pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
     /// List of test names found in the file
     pub test_names: Vec<String>,
+    /// Stack of narrowed types for control flow analysis
+    pub narrowed_types: Vec<HashMap<String, Type>>,
+    /// Suppress warnings during monomorphic function re-typechecking
+    #[context]
+    pub suppress_warnings: bool,
 }
 
 impl ParserMetadata {
     pub fn add_message(&mut self, message: Message) {
+        // Skip warnings if we're in a suppressed context
+        if self.suppress_warnings && matches!(message.kind, MessageType::Warning) {
+            return;
+        }
         self.messages.push(message);
     }
 }
@@ -223,6 +232,20 @@ impl ParserMetadata {
             .flat_map(|scope| scope.get_fun_names())
             .collect()
     }
+
+    pub fn get_narrowed_type(&self, name: &str) -> Option<&Type> {
+        self.narrowed_types.iter().rev().find_map(|map| map.get(name))
+    }
+
+    pub fn with_narrowed_scope<B>(&mut self, facts: HashMap<String, Type>, mut body: B) -> SyntaxResult
+    where
+        B: FnMut(&mut Self) -> SyntaxResult,
+    {
+        self.narrowed_types.push(facts);
+        let result = body(self);
+        self.narrowed_types.pop();
+        result
+    }
 }
 
 impl Metadata for ParserMetadata {
@@ -239,8 +262,11 @@ impl Metadata for ParserMetadata {
             doc_usage: false,
             parsing_functions: HashMap::new(),
             test_names: Vec::new(),
+            narrowed_types: Vec::new(),
+            suppress_warnings: false,
         }
     }
+
 
     fn get_token_at(&self, index: usize) -> Option<Token> {
         self.context.expr.get(index).cloned()

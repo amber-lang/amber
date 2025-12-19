@@ -6,11 +6,51 @@ use crate::modules::types::{Typed, Type};
 
 use super::TypeOp;
 
+use std::collections::HashMap;
+
+use crate::modules::expression::expr::ExprType;
+
 #[derive(Debug, Clone)]
 pub struct Is {
     expr: Box<Expr>,
     kind: Type
 }
+
+impl Is {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        let expr_type = self.expr.get_type();
+        
+        
+        // If types are identical, it's always true
+        if expr_type == self.kind {
+            return Some(true);
+        }
+        
+        // If types cannot possibly intersect, it's always false
+        if !expr_type.can_intersect(&self.kind) {
+            return Some(false);
+        }
+
+        None
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        if let Some(ExprType::VariableGet(var)) = &self.expr.value {
+            let mut true_facts = HashMap::new();
+            true_facts.insert(var.name.clone(), self.kind.clone());
+            
+            let mut false_facts = HashMap::new();
+            // Calculate false facts (narrowing in else branch)
+            if let Some(type_false) = self.expr.get_type().exclude(&self.kind) {
+                false_facts.insert(var.name.clone(), type_false);
+            }
+            
+            return (true_facts, false_facts);
+        }
+        (HashMap::new(), HashMap::new())
+    }
+}
+
 
 impl Typed for Is {
     fn get_type(&self) -> Type {

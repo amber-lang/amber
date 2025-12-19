@@ -1,0 +1,16 @@
+// Output
+// Condition is always false, 'if' block will never execute
+
+fun foo(a: Text | Int | Bool) {
+    if a is Int and a is Int {
+        // a is Int
+        if a is Text {
+            echo("Failed")
+        }
+    } else {
+        // a is Text | Bool
+        echo("Failed")
+    }
+}
+
+foo(1)

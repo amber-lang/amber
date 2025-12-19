@@ -1,0 +1,31 @@
+// Output
+// First Branch: a is Int
+// Second Branch: a is Bool | Int
+// Else: a is Text | Bool | [Text]
+
+fun foo(a: Text | Int | Bool | [Text]) {
+    if {
+        a is Int {
+            const result = a is Int
+                then "a is Int"
+                else "a is not Int"
+            echo("First Branch: {result}")
+        }
+        a is Bool or a is Int {
+            const result = a is Bool or a is Int
+                then "a is Bool | Int"
+                else "a is not Bool | Int"
+            echo("Second Branch: {result}")
+        }
+        else {
+            const result = a is Text or a is Bool or a is [Text]
+                then "a is Text | Bool | [Text]"
+                else "a is not Text | Bool | [Text]"
+            echo("Else: {result}")
+        }
+    }
+}
+
+foo(1)
+foo(false)
+foo("hello")

@@ -38,8 +38,41 @@ impl Type {
         }
     }
 
+    pub fn is_subseteq_of(&self, other: &Type) -> bool {
+        self == other || self.is_subset_of(other)
+    }
+
+    /// Excludes a type from the current type
+    pub fn exclude(&self, other: &Type) -> Option<Type> {
+        match self {
+            Type::Union(types) => {
+                let mut new_types = Vec::new();
+                // Iterate over all types and exclude the type from the union
+                for t in types {
+                    if let Some(remaining) = t.exclude(other) {
+                         new_types.push(remaining);
+                    }
+                }
+                if new_types.is_empty() {
+                    None
+                } else if new_types.len() == 1 {
+                    Some(new_types[0].clone())
+                } else {
+                    Some(Type::Union(new_types))
+                }
+            },
+            t => {
+                if t.is_subseteq_of(other) {
+                    None
+                } else {
+                    Some(t.clone())
+                }
+            }
+        }
+    }
+
     pub fn is_allowed_in(&self, other: &Type) -> bool {
-        if self == other || self.is_subset_of(other) {
+        if self == &Type::Generic || self.is_subseteq_of(other) {
             return true;
         }
 
@@ -60,6 +93,23 @@ impl Type {
             Type::Union(_) => false,
             Type::Array(inner) => inner.is_strictly_typed(),
             _ => true,
+        }
+    }
+
+    // Checks if two types can possibly intersect
+    pub fn can_intersect(&self, other: &Type) -> bool {
+        match (self, other) {
+            (a, b) if a == b => true,
+            (Type::Int, Type::Num) | (Type::Num, Type::Int) => true,
+            // Union types
+            (Type::Union(types), target) => types.iter().any(|t| t.can_intersect(target)),
+            (target, Type::Union(types)) => types.iter().any(|t| target.can_intersect(t)),
+            // Array types
+            (Type::Array(inner_a), Type::Array(inner_b)) => inner_a.can_intersect(inner_b),
+            // Generic can be anything
+            (Type::Generic, _) | (_, Type::Generic) => true,
+            // Different primitive types never intersect
+            _ => false
         }
     }
 }

@@ -1,0 +1,15 @@
+// Output
+// Nested else success
+
+#[allow_dead_code]
+fun run() {
+    if true {
+        if false {
+            undefined_nested()
+        } else {
+            echo("Nested else success")
+        }
+    }
+}
+
+run()

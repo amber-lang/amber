@@ -1,0 +1,12 @@
+// Output
+// Condition is always false, block will never execute
+// Condition is unreachable, previous condition is always true
+// Condition is always true, 'else' block will never execute
+// done
+
+if {
+    false: echo("never1")
+    true: echo("done")
+    false: echo("never2")
+    else: echo("never3")
+}

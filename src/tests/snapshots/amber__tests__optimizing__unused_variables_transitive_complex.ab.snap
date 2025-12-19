@@ -5,7 +5,5 @@ expression: output
 a_1=10
 b_2="${a_1}"
 c_3="${a_1}"
-if [ 1 != 0 ]; then
     c_3="${b_2}"
-fi
 echo "${c_3}"
