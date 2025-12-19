@@ -510,7 +510,7 @@ pub fun zfill(text: Text, length: Int): Text {
 /// ### Usage
 /// ```ab
 /// let count = lines_count("one\ntwo\nthree")
-/// echo count // 3
+/// echo(count) // 3
 /// ```
 #[allow_absurd_cast]
 pub fun lines_count(text: Text): Int {
@@ -523,7 +523,7 @@ pub fun lines_count(text: Text): Int {
 /// ### Usage
 /// ```ab
 /// let count = words_count("hello world foo")
-/// echo count // 3
+/// echo(count) // 3
 /// ```
 #[allow_absurd_cast]
 pub fun words_count(text: Text): Int {
@@ -535,7 +535,7 @@ pub fun words_count(text: Text): Int {
 /// ### Usage
 /// ```ab
 /// let count = chars_count("hello")
-/// echo count // 5
+/// echo(count) // 5
 /// ```
 #[allow_absurd_cast]
 pub fun chars_count(text: Text): Int {
@@ -547,7 +547,7 @@ pub fun chars_count(text: Text): Int {
 /// ### Usage
 /// ```ab
 /// let sorted = sort_lines("banana\napple\ncherry")
-/// echo sorted // "apple\nbanana\ncherry"
+/// echo(sorted) // "apple\nbanana\ncherry"
 /// ```
 pub fun sort_lines(text: Text): Text {
     return trust $ printf "%s" "\${nameof text}" | sort $
@@ -558,7 +558,7 @@ pub fun sort_lines(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let sorted = sort_lines_desc("banana\napple\ncherry")
-/// echo sorted // "cherry\nbanana\napple"
+/// echo(sorted) // "cherry\nbanana\napple"
 /// ```
 pub fun sort_lines_desc(text: Text): Text {
     return trust $ printf "%s" "\${nameof text}" | sort -r $
@@ -569,7 +569,7 @@ pub fun sort_lines_desc(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let sorted = sort_lines_numeric("10\n2\n1")
-/// echo sorted // "1\n2\n10"
+/// echo(sorted) // "1\n2\n10"
 /// ```
 pub fun sort_lines_numeric(text: Text): Text {
     return trust $ printf "%s" "\${nameof text}" | sort -n $
@@ -580,7 +580,7 @@ pub fun sort_lines_numeric(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let result = uniq_lines("foo\nfoo\nbar\nbar\nbaz")
-/// echo result // "foo\nbar\nbaz"
+/// echo(result) // "foo\nbar\nbaz"
 /// ```
 pub fun uniq_lines(text: Text): Text {
     return trust $ printf "%s" "\${nameof text}" | uniq $
@@ -591,7 +591,7 @@ pub fun uniq_lines(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let result = uniq_all_lines("foo\nbar\nfoo\nbaz\nbar")
-/// echo result // "foo\nbar\nbaz"
+/// echo(result) // "foo\nbar\nbaz"
 /// ```
 pub fun uniq_all_lines(text: Text): Text {
     return trust $ printf "%s" "\${nameof text}" | awk '!seen[\$0]++' $
