@@ -203,6 +203,7 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
         FragmentKind::Subprocess(subprocess) => {
             find_unused_variables(&subprocess.fragment, meta);
         }
+        FragmentKind::Log(log) => find_unused_variables(&log.value, meta),
         FragmentKind::Raw(_) | FragmentKind::Comment(_) | FragmentKind::Empty => {}
     }
 }

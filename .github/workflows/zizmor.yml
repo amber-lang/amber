@@ -3,9 +3,6 @@ name: zizmor Security Analysis
 on:
   schedule:
     - cron: '0 0 * * 0' # weekly
-  push:
-    branches:
-      - zizmor # temporarily when this on PR
 
 permissions:
   contents: read

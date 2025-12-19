@@ -173,3 +173,30 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
+  coverage:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    env:
+      LLVM_COV_VERSION: 0.6.16
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+        with:
+          components: llvm-tools-preview
+      - name: Cache llvm-cov
+        uses: actions/cache@v4
+        id: cache-llvm-cov
+        with:
+          path: ~/.cargo/bin/cargo-llvm-cov
+          key: ${{ runner.os }}-cargo-llvm-cov-${{ env.LLVM_COV_VERSION }}
+      - run: cargo install cargo-llvm-cov --version ${{ env.LLVM_COV_VERSION }} --locked
+        if: steps.cache-llvm-cov.outputs.cache-hit != 'true'
+      - name: Test coverage
+        run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          verbose: true

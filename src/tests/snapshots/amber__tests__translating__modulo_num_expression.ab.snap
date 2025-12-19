@@ -5,367 +5,343 @@ expression: ast
 Block(
     BlockFragment {
         statements: [
-            List(
-                ListFragment {
-                    values: [
-                        Raw(
-                            RawFragment {
-                                value: "echo ",
-                            },
-                        ),
-                        Subprocess(
-                            SubprocessFragment {
-                                fragment: List(
-                                    ListFragment {
-                                        values: [
-                                            Raw(
-                                                RawFragment {
-                                                    value: "echo ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "10.5",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " '%' ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "3.2",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " | bc ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " | sed '",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "'",
-                                                },
-                                            ),
-                                        ],
-                                        separator: Empty,
-                                    },
-                                ),
-                                quoted: true,
-                            },
-                        ),
-                    ],
-                    separator: Empty,
+            Log(
+                LogFragment {
+                    value: Subprocess(
+                        SubprocessFragment {
+                            fragment: List(
+                                ListFragment {
+                                    values: [
+                                        Raw(
+                                            RawFragment {
+                                                value: "echo ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "10.5",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " '%' ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "3.2",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " | bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " | sed '",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "'",
+                                            },
+                                        ),
+                                    ],
+                                    separator: Empty,
+                                },
+                            ),
+                            quoted: true,
+                        },
+                    ),
                 },
             ),
-            List(
-                ListFragment {
-                    values: [
-                        Raw(
-                            RawFragment {
-                                value: "echo ",
-                            },
-                        ),
-                        Subprocess(
-                            SubprocessFragment {
-                                fragment: List(
-                                    ListFragment {
-                                        values: [
-                                            Raw(
-                                                RawFragment {
-                                                    value: "echo ",
-                                                },
-                                            ),
-                                            Subprocess(
-                                                SubprocessFragment {
-                                                    fragment: List(
-                                                        ListFragment {
-                                                            values: [
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "echo ",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "20.4",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: " '%' ",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "6.0",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: " | bc ",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: " | sed '",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "'",
-                                                                    },
-                                                                ),
-                                                            ],
-                                                            separator: Empty,
-                                                        },
-                                                    ),
-                                                    quoted: true,
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " '%' ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "3.1",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " | bc ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " | sed '",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "'",
-                                                },
-                                            ),
-                                        ],
-                                        separator: Empty,
-                                    },
-                                ),
-                                quoted: true,
-                            },
-                        ),
-                    ],
-                    separator: Empty,
+            Log(
+                LogFragment {
+                    value: Subprocess(
+                        SubprocessFragment {
+                            fragment: List(
+                                ListFragment {
+                                    values: [
+                                        Raw(
+                                            RawFragment {
+                                                value: "echo ",
+                                            },
+                                        ),
+                                        Subprocess(
+                                            SubprocessFragment {
+                                                fragment: List(
+                                                    ListFragment {
+                                                        values: [
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "echo ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "20.4",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " '%' ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "6.0",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " | bc ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " | sed '",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "'",
+                                                                },
+                                                            ),
+                                                        ],
+                                                        separator: Empty,
+                                                    },
+                                                ),
+                                                quoted: true,
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " '%' ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "3.1",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " | bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " | sed '",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "'",
+                                            },
+                                        ),
+                                    ],
+                                    separator: Empty,
+                                },
+                            ),
+                            quoted: true,
+                        },
+                    ),
                 },
             ),
-            List(
-                ListFragment {
-                    values: [
-                        Raw(
-                            RawFragment {
-                                value: "echo ",
-                            },
-                        ),
-                        Subprocess(
-                            SubprocessFragment {
-                                fragment: List(
-                                    ListFragment {
-                                        values: [
-                                            Raw(
-                                                RawFragment {
-                                                    value: "echo ",
-                                                },
-                                            ),
-                                            Subprocess(
-                                                SubprocessFragment {
-                                                    fragment: List(
-                                                        ListFragment {
-                                                            values: [
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "echo ",
-                                                                    },
-                                                                ),
-                                                                Subprocess(
-                                                                    SubprocessFragment {
-                                                                        fragment: List(
-                                                                            ListFragment {
-                                                                                values: [
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: "echo ",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: "100.0",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: " '%' ",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: "7.5",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: " | bc ",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: "",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: " | sed '",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                                                                        },
-                                                                                    ),
-                                                                                    Raw(
-                                                                                        RawFragment {
-                                                                                            value: "'",
-                                                                                        },
-                                                                                    ),
-                                                                                ],
-                                                                                separator: Empty,
-                                                                            },
-                                                                        ),
-                                                                        quoted: true,
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: " '%' ",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "3.0",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: " | bc ",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: " | sed '",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                                                    },
-                                                                ),
-                                                                Raw(
-                                                                    RawFragment {
-                                                                        value: "'",
-                                                                    },
-                                                                ),
-                                                            ],
-                                                            separator: Empty,
-                                                        },
-                                                    ),
-                                                    quoted: true,
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " '%' ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "2.5",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " | bc ",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: " | sed '",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                                },
-                                            ),
-                                            Raw(
-                                                RawFragment {
-                                                    value: "'",
-                                                },
-                                            ),
-                                        ],
-                                        separator: Empty,
-                                    },
-                                ),
-                                quoted: true,
-                            },
-                        ),
-                    ],
-                    separator: Empty,
+            Log(
+                LogFragment {
+                    value: Subprocess(
+                        SubprocessFragment {
+                            fragment: List(
+                                ListFragment {
+                                    values: [
+                                        Raw(
+                                            RawFragment {
+                                                value: "echo ",
+                                            },
+                                        ),
+                                        Subprocess(
+                                            SubprocessFragment {
+                                                fragment: List(
+                                                    ListFragment {
+                                                        values: [
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "echo ",
+                                                                },
+                                                            ),
+                                                            Subprocess(
+                                                                SubprocessFragment {
+                                                                    fragment: List(
+                                                                        ListFragment {
+                                                                            values: [
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: "echo ",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: "100.0",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: " '%' ",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: "7.5",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: " | bc ",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: "",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: " | sed '",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                                                                    },
+                                                                                ),
+                                                                                Raw(
+                                                                                    RawFragment {
+                                                                                        value: "'",
+                                                                                    },
+                                                                                ),
+                                                                            ],
+                                                                            separator: Empty,
+                                                                        },
+                                                                    ),
+                                                                    quoted: true,
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " '%' ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "3.0",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " | bc ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " | sed '",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "'",
+                                                                },
+                                                            ),
+                                                        ],
+                                                        separator: Empty,
+                                                    },
+                                                ),
+                                                quoted: true,
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " '%' ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "2.5",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " | bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " | sed '",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "'",
+                                            },
+                                        ),
+                                    ],
+                                    separator: Empty,
+                                },
+                            ),
+                            quoted: true,
+                        },
+                    ),
                 },
             ),
         ],

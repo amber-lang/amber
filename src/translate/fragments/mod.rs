@@ -8,6 +8,7 @@ pub mod subprocess;
 pub mod arithmetic;
 pub mod var_expr;
 pub mod var_stmt;
+pub mod log;
 
 use crate::utils::is_all_caps;
 
