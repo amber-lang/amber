@@ -261,7 +261,9 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
             let mut block = Block::new().with_condition();
             let was_fun_ctx = meta.context.is_fun_ctx;
             meta.context.is_fun_ctx = true;
-            let result = syntax(meta, &mut block);
+            let result = meta.with_context_fn(Context::set_cc_flags, self.flags.clone(), |meta| {
+                syntax(meta, &mut block)
+            });
             meta.context.is_fun_ctx = was_fun_ctx;
             result?;
             self.function_body = Some(block);

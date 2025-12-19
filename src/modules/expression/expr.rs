@@ -12,6 +12,7 @@ use crate::modules::expression::typeop::TypeOp;
 use crate::modules::expression::ternop::TernOp;
 use crate::modules::expression::unop::UnOp;
 use crate::modules::types::parse_type;
+use std::collections::HashMap;
 use super::literal::{
     bool::Bool,
     number::Number,
@@ -98,6 +99,31 @@ pub enum ExprType {
     Access(Access),
 }
 
+impl ExprType {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        match self {
+            ExprType::Bool(v) => v.analyze_control_flow(),
+            ExprType::And(v) => v.analyze_control_flow(),
+            ExprType::Or(v) => v.analyze_control_flow(),
+            ExprType::Not(v) => v.analyze_control_flow(),
+            ExprType::Parentheses(v) => v.analyze_control_flow(),
+            ExprType::Is(v) => v.analyze_control_flow(),
+            _ => None
+        }
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        match self {
+            ExprType::And(v) => v.extract_facts(),
+            ExprType::Or(v) => v.extract_facts(),
+            ExprType::Not(v) => v.extract_facts(),
+            ExprType::Parentheses(v) => v.extract_facts(),
+            ExprType::Is(v) => v.extract_facts(),
+            _ => (HashMap::new(), HashMap::new())
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Expr {
     pub value: Option<ExprType>,
@@ -128,6 +154,14 @@ impl Expr {
     pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
         let pos = self.get_position();
         Message::new_err_at_position(meta, pos)
+    }
+
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        self.value.as_ref().and_then(|val| val.analyze_control_flow())
+    }
+
+    pub fn extract_facts(&self) -> (std::collections::HashMap<String, Type>, std::collections::HashMap<String, Type>) {
+        self.value.as_ref().map(|val| val.extract_facts()).unwrap_or_default()
     }
 }
 

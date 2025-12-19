@@ -3,6 +3,7 @@ pub enum CCFlags {
     AllowNestedIfElse,
     AllowAbsurdCast,
     AllowCamelCase,
+    AllowDeadCode,
     UndefinedFlag
 }
 
@@ -11,6 +12,7 @@ pub fn get_ccflag_by_name(flag: &str) -> CCFlags {
         "allow_nested_if_else" => CCFlags::AllowNestedIfElse,
         "allow_camel_case" => CCFlags::AllowCamelCase,
         "allow_absurd_cast" => CCFlags::AllowAbsurdCast,
+        "allow_dead_code" => CCFlags::AllowDeadCode,
         _ => CCFlags::UndefinedFlag
     }
 }
@@ -21,6 +23,8 @@ pub fn get_ccflag_name(flag: CCFlags) -> &'static str {
         CCFlags::AllowNestedIfElse => "allow_nested_if_else",
         CCFlags::AllowAbsurdCast => "allow_absurd_cast",
         CCFlags::AllowCamelCase => "allow_camel_case",
+        CCFlags::AllowDeadCode => "allow_dead_code",
         CCFlags::UndefinedFlag => "undefined_flag"
     }
 }
+

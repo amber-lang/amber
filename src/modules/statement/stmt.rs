@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use amber_meta::StatementDispatch;
 use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
@@ -12,9 +13,7 @@ use crate::modules::variable::{
 };
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::command::cmd::Command;
-use crate::{
-    parse_statement, typecheck_statement, translate_statement, document_statement
-};
+use crate::parse_statement;
 use crate::modules::condition::{
     ifchain::IfChain,
     ifcond::IfCondition,
@@ -50,8 +49,9 @@ use crate::modules::builtin::{
 use super::comment_doc::CommentDoc;
 use super::comment::Comment;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, StatementDispatch)]
 pub enum StmtType {
+    #[dispatch(translate_discard)]
     Expr(Expr),
     VariableInit(VariableInit),
     VariableInitDestruct(VariableInitDestruct),
@@ -146,52 +146,18 @@ impl SyntaxModule<ParserMetadata> for Statement {
 
 impl TypeCheckModule for Statement {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        typecheck_statement!(meta, self.value.as_mut().unwrap(), [
-            Break, Cd, Command, CommandModifier, Comment,
-            CommentDoc, Continue, Echo, Exit, Expr,
-            Fail, FunctionDeclaration, IfChain, IfCondition, Import,
-            InfiniteLoop, IterLoop, Main, Mv, Return,
-            ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
-            Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
-            WhileLoop
-        ]);
-        Ok(())
+        self.value.as_mut().unwrap().typecheck(meta)
     }
 }
 
 impl TranslateModule for Statement {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // This is a workaround that handles $(...) which cannot be used as a statement
-        let statement = self.value.as_ref().unwrap();
-        translate_statement!(statement, [
-            Break, Cd, Command, CommandModifier, Comment,
-            CommentDoc, Continue, Echo, Exit, Expr,
-            Fail, FunctionDeclaration, IfChain, IfCondition, Import,
-            InfiniteLoop, IterLoop, Main, Mv, Return,
-            ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
-            Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
-            WhileLoop
-        ], |inner_module| {
-            if let StmtType::Expr(_) = statement {
-                inner_module.translate(meta);
-                FragmentKind::Empty
-            } else {
-                inner_module.translate(meta)
-            }
-        })
+        self.value.as_ref().unwrap().translate(meta)
     }
 }
 
 impl DocumentationModule for Statement {
     fn document(&self, meta: &ParserMetadata) -> String {
-        document_statement!(self.value.as_ref().unwrap(), [
-            Break, Cd, Command, CommandModifier, Comment,
-            CommentDoc, Continue, Echo, Exit, Expr,
-            Fail, FunctionDeclaration, IfChain, IfCondition, Import,
-            InfiniteLoop, IterLoop, Main, Mv, Return,
-            ShorthandAdd, ShorthandDiv, ShorthandModulo, ShorthandMul, ShorthandSub,
-            Test, VariableInit, VariableInitDestruct, VariableSet, VariableSetDestruct,
-            WhileLoop
-        ], inner_module, inner_module.document(meta))
+        self.value.as_ref().unwrap().document(meta)
     }
 }

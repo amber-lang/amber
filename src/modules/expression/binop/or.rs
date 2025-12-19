@@ -6,11 +6,48 @@ use crate::modules::types::{Typed, Type};
 
 use super::BinOp;
 
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 pub struct Or {
     left: Box<Expr>,
     right: Box<Expr>
 }
+
+impl Or {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        let left = self.left.analyze_control_flow();
+        let right = self.right.analyze_control_flow();
+        match (left, right) {
+             (Some(true), _) => Some(true),
+             (_, Some(true)) => Some(true),
+             (Some(false), Some(false)) => Some(false),
+             _ => None
+        }
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        let (left_true, left_false) = self.left.extract_facts();
+        let (right_true, right_false) = self.right.extract_facts();
+
+        // Intersect true facts
+        let mut true_facts = HashMap::new();
+        for (name, left_kind) in left_true {
+            if let Some(right_kind) = right_true.get(&name) {
+                if left_kind == *right_kind {
+                    true_facts.insert(name, left_kind);
+                }
+            }
+        }
+
+        // Merge false facts
+        let mut false_facts = left_false;
+        false_facts.extend(right_false);
+
+        (true_facts, false_facts)
+    }
+}
+
 
 impl Typed for Or {
     fn get_type(&self) -> Type {

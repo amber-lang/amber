@@ -1,0 +1,15 @@
+// Output
+// 2
+// Succeeded
+
+#[allow_camel_case]
+fun foo() {
+    let camelCaseVar = 1
+    camelCaseVar = 2
+    echo(camelCaseVar)
+}
+
+main {
+    foo()
+    echo("Succeeded")
+}

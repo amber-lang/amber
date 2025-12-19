@@ -1,0 +1,9 @@
+// Output
+// success
+// success
+
+const ternary_true = true then "success" else undefined_ternary_var
+echo(ternary_true)
+
+const ternary_false = false then undefined_ternary_var2 else "success"
+echo(ternary_false)

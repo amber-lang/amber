@@ -1,0 +1,11 @@
+// Output
+// or succeeded
+
+fun test_or_no_narrow(a: Text | Int, b: Int) {
+    if a is Int or b > 0 {
+        echo("or succeeded")
+    } else {
+        echo("or failed")
+    }
+}
+test_or_no_narrow("text", 1)
