@@ -113,6 +113,28 @@ pub fn context_helper(input: TokenStream) -> TokenStream {
 ///
 /// Use `#[dispatch(translate_discard)]` on a variant to make its
 /// `translate` method discard the result and return `FragmentKind::Empty`.
+///
+/// # Compile-time errors
+///
+/// The macro will fail to compile if applied to a struct:
+///
+/// ```compile_fail
+/// use amber_meta::StatementDispatch;
+///
+/// #[derive(StatementDispatch)]
+/// struct Test;
+/// ```
+///
+/// The macro will also fail if applied to an enum with unit variants:
+///
+/// ```compile_fail
+/// use amber_meta::StatementDispatch;
+///
+/// #[derive(StatementDispatch)]
+/// enum InvalidVariant {
+///     Unit,
+/// }
+/// ```
 #[proc_macro_derive(StatementDispatch, attributes(dispatch))]
 pub fn statement_dispatch(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

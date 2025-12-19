@@ -25,28 +25,6 @@ fn validate_variant(variant: &Variant) -> Result<(), Error> {
 }
 
 /// Generate the StatementDispatch implementations for an enum
-///
-/// # Compile-time errors
-///
-/// The macro will fail to compile if applied to a struct:
-///
-/// ```compile_fail
-/// use amber_meta::StatementDispatch;
-///
-/// #[derive(StatementDispatch)]
-/// struct Test;
-/// ```
-///
-/// The macro will also fail if applied to an enum with unit variants:
-///
-/// ```compile_fail
-/// use amber_meta::StatementDispatch;
-///
-/// #[derive(StatementDispatch)]
-/// enum InvalidVariant {
-///     Unit,
-/// }
-/// ```
 pub fn generate_dispatch(input: &DeriveInput) -> TokenStream {
     generate_dispatch_inner(input).unwrap_or_else(|err| err.to_compile_error())
 }
