@@ -515,7 +515,7 @@ pub fun zfill(text: Text, length: Int): Text {
 #[allow_absurd_cast]
 pub fun lines_count(text: Text): Int {
     if text == "": return 0
-    return trust $ printf "%s\n" "\${nameof text}" | wc -l | tr -d ' ' $ as Int
+    return trust $ wc -l <<< "{text}" | tr -d ' ' $ as Int
 }
 
 /// Counts the number of words in the given text.
@@ -527,7 +527,7 @@ pub fun lines_count(text: Text): Int {
 /// ```
 #[allow_absurd_cast]
 pub fun words_count(text: Text): Int {
-    return trust $ printf "%s" "\${nameof text}" | wc -w | tr -d ' ' $ as Int
+    return trust $ wc -w <<< "{text}" | tr -d ' ' $ as Int
 }
 
 /// Counts the number of characters in the given text.
@@ -539,7 +539,7 @@ pub fun words_count(text: Text): Int {
 /// ```
 #[allow_absurd_cast]
 pub fun chars_count(text: Text): Int {
-    return trust $ printf "%s" "\${nameof text}" | wc -m | tr -d ' ' $ as Int
+    return trust $ printf "%s" "{text}" | wc -m | tr -d ' ' $ as Int
 }
 
 /// Sorts lines of text in ascending order.
@@ -550,7 +550,7 @@ pub fun chars_count(text: Text): Int {
 /// echo(sorted) // "apple\nbanana\ncherry"
 /// ```
 pub fun sort_lines(text: Text): Text {
-    return trust $ printf "%s" "\${nameof text}" | sort $
+    return trust $ sort <<< "{text}" $
 }
 
 /// Sorts lines of text in descending order.
@@ -561,7 +561,7 @@ pub fun sort_lines(text: Text): Text {
 /// echo(sorted) // "cherry\nbanana\napple"
 /// ```
 pub fun sort_lines_desc(text: Text): Text {
-    return trust $ printf "%s" "\${nameof text}" | sort -r $
+    return trust $ sort -r <<< "{text}" $
 }
 
 /// Sorts lines of text numerically.
@@ -572,7 +572,7 @@ pub fun sort_lines_desc(text: Text): Text {
 /// echo(sorted) // "1\n2\n10"
 /// ```
 pub fun sort_lines_numeric(text: Text): Text {
-    return trust $ printf "%s" "\${nameof text}" | sort -n $
+    return trust $ sort -n <<< "{text}" $
 }
 
 /// Removes consecutive duplicate lines from text.
@@ -583,7 +583,7 @@ pub fun sort_lines_numeric(text: Text): Text {
 /// echo(result) // "foo\nbar\nbaz"
 /// ```
 pub fun uniq_lines(text: Text): Text {
-    return trust $ printf "%s" "\${nameof text}" | uniq $
+    return trust $ uniq <<< "{text}" $
 }
 
 /// Removes all duplicate lines from text (not just consecutive).
@@ -594,5 +594,5 @@ pub fun uniq_lines(text: Text): Text {
 /// echo(result) // "foo\nbar\nbaz"
 /// ```
 pub fun uniq_all_lines(text: Text): Text {
-    return trust $ printf "%s" "\${nameof text}" | awk '!seen[\$0]++' $
+    return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }
