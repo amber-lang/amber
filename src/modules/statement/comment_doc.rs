@@ -49,7 +49,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                             } else {
                                 if last_char != '\n' { self.value.push(' '); }
                                 if trimmed_line.starts_with("```") {
-                                    if let Some(_) = code_block_column_position {
+                                    if code_block_column_position.is_some() {
                                         code_block_column_position = None;
                                     } else {
                                         code_block_column_position = line.find("```");
