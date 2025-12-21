@@ -2,8 +2,8 @@
 // 3
 // 4
 
-let a = 1;
-let b = 2;
+let a = 1
+let b = 2
 [a, b] = [3, 4]
 echo(a)
 echo(b)

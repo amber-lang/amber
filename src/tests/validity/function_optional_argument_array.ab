@@ -4,9 +4,9 @@
 fun sum_array(a : [Int] = [Int]): Int {
     let sum = 0
     for n in a {
-        sum += n;
+        sum += n
     }
-    return sum;
+    return sum
 }
 const x = [100,1000]
 const result = sum_array(x)

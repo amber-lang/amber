@@ -4,9 +4,9 @@
 fun sum_array(a : [Int] = [100,200,300,400]): Int {
     let sum = 0
     for n in a {
-        sum += n;
+        sum += n
     }
-    return sum;
+    return sum
 }
-const result = sum_array();
+const result = sum_array()
 echo(result)

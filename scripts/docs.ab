@@ -3,16 +3,16 @@
 import { file_glob } from "std/fs"
 import { echo_colored } from "std/env"
 
-echo "[ Generating documentation ]"
+echo("[ Generating documentation ]")
 
 const files = file_glob("src/std/*.ab") failed {
-    echo "Unable to glob files in 'src/std'"
+    echo("Unable to glob files in 'src/std'")
 }
 
 echo_colored("Building project...", 36)
 silent $ cargo build --release $ failed {
-    echo "Building project failed"
-    exit 1
+    echo("Building project failed")
+    exit(1)
 }
 
 for file in files {
