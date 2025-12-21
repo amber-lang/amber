@@ -19,9 +19,9 @@ main {
         }
     }
     const result = $ echo "\$\{{nameof keywords}[@]}" | sort $ failed {
-        echo "Something went wrong while sorting the keywords"
+        echo("Something went wrong while sorting the keywords")
     }
     for item in split_words(result) {
-        echo item
+        echo(item)
     }
 }
