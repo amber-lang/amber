@@ -534,11 +534,11 @@ pub fun words_count(text: Text): Int {
 ///
 /// ### Usage
 /// ```ab
-/// let count = chars_count("hello")
+/// let count = count_chars("hello")
 /// echo(count) // 5
 /// ```
 #[allow_absurd_cast]
-pub fun chars_count(text: Text): Int {
+pub fun count_chars(text: Text): Int {
     return trust $ printf "%s" "{text}" | wc -m | tr -d ' ' $ as Int
 }
 
