@@ -1,11 +1,9 @@
 import { array_contains } from "std/array"
 import { get_arch, get_place, get_bins_folder } from "./shared.ab"
 
-echo ""
+echo("")
 
 main(args) {
-    const arch = get_arch()
-
     const user_only_install = array_contains(args, "--user")
     const place = get_place(user_only_install)
     const bins_folder = get_bins_folder(user_only_install)
@@ -13,20 +11,20 @@ main(args) {
     trust $ test -d "{place}" > /dev/null $
 
     if status == 0 {
-        let sudo_cmd = user_only_install then "" else "sudo"
+        const sudo_cmd = user_only_install then "" else "sudo"
         $ {sudo_cmd} rm -rf "{place}" $ failed {
-            echo "Failed to remove Amber from {place}"
-            echo "Make sure root has the correct permissions to access this directory"
-            exit 1
+            echo("Failed to remove Amber from {place}")
+            echo("Make sure root has the correct permissions to access this directory")
+            exit(1)
         }
         $ {sudo_cmd} rm "{bins_folder}/amber" $ failed {
-            echo "Failed to remove Amber symlink from {bins_folder}"
-            echo "Make sure root has the correct permissions to access this directory"
-            exit 1
+            echo("Failed to remove Amber symlink from {bins_folder}")
+            echo("Make sure root has the correct permissions to access this directory")
+            exit(1)
         }
-        echo "Uninstalled Amber successfully 🎉"
+        echo("Uninstalled Amber successfully 🎉")
     }
     else {
-        echo "Amber is not installed"
+        echo("Amber is not installed")
     }
 }
