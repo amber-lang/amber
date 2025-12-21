@@ -62,6 +62,7 @@ impl CommandModifier {
                                 return error!(meta, Some(tok.clone()), "Command modifier 'sudo' has already been declared");
                             }
                             self.is_sudo = true;
+                            meta.sudo_used = true;
                             meta.increment_index();
                         },
                         _ => break
