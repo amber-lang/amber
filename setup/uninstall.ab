@@ -1,7 +1,7 @@
 import { array_contains } from "std/array"
 import { get_arch, get_place, get_bins_folder } from "./shared.ab"
 
-echo ""
+echo("")
 
 main(args) {
     const user_only_install = array_contains(args, "--user")
