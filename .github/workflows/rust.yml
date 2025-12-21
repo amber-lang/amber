@@ -201,7 +201,7 @@ jobs:
       - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
       - name: Run sh_tester.ab
         env:
-          CS_TEMP_DIR: /tmp/amber.sc.tests
+          CS_TEMP_DIR: ${{ github.workspace }}/amber.sc.tests
           INCLUDE_PATH: "**/*.ab"
           EXCLUDE_PATH: "src/tests/{erroring,warning}/*.ab"
         run: |
@@ -209,7 +209,7 @@ jobs:
           cargo run -- run scripts/sh_tester.ab
       - uses: staabm/annotate-pull-request-from-checkstyle-action@a7dbcfcab1a6892dae7893a160cc87f23af94de4 # v1
         with:
-          files: /tmp/amber.sc.tests/checkstyle.xml
+          files: amber.sc.tests/checkstyle.xml
   coverage:
     needs:
       - test
