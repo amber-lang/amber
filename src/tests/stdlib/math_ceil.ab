@@ -5,6 +5,6 @@ import * from "std/math"
 // -1
 
 main {
-    echo(math_ceil(1.1));
-    echo(math_ceil(-1.9));
+    echo(math_ceil(1.1))
+    echo(math_ceil(-1.9))
 }

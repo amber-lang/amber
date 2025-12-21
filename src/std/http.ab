@@ -66,17 +66,17 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
         }
         else {
             if match_regex(url, "http://") {
-                let port = 80;
-                let path = "";
+                let port = 80
+                let path = ""
                 url = replace(url, "http://", "")
                 let parts = split_lines(replace_one(url,"/","\n")) // split host and path
-                url = parts[0];
+                url = parts[0]
 
                 if match_regex(url,":([0-9][0-9]+)", true) { // https://github.com/amber-lang/amber/pull/906#discussion_r2616210649
-                    path = parts[1];
+                    path = parts[1]
                     parts = split_lines(replace_one(url,":","\n")); // split IP/domain and port
-                    url = parts[0];
-                    port = parse_int(parts[1])?;
+                    url = parts[0]
+                    port = parse_int(parts[1])?
                 } else {
                     path = len(parts[1]) > 0 then parts[1] else ""
                 }
@@ -92,7 +92,7 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                 }
                 
               $ exec 3<>/dev/tcp/{url}/{port} $ succeeded {
-                let http_code = 0;
+                let http_code = 0
                 url = port != 80 then "{url}:{port}" else url
                 const vers = bash_version()
                 trust $ printf "%s\r\n" "{method} /{path} HTTP/1.1\r\nhost: {url}\r\nconnection: close\r\nuser-agent: Amber/bash-{vers[0]}.{vers[1]}.{vers[2]}\r\naccept: */*\r\n{full_headers}" >&3 $
