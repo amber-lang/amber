@@ -2,19 +2,19 @@ import { sort } from "std/array"
 
 // Output
 // Array length: 6
-// [10 -5 6 a c d]
+// [-5 10 6 a c d]
 // Array length: 6
 // [6 10 a c d -5]
 // Array length: 6
 // [-5 d c a 10 6]
 // Array length: 4
-// [10 -2 5 7]
+// [-2 10 5 7]
 // Array length: 4
-// [7 5 -2 10]
+// [7 5 10 -2]
 // Array length: 4
 // [-2 5 7 10]
 // Array length: 4
-// [11.5 2.34 -5.4 6.1]
+// [-5.4 11.5 2.34 6.1]
 // Array length: 4
 // [-5.4 2.34 6.1 11.5]
 // Array length: 2
