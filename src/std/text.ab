@@ -504,3 +504,77 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
 pub fun zfill(text: Text, length: Int): Text {
     return lpad(text, "0", length)
 }
+
+/// Counts the number of lines in the given text.
+///
+/// ### Usage
+/// ```ab
+/// let count = count_lines("one\ntwo\nthree")
+/// echo(count) // 3
+/// ```
+#[allow_absurd_cast]
+pub fun count_lines(text: Text): Int {
+    if text == "": return 0
+    return trust $ wc -l <<< "{text}" | tr -d ' ' $ as Int
+}
+
+/// Counts the number of words in the given text.
+///
+/// ### Usage
+/// ```ab
+/// let count = count_words("hello world foo")
+/// echo(count) // 3
+/// ```
+#[allow_absurd_cast]
+pub fun count_words(text: Text): Int {
+    return trust $ wc -w <<< "{text}" | tr -d ' ' $ as Int
+}
+
+/// Counts the number of characters in the given text.
+///
+/// ### Usage
+/// ```ab
+/// let count = count_chars("hello")
+/// echo(count) // 5
+/// ```
+#[allow_absurd_cast]
+pub fun count_chars(text: Text): Int {
+    return trust $ printf "%s" "{text}" | wc -m | tr -d ' ' $ as Int
+}
+
+/// Sorts lines of text in ascending, descending or numerial order.
+///
+/// ### Usage
+/// ```ab
+/// let sorted = sort_lines("banana\napple\ncherry")
+/// echo(sorted) // "apple\nbanana\ncherry"
+/// 
+/// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
+/// echo(sorted) // "cherry\nbanana\napple"
+/// 
+/// let sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
+/// echo(sorted) // "1\n2\n10"
+/// ```
+pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text {
+    let args = ""
+    if desc: args += "r"
+    if numeric: args += "n"
+    return trust $ sort -{args} <<< "{text}" $
+}
+
+/// Removes duplicate lines from text.
+///
+/// ### Usage
+/// ```ab
+/// let result = uniq_lines("foo\nfoo\nbar\nbar\nbaz")
+/// echo(result) // "foo\nbar\nbaz"
+///
+/// let result = uniq_lines("foo\nbar\nfoo\nbaz\nbar", true) /// Removes all duplicate lines from text (not just consecutive)
+/// echo(result) // "foo\nbar\nbaz"
+/// ```
+pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
+    if not remove_all:
+        return trust $ uniq <<< "{text}" $
+    else: 
+        return trust $ awk '!seen[\$0]++' <<< "{text}" $
+}

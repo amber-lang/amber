@@ -1,0 +1,9 @@
+import { uname_all } from "std/env"
+
+main {
+    let info = uname_all()
+    // Should return non-empty string with full system info
+    if info != "" {
+        echo("Succeeded")
+    }
+}
