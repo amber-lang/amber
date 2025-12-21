@@ -509,11 +509,11 @@ pub fun zfill(text: Text, length: Int): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let count = lines_count("one\ntwo\nthree")
+/// let count = count_lines("one\ntwo\nthree")
 /// echo(count) // 3
 /// ```
 #[allow_absurd_cast]
-pub fun lines_count(text: Text): Int {
+pub fun count_lines(text: Text): Int {
     if text == "": return 0
     return trust $ wc -l <<< "{text}" | tr -d ' ' $ as Int
 }
