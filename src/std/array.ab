@@ -76,7 +76,7 @@ pub fun array_last(array) {
 /// ```ab
 /// let array = [1, 2, 3]
 /// array_remove_at(array, 1)
-/// echo array // Outputs [1, 3]
+/// echo(array) // Outputs [1, 3]
 /// ```
 pub fun array_remove_at(ref array: [], index: Int): Null {
     const offset = index + 1
@@ -92,7 +92,7 @@ pub fun array_remove_at(ref array: [], index: Int): Null {
 /// let array = [1, 2, 3]
 /// let element = array_extract_at(array, 1)
 /// echo element // Outputs 2
-/// echo array // Outputs [1, 3]
+/// echo(array) // Outputs [1, 3]
 /// ```
 pub fun array_extract_at(ref array: [], index: Int) {
     if index < 0 or index >= len(array):
@@ -111,8 +111,8 @@ pub fun array_extract_at(ref array: [], index: Int) {
 /// ```ab
 /// let array = [1, 2, 3]
 /// let element = array_pop(array)
-/// echo element // Outputs 3
-/// echo array // Outputs [1, 2]
+/// echo(element) // Outputs 3
+/// echo(array) // Outputs [1, 2]
 /// ```
 pub fun array_pop(ref array) {
     const length = len(array)
@@ -131,8 +131,8 @@ pub fun array_pop(ref array) {
 /// ```ab
 /// let array = [1, 2, 3]
 /// let element = array_shift(array)
-/// echo element // Outputs 1
-/// echo array // Outputs [2, 3]
+/// echo(element) // Outputs 1
+/// echo(array) // Outputs [2, 3]
 /// ```
 pub fun array_shift(ref array) {
     const length = len(array)
@@ -149,7 +149,7 @@ pub fun array_shift(ref array) {
 /// ### Usage
 /// ```ab
 /// let array = array_filled(5, 1)
-/// echo array // Outputs [1, 1, 1, 1, 1]
+/// echo(array) // Outputs [1, 1, 1, 1, 1]
 /// ```
 pub fun array_filled(size, value = 0) {
     let array = [value] // Used for type casting array
