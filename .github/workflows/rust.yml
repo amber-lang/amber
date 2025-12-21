@@ -199,6 +199,7 @@ jobs:
         env:
           CS_TEMP_DIR: /tmp/amber.sc.tests
         run: |
+          cargo build --release
           cargo run -- run scripts/sh_tester.ab
       - uses: staabm/annotate-pull-request-from-checkstyle-action@a7dbcfcab1a6892dae7893a160cc87f23af94de4 # v1
         with:
