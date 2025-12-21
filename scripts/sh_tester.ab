@@ -1,5 +1,5 @@
 import { split, split_lines, text_contains } from "std/text"
-import { file_write, file_append, dir_exists, file_exists, dir_create } from "std/fs"
+import { file_write, file_append, dir_exists, file_exists, dir_create, temp_dir_create } from "std/fs"
 
 /// file_glob() with globstar option which is not support by stdlib.
 /// https://github.com/amber-lang/amber/issues/650
@@ -19,14 +19,11 @@ fun file_globstar(path: Text): [Text]? {
     return split_lines(files)
 }
 
-let path = "/tmp/amber-sc-tests"
-
-if (not dir_exists(path)) {
-    dir_create(path) failed {
-        echo("Failed to create directory {path}")
-        exit(1)
-    }
+let path = temp_dir_create("amber-sc-tests.XXXXX") failed {
+    echo("Failed to create temporary directory")
+    exit(1)
 }
+echo("Using {path}")
 trust $ cp -r "src/tests/stdlib/" {path} $
 let report = "{path}/report.txt"
 file_write(report, "Report for Shellcheck") failed {
