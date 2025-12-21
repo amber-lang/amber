@@ -542,57 +542,39 @@ pub fun count_chars(text: Text): Int {
     return trust $ printf "%s" "{text}" | wc -m | tr -d ' ' $ as Int
 }
 
-/// Sorts lines of text in ascending order.
+/// Sorts lines of text in ascending, descending or numerial order.
 ///
 /// ### Usage
 /// ```ab
 /// let sorted = sort_lines("banana\napple\ncherry")
 /// echo(sorted) // "apple\nbanana\ncherry"
-/// ```
-pub fun sort_lines(text: Text): Text {
-    return trust $ sort <<< "{text}" $
-}
-
-/// Sorts lines of text in descending order.
-///
-/// ### Usage
-/// ```ab
-/// let sorted = sort_lines_desc("banana\napple\ncherry")
+/// 
+/// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
 /// echo(sorted) // "cherry\nbanana\napple"
-/// ```
-pub fun sort_lines_desc(text: Text): Text {
-    return trust $ sort -r <<< "{text}" $
-}
-
-/// Sorts lines of text numerically.
-///
-/// ### Usage
-/// ```ab
-/// let sorted = sort_lines_numeric("10\n2\n1")
+/// 
+/// let sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
 /// echo(sorted) // "1\n2\n10"
 /// ```
-pub fun sort_lines_numeric(text: Text): Text {
-    return trust $ sort -n <<< "{text}" $
+pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text {
+    let args = ""
+    if desc: args += "r"
+    if numeric: args += "n"
+    return trust $ sort -{args} <<< "{text}" $
 }
 
-/// Removes consecutive duplicate lines from text.
+/// Removes duplicate lines from text.
 ///
 /// ### Usage
 /// ```ab
 /// let result = uniq_lines("foo\nfoo\nbar\nbar\nbaz")
 /// echo(result) // "foo\nbar\nbaz"
-/// ```
-pub fun uniq_lines(text: Text): Text {
-    return trust $ uniq <<< "{text}" $
-}
-
-/// Removes all duplicate lines from text (not just consecutive).
 ///
-/// ### Usage
-/// ```ab
-/// let result = uniq_all_lines("foo\nbar\nfoo\nbaz\nbar")
+/// let result = uniq_lines("foo\nbar\nfoo\nbaz\nbar", true) /// Removes all duplicate lines from text (not just consecutive)
 /// echo(result) // "foo\nbar\nbaz"
 /// ```
-pub fun uniq_all_lines(text: Text): Text {
-    return trust $ awk '!seen[\$0]++' <<< "{text}" $
+pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
+    if not remove_all:
+        return trust $ uniq <<< "{text}" $
+    else: 
+        return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }
