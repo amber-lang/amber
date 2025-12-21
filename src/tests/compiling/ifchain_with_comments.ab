@@ -2,15 +2,15 @@ const x = 1
 if {
     // Check for large values
     x > 10: {
-        echo "large"
+        echo("large")
     }
     // Then for the second check
     // Check for medium values
     x > 5: {
-        echo "medium"
+        echo("medium")
     }
     // Otherwise it's small
     else: {
-        echo "small"
+        echo("small")
     }
 }
