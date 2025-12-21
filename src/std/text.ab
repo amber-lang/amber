@@ -522,11 +522,11 @@ pub fun count_lines(text: Text): Int {
 ///
 /// ### Usage
 /// ```ab
-/// let count = words_count("hello world foo")
+/// let count = count_words("hello world foo")
 /// echo(count) // 3
 /// ```
 #[allow_absurd_cast]
-pub fun words_count(text: Text): Int {
+pub fun count_words(text: Text): Int {
     return trust $ wc -w <<< "{text}" | tr -d ' ' $ as Int
 }
 
