@@ -1,5 +1,23 @@
-import { split, text_contains } from "std/text"
+import { split, split_lines, text_contains } from "std/text"
 import { file_write, file_append, dir_exists, file_exists, dir_create } from "std/fs"
+
+/// file_glob() with globstar option which is not support by stdlib.
+/// https://github.com/amber-lang/amber/issues/650
+fun file_globstar(path: Text): [Text]? {
+    let temp_globstar_enabled = Bool
+    // -q for quiet. the return status dicates whether the globstap is set or unset
+    $ shopt -q globstar $ exited(code) {
+        temp_globstar_enabled = code == 0
+    }
+
+    // -s for set
+    silent trust $ shopt -s globstar $
+    const files = $ eval "for file in {path}; do [ -e \\"\\\$file\\" ] && printf \"%s\\n\" \\"\\\$file\\"; done" $?
+
+    if temp_globstar_enabled: silent trust $ shopt -s globstar $
+    else: silent trust $ shopt -u globstar $
+    return split_lines(files)
+}
 
 let path = "/tmp/amber-sc-tests"
 
