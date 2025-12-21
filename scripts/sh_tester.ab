@@ -1,3 +1,4 @@
+import { env_var_get } from "std/env"
 import { replace_regex, split, split_lines, text_contains } from "std/text"
 import { file_write, file_append, dir_exists, file_exists, dir_create, temp_dir_create } from "std/fs"
 
@@ -18,11 +19,13 @@ fun file_globstar(path: Text): [Text]? {
     return split_lines(files)
 }
 
+const temp_dir = trust env_var_get("TEMP_DIR")
+
 main {
-    const path = temp_dir_create("amber.sc.tests.XXXXX") failed {
+    const path = temp_dir == "" then temp_dir_create("amber.sc.tests.XXXXX") failed {
         echo("Failed to create temporary directory")
         exit(1)
-    }
+    } else ""
     echo("Using {path}")
     const report = "{path}/checkstyle.xml"
 
