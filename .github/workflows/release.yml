@@ -126,7 +126,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (Linux ${{ matrix.libc }} ${{ matrix.arch }})
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: linux-${{ matrix.libc }}-${{ matrix.arch }}
           path: dist/*
@@ -176,7 +176,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (macOS ${{ matrix.arch }})
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: macos-${{ matrix.arch }}
           path: dist/*
@@ -205,7 +205,7 @@ jobs:
           tar -C target/release -cJf dist/amber-windows-x86_64.tar.xz ${BIN_NAME}.exe
 
       - name: Upload artifacts (Windows x86_64)
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: windows-x86_64
           path: dist/*
@@ -239,7 +239,7 @@ jobs:
         run: cargo deb --no-build --output="./dist/amber-linux-debian-x86_64.deb"
 
       - name: Upload artifacts (scripts & deb)
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: scripts-deb
           path: dist/*
@@ -253,7 +253,7 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           merge-multiple: true
           path: dist

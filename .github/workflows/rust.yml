@@ -40,7 +40,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./target/deps
@@ -53,7 +53,7 @@ jobs:
           cargo test --no-run --all-targets --all-features
       - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
         run: tar -cvzf target.tgz target/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           include-hidden-files: true
           name: target
@@ -96,20 +96,20 @@ jobs:
           sudo chmod +x /usr/bin/bshchk
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./target/deps
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: target
           path: artifact
       - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
       - name: Cache test docker image
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}
           key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
@@ -143,7 +143,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo
@@ -164,7 +164,7 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@9fe7ca9f6550e5d6358e179d451cc25ea6b54f98 # v1.5.0
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./target/deps
@@ -185,7 +185,7 @@ jobs:
         with:
           components: llvm-tools-preview
       - name: Cache llvm-cov
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache-llvm-cov
         with:
           path: ~/.cargo/bin/cargo-llvm-cov
