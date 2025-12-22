@@ -8,6 +8,12 @@ pub struct Bool {
     value: bool
 }
 
+impl Bool {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        Some(self.value)
+    }
+}
+
 impl Typed for Bool {
     fn get_type(&self) -> Type {
         Type::Bool

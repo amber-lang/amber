@@ -1,0 +1,9 @@
+import { uname_nodename } from "std/env"
+
+main {
+    let hostname = uname_nodename()
+    // Should return non-empty hostname
+    if hostname != "" {
+        echo("Succeeded")
+    }
+}

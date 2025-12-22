@@ -1,0 +1,9 @@
+// Output
+// Condition is always true, 'else' block will never execute
+// done
+
+if true {
+    echo("done")
+} else {
+    echo("never")
+}

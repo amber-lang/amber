@@ -1,0 +1,9 @@
+import { uname_kernel_name } from "std/env"
+
+main {
+    let kernel = uname_kernel_name()
+    // Should return non-empty string like "Linux" or "Darwin"
+    if kernel != "" {
+        echo("Succeeded")
+    }
+}

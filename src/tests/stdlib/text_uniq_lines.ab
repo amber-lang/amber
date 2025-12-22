@@ -1,0 +1,14 @@
+import { uniq_lines } from "std/text"
+
+// Output
+// foo
+// bar
+// baz
+// foo
+// bar
+// baz
+
+main {
+    echo(uniq_lines("foo\nfoo\nbar\nbar\nbaz"))
+    echo(uniq_lines("foo\nbar\nfoo\nbaz\nbar", true))
+}

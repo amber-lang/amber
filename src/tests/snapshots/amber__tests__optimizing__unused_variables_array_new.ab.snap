@@ -5,4 +5,4 @@ expression: output
 a_0=10
 c_2=30
 array_0=("${a_0}" "${c_2}")
-echo "${array_0[@]}"
+echo "${array_0[*]}"

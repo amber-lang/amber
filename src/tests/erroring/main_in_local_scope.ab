@@ -1,0 +1,8 @@
+// Output
+// Main must be in the global scope
+
+if true {
+    main {
+        echo "Hello"
+    }
+}

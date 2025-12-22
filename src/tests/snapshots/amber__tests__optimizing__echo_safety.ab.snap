@@ -1,0 +1,10 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+echo "foo"
+printf '%s\n' " -foo"
+printf '%s\n' ""
+printf '%s\n' "-foo"
+bar_0="bar"
+printf '%s\n' "foo ${bar_0}"

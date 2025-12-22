@@ -93,7 +93,6 @@ pub struct VariableDecl {
     pub is_const: bool,
     pub is_used: bool,
     pub is_modified: bool,
-
     pub warn: Option<VariableDeclWarn>,
 }
 

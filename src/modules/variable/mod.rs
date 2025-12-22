@@ -46,7 +46,13 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
 pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
     match meta.get_var_used(name) {
-        Some(variable_unit) => Ok(variable_unit.clone()),
+        Some(variable_unit) => {
+            let mut var = variable_unit.clone();
+            if let Some(narrowed) = meta.get_narrowed_type(name) {
+                var.kind = narrowed.clone();
+            }
+            Ok(var)
+        },
         None => {
             let message = format!("Variable '{name}' does not exist");
             // Find other similar variable if exists
@@ -138,8 +144,8 @@ pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool,
 
 fn allow_index_accessor(index: &Expr, range: bool) -> bool {
     match (&index.kind, &index.value) {
-        (Type::Int, _) => true,
-        (Type::Array(_), Some(ExprType::Range(_))) => range,
+        (t, _) if t.is_allowed_in(&Type::Int) => true,
+        (t, Some(ExprType::Range(_))) if t.is_allowed_in(&Type::array_of(Type::Generic)) => range,
         _ => false,
     }
 }

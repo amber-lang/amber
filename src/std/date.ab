@@ -25,7 +25,7 @@
 /// ### Usage
 /// ```ab
 /// let date = date_now() // Example value: 1678887000
-/// echo date_format_posix(date) // Outputs: 2023-03-15 14:30:00
+/// echo(date_format_posix(date)) // Outputs: 2023-03-15 14:30:00
 /// ```
 pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false): Text? {
     const utc_flag = utc then "-u" else ""
@@ -43,7 +43,7 @@ pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false):
 /// ### Usage
 /// ```ab
 /// let date = "2023-03-15 14:30:00"
-/// echo date_from_posix(date) // Output: 1678887000
+/// echo(date_from_posix(date)) // Output: 1678887000
 /// ```
 #[allow_absurd_cast]
 pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Int? {

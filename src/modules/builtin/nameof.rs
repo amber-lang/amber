@@ -73,7 +73,8 @@ impl TypeCheckModule for Nameof {
                                     meta, 
                                     fun_decl.clone(), 
                                     &args_types, 
-                                    self.token.clone()
+                                    self.token.clone(),
+                                    true
                                 )?.1
                             }
                         };

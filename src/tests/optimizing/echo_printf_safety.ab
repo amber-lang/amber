@@ -1,0 +1,8 @@
+const bar = "bar"
+echo("foo")
+echo(["-foo", "bar"])
+echo(["-foo {bar} foobar", "bar"])
+echo(["boo {bar} foo", "boo"])
+echo("")
+echo("-foo")
+echo("foo {bar}")

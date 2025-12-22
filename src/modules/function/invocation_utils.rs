@@ -29,6 +29,7 @@ pub fn run_function_with_args(
     mut fun: FunctionDecl,
     args: &[Type],
     tok: Option<Token>,
+    persist: bool,
 ) -> Result<(Type, usize), Failure> {
     // Check if there are the correct amount of arguments
     if fun.args.len() != args.len() {
@@ -102,44 +103,48 @@ pub fn run_function_with_args(
     let caller_path = meta.context.path.clone();
     let call_site_pos = tok.as_ref().map(|t| PositionInfo::from_token(meta, Some(t.clone())));
 
-    // Swap the contexts to use the function context
-    let res = meta.with_context_ref(&mut context, |meta| {
-        // Create a sub context for new variables
-        meta.with_push_scope(true, |meta| {
-            // Add the function itself to the scope to allow recursion
-            meta.context.scopes.last_mut().unwrap().add_fun(fun.clone());
+    // Suppress warnings only after first-pass typechecking with declared types has emitted them
+    let suppress = meta.fun_cache.is_first_pass_done(fun.id);
+    let res = meta.with_suppress_warnings(suppress, |meta| {
+        // Swap the contexts to use the function context
+        meta.with_context_ref(&mut context, |meta| {
+            // Create a sub context for new variables
+            meta.with_push_scope(true, |meta| {
+                // Add the function itself to the scope to allow recursion
+                meta.context.scopes.last_mut().unwrap().add_fun(fun.clone());
 
-            for (kind, arg) in izip!(args, &fun.args) {
-                let var = VariableDecl::new(arg.name.clone(), kind.clone())
-                    .with_warn(VariableDeclWarn::from_token(meta, tok.clone()))
-                    .with_ref(arg.is_ref);
-                args_global_ids.push(meta.add_var(var));
-            }
-            // Set the expected return type if specified
-            if fun.returns != Type::Generic {
-                meta.context.fun_ret_type = Some(fun.returns.clone());
-            }
-            // Typecheck the function body
-            if let Err(failure) = block.typecheck(meta) {
-                match failure {
-                    Failure::Loud(mut msg) => {
-                        let mut new_trace = Vec::new();
-                        if caller_path != meta.context.path {
-                            new_trace.extend(caller_trace.clone());
-                        }
-                        if let Some(ref pos) = call_site_pos {
-                            new_trace.push(pos.clone());
-                        }
-                        new_trace.extend(msg.trace);
-                        msg.trace = new_trace;
-                        return Err(Failure::Loud(msg));
-                    }
-                    _ => return Err(failure),
+                for (kind, arg) in izip!(args, &fun.args) {
+                    let var = VariableDecl::new(arg.name.clone(), kind.clone())
+                        .with_warn(VariableDeclWarn::from_token(meta, tok.clone()))
+                        .with_ref(arg.is_ref);
+                    args_global_ids.push(meta.add_var(var));
                 }
-            }
+                // Set the expected return type if specified
+                if fun.returns != Type::Generic {
+                    meta.context.fun_ret_type = Some(fun.returns.clone());
+                }
+                // Typecheck the function body
+                if let Err(failure) = block.typecheck(meta) {
+                    match failure {
+                        Failure::Loud(mut msg) => {
+                            let mut new_trace = Vec::new();
+                            if caller_path != meta.context.path {
+                                new_trace.extend(caller_trace.clone());
+                            }
+                            if let Some(ref pos) = call_site_pos {
+                                new_trace.push(pos.clone());
+                            }
+                            new_trace.extend(msg.trace);
+                            msg.trace = new_trace;
+                            return Err(Failure::Loud(msg));
+                        }
+                        _ => return Err(failure),
+                    }
+                }
+                Ok(())
+            })?;
             Ok(())
-        })?;
-        Ok(())
+        })
     });
 
     meta.parsing_functions.remove(&(fun.id, args.to_vec()));
@@ -154,10 +159,14 @@ pub fn run_function_with_args(
         arg.kind = new_type.clone();
     }
     // Persist the new function instance
-    Ok((
-        fun.returns.clone(),
-        meta.add_fun_instance(fun.into_interface(), args_global_ids, block),
-    ))
+    if persist {
+        Ok((
+            fun.returns.clone(),
+            meta.add_fun_instance(fun.into_interface(), args_global_ids, block),
+        ))
+    } else {
+        Ok((fun.returns.clone(), 0))
+    }
 }
 
 pub fn handle_function_reference(
@@ -197,8 +206,19 @@ pub fn handle_function_parameters(
             return error!(meta, tok, format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable"));
         }
     }
+
+    // On first invocation, run first-pass with declared types (or Generic) to emit correct warnings.
+    if !meta.fun_cache.is_first_pass_done(id) {
+        let declared_types: Vec<Type> = fun.args.iter()
+            .map(|arg| arg.kind.clone())
+            .collect();
+        // We set persist to false, because we don't want to cache the function instance
+        let _ = run_function_with_args(meta, fun.clone(), &declared_types, tok.clone(), false);
+        meta.fun_cache.set_first_pass_done(id);
+    }
+
     // If the function was previously called with the same arguments, return the cached variant
-    match meta
+    let result = match meta
         .fun_cache
         .get_instances(id)
         .unwrap()
@@ -206,8 +226,10 @@ pub fn handle_function_parameters(
         .find(|fun| fun.args == args)
     {
         Some(fun) => Ok((fun.returns.clone(), fun.variant_id)),
-        None => Ok(run_function_with_args(meta, fun, args, tok)?),
-    }
+        None => Ok(run_function_with_args(meta, fun, args, tok, true)?),
+    };
+
+    result
 }
 
 fn handle_similar_function(meta: &ParserMetadata, name: &str) -> Option<String> {

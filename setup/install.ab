@@ -32,46 +32,46 @@ main(args) {
 
     // Check if such directory exists
     trust $ test -d "{place}" $ succeeded {
-        echo "Amber already installed"
-        echo "It seems that Amber is already installed on your system. ({place})"
-        echo "If you want to reinstall Amber, uninstall it first."
-        echo "(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)"
-        exit 2
+        echo("Amber already installed")
+        echo("It seems that Amber is already installed on your system. ({place})")
+        echo("If you want to reinstall Amber, uninstall it first.")
+        echo("(Find out more at https://docs.amber-lang.com/getting_started/installation#uninstallation)")
+        exit(2)
     }
 
     // Check if curl is installed
     if has_failed("curl -V") {
-        echo "Curl is not installed on your system."
-        echo "Please install `curl` and try again."
-        exit 1
+        echo("Curl is not installed on your system.")
+        echo("Please install `curl` and try again.")
+        exit(1)
     }
 
-    echo "Installing Amber... 🚀"
+    echo("Installing Amber... 🚀")
 
     // Make the directories we need first to ensure we have permissions before downloading any files
     // this decreases the chance that our script results in partial installation leaving assets behind
     const sudo_cmd = user_only_install then "" else "sudo"
     // Create directory for amber
     silent $ {sudo_cmd} mkdir -p "{place}" $ failed {
-        echo "Failed to create directory for amber."
+        echo("Failed to create directory for amber.")
         if user_only_install {
-            echo "Please make sure that root user can access {place} directory."
+            echo("Please make sure that root user can access {place} directory.")
         } else {
-            echo "Please make sure that your user can access {place} directory."
+            echo("Please make sure that your user can access {place} directory.")
         }
-        exit 1
+        exit(1)
     }
     if user_only_install {
         silent dir_create(bins_folder) failed {
-            echo "Failed to create directory for amber bin at {bins_folder}."
-            exit 1
+            echo("Failed to create directory for amber bin at {bins_folder}.")
+            exit(1)
         }
     }
 
     const tag = get_latest_release_tag() failed {
-        echo "Failed to get the latest release tag."
-        echo "Please try again or use another download method."
-        exit 1
+        echo("Failed to get the latest release tag.")
+        echo("Please try again or use another download method.")
+        exit(1)
     }
 
     // Set the download link
@@ -79,64 +79,64 @@ main(args) {
 
     // Download amber
     silent $ curl -L -o "{archive}" "{url}" $ failed {
-        echo "Curl failed to download amber."
-        echo "Something went wrong. Please try again later."
-        exit 1
+        echo("Curl failed to download amber.")
+        echo("Something went wrong. Please try again later.")
+        exit(1)
     }
 
     // Move archived version of amber
     $ {sudo_cmd} mv "{archive}" "{place}/{archive}" $ failed {
-        echo "Failed to move amber to the installation directory."
-        echo "Please make sure that root user can access {place} directory."
-        exit 1
+        echo("Failed to move amber to the installation directory.")
+        echo("Please make sure that root user can access {place} directory.")
+        exit(1)
     }
 
     // Unarchive amber
     silent $ {sudo_cmd} tar -xvf "{place}/{archive}" -C "{place}" $ failed {
-        echo "Failed to unarchive amber at {place}/{archive}"
-        echo "Please make sure that you have `tar` command installed."
-        exit 1
+        echo("Failed to unarchive amber at {place}/{archive}")
+        echo("Please make sure that you have `tar` command installed.")
+        exit(1)
     }
 
     // Delete the archive
     $ {sudo_cmd} rm {place}/{archive} $ failed {
-        echo "Failed to remove downloaded archive at {place}/{archive}"
-        exit 1
+        echo("Failed to remove downloaded archive at {place}/{archive}")
+        exit(1)
     }
 
     // Give permissions to execute amber
     $ {sudo_cmd} chmod +x "{place}/{target}" $ failed {
-        echo "Failed to give permissions to execute amber."
-        echo "Please make sure that root user can access {place} directory."
-        exit 1
+        echo("Failed to give permissions to execute amber.")
+        echo("Please make sure that root user can access {place} directory.")
+        exit(1)
     }
 
     // Delete the previous symbolic link
     if file_exists("{bins_folder}/{target}") {
         $ {sudo_cmd} rm "{bins_folder}/{target}" $ failed {
-            echo "Failed to remove the previous amber symbol link."
-            echo "Please make sure that root user can access {bins_folder} directory."
-            exit 1
+            echo("Failed to remove the previous amber symbol link.")
+            echo("Please make sure that root user can access {bins_folder} directory.")
+            exit(1)
         }
     }
 
     // Create amber symbol link
     $ {sudo_cmd} ln -s "{place}/{target}" "{bins_folder}/{target}" $ failed {
-        echo "Failed to create amber symbol link."
-        echo "Please make sure that root user can access {bins_folder} directory."
-        exit 1
+        echo("Failed to create amber symbol link.")
+        echo("Please make sure that root user can access {bins_folder} directory.")
+        exit(1)
     }
 
-    let nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
+    const nickname = input_prompt("Would you like to help improve Amber by sharing your OS info with our developer database? Enter your GitHub nickname (or any nickname) or type `no`:")
     if (nickname != "no") {
         // Send feedback to the server
         trust silent $ curl -G --data-urlencode "agent={agent}" --data-urlencode "nickname={nickname}" --data-urlencode "name=download" "https://amber-lang.com/api/visit" $
     }
 
     // Send success message
-    echo "Amber has been installed successfully. 🎉"
-    echo "> Now you can use amber by typing `amber` in your terminal."
+    echo("Amber has been installed successfully. 🎉")
+    echo("> Now you can use amber by typing `amber` in your terminal.")
     if user_only_install {
-        echo "> Since you requested a user only install with `--user` ensure that ~/.local/bin is in your $PATH."
+        echo("> Since you requested a user only install with `--user` ensure that ~/.local/bin is in your $PATH.")
     }
 }

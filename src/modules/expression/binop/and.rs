@@ -2,15 +2,49 @@ use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
 use crate::modules::types::{Typed, Type};
-
 use super::BinOp;
-
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct And {
     left: Box<Expr>,
     right: Box<Expr>
 }
+
+impl And {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        let left = self.left.analyze_control_flow();
+        let right = self.right.analyze_control_flow();
+        match (left, right) {
+             (Some(false), _) => Some(false),
+             (_, Some(false)) => Some(false),
+             (Some(true), Some(true)) => Some(true),
+             _ => None
+        }
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        let (left_true, left_false) = self.left.extract_facts();
+        let (right_true, right_false) = self.right.extract_facts();
+
+        // Merge true facts
+        let mut true_facts = left_true;
+        true_facts.extend(right_true);
+
+        // Intersect false facts
+        let mut false_facts = HashMap::new();
+        for (name, left_kind) in left_false {
+            if let Some(right_kind) = right_false.get(&name) {
+                if left_kind == *right_kind {
+                    false_facts.insert(name, left_kind);
+                }
+            }
+        }
+
+        (true_facts, false_facts)
+    }
+}
+
 
 impl Typed for And {
     fn get_type(&self) -> Type {

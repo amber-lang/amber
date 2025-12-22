@@ -1,0 +1,5 @@
+// Output
+// Cannot index a non-array expression of type 'Int'
+
+let a = 1
+let b = a[0]

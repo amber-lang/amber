@@ -64,6 +64,10 @@ impl TypeCheckModule for Main {
             return error!(meta, self.token.clone(), "Main must be in the global scope")
         }
 
+        if self.is_skipped {
+            return Ok(());
+        }
+
         // Typecheck the main block content
         meta.with_push_scope(true, |meta| {
             // Create variables for main arguments

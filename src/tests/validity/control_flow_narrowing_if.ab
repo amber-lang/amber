@@ -1,0 +1,12 @@
+// Output
+// Success: x is Int
+// 42
+
+fun test_narrow_int(x: Text | Int) {
+    if x is Int {
+        echo("Success: {x is Int then "x is Int" else "x is not Int"}")
+        const y = x + 1
+        echo(y)
+    }
+}
+test_narrow_int(41)

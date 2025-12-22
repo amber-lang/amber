@@ -79,5 +79,5 @@ __range_start_18="${idx_start_16}"
 __range_end_18="${idx_end_17}"
 __dir_18=$(( ${__range_start_18} <= ${__range_end_18} ? 1 : -1 ))
 for (( val_18=${__range_start_18}, idx_19=0; val_18 * ${__dir_18} < ${__range_end_18} * ${__dir_18}; val_18+=${__dir_18}, idx_19++ )); do
-    echo "${val_18} ${idx_19}"
+    printf '%s\n' "${val_18} ${idx_19}"
 done
