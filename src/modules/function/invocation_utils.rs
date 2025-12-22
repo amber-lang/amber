@@ -213,8 +213,16 @@ pub fn handle_function_parameters(
             .map(|arg| arg.kind.clone())
             .collect();
         // We set persist to false, because we don't want to cache the function instance
-        let _ = run_function_with_args(meta, fun.clone(), &declared_types, tok.clone(), false);
+        // We also set dry_run_first_pass to true to prevent nested function calls from persisting
+        let _ = meta.with_dry_run_first_pass(true, |meta| {
+            run_function_with_args(meta, fun.clone(), &declared_types, tok.clone(), false)
+        });
         meta.fun_cache.set_first_pass_done(id);
+    }
+
+    // Skip instance creation during dry-run first-pass
+    if meta.dry_run_first_pass {
+        return run_function_with_args(meta, fun, args, tok, false);
     }
 
     // If the function was previously called with the same arguments, return the cached variant
