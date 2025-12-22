@@ -17,7 +17,7 @@ impl SyntaxModule<ParserMetadata> for Touch {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "touch")?;
+        token(meta, "touch(<expr>)")?;
         syntax(meta, &mut self.value)?;
         Ok(())
     }
