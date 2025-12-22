@@ -1,8 +1,14 @@
 pub mod cd;
+pub mod clear;
 pub mod echo;
-pub mod mv;
-pub mod nameof;
 pub mod exit;
 pub mod len;
 pub mod lines;
+pub mod ls;
+pub mod mv;
+pub mod nameof;
+pub mod pwd;
+pub mod rm;
+pub mod rmdir;
+pub mod sleep;
 pub mod touch;
