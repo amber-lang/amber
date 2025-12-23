@@ -1,0 +1,6 @@
+import { shopt_enable } from "std/env"
+
+main {
+   shopt_disable("dotglob")?
+   shopt_disable("noglob", true)?
+}
