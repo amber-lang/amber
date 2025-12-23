@@ -179,7 +179,6 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
             }
         }
 
-
         self.is_main = meta.context.is_main_ctx;
         self.is_parsed = true;
         Ok(())
