@@ -69,12 +69,12 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                 let port = 80
                 let path = ""
                 url = replace(url, "http://", "")
-                let parts = split_lines(replace_one(url,"/","\n")) // split host and path
+                let parts = split_lines(replace_one(url, "/", "\n")) // split host and path
                 url = parts[0]
 
-                if match_regex(url,":([0-9][0-9]+)", true) { // https://github.com/amber-lang/amber/pull/906#discussion_r2616210649
+                if match_regex(url, ":([0-9][0-9]+)", true) { // https://github.com/amber-lang/amber/pull/906#discussion_r2616210649
                     path = parts[1]
-                    parts = split_lines(replace_one(url,":","\n")); // split IP/domain and port
+                    parts = split_lines(replace_one(url, ":", "\n")); // split IP/domain and port
                     url = parts[0]
                     port = parse_int(parts[1])?
                 } else {
