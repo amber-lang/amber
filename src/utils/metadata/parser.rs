@@ -40,6 +40,8 @@ pub struct ParserMetadata {
     #[context]
     pub suppress_warnings: bool,
     /// Skip persisting function instances during first-pass typechecking
+    /// First pass is used for typechecking a function with declared and not concrete types
+    /// This is used to generally assess if a function is valid and emit errors if it is not
     #[context]
     pub first_pass_ctx: bool,
     /// Whether sudo modifier is used anywhere in the code
