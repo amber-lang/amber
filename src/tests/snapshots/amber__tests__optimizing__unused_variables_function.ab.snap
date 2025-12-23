@@ -3,7 +3,7 @@ source: src/tests/optimizing.rs
 expression: output
 ---
 foo__0_v0() {
-    touch file.txt
+    touch "file.txt"
 }
 
 foo__0_v0 

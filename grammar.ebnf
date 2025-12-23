@@ -87,6 +87,7 @@ KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
 KEYWORD_TEST = 'test' ;
 KEYWORD_THEN = 'then' ;
+KEYWORD_TOUCH = 'touch' ;
 KEYWORD_TRUST = 'trust' ;
 KEYWORD_EXITED = 'exited' ;
 KEYWORD_UNSAFE = 'unsafe' ;
@@ -208,6 +209,7 @@ builtin_cd = KEYWORD_CD, expression ;
 builtin_echo = KEYWORD_ECHO, expression ;
 builtin_exit = KEYWORD_EXIT, expression ;
 builtin_mv = KEYWORD_MV, expression ;
+builtin_touch = KEYWORD_TOUCH, expression ;
 
 builtins_expression =
     builtin_len |
