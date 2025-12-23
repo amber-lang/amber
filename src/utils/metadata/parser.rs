@@ -39,6 +39,11 @@ pub struct ParserMetadata {
     /// Suppress warnings during monomorphic function re-typechecking
     #[context]
     pub suppress_warnings: bool,
+    /// Skip persisting function instances during first-pass typechecking
+    /// First pass is used for typechecking a function with declared and not concrete types
+    /// This is used to generally assess if a function is valid and emit errors if it is not
+    #[context]
+    pub first_pass_ctx: bool,
     /// Whether sudo modifier is used anywhere in the code
     pub sudo_used: bool,
 }
@@ -267,6 +272,7 @@ impl Metadata for ParserMetadata {
             narrowed_types: Vec::new(),
             suppress_warnings: false,
             sudo_used: false,
+            first_pass_ctx: false,
         }
     }
 

@@ -17,13 +17,13 @@ fun bash_version(): [Int] {
 ///
 /// ### Usage
 /// ```ab
-/// let result = replace("Hello world", "world", "universe")
+/// const result = replace("Hello world", "world", "universe")
 /// echo(result) // "Hello universe"
 /// ```
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4,3] {
+    if bash_version() >= [4, 3] {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -35,13 +35,13 @@ pub fun replace(source, search, replace) {
 ///
 /// ### Usage
 /// ```ab
-/// let result = replace_one("foo foo foo", "foo", "bar")
+/// const result = replace_one("foo foo foo", "foo", "bar")
 /// echo(result) // "bar foo foo"
 /// ```
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4,3] {
+    if bash_version() >= [4, 3] {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -73,7 +73,7 @@ fun sed_version(): Int {
 ///
 /// ### Usage
 /// ```ab
-/// let result = replace_regex("test123", "[0-9]+", "456", true)
+/// const result = replace_regex("test123", "[0-9]+", "456", true)
 /// echo(result) // "test456"
 /// // Also supports replace regex
 /// echo(replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true)); // Put number (255) in brackets
@@ -109,7 +109,7 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 ///
 /// ### Usage
 /// ```ab
-/// let parts = split("a,b,c", ",")
+/// const parts = split("a,b,c", ",")
 /// echo(parts[0]) // "a"
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
@@ -122,7 +122,7 @@ pub fun split(text: Text, delimiter: Text): [Text] {
 ///
 /// ### Usage
 /// ```ab
-/// let lines = split_lines("line1\nline2\nline3")
+/// const lines = split_lines("line1\nline2\nline3")
 /// echo(lines[0]) // "line1"
 /// ```
 pub fun split_lines(text: Text): [Text] {
@@ -133,7 +133,7 @@ pub fun split_lines(text: Text): [Text] {
 ///
 /// ### Usage
 /// ```ab
-/// let words = split_words("hello world example")
+/// const words = split_words("hello world example")
 /// echo(words[1]) // "world"
 /// ```
 pub fun split_words(text: Text): [Text] {
@@ -144,7 +144,7 @@ pub fun split_words(text: Text): [Text] {
 ///
 /// ### Usage
 /// ```ab
-/// let joined = join(["a", "b", "c"], ",")
+/// const joined = join(["a", "b", "c"], ",")
 /// echo(joined) // "a,b,c"
 /// ```
 pub fun join(list: [Text], delimiter: Text): Text {
@@ -155,7 +155,7 @@ pub fun join(list: [Text], delimiter: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let trimmed = trim_left("   hello")
+/// const trimmed = trim_left("   hello")
 /// echo(trimmed) // "hello"
 /// ```
 pub fun trim_left(text: Text): Text {
@@ -168,7 +168,7 @@ pub fun trim_left(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let trimmed = trim_right("hello   ")
+/// const trimmed = trim_right("hello   ")
 /// echo(trimmed) // "hello"
 /// ```
 pub fun trim_right(text: Text): Text {
@@ -181,7 +181,7 @@ pub fun trim_right(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let trimmed = trim("   hello   ")
+/// const trimmed = trim("   hello   ")
 /// echo(trimmed) // "hello"
 /// ```
 pub fun trim(text: Text): Text {
@@ -195,7 +195,7 @@ pub fun trim(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let lower = lowercase("HELLO")
+/// const lower = lowercase("HELLO")
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
@@ -206,7 +206,7 @@ pub fun lowercase(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let upper = uppercase("hello")
+/// const upper = uppercase("hello")
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
@@ -217,7 +217,7 @@ pub fun uppercase(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let num = parse_int("42")?
+/// const num = parse_int("42")?
 /// echo(num) // 42
 /// ```
 #[allow_absurd_cast]
@@ -230,7 +230,7 @@ pub fun parse_int(text: Text): Int? {
 ///
 /// ### Usage
 /// ```ab
-/// let num = parse_num("3.14")?
+/// const num = parse_num("3.14")?
 /// echo(num) // 3.14
 /// ```
 #[allow_absurd_cast]
@@ -246,7 +246,7 @@ pub fun parse_num(text: Text): Num? {
 ///
 /// ### Usage
 /// ```ab
-/// let chars = split_chars("hello")
+/// const chars = split_chars("hello")
 /// echo(chars[0]) // "h"
 /// ```
 pub fun split_chars(text: Text): [Text] {
@@ -370,7 +370,7 @@ pub fun match_regex_any(text: Text, terms: [Text]): Bool {
 ///
 /// ### Usage
 /// ```ab
-/// let reversed_text = reversed("hello")
+/// const reversed_text = reversed("hello")
 /// echo(reversed_text) // "olleh"
 /// ```
 pub fun reversed(text: Text): Text {
@@ -411,7 +411,7 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 ///
 /// ### Usage
 /// ```ab
-/// let sub = slice("hello world", 6, 5)
+/// const sub = slice("hello world", 6, 5)
 /// echo(sub) // "world"
 /// ```
 pub fun slice(text: Text, index: Int, length: Int = 0): Text {
@@ -428,7 +428,7 @@ pub fun slice(text: Text, index: Int, length: Int = 0): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let ch = char_at("hello", 1)
+/// const ch = char_at("hello", 1)
 /// echo(ch) // "e"
 /// ```
 pub fun char_at(text: Text, index: Int): Text {
@@ -441,7 +441,7 @@ pub fun char_at(text: Text, index: Int): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let cap = capitalized("hello")
+/// const cap = capitalized("hello")
 /// echo(cap) // "Hello"
 /// ```
 #[allow_absurd_cast]
@@ -466,7 +466,7 @@ pub fun capitalized(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let padded = lpad("42", "0", 5)
+/// const padded = lpad("42", "0", 5)
 /// echo(padded) // "00042"
 /// ```
 pub fun lpad(text: Text, pad: Text, length: Int): Text {
@@ -482,7 +482,7 @@ pub fun lpad(text: Text, pad: Text, length: Int): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let padded = rpad("42", "0", 5)
+/// const padded = rpad("42", "0", 5)
 /// echo(padded) // "42000"
 /// ```
 pub fun rpad(text: Text, pad: Text, length: Int): Text {
@@ -498,7 +498,7 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let padded = zfill("42", 5)
+/// const padded = zfill("42", 5)
 /// echo(padded) // "00042"
 /// ```
 pub fun zfill(text: Text, length: Int): Text {
@@ -509,7 +509,7 @@ pub fun zfill(text: Text, length: Int): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let count = count_lines("one\ntwo\nthree")
+/// const count = count_lines("one\ntwo\nthree")
 /// echo(count) // 3
 /// ```
 #[allow_absurd_cast]
@@ -522,7 +522,7 @@ pub fun count_lines(text: Text): Int {
 ///
 /// ### Usage
 /// ```ab
-/// let count = count_words("hello world foo")
+/// const count = count_words("hello world foo")
 /// echo(count) // 3
 /// ```
 #[allow_absurd_cast]
@@ -534,7 +534,7 @@ pub fun count_words(text: Text): Int {
 ///
 /// ### Usage
 /// ```ab
-/// let count = count_chars("hello")
+/// const count = count_chars("hello")
 /// echo(count) // 5
 /// ```
 #[allow_absurd_cast]
@@ -552,7 +552,7 @@ pub fun count_chars(text: Text): Int {
 /// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
 /// echo(sorted) // "cherry\nbanana\napple"
 /// 
-/// let sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
+/// sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
 /// echo(sorted) // "1\n2\n10"
 /// ```
 pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text {
