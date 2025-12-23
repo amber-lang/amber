@@ -2,7 +2,7 @@ extern crate chrono;
 use crate::get_version;
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
-use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::modules::prelude::{BlockFragment, FragmentKind, FragmentRenderable, RawFragment};
 use crate::modules::typecheck::TypeCheckModule;
 use crate::optimizer::optimize_fragments;
 use crate::translate::check_all_blocks;
@@ -195,11 +195,22 @@ impl AmberCompiler {
         footer_template.replace("{{ version }}", get_version())
     }
 
+    fn gen_sudo_preamble(&self) -> FragmentKind {
+        let condition = r#"[ "$EUID" -ne 0 ] && { { command -v sudo >/dev/null 2>&1 && __sudo=sudo; } || { command -v doas >/dev/null 2>&1 && __sudo=doas; }; }"#;
+        RawFragment::new(condition).to_frag()
+    }
+
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
+        let sudo_used = meta.sudo_used;
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
+
+        if sudo_used {
+            result.append(self.gen_sudo_preamble());
+        }
+
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));
         }

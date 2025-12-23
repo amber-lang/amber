@@ -5,7 +5,7 @@ import { match_regex, join, replace_regex, split, trim } from "std/text"
 /// ### Usage
 /// ```ab
 /// if dir_exists("/tmp/mydir") {
-///     echo "Directory exists"
+///     echo("Directory exists")
 /// }
 /// ```
 pub fun dir_exists(path: Text): Bool {
@@ -18,7 +18,7 @@ pub fun dir_exists(path: Text): Bool {
 /// ### Usage
 /// ```ab
 /// if file_exists("config.txt") {
-///     echo "File exists"
+///     echo("File exists")
 /// }
 /// ```
 pub fun file_exists(path: Text): Bool {

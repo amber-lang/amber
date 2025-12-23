@@ -18,7 +18,7 @@ fun bash_version(): [Int] {
 /// ### Usage
 /// ```ab
 /// let result = replace("Hello world", "world", "universe")
-/// echo result // "Hello universe"
+/// echo(result) // "Hello universe"
 /// ```
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
@@ -36,7 +36,7 @@ pub fun replace(source, search, replace) {
 /// ### Usage
 /// ```ab
 /// let result = replace_one("foo foo foo", "foo", "bar")
-/// echo result // "bar foo foo"
+/// echo(result) // "bar foo foo"
 /// ```
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
@@ -74,9 +74,9 @@ fun sed_version(): Int {
 /// ### Usage
 /// ```ab
 /// let result = replace_regex("test123", "[0-9]+", "456", true)
-/// echo result // "test456"
+/// echo(result) // "test456"
 /// // Also supports replace regex
-/// echo replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true); // Put number (255) in brackets
+/// echo(replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true)); // Put number (255) in brackets
 /// ```
 pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: Bool = false): Text {
     trust {
@@ -110,7 +110,7 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// ### Usage
 /// ```ab
 /// let parts = split("a,b,c", ",")
-/// echo parts[0] // "a"
+/// echo(parts[0]) // "a"
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
@@ -123,7 +123,7 @@ pub fun split(text: Text, delimiter: Text): [Text] {
 /// ### Usage
 /// ```ab
 /// let lines = split_lines("line1\nline2\nline3")
-/// echo lines[0] // "line1"
+/// echo(lines[0]) // "line1"
 /// ```
 pub fun split_lines(text: Text): [Text] {
     return split(text, "\n")
@@ -134,7 +134,7 @@ pub fun split_lines(text: Text): [Text] {
 /// ### Usage
 /// ```ab
 /// let words = split_words("hello world example")
-/// echo words[1] // "world"
+/// echo(words[1]) // "world"
 /// ```
 pub fun split_words(text: Text): [Text] {
     return split(text, " ")
@@ -145,7 +145,7 @@ pub fun split_words(text: Text): [Text] {
 /// ### Usage
 /// ```ab
 /// let joined = join(["a", "b", "c"], ",")
-/// echo joined // "a,b,c"
+/// echo(joined) // "a,b,c"
 /// ```
 pub fun join(list: [Text], delimiter: Text): Text {
     return trust $ IFS="{delimiter}" ; printf "%s\n" "\$\{{nameof list}[*]}" $
@@ -156,7 +156,7 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// ### Usage
 /// ```ab
 /// let trimmed = trim_left("   hello")
-/// echo trimmed // "hello"
+/// echo(trimmed) // "hello"
 /// ```
 pub fun trim_left(text: Text): Text {
     let result = ""
@@ -169,7 +169,7 @@ pub fun trim_left(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let trimmed = trim_right("hello   ")
-/// echo trimmed // "hello"
+/// echo(trimmed) // "hello"
 /// ```
 pub fun trim_right(text: Text): Text {
     let result = ""
@@ -182,7 +182,7 @@ pub fun trim_right(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let trimmed = trim("   hello   ")
-/// echo trimmed // "hello"
+/// echo(trimmed) // "hello"
 /// ```
 pub fun trim(text: Text): Text {
     let result = ""
@@ -196,7 +196,7 @@ pub fun trim(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let lower = lowercase("HELLO")
-/// echo lower // "hello"
+/// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
     return trust $ tr '[:upper:]' '[:lower:]' <<< "{text}" $
@@ -207,7 +207,7 @@ pub fun lowercase(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let upper = uppercase("hello")
-/// echo upper // "HELLO"
+/// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
     return trust $ tr '[:lower:]' '[:upper:]' <<< "{text}" $
@@ -218,7 +218,7 @@ pub fun uppercase(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let num = parse_int("42")?
-/// echo num // 42
+/// echo(num) // 42
 /// ```
 #[allow_absurd_cast]
 pub fun parse_int(text: Text): Int? {
@@ -231,7 +231,7 @@ pub fun parse_int(text: Text): Int? {
 /// ### Usage
 /// ```ab
 /// let num = parse_num("3.14")?
-/// echo num // 3.14
+/// echo(num) // 3.14
 /// ```
 #[allow_absurd_cast]
 pub fun parse_num(text: Text): Num? {
@@ -247,7 +247,7 @@ pub fun parse_num(text: Text): Num? {
 /// ### Usage
 /// ```ab
 /// let chars = split_chars("hello")
-/// echo chars[0] // "h"
+/// echo(chars[0]) // "h"
 /// ```
 pub fun split_chars(text: Text): [Text] {
     let chars = [Text]
@@ -262,7 +262,7 @@ pub fun split_chars(text: Text): [Text] {
 /// ### Usage
 /// ```ab
 /// if text_contains("hello world", "world") {
-///     echo "Found!"
+///     echo("Found!")
 /// }
 /// ```
 pub fun text_contains(source: Text, search: Text): Bool {
@@ -275,7 +275,7 @@ pub fun text_contains(source: Text, search: Text): Bool {
 /// ### Usage
 /// ```ab
 /// if text_contains_any("hello world", ["foo", "world", "bar"]) {
-///     echo "Found at least one!"
+///     echo("Found at least one!")
 /// }
 /// ```
 pub fun text_contains_any(source: Text, searches: [Text]): Bool {
@@ -293,7 +293,7 @@ pub fun text_contains_any(source: Text, searches: [Text]): Bool {
 /// ### Usage
 /// ```ab
 /// if text_contains_all("hello world", ["hello", "world"]) {
-///     echo "All found!"
+///     echo("All found!")
 /// }
 /// ```
 pub fun text_contains_all(source: Text, searches: [Text]): Bool {
@@ -312,7 +312,7 @@ pub fun text_contains_all(source: Text, searches: [Text]): Bool {
 /// ### Usage
 /// ```ab
 /// if match_regex("test123", "[0-9]+", true) {
-///     echo "Contains numbers!"
+///     echo("Contains numbers!")
 /// }
 /// ```
 pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
@@ -353,7 +353,7 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
 /// ### Usage
 /// ```ab
 /// if match_regex_any("test123", ["[a-z]+", "[0-9]+"]) {
-///     echo "Matches at least one pattern!"
+///     echo("Matches at least one pattern!")
 /// }
 /// ```
 pub fun match_regex_any(text: Text, terms: [Text]): Bool {
@@ -371,7 +371,7 @@ pub fun match_regex_any(text: Text, terms: [Text]): Bool {
 /// ### Usage
 /// ```ab
 /// let reversed_text = reversed("hello")
-/// echo reversed_text // "olleh"
+/// echo(reversed_text) // "olleh"
 /// ```
 pub fun reversed(text: Text): Text {
     return trust $ rev <<< "{text}" $
@@ -382,7 +382,7 @@ pub fun reversed(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// if starts_with("hello world", "hello") {
-///     echo "Starts with hello!"
+///     echo("Starts with hello!")
 /// }
 /// ```
 pub fun starts_with(text: Text, prefix: Text): Bool {
@@ -395,7 +395,7 @@ pub fun starts_with(text: Text, prefix: Text): Bool {
 /// ### Usage
 /// ```ab
 /// if ends_with("hello world", "world") {
-///     echo "Ends with world!"
+///     echo("Ends with world!")
 /// }
 /// ```
 pub fun ends_with(text: Text, suffix: Text): Bool {
@@ -412,7 +412,7 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 /// ### Usage
 /// ```ab
 /// let sub = slice("hello world", 6, 5)
-/// echo sub // "world"
+/// echo(sub) // "world"
 /// ```
 pub fun slice(text: Text, index: Int, length: Int = 0): Text {
     let result = ""
@@ -429,7 +429,7 @@ pub fun slice(text: Text, index: Int, length: Int = 0): Text {
 /// ### Usage
 /// ```ab
 /// let ch = char_at("hello", 1)
-/// echo ch // "e"
+/// echo(ch) // "e"
 /// ```
 pub fun char_at(text: Text, index: Int): Text {
     let result = ""
@@ -442,7 +442,7 @@ pub fun char_at(text: Text, index: Int): Text {
 /// ### Usage
 /// ```ab
 /// let cap = capitalized("hello")
-/// echo cap // "Hello"
+/// echo(cap) // "Hello"
 /// ```
 #[allow_absurd_cast]
 pub fun capitalized(text: Text): Text {
@@ -467,7 +467,7 @@ pub fun capitalized(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// let padded = lpad("42", "0", 5)
-/// echo padded // "00042"
+/// echo(padded) // "00042"
 /// ```
 pub fun lpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
@@ -483,7 +483,7 @@ pub fun lpad(text: Text, pad: Text, length: Int): Text {
 /// ### Usage
 /// ```ab
 /// let padded = rpad("42", "0", 5)
-/// echo padded // "42000"
+/// echo(padded) // "42000"
 /// ```
 pub fun rpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
@@ -499,7 +499,7 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
 /// ### Usage
 /// ```ab
 /// let padded = zfill("42", 5)
-/// echo padded // "00042"
+/// echo(padded) // "00042"
 /// ```
 pub fun zfill(text: Text, length: Int): Text {
     return lpad(text, "0", length)

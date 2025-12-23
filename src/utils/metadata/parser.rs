@@ -39,6 +39,8 @@ pub struct ParserMetadata {
     /// Suppress warnings during monomorphic function re-typechecking
     #[context]
     pub suppress_warnings: bool,
+    /// Whether sudo modifier is used anywhere in the code
+    pub sudo_used: bool,
 }
 
 impl ParserMetadata {
@@ -264,6 +266,7 @@ impl Metadata for ParserMetadata {
             test_names: Vec::new(),
             narrowed_types: Vec::new(),
             suppress_warnings: false,
+            sudo_used: false,
         }
     }
 
