@@ -3,9 +3,11 @@
 // Calling a builtin without parentheses is deprecated
 // Calling a builtin without parentheses is deprecated
 // Calling a builtin without parentheses is deprecated
+// Calling a builtin without parentheses is deprecated
 // hello
 
 echo "hello"
 cd "."
 exit 0
 trust mv "a" "b"
+touch "test.txt"
