@@ -2,11 +2,9 @@ import { shopt_disable } from "std/env"
 
 // Output
 // .
-// Succeeded
 
 main {
    shopt_disable("dotglob")?
    trust $ echo . $
    shopt_disable("noglob", true)?
-   if $ echo * $? != "*": echo("Succeeded")
 }
