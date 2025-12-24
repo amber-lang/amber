@@ -569,7 +569,7 @@ pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text 
 /// let result = uniq_lines("foo\nfoo\nbar\nbar\nbaz")
 /// echo(result) // "foo\nbar\nbaz"
 ///
-/// let result = uniq_lines("foo\nbar\nfoo\nbaz\nbar", true) /// Removes all duplicate lines from text (not just consecutive)
+/// let result = uniq_lines("foo\nbar\nfoo\nbaz\nbar", true) // Removes all duplicate lines from text (not just consecutive)
 /// echo(result) // "foo\nbar\nbaz"
 /// ```
 pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
