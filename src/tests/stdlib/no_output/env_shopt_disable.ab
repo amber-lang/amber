@@ -1,6 +1,0 @@
-import { shopt_enable } from "std/env"
-
-main {
-   shopt_enable("globstar")?
-   shopt_enable("noglob", true)?
-}

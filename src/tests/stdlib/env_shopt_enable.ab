@@ -1,0 +1,13 @@
+import { shopt_enable } from "std/env"
+
+// Output
+// hello
+// world
+// *
+
+main {
+   shopt_enable("xpg_echo")?
+   trust $ echo "hello\\nworld" $
+   shopt_enable("noglob", true)?
+   trust $ echo * $
+}
