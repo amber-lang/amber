@@ -1,11 +1,20 @@
+import * from "std/fs"
+
 // Output
+// Calling a builtin without parentheses is deprecated
 // Calling a builtin without parentheses is deprecated
 // Calling a builtin without parentheses is deprecated
 // Calling a builtin without parentheses is deprecated
 // Calling a builtin without parentheses is deprecated
 // hello
 
-echo "hello"
-cd "."
-exit 0
-trust mv "a" "b"
+main {
+    echo "hello"
+    cd "."
+    exit 0
+    trust mv "a" "b"
+    
+    // Enter a temporary directory for mutating builtins
+    cd(temp_dir_create("deprecated_builtins.XXXXXX", true, false)?)
+    touch "test.txt"
+}
