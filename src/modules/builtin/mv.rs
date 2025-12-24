@@ -98,16 +98,27 @@ impl TypeCheckModule for Mv {
 
 impl TranslateModule for Mv {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let source = self.source.translate(meta);
-        let destination = self.destination.translate(meta);
-        let handler = self.failure_handler.translate(meta);
-        let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
-            meta.gen_silent().to_frag()
-        });
-        BlockFragment::new(vec![
-            fragments!("mv ", source, " ", destination, silent),
-            handler,
-        ], false).to_frag()
+        meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
+            meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
+                let source = self.source.translate(meta);
+                let destination = self.destination.translate(meta);
+                let handler = self.failure_handler.translate(meta);
+                let silent = meta.gen_silent().to_frag();
+                let sudo_prefix = meta.gen_sudo_prefix().to_frag();
+                let translation = fragments!("mv ", source, " ", destination);
+
+                BlockFragment::new(
+                    vec![
+                        ListFragment::new(vec![sudo_prefix, translation, silent])
+                            .with_spaces()
+                            .to_frag(),
+                        handler,
+                    ],
+                    false,
+                )
+                .to_frag()
+            })
+        })
     }
 }
 
