@@ -163,3 +163,45 @@ pub fun array_filled(size, value = 0) {
 
     return array
 }
+
+/// Return the sorted array, leaving the original array unchanged.
+/// Pass `desc` value `true` for descending order.
+/// Pass `version_sort` value `true` for version sort,
+/// this only applies to text arrays.
+///
+/// ### Usage
+/// ```ab
+/// echo(sorted([-3,15,7,2], true)) // Outputs [-3, 2, 7, 15]
+/// ```
+pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
+    if array is [Null] or len(array) <= 1:
+        return array
+
+    const desc_flag = desc then "-r" else ""
+    let sort_flag = ""
+    if {
+        array is [Text] and version_sort:
+            sort_flag = "-V"
+        array is [Num] or array is [Int] or array is [Bool]:
+            sort_flag = "-n"
+    }
+
+    let result = []
+    trust $ IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | sort {sort_flag} {desc_flag}) $
+    return result
+}
+
+/// Sort the array in-place.
+/// Pass `desc` value `true` for descending order.
+/// Pass `version_sort` value `true` for version sort,
+/// this only applies to text arrays.
+///
+/// ### Usage
+/// ```ab
+/// let array = ["15","-3","foo","bar"]
+/// sort(array)
+/// echo(array) // Outputs ["-3", "15", "bar", "foo"]
+/// ```
+pub fun sort(ref array: [], desc: Bool = false, version_sort: Bool = false): Null {
+    array = sorted(array, desc, version_sort)
+}
