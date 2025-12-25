@@ -12,3 +12,4 @@ pub mod rm;
 pub mod rmdir;
 pub mod sleep;
 pub mod touch;
+pub mod wait;
