@@ -1,0 +1,21 @@
+// Output
+// 42
+// ok
+
+fun values(): [Num] {
+    return [42]
+}
+
+fun read_first() {
+    const item = values()[0]
+    echo(item)
+}
+
+read_first()
+
+const leak = trust $ compgen -A variable -- access_ $
+if leak == "" {
+    echo("ok")
+} else {
+    echo("leaked")
+}

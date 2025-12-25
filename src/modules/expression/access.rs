@@ -132,10 +132,7 @@ impl TranslateModule for Access {
             _ => {
                 let id = meta.gen_value_id();
                 let name = format!("access_{id}");
-                let stmt = VarStmtFragment::new(&name, self.left.get_type(), left_frag)
-                    .with_ephemeral(true);
-                meta.stmt_queue.push_back(stmt.clone().to_frag());
-                let mut var = VarExprFragment::from_stmt(&stmt);
+                let mut var = meta.push_ephemeral_variable(VarStmtFragment::new(&name, self.left.get_type(), left_frag));
                 var.kind = self.get_type();
                 var.with_index_by_expr(meta, *self.index.clone())
                     .to_frag()
