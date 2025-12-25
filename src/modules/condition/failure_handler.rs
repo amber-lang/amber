@@ -212,7 +212,9 @@ impl TranslateModule for FailureHandler {
         let block = self.block.translate(meta);
         meta.expr_ctx = is_expr_ctx;
         // the condition of '$?' clears the status code thus we need to store it in a variable
-        let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
+        let is_local = meta.fun_meta.is_some();
+        let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"))
+            .with_local(is_local);
         let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
 
         if self.is_question_mark {

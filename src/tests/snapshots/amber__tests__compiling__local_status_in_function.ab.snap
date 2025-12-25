@@ -1,0 +1,23 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+failable_func__0_v0() {
+    false
+    local __status=$?
+    if [ "${__status}" != 0 ]; then
+        ret_failable_func0_v0=''
+        return "${__status}"
+    fi
+    ret_failable_func0_v0="success"
+    return 0
+}
+
+failable_func__0_v0 
+__status=$?
+if [ "${__status}" != 0 ]; then
+    echo "handler"
+fi
+ret_failable_func0_v0__6_14="${ret_failable_func0_v0}"
+result_0="${ret_failable_func0_v0__6_14}"
+printf '%s\n' "${result_0}"

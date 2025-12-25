@@ -1,0 +1,9 @@
+fun failable_func(): Text? {
+    $false$?
+    return "success"
+}
+
+let result = failable_func() failed {
+    echo("handler")
+}
+echo(result)
