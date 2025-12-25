@@ -55,8 +55,10 @@ KEYWORD_AND = 'and' ;
 KEYWORD_AS = 'as' ;
 KEYWORD_BREAK = 'break' ;
 KEYWORD_CD = 'cd' ;
+KEYWORD_CLEAR = 'clear' ;
 KEYWORD_CONST = 'const' ;
 KEYWORD_CONTINUE = 'continue' ;
+KEYWORD_CP = 'cp' ;
 KEYWORD_ECHO = 'echo' ;
 KEYWORD_ELSE = 'else' ;
 KEYWORD_EXIT = 'exit' ;
@@ -73,15 +75,21 @@ KEYWORD_LEN = 'len' ;
 KEYWORD_LET = 'let' ;
 KEYWORD_LINES = 'lines' ;
 KEYWORD_LOOP = 'loop' ;
+KEYWORD_LS = 'ls' ;
 KEYWORD_MAIN = 'main' ;
 KEYWORD_MV = 'mv' ;
 KEYWORD_NAMEOF = 'nameof' ;
 KEYWORD_NOT = 'not' ;
 KEYWORD_OR = 'or' ;
+KEYWORD_PID = 'pid' ;
 KEYWORD_PUB = 'pub' ;
+KEYWORD_PWD = 'pwd' ;
 KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
+KEYWORD_RM = 'rm' ;
+KEYWORD_RMDIR = 'rmdir' ;
 KEYWORD_SILENT = 'silent' ;
+KEYWORD_SLEEP = 'sleep' ;
 KEYWORD_STATUS = 'status' ;
 KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
@@ -91,6 +99,7 @@ KEYWORD_TOUCH = 'touch' ;
 KEYWORD_TRUST = 'trust' ;
 KEYWORD_EXITED = 'exited' ;
 KEYWORD_UNSAFE = 'unsafe' ;
+KEYWORD_WAIT = 'wait' ;
 KEYWORD_WHILE = 'while' ;
 
 (* Terminals *)
@@ -202,22 +211,40 @@ comment = '//', { ANY_CHAR }, '\n' ;
 (* Built-ins *)
 builtins_statement =
     builtin_cd |
+    builtin_clear |
+    builtin_cp |
     builtin_echo |
     builtin_exit |
-    builtin_mv ;
+    builtin_mv |
+    builtin_rm |
+    builtin_rmdir |
+    builtin_sleep
+    builtin_wait ;
 builtin_cd = KEYWORD_CD, expression ;
+builtin_clear = KEYWORD_CLEAR ;
+builtin_cp = KEYWORD_CP, expression ;
 builtin_echo = KEYWORD_ECHO, expression ;
 builtin_exit = KEYWORD_EXIT, expression ;
 builtin_mv = KEYWORD_MV, expression ;
+builtin_rm = KEYWORD_RM, expression ;
+builtin_rmdir = KEYWORD_RMDIR, expression ;
+builtin_sleep = KEYWORD_SLEEP, expression ;
+builtin_wait = KEYWORD_WAIT, expression ;
 builtin_touch = KEYWORD_TOUCH, expression ;
 
 builtins_expression =
     builtin_len |
     builtin_lines |
-    builtin_nameof ;
+    builtin_ls |
+    builtin_nameof |
+    builtin_pid |
+    builtin_pwd ;
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
+builtin_ls = KEYWORD_LS, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
+builtin_pid = KEYWORD_PID ;
+builtin_pwd = KEYWORD_PWD, expression ;
 
 (* Test *)
 test_name = '"', { ANY_CHAR }, '"' ;
