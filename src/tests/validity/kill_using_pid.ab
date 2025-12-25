@@ -1,0 +1,11 @@
+import { pgrep } from "std/env"
+
+main {
+    trust $ \$(yes > /dev/null 2>&1) & $
+    silent trust $ kill "{pid()}" $
+    if len(pgrep("yes")) == 0 {
+        echo("Succeeded")
+    } else {
+        echo("Process still alive")
+    }
+}

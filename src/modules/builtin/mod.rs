@@ -8,6 +8,7 @@ pub mod lines;
 pub mod ls;
 pub mod mv;
 pub mod nameof;
+pub mod pid;
 pub mod pwd;
 pub mod rm;
 pub mod rmdir;
