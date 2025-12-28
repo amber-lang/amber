@@ -115,6 +115,7 @@ impl TypeCheckModule for IterLoop {
         // Determine iterator type after typechecking
         self.iter_type = match self.iter_expr.get_type() {
             Type::Array(kind) => *kind,
+            t if t.is_allowed_in(&Type::array_of(Type::Generic)) => Type::Generic,
             _ => {
                 let pos = self.iter_expr.get_position();
                 return error_pos!(meta, pos, "Expected iterable");

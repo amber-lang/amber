@@ -109,7 +109,7 @@ impl TypeCheckModule for Access {
 
         if let Some(ref mut index_expr) = self.index.as_mut() {
             let pos = self.left.get_position();
-            if !matches!(self.kind, Type::Array(_)) {
+            if !self.kind.is_allowed_in(&Type::array_of(Type::Generic)) {
                 return error_pos!(meta, pos, format!("Cannot index a non-array expression of type '{}'", self.kind));
             }
 

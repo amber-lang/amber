@@ -1,0 +1,66 @@
+// Output
+// # Testing AND
+// And t/f test passed
+// And f/t test passed
+// And t/t test passed
+// And f/f test passed
+// # Testing OR
+// Or f/t test passed
+// Or t/f test passed
+// Or t/t test passed
+// Or f/f test passed
+
+#[allow_dead_code]
+fun run() {
+    echo("# Testing AND")
+    if true and false {
+        undefined_complex1()
+    } else {
+        echo("And t/f test passed")
+    }
+
+    if false and true {
+        undefined_complex2()
+    } else {
+        echo("And f/t test passed")
+    }
+
+    if true and true {
+        echo("And t/t test passed")
+    } else {
+        undefined_complex3()
+    }
+
+    if false and false {
+        undefined_complex3()
+    } else {
+        echo("And f/f test passed")
+    }
+
+    echo("# Testing OR")
+    if false or true {
+        echo("Or f/t test passed")
+    } else {
+        undefined_complex3()
+    }
+
+    if true or false {
+        echo("Or t/f test passed")
+    } else {
+        undefined_complex4()
+    }
+
+    if true or true {
+        echo("Or t/t test passed")
+    } else {
+        undefined_complex4()
+    }
+
+    if false or false {
+        undefined_complex4()
+    } else {
+        echo("Or f/f test passed")
+    }
+}
+
+run()

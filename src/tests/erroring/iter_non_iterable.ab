@@ -1,0 +1,6 @@
+// Output
+// Expected iterable
+
+for i in 1 {
+    echo i
+}

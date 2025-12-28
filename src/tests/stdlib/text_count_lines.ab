@@ -1,0 +1,14 @@
+import { count_lines } from "std/text"
+
+// Output
+// 3
+// 1
+// 0
+// 5
+
+main {
+    echo(count_lines("one\ntwo\nthree"))
+    echo(count_lines("single line"))
+    echo(count_lines(""))
+    echo(count_lines("a\nb\nc\nd\ne"))
+}

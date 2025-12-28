@@ -110,11 +110,7 @@ impl TranslateMetadata {
     pub fn gen_sudo_prefix(&mut self) -> FragmentKind {
         if self.sudoed {
             let var_name = "__sudo";
-            let condition = r#"[ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1 && printf sudo"#;
-            let condition_frag = RawFragment::new(&format!("$({condition})")).to_frag();
-            let var_stmt = VarStmtFragment::new(var_name, Type::Text, condition_frag);
-            let var_expr = VarExprFragment::from_stmt(&var_stmt).with_quotes(false);
-            self.stmt_queue.push_back(var_stmt.to_frag());
+            let var_expr = VarExprFragment::new(var_name, Type::Text).with_quotes(false);
             var_expr.to_frag()
         } else {
             FragmentKind::Empty

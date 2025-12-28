@@ -1,0 +1,30 @@
+// Output
+// Condition is always false, 'if' block will never execute
+// dead
+// dead
+
+let x = 1.0
+
+// Covers 'and' false_facts intersection
+if x is Int and x is Bool {
+    // Unreachable
+}
+
+// Covers 'or' true_facts intersection
+if x is Int or x is Int {
+    echo("test")
+}
+
+let n = 1
+if n is Num {
+    echo("test")
+} else {
+    echo("dead")
+}
+
+let x = 1
+if x is Int | Text {
+    echo("test")
+} else {
+    echo("dead")
+}

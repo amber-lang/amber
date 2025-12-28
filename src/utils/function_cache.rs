@@ -15,9 +15,14 @@ pub struct FunctionInstance {
 #[derive(Debug)]
 /// This is a cached data representing a function
 pub struct FunctionCacheEntry {
+    /// The monomorphic variants of the function
     pub instances: Vec<FunctionInstance>,
+    /// The context that preserves the function's scope
     pub context: Context,
+    /// The block of the function
     pub block: Block,
+    /// Whether the first-pass typecheck with declared types has already been done
+    pub first_pass_done: bool,
 }
 
 #[derive(Debug, Default)]
@@ -39,6 +44,7 @@ impl FunctionCache {
                 instances: Vec::new(),
                 context,
                 block,
+                first_pass_done: false,
             },
         );
     }
@@ -69,5 +75,17 @@ impl FunctionCache {
     /// Gets the block of a function declaration
     pub fn get_block(&self, id: usize) -> Option<&Block> {
         self.funs.get(&id).map(|f| &f.block)
+    }
+
+    /// Checks if the first-pass typecheck has been done for a function
+    pub fn is_first_pass_done(&self, id: usize) -> bool {
+        self.funs.get(&id).is_some_and(|f| f.first_pass_done)
+    }
+
+    /// Marks the first-pass typecheck as done for a function
+    pub fn set_first_pass_done(&mut self, id: usize) {
+        if let Some(entry) = self.funs.get_mut(&id) {
+            entry.first_pass_done = true;
+        }
     }
 }

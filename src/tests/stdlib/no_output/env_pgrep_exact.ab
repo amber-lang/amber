@@ -1,0 +1,9 @@
+import { pgrep_exact } from "std/env"
+
+main {
+    // Search for exact "bash" process
+    let pids = pgrep_exact("bash")
+    // May or may not find exact match depending on system
+    // Just verify it doesn't crash
+    echo("Succeeded")
+}

@@ -72,7 +72,7 @@ jobs:
           issue_number=$(gh issue list --search "Security: zizmor findings" --state open --json number --jq '.[0].number' || echo "")
           echo "issue_number=$issue_number" >> $GITHUB_OUTPUT
 
-      - uses: peter-evans/create-issue-from-file@e8ef132d6df98ed982188e460ebb3b5d4ef3a9cd # v5.0.1
+      - uses: peter-evans/create-issue-from-file@fca9117c27cdc29c6c4db3b86c48e4115a786710 # v6.0.0
         if: steps.zizmor-check.outputs.zizmor-fail != '0'
         with:
           title: "Security: zizmor findings"

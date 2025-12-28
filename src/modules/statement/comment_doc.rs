@@ -23,6 +23,7 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                 if token.word.starts_with("///") {
                     self.value = token.word[3..].trim().to_string();
                     meta.increment_index();
+                    let mut code_block_column_position: Option<usize> = None;
                     while let Some(token) = meta.get_current_token() {
                         let is_token_underneath = token.pos.0 == col + 1;
                         let last_char = self.value.chars().last().unwrap_or('\n');
@@ -36,16 +37,34 @@ impl SyntaxModule<ParserMetadata> for CommentDoc {
                             // Update the column of the last comment
                             col = token.pos.0;
                             meta.increment_index();
-                            // If the comment signifies a paragraph break, we add two newlines
-                            if token.word[3..].trim().is_empty() {
-                                if last_char == '\n' {
-                                    continue;
+
+                            let line = &token.word[3..];
+                            let trimmed_line = &line.trim();
+
+                            if trimmed_line.is_empty() {
+                                // If the comment signifies a paragraph break, we add two newlines
+                                if last_char != '\n' {
+                                    self.value.push_str("\n\n");
                                 }
-                                self.value.push_str("\n\n");
-                                continue;
+                            } else {
+                                if last_char != '\n' { self.value.push(' '); }
+                                if trimmed_line.starts_with("```") {
+                                    if code_block_column_position.is_some() {
+                                        code_block_column_position = None;
+                                    } else {
+                                        code_block_column_position = line.find("```");
+                                    }
+                                    self.value.push_str(trimmed_line);
+                                }
+                                else if let Some(code_line_start_index) = code_block_column_position {
+                                    // Add code lines relative to the starting code fence's column position. 
+                                    let start_index = code_line_start_index.min(line.len());
+                                    self.value.push_str(line[start_index..].trim_end());
+                                }
+                                else {
+                                    self.value.push_str(trimmed_line);
+                                }
                             }
-                            let delimiter = if last_char == '\n' { "" } else { " " };
-                            self.value.push_str(&format!("{}{}", delimiter, token.word[3..].trim()));
                         } else {
                             break;
                         }

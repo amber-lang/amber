@@ -1,0 +1,10 @@
+silent $ echo "hello" $ failed(code) {
+    // Won't compile if code is not an Int
+    exit(code)
+}
+
+silent $ echo "hello" $ exited(code) {
+    echo("Succeeded")
+    // Won't compile if code is not an Int
+    exit(code)
+}

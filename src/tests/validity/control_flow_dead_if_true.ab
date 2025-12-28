@@ -1,0 +1,13 @@
+// Output
+// Test passed
+
+#[allow_dead_code]
+fun run() {
+    if true {
+        echo("Test passed")
+    } else {
+        undefined_function_in_else()
+    }
+}
+
+run()

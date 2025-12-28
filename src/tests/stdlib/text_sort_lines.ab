@@ -1,0 +1,17 @@
+import { sort_lines } from "std/text"
+
+// Output
+// apple
+// banana
+// cherry
+// cherry
+// banana
+// apple
+// 1
+// 2
+// 10
+main {
+   echo(sort_lines("banana\napple\ncherry"))
+   echo(sort_lines("banana\napple\ncherry", true))
+   echo(sort_lines("10\n2\n1", false, true))
+}

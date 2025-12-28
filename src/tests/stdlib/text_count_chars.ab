@@ -1,0 +1,12 @@
+import { count_chars } from "std/text"
+
+// Output
+// 5
+// 0
+// 11
+
+main {
+    echo(count_chars("hello"))
+    echo(count_chars(""))
+    echo(count_chars("hello world"))
+}

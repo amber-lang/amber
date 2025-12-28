@@ -7,11 +7,24 @@ use crate::utils::metadata::ParserMetadata;
 use crate::translate::module::TranslateModule;
 use super::expr::Expr;
 
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 pub struct Parentheses {
     value: Box<Expr>,
     kind: Type
 }
+
+impl Parentheses {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        self.value.analyze_control_flow()
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        self.value.extract_facts()
+    }
+}
+
 
 impl Typed for Parentheses {
     fn get_type(&self) -> Type {

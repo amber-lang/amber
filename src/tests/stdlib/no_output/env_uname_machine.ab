@@ -1,0 +1,9 @@
+import { uname_machine } from "std/env"
+
+main {
+    let arch = uname_machine()
+    // Should return non-empty string like "x86_64" or "arm64"
+    if arch != "" {
+        echo("Succeeded")
+    }
+}

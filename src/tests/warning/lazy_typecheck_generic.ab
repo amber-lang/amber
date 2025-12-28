@@ -1,0 +1,18 @@
+// Output
+// Unused variable 'a'
+// Unused variable 'b'
+// 2
+// testtest
+
+fun foo(arg) {
+    if arg is Int {
+        let a = 12
+    }
+    if arg is Text {
+        let b = 12
+    }
+    echo(arg + arg)
+}
+
+foo(1)
+foo("test")
