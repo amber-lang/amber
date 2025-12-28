@@ -227,6 +227,6 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          flags: rust,${{ github.event.release.tag_name }}
+          flags: rust,release,${{ github.event.release.tag_name }}
           fail_ci_if_error: true
           verbose: true
