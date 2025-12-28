@@ -45,6 +45,7 @@ use crate::modules::builtin::{
     mv::Mv,
     cd::Cd,
     exit::Exit,
+    touch::Touch
 };
 use super::comment_doc::CommentDoc;
 use super::comment::Comment;
@@ -78,6 +79,7 @@ pub enum StmtType {
     Cd(Cd),
     Echo(Echo),
     Mv(Mv),
+    Touch(Touch),
     Exit(Exit),
     Command(Command),
     CommandModifier(CommandModifier),
@@ -121,7 +123,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             // Conditions
             IfChain, IfCondition,
             // Command
-            Echo, Mv, Cd, Exit, CommandModifier, Command,
+            Echo, Mv, Cd, Exit, Touch, CommandModifier, Command,
             // Variables
             VariableInitDestruct, VariableSetDestruct, VariableInit, VariableSet,
             // Short hand

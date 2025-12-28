@@ -1,0 +1,9 @@
+import { pgrep } from "std/env"
+
+main {
+    // Search for any shell process (works on both bash and zsh systems)
+    let pids = pgrep("sh")
+    // Just verify the function runs without error
+    // Result depends on system state
+    echo("Succeeded")
+}

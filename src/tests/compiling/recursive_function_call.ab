@@ -1,0 +1,10 @@
+fun foo(arg: Int | Num) {
+    echo "Value: {arg}"
+}
+
+fun bar(a: Int, b: Num) {
+    foo(a)
+    foo(b)
+}
+
+bar(1, 2)

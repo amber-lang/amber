@@ -213,7 +213,9 @@ pub fn handle_function_parameters(
             .map(|arg| arg.kind.clone())
             .collect();
         // We set persist to false, because we don't want to cache the function instance
-        let _ = run_function_with_args(meta, fun.clone(), &declared_types, tok.clone(), false);
+        let _ = meta.with_first_pass_ctx(true, |meta| {
+            run_function_with_args(meta, fun.clone(), &declared_types, tok.clone(), false)
+        });
         meta.fun_cache.set_first_pass_done(id);
     }
 
@@ -226,7 +228,7 @@ pub fn handle_function_parameters(
         .find(|fun| fun.args == args)
     {
         Some(fun) => Ok((fun.returns.clone(), fun.variant_id)),
-        None => Ok(run_function_with_args(meta, fun, args, tok, true)?),
+        None => Ok(run_function_with_args(meta, fun, args, tok, !meta.first_pass_ctx)?),
     };
 
     result

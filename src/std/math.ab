@@ -3,7 +3,7 @@
 /// ### Usage
 /// ```ab
 /// let total = math_sum([1, 2, 3, 4, 5])
-/// echo total // 15
+/// echo(total) // 15
 /// ```
 #[allow_absurd_cast]
 pub fun math_sum(list) {
@@ -17,7 +17,7 @@ pub fun math_sum(list) {
 /// ### Usage
 /// ```ab
 /// let rounded = math_round(3.7)
-/// echo rounded // 4
+/// echo(rounded) // 4
 /// ```
 #[allow_absurd_cast]
 pub fun math_round(number: Num): Int {
@@ -33,7 +33,7 @@ pub fun math_round(number: Num): Int {
 /// ### Usage
 /// ```ab
 /// let floored = math_floor(3.9)
-/// echo floored // 3
+/// echo(floored) // 3
 /// ```
 #[allow_absurd_cast]
 pub fun math_floor(number: Num): Int {
@@ -45,7 +45,7 @@ pub fun math_floor(number: Num): Int {
 /// ### Usage
 /// ```ab
 /// let ceiled = math_ceil(3.1)
-/// echo ceiled // 4
+/// echo(ceiled) // 4
 /// ```
 #[allow_absurd_cast]
 pub fun math_ceil(number: Num): Int {
@@ -57,7 +57,7 @@ pub fun math_ceil(number: Num): Int {
 /// ### Usage
 /// ```ab
 /// let absolute = math_abs(-42)
-/// echo absolute // 42
+/// echo(absolute) // 42
 /// ```
 #[allow_absurd_cast]
 pub fun math_abs(number) {
