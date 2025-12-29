@@ -1,6 +1,6 @@
 // Output
 // Succeeded
-// 1
+// 0
 
 // Argument names in different functions can be the same
 fun func1(args: Bool): Text {

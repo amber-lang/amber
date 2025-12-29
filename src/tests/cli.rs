@@ -63,7 +63,7 @@ fn main_args_passed_correctly() {
     
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert_eq!(stdout.trim(), "bash\none\ntwo\nthree");
+    assert_eq!(stdout.trim(), "one\ntwo\nthree");
 }
 
 #[test]

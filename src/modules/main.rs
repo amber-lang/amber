@@ -96,7 +96,7 @@ impl TranslateModule for Main {
                 || FragmentKind::Empty,
                 |name| {
                     let id = self.args_global_id.unwrap_or(global_id);
-                    raw_fragment!("declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
+                    raw_fragment!("declare -r {name}_{id}=({quote}{dollar}@{quote})")
                 }
             );
             // Temporarily decrease the indentation level to counteract
