@@ -257,7 +257,7 @@ pub fun file_extract(path: Text, target: Text): Null? {
 /// ### Usage
 /// ```ab
 /// file_compress(["main.ab", "src"], "amber.tar.gz")?
-/// file_compress(["amber"], "amber.gz")
+/// file_compress(["amber"], "amber.gz")?
 /// ```
 pub fun file_compress(files: [Text], target: Text): Null? {
     if {
