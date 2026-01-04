@@ -31,23 +31,12 @@ impl SyntaxModule<ParserMetadata> for Cp {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
         self.modifier.use_modifiers(meta, |_this, meta| {
-            let position = meta.get_index();
             token(meta, "cp")?;
-
-            if token(meta, "(").is_ok() {
-                syntax(meta, &mut *self.source)?;
-                token(meta, ",")?;
-                syntax(meta, &mut *self.destination)?;
-                token(meta, ")")?;
-            } else {
-                let tok = meta.get_token_at(position);
-                let warning = Message::new_warn_at_token(meta, tok)
-                    .message("Calling a builtin without parentheses is deprecated");
-                meta.add_message(warning);
-
-                syntax(meta, &mut *self.source)?;
-                syntax(meta, &mut *self.destination)?;
-            }
+            token(meta, "(")?;
+            syntax(meta, &mut *self.source)?;
+            token(meta, ",")?;
+            syntax(meta, &mut *self.destination)?;
+            token(meta, ")")?;
 
             // Handle optional failure handler (failed/succeeded/exited blocks)
             if let Err(e) = syntax(meta, &mut self.failure_handler) {
