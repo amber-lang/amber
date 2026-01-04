@@ -1,0 +1,11 @@
+// Output
+// 0
+// 2
+
+main {
+    trust $ SECONDS=0 $
+    trust $ sleep 2 & $
+    trust $ echo \$SECONDS $
+    wait([pid()])
+    trust $ echo \$SECONDS $
+}
