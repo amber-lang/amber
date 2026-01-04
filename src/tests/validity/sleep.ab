@@ -1,0 +1,6 @@
+// Output
+// 1
+
+trust $ SECONDS="0" $
+sleep(1)
+trust $ echo \$SECONDS $
