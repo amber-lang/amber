@@ -10,7 +10,6 @@ use crate::modules::condition::failure_handler::FailureHandler;
 #[derive(Debug, Clone)]
 pub struct RmDir {
     value: Box<Expr>,
-    ignore_non_empty: Box<Expr>,
     failure_handler: FailureHandler,
 }
 
@@ -20,7 +19,6 @@ impl SyntaxModule<ParserMetadata> for RmDir {
     fn new() -> Self {
         RmDir {
             value: Box::new(Expr::new()),
-            ignore_non_empty: Box::new(Expr::new()),
             failure_handler: FailureHandler::new(),
         }
     }
@@ -29,8 +27,6 @@ impl SyntaxModule<ParserMetadata> for RmDir {
         token(meta, "rmdir")?;
         token(meta, "(")?;
         syntax(meta, &mut *self.value)?;
-        token(meta, ",")?;
-        syntax(meta, &mut *self.ignore_non_empty)?;
         token(meta, ")")?;
 
         if let Err(e) = syntax(meta, &mut self.failure_handler) {
@@ -58,13 +54,6 @@ impl TypeCheckModule for RmDir {
                 comment: format!("Given type: {}, expected type: {}", self.value.get_type(), Type::array_of(Type::Text))
             });
         }
-        if self.ignore_non_empty.get_type() != Type::Bool {
-            let position = self.ignore_non_empty.get_position();
-            return error_pos!(meta, position => {
-                message: "Builtin function `rmdir` can only be used with 2nd argument of type Bool",
-                comment: format!("Given type: {}, expected type: {}", self.ignore_non_empty.get_type(), Type::Bool)
-            });
-        }
         self.failure_handler.typecheck(meta)?;
         Ok(())
     }
@@ -72,25 +61,7 @@ impl TypeCheckModule for RmDir {
 
 impl TranslateModule for RmDir {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let ignore_non_empty_translate = self.ignore_non_empty.translate(meta);
-        let ignore_non_empty_id = meta.gen_value_id();
-        let ignore_non_empty_var_stmt = VarStmtFragment::new("__force", Type::Bool, FragmentKind::Empty).with_global_id(ignore_non_empty_id);
-        let ignore_non_empty_expr = meta.push_ephemeral_variable(ignore_non_empty_var_stmt);
-        meta.stmt_queue.extend([
-            fragments!(
-                raw_fragment!("read -rd '' -a {} < <([[ ", ignore_non_empty_expr.get_name()),
-                ignore_non_empty_translate,
-                " == 1 ]] && echo \"--ignore-fail-on-non-empty\")"
-            )
-        ]);
-        let ignore_non_empty_frag = ignore_non_empty_expr.to_frag();
-
-        fragments!(
-            "rmdir ",
-            ignore_non_empty_frag.with_quotes(false),
-            " ",
-            self.value.translate(meta)
-        )
+        fragments!("rmdir ",self.value.translate(meta))
     }
 }
 

@@ -4,7 +4,7 @@ main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     dir_create("{tmpdir}/test1")?
     dir_create("{tmpdir}/test2")?
-    rmdir(["{tmpdir}/test1", "{tmpdir}/test2"], true)?
+    rmdir(["{tmpdir}/test1", "{tmpdir}/test2"])?
     if not dir_exists("{tmpdir}/test1") and not dir_exists("{tmpdir}/test2") {
         echo("Succeeded")
     } else {
