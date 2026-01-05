@@ -4,6 +4,12 @@ import * from "std/fs"
 // a
 // b
 // c
+// c
+// b
+// a
+// a
+// b
+// c
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
@@ -11,6 +17,13 @@ main {
     touch("{tmpdir}/b")
     touch("{tmpdir}/c")
     for file in ls(tmpdir)? {
+        echo(file)
+    }
+    for file in ls(tmpdir, ["-r"])? {
+        echo(file)
+    }
+    cd(tmpdir)
+    for file in ls()? {
         echo(file)
     }
 }

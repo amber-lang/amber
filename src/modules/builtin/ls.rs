@@ -9,6 +9,7 @@ use heraclitus_compiler::prelude::*;
 #[derive(Debug, Clone)]
 pub struct Ls {
     value: Box<Option<Expr>>,
+    options: Box<Option<Expr>>,
     failure_handler: FailureHandler,
 }
 
@@ -24,6 +25,7 @@ impl SyntaxModule<ParserMetadata> for Ls {
     fn new() -> Self {
         Ls {
             value: Box::new(None),
+            options: Box::new(None),
             failure_handler: FailureHandler::new(),
         }
     }
@@ -32,13 +34,20 @@ impl SyntaxModule<ParserMetadata> for Ls {
         token(meta, "ls")?;
         token(meta, "(")?;
         let mut path = Expr::new();
-        if syntax(meta, &mut path).is_err() {
-            token(meta, ")")?;
-            *self.value = None;
-        } else {
-            token(meta, ")")?;
+        if syntax(meta, &mut path).is_ok() {
             *self.value = Some(path);
+            if token(meta, ",").is_ok() {
+                let mut options_expr = Expr::new();
+                syntax(meta, &mut options_expr)?;
+                *self.options = Some(options_expr);
+            } else {
+                *self.options = None;
+            }
+        } else {
+            *self.value = None;
+            *self.options = None;
         }
+        token(meta, ")")?;
 
         if let Err(e) = syntax(meta, &mut self.failure_handler) {
             match e {
@@ -63,8 +72,19 @@ impl TypeCheckModule for Ls {
             if path_type != Type::Text {
                 let position = path.get_position();
                 return error_pos!(meta,  position => {
-                   message: "Builtin function `ls` can only be used with values of type Text",
+                   message: "Builtin function `ls` can only be used with 1st argument of type Text",
                     comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+                });
+            }
+        }
+        if let Some(options) = &mut *self.options {
+            options.typecheck(meta)?;
+            let options_type = options.get_type();
+            if options_type != Type::array_of(Type::Text) {
+                let position = options.get_position();
+                return error_pos!(meta, position => {
+                    message: "Builtin function `ls` can only be used with 2nd argument of type [Text]",
+                    comment: format!("Given type: {}, expected type: {}", options_type, Type::array_of(Type::Text))
                 });
             }
         }
@@ -85,9 +105,17 @@ impl TranslateModule for Ls {
             VarStmtFragment::new("__array", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
+        let options_frag = match &*self.options {
+            Some(options_expr) => fragments!(
+                raw_fragment!("read -rd '' -a {} < <(ls ", var_expr.get_name()),
+                options_expr.translate(meta),
+                " "
+            ),
+            None => raw_fragment!("read -rd '' -a {} < <(ls -1 ", var_expr.get_name()),
+        };
         meta.stmt_queue.extend([
             fragments!(
-                raw_fragment!("read -rd '' -a {} < <(ls -1 ", var_expr.get_name()),
+                options_frag.with_quotes(false),
                 path_fragment
             ),
             BlockFragment::new(vec![handler], true).to_frag(),
