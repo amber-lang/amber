@@ -17,7 +17,7 @@ pub struct Cp {
 }
 
 impl SyntaxModule<ParserMetadata> for Cp {
-    syntax_name!("MoveFiles");
+    syntax_name!("CopyFiles");
 
     fn new() -> Self {
         Cp {
