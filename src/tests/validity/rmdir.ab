@@ -2,9 +2,10 @@ import * from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ touch {tmpdir}/a $
-    rmdir("{tmpdir}")
-    if not dir_exists("{tmpdir}") {
+    dir_create("{tmpdir}/test1")?
+    dir_create("{tmpdir}/test2")?
+    rmdir(["{tmpdir}/test1", "{tmpdir}/test2"], true)?
+    if not dir_exists("{tmpdir}/test1") and not dir_exists("{tmpdir}/test2") {
         echo("Succeeded")
     } else {
         echo("File still exists")
