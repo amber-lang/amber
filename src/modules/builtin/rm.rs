@@ -1,28 +1,58 @@
-use crate::fragments;
+use crate::{fragments, raw_fragment};
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use heraclitus_compiler::syntax_name;
+use crate::modules::condition::failure_handler::FailureHandler;
 
 #[derive(Debug, Clone)]
 pub struct Rm {
-    value: Expr,
+    value: Box<Expr>,
+    force: Box<Expr>,
+    recursive: Box<Option<Expr>>,
+    failure_handler: FailureHandler,
 }
 
 impl SyntaxModule<ParserMetadata> for Rm {
     syntax_name!("Remove");
 
     fn new() -> Self {
-        Rm { value: Expr::new() }
+        Rm {
+            value: Box::new(Expr::new()),
+            force: Box::new(Expr::new()),
+            recursive: Box::new(None),
+            failure_handler: FailureHandler::new(),
+        }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "rm")?;
         token(meta, "(")?;
-        syntax(meta, &mut self.value)?;
+        syntax(meta, &mut *self.value)?;
+        token(meta, ",")?;
+        syntax(meta, &mut *self.force)?;
+        if token(meta, ",").is_ok() {
+            let mut recursive_expr = Expr::new();
+            syntax(meta, &mut recursive_expr)?;
+            *self.recursive = Some(recursive_expr);
+        } else {
+            *self.recursive = None;
+        }
         token(meta, ")")?;
+
+        if let Err(e) = syntax(meta, &mut self.failure_handler) {
+            match e {
+                Failure::Quiet(pos) => {
+                    return error_pos!(meta, pos => {
+                        message: "The `rm` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
+                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
+                    });
+                }
+                _ => return Err(e),
+            }
+        }
         Ok(())
     }
 }
@@ -37,13 +67,66 @@ impl TypeCheckModule for Rm {
                 comment: format!("Given type: {}, expected type: {}", self.value.get_type(), Type::Text)
             });
         }
+        if self.force.get_type() != Type::Bool {
+            let position = self.force.get_position();
+            return error_pos!(meta, position => {
+                message: "Builtin function `rm` can only be used with 2nd argument of type Bool",
+                comment: format!("Given type: {}, expected type: {}", self.force.get_type(), Type::Bool)
+            });
+        }
+        if let Some(recursive_expr) = &*self.recursive {
+            if recursive_expr.get_type() != Type::Bool {
+                let position = recursive_expr.get_position();
+                return error_pos!(meta, position => {
+                    message: "Builtin function `rm` can only be used with optional 3rd argument of type Bool",
+                    comment: format!("Given type: {}, expected type: {}", recursive_expr.get_type(), Type::Bool)
+                });
+            }
+        }
+        self.failure_handler.typecheck(meta)?;
         Ok(())
     }
 }
 
 impl TranslateModule for Rm {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("rm -f ", self.value.translate(meta))
+        let force_translate = self.force.translate(meta);
+        let force_id = meta.gen_value_id();
+        let force_var_stmt = VarStmtFragment::new("__force", Type::Bool, FragmentKind::Empty).with_global_id(force_id);
+        let force_expr = meta.push_ephemeral_variable(force_var_stmt);
+        meta.stmt_queue.extend([
+            fragments!(
+                raw_fragment!("read -rd '' -a {} < <([[ ", force_expr.get_name()),
+                force_translate,
+                " == 1 ]] && echo \"-f\")"
+            )
+        ]);
+        let force_frag = force_expr.to_frag();
+
+        let recursive_id = meta.gen_value_id();
+        let recursive_frag = if let Some(recursive_expr) = &*self.recursive {
+            let recursive_translate = recursive_expr.translate(meta);
+            let recursive_var_stmt = VarStmtFragment::new("__recursive", Type::Bool, FragmentKind::Empty).with_global_id(recursive_id);
+            let recursive_expr = meta.push_ephemeral_variable(recursive_var_stmt);
+            meta.stmt_queue.extend([
+                fragments!(raw_fragment!("read -rd '' -a {} < <([[ ", recursive_expr.get_name()),
+                recursive_translate,
+                " == 1 ]] && echo \"-r\")")
+            ]);
+            recursive_expr.to_frag()
+        } else {
+            let recursive_var_stmt = VarStmtFragment::new("__recursive", Type::Bool, raw_fragment!("")).with_global_id(recursive_id);
+            meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
+        };
+
+        fragments!(
+            "rm ",
+            force_frag.to_frag().with_quotes(false),
+            " ",
+            recursive_frag.to_frag().with_quotes(false),
+            " ",
+            self.value.translate(meta)
+        )
     }
 }
 
