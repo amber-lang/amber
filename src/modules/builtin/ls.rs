@@ -9,7 +9,8 @@ use heraclitus_compiler::prelude::*;
 #[derive(Debug, Clone)]
 pub struct Ls {
     value: Box<Option<Expr>>,
-    options: Box<Option<Expr>>,
+    all: Box<Option<Expr>>,
+    recursive: Box<Option<Expr>>,
     failure_handler: FailureHandler,
 }
 
@@ -25,7 +26,8 @@ impl SyntaxModule<ParserMetadata> for Ls {
     fn new() -> Self {
         Ls {
             value: Box::new(None),
-            options: Box::new(None),
+            all: Box::new(None),
+            recursive: Box::new(None),
             failure_handler: FailureHandler::new(),
         }
     }
@@ -37,15 +39,22 @@ impl SyntaxModule<ParserMetadata> for Ls {
         if syntax(meta, &mut path).is_ok() {
             *self.value = Some(path);
             if token(meta, ",").is_ok() {
-                let mut options_expr = Expr::new();
-                syntax(meta, &mut options_expr)?;
-                *self.options = Some(options_expr);
+                let mut all_expr = Expr::new();
+                syntax(meta, &mut all_expr)?;
+                *self.all = Some(all_expr);
+                if token(meta, ",").is_ok() {
+                    let mut recursive_expr = Expr::new();
+                    syntax(meta, &mut recursive_expr)?;
+                    *self.recursive = Some(recursive_expr);
+                } else {
+                    *self.recursive = None;
+                }
             } else {
-                *self.options = None;
+                *self.all = None;
             }
         } else {
             *self.value = None;
-            *self.options = None;
+            *self.all = None;
         }
         token(meta, ")")?;
 
@@ -77,17 +86,30 @@ impl TypeCheckModule for Ls {
                 });
             }
         }
-        if let Some(options) = &mut *self.options {
-            options.typecheck(meta)?;
-            let options_type = options.get_type();
-            if options_type != Type::array_of(Type::Text) {
-                let position = options.get_position();
+        if let Some(all) = &mut *self.all {
+            all.typecheck(meta)?;
+            let options_type = all.get_type();
+            if options_type != Type::Bool {
+                let position = all.get_position();
                 return error_pos!(meta, position => {
-                    message: "Builtin function `ls` can only be used with 2nd argument of type [Text]",
-                    comment: format!("Given type: {}, expected type: {}", options_type, Type::array_of(Type::Text))
+                    message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
+                    comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
                 });
             }
         }
+
+        if let Some(recursive) = &mut *self.recursive {
+            recursive.typecheck(meta)?;
+            let recursive_type = recursive.get_type();
+            if recursive_type != Type::Bool {
+                let position = recursive.get_position();
+                return error_pos!(meta, position => {
+                    message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
+                    comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
+                });
+            }
+        }
+
         self.failure_handler.typecheck(meta)?;
         Ok(())
     }
@@ -100,25 +122,61 @@ impl TranslateModule for Ls {
             Some(path_expr) => path_expr.translate(meta),
             None => FragmentKind::Raw(RawFragment::new(".")),
         };
+
+        let all_id = meta.gen_value_id();
+        let all_frag = if let Some(all_expr) = &*self.all {
+            let all_translate = all_expr.translate(meta);
+            let all_var_stmt = VarStmtFragment::new("__ls", Type::Bool, FragmentKind::Empty).with_global_id(all_id);
+            let all_expr = meta.push_ephemeral_variable(all_var_stmt);
+            meta.stmt_queue.extend([
+                fragments!(
+                    "(( ",
+                    all_translate,
+                    " )) && ",
+                    raw_fragment!("{}=\"-A\" || {}=\"\"", all_expr.get_name(), all_expr.get_name())
+                )
+            ]);
+            all_expr.to_frag()
+        } else {
+            let all_var_stmt = VarStmtFragment::new("__ls", Type::Bool, fragments!("")).with_global_id(all_id);
+            meta.push_ephemeral_variable(all_var_stmt).to_frag()
+        };
+
+        let recursive_id = meta.gen_value_id();
+        let recursive_frag = if let Some(recursive_expr) = &*self.recursive {
+            let recursive_translate = recursive_expr.translate(meta);
+            let recursive_var_stmt = VarStmtFragment::new("__ls", Type::Bool, FragmentKind::Empty).with_global_id(recursive_id);
+            let recursive_expr = meta.push_ephemeral_variable(recursive_var_stmt);
+            meta.stmt_queue.extend([
+                fragments!(
+                    "(( ",
+                    recursive_translate,
+                    " )) && ",
+                    raw_fragment!("{}=\"-R\" || {}=\"\"", recursive_expr.get_name(), recursive_expr.get_name())
+                )
+            ]);
+            recursive_expr.to_frag()
+        } else {
+            let recursive_var_stmt = VarStmtFragment::new("__ls", Type::Bool, fragments!("")).with_global_id(recursive_id);
+            meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
+        };
+
         let id = meta.gen_value_id();
         let var_stmt =
-            VarStmtFragment::new("__array", Type::array_of(Type::Text), FragmentKind::Empty)
+            VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
-        let options_frag = match &*self.options {
-            Some(options_expr) => fragments!(
-                raw_fragment!("read -rd '' -a {} < <(ls ", var_expr.get_name()),
-                options_expr.translate(meta),
-                " "
-            ),
-            None => raw_fragment!("read -rd '' -a {} < <(ls -1 ", var_expr.get_name()),
-        };
         meta.stmt_queue.extend([
             fragments!(
-                options_frag.with_quotes(false),
+                raw_fragment!("read -rd '' -a {} < <(", var_expr.get_name()),
+                "ls -1 ",
+                all_frag.with_quotes(false),
+                " ",
+                recursive_frag.with_quotes(false),
+                " ",
                 path_fragment
             ),
-            BlockFragment::new(vec![handler], true).to_frag(),
+            handler,
             fragments!(")"),
         ]);
         var_expr.to_frag()
