@@ -15,7 +15,7 @@ impl Typed for Pid {
 }
 
 impl SyntaxModule<ParserMetadata> for Pid {
-    syntax_name!("PidOfLastCommand");
+    syntax_name!("PidOfLastBackgroundCommand");
 
     fn new() -> Self {
         Pid {}
@@ -39,7 +39,7 @@ impl TranslateModule for Pid {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let id = meta.gen_value_id();
         let var_stmt =
-            VarStmtFragment::new("__int", Type::Int, fragments!("$!")).with_global_id(id);
+            VarStmtFragment::new("__pid", Type::Int, fragments!("$!")).with_global_id(id);
         meta.push_ephemeral_variable(var_stmt).to_frag()
     }
 }
