@@ -10,8 +10,8 @@ use crate::modules::condition::failure_handler::FailureHandler;
 #[derive(Debug, Clone)]
 pub struct Rm {
     value: Box<Expr>,
-    force: Box<Expr>,
     recursive: Box<Option<Expr>>,
+    force: Box<Option<Expr>>,
     failure_handler: FailureHandler,
 }
 
@@ -21,8 +21,8 @@ impl SyntaxModule<ParserMetadata> for Rm {
     fn new() -> Self {
         Rm {
             value: Box::new(Expr::new()),
-            force: Box::new(Expr::new()),
             recursive: Box::new(None),
+            force: Box::new(None),
             failure_handler: FailureHandler::new(),
         }
     }
@@ -31,14 +31,19 @@ impl SyntaxModule<ParserMetadata> for Rm {
         token(meta, "rm")?;
         token(meta, "(")?;
         syntax(meta, &mut *self.value)?;
-        token(meta, ",")?;
-        syntax(meta, &mut *self.force)?;
         if token(meta, ",").is_ok() {
             let mut recursive_expr = Expr::new();
             syntax(meta, &mut recursive_expr)?;
             *self.recursive = Some(recursive_expr);
         } else {
             *self.recursive = None;
+        }
+        if token(meta, ",").is_ok() {
+            let mut force_expr = Expr::new();
+            syntax(meta, &mut force_expr)?;
+            *self.force = Some(force_expr);
+        } else {
+            *self.force = None;
         }
         token(meta, ")")?;
 
@@ -67,20 +72,24 @@ impl TypeCheckModule for Rm {
                 comment: format!("Given type: {}, expected type: {}", self.value.get_type(), Type::Text)
             });
         }
-        if self.force.get_type() != Type::Bool {
-            let position = self.force.get_position();
-            return error_pos!(meta, position => {
-                message: "Builtin function `rm` can only be used with 2nd argument of type Bool",
-                comment: format!("Given type: {}, expected type: {}", self.force.get_type(), Type::Bool)
-            });
-        }
-        if let Some(recursive_expr) = &*self.recursive {
+        if let Some(recursive_expr) = &mut *self.recursive {
+            recursive_expr.typecheck(meta)?;
             if recursive_expr.get_type() != Type::Bool {
                 let position = recursive_expr.get_position();
                 return error_pos!(meta, position => {
-                    message: "Builtin function `rm` can only be used with optional 3rd argument of type Bool",
+                    message: "Builtin function `rm` can only be used with optional 2nd argument of type Bool",
                     comment: format!("Given type: {}, expected type: {}", recursive_expr.get_type(), Type::Bool)
                 });
+            }
+        }
+        if let Some(force_expr) = &mut *self.force {
+            force_expr.typecheck(meta)?;
+            if force_expr.get_type() != Type::Bool {
+                let position = force_expr.get_position();
+                return error_pos!(meta, position => {
+                message: "Builtin function `rm` can only be used with 3rd argument of type Bool",
+                comment: format!("Given type: {}, expected type: {}", force_expr.get_type(), Type::Bool)
+            });
             }
         }
         self.failure_handler.typecheck(meta)?;
@@ -90,40 +99,49 @@ impl TypeCheckModule for Rm {
 
 impl TranslateModule for Rm {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let force_translate = self.force.translate(meta);
-        let force_id = meta.gen_value_id();
-        let force_var_stmt = VarStmtFragment::new("__force", Type::Bool, FragmentKind::Empty).with_global_id(force_id);
-        let force_expr = meta.push_ephemeral_variable(force_var_stmt);
-        meta.stmt_queue.extend([
-            fragments!(
-                raw_fragment!("read -rd '' -a {} < <([[ ", force_expr.get_name()),
-                force_translate,
-                " == 1 ]] && echo \"-f\")"
-            )
-        ]);
-        let force_frag = force_expr.to_frag();
-
         let recursive_id = meta.gen_value_id();
         let recursive_frag = if let Some(recursive_expr) = &*self.recursive {
             let recursive_translate = recursive_expr.translate(meta);
-            let recursive_var_stmt = VarStmtFragment::new("__recursive", Type::Bool, FragmentKind::Empty).with_global_id(recursive_id);
+            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, FragmentKind::Empty).with_global_id(recursive_id);
             let recursive_expr = meta.push_ephemeral_variable(recursive_var_stmt);
             meta.stmt_queue.extend([
-                fragments!(raw_fragment!("read -rd '' -a {} < <([[ ", recursive_expr.get_name()),
-                recursive_translate,
-                " == 1 ]] && echo \"-r\")")
+                fragments!(
+                    "(( ",
+                    recursive_translate,
+                    " )) && ",
+                    raw_fragment!("{}=\"-r\" || {}=\"\"", recursive_expr.get_name(), recursive_expr.get_name())
+                )
             ]);
             recursive_expr.to_frag()
         } else {
-            let recursive_var_stmt = VarStmtFragment::new("__recursive", Type::Bool, raw_fragment!("")).with_global_id(recursive_id);
+            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!("")).with_global_id(recursive_id);
+            meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
+        };
+
+        let force_id = meta.gen_value_id();
+        let force_frag = if let Some(force_expr) = &*self.force {
+            let force_translate = force_expr.translate(meta);
+            let force_var_stmt = VarStmtFragment::new("__rm", Type::Bool, FragmentKind::Empty).with_global_id(force_id);
+            let force_expr = meta.push_ephemeral_variable(force_var_stmt);
+            meta.stmt_queue.extend([
+                fragments!(
+                    "(( ",
+                    force_translate,
+                    " )) && ",
+                    raw_fragment!("{}=\"-f\" || {}=\"\"", force_expr.get_name(), force_expr.get_name())
+                )
+            ]);
+            force_expr.to_frag()
+        } else {
+            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!("")).with_global_id(force_id);
             meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
         };
 
         fragments!(
             "rm ",
-            force_frag.to_frag().with_quotes(false),
+            force_frag.with_quotes(false),
             " ",
-            recursive_frag.to_frag().with_quotes(false),
+            recursive_frag.with_quotes(false),
             " ",
             self.value.translate(meta)
         )

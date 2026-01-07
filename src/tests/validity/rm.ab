@@ -3,7 +3,7 @@ import * from "std/fs"
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     touch("{tmpdir}/a")
-    rm("{tmpdir}/a", true)?
+    rm("{tmpdir}/a", false, true)?
     if not file_exists("{tmpdir}/a") {
         echo("Succeeded")
     } else {
