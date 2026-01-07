@@ -46,15 +46,8 @@ impl SyntaxModule<ParserMetadata> for Ls {
                     let mut recursive_expr = Expr::new();
                     syntax(meta, &mut recursive_expr)?;
                     *self.recursive = Some(recursive_expr);
-                } else {
-                    *self.recursive = None;
                 }
-            } else {
-                *self.all = None;
             }
-        } else {
-            *self.value = None;
-            *self.all = None;
         }
         token(meta, ")")?;
 

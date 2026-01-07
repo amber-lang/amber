@@ -35,15 +35,11 @@ impl SyntaxModule<ParserMetadata> for Rm {
             let mut recursive_expr = Expr::new();
             syntax(meta, &mut recursive_expr)?;
             *self.recursive = Some(recursive_expr);
-        } else {
-            *self.recursive = None;
         }
         if token(meta, ",").is_ok() {
             let mut force_expr = Expr::new();
             syntax(meta, &mut force_expr)?;
             *self.force = Some(force_expr);
-        } else {
-            *self.force = None;
         }
         token(meta, ")")?;
 
