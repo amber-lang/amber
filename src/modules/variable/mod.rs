@@ -30,7 +30,7 @@ pub fn variable_name_extensions() -> Vec<char> {
 
 pub fn variable_name_keywords() -> Vec<&'static str> {
     vec![
-        "Bool", "Null", "Number", "Text", "and", "as",
+        "Bool", "Null", "Number", "Text", "and", "as", "await",
         "break", "cd", "clear", "const", "continue", "cp",
         "echo", "else", "exit", "exited", "fail", "failed",
         "false", "for", "from", "fun", "if",
@@ -39,7 +39,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "not", "null", "or", "pid", "pub", "pwd", "ref",
         "return", "rm", "silent", "sleep", "status",
         "sudo", "succeeded", "then", "trust", "true",
-        "unsafe", "wait", "while",
+        "unsafe", "while",
     ]
 }
 

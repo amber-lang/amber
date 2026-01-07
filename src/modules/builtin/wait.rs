@@ -7,19 +7,19 @@ use crate::fragments;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
-pub struct Wait {
+pub struct Await {
     pids: Expr,
 }
 
-impl SyntaxModule<ParserMetadata> for Wait {
-    syntax_name!("WaitForProcesses");
+impl SyntaxModule<ParserMetadata> for Await {
+    syntax_name!("AwaitProcesses");
 
     fn new() -> Self {
-        Wait { pids: Expr::new() }
+        Await { pids: Expr::new() }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "wait")?;
+        token(meta, "await")?;
         token(meta, "(")?;
         syntax(meta, &mut self.pids)?;
         token(meta, ")")?;
@@ -27,14 +27,14 @@ impl SyntaxModule<ParserMetadata> for Wait {
     }
 }
 
-impl TypeCheckModule for Wait {
+impl TypeCheckModule for Await {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.pids.typecheck(meta)?;
         let pids_type = self.pids.get_type();
         if pids_type != Type::array_of(Type::Int) {
             let position = self.pids.get_position();
             return error_pos!(meta, position => {
-                message: "Builtin function `wait` can only be used with values of type [Int]",
+                message: "Builtin function `await` can only be used with values of type [Int]",
                 comment: format!("Given type: {}, expected type: {}", pids_type, Type::array_of(Type::Int))
             });
         }
@@ -42,13 +42,13 @@ impl TypeCheckModule for Wait {
     }
 }
 
-impl TranslateModule for Wait {
+impl TranslateModule for Await {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         fragments!("wait ", self.pids.translate(meta))
     }
 }
 
-impl DocumentationModule for Wait {
+impl DocumentationModule for Await {
     fn document(&self, _meta: &ParserMetadata) -> String {
         "".to_string()
     }

@@ -53,6 +53,7 @@ expression =
 (* Keywords *)
 KEYWORD_AND = 'and' ;
 KEYWORD_AS = 'as' ;
+KEYWORD_AWAIT = 'await' ;
 KEYWORD_BREAK = 'break' ;
 KEYWORD_CD = 'cd' ;
 KEYWORD_CLEAR = 'clear' ;
@@ -98,7 +99,6 @@ KEYWORD_TOUCH = 'touch' ;
 KEYWORD_TRUST = 'trust' ;
 KEYWORD_EXITED = 'exited' ;
 KEYWORD_UNSAFE = 'unsafe' ;
-KEYWORD_WAIT = 'wait' ;
 KEYWORD_WHILE = 'while' ;
 
 (* Terminals *)
@@ -209,6 +209,7 @@ comment = '//', { ANY_CHAR }, '\n' ;
 
 (* Built-ins *)
 builtins_statement =
+    builtin_await |
     builtin_cd |
     builtin_clear |
     builtin_cp |
@@ -216,8 +217,8 @@ builtins_statement =
     builtin_exit |
     builtin_mv |
     builtin_rm |
-    builtin_sleep |
-    builtin_wait ;
+    builtin_sleep ;
+builtin_await = KEYWORD_AWAIT, expression ;
 builtin_cd = KEYWORD_CD, expression ;
 builtin_clear = KEYWORD_CLEAR ;
 builtin_cp = KEYWORD_CP, expression ;
@@ -226,7 +227,6 @@ builtin_exit = KEYWORD_EXIT, expression ;
 builtin_mv = KEYWORD_MV, expression ;
 builtin_rm = KEYWORD_RM, expression ;
 builtin_sleep = KEYWORD_SLEEP, expression ;
-builtin_wait = KEYWORD_WAIT, expression ;
 builtin_touch = KEYWORD_TOUCH, expression ;
 
 builtins_expression =
