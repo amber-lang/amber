@@ -11,7 +11,6 @@ pub mod nameof;
 pub mod pid;
 pub mod pwd;
 pub mod rm;
-pub mod rmdir;
 pub mod sleep;
 pub mod touch;
 pub mod wait;

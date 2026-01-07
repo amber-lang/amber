@@ -48,7 +48,6 @@ use crate::modules::builtin::{
     touch::Touch,
     clear::Clear,
     rm::Rm,
-    rmdir::RmDir,
     sleep::Sleep,
     wait::Wait,
     cp::Cp,
@@ -93,7 +92,6 @@ pub enum StmtType {
     CommentDoc(CommentDoc),
     Sleep(Sleep),
     Rm(Rm),
-    RmDir(RmDir),
     Clear(Clear),
     Wait(Wait),
     Cp(Cp),
@@ -136,7 +134,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
             IfChain, IfCondition,
             // Command
             Echo, Mv, Cd, Exit, CommandModifier, Command, Sleep, Rm,
-            RmDir, Clear, Wait, Cp, Touch,
+            Clear, Wait, Cp, Touch,
             // Variables
             VariableInitDestruct, VariableSetDestruct, VariableInit, VariableSet,
             // Short hand
