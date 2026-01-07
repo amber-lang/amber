@@ -57,12 +57,12 @@ fun sed_version(): Int {
     // We can't match against a word "GNU" because
     // alpine's busybox sed returns "This is not GNU sed version"
     trust $ re='Copyright.+Free Software Foundation'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-    if status == 0 {
+    if status() == 0 {
         return SED_VERSION_GNU
     }
     // On BSD single `sed` waits for stdin. We must use `sed --help` to avoid this.
     trust $ re='BusyBox'; [[ \$(sed --help 2>&1) =~ \$re ]] $
-    if status == 0 {
+    if status() == 0 {
         return SED_VERSION_BUSYBOX
     }
     return SED_VERSION_UNKNOWN
@@ -267,7 +267,7 @@ pub fun split_chars(text: Text): [Text] {
 /// ```
 pub fun text_contains(source: Text, search: Text): Bool {
     trust $ [[ "{source}" == *"{search}"* ]] $
-    return status == 0
+    return status() == 0
 }
 
 /// Checks if an array value is in the text.
@@ -387,7 +387,7 @@ pub fun reversed(text: Text): Text {
 /// ```
 pub fun starts_with(text: Text, prefix: Text): Bool {
     trust $ [[ "{text}" == "{prefix}"* ]] $
-    return status == 0
+    return status() == 0
 }
 
 /// Checks if text ends with a value.
@@ -400,7 +400,7 @@ pub fun starts_with(text: Text, prefix: Text): Bool {
 /// ```
 pub fun ends_with(text: Text, suffix: Text): Bool {
     trust $ [[ "{text}" == *"{suffix}" ]] $
-    return status == 0
+    return status() == 0
 }
 
 /// Returns a substring from `text` starting at the given `index` (0-based).

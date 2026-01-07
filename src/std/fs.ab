@@ -10,7 +10,7 @@ import { match_regex, join, replace_regex, split, trim } from "std/text"
 /// ```
 pub fun dir_exists(path: Text): Bool {
     trust $ [ -d "{path}" ] $
-    return status == 0
+    return status() == 0
 }
 
 /// Checks if a file exists.
@@ -23,7 +23,7 @@ pub fun dir_exists(path: Text): Bool {
 /// ```
 pub fun file_exists(path: Text): Bool {
     trust $ [ -f "{path}" ] $
-    return status == 0
+    return status() == 0
 }
 
 /// Gets file contents from a path.

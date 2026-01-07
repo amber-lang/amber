@@ -23,7 +23,17 @@ impl SyntaxModule<ParserMetadata> for Status {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
+
         token(meta, "status")?;
+        if token(meta, "(").is_ok() {
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling status without parentheses is deprecated");
+            meta.add_message(warning);
+        }
         Ok(())
     }
 }

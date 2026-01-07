@@ -10,7 +10,7 @@ main(args) {
 
     trust $ test -d "{place}" > /dev/null $
 
-    if status == 0 {
+    if status() == 0 {
         const sudo_cmd = user_only_install then "" else "sudo"
         $ {sudo_cmd} rm -rf "{place}" $ failed {
             echo("Failed to remove Amber from {place}")
