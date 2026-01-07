@@ -39,11 +39,8 @@ impl TranslateModule for Pwd {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let id = meta.gen_value_id();
         let var_stmt =
-            VarStmtFragment::new("__text", Type::Text, FragmentKind::Empty).with_global_id(id);
-        let var_expr = meta.push_ephemeral_variable(var_stmt);
-        meta.stmt_queue
-            .extend([raw_fragment!("read -a {} < <(pwd)", var_expr.get_name())]);
-        var_expr.to_frag()
+            VarStmtFragment::new("__pwd", Type::Text, raw_fragment!("\"$PWD\"")).with_global_id(id);
+        meta.push_ephemeral_variable(var_stmt).to_frag()
     }
 }
 
