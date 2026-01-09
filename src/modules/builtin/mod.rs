@@ -1,6 +1,7 @@
 pub mod cd;
 pub mod clear;
 pub mod cp;
+pub mod disown;
 pub mod echo;
 pub mod exit;
 pub mod len;
