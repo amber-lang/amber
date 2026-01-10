@@ -34,9 +34,7 @@ main {
         "file99.txt",
         "other.csv",
     ]
-    const actual = file_glob_all(["missing*", "file*.txt", "other*.csv"]) failed {
-        echo("FAILED")
-    }
+    const actual = file_glob_all(["missing*", "file*.txt", "other*.csv"])
     if compare(actual, expected) {
         echo("Succeeded")
     } else {

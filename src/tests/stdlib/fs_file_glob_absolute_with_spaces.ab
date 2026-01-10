@@ -30,9 +30,7 @@ main {
         "{tmpdir}/1st file with spaces.txt",
         "{tmpdir}/2nd file with spaces.txt",
     ]
-    const actual = file_glob("{tmpdir}/*with spaces*") failed {
-        echo("FAILED")
-    }
+    const actual = file_glob("{tmpdir}/*with spaces*")
     if compare(actual, expected) {
         echo("Succeeded")
     } else {

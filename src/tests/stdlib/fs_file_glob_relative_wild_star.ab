@@ -33,9 +33,7 @@ main {
         "file2.txt",
         "file99.txt",
     ]
-    const actual = file_glob("file*.txt") failed {
-        echo("FAILED")
-    }
+    const actual = file_glob("file*.txt")
     if compare(actual, expected) {
         echo("Succeeded")
     } else {
