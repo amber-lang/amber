@@ -5,12 +5,14 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
+use crate::modules::command::modifier::CommandModifier;
 
 #[derive(Debug, Clone)]
 pub struct Ls {
     value: Box<Option<Expr>>,
     all: Box<Option<Expr>>,
     recursive: Box<Option<Expr>>,
+    modifier: CommandModifier,
     failure_handler: FailureHandler,
 }
 
@@ -28,83 +30,89 @@ impl SyntaxModule<ParserMetadata> for Ls {
             value: Box::new(None),
             all: Box::new(None),
             recursive: Box::new(None),
+            modifier: CommandModifier::new_expr(),
             failure_handler: FailureHandler::new(),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        token(meta, "ls")?;
-        token(meta, "(")?;
-        let mut path = Expr::new();
-        if syntax(meta, &mut path).is_ok() {
-            *self.value = Some(path);
-            if token(meta, ",").is_ok() {
-                let mut all_expr = Expr::new();
-                syntax(meta, &mut all_expr)?;
-                *self.all = Some(all_expr);
+        syntax(meta, &mut self.modifier)?;
+        self.modifier.use_modifiers(meta, |_, meta| {
+            token(meta, "ls")?;
+            token(meta, "(")?;
+            let mut path = Expr::new();
+            if syntax(meta, &mut path).is_ok() {
+                *self.value = Some(path);
                 if token(meta, ",").is_ok() {
-                    let mut recursive_expr = Expr::new();
-                    syntax(meta, &mut recursive_expr)?;
-                    *self.recursive = Some(recursive_expr);
+                    let mut all_expr = Expr::new();
+                    syntax(meta, &mut all_expr)?;
+                    *self.all = Some(all_expr);
+                    if token(meta, ",").is_ok() {
+                        let mut recursive_expr = Expr::new();
+                        syntax(meta, &mut recursive_expr)?;
+                        *self.recursive = Some(recursive_expr);
+                    }
                 }
             }
-        }
-        token(meta, ")")?;
+            token(meta, ")")?;
 
-        if let Err(e) = syntax(meta, &mut self.failure_handler) {
-            match e {
-                Failure::Quiet(pos) => {
-                    return error_pos!(meta, pos => {
+            if let Err(e) = syntax(meta, &mut self.failure_handler) {
+                match e {
+                    Failure::Quiet(pos) => {
+                        return error_pos!(meta, pos => {
                         message: "The `ls` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
                         comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
                     });
+                    }
+                    _ => return Err(e),
                 }
-                _ => return Err(e),
             }
-        }
-        Ok(())
+            Ok(())
+        })
     }
 }
 
 impl TypeCheckModule for Ls {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(path) = &mut *self.value {
-            path.typecheck(meta)?;
-            let path_type = path.get_type();
-            if path_type != Type::Text {
-                let position = path.get_position();
-                return error_pos!(meta,  position => {
+        self.modifier.use_modifiers(meta, |_, meta| {
+            if let Some(path) = &mut *self.value {
+                path.typecheck(meta)?;
+                let path_type = path.get_type();
+                if path_type != Type::Text {
+                    let position = path.get_position();
+                    return error_pos!(meta,  position => {
                    message: "Builtin function `ls` can only be used with 1st argument of type Text",
                     comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
                 });
+                }
             }
-        }
-        if let Some(all) = &mut *self.all {
-            all.typecheck(meta)?;
-            let options_type = all.get_type();
-            if options_type != Type::Bool {
-                let position = all.get_position();
-                return error_pos!(meta, position => {
+            if let Some(all) = &mut *self.all {
+                all.typecheck(meta)?;
+                let options_type = all.get_type();
+                if options_type != Type::Bool {
+                    let position = all.get_position();
+                    return error_pos!(meta, position => {
                     message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
                     comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
                 });
+                }
             }
-        }
 
-        if let Some(recursive) = &mut *self.recursive {
-            recursive.typecheck(meta)?;
-            let recursive_type = recursive.get_type();
-            if recursive_type != Type::Bool {
-                let position = recursive.get_position();
-                return error_pos!(meta, position => {
+            if let Some(recursive) = &mut *self.recursive {
+                recursive.typecheck(meta)?;
+                let recursive_type = recursive.get_type();
+                if recursive_type != Type::Bool {
+                    let position = recursive.get_position();
+                    return error_pos!(meta, position => {
                     message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
                     comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
                 });
+                }
             }
-        }
 
-        self.failure_handler.typecheck(meta)?;
-        Ok(())
+            self.failure_handler.typecheck(meta)?;
+            Ok(())
+        })
     }
 }
 
@@ -154,6 +162,10 @@ impl TranslateModule for Ls {
             meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
         };
 
+        let silent_err = meta.with_silenced_err(self.modifier.is_silent_err || meta.silenced_err, |meta| {
+            meta.gen_silent_err().to_frag()
+        });
+
         let id = meta.gen_value_id();
         let var_stmt =
             VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
@@ -161,13 +173,15 @@ impl TranslateModule for Ls {
         let var_expr = meta.push_ephemeral_variable(var_stmt);
         meta.stmt_queue.extend([
             fragments!(
-                raw_fragment!("read -rd '' -a {} < <(", var_expr.get_name()),
+                raw_fragment!("IFS=$'\\n' read -rd '' -a {} < <(IFS=$'\\n';", var_expr.get_name()),
                 "ls -1 ",
                 all_frag.with_quotes(false),
                 " ",
                 recursive_frag.with_quotes(false),
-                " ",
-                path_fragment
+                " $(sed -e 's/\\\\([^*?/]\\\\)/\\\\\\\\\\\\1/g' <<<",
+                path_fragment,
+                ")",
+                silent_err
             ),
             handler,
             fragments!(")"),

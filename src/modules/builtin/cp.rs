@@ -30,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for Cp {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
-        self.modifier.use_modifiers(meta, |_this, meta| {
+        self.modifier.use_modifiers(meta, |_, meta| {
             token(meta, "cp")?;
             token(meta, "(")?;
             syntax(meta, &mut *self.source)?;
