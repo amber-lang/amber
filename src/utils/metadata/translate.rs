@@ -32,6 +32,9 @@ pub struct TranslateMetadata {
     /// Determines whether the current context should be silenced.
     #[context]
     pub silenced: bool,
+    /// Determines whether the current context stderr should be silenced.
+    #[context]
+    pub silenced_err: bool,
     /// Determines whether the current context should use sudo.
     #[context]
     pub sudoed: bool,
@@ -58,6 +61,7 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
+            silenced_err: false,
             sudoed: false,
             indent: -1,
             minify: options.minify,
@@ -102,6 +106,14 @@ impl TranslateMetadata {
     pub fn gen_silent(&self) -> FragmentKind {
         if self.silenced {
             raw_fragment!(">/dev/null 2>&1")
+        } else {
+            FragmentKind::Empty
+        }
+    }
+
+    pub fn gen_silent_err(&self) -> FragmentKind {
+        if self.silenced_err {
+            raw_fragment!(" 2>/dev/null")
         } else {
             FragmentKind::Empty
         }

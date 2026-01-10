@@ -9,6 +9,7 @@ pub struct CommandModifier {
     #[context]
     pub is_trust: bool,
     pub is_silent: bool,
+    pub is_silent_err: bool,
     pub is_sudo: bool
 }
 
@@ -18,6 +19,7 @@ impl CommandModifier {
             block: None,
             is_trust: false,
             is_silent: false,
+            is_silent_err: false,
             is_sudo: false
         }
     }
@@ -54,9 +56,22 @@ impl CommandModifier {
                             if self.is_silent {
                                 return error!(meta, Some(tok.clone()), "You already declared `silent` modifier before");
                             }
+                            if self.is_silent_err {
+                                return error!(meta, Some(tok.clone()), "You already declared `silent_err` modifier before. You can't use them in conjunction.");
+                            }
                             self.is_silent = true;
                             meta.increment_index();
                         },
+                        "silent_err" => {
+                            if self.is_silent {
+                                return error!(meta, Some(tok.clone()), "You already declared `silent` modifier before. You can't use them in conjunction.");
+                            }
+                            if self.is_silent_err {
+                                return error!(meta, Some(tok.clone()), "You already declared `silent_err` modifier before");
+                            }
+                            self.is_silent_err = true;
+                            meta.increment_index();
+                        }
                         "sudo" => {
                             if self.is_sudo {
                                 return error!(meta, Some(tok.clone()), "Command modifier 'sudo' has already been declared");
@@ -83,6 +98,7 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             block: Some(Box::new(Block::new().with_no_indent())),
             is_trust: false,
             is_silent: false,
+            is_silent_err: false,
             is_sudo: false
         }
     }
@@ -117,9 +133,11 @@ impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if let Some(block) = &self.block {
             meta.silenced = self.is_silent;
+            meta.silenced_err = self.is_silent_err;
             meta.sudoed = self.is_sudo;
             let result = block.translate(meta);
             meta.silenced = false;
+            meta.silenced_err = false;
             meta.sudoed = false;
             result
         } else {

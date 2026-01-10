@@ -198,6 +198,7 @@ impl TranslateModule for FunctionInvocation {
         let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
         meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             let silent = meta.gen_silent().to_frag();
+            let silent_err = meta.gen_silent_err().to_frag();
             let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
                 FragmentKind::VarExpr(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
                 FragmentKind::VarExpr(var) if var.kind.is_array() && var.index.is_some() => {
@@ -212,7 +213,7 @@ impl TranslateModule for FunctionInvocation {
                 var => var
             }).collect::<Vec<FragmentKind>>();
             let args = ListFragment::new(args).with_spaces().to_frag();
-            meta.stmt_queue.push_back(fragments!(name.clone(), " ", args, silent));
+            meta.stmt_queue.push_back(fragments!(name.clone(), " ", args, silent_err, silent));
         });
         if self.is_failable && self.failure_handler.is_parsed {
             let handler = self.failure_handler.translate(meta);

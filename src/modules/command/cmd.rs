@@ -90,8 +90,9 @@ impl TranslateModule for Command {
                 ).to_frag();
 
                 let silent = meta.gen_silent().to_frag();
+                let silent_err = meta.gen_silent_err().to_frag();
                 let sudo_prefix = meta.gen_sudo_prefix().to_frag();
-                ListFragment::new(vec![sudo_prefix, translation, silent])
+                ListFragment::new(vec![sudo_prefix, translation, silent_err, silent])
                     .with_spaces()
                     .to_frag()
             })
