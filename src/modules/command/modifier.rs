@@ -6,11 +6,15 @@ use crate::modules::block::Block;
 #[derive(Debug, Clone, ContextManager)]
 pub struct CommandModifier {
     pub block: Option<Box<Block>>,
+    pub trust_position: Option<PositionInfo>,
+    pub silent_position: Option<PositionInfo>,
+    pub silent_err_position: Option<PositionInfo>,
+    pub sudo_position: Option<PositionInfo>,
     #[context]
     pub is_trust: bool,
     pub is_silent: bool,
     pub is_silent_err: bool,
-    pub is_sudo: bool
+    pub is_sudo: bool,
 }
 
 impl CommandModifier {
@@ -20,7 +24,11 @@ impl CommandModifier {
             is_trust: false,
             is_silent: false,
             is_silent_err: false,
-            is_sudo: false
+            is_sudo: false,
+            trust_position: None,
+            silent_position: None,
+            silent_err_position: None,
+            sudo_position: None,
         }
     }
 
@@ -50,6 +58,7 @@ impl CommandModifier {
                                 return error!(meta, Some(tok.clone()), "You already declared `trust` modifier before");
                             }
                             self.is_trust = true;
+                            self.trust_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
                             meta.increment_index();
                         },
                         "silent" => {
@@ -60,6 +69,7 @@ impl CommandModifier {
                                 return error!(meta, Some(tok.clone()), "You already declared `silent_err` modifier before. You can't use them in conjunction.");
                             }
                             self.is_silent = true;
+                            self.silent_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
                             meta.increment_index();
                         },
                         "silent_err" => {
@@ -70,6 +80,7 @@ impl CommandModifier {
                                 return error!(meta, Some(tok.clone()), "You already declared `silent_err` modifier before");
                             }
                             self.is_silent_err = true;
+                            self.silent_err_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
                             meta.increment_index();
                         }
                         "sudo" => {
@@ -78,6 +89,7 @@ impl CommandModifier {
                             }
                             self.is_sudo = true;
                             meta.sudo_used = true;
+                            self.sudo_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
                             meta.increment_index();
                         },
                         _ => break
@@ -99,7 +111,11 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             is_trust: false,
             is_silent: false,
             is_silent_err: false,
-            is_sudo: false
+            is_sudo: false,
+            trust_position: None,
+            silent_position: None,
+            silent_err_position: None,
+            sudo_position: None,
         }
     }
 

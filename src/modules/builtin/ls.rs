@@ -37,7 +37,7 @@ impl SyntaxModule<ParserMetadata> for Ls {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         syntax(meta, &mut self.modifier)?;
-        self.modifier.use_modifiers(meta, |_, meta| {
+        self.modifier.use_modifiers(meta, |this, meta| {
             token(meta, "ls")?;
             token(meta, "(")?;
             let mut path = Expr::new();
@@ -60,11 +60,20 @@ impl SyntaxModule<ParserMetadata> for Ls {
                 match e {
                     Failure::Quiet(pos) => {
                         return error_pos!(meta, pos => {
-                        message: "The `ls` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
-                        comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
-                    });
+                            message: "The `ls` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
+                            comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
+                        });
                     }
                     _ => return Err(e),
+                }
+            }
+
+            if let Some(silent_position) = &this.silent_position {
+                if this.is_silent {
+                    return error_pos!(meta, silent_position.clone() => {
+                        message: "Builtin `ls` can't be used with the silent modifier.",
+                        comment: "You can use the silent_err modifier to suppress stderr output."
+                    })
                 }
             }
             Ok(())
@@ -81,9 +90,9 @@ impl TypeCheckModule for Ls {
                 if path_type != Type::Text {
                     let position = path.get_position();
                     return error_pos!(meta,  position => {
-                   message: "Builtin function `ls` can only be used with 1st argument of type Text",
-                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                });
+                        message: "Builtin function `ls` can only be used with 1st argument of type Text",
+                        comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+                    });
                 }
             }
             if let Some(all) = &mut *self.all {
@@ -92,9 +101,9 @@ impl TypeCheckModule for Ls {
                 if options_type != Type::Bool {
                     let position = all.get_position();
                     return error_pos!(meta, position => {
-                    message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
-                    comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
-                });
+                        message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
+                        comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
+                    });
                 }
             }
 
@@ -104,9 +113,9 @@ impl TypeCheckModule for Ls {
                 if recursive_type != Type::Bool {
                     let position = recursive.get_position();
                     return error_pos!(meta, position => {
-                    message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
-                    comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
-                });
+                        message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
+                        comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
+                    });
                 }
             }
 
@@ -165,6 +174,9 @@ impl TranslateModule for Ls {
         let silent_err = meta.with_silenced_err(self.modifier.is_silent_err || meta.silenced_err, |meta| {
             meta.gen_silent_err().to_frag()
         });
+        let sudo_prefix = meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
+            meta.gen_sudo_prefix().to_frag()
+        });
 
         let id = meta.gen_value_id();
         let var_stmt =
@@ -174,6 +186,7 @@ impl TranslateModule for Ls {
         meta.stmt_queue.extend([
             fragments!(
                 raw_fragment!("IFS=$'\\n' read -rd '' -a {} < <(IFS=$'\\n';", var_expr.get_name()),
+                sudo_prefix,
                 "ls -1 ",
                 all_frag.with_quotes(false),
                 " ",
