@@ -31,11 +31,11 @@ impl TypeCheckModule for Await {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.pids.typecheck(meta)?;
         let pids_type = self.pids.get_type();
-        if pids_type != Type::array_of(Type::Int) {
+        if pids_type != Type::array_of(Type::Int) && pids_type != Type::Int {
             let position = self.pids.get_position();
             return error_pos!(meta, position => {
-                message: "Builtin function `await` can only be used with values of type [Int]",
-                comment: format!("Given type: {}, expected type: {}", pids_type, Type::array_of(Type::Int))
+                message: "Builtin function `await` can only be used with values of type Int or [Int]",
+                comment: format!("Given type: {}, expected type: {} or {}", pids_type, Type::Int, Type::array_of(Type::Int))
             });
         }
         Ok(())
