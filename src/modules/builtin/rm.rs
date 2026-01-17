@@ -144,8 +144,8 @@ impl TranslateModule for Rm {
         let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             meta.gen_silent().to_frag()
         });
-        let silent_err = meta.with_silenced_err(self.modifier.is_silent_err || meta.silenced_err, |meta| {
-            meta.gen_silent_err().to_frag()
+        let suppress = meta.with_suppress(self.modifier.is_suppress || meta.suppress, |meta| {
+            meta.gen_suppress().to_frag()
         });
         let sudo_prefix = meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
             meta.gen_sudo_prefix().to_frag()
@@ -159,7 +159,7 @@ impl TranslateModule for Rm {
             recursive_frag.with_quotes(false),
             " ",
             self.value.translate(meta),
-            silent_err,
+            suppress,
             silent
         )
     }

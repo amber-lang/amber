@@ -37,8 +37,8 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "import", "in", "is", "len", "let",
         "lines", "loop", "main", "mv", "nameof", "touch",
         "not", "null", "or", "pub", "ref",
-        "return", "silent", "silent_err", "sleep", "status",
-        "sudo", "succeeded", "then", "trust", "true",
+        "return", "silent", "sleep", "status",
+        "sudo", "succeeded", "suppress", "then", "trust", "true",
         "unsafe", "while",
     ]
 }

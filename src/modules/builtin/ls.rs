@@ -72,7 +72,7 @@ impl SyntaxModule<ParserMetadata> for Ls {
                 if this.is_silent {
                     return error_pos!(meta, silent_position.clone() => {
                         message: "Builtin `ls` can't be used with the silent modifier.",
-                        comment: "You can use the silent_err modifier to suppress stderr output."
+                        comment: "You can use the suppress modifier to suppress stderr output."
                     })
                 }
             }
@@ -171,8 +171,8 @@ impl TranslateModule for Ls {
             meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
         };
 
-        let silent_err = meta.with_silenced_err(self.modifier.is_silent_err || meta.silenced_err, |meta| {
-            meta.gen_silent_err().to_frag()
+        let suppress = meta.with_suppress(self.modifier.is_suppress || meta.suppress, |meta| {
+            meta.gen_suppress().to_frag()
         });
         let sudo_prefix = meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
             meta.gen_sudo_prefix().to_frag()
@@ -194,7 +194,7 @@ impl TranslateModule for Ls {
                 " $(sed -e 's/\\\\([^*?/]\\\\)/\\\\\\\\\\\\1/g' <<<",
                 path_fragment,
                 ")",
-                silent_err
+                suppress
             ),
             handler,
             fragments!(")"),

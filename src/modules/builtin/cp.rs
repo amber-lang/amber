@@ -113,8 +113,8 @@ impl TranslateModule for Cp {
         let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             meta.gen_silent().to_frag()
         });
-        let silent_err = meta.with_silenced_err(self.modifier.is_silent_err || meta.silenced_err, |meta| {
-            meta.gen_silent_err().to_frag()
+        let suppress = meta.with_suppress(self.modifier.is_suppress || meta.suppress, |meta| {
+            meta.gen_suppress().to_frag()
         });
 
         let force_id = meta.gen_value_id();
@@ -137,7 +137,7 @@ impl TranslateModule for Cp {
         };
 
         BlockFragment::new(vec![
-            fragments!(sudo_prefix, "cp -r ", force_frag.with_quotes(false), " ", source, " ", destination, silent_err, silent),
+            fragments!(sudo_prefix, "cp -r ", force_frag.with_quotes(false), " ", source, " ", destination, suppress, silent),
             handler,
         ], false).to_frag()
     }

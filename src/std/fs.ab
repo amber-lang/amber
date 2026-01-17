@@ -188,7 +188,7 @@ pub fun file_chown(path: Text, user: Text): Null? {
 pub fun file_glob_all(paths: [Text]): [Text] {
     let files = []
     for path in paths {
-        files += silent_err ls(path,true) failed {
+        files += suppress ls(path,true) failed {
             //this can fail when no file could be found
             continue
         }

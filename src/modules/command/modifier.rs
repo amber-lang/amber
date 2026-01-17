@@ -8,12 +8,12 @@ pub struct CommandModifier {
     pub block: Option<Box<Block>>,
     pub trust_position: Option<PositionInfo>,
     pub silent_position: Option<PositionInfo>,
-    pub silent_err_position: Option<PositionInfo>,
+    pub suppress_position: Option<PositionInfo>,
     pub sudo_position: Option<PositionInfo>,
     #[context]
     pub is_trust: bool,
     pub is_silent: bool,
-    pub is_silent_err: bool,
+    pub is_suppress: bool,
     pub is_sudo: bool,
 }
 
@@ -23,11 +23,11 @@ impl CommandModifier {
             block: None,
             is_trust: false,
             is_silent: false,
-            is_silent_err: false,
+            is_suppress: false,
             is_sudo: false,
             trust_position: None,
             silent_position: None,
-            silent_err_position: None,
+            suppress_position: None,
             sudo_position: None,
         }
     }
@@ -65,22 +65,22 @@ impl CommandModifier {
                             if self.is_silent {
                                 return error!(meta, Some(tok.clone()), "You already declared `silent` modifier before");
                             }
-                            if self.is_silent_err {
-                                return error!(meta, Some(tok.clone()), "You already declared `silent_err` modifier before. You can't use them in conjunction.");
+                            if self.is_suppress {
+                                return error!(meta, Some(tok.clone()), "You already declared `suppress` modifier before. You can't use them in conjunction.");
                             }
                             self.is_silent = true;
                             self.silent_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
                             meta.increment_index();
                         },
-                        "silent_err" => {
+                        "suppress" => {
                             if self.is_silent {
                                 return error!(meta, Some(tok.clone()), "You already declared `silent` modifier before. You can't use them in conjunction.");
                             }
-                            if self.is_silent_err {
-                                return error!(meta, Some(tok.clone()), "You already declared `silent_err` modifier before");
+                            if self.is_suppress {
+                                return error!(meta, Some(tok.clone()), "You already declared `suppress` modifier before");
                             }
-                            self.is_silent_err = true;
-                            self.silent_err_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
+                            self.is_suppress = true;
+                            self.suppress_position = Some(PositionInfo::from_token(meta, Some(tok.clone())));
                             meta.increment_index();
                         }
                         "sudo" => {
@@ -110,11 +110,11 @@ impl SyntaxModule<ParserMetadata> for CommandModifier {
             block: Some(Box::new(Block::new().with_no_indent())),
             is_trust: false,
             is_silent: false,
-            is_silent_err: false,
+            is_suppress: false,
             is_sudo: false,
             trust_position: None,
             silent_position: None,
-            silent_err_position: None,
+            suppress_position: None,
             sudo_position: None,
         }
     }
@@ -149,11 +149,11 @@ impl TranslateModule for CommandModifier {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if let Some(block) = &self.block {
             meta.silenced = self.is_silent;
-            meta.silenced_err = self.is_silent_err;
+            meta.suppress = self.is_suppress;
             meta.sudoed = self.is_sudo;
             let result = block.translate(meta);
             meta.silenced = false;
-            meta.silenced_err = false;
+            meta.suppress = false;
             meta.sudoed = false;
             result
         } else {
