@@ -11,8 +11,8 @@ main {
 
     trust cp("{tmpdir}/a", "{tmpdir}/c", true)
     if file_exists("{tmpdir}/c") {
-            echo("Succeeded")
-        } else {
-            echo("{tmpdir}/c Not Found")
-        }
+        echo("Succeeded")
+    } else {
+        echo("{tmpdir}/c Not Found")
+    }
 }
