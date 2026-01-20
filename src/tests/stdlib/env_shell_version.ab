@@ -1,0 +1,17 @@
+import { shell_name, shell_version } from "std/env"
+
+main {
+    // Verify shell_name returns a valid value
+    const name = shell_name()
+    if name != "bash" and name != "zsh" {
+        echo("Failed")
+    }
+    
+    // Verify the version looks reasonable (major version 3-9)
+    const version = shell_version()
+    if version[0] >= 3 and version[0] <= 9 {
+        echo("Succeeded")
+    } else {
+        echo("Version check failed")
+    }
+}

@@ -5,7 +5,7 @@ use itertools::Itertools;
 use pretty_assertions::assert_eq;
 use std::fs;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 pub mod cli;
 pub mod extra;
@@ -78,7 +78,7 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
 }
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
-    let mut cmd = Command::new("bash");
+    let mut cmd = AmberCompiler::find_bash().expect("Failed to find shell");
     cmd.arg("-c");
     cmd.arg(code.into());
     cmd.stdout(Stdio::piped());

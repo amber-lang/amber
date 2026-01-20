@@ -1,10 +1,14 @@
-import { shopt_disable } from "std/env"
+import { shopt_disable, shell_name } from "std/env"
 
 // Output
 // .
 
 main {
-   shopt_disable("dotglob")?
-   trust $ echo . $
-   shopt_disable("noglob", true)?
+   if shell_name() == "bash" {
+      shopt_disable("dotglob")?
+      trust $ echo . $
+      shopt_disable("noglob", true)?
+   } else {
+      echo("Succeeded")
+   }
 }

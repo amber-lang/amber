@@ -248,23 +248,19 @@ impl VarExprFragment {
     fn render_deref_variable(self, meta: &mut TranslateMetadata, prefix: &str, name: &str, suffix: &str) -> String {
         let arr_open = if self.kind.is_array() { "(" } else { "" };
         let arr_close = if self.kind.is_array() { ")" } else { "" };
+        let arr_suffix = if self.kind.is_array() { "[@]" } else { "" };
+        
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
         let dollar = meta.gen_dollar();
-        if prefix.is_empty() && suffix.is_empty() {
-            return format!("{quote}{dollar}{{!{name}}}{quote}");
-        }
         let id = meta.gen_value_id();
-        let eval_value = format!("{prefix}${{{name}[0]}}{suffix}");
-        let var_name = format!("{name}_deref_{id}");
-        meta.stmt_queue.push_back(RawFragment::from(
-            format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
-        ).to_frag());
+        // Use [0] subscript only for array refs stored in local variables (has global_id)
+        let subscript = if self.global_id.is_some() && self.kind.is_array() { "[0]" } else { "" };
+        let eval_value = format!("{prefix}${{{name}{subscript}}}{suffix}");
+        let var_name = format!("__deref_{name}_{id}");
+        let eval_stmt = format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"");
+        meta.stmt_queue.push_back(RawFragment::from(eval_stmt).to_frag());
 
-        if self.kind.is_array() {
-            format!("{quote}{dollar}{{{var_name}[@]}}{quote}")
-        } else {
-            format!("{quote}{dollar}{{{var_name}}}{quote}")
-        }
+        format!("{quote}{dollar}{{{var_name}{arr_suffix}}}{quote}")
     }
 }
 

@@ -114,7 +114,11 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+    // zsh uses -A for array, bash uses -a
+    trust $ [ -n "\$ZSH_VERSION" ] $ exited(code): if {
+        code == 0: $ IFS="{delimiter}" read -rd '' -A {nameof result} < <(printf %s "\${nameof text}") $
+        else: $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+    }
     return result
 }
 

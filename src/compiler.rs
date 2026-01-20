@@ -195,9 +195,16 @@ impl AmberCompiler {
         footer_template.replace("{{ version }}", get_version())
     }
 
-    fn gen_sudo_preamble(&self) -> FragmentKind {
-        let condition = r#"[ "$EUID" -ne 0 ] && { { command -v sudo >/dev/null 2>&1 && __sudo=sudo; } || { command -v doas >/dev/null 2>&1 && __sudo=doas; }; }"#;
-        RawFragment::new(condition).to_frag()
+    fn gen_preamble(&self, sudo_used: bool) -> FragmentKind {
+        let mut preamble = vec![
+            // Set ZSH shell to emulate Bash
+            RawFragment::new(r#"[ -n "$ZSH_VERSION" ] && emulate bash"#).to_frag()
+        ];
+        if sudo_used {
+            // Check if sudo is available
+            preamble.push(RawFragment::new(r#"[ "$EUID" -ne 0 ] && { { command -v sudo >/dev/null 2>&1 && __sudo=sudo; } || { command -v doas >/dev/null 2>&1 && __sudo=doas; }; }"#).to_frag());
+        }
+        BlockFragment::new(preamble, false).to_frag()
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
@@ -206,10 +213,8 @@ impl AmberCompiler {
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
-
-        if sudo_used {
-            result.append(self.gen_sudo_preamble());
-        }
+        // Add preamble that contains all code that should be executed before the main code
+        result.append(self.gen_preamble(sudo_used));
 
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));
@@ -390,7 +395,7 @@ impl AmberCompiler {
     }
 
     #[cfg(windows)]
-    fn find_bash() -> Option<Command> {
+    pub fn find_bash() -> Option<Command> {
         if let Some(paths) = env::var_os("PATH") {
             for path in env::split_paths(&paths) {
                 let path = path.join("bash.exe");
@@ -405,7 +410,7 @@ impl AmberCompiler {
 
     /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
-    fn find_bash() -> Option<Command> {
+    pub fn find_bash() -> Option<Command> {
         if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
             let mut command = Command::new("docker");
             let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
@@ -413,8 +418,14 @@ impl AmberCompiler {
             command.args(args);
             Some(command)
         } else {
+            // Detect default shell from SHELL env var, use it if it's bash or zsh
+            let shell = env::var("SHELL")
+                .ok()
+                .and_then(|s| s.rsplit('/').next().map(String::from))
+                .filter(|s| s == "bash" || s == "zsh")
+                .unwrap_or_else(|| String::from("bash"));
             let mut command = Command::new("/usr/bin/env");
-            command.arg("bash");
+            command.arg(shell);
             Some(command)
         }
     }

@@ -68,7 +68,7 @@ impl FunctionDeclaration {
                     .with_optimization_when_unused(false);
                 match (arg.is_ref, kind) {
                     (false, Type::Array(_)) => {
-                        let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic).with_ref(true);
+                        let val = VarExprFragment::new(&format!("{}", index + 1), kind.clone()).with_ref(true);
                         result.push(var.with_index(None).with_value(val.to_frag()).to_frag());
                     },
                     _ => result.push(var.to_frag()),
