@@ -1,0 +1,24 @@
+import * from "std/fs"
+import { array_contains } from "std/array"
+
+// Output
+// Succeeded
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    touch("{tmpdir}/a1.txt")
+    touch("{tmpdir}/b2.txt")
+    touch("{tmpdir}/c3.txt")
+    touch("{tmpdir}/d4.txt")
+
+    // [a-c]* matches files starting with a, b, or c
+    const files = ls("{tmpdir}/[a-c]*")?
+    if array_contains(files, "{tmpdir}/a1.txt") and
+       array_contains(files, "{tmpdir}/b2.txt") and
+       array_contains(files, "{tmpdir}/c3.txt") and
+       not array_contains(files, "{tmpdir}/d4.txt") {
+        echo("Succeeded")
+    } else {
+        echo("Failed: {files}")
+    }
+}
