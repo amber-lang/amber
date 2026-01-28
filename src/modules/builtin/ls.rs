@@ -135,11 +135,10 @@ impl TranslateModule for Ls {
         };
 
         // Escape backslashes in path for pathname expansion while preserving glob characters.
-        // With IFS=$'\n' set before ls, only backslash needs escaping (spaces don't cause word splitting).
         let path_var_stmt = VarStmtFragment::new("__ls_path", Type::Text, path_fragment)
             .with_global_id(id);
         let path_expr = meta.push_ephemeral_variable(path_var_stmt);
-        // Escape backslashes in-place: \ -> \\
+        // Escape backslashes
         meta.stmt_queue.push_back(raw_fragment!(
             "{}=\"${{{}//\\\\/\\\\\\\\}}\"",
             path_expr.get_name(), path_expr.get_name()
