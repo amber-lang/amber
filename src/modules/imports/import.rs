@@ -1,12 +1,25 @@
-use std::fs;
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
+use super::import_string::ImportString;
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::block::Block;
+use crate::modules::prelude::*;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
-use crate::utils::context::{Context, FunctionDecl};
-use super::import_string::ImportString;
+use crate::utils::context::{Context, FunctionDecl, VariableDecl};
+use heraclitus_compiler::prelude::*;
+use std::fs;
+
+#[derive(Debug, Clone)]
+pub struct ImportWant {
+    pub name: String,
+    pub alias: Option<String>,
+    pub token: Option<Token>,
+}
+
+impl ImportWant {
+    pub fn new(name: String, alias: Option<String>, token: Option<Token>) -> Self {
+        ImportWant { name, alias, token }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Import {
@@ -15,31 +28,60 @@ pub struct Import {
     token_path: Option<Token>,
     is_all: bool,
     is_pub: bool,
-    export_defs: Vec<(String, Option<String>, Option<Token>)>
+    wants: Vec<ImportWant>,
 }
 
 impl Import {
-    fn handle_export(&mut self, meta: &mut ParserMetadata, mut pub_funs: Vec<FunctionDecl>) -> SyntaxResult {
+    fn handle_export(
+        &mut self,
+        meta: &mut ParserMetadata,
+        mut pub_funs: Vec<FunctionDecl>,
+        mut pub_vars: Vec<VariableDecl>,
+    ) -> SyntaxResult {
         if !self.is_all {
-            for def in self.export_defs.iter() {
-                let (name, alias, tok) = def.clone();
-                let fun = match pub_funs.iter_mut().find(|fun| fun.name == name) {
-                    Some(fun) => fun,
-                    // Check if the function that is being imported is defined
-                    None => return error!(meta, tok.clone() => {
-                        message: format!("Function '{}' is not defined", name)
-                    })
-                };
-                if let Some(alias) = alias {
-                    fun.name = alias;
-                }
-                fun.is_public = self.is_pub;
-                let name = fun.name.clone();
-                // Check if current function name is already defined
-                if meta.add_fun_declaration_existing(fun.clone()).is_none() {
-                    return error!(meta, self.token_import.clone() => {
-                        message: format!("Function '{}' is already defined", name)
-                    })
+            for def in self.wants.iter() {
+                let ImportWant { name, alias, token } = def;
+
+                let found_fn = pub_funs.iter_mut().find(|fun| &fun.name == name);
+                let found_var = pub_vars.iter_mut().find(|var| &var.name == name);
+
+                match (found_fn, found_var) {
+                    (None, None) => {
+                        return error!(meta, token.clone() => {
+                            message: format!("Function or variable '{}' is not defined", name)
+                        });
+                    }
+                    (Some(_), Some(_)) => {
+                        return error!(meta, token.clone() => {
+                            message: format!("Function or variable '{}' is defined multiple times", name)
+                        });
+                    }
+                    (None, Some(var)) => {
+                        if let Some(alias) = alias {
+                            var.name = alias.clone();
+                        }
+
+                        var.is_public = self.is_pub;
+                        if meta.add_var_declaration_existing(var.clone()).is_none() {
+                            return error!(meta, token.clone() => {
+                                message: format!("Variable '{}' is already defined", name)
+                            });
+                        }
+                    }
+                    (Some(fun), None) => {
+                        fun.is_public = self.is_pub;
+
+                        if let Some(alias) = alias {
+                            fun.name = alias.clone();
+                        }
+
+                        let name = fun.name.clone();
+                        if meta.add_fun_declaration_existing(fun.clone()).is_none() {
+                            return error!(meta, self.token_import.clone() => {
+                                message: format!("Function '{}' is already defined", name)
+                            });
+                        }
+                    }
                 }
             }
         } else {
@@ -50,7 +92,7 @@ impl Import {
                 if meta.add_fun_declaration_existing(fun).is_none() {
                     return error!(meta, self.token_import.clone() => {
                         message: format!("Function '{}' is already defined", name)
-                    })
+                    });
                 }
             }
         }
@@ -58,11 +100,15 @@ impl Import {
     }
 
     fn add_import(&mut self, meta: &mut ParserMetadata, path: &str) -> SyntaxResult {
-        if meta.import_cache.add_import_entry(meta.get_path(), path.to_string()).is_none() {
+        if meta
+            .import_cache
+            .add_import_entry(meta.get_path(), path.to_string())
+            .is_none()
+        {
             return error!(meta, self.token_path.clone() => {
                 message: "Circular import detected",
                 comment: "Please remove the circular import"
-            })
+            });
         }
         Ok(())
     }
@@ -71,8 +117,14 @@ impl Import {
         if self.path.value.starts_with("std/") {
             match stdlib::resolve(self.path.value.replace("std/", "")) {
                 Some(v) => Ok(v),
-                None => error!(meta, self.token_path.clone(),
-                    format!("Standard library module '{}' does not exist", self.path.value))
+                None => error!(
+                    meta,
+                    self.token_path.clone(),
+                    format!(
+                        "Standard library module '{}' does not exist",
+                        self.path.value
+                    )
+                ),
             }
         } else {
             match fs::read_to_string(self.path.value.clone()) {
@@ -80,16 +132,19 @@ impl Import {
                 Err(err) => error!(meta, self.token_path.clone() => {
                     message: format!("Could not read file '{}'", self.path.value),
                     comment: err.to_string()
-                })
+                }),
             }
         }
     }
 
     fn handle_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
-        match meta.import_cache.get_import_pub_funs(Some(self.path.value.clone())) {
-            Some(pub_funs) => self.handle_export(meta, pub_funs),
-            None => self.handle_compile_code(meta, code)
+        match meta
+            .import_cache
+            .get_import_pub_funs(Some(self.path.value.clone()))
+        {
+            Some(pubs) => self.handle_export(meta, pubs.0, pubs.1),
+            None => self.handle_compile_code(meta, code),
         }
     }
 
@@ -109,12 +164,17 @@ impl Import {
                     block.typecheck(meta)
                 })?;
                 // Persist compiled file to cache
-                meta.import_cache.add_import_metadata(Some(self.path.value.clone()), block, context.pub_funs.clone());
+                meta.import_cache.add_import_metadata(
+                    Some(self.path.value.clone()),
+                    block,
+                    context.pub_funs.clone(),
+                    context.pub_vars.clone(),
+                );
                 // Handle exports (add to current file)
-                self.handle_export(meta, context.pub_funs)?;
+                self.handle_export(meta, context.pub_funs, context.pub_vars)?;
                 Ok(())
             }
-            Err(err) => Err(Failure::Loud(err))
+            Err(err) => Err(Failure::Loud(err)),
         }
     }
 }
@@ -129,7 +189,7 @@ impl SyntaxModule<ParserMetadata> for Import {
             token_path: None,
             is_all: false,
             is_pub: false,
-            export_defs: vec![]
+            wants: vec![],
         }
     }
 
@@ -141,11 +201,15 @@ impl SyntaxModule<ParserMetadata> for Import {
             Ok(_) => self.is_all = true,
             Err(_) => {
                 token(meta, "{")?;
-                let mut exports = vec![];
+                let mut wants = vec![];
                 if token(meta, "}").is_err() {
                     loop {
                         // Skip comments and newlines
-                        if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                        if token_by(meta, |token| {
+                            token.starts_with("//") || token.starts_with('\n')
+                        })
+                        .is_ok()
+                        {
                             continue;
                         }
                         let tok = meta.get_current_token();
@@ -159,24 +223,33 @@ impl SyntaxModule<ParserMetadata> for Import {
                         let name = variable(meta, variable_name_extensions())?;
                         let alias = match token(meta, "as") {
                             Ok(_) => Some(variable(meta, variable_name_extensions())?),
-                            Err(_) => None
+                            Err(_) => None,
                         };
-                        exports.push((name, alias, tok));
+                        // exports.push((name, alias, tok));
+                        wants.push(ImportWant::new(name, alias, tok));
                         if token(meta, "}").is_ok() {
                             break;
                         }
                         match token(meta, ",") {
                             Ok(_) => {
                                 // Skip comments and newlines after comma
-                                while token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                                while token_by(meta, |token| {
+                                    token.starts_with("//") || token.starts_with('\n')
+                                })
+                                .is_ok()
+                                {
                                     // Keep consuming
                                 }
                                 if token(meta, "}").is_ok() {
-                                    break
+                                    break;
                                 }
                             }
                             Err(_) => {
-                                return error!(meta, meta.get_current_token(), "Expected ',' or '}' after import");
+                                return error!(
+                                    meta,
+                                    meta.get_current_token(),
+                                    "Expected ',' or '}' after import"
+                                );
                             }
                         }
                     }
@@ -185,7 +258,7 @@ impl SyntaxModule<ParserMetadata> for Import {
                         .message("Empty import statement");
                     meta.add_message(message);
                 }
-                self.export_defs = exports;
+                self.wants = wants;
             }
         }
         token(meta, "from")?;
@@ -198,7 +271,11 @@ impl SyntaxModule<ParserMetadata> for Import {
 impl TypeCheckModule for Import {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if !meta.is_global_scope() {
-            return error!(meta, self.token_import.clone(), "Imports must be in the global scope")
+            return error!(
+                meta,
+                self.token_import.clone(),
+                "Imports must be in the global scope"
+            );
         }
         self.add_import(meta, &self.path.value.clone())?;
         let code = self.resolve_import(meta)?;

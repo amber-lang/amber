@@ -87,7 +87,10 @@ impl ParserMetadata {
                         self.add_message(message);
                     } else if !var.is_const && !var.is_modified && warn.on_unmodified {
                         let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
-                            .message(format!("Variable '{}' is never modified, consider using 'const'", var.name));
+                            .message(format!(
+                                "Variable '{}' is never modified, consider using 'const'",
+                                var.name
+                            ));
                         self.add_message(message);
                     }
                 }
@@ -110,6 +113,9 @@ impl ParserMetadata {
     pub fn add_var(&mut self, mut var: VariableDecl) -> Option<usize> {
         let global_id = self.gen_var_id();
         var.global_id = Some(global_id);
+        if var.is_public {
+            self.context.pub_vars.push(var.clone());
+        }
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(var);
         Some(global_id)
@@ -213,9 +219,23 @@ impl ParserMetadata {
         scope.add_fun(fun).then_some(global_id)
     }
 
+    pub fn add_var_declaration_existing(&mut self, var: VariableDecl) -> Option<usize> {
+        let global_id = self.gen_var_id();
+        if var.is_public {
+            self.context.pub_vars.push(var.clone());
+        }
+        let scope = self.context.scopes.last_mut().unwrap();
+        scope.add_var(var).then_some(global_id)
+    }
+
     /// Adds a function instance to the cache
     /// This function returns the id of the function instance variant
-    pub fn add_fun_instance(&mut self, fun: FunctionInterface, args_global_ids: Vec<Option<usize>>, block: Block) -> usize {
+    pub fn add_fun_instance(
+        &mut self,
+        fun: FunctionInterface,
+        args_global_ids: Vec<Option<usize>>,
+        block: Block,
+    ) -> usize {
         let id = fun.id.expect("Function id is not set");
         self.fun_cache
             .add_instance(id, fun.into_fun_instance(args_global_ids, block))
@@ -241,10 +261,17 @@ impl ParserMetadata {
     }
 
     pub fn get_narrowed_type(&self, name: &str) -> Option<&Type> {
-        self.narrowed_types.iter().rev().find_map(|map| map.get(name))
+        self.narrowed_types
+            .iter()
+            .rev()
+            .find_map(|map| map.get(name))
     }
 
-    pub fn with_narrowed_scope<B>(&mut self, facts: HashMap<String, Type>, mut body: B) -> SyntaxResult
+    pub fn with_narrowed_scope<B>(
+        &mut self,
+        facts: HashMap<String, Type>,
+        mut body: B,
+    ) -> SyntaxResult
     where
         B: FnMut(&mut Self) -> SyntaxResult,
     {
@@ -275,7 +302,6 @@ impl Metadata for ParserMetadata {
             first_pass_ctx: false,
         }
     }
-
 
     fn get_token_at(&self, index: usize) -> Option<Token> {
         self.context.expr.get(index).cloned()

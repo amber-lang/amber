@@ -1,0 +1,5 @@
+import { VALUE } from "./import_public_variable_source.ab"
+
+main {
+    echo(VALUE)
+}
