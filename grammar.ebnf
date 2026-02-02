@@ -168,18 +168,22 @@ exited_handler = exited_block ;
 (* All handlers combined *)
 handler = success_handler | failure_handler | exited_handler ;
 
+(* Attributes *)
+attribute_name = any_identifier ;
+attribute = '#[', attribute_name, ']' ;
+
 (* Variable *)
 variable_index = '[', expression, ']' ;
-variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
-variable_init_const = KEYWORD_CONST, identifier, '=', expression ;
+variable_init_mut = { attribute }, [ VISIBILITY ], KEYWORD_LET, identifier, '=', expression ;
+variable_init_const = { attribute }, [ VISIBILITY ], KEYWORD_CONST, identifier, '=', expression ;
 variable_get = identifier ;
 variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
-function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
-function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
+function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+function_def_typed = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
 
 (* Loop *)
