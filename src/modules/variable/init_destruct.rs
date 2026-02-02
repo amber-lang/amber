@@ -1,4 +1,5 @@
 use heraclitus_compiler::prelude::*;
+use std::collections::HashSet;
 
 use super::{handle_identifier_name, variable_name_extensions};
 use crate::modules::expression::expr::Expr;
@@ -7,6 +8,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::variable::get_default_value_fragment;
 use crate::raw_fragment;
 use crate::translate::fragments::var_expr::VarIndexValue;
+use crate::utils::cc_flags::{CCFlags, get_ccflag_by_name, get_ccflag_name};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 
@@ -19,6 +21,7 @@ pub struct VariableInitDestruct {
     is_const: bool,
     is_public: bool,
     toks: Vec<Option<Token>>,
+    flags: HashSet<CCFlags>,
 }
 
 impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
@@ -33,16 +36,29 @@ impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
             is_const: false,
             is_public: false,
             toks: vec![],
+            flags: HashSet::new(),
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
+            self.flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+        }
+
         if token(meta, "pub").is_ok() {
             self.is_public = true;
         }
 
         let keyword = token_by(meta, |word| ["let", "const"].contains(&word.as_str()))?;
         self.is_const = keyword == "const";
+
+        if self.is_public && !self.is_const && !self.flags.contains(&CCFlags::AllowPublicMutable) {
+            let flag = get_ccflag_name(CCFlags::AllowPublicMutable);
+            return error!(meta, meta.get_current_token() => {
+                message: "Public variables must be constants",
+                comment: format!("Mutable public variables create shared global state.\nUse 'pub const' or add '#[{flag}]' to allow this.")
+            });
+        }
 
         token(meta, "[")?;
         loop {

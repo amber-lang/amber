@@ -1,0 +1,7 @@
+import { MUTABLE_VALUE } from "./import_mutable_with_attribute_source.ab"
+
+main {
+    echo("Value: {MUTABLE_VALUE}")
+    MUTABLE_VALUE = 200
+    echo("Modified: {MUTABLE_VALUE}")
+}

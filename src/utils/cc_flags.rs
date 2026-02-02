@@ -4,6 +4,7 @@ pub enum CCFlags {
     AllowAbsurdCast,
     AllowCamelCase,
     AllowDeadCode,
+    AllowPublicMutable,
     UndefinedFlag
 }
 
@@ -13,6 +14,7 @@ pub fn get_ccflag_by_name(flag: &str) -> CCFlags {
         "allow_camel_case" => CCFlags::AllowCamelCase,
         "allow_absurd_cast" => CCFlags::AllowAbsurdCast,
         "allow_dead_code" => CCFlags::AllowDeadCode,
+        "allow_public_mutable" => CCFlags::AllowPublicMutable,
         _ => CCFlags::UndefinedFlag
     }
 }
@@ -24,6 +26,7 @@ pub fn get_ccflag_name(flag: CCFlags) -> &'static str {
         CCFlags::AllowAbsurdCast => "allow_absurd_cast",
         CCFlags::AllowCamelCase => "allow_camel_case",
         CCFlags::AllowDeadCode => "allow_dead_code",
+        CCFlags::AllowPublicMutable => "allow_public_mutable",
         CCFlags::UndefinedFlag => "undefined_flag"
     }
 }
