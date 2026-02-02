@@ -85,6 +85,17 @@ impl Import {
                 }
             }
         } else {
+            for mut var in pub_vars {
+                // Determine if imported variables should be exported further
+                var.is_public = self.is_pub;
+                let name = var.name.clone();
+                if meta.add_var_declaration_existing(var).is_none() {
+                    return error!(meta, self.token_import.clone() => {
+                        message: format!("Variable '{}' is already defined", name)
+                    });
+                }
+            }
+
             for mut fun in pub_funs {
                 // Determine if imported functions should be exported further
                 fun.is_public = self.is_pub;
