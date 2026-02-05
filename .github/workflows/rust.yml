@@ -48,6 +48,7 @@ jobs:
         with:
           path: |
             ./target/deps
+            ./target/debug/deps
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
@@ -105,6 +106,7 @@ jobs:
         with:
           path: |
             ./target/deps
+            ./target/debug/deps
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
@@ -154,6 +156,7 @@ jobs:
           path: |
             ~/.cargo
             ./target/deps
+            ./target/debug/deps
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
@@ -174,6 +177,7 @@ jobs:
         with:
           path: |
             ./target/deps
+            ./target/debug/deps
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
