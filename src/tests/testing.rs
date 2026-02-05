@@ -179,10 +179,10 @@ mod test {
         std::fs::write(
             &test_file,
             r#"
-test "empty output test" {
-    exit 1
-}
-"#,
+ test "empty output test" {
+     exit 1
+ }
+ "#,
         )
         .unwrap();
 
@@ -198,5 +198,39 @@ test "empty output test" {
         assert_eq!(result.unwrap(), 1);
 
         std::fs::remove_dir_all(test_dir).ok();
+    }
+
+    #[test]
+    fn test_handle_test_with_tokenize_error() {
+        let test_dir = PathBuf::from("src/tests/testing");
+        let test_file = test_dir.join("malformed.ab");
+
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_handle_test_with_empty_message() {
+        let test_dir = PathBuf::from("src/tests/validity");
+        let test_file = test_dir.join("block_test.ab");
+
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
     }
 }
