@@ -1,3 +1,4 @@
+use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
@@ -5,7 +6,6 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
-use crate::modules::command::modifier::CommandModifier;
 
 #[derive(Debug, Clone)]
 pub struct Ls {
@@ -135,13 +135,14 @@ impl TranslateModule for Ls {
         };
 
         // Escape backslashes in path for pathname expansion while preserving glob characters.
-        let path_var_stmt = VarStmtFragment::new("__ls_path", Type::Text, path_fragment)
-            .with_global_id(id);
+        let path_var_stmt =
+            VarStmtFragment::new("__ls_path", Type::Text, path_fragment).with_global_id(id);
         let path_expr = meta.push_ephemeral_variable(path_var_stmt);
         // Escape backslashes
         meta.stmt_queue.push_back(raw_fragment!(
             "{}=\"${{{}//\\\\/\\\\\\\\}}\"",
-            path_expr.get_name(), path_expr.get_name()
+            path_expr.get_name(),
+            path_expr.get_name()
         ));
 
         // Only create variables for all/recursive when expressions are provided
@@ -166,7 +167,11 @@ impl TranslateModule for Ls {
                 "(( ",
                 recursive_translate,
                 " )) && ",
-                raw_fragment!("{}=\"-R\" || {}=\"\"", recursive_var_name, recursive_var_name)
+                raw_fragment!(
+                    "{}=\"-R\" || {}=\"\"",
+                    recursive_var_name,
+                    recursive_var_name
+                )
             ));
             raw_fragment!(" ${{{}}}", recursive_var_name)
         } else {
@@ -180,12 +185,16 @@ impl TranslateModule for Ls {
             meta.gen_sudo_prefix().to_frag()
         });
 
-        let var_stmt = VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
-            .with_global_id(id);
+        let var_stmt =
+            VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
+                .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
         meta.stmt_queue.extend([
             fragments!(
-                raw_fragment!("IFS=$'\\n' read -rd '' -a {} < <(IFS=$'\\n';", var_expr.get_name()),
+                raw_fragment!(
+                    "IFS=$'\\n' read -rd '' -a {} < <(LC_ALL=C IFS=$'\\n';",
+                    var_expr.get_name()
+                ),
                 sudo_prefix,
                 "ls -1",
                 all_frag,
