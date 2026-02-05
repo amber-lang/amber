@@ -17,6 +17,7 @@ mod stdlib;
 mod validity;
 mod erroring;
 mod warning;
+mod testing;
 mod test_mode;
 
 #[macro_export]
