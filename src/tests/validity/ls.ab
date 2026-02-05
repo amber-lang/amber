@@ -2,8 +2,8 @@ import * from "std/fs"
 import { array_contains } from "std/array"
 
 // Output
-// .b
 // a
+// .b
 // c
 // a
 // c
