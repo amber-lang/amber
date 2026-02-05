@@ -1,10 +1,10 @@
 use crate::fragments;
-use crate::raw_fragment;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::raw_fragment;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -52,7 +52,7 @@ impl TypeCheckModule for LinesInvocation {
             }
             Ok(())
         } else {
-          unreachable!()
+            unreachable!()
         }
     }
 }
@@ -66,7 +66,9 @@ impl TranslateModule for LinesInvocation {
             .expect("Cannot read lines without provided path");
         let indent = TranslateMetadata::single_indent();
         let id = meta.gen_value_id();
-        let var_stmt = VarStmtFragment::new("__array", Type::array_of(Type::Text), FragmentKind::Empty).with_global_id(id);
+        let var_stmt =
+            VarStmtFragment::new("__array", Type::array_of(Type::Text), FragmentKind::Empty)
+                .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
         meta.stmt_queue.extend([
             raw_fragment!("while IFS= read -r {temp}; do"),

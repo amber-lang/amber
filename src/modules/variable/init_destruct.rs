@@ -8,7 +8,7 @@ use crate::modules::types::{Type, Typed};
 use crate::modules::variable::get_default_value_fragment;
 use crate::raw_fragment;
 use crate::translate::fragments::var_expr::VarIndexValue;
-use crate::utils::cc_flags::{CCFlags, get_ccflag_by_name, get_ccflag_name};
+use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 
@@ -42,7 +42,8 @@ impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
-            self.flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+            self.flags
+                .insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
 
         if token(meta, "pub").is_ok() {

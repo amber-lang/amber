@@ -1,13 +1,13 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
-use crate::utils::{ParserMetadata, TranslateMetadata};
 use super::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
 use crate::modules::variable::get_default_value_fragment;
-use crate::modules::types::{Typed, Type};
-use crate::translate::fragments::var_expr::VarIndexValue;
 use crate::raw_fragment;
+use crate::translate::fragments::var_expr::VarIndexValue;
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VariableSetDestruct {
@@ -55,7 +55,7 @@ impl SyntaxModule<ParserMetadata> for VariableSetDestruct {
 impl TypeCheckModule for VariableSetDestruct {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
-        
+
         // Ensure the expression is an array of known type
         let inner_expr_type = match self.expr.get_type() {
             Type::Array(inner) if *inner == Type::Generic => {
@@ -64,11 +64,18 @@ impl TypeCheckModule for VariableSetDestruct {
                     message: "Cannot destructure array because its concrete type is unknown",
                     comment: "Please add an explicit type annotation to this array value before destructuring"
                 });
-            },
+            }
             Type::Array(inner) => *inner,
             _ => {
                 let pos = self.expr.get_position();
-                return error_pos!(meta, pos, format!("Destructuring assignment requires an array type, but received '{}'", self.expr.get_type()));
+                return error_pos!(
+                    meta,
+                    pos,
+                    format!(
+                        "Destructuring assignment requires an array type, but received '{}'",
+                        self.expr.get_type()
+                    )
+                );
             }
         };
 
@@ -77,7 +84,7 @@ impl TypeCheckModule for VariableSetDestruct {
             self.global_ids.push(variable.global_id);
             self.is_refs.push(variable.is_ref);
             self.var_types.push(variable.kind.clone());
-            
+
             prevent_constant_mutation(meta, tok, name, variable.is_const)?;
             meta.mark_var_modified(name);
 
@@ -91,10 +98,21 @@ impl TypeCheckModule for VariableSetDestruct {
                         *last = Type::array_of(inner_expr_type.clone());
                     }
                 } else if !inner_expr_type.is_allowed_in(kind) {
-                     return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to an array of '{kind}'"));
+                    return error!(
+            meta,
+            tok.clone(),
+            format!("Cannot assign value of type '{inner_expr_type}' to an array of '{kind}'")
+          );
                 }
             } else if !inner_expr_type.is_allowed_in(&variable.kind) {
-                return error!(meta, tok.clone(), format!("Cannot assign value of type '{inner_expr_type}' to a variable of type '{}'", variable.kind));
+                return error!(
+                    meta,
+                    tok.clone(),
+                    format!(
+            "Cannot assign value of type '{inner_expr_type}' to a variable of type '{}'",
+            variable.kind
+          )
+                );
             }
         }
 
@@ -116,11 +134,11 @@ impl TranslateModule for VariableSetDestruct {
 
         let inner_type = match self.expr.get_type() {
             Type::Array(t) => *t,
-            _ => unreachable!("Type of expression is not an array in set destructuring"), 
+            _ => unreachable!("Type of expression is not an array in set destructuring"),
         };
 
         for (i, name) in self.names.iter().enumerate() {
-             let assign_expr = VarExprFragment::from_stmt(&assign_temp)
+            let assign_expr = VarExprFragment::from_stmt(&assign_temp)
                 .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
                 .with_default_value(get_default_value_fragment(&inner_type))
                 .to_frag();
@@ -129,7 +147,7 @@ impl TranslateModule for VariableSetDestruct {
                 .with_global_id(self.global_ids[i])
                 .with_ref(self.is_refs[i])
                 .to_frag();
-                
+
             fragments.push(assign_var);
         }
 

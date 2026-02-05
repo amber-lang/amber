@@ -1,12 +1,12 @@
-use heraclitus_compiler::prelude::*;
-use heraclitus_compiler::compiling::failing::position_info::PositionInfo;
-use crate::{fragments, raw_fragment};
-use crate::modules::prelude::*;
 use crate::modules::block::Block;
+use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
+use crate::{fragments, raw_fragment};
+use heraclitus_compiler::compiling::failing::position_info::PositionInfo;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum FailureType {
@@ -36,7 +36,7 @@ pub struct FailureHandler {
     block: Box<Block>,
     param_name: String,
     param_name_tok: Option<Token>,
-    param_global_id: Option<usize>
+    param_global_id: Option<usize>,
 }
 
 impl FailureHandler {
@@ -63,7 +63,7 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
             block: Box::new(Block::new().with_needs_noop().with_condition()),
             param_name: String::new(),
             param_name_tok: None,
-            param_global_id: None
+            param_global_id: None,
         }
     }
 
@@ -73,14 +73,20 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
         // Check for ? operator first
         if token(meta, "?").is_ok() {
             if !meta.context.is_fun_ctx && !meta.context.is_main_ctx {
-                return error!(meta, tok, "The '?' operator can only be used in the main block or inside a function body")
+                return error!(
+                    meta,
+                    tok,
+                    "The '?' operator can only be used in the main block or inside a function body"
+                );
             }
             self.is_question_mark = true;
             self.failure_type = FailureType::Failed;
         } else {
-            let keyword = ["failed", "succeeded", "exited"].iter().fold(None, |acc, keyword| {
-                acc.or_else(|| token(meta, keyword).ok().map(|_| *keyword))
-            });
+            let keyword = ["failed", "succeeded", "exited"]
+                .iter()
+                .fold(None, |acc, keyword| {
+                    acc.or_else(|| token(meta, keyword).ok().map(|_| *keyword))
+                });
 
             match keyword {
                 Some("failed") => {
@@ -88,73 +94,83 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
 
                     // Check if there's a parameter in parentheses (only for failed)
                     if token(meta, "(").is_ok() {
-                        context!({
-                            let param_tok = meta.get_current_token();
+                        context!(
+                            {
+                                let param_tok = meta.get_current_token();
 
-                            // Check if we immediately hit a closing paren (empty parameter)
-                            if token(meta, ")").is_ok() {
-                                let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
-                                return error_pos!(meta, pos, "Parameter name cannot be empty");
-                            }
+                                // Check if we immediately hit a closing paren (empty parameter)
+                                if token(meta, ")").is_ok() {
+                                    let pos = PositionInfo::from_between_tokens(
+                                        meta,
+                                        param_tok,
+                                        meta.get_current_token(),
+                                    );
+                                    return error_pos!(meta, pos, "Parameter name cannot be empty");
+                                }
 
-                            self.param_name_tok = meta.get_current_token();
-                            self.param_name = variable(meta, variable_name_extensions())?;
-                            token(meta, ")")?;
+                                self.param_name_tok = meta.get_current_token();
+                                self.param_name = variable(meta, variable_name_extensions())?;
+                                token(meta, ")")?;
 
-                            // Parse the block (scope and variable will be added in typecheck)
-                            syntax(meta, &mut *self.block)?;
-                            Ok(())
-                        }, |pos| {
-                            error_pos!(meta, pos, "Failed to parse failed block")
-                        })?;
+                                // Parse the block (scope and variable will be added in typecheck)
+                                syntax(meta, &mut *self.block)?;
+                                Ok(())
+                            },
+                            |pos| { error_pos!(meta, pos, "Failed to parse failed block") }
+                        )?;
                     } else {
                         // No parameter, parse block normally
                         syntax(meta, &mut *self.block)?;
                     }
-                },
+                }
                 Some("succeeded") => {
                     self.failure_type = FailureType::Succeeded;
                     syntax(meta, &mut *self.block)?;
-                },
+                }
                 Some("exited") => {
                     self.failure_type = FailureType::Exited;
 
                     // Check if there's a parameter in parentheses (optional for exited)
                     if token(meta, "(").is_ok() {
-                        context!({
-                            let param_tok = meta.get_current_token();
+                        context!(
+                            {
+                                let param_tok = meta.get_current_token();
 
-                            // Check if we immediately hit a closing paren (empty parameter)
-                            if token(meta, ")").is_ok() {
-                                let pos = PositionInfo::from_between_tokens(meta, param_tok, meta.get_current_token());
-                                return error_pos!(meta, pos, "Parameter name cannot be empty");
-                            }
+                                // Check if we immediately hit a closing paren (empty parameter)
+                                if token(meta, ")").is_ok() {
+                                    let pos = PositionInfo::from_between_tokens(
+                                        meta,
+                                        param_tok,
+                                        meta.get_current_token(),
+                                    );
+                                    return error_pos!(meta, pos, "Parameter name cannot be empty");
+                                }
 
-                            self.param_name_tok = meta.get_current_token();
-                            self.param_name = variable(meta, variable_name_extensions())?;
-                            token(meta, ")")?;
+                                self.param_name_tok = meta.get_current_token();
+                                self.param_name = variable(meta, variable_name_extensions())?;
+                                token(meta, ")")?;
 
-                            // Parse the block (scope and variable will be added in typecheck)
-                            syntax(meta, &mut *self.block)?;
-                            Ok(())
-                        }, |pos| {
-                            error_pos!(meta, pos, "Failed to parse exited block")
-                        })?;
+                                // Parse the block (scope and variable will be added in typecheck)
+                                syntax(meta, &mut *self.block)?;
+                                Ok(())
+                            },
+                            |pos| { error_pos!(meta, pos, "Failed to parse exited block") }
+                        )?;
                     } else {
                         // No parameter, parse block normally
                         syntax(meta, &mut *self.block)?;
                     }
-                },
+                }
                 Some(keyword) => {
                     unimplemented!("Keyword '{keyword}' is not yet implemented")
-                },
+                }
                 None => {
                     if meta.context.is_trust_ctx {
                         self.is_main = meta.context.is_main_ctx;
                         self.is_parsed = true;
                         return Ok(());
                     } else {
-                        return Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
+                        return Err(Failure::Quiet(PositionInfo::from_metadata(meta)));
                     }
                 }
             }
@@ -163,13 +179,17 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
             if self.block.is_empty() {
                 let message = Message::new_warn_at_token(meta, meta.get_current_token())
                     .message(format!("Empty {} block", self.failure_type.to_string()))
-                    .comment("You should use 'trust' modifier to run commands without handling errors");
+                    .comment(
+                        "You should use 'trust' modifier to run commands without handling errors",
+                    );
                 meta.add_message(message);
             }
 
             if let Some(keyword) = keyword {
                 let next_tok = meta.get_current_token();
-                let next_word = token_by(meta, |word| ["failed", "succeeded", "exited"].contains(&word.as_str()));
+                let next_word = token_by(meta, |word| {
+                    ["failed", "succeeded", "exited"].contains(&word.as_str())
+                });
                 if let Ok(word) = next_word {
                     return error!(meta, next_tok => {
                         message: format!("Cannot use both '{keyword}' and '{word}' blocks for the same command"),
@@ -188,10 +208,14 @@ impl SyntaxModule<ParserMetadata> for FailureHandler {
 impl TypeCheckModule for FailureHandler {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // If we have a parameter (exit code for failed or exited), add it to scope and typecheck the block
-        if !self.param_name.is_empty() && (self.failure_type == FailureType::Failed || self.failure_type == FailureType::Exited) {
+        if !self.param_name.is_empty()
+            && (self.failure_type == FailureType::Failed
+                || self.failure_type == FailureType::Exited)
+        {
             meta.with_push_scope(true, |meta| {
-                let var = VariableDecl::new(self.param_name.clone(), Type::Int)
-                    .with_warn(VariableDeclWarn::from_token(meta, self.param_name_tok.clone()));
+                let var = VariableDecl::new(self.param_name.clone(), Type::Int).with_warn(
+                    VariableDeclWarn::from_token(meta, self.param_name_tok.clone()),
+                );
                 self.param_global_id = meta.add_var(var);
                 self.block.typecheck(meta)
             })
@@ -218,82 +242,119 @@ impl TranslateModule for FailureHandler {
         if self.is_question_mark {
             // Set default return value if failure happened in a function
             let clear_return = if !self.is_main {
-                let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-                let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
-                    .with_optimization_when_unused(false);
+                let fun_meta = meta
+                    .fun_meta
+                    .as_ref()
+                    .expect("Function name and return type not set");
+                let stmt = VarStmtFragment::new(
+                    &fun_meta.mangled_name(),
+                    fun_meta.get_type(),
+                    fun_meta.default_return(),
+                )
+                .with_optimization_when_unused(false);
                 stmt.to_frag()
             } else {
                 FragmentKind::Empty
             };
             let ret = if self.is_main { "exit" } else { "return" };
-            let ret = fragments!(raw_fragment!("{ret} "), status_variable_expr.clone().to_frag());
-            return BlockFragment::new(vec![
-                status_variable_stmt.to_frag(),
-                fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
-                BlockFragment::new(vec![
-                    clear_return,
-                    ret,
-                ], true).to_frag(),
-                fragments!("fi"),
-            ], false).to_frag();
+            let ret = fragments!(
+                raw_fragment!("{ret} "),
+                status_variable_expr.clone().to_frag()
+            );
+            return BlockFragment::new(
+                vec![
+                    status_variable_stmt.to_frag(),
+                    fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
+                    BlockFragment::new(vec![clear_return, ret], true).to_frag(),
+                    fragments!("fi"),
+                ],
+                false,
+            )
+            .to_frag();
         }
 
         match &block {
-            FragmentKind::Empty => {
-                status_variable_stmt.to_frag()
-            },
+            FragmentKind::Empty => status_variable_stmt.to_frag(),
             FragmentKind::Block(block) if block.statements.is_empty() => {
                 status_variable_stmt.to_frag()
-            },
+            }
             _ => {
                 match self.failure_type {
                     FailureType::Failed => {
                         // If a parameter name is provided, assign the status to it
                         if !self.param_name.is_empty() {
-                            let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, status_variable_expr.clone().to_frag())
-                                .with_global_id(self.param_global_id);
+                            let param_assignment = VarStmtFragment::new(
+                                &self.param_name,
+                                Type::Int,
+                                status_variable_expr.clone().to_frag(),
+                            )
+                            .with_global_id(self.param_global_id);
 
-                            BlockFragment::new(vec![
-                                status_variable_stmt.to_frag(),
-                                fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
-                                param_assignment.to_frag(),
-                                block,
-                                fragments!("fi"),
-                            ], false).to_frag()
+                            BlockFragment::new(
+                                vec![
+                                    status_variable_stmt.to_frag(),
+                                    fragments!(
+                                        "if [ ",
+                                        status_variable_expr.to_frag(),
+                                        " != 0 ]; then"
+                                    ),
+                                    param_assignment.to_frag(),
+                                    block,
+                                    fragments!("fi"),
+                                ],
+                                false,
+                            )
+                            .to_frag()
                         } else {
-                            BlockFragment::new(vec![
-                                status_variable_stmt.to_frag(),
-                                fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
-                                block,
-                                fragments!("fi"),
-                            ], false).to_frag()
+                            BlockFragment::new(
+                                vec![
+                                    status_variable_stmt.to_frag(),
+                                    fragments!(
+                                        "if [ ",
+                                        status_variable_expr.to_frag(),
+                                        " != 0 ]; then"
+                                    ),
+                                    block,
+                                    fragments!("fi"),
+                                ],
+                                false,
+                            )
+                            .to_frag()
                         }
-                    },
-                    FailureType::Succeeded => {
-                        BlockFragment::new(vec![
+                    }
+                    FailureType::Succeeded => BlockFragment::new(
+                        vec![
                             status_variable_stmt.to_frag(),
                             fragments!("if [ ", status_variable_expr.to_frag(), " = 0 ]; then"),
                             block,
                             fragments!("fi"),
-                        ], false).to_frag()
-                    },
+                        ],
+                        false,
+                    )
+                    .to_frag(),
                     FailureType::Exited => {
                         // Exited always runs, regardless of exit code
                         // If a parameter name is provided, assign the status to it
                         if !self.param_name.is_empty() {
-                            let param_assignment = VarStmtFragment::new(&self.param_name, Type::Int, status_variable_expr.clone().to_frag())
-                                .with_global_id(self.param_global_id);
+                            let param_assignment = VarStmtFragment::new(
+                                &self.param_name,
+                                Type::Int,
+                                status_variable_expr.clone().to_frag(),
+                            )
+                            .with_global_id(self.param_global_id);
 
-                            BlockFragment::new(vec![
-                                status_variable_stmt.to_frag(),
-                                param_assignment.to_frag(),
-                                block,
-                            ], false).to_frag()
+                            BlockFragment::new(
+                                vec![
+                                    status_variable_stmt.to_frag(),
+                                    param_assignment.to_frag(),
+                                    block,
+                                ],
+                                false,
+                            )
+                            .to_frag()
                         } else {
-                            BlockFragment::new(vec![
-                                status_variable_stmt.to_frag(),
-                                block,
-                            ], false).to_frag()
+                            BlockFragment::new(vec![status_variable_stmt.to_frag(), block], false)
+                                .to_frag()
                         }
                     }
                 }

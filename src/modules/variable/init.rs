@@ -5,7 +5,7 @@ use super::{handle_identifier_name, variable_name_extensions};
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::Typed;
-use crate::utils::cc_flags::{CCFlags, get_ccflag_by_name, get_ccflag_name};
+use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 
@@ -39,7 +39,8 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
-            self.flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+            self.flags
+                .insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
 
         if token(meta, "pub").is_ok() {

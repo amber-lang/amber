@@ -1,8 +1,8 @@
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Cd {

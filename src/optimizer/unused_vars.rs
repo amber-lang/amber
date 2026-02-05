@@ -1,5 +1,5 @@
-use std::collections::{HashMap, HashSet, VecDeque};
 use amber_meta::ContextManager;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::modules::prelude::*;
 use crate::translate::fragments::var_expr::VarIndexValue;
@@ -36,19 +36,24 @@ pub struct UnusedVariablesMetadata {
 impl UnusedVariablesMetadata {
     pub fn is_var_used(&mut self, name: VarStmtName) -> bool {
         if self.used_variables.contains(&name) {
-          return true
+            return true;
         }
         let mut transitive_variables = HashMap::from([(name.clone(), vec![0_usize])]);
         let mut cond_block_scope: usize = 0;
         for symbol_type in self.symbols.iter() {
             match symbol_type {
-                SymbolType::Expression(var_expr) => if transitive_variables.contains_key(var_expr) {
-                    self.used_variables.extend(transitive_variables.keys().cloned());
-                    return true;
+                SymbolType::Expression(var_expr) => {
+                    if transitive_variables.contains_key(var_expr) {
+                        self.used_variables
+                            .extend(transitive_variables.keys().cloned());
+                        return true;
+                    }
                 }
                 SymbolType::Statement(var_stmt, dependencies) => {
                     // Case when the same variable is self declared (`a=$a`)
-                    if transitive_variables.contains_key(var_stmt) && dependencies.contains(var_stmt) {
+                    if transitive_variables.contains_key(var_stmt)
+                        && dependencies.contains(var_stmt)
+                    {
                         continue;
                     }
                     // Variable statement is being reassigned with some unknown value
@@ -56,22 +61,27 @@ impl UnusedVariablesMetadata {
                         scopes.retain(|&scope| scope != cond_block_scope);
                     }
                     // If dependencies are used by this variable then this variable is also used
-                    if dependencies.iter().any(|dep| transitive_variables.contains_key(dep)) {
-                        transitive_variables.entry(var_stmt.clone())
+                    if dependencies
+                        .iter()
+                        .any(|dep| transitive_variables.contains_key(dep))
+                    {
+                        transitive_variables
+                            .entry(var_stmt.clone())
                             .or_insert(Vec::new())
                             .push(cond_block_scope);
 
                         if self.used_variables.contains(var_stmt) {
-                            self.used_variables.extend(transitive_variables.keys().cloned());
+                            self.used_variables
+                                .extend(transitive_variables.keys().cloned());
                             return true;
                         }
                     }
                     // Remove relations to variables that arent used
                     transitive_variables.retain(|_key, field| !field.is_empty());
-                },
+                }
                 SymbolType::ConditionalBlock(CondBlockBehavior::Begin) => {
                     cond_block_scope += 1;
-                },
+                }
                 SymbolType::ConditionalBlock(CondBlockBehavior::End) => {
                     cond_block_scope = cond_block_scope.saturating_sub(1);
                 }
@@ -137,13 +147,15 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
     match ast {
         FragmentKind::Block(block) => {
             if block.is_conditional {
-                meta.symbols.push_back(SymbolType::ConditionalBlock(CondBlockBehavior::Begin));
+                meta.symbols
+                    .push_back(SymbolType::ConditionalBlock(CondBlockBehavior::Begin));
             }
             for statement in block.statements.iter() {
                 find_unused_variables(statement, meta);
             }
             if block.is_conditional {
-                meta.symbols.push_back(SymbolType::ConditionalBlock(CondBlockBehavior::End));
+                meta.symbols
+                    .push_back(SymbolType::ConditionalBlock(CondBlockBehavior::End));
             }
         }
         FragmentKind::List(list) => {
@@ -169,23 +181,24 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                 meta.with_is_var_rhs_ctx(true, |meta| -> Result<(), ()> {
                     find_unused_variables(&var_stmt.value, meta);
                     Ok(())
-                }).unwrap();
+                })
+                .unwrap();
                 let dependencies = meta.dependent_variables.drain(..).collect();
-                meta.symbols.push_back(SymbolType::Statement(var_stmt.get_name(), dependencies));
+                meta.symbols
+                    .push_back(SymbolType::Statement(var_stmt.get_name(), dependencies));
             } else {
                 find_unused_variables(&var_stmt.value, meta);
                 if let Some(index) = &var_stmt.index {
                     find_unused_variables(index, meta);
                 }
-
             }
-
         }
         FragmentKind::VarExpr(var_expr) => {
             if meta.is_var_rhs_ctx {
                 meta.dependent_variables.push(var_expr.get_name());
             } else {
-                meta.symbols.push_back(SymbolType::Expression(var_expr.get_name()));
+                meta.symbols
+                    .push_back(SymbolType::Expression(var_expr.get_name()));
             }
             if let Some(index) = &var_expr.index {
                 match index.as_ref() {

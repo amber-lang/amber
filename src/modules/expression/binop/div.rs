@@ -1,9 +1,9 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::ArithOp;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
 use crate::translate::compute::translate_float_computation;
-use crate::modules::types::{Typed, Type};
+use crate::translate::compute::ArithOp;
+use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
 
@@ -11,7 +11,7 @@ use super::BinOp;
 pub struct Div {
     left: Box<Expr>,
     right: Box<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Div {
@@ -42,7 +42,7 @@ impl SyntaxModule<ParserMetadata> for Div {
         Div {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
-            kind: Type::Generic
+            kind: Type::Generic,
         }
     }
 
@@ -55,10 +55,13 @@ impl TypeCheckModule for Div {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        self.kind = Self::typecheck_allowed_types(meta, "division", &mut self.left, &mut self.right, &[
-            Type::Num,
-            Type::Int,
-        ])?;
+        self.kind = Self::typecheck_allowed_types(
+            meta,
+            "division",
+            &mut self.left,
+            &mut self.right,
+            &[Type::Num, Type::Int],
+        )?;
         Ok(())
     }
 }

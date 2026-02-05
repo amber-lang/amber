@@ -1,3 +1,4 @@
+use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
@@ -5,7 +6,6 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
-use crate::modules::command::modifier::CommandModifier;
 
 #[derive(Debug, Clone)]
 pub struct Ls {
@@ -84,44 +84,44 @@ impl SyntaxModule<ParserMetadata> for Ls {
 impl TypeCheckModule for Ls {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.modifier.use_modifiers(meta, |_, meta| {
-            if let Some(path) = &mut *self.value {
-                path.typecheck(meta)?;
-                let path_type = path.get_type();
-                if path_type != Type::Text {
-                    let position = path.get_position();
-                    return error_pos!(meta,  position => {
-                        message: "Builtin function `ls` can only be used with 1st argument of type Text",
-                        comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                    });
-                }
-            }
-            if let Some(all) = &mut *self.all {
-                all.typecheck(meta)?;
-                let options_type = all.get_type();
-                if options_type != Type::Bool {
-                    let position = all.get_position();
-                    return error_pos!(meta, position => {
-                        message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
-                        comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
-                    });
-                }
-            }
+      if let Some(path) = &mut *self.value {
+        path.typecheck(meta)?;
+        let path_type = path.get_type();
+        if path_type != Type::Text {
+          let position = path.get_position();
+          return error_pos!(meta,  position => {
+              message: "Builtin function `ls` can only be used with 1st argument of type Text",
+              comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+          });
+        }
+      }
+      if let Some(all) = &mut *self.all {
+        all.typecheck(meta)?;
+        let options_type = all.get_type();
+        if options_type != Type::Bool {
+          let position = all.get_position();
+          return error_pos!(meta, position => {
+              message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
+              comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
+          });
+        }
+      }
 
-            if let Some(recursive) = &mut *self.recursive {
-                recursive.typecheck(meta)?;
-                let recursive_type = recursive.get_type();
-                if recursive_type != Type::Bool {
-                    let position = recursive.get_position();
-                    return error_pos!(meta, position => {
-                        message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
-                        comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
-                    });
-                }
-            }
+      if let Some(recursive) = &mut *self.recursive {
+        recursive.typecheck(meta)?;
+        let recursive_type = recursive.get_type();
+        if recursive_type != Type::Bool {
+          let position = recursive.get_position();
+          return error_pos!(meta, position => {
+              message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
+              comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
+          });
+        }
+      }
 
-            self.failure_handler.typecheck(meta)?;
-            Ok(())
-        })
+      self.failure_handler.typecheck(meta)?;
+      Ok(())
+    })
     }
 }
 
@@ -135,13 +135,14 @@ impl TranslateModule for Ls {
         };
 
         // Escape backslashes in path for pathname expansion while preserving glob characters.
-        let path_var_stmt = VarStmtFragment::new("__ls_path", Type::Text, path_fragment)
-            .with_global_id(id);
+        let path_var_stmt =
+            VarStmtFragment::new("__ls_path", Type::Text, path_fragment).with_global_id(id);
         let path_expr = meta.push_ephemeral_variable(path_var_stmt);
         // Escape backslashes
         meta.stmt_queue.push_back(raw_fragment!(
             "{}=\"${{{}//\\\\/\\\\\\\\}}\"",
-            path_expr.get_name(), path_expr.get_name()
+            path_expr.get_name(),
+            path_expr.get_name()
         ));
 
         // Only create variables for all/recursive when expressions are provided
@@ -166,7 +167,11 @@ impl TranslateModule for Ls {
                 "(( ",
                 recursive_translate,
                 " )) && ",
-                raw_fragment!("{}=\"-R\" || {}=\"\"", recursive_var_name, recursive_var_name)
+                raw_fragment!(
+                    "{}=\"-R\" || {}=\"\"",
+                    recursive_var_name,
+                    recursive_var_name
+                )
             ));
             raw_fragment!(" ${{{}}}", recursive_var_name)
         } else {
@@ -180,12 +185,16 @@ impl TranslateModule for Ls {
             meta.gen_sudo_prefix().to_frag()
         });
 
-        let var_stmt = VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
-            .with_global_id(id);
+        let var_stmt =
+            VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
+                .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
         meta.stmt_queue.extend([
             fragments!(
-                raw_fragment!("IFS=$'\\n' read -rd '' -a {} < <(IFS=$'\\n';", var_expr.get_name()),
+                raw_fragment!(
+                    "IFS=$'\\n' read -rd '' -a {} < <(IFS=$'\\n';",
+                    var_expr.get_name()
+                ),
                 sudo_prefix,
                 "ls -1",
                 all_frag,
