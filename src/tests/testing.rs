@@ -133,4 +133,20 @@ mod test {
 
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_handle_test_with_get_tests_error() {
+        let test_dir = PathBuf::from("/non/existent/directory/abc123");
+
+        let command = TestCommand {
+            input: test_dir.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
 }
