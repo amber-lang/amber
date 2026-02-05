@@ -12,7 +12,6 @@ coverage:
         target: 80%
 
 ignore:
-  - "**/tests/**"
   - "**/test_*.rs"
   - "**/build.rs"
 
