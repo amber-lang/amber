@@ -1,11 +1,11 @@
 #![cfg(test)]
 extern crate test_generator;
 use super::test_amber;
+use super::TestOutcomeTarget;
 use crate::tests::compile_code;
 use std::fs;
 use std::process::{Command, Stdio};
 use std::time::Duration;
-use super::TestOutcomeTarget;
 
 fn http_server() {
     use tiny_http::{Response, Server};

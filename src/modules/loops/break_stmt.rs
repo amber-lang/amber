@@ -1,22 +1,20 @@
-use heraclitus_compiler::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::fragments;
+use crate::modules::prelude::*;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::prelude::*;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Break {
-  tok: Option<Token>
+    tok: Option<Token>,
 }
 
 impl SyntaxModule<ParserMetadata> for Break {
     syntax_name!("Break");
 
     fn new() -> Self {
-        Break {
-          tok: None
-        }
+        Break { tok: None }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -27,13 +25,17 @@ impl SyntaxModule<ParserMetadata> for Break {
 }
 
 impl TypeCheckModule for Break {
-  fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-    // Detect if the break statement is inside a loop
-    if !meta.context.is_loop_ctx {
-        return error!(meta, self.tok.clone(), "Break statement can only be used inside a loop")
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // Detect if the break statement is inside a loop
+        if !meta.context.is_loop_ctx {
+            return error!(
+                meta,
+                self.tok.clone(),
+                "Break statement can only be used inside a loop"
+            );
+        }
+        Ok(())
     }
-    Ok(())
-  }
 }
 
 impl TranslateModule for Break {

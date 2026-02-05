@@ -1,9 +1,9 @@
 use heraclitus_compiler::prelude::*;
 
+use super::{handle_identifier_name, variable_name_extensions};
+use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::Typed;
-use crate::modules::expression::expr::Expr;
-use super::{variable_name_extensions, handle_identifier_name};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 
@@ -37,7 +37,11 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
         self.tok = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         if let Err(err) = token(meta, "=") {
-            return error_pos!(meta, err.unwrap_quiet(), format!("Expected '=' after variable name '{}'", self.name))
+            return error_pos!(
+                meta,
+                err.unwrap_quiet(),
+                format!("Expected '=' after variable name '{}'", self.name)
+            );
         }
         syntax(meta, &mut *self.expr)?;
         self.is_fun_ctx = meta.context.is_fun_ctx;
@@ -50,9 +54,11 @@ impl TypeCheckModule for VariableInit {
         self.expr.typecheck(meta)?;
         handle_identifier_name(meta, &self.name, self.tok.clone())?;
         let var = VariableDecl::new(self.name.clone(), self.expr.get_type())
-            .with_warn(VariableDeclWarn::from_token(meta, self.tok.clone())
-                .warn_when_unmodified(!self.is_const && !meta.is_global_scope())
-                .warn_when_unused(!meta.is_global_scope()))
+            .with_warn(
+                VariableDeclWarn::from_token(meta, self.tok.clone())
+                    .warn_when_unmodified(!self.is_const && !meta.is_global_scope())
+                    .warn_when_unused(!meta.is_global_scope()),
+            )
             .with_const(self.is_const);
         self.global_id = meta.add_var(var);
         Ok(())

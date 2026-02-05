@@ -1,8 +1,8 @@
-use heraclitus_compiler::prelude::*;
 use crate::fragments;
+use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::utils::context::Context;
-use crate::modules::block::Block;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct InfiniteLoop {
@@ -29,7 +29,7 @@ impl TypeCheckModule for InfiniteLoop {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Save loop context state and set it to true
         meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
-          self.block.typecheck(meta)
+            self.block.typecheck(meta)
         })?;
         Ok(())
     }
@@ -37,12 +37,16 @@ impl TypeCheckModule for InfiniteLoop {
 
 impl TranslateModule for InfiniteLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        BlockFragment::new(vec![
-            fragments!("while :"),
-            fragments!("do"),
-            self.block.translate(meta),
-            fragments!("done")
-        ], false).to_frag()
+        BlockFragment::new(
+            vec![
+                fragments!("while :"),
+                fragments!("do"),
+                self.block.translate(meta),
+                fragments!("done"),
+            ],
+            false,
+        )
+        .to_frag()
     }
 }
 

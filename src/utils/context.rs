@@ -1,7 +1,7 @@
 use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
-use crate::{modules::expression::expr::Expr, utils::ParserMetadata};
 use crate::modules::function::declaration::FunctionDeclarationArgument;
 use crate::modules::types::Type;
+use crate::{modules::expression::expr::Expr, utils::ParserMetadata};
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -49,7 +49,6 @@ impl FunctionDecl {
         }
     }
 }
-
 
 // Rule set for variable warnings
 // Unused variable warning is enabled by default

@@ -1,6 +1,6 @@
-use heraclitus_compiler::prelude::*;
-use crate::utils::metadata::ParserMetadata;
 use crate::modules::expression::expr::Expr;
+use crate::utils::metadata::ParserMetadata;
+use heraclitus_compiler::prelude::*;
 
 /// Represents a literal text or a command.
 #[derive(Debug, Clone, PartialEq)]
@@ -13,7 +13,7 @@ impl InterpolatedRegionType {
     pub fn to_char(&self) -> char {
         match self {
             InterpolatedRegionType::Text => '"',
-            InterpolatedRegionType::Command => '$'
+            InterpolatedRegionType::Command => '$',
         }
     }
 }
@@ -80,25 +80,35 @@ fn parse_escaped_string(string: String, region_type: &InterpolatedRegionType) ->
     result
 }
 
-pub fn parse_interpolated_region(meta: &mut ParserMetadata, interpolated_type: &InterpolatedRegionType) -> Result<(Vec<String>, Vec<Expr>), Failure> {
+pub fn parse_interpolated_region(
+    meta: &mut ParserMetadata,
+    interpolated_type: &InterpolatedRegionType,
+) -> Result<(Vec<String>, Vec<Expr>), Failure> {
     let mut strings = vec![];
     let mut interps = vec![];
     let letter = interpolated_type.to_char();
     // Handle full string
     if let Ok(word) = token_by(meta, |word| {
         word.starts_with(letter)
-        && word.ends_with(letter)
-        && word.len() > 1
-        && !is_escaped(word, letter)
+            && word.ends_with(letter)
+            && word.len() > 1
+            && !is_escaped(word, letter)
     }) {
-        let stripped = word.chars().take(word.chars().count() - 1).skip(1).collect::<String>();
+        let stripped = word
+            .chars()
+            .take(word.chars().count() - 1)
+            .skip(1)
+            .collect::<String>();
         strings.push(parse_escaped_string(stripped, interpolated_type));
         Ok((strings, interps))
     } else {
         let mut is_interp = false;
         // Initialize string
         let start = token_by(meta, |word| word.starts_with(letter))?;
-        strings.push(parse_escaped_string(start.chars().skip(1).collect::<String>(), interpolated_type));
+        strings.push(parse_escaped_string(
+            start.chars().skip(1).collect::<String>(),
+            interpolated_type,
+        ));
         // Factor rest of the interpolation
         while let Some(tok) = meta.get_current_token() {
             // Track interpolations
@@ -106,22 +116,32 @@ pub fn parse_interpolated_region(meta: &mut ParserMetadata, interpolated_type: &
                 "{" => is_interp = true,
                 "}" => is_interp = false,
                 // Manage inserting strings and intrpolations
-                _ => if is_interp {
-                    let mut expr = Expr::new();
-                    syntax(meta, &mut expr)?;
-                    interps.push(expr);
-                    meta.offset_index(-1);
-                }
-                else {
-                    strings.push(parse_escaped_string(tok.word.clone(), interpolated_type));
-                    if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
-                        meta.increment_index();
-                        // Right trim the symbol
-                        let trimmed = strings.last().unwrap()
-                            .chars().take(parse_escaped_string(tok.word, interpolated_type).chars().count() - 1).collect::<String>();
-                        // replace the last string
-                        *strings.last_mut().unwrap() = trimmed;
-                        return Ok((strings, interps))
+                _ => {
+                    if is_interp {
+                        let mut expr = Expr::new();
+                        syntax(meta, &mut expr)?;
+                        interps.push(expr);
+                        meta.offset_index(-1);
+                    } else {
+                        strings.push(parse_escaped_string(tok.word.clone(), interpolated_type));
+                        if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
+                            meta.increment_index();
+                            // Right trim the symbol
+                            let trimmed = strings
+                                .last()
+                                .unwrap()
+                                .chars()
+                                .take(
+                                    parse_escaped_string(tok.word, interpolated_type)
+                                        .chars()
+                                        .count()
+                                        - 1,
+                                )
+                                .collect::<String>();
+                            // replace the last string
+                            *strings.last_mut().unwrap() = trimmed;
+                            return Ok((strings, interps));
+                        }
                     }
                 }
             }
@@ -141,37 +161,97 @@ mod tests {
         let command_type = InterpolatedRegionType::Command;
 
         // Test text parsing
-        assert_eq!(parse_escaped_string("hello".to_string(), &text_type), "hello");
+        assert_eq!(
+            parse_escaped_string("hello".to_string(), &text_type),
+            "hello"
+        );
         assert_eq!(parse_escaped_string("\n".to_string(), &text_type), "\n");
         assert_eq!(parse_escaped_string("\t".to_string(), &text_type), "\t");
         assert_eq!(parse_escaped_string("\r".to_string(), &text_type), "\r");
         assert_eq!(parse_escaped_string("\0".to_string(), &text_type), "\0");
-        assert_eq!(parse_escaped_string(r#"\\"#.to_string(), &text_type), r#"\"#);
+        assert_eq!(
+            parse_escaped_string(r#"\\"#.to_string(), &text_type),
+            r#"\"#
+        );
         assert_eq!(parse_escaped_string(r#"'"#.to_string(), &text_type), r#"'"#);
-        assert_eq!(parse_escaped_string(r#"\""#.to_string(), &text_type), r#"""#);
+        assert_eq!(
+            parse_escaped_string(r#"\""#.to_string(), &text_type),
+            r#"""#
+        );
         assert_eq!(parse_escaped_string(r#"$"#.to_string(), &text_type), r#"$"#);
-        assert_eq!(parse_escaped_string(r#"\\$"#.to_string(), &text_type), r#"\$"#);
-        assert_eq!(parse_escaped_string(r#"\{"#.to_string(), &text_type), r#"{"#);
-        assert_eq!(parse_escaped_string(r#"\\ "#.to_string(), &text_type), r#"\ "#);
-        assert_eq!(parse_escaped_string(r#"$\{var}"#.to_string(), &text_type), r#"${var}"#);
-        assert_eq!(parse_escaped_string(r#"\\$\{var}"#.to_string(), &text_type), r#"\${var}"#);
+        assert_eq!(
+            parse_escaped_string(r#"\\$"#.to_string(), &text_type),
+            r#"\$"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\{"#.to_string(), &text_type),
+            r#"{"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\\ "#.to_string(), &text_type),
+            r#"\ "#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"$\{var}"#.to_string(), &text_type),
+            r#"${var}"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\\$\{var}"#.to_string(), &text_type),
+            r#"\${var}"#
+        );
 
         // Test command parsing
-        assert_eq!(parse_escaped_string("hello".to_string(), &command_type), "hello");
+        assert_eq!(
+            parse_escaped_string("hello".to_string(), &command_type),
+            "hello"
+        );
         assert_eq!(parse_escaped_string("\n".to_string(), &command_type), "\n");
         assert_eq!(parse_escaped_string("\t".to_string(), &command_type), "\t");
         assert_eq!(parse_escaped_string("\r".to_string(), &command_type), "\r");
         assert_eq!(parse_escaped_string("\0".to_string(), &command_type), "\0");
-        assert_eq!(parse_escaped_string(r#"\\"#.to_string(), &command_type), r#"\"#);
-        assert_eq!(parse_escaped_string(r#"""#.to_string(), &command_type), r#"""#);
-        assert_eq!(parse_escaped_string(r#"\""#.to_string(), &command_type), r#"\""#);
-        assert_eq!(parse_escaped_string(r#"'"#.to_string(), &command_type), r#"'"#);
-        assert_eq!(parse_escaped_string(r#"\'"#.to_string(), &command_type), r#"\'"#);
-        assert_eq!(parse_escaped_string(r#"\$"#.to_string(), &command_type), r#"$"#);
-        assert_eq!(parse_escaped_string(r#"\\\$"#.to_string(), &command_type), r#"\$"#);
-        assert_eq!(parse_escaped_string(r#"\{"#.to_string(), &command_type), r#"{"#);
-        assert_eq!(parse_escaped_string(r#"basename `pwd`"#.to_string(), &command_type), r#"basename `pwd`"#);
-        assert_eq!(parse_escaped_string(r#"\$\{var}"#.to_string(), &command_type), r#"${var}"#);
-        assert_eq!(parse_escaped_string(r#"\\\$\{var}"#.to_string(), &command_type), r#"\${var}"#);
+        assert_eq!(
+            parse_escaped_string(r#"\\"#.to_string(), &command_type),
+            r#"\"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"""#.to_string(), &command_type),
+            r#"""#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\""#.to_string(), &command_type),
+            r#"\""#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"'"#.to_string(), &command_type),
+            r#"'"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\'"#.to_string(), &command_type),
+            r#"\'"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\$"#.to_string(), &command_type),
+            r#"$"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\\\$"#.to_string(), &command_type),
+            r#"\$"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\{"#.to_string(), &command_type),
+            r#"{"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"basename `pwd`"#.to_string(), &command_type),
+            r#"basename `pwd`"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\$\{var}"#.to_string(), &command_type),
+            r#"${var}"#
+        );
+        assert_eq!(
+            parse_escaped_string(r#"\\\$\{var}"#.to_string(), &command_type),
+            r#"\${var}"#
+        );
     }
 }

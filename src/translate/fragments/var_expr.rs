@@ -1,11 +1,11 @@
-use crate::modules::prelude::*;
-use crate::utils::TranslateMetadata;
-use crate::modules::types::Type;
-use crate::modules::prelude::RawFragment;
-use crate::modules::expression::expr::{Expr, ExprType};
 use super::fragment::{FragmentKind, FragmentRenderable};
 use super::get_variable_name;
 use super::var_stmt::VarStmtFragment;
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::prelude::RawFragment;
+use crate::modules::prelude::*;
+use crate::modules::types::Type;
+use crate::utils::TranslateMetadata;
 
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -104,7 +104,11 @@ impl VarExprFragment {
         }
     }
 
-    pub fn with_index_by_expr<T: Into<Option<Expr>>>(mut self, meta: &mut TranslateMetadata, index: T) -> Self {
+    pub fn with_index_by_expr<T: Into<Option<Expr>>>(
+        mut self,
+        meta: &mut TranslateMetadata,
+        index: T,
+    ) -> Self {
         if let Some(index) = index.into() {
             let index = match index.value {
                 Some(ExprType::Range(range)) => {
@@ -213,7 +217,7 @@ impl VarExprFragment {
         &self,
         meta: &mut TranslateMetadata,
         index: Option<Box<VarIndexValue>>,
-        default_value: Option<Box<FragmentKind>>
+        default_value: Option<Box<FragmentKind>>,
     ) -> String {
         let default_value = default_value
             .map(|value| value.to_string(meta))
@@ -226,7 +230,11 @@ impl VarExprFragment {
                 }
                 let offset = offset.with_quotes(false).to_string(meta);
                 let length = length.with_quotes(false).to_string(meta);
-                let slice = if self.is_array_to_string { "[*]" } else { "[@]" };
+                let slice = if self.is_array_to_string {
+                    "[*]"
+                } else {
+                    "[@]"
+                };
                 format!("{slice}:{offset}:{length}")
             }
             (_, Some(VarIndexValue::Index(index))) => {
@@ -239,13 +247,17 @@ impl VarExprFragment {
             (Type::Array(_), None) => {
                 format!("[@]{default_value}")
             }
-            _ => {
-                default_value
-            }
+            _ => default_value,
         }
     }
 
-    fn render_deref_variable(self, meta: &mut TranslateMetadata, prefix: &str, name: &str, suffix: &str) -> String {
+    fn render_deref_variable(
+        self,
+        meta: &mut TranslateMetadata,
+        prefix: &str,
+        name: &str,
+        suffix: &str,
+    ) -> String {
         let arr_open = if self.kind.is_array() { "(" } else { "" };
         let arr_close = if self.kind.is_array() { ")" } else { "" };
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
@@ -256,9 +268,12 @@ impl VarExprFragment {
         let id = meta.gen_value_id();
         let eval_value = format!("{prefix}${{{name}[0]}}{suffix}");
         let var_name = format!("{name}_deref_{id}");
-        meta.stmt_queue.push_back(RawFragment::from(
-            format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
-        ).to_frag());
+        meta.stmt_queue.push_back(
+            RawFragment::from(format!(
+                "eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\""
+            ))
+            .to_frag(),
+        );
 
         if self.kind.is_array() {
             format!("{quote}{dollar}{{{var_name}[@]}}{quote}")
