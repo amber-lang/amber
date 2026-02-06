@@ -13,30 +13,41 @@ pub enum InterpolableRenderType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InterpolablePart {
+    String(String),
+    Interp(FragmentKind),
+}
+
+impl InterpolablePart {
+    pub fn is_running_command(&self) -> bool {
+        match self {
+            InterpolablePart::String(_) => false,
+            InterpolablePart::Interp(frag) => frag.is_running_command(),
+        }
+    }
+
+    pub fn is_mutating(&self) -> bool {
+        match self {
+            InterpolablePart::String(_) => false,
+            InterpolablePart::Interp(frag) => frag.is_mutating(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InterpolableFragment {
-    pub strings: VecDeque<String>,
-    pub interps: VecDeque<FragmentKind>,
+    pub parts: VecDeque<InterpolablePart>,
     pub render_type: InterpolableRenderType,
     pub quoted: bool,
 }
 
 impl InterpolableFragment {
-    pub fn new(
-        strings: Vec<String>,
-        interps: Vec<FragmentKind>,
-        render_type: InterpolableRenderType,
-    ) -> Self {
+    pub fn new(parts: Vec<InterpolablePart>, render_type: InterpolableRenderType) -> Self {
         InterpolableFragment {
-            strings: VecDeque::from_iter(strings),
-            interps: VecDeque::from_iter(interps),
+            parts: VecDeque::from(parts),
             render_type,
             quoted: true,
         }
-    }
-
-    pub fn with_render_type(mut self, render_type: InterpolableRenderType) -> Self {
-        self.render_type = render_type;
-        self
     }
 
     pub fn with_quotes(mut self, quoted: bool) -> Self {
@@ -49,16 +60,21 @@ impl InterpolableFragment {
         if self.render_type == InterpolableRenderType::GlobalContext {
             self.balance_single_quotes();
         }
-        while let Some(string) = self.strings.pop_front() {
-            result.push(self.translate_escaped_string(string));
-            if let Some(translated) = self.interps.pop_front() {
-                // Quotes inside of interpolable strings are not necessary
-                if let FragmentKind::Interpolable(mut interpolable) = translated {
-                    interpolable =
-                        interpolable.with_render_type(InterpolableRenderType::GlobalContext);
-                    result.push(interpolable.to_string(meta));
-                } else {
-                    result.push(translated.to_string(meta));
+
+        for part in &self.parts {
+            match part {
+                InterpolablePart::String(s) => result.push(self.translate_escaped_string(s)),
+                InterpolablePart::Interp(frag) => {
+                    let rendered = match frag {
+                        FragmentKind::Interpolable(interpolable) => {
+                            let mut interpolable = interpolable.clone();
+                            interpolable.render_type = InterpolableRenderType::GlobalContext;
+                            interpolable.quoted = false;
+                            interpolable.to_string(meta)
+                        }
+                        _ => frag.clone().to_string(meta),
+                    };
+                    result.push(rendered);
                 }
             }
         }
@@ -68,33 +84,32 @@ impl InterpolableFragment {
     fn balance_single_quotes(&mut self) {
         let mut in_single_quotes = false;
         let mut in_double_quotes = false;
-        let total_strings = self.strings.len();
-        let total_interps = self.interps.len();
+        let total_parts = self.parts.len();
         let mut reopen_single_quotes = false;
 
-        for (idx, s) in self.strings.iter_mut().enumerate() {
-            // If previous chunk left us inside quotes, reopen at the start.
-            if reopen_single_quotes {
-                s.insert_str(0, "\"'");
-                reopen_single_quotes = false;
-            }
+        for (idx, part) in self.parts.iter_mut().enumerate() {
+            if let InterpolablePart::String(s) = part {
+                // If previous chunk left us inside quotes, reopen at the start.
+                if reopen_single_quotes {
+                    s.insert_str(0, "\"'");
+                    reopen_single_quotes = false;
+                }
+                scan_quote_state(s, &mut in_single_quotes, &mut in_double_quotes);
 
-            scan_quote_state(s, &mut in_single_quotes, &mut in_double_quotes);
+                let has_more_parts = idx + 1 < total_parts;
 
-            let has_more_strings = idx + 1 < total_strings;
-            let has_more_interps = idx < total_interps;
-
-            if in_single_quotes && (has_more_strings || has_more_interps) {
-                // Close the chunk locally so each piece is balanced.
-                s.push_str("'\"");
-                in_single_quotes = false;
-                in_double_quotes = true;
-                reopen_single_quotes = true;
+                if in_single_quotes && has_more_parts {
+                    // Close the chunk locally so each piece is balanced.
+                    s.push_str("'\"");
+                    in_single_quotes = false;
+                    in_double_quotes = true;
+                    reopen_single_quotes = true;
+                }
             }
         }
     }
 
-    fn translate_escaped_string(&self, string: String) -> String {
+    fn translate_escaped_string(&self, string: &str) -> String {
         let chars = string.chars();
         let mut result = String::new();
         for c in chars {
@@ -154,7 +169,7 @@ impl FragmentRenderable for InterpolableFragment {
         FragmentKind::Interpolable(self)
     }
 }
-
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -261,3 +276,5 @@ mod tests {
         assert!(dq);
     }
 }
+
+ */

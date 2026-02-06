@@ -5,13 +5,28 @@ use crate::modules::expression::interpolated_region::{
 };
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::translate::fragments::interpolable::InterpolablePart;
 use crate::translate::module::TranslateModule;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
+pub enum TextPart {
+    String(String),
+    Expr(Expr),
+}
+
+impl TextPart {
+    pub fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        match self {
+            TextPart::String(_) => Ok(()),
+            TextPart::Expr(expr) => expr.typecheck(meta),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Text {
-    strings: Vec<String>,
-    interps: Vec<Expr>,
+    parts: Vec<TextPart>,
 }
 
 impl Typed for Text {
@@ -24,24 +39,19 @@ impl SyntaxModule<ParserMetadata> for Text {
     syntax_name!("Text");
 
     fn new() -> Self {
-        Text {
-            strings: vec![],
-            interps: vec![],
-        }
+        Text { parts: vec![] }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        (self.strings, self.interps) =
-            parse_interpolated_region(meta, &InterpolatedRegionType::Text)?;
+        self.parts = parse_interpolated_region(meta, &InterpolatedRegionType::Text)?;
         Ok(())
     }
 }
 
 impl TypeCheckModule for Text {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        // Type check all interpolated expressions
-        for expr in &mut self.interps {
-            expr.typecheck(meta)?;
+        for part in &mut self.parts {
+            part.typecheck(meta)?;
         }
         Ok(())
     }
@@ -49,29 +59,26 @@ impl TypeCheckModule for Text {
 
 impl TranslateModule for Text {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Translate all interpolations
-        let interps = self
-            .interps
+        let parts = self
+            .parts
             .iter()
-            .map(|item| {
-                let frag = item.translate(meta).with_quotes(false);
-                // ShellCheck SC2145: Use [*] for array interpolation to treat array as single string argument
-                if let FragmentKind::VarExpr(mut var) = frag {
-                    if var.kind.is_array() {
-                        var = var.with_array_to_string(true);
+            .map(|part| match part {
+                TextPart::String(s) => InterpolablePart::String(s.clone()),
+                TextPart::Expr(expr) => {
+                    let frag = expr.translate(meta).with_quotes(false);
+                    if let FragmentKind::VarExpr(mut var) = frag {
+                        if var.kind.is_array() {
+                            var = var.with_array_to_string(true);
+                        }
+                        InterpolablePart::Interp(var.to_frag())
+                    } else {
+                        InterpolablePart::Interp(frag)
                     }
-                    var.to_frag()
-                } else {
-                    frag
                 }
             })
-            .collect::<Vec<FragmentKind>>();
-        InterpolableFragment::new(
-            self.strings.clone(),
-            interps,
-            InterpolableRenderType::StringLiteral,
-        )
-        .to_frag()
+            .collect::<Vec<_>>();
+
+        InterpolableFragment::new(parts, InterpolableRenderType::StringLiteral).to_frag()
     }
 }
 

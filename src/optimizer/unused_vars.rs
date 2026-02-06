@@ -2,6 +2,7 @@ use amber_meta::ContextManager;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::modules::prelude::*;
+use crate::translate::fragments::interpolable::InterpolablePart;
 use crate::translate::fragments::var_expr::VarIndexValue;
 
 // This optimizer removes unused variables from the AST in cases of:
@@ -164,8 +165,10 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
             }
         }
         FragmentKind::Interpolable(interpolable) => {
-            for item in interpolable.interps.iter() {
-                find_unused_variables(item, meta);
+            for item in interpolable.parts.iter() {
+                if let InterpolablePart::Interp(frag) = item {
+                    find_unused_variables(frag, meta);
+                }
             }
         }
         FragmentKind::Arithmetic(arith) => {
