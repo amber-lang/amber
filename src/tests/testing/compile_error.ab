@@ -1,3 +1,0 @@
-test "compile error test" {
-    this is invalid syntax that should fail compilation
-}

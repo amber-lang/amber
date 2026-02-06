@@ -78,21 +78,6 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_empty_dir() {
-        let temp_dir = std::env::temp_dir();
-
-        let command = TestCommand {
-            input: temp_dir.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn test_handle_test_with_named_test() {
         let test_file = PathBuf::from("src/tests/validity/test_named_syntax.ab");
 
@@ -140,57 +125,79 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_with_tokenize_error() {
-        let test_file = PathBuf::from("src/tests/testing/malformed.ab");
-
-        let command = TestCommand {
-            input: test_file.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 1);
-    }
-
-    #[test]
-    fn test_handle_test_with_failed_bash_output() {
-        let test_file = PathBuf::from("src/tests/testing/bash_error.ab");
-
-        let command = TestCommand {
-            input: test_file.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 1);
-    }
-
-    #[test]
-    fn test_handle_test_with_compilation_error() {
-        let test_file = PathBuf::from("src/tests/testing/compile_error.ab");
-
-        let command = TestCommand {
-            input: test_file.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 1);
-    }
-
-    #[test]
     fn test_handle_test_with_skipped_message() {
         let test_file = PathBuf::from("src/tests/validity/block_test.ab");
 
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_get_tests_to_run_tokenize_error() {
+        let test_file = PathBuf::from("src/tests/testing/tokenize_error.ab");
+
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = get_tests_to_run(&command);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_handle_test_empty_dir() {
+        let temp_empty = std::env::temp_dir().join("amber_empty_test_12345");
+
+        std::fs::create_dir_all(&temp_empty).ok();
+
+        let command = TestCommand {
+            input: temp_empty.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        std::fs::remove_dir_all(&temp_empty).ok();
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_handle_test_command_output_error() {
+        let original_path = std::env::var_os("PATH");
+        unsafe { std::env::set_var("PATH", "") };
+
+        let test_file = PathBuf::from("src/tests/testing/bash_missing.ab");
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+
+        unsafe { std::env::set_var("PATH", original_path.unwrap()) };
+    }
+
+    #[test]
+    fn test_handle_test_message_without_text() {
+        let test_file = PathBuf::from("src/tests/testing/parse_no_msg.ab");
         let command = TestCommand {
             input: test_file.clone(),
             args: vec![],
