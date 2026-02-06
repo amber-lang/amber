@@ -1,18 +1,18 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::modules::expression::expr::{Expr, ExprType};
-use crate::modules::types::{Typed, Type};
-use crate::modules::variable::{validate_index_accessor, variable_name_extensions};
+use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
+use crate::modules::types::{Type, Typed};
+use crate::modules::variable::{validate_index_accessor, variable_name_extensions};
+use crate::translate::fragments::var_stmt::VarStmtFragment;
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::translate::fragments::var_stmt::VarStmtFragment;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Access {
     pub left: Box<Expr>,
     pub index: Box<Option<Expr>>,
-    pub kind: Type
+    pub kind: Type,
 }
 
 impl Typed for Access {
@@ -34,7 +34,7 @@ impl Default for Access {
         Access {
             left: Box::new(Expr::new()),
             index: Box::new(None),
-            kind: Type::Null
+            kind: Type::Null,
         }
     }
 }
@@ -51,7 +51,10 @@ impl Access {
     pub fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Check if it's a destructuring assignment
         if self.is_destruct(meta) {
-            return Err(Failure::Quiet(PositionInfo::from_token(meta, meta.get_current_token())))
+            return Err(Failure::Quiet(PositionInfo::from_token(
+                meta,
+                meta.get_current_token(),
+            )));
         }
         token(meta, "[")?;
         Ok(())
@@ -110,7 +113,14 @@ impl TypeCheckModule for Access {
         if let Some(ref mut index_expr) = self.index.as_mut() {
             let pos = self.left.get_position();
             if !self.kind.is_allowed_in(&Type::array_of(Type::Generic)) {
-                return error_pos!(meta, pos, format!("Cannot index a non-array expression of type '{}'", self.kind));
+                return error_pos!(
+                    meta,
+                    pos,
+                    format!(
+                        "Cannot index a non-array expression of type '{}'",
+                        self.kind
+                    )
+                );
             }
 
             index_expr.typecheck(meta)?;
@@ -128,7 +138,7 @@ impl TranslateModule for Access {
             FragmentKind::VarExpr(mut var) => {
                 var.kind = self.get_type();
                 var.with_index_by_expr(meta, *self.index.clone()).to_frag()
-            },
+            }
             _ => {
                 let id = meta.gen_value_id();
                 let name = format!("access_{id}");
@@ -137,8 +147,7 @@ impl TranslateModule for Access {
                 meta.stmt_queue.push_back(stmt.clone().to_frag());
                 let mut var = VarExprFragment::from_stmt(&stmt);
                 var.kind = self.get_type();
-                var.with_index_by_expr(meta, *self.index.clone())
-                    .to_frag()
+                var.with_index_by_expr(meta, *self.index.clone()).to_frag()
             }
         }
     }

@@ -1,12 +1,12 @@
 /// Tests for Amber scripts that check snapshot of generated bash code.
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use crate::modules::prelude::{TranslateModule};
-use crate::utils::TranslateMetadata;
-use test_generator::test_resources;
+use crate::modules::prelude::TranslateModule;
 use crate::modules::prelude::*;
+use crate::utils::TranslateMetadata;
 use insta::assert_snapshot;
 use std::fs;
 use std::path::Path;
+use test_generator::test_resources;
 
 pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     let options = CompilerOptions::default();
@@ -23,11 +23,11 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
 /// Autoload the Amber test files in compiling
 #[test_resources("src/tests/compiling/*.ab")]
 fn test_translation(input: &str) {
-    let code = fs::read_to_string(input)
-        .unwrap_or_else(|_| panic!("Failed to open {input} test file"));
-    let ast = translate_amber_code(code)
-        .expect("Couldn't translate Amber code");
-    let filename = Path::new(input).file_name()
+    let code =
+        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    let ast = translate_amber_code(code).expect("Couldn't translate Amber code");
+    let filename = Path::new(input)
+        .file_name()
         .expect("Provided directory")
         .to_str()
         .expect("Cannot translate to string");

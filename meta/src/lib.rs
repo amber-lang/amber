@@ -7,7 +7,7 @@ use crate::helper::HelperVisitor;
 use crate::manager::ManagerVisitor;
 use proc_macro::TokenStream;
 use syn::visit::Visit;
-use syn::{DeriveInput, ItemStruct, parse_macro_input};
+use syn::{parse_macro_input, DeriveInput, ItemStruct};
 
 /// Derive macro `ContextManager` allows changes to be made to annotated
 /// fields on a struct, with automatic reset on early error return.

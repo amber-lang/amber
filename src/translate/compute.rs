@@ -1,10 +1,10 @@
-use crate::modules::prelude::*;
 use crate::fragments;
+use crate::modules::prelude::*;
 
 use super::fragments::subprocess::SubprocessFragment;
 
 pub enum ArithType {
-    BcSed
+    BcSed,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,13 +23,13 @@ pub enum ArithOp {
     Neq,
     Not,
     And,
-    Or
+    Or,
 }
 
 pub fn translate_bc_sed_computation(
     op: ArithOp,
     left: FragmentKind,
-    right: FragmentKind
+    right: FragmentKind,
 ) -> FragmentKind {
     let mut math_lib_flag = true;
     // Removes trailing zeros from the expression
@@ -42,7 +42,7 @@ pub fn translate_bc_sed_computation(
         ArithOp::Modulo => {
             math_lib_flag = false;
             "%"
-        },
+        }
         ArithOp::Neg => "-",
         ArithOp::Gt => ">",
         ArithOp::Ge => ">=",
@@ -52,11 +52,21 @@ pub fn translate_bc_sed_computation(
         ArithOp::Neq => "!=",
         ArithOp::Not => "!",
         ArithOp::And => "&&",
-        ArithOp::Or => "||"
+        ArithOp::Or => "||",
     };
     let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
     let operator = RawFragment::from(format!(" '{op_str}' ")).to_frag();
-    let value = fragments!("echo ", left, operator, right, " | bc ", math_lib_flag, " | sed '", sed_regex, "'");
+    let value = fragments!(
+        "echo ",
+        left,
+        operator,
+        right,
+        " | bc ",
+        math_lib_flag,
+        " | sed '",
+        sed_regex,
+        "'"
+    );
     SubprocessFragment::new(value).to_frag()
 }
 
@@ -64,13 +74,13 @@ pub fn translate_float_computation(
     meta: &TranslateMetadata,
     operator: ArithOp,
     left: Option<FragmentKind>,
-    right: Option<FragmentKind>
+    right: Option<FragmentKind>,
 ) -> FragmentKind {
     match meta.arith_module {
         ArithType::BcSed => {
             let (left, right) = (
                 left.unwrap_or(FragmentKind::Empty),
-                right.unwrap_or(FragmentKind::Empty)
+                right.unwrap_or(FragmentKind::Empty),
             );
             translate_bc_sed_computation(operator, left, right)
         }

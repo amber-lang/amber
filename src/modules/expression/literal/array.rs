@@ -1,12 +1,12 @@
-use heraclitus_compiler::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::modules::types::{try_parse_type, Type, Typed};
 use crate::modules::prelude::*;
+use crate::modules::types::{try_parse_type, Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Array {
     exprs: Vec<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Array {
@@ -21,7 +21,7 @@ impl SyntaxModule<ParserMetadata> for Array {
     fn new() -> Self {
         Array {
             exprs: vec![],
-            kind: Type::Generic
+            kind: Type::Generic,
         }
     }
 
@@ -30,25 +30,30 @@ impl SyntaxModule<ParserMetadata> for Array {
         let tok = meta.get_current_token();
         if token(meta, "]").is_ok() {
             self.kind = Type::Array(Box::new(Type::Generic));
-            return Ok(())
+            return Ok(());
         }
         // Try to parse array type
         match try_parse_type(meta) {
             Ok(kind) => {
                 if matches!(kind, Type::Array(_)) {
-                    return error!(meta, tok, "Arrays cannot be nested due to the Bash limitations")
+                    return error!(
+                        meta,
+                        tok, "Arrays cannot be nested due to the Bash limitations"
+                    );
                 }
                 self.kind = Type::Array(Box::new(kind));
                 token(meta, "]")?;
-            },
-            Err(Failure::Loud(err)) => {
-                return Err(Failure::Loud(err))
-            },
+            }
+            Err(Failure::Loud(err)) => return Err(Failure::Loud(err)),
             // Parse the array values
             Err(Failure::Quiet(_)) => {
                 loop {
                     // Skip comments and newlines
-                    if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                    if token_by(meta, |token| {
+                        token.starts_with("//") || token.starts_with('\n')
+                    })
+                    .is_ok()
+                    {
                         continue;
                     }
                     if token(meta, "]").is_ok() {
@@ -82,7 +87,11 @@ impl TypeCheckModule for Array {
             // Handle nested arrays
             if expr.get_type().is_array() {
                 let pos = expr.get_position();
-                return error_pos!(meta, pos, "Arrays cannot be nested due to the Bash limitations")
+                return error_pos!(
+                    meta,
+                    pos,
+                    "Arrays cannot be nested due to the Bash limitations"
+                );
             }
         }
 
@@ -96,18 +105,22 @@ impl TypeCheckModule for Array {
             Type::Generic => {
                 // Infer type from first element
                 self.kind = Type::Array(Box::new(self.exprs[0].get_type()));
-            },
+            }
             Type::Array(ref expected_type) => {
                 // Type already specified, validate all elements match
                 for expr in &self.exprs {
                     let expr_type = expr.get_type();
                     if expr_type != **expected_type {
                         let pos = expr.get_position();
-                        return error_pos!(meta, pos, format!("Expected array value of type '{expected_type}'"))
+                        return error_pos!(
+                            meta,
+                            pos,
+                            format!("Expected array value of type '{expected_type}'")
+                        );
                     }
                 }
-            },
-            _ => unimplemented!("Unexpected array type state {0}.", self.kind)
+            }
+            _ => unimplemented!("Unexpected array type state {0}.", self.kind),
         }
 
         // Validate all elements have the same type
@@ -116,7 +129,14 @@ impl TypeCheckModule for Array {
                 let expr_type = expr.get_type();
                 if expr_type != **element_type {
                     let pos = expr.get_position();
-                    return error_pos!(meta, pos, format!("Array elements must have the same type. Expected '{}', found '{}'", element_type, expr_type));
+                    return error_pos!(
+                        meta,
+                        pos,
+                        format!(
+                            "Array elements must have the same type. Expected '{}', found '{}'",
+                            element_type, expr_type
+                        )
+                    );
                 }
             }
         }
@@ -128,7 +148,11 @@ impl TypeCheckModule for Array {
 impl TranslateModule for Array {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let id = meta.gen_value_id();
-        let args = self.exprs.iter().map(|expr| expr.translate_eval(meta, false)).collect::<Vec<FragmentKind>>();
+        let args = self
+            .exprs
+            .iter()
+            .map(|expr| expr.translate_eval(meta, false))
+            .collect::<Vec<FragmentKind>>();
         let args = ListFragment::new(args).with_spaces().to_frag();
         let var_stmt = VarStmtFragment::new("array", self.kind.clone(), args).with_global_id(id);
         meta.push_ephemeral_variable(var_stmt).to_frag()

@@ -1,18 +1,18 @@
 use heraclitus_compiler::prelude::*;
 
 use crate::docs::module::DocumentationModule;
+use crate::modules::block::Block;
 use crate::modules::expression::expr::{Expr, ExprType};
-use crate::modules::prelude::{RawFragment, FragmentKind};
-use crate::modules::types::{Typed, Type};
+use crate::modules::loops::utils::iter_loop_range::IterLoopRange;
+use crate::modules::prelude::*;
+use crate::modules::prelude::{FragmentKind, RawFragment};
+use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::translate::fragments::get_variable_name;
 use crate::translate::module::TranslateModule;
 use crate::utils::context::{Context, VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::block::Block;
 use crate::{fragments, raw_fragment};
-use crate::modules::prelude::*;
-use crate::modules::loops::utils::iter_loop_range::IterLoopRange;
 
 #[derive(Debug, Clone)]
 pub struct IterLoop {
@@ -66,7 +66,7 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let iter_path = self.translate_path(meta);
-        
+
         // Optimize range loops
         if iter_path.is_none() {
             if let Some(ExprType::Range(range)) = &self.iter_expr.value {
@@ -74,11 +74,20 @@ impl TranslateModule for IterLoop {
             }
         }
 
-        let iter_name = raw_fragment!("{}", get_variable_name(&self.iter_name, self.iter_global_id));
+        let iter_name = raw_fragment!(
+            "{}",
+            get_variable_name(&self.iter_name, self.iter_global_id)
+        );
 
         let for_loop_prefix = match iter_path.is_some() {
             true => fragments!("while IFS= read -r ", iter_name, "; do"),
-            false => fragments!("for ", iter_name, " in ", self.iter_expr.translate(meta), "; do"),
+            false => fragments!(
+                "for ",
+                iter_name,
+                " in ",
+                self.iter_expr.translate(meta),
+                "; do"
+            ),
         };
         let for_loop_suffix = match iter_path.is_some() {
             true => fragments!("done <", iter_path.unwrap()),
@@ -89,21 +98,23 @@ impl TranslateModule for IterLoop {
             (Some(index), global_id) => {
                 let indent = TranslateMetadata::single_indent();
                 let index = get_variable_name(index, global_id);
-                BlockFragment::new(vec![
-                    RawFragment::from(format!("{index}=0;")).to_frag(),
-                    for_loop_prefix,
-                    self.block.translate(meta),
-                    RawFragment::from(format!("{indent}(( {index}++ )) || true")).to_frag(),
-                    for_loop_suffix,
-                ], false).to_frag()
-            },
-            _ => {
-                BlockFragment::new(vec![
-                    for_loop_prefix,
-                    self.block.translate(meta),
-                    for_loop_suffix,
-                ], false).to_frag()
-            },
+                BlockFragment::new(
+                    vec![
+                        RawFragment::from(format!("{index}=0;")).to_frag(),
+                        for_loop_prefix,
+                        self.block.translate(meta),
+                        RawFragment::from(format!("{indent}(( {index}++ )) || true")).to_frag(),
+                        for_loop_suffix,
+                    ],
+                    false,
+                )
+                .to_frag()
+            }
+            _ => BlockFragment::new(
+                vec![for_loop_prefix, self.block.translate(meta), for_loop_suffix],
+                false,
+            )
+            .to_frag(),
         }
     }
 }
@@ -124,12 +135,14 @@ impl TypeCheckModule for IterLoop {
 
         // Create iterator variable
         meta.with_push_scope(true, |meta| {
-            let var = VariableDecl::new(self.iter_name.clone(), self.iter_type.clone())
-                .with_warn(VariableDeclWarn::from_token(meta, self.iter_name_tok.clone()));
+            let var = VariableDecl::new(self.iter_name.clone(), self.iter_type.clone()).with_warn(
+                VariableDeclWarn::from_token(meta, self.iter_name_tok.clone()),
+            );
             self.iter_global_id = meta.add_var(var);
             if let Some(index) = self.iter_index.as_ref() {
-                let var = VariableDecl::new(index.clone(), Type::Int)
-                    .with_warn(VariableDeclWarn::from_token(meta, self.iter_index_tok.clone()));
+                let var = VariableDecl::new(index.clone(), Type::Int).with_warn(
+                    VariableDeclWarn::from_token(meta, self.iter_index_tok.clone()),
+                );
                 self.iter_index_global_id = meta.add_var(var);
             }
             // Save loop context state and set it to true

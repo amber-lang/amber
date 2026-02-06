@@ -1,12 +1,12 @@
-use crate::{fragments, raw_fragment};
+use crate::modules::command::modifier::CommandModifier;
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
+use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 use heraclitus_compiler::syntax_name;
-use crate::modules::command::modifier::CommandModifier;
-use crate::modules::condition::failure_handler::FailureHandler;
 
 #[derive(Debug, Clone)]
 pub struct Rm {
@@ -106,38 +106,46 @@ impl TranslateModule for Rm {
         let recursive_id = meta.gen_value_id();
         let recursive_frag = if let Some(recursive_expr) = &*self.recursive {
             let recursive_translate = recursive_expr.translate(meta);
-            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, FragmentKind::Empty).with_global_id(recursive_id);
+            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, FragmentKind::Empty)
+                .with_global_id(recursive_id);
             let recursive_expr = meta.push_ephemeral_variable(recursive_var_stmt);
-            meta.stmt_queue.extend([
-                fragments!(
-                    "(( ",
-                    recursive_translate,
-                    " )) && ",
-                    raw_fragment!("{}=\"-r\" || {}=\"\"", recursive_expr.get_name(), recursive_expr.get_name())
+            meta.stmt_queue.extend([fragments!(
+                "(( ",
+                recursive_translate,
+                " )) && ",
+                raw_fragment!(
+                    "{}=\"-r\" || {}=\"\"",
+                    recursive_expr.get_name(),
+                    recursive_expr.get_name()
                 )
-            ]);
+            )]);
             recursive_expr.to_frag()
         } else {
-            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!("")).with_global_id(recursive_id);
+            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!(""))
+                .with_global_id(recursive_id);
             meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
         };
 
         let force_id = meta.gen_value_id();
         let force_frag = if let Some(force_expr) = &*self.force {
             let force_translate = force_expr.translate(meta);
-            let force_var_stmt = VarStmtFragment::new("__rm", Type::Bool, FragmentKind::Empty).with_global_id(force_id);
+            let force_var_stmt = VarStmtFragment::new("__rm", Type::Bool, FragmentKind::Empty)
+                .with_global_id(force_id);
             let force_expr = meta.push_ephemeral_variable(force_var_stmt);
-            meta.stmt_queue.extend([
-                fragments!(
-                    "(( ",
-                    force_translate,
-                    " )) && ",
-                    raw_fragment!("{}=\"-f\" || {}=\"\"", force_expr.get_name(), force_expr.get_name())
+            meta.stmt_queue.extend([fragments!(
+                "(( ",
+                force_translate,
+                " )) && ",
+                raw_fragment!(
+                    "{}=\"-f\" || {}=\"\"",
+                    force_expr.get_name(),
+                    force_expr.get_name()
                 )
-            ]);
+            )]);
             force_expr.to_frag()
         } else {
-            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!("")).with_global_id(force_id);
+            let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!(""))
+                .with_global_id(force_id);
             meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
         };
 

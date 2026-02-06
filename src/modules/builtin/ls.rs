@@ -84,44 +84,44 @@ impl SyntaxModule<ParserMetadata> for Ls {
 impl TypeCheckModule for Ls {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.modifier.use_modifiers(meta, |_, meta| {
-            if let Some(path) = &mut *self.value {
-                path.typecheck(meta)?;
-                let path_type = path.get_type();
-                if path_type != Type::Text {
-                    let position = path.get_position();
-                    return error_pos!(meta,  position => {
-                        message: "Builtin function `ls` can only be used with 1st argument of type Text",
-                        comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                    });
-                }
-            }
-            if let Some(all) = &mut *self.all {
-                all.typecheck(meta)?;
-                let options_type = all.get_type();
-                if options_type != Type::Bool {
-                    let position = all.get_position();
-                    return error_pos!(meta, position => {
-                        message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
-                        comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
-                    });
-                }
-            }
+      if let Some(path) = &mut *self.value {
+        path.typecheck(meta)?;
+        let path_type = path.get_type();
+        if path_type != Type::Text {
+          let position = path.get_position();
+          return error_pos!(meta,  position => {
+              message: "Builtin function `ls` can only be used with 1st argument of type Text",
+              comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+          });
+        }
+      }
+      if let Some(all) = &mut *self.all {
+        all.typecheck(meta)?;
+        let options_type = all.get_type();
+        if options_type != Type::Bool {
+          let position = all.get_position();
+          return error_pos!(meta, position => {
+              message: "Builtin function `ls` can only be used with 2nd argument of type Bool",
+              comment: format!("Given type: {}, expected type: {}", options_type, Type::Bool)
+          });
+        }
+      }
 
-            if let Some(recursive) = &mut *self.recursive {
-                recursive.typecheck(meta)?;
-                let recursive_type = recursive.get_type();
-                if recursive_type != Type::Bool {
-                    let position = recursive.get_position();
-                    return error_pos!(meta, position => {
-                        message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
-                        comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
-                    });
-                }
-            }
+      if let Some(recursive) = &mut *self.recursive {
+        recursive.typecheck(meta)?;
+        let recursive_type = recursive.get_type();
+        if recursive_type != Type::Bool {
+          let position = recursive.get_position();
+          return error_pos!(meta, position => {
+              message : "Builtin function `ls` can only be used with 3rd argument of type Bool",
+              comment : format!("Given type: {}, expected type: {}", recursive_type, Type::Bool)
+          });
+        }
+      }
 
-            self.failure_handler.typecheck(meta)?;
-            Ok(())
-        })
+      self.failure_handler.typecheck(meta)?;
+      Ok(())
+    })
     }
 }
 

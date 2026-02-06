@@ -1,15 +1,17 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::modules::expression::expr::Expr;
-use crate::translate::compare::{translate_lexical_comparison, translate_array_lexical_comparison, ComparisonOperator};
-use crate::translate::compute::{ArithOp, translate_float_computation};
-use crate::modules::types::{Typed, Type};
 use super::BinOp;
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compare::{
+    translate_array_lexical_comparison, translate_lexical_comparison, ComparisonOperator,
+};
+use crate::translate::compute::{translate_float_computation, ArithOp};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Gt {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
 }
 
 impl Typed for Gt {
@@ -39,7 +41,7 @@ impl SyntaxModule<ParserMetadata> for Gt {
     fn new() -> Self {
         Gt {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 
@@ -52,14 +54,20 @@ impl TypeCheckModule for Gt {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "comparison", &mut self.left, &mut self.right, &[
-            Type::Num,
-            Type::Int,
-            Type::Text,
-            Type::array_of(Type::Num),
-            Type::array_of(Type::Int),
-            Type::array_of(Type::Text),
-        ])?;
+        Self::typecheck_allowed_types(
+            meta,
+            "comparison",
+            &mut self.left,
+            &mut self.right,
+            &[
+                Type::Num,
+                Type::Int,
+                Type::Text,
+                Type::array_of(Type::Num),
+                Type::array_of(Type::Int),
+                Type::array_of(Type::Text),
+            ],
+        )?;
         Ok(())
     }
 }
@@ -77,13 +85,20 @@ impl TranslateModule for Gt {
                 let right = self.right.translate(meta);
                 translate_float_computation(meta, ArithOp::Gt, Some(left), Some(right))
             }
-            Type::Array(inner_type) => {
-                translate_array_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right, *inner_type)
-            }
+            Type::Array(inner_type) => translate_array_lexical_comparison(
+                meta,
+                ComparisonOperator::Gt,
+                &self.left,
+                &self.right,
+                *inner_type,
+            ),
             Type::Text => {
                 translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
             }
-            _ => unreachable!("Unsupported type {} in greater than comparison", self.left.get_type())
+            _ => unreachable!(
+                "Unsupported type {} in greater than comparison",
+                self.left.get_type()
+            ),
         }
     }
 }

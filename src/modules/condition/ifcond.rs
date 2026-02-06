@@ -1,10 +1,10 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::fragments;
-use crate::modules::expression::expr::Expr;
-use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
-use crate::modules::statement::stmt::{Statement, StmtType};
 use crate::modules::block::Block;
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::statement::stmt::{Statement, StmtType};
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct IfCondition {
@@ -14,13 +14,23 @@ pub struct IfCondition {
 }
 
 impl IfCondition {
-    fn prevent_not_using_if_chain(&self, meta: &mut ParserMetadata, statement: &Statement, tok: Option<Token>) -> Result<(), Failure> {
-        let is_not_if_chain = matches!(statement.value.as_ref().unwrap(), StmtType::IfCondition(_) | StmtType::IfChain(_));
+    fn prevent_not_using_if_chain(
+        &self,
+        meta: &mut ParserMetadata,
+        statement: &Statement,
+        tok: Option<Token>,
+    ) -> Result<(), Failure> {
+        let is_not_if_chain = matches!(
+            statement.value.as_ref().unwrap(),
+            StmtType::IfCondition(_) | StmtType::IfChain(_)
+        );
         if is_not_if_chain && !meta.context.cc_flags.contains(&CCFlags::AllowNestedIfElse) {
             let flag_name = get_ccflag_name(CCFlags::AllowNestedIfElse);
             let message = Message::new_warn_at_token(meta, tok)
                 .message("You should use if-chain instead of nested if else statements")
-                .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
+                .comment(format!(
+                    "To suppress this warning, use '{flag_name}' compiler flag"
+                ));
             meta.add_message(message);
         }
         Ok(())
@@ -33,8 +43,13 @@ impl IfCondition {
         let flag_name = get_ccflag_name(CCFlags::AllowDeadCode);
         let branch = if is_true_branch { "if" } else { "else" };
         let message = Message::new_warn_at_position(meta, pos)
-            .message(format!("Condition is always {}, '{branch}' block will never execute", !is_true_branch))
-            .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
+            .message(format!(
+                "Condition is always {}, '{branch}' block will never execute",
+                !is_true_branch
+            ))
+            .comment(format!(
+                "To suppress this warning, use '{flag_name}' compiler flag"
+            ));
         meta.add_message(message);
     }
 }
@@ -46,7 +61,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
         IfCondition {
             expr: Box::new(Expr::new()),
             true_block: None,
-            false_block: None
+            false_block: None,
         }
     }
 
@@ -87,39 +102,31 @@ impl TypeCheckModule for IfCondition {
                     Self::warn_dead_code(meta, pos, false);
                 }
                 self.false_block = None;
-                 
+
                 let (true_facts, _) = self.expr.extract_facts();
                 if let Some(true_block) = &mut self.true_block {
-                    meta.with_narrowed_scope(true_facts, |meta| {
-                        true_block.typecheck(meta)
-                    })?;
+                    meta.with_narrowed_scope(true_facts, |meta| true_block.typecheck(meta))?;
                 }
-            },
+            }
             Some(false) => {
                 // Condition always false
                 let pos = self.expr.get_position();
                 Self::warn_dead_code(meta, pos, true);
                 self.true_block = None;
-                 
+
                 let (_, false_facts) = self.expr.extract_facts();
                 if let Some(false_block) = &mut self.false_block {
-                    meta.with_narrowed_scope(false_facts, |meta| {
-                        false_block.typecheck(meta)
-                    })?;
+                    meta.with_narrowed_scope(false_facts, |meta| false_block.typecheck(meta))?;
                 }
-            },
+            }
             None => {
                 let (true_facts, false_facts) = self.expr.extract_facts();
                 if let Some(true_block) = &mut self.true_block {
-                    meta.with_narrowed_scope(true_facts, |meta| {
-                        true_block.typecheck(meta)
-                    })?;
+                    meta.with_narrowed_scope(true_facts, |meta| true_block.typecheck(meta))?;
                 }
 
                 if let Some(false_block) = &mut self.false_block {
-                    meta.with_narrowed_scope(false_facts, |meta| {
-                        false_block.typecheck(meta)
-                    })?;
+                    meta.with_narrowed_scope(false_facts, |meta| false_block.typecheck(meta))?;
                 }
             }
         }
@@ -130,19 +137,23 @@ impl TypeCheckModule for IfCondition {
 impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         match self.expr.analyze_control_flow() {
-            Some(true) => {
-                self.true_block.as_ref()
-                    .map(|b| b.translate(meta))
-                    .unwrap_or(FragmentKind::Empty)
-            },
-            Some(false) => {
-                self.false_block.as_ref()
-                    .map(|b| b.translate(meta))
-                    .unwrap_or(FragmentKind::Empty)
-            },
+            Some(true) => self
+                .true_block
+                .as_ref()
+                .map(|b| b.translate(meta))
+                .unwrap_or(FragmentKind::Empty),
+            Some(false) => self
+                .false_block
+                .as_ref()
+                .map(|b| b.translate(meta))
+                .unwrap_or(FragmentKind::Empty),
             None => {
                 let mut result = vec![];
-                result.push(fragments!("if [ ", self.expr.translate(meta), " != 0 ]; then"));
+                result.push(fragments!(
+                    "if [ ",
+                    self.expr.translate(meta),
+                    " != 0 ]; then"
+                ));
                 if let Some(true_block) = &self.true_block {
                     result.push(true_block.translate(meta));
                 }

@@ -1,6 +1,6 @@
 use crate::modules::prelude::*;
-use unused_vars::remove_unused_variables;
 use ephemeral_vars::remove_ephemeral_variables;
+use unused_vars::remove_unused_variables;
 
 pub mod ephemeral_vars;
 pub mod unused_vars;

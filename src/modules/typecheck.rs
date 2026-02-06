@@ -1,5 +1,5 @@
-use heraclitus_compiler::prelude::*;
 use crate::utils::ParserMetadata;
+use heraclitus_compiler::prelude::*;
 
 /// Trait for modules that need to perform type checking operations.
 /// This separates type checking logic from the parsing logic in SyntaxModule.

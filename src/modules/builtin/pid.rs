@@ -1,8 +1,8 @@
+use crate::fragments;
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::fragments;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]

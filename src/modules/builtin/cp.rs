@@ -1,11 +1,9 @@
-
-
-use crate::{fragments, raw_fragment};
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -108,7 +106,7 @@ impl TranslateModule for Cp {
         let destination = self.destination.translate(meta);
         let handler = self.failure_handler.translate(meta);
         let sudo_prefix = meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
-           meta.gen_sudo_prefix().to_frag()
+            meta.gen_sudo_prefix().to_frag()
         });
         let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             meta.gen_silent().to_frag()
@@ -120,26 +118,44 @@ impl TranslateModule for Cp {
         let force_id = meta.gen_value_id();
         let force_frag = if let Some(force_expr) = &*self.force {
             let force_translate = force_expr.translate(meta);
-            let force_var_stmt = VarStmtFragment::new("__cp", Type::Bool, FragmentKind::Empty).with_global_id(force_id);
+            let force_var_stmt = VarStmtFragment::new("__cp", Type::Bool, FragmentKind::Empty)
+                .with_global_id(force_id);
             let force_expr = meta.push_ephemeral_variable(force_var_stmt);
-            meta.stmt_queue.extend([
-                fragments!(
-                    "(( ",
-                    force_translate,
-                    " )) && ",
-                    raw_fragment!("{}=\"-f\" || {}=\"\"", force_expr.get_name(), force_expr.get_name())
+            meta.stmt_queue.extend([fragments!(
+                "(( ",
+                force_translate,
+                " )) && ",
+                raw_fragment!(
+                    "{}=\"-f\" || {}=\"\"",
+                    force_expr.get_name(),
+                    force_expr.get_name()
                 )
-            ]);
+            )]);
             force_expr.to_frag()
         } else {
-            let recursive_var_stmt = VarStmtFragment::new("__cp", Type::Bool, raw_fragment!("")).with_global_id(force_id);
+            let recursive_var_stmt = VarStmtFragment::new("__cp", Type::Bool, raw_fragment!(""))
+                .with_global_id(force_id);
             meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
         };
 
-        BlockFragment::new(vec![
-            fragments!(sudo_prefix, "cp -r ", force_frag.with_quotes(false), " ", source, " ", destination, suppress, silent),
-            handler,
-        ], false).to_frag()
+        BlockFragment::new(
+            vec![
+                fragments!(
+                    sudo_prefix,
+                    "cp -r ",
+                    force_frag.with_quotes(false),
+                    " ",
+                    source,
+                    " ",
+                    destination,
+                    suppress,
+                    silent
+                ),
+                handler,
+            ],
+            false,
+        )
+        .to_frag()
     }
 }
 

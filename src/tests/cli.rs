@@ -16,15 +16,15 @@ fn bash_error_exit_code() {
             $ notexistingcommand $?
         }
         "#;
-    
+
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
-    
+
     // Assert no warnings
     assert_eq!(messages.len(), 0);
-    
+
     // Execute the bash code and check the exit status
     let exit_status = AmberCompiler::execute(bash_code, vec![]).unwrap();
     assert_eq!(exit_status.code(), Some(127));
@@ -41,15 +41,15 @@ fn main_args_passed_correctly() {
             }
         }
         "#;
-    
+
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
-    
+
     // Assert no warnings
     assert_eq!(messages.len(), 0);
-    
+
     // Prepend arguments to the bash code to simulate passing arguments
     // We use `set --` to set positional parameters
     let bash_code_with_args = format!("set -- one two three\n{}", bash_code);
@@ -60,7 +60,7 @@ fn main_args_passed_correctly() {
         .arg(bash_code_with_args)
         .output()
         .expect("Failed to execute bash");
-    
+
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout.trim(), "bash\none\ntwo\nthree");
@@ -69,7 +69,7 @@ fn main_args_passed_correctly() {
 #[test]
 fn test_filtering() {
     let input = PathBuf::from("src/tests/validity");
-    
+
     // Case 1: Filter by file name substring "named_syntax"
     // Expect "test_named_syntax.ab" to be included
     let command = TestCommand {
@@ -77,9 +77,14 @@ fn test_filtering() {
         args: vec!["named_syntax".to_string()],
         no_proc: vec![],
     };
-    
-    let tests = get_tests_to_run(&command).map_err(|e| format!("{:?}", e)).expect("Failed to get tests");
-    assert!(!tests.is_empty(), "Should find tests in test_named_syntax.ab");
+
+    let tests = get_tests_to_run(&command)
+        .map_err(|e| format!("{:?}", e))
+        .expect("Failed to get tests");
+    assert!(
+        !tests.is_empty(),
+        "Should find tests in test_named_syntax.ab"
+    );
     for (path, _, _) in &tests {
         assert!(path.to_string_lossy().contains("named_syntax"));
     }
@@ -90,8 +95,10 @@ fn test_filtering() {
         args: vec!["foo".to_string()],
         no_proc: vec![],
     };
-    let tests = get_tests_to_run(&command).map_err(|e| format!("{:?}", e)).expect("Failed to get tests");
-    
+    let tests = get_tests_to_run(&command)
+        .map_err(|e| format!("{:?}", e))
+        .expect("Failed to get tests");
+
     // Should find test 'foo' from test_named_syntax.ab
     let found = tests.iter().any(|(path, name, _)| {
         path.to_string_lossy().contains("test_named_syntax") && name == "foo"
@@ -100,8 +107,16 @@ fn test_filtering() {
 
     // Also verify we filtered out everything that doesn't match "foo"
     for (path, name, _) in &tests {
-         let display = if name.is_empty() { format!("{}", path.display()) } else { format!("{} ({})", path.display(), name) };
-         assert!(display.contains("foo"), "Test {} should contain 'foo'", display);
+        let display = if name.is_empty() {
+            format!("{}", path.display())
+        } else {
+            format!("{} ({})", path.display(), name)
+        };
+        assert!(
+            display.contains("foo"),
+            "Test {} should contain 'foo'",
+            display
+        );
     }
 }
 
@@ -116,12 +131,12 @@ fn test_input_prompt_stdin() {
             echo("Hello {name}")
         }
         "#;
-    
+
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
-    
+
     // Assert no warnings
     if !messages.is_empty() {
         for msg in messages {
@@ -129,7 +144,7 @@ fn test_input_prompt_stdin() {
         }
         panic!("Compilation failed with warnings/errors");
     }
-    
+
     // Execute the bash code with stdin input
     // We pipe "World" into the process
     let mut child = std::process::Command::new("bash")
@@ -139,16 +154,18 @@ fn test_input_prompt_stdin() {
         .stdout(std::process::Stdio::piped())
         .spawn()
         .expect("Failed to spawn bash");
-        
+
     {
         use std::io::Write;
         // We run this in a block to ensure stdin is closed after writing
         let stdin = child.stdin.as_mut().expect("Failed to open stdin");
-        stdin.write_all(b"World\n").expect("Failed to write to stdin");
+        stdin
+            .write_all(b"World\n")
+            .expect("Failed to write to stdin");
     }
-    
+
     let output = child.wait_with_output().expect("Failed to read stdout");
-    
+
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("Hello World"));
@@ -165,12 +182,12 @@ fn test_input_hidden_stdin() {
             echo("Secret: {secret}")
         }
         "#;
-    
+
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
-    
+
     // Assert no warnings
     if !messages.is_empty() {
         for msg in messages {
@@ -178,7 +195,7 @@ fn test_input_hidden_stdin() {
         }
         panic!("Compilation failed with warnings/errors");
     }
-    
+
     // Execute the bash code with stdin input
     // We pipe "SecretCode" into the process
     let mut child = std::process::Command::new("bash")
@@ -188,16 +205,18 @@ fn test_input_hidden_stdin() {
         .stdout(std::process::Stdio::piped())
         .spawn()
         .expect("Failed to spawn bash");
-        
+
     {
         use std::io::Write;
         // We run this in a block to ensure stdin is closed after writing
         let stdin = child.stdin.as_mut().expect("Failed to open stdin");
-        stdin.write_all(b"SecretCode\n").expect("Failed to write to stdin");
+        stdin
+            .write_all(b"SecretCode\n")
+            .expect("Failed to write to stdin");
     }
-    
+
     let output = child.wait_with_output().expect("Failed to read stdout");
-    
+
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("Secret: SecretCode"));
@@ -217,12 +236,12 @@ fn test_input_confirm_stdin() {
             }
         }
         "#;
-    
+
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
-    
+
     // Assert no warnings
     if !messages.is_empty() {
         for msg in messages {
@@ -230,7 +249,7 @@ fn test_input_confirm_stdin() {
         }
         panic!("Compilation failed with warnings/errors");
     }
-    
+
     // Execute the bash code with stdin input
     // We pipe "y" into the process
     let mut child = std::process::Command::new("bash")
@@ -240,16 +259,16 @@ fn test_input_confirm_stdin() {
         .stdout(std::process::Stdio::piped())
         .spawn()
         .expect("Failed to spawn bash");
-        
+
     {
         use std::io::Write;
         // We run this in a block to ensure stdin is closed after writing
         let stdin = child.stdin.as_mut().expect("Failed to open stdin");
         stdin.write_all(b"y").expect("Failed to write to stdin");
     }
-    
+
     let output = child.wait_with_output().expect("Failed to read stdout");
-    
+
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("Continued"));
