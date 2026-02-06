@@ -12,7 +12,7 @@ use heraclitus_compiler::prelude::*;
 #[derive(Debug, Clone)]
 pub enum TextPart {
     String(String),
-    Expr(Expr),
+    Expr(Box<Expr>),
 }
 
 impl TextPart {

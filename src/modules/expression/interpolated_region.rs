@@ -111,7 +111,7 @@ fn parse_complex_region(
                 if is_interp {
                     let mut expr = Expr::new();
                     syntax(meta, &mut expr)?;
-                    parts.push(TextPart::Expr(expr));
+                    parts.push(TextPart::Expr(Box::new(expr)));
                     meta.offset_index(-1);
                 } else {
                     if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
