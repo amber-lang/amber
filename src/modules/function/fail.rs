@@ -1,18 +1,18 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::{fragments, raw_fragment};
 use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::FragmentKind;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::translate::module::TranslateModule;
+use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use crate::{fragments, raw_fragment};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Fail {
     pub expr: Expr,
     pub code: String,
-    pub is_main: bool
+    pub is_main: bool,
 }
 
 impl Typed for Fail {
@@ -28,7 +28,7 @@ impl SyntaxModule<ParserMetadata> for Fail {
         Fail {
             expr: Expr::new(),
             code: String::new(),
-            is_main: false
+            is_main: false,
         }
     }
 
@@ -51,7 +51,7 @@ impl SyntaxModule<ParserMetadata> for Fail {
                     });
                 }
                 self.code = value;
-            },
+            }
             Err(_) => {
                 if syntax(meta, &mut self.expr).is_err() {
                     self.code = "1".to_string();
@@ -101,9 +101,16 @@ impl TranslateModule for Fail {
             fragments!("exit ", translate)
         } else {
             // Clean the return value if the function fails
-            let fun_meta = meta.fun_meta.as_ref().expect("Function name and return type not set");
-            let stmt = VarStmtFragment::new(&fun_meta.mangled_name(), fun_meta.get_type(), fun_meta.default_return())
-                .with_optimization_when_unused(false);
+            let fun_meta = meta
+                .fun_meta
+                .as_ref()
+                .expect("Function name and return type not set");
+            let stmt = VarStmtFragment::new(
+                &fun_meta.mangled_name(),
+                fun_meta.get_type(),
+                fun_meta.default_return(),
+            )
+            .with_optimization_when_unused(false);
             meta.stmt_queue.push_back(stmt.to_frag());
             fragments!("return ", translate)
         }

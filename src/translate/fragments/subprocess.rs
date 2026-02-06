@@ -1,5 +1,5 @@
-use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
+use crate::utils::TranslateMetadata;
 
 // Creates a subprocess fragment that is correctly escaped.
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,14 +1,14 @@
+pub mod arithmetic;
 pub mod block;
 pub mod comment;
 pub mod fragment;
 pub mod interpolable;
 pub mod list;
+pub mod log;
 pub mod raw;
 pub mod subprocess;
-pub mod arithmetic;
 pub mod var_expr;
 pub mod var_stmt;
-pub mod log;
 
 use crate::utils::is_all_caps;
 
@@ -39,15 +39,13 @@ macro_rules! raw_fragment {
 
 #[macro_export]
 macro_rules! eval_context {
-    ($meta:expr, $value:expr, $body:block) => {
-        {
-            let temp = $meta.eval_ctx;
-            $meta.eval_ctx = $value;
-            let result = $body;
-            $meta.eval_ctx = temp;
-            result
-        }
-    };
+    ($meta:expr, $value:expr, $body:block) => {{
+        let temp = $meta.eval_ctx;
+        $meta.eval_ctx = $value;
+        let result = $body;
+        $meta.eval_ctx = temp;
+        result
+    }};
 }
 
 // Returns a variable name that should be rendered
@@ -62,6 +60,6 @@ pub fn get_variable_name(name: &str, global_id: Option<usize>) -> String {
                 format!("{name}_{id}")
             }
         }
-        None => name.to_string()
+        None => name.to_string(),
     }
 }

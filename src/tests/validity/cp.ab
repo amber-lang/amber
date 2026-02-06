@@ -1,0 +1,18 @@
+import * from "std/fs"
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    touch("{tmpdir}/a")
+    trust cp("{tmpdir}/a", "{tmpdir}/b")
+    if not file_exists("{tmpdir}/b") {
+        echo("{tmpdir}/b Not Found")
+    }
+
+
+    trust cp("{tmpdir}/a", "{tmpdir}/c", true)
+    if file_exists("{tmpdir}/c") {
+        echo("Succeeded")
+    } else {
+        echo("{tmpdir}/c Not Found")
+    }
+}

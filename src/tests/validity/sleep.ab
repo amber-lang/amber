@@ -1,0 +1,12 @@
+import { parse_int } from "std/text"
+
+main {
+    trust $ SECONDS="0" $
+    sleep(2)
+    const seconds = trust $ echo \$SECONDS $
+    if parse_int(seconds)? >= 2 {
+        echo("Succeeded")
+    } else {
+        echo("No Sleep")
+    }
+}

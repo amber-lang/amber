@@ -1,8 +1,8 @@
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Touch {
@@ -26,7 +26,7 @@ impl SyntaxModule<ParserMetadata> for Touch {
         } else {
             let tok = meta.get_token_at(position);
             let warning = Message::new_warn_at_token(meta, tok)
-            .message("Calling a builtin without parentheses is deprecated");
+                .message("Calling a builtin without parentheses is deprecated");
             meta.add_message(warning);
             syntax(meta, &mut self.value)?;
         }

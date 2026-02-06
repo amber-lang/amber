@@ -1,0 +1,13 @@
+import { pgrep, kill } from "std/env"
+
+main {
+    trust $ yes > /dev/null 2>&1 & $
+    disown()
+    const yes_pid = pid()
+    kill(yes_pid, "KILL")?
+    if len(pgrep("yes")) == 0 {
+        echo("Succeeded")
+    } else {
+        echo("Process still alive")
+    }
+}

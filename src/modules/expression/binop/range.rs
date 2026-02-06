@@ -1,9 +1,9 @@
-use crate::modules::prelude::*;
-use crate::{fragments, raw_fragment};
 use crate::modules::expression::binop::BinOp;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_float_computation, ArithOp};
+use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 use std::cmp::max;
 
@@ -11,7 +11,7 @@ use std::cmp::max;
 pub struct Range {
     pub from: Box<Expr>,
     pub to: Box<Expr>,
-    pub neq: bool
+    pub neq: bool,
 }
 
 impl Typed for Range {
@@ -43,7 +43,7 @@ impl SyntaxModule<ParserMetadata> for Range {
         Range {
             from: Box::new(Expr::new()),
             to: Box::new(Expr::new()),
-            neq: false
+            neq: false,
         }
     }
 
@@ -56,7 +56,13 @@ impl TypeCheckModule for Range {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.from.typecheck(meta)?;
         self.to.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "range operator", &mut self.from, &mut self.to, &[Type::Int])?;
+        Self::typecheck_allowed_types(
+            meta,
+            "range operator",
+            &mut self.from,
+            &mut self.to,
+            &[Type::Int],
+        )?;
         Ok(())
     }
 }
@@ -64,7 +70,9 @@ impl TypeCheckModule for Range {
 impl TranslateModule for Range {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Try compile-time optimization first
-        if let (Some(from_val), Some(to_val)) = (self.from.get_integer_value(), self.to.get_integer_value()) {
+        if let (Some(from_val), Some(to_val)) =
+            (self.from.get_integer_value(), self.to.get_integer_value())
+        {
             return self.generate_compile_time_range(from_val, to_val);
         }
 
@@ -78,7 +86,7 @@ impl Range {
     /// Generate a range at compile time when both operands are numeric literals
     fn generate_compile_time_range(&self, from_val: isize, to_val: isize) -> FragmentKind {
         if self.neq && from_val == to_val {
-            return FragmentKind::Empty
+            return FragmentKind::Empty;
         }
         if self.is_reverse_range(from_val, to_val) {
             self.generate_reverse_seq(from_val, to_val)
@@ -102,16 +110,60 @@ impl Range {
 
         let expr = if self.neq {
             fragments!(
-                "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
-                "(seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, ") | paste -sd \" \" -; ",
-                "elif [ ", from_var.clone(), " -lt ", to_var.clone(), " ]; then ",
-                "(seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, ") | paste -sd \" \" -; fi"
+                "if [ ",
+                from_var.clone(),
+                " -gt ",
+                to_var.clone(),
+                " ]; then ",
+                "(seq -f \"%.0f\" -- ",
+                from_var.clone(),
+                " -1 ",
+                reverse_to.clone(),
+                " || seq -- ",
+                from_var.clone(),
+                " -1 ",
+                reverse_to,
+                ") | paste -sd \" \" -; ",
+                "elif [ ",
+                from_var.clone(),
+                " -lt ",
+                to_var.clone(),
+                " ]; then ",
+                "(seq -f \"%.0f\" -- ",
+                from_var.clone(),
+                " ",
+                forward_to.clone(),
+                " || seq -- ",
+                from_var.clone(),
+                " ",
+                forward_to,
+                ") | paste -sd \" \" -; fi"
             )
         } else {
             fragments!(
-                "if [ ", from_var.clone(), " -gt ", to_var.clone(), " ]; then ",
-                "(seq -f \"%.0f\" -- ", from_var.clone(), " -1 ", reverse_to.clone(), " || seq -- ", from_var.clone(), " -1 ", reverse_to, ") | paste -sd \" \" -; ",
-                "else (seq -f \"%.0f\" -- ", from_var.clone(), " ", forward_to.clone(), " || seq -- ", from_var.clone(), " ", forward_to, ") | paste -sd \" \" -; fi"
+                "if [ ",
+                from_var.clone(),
+                " -gt ",
+                to_var.clone(),
+                " ]; then ",
+                "(seq -f \"%.0f\" -- ",
+                from_var.clone(),
+                " -1 ",
+                reverse_to.clone(),
+                " || seq -- ",
+                from_var.clone(),
+                " -1 ",
+                reverse_to,
+                ") | paste -sd \" \" -; ",
+                "else (seq -f \"%.0f\" -- ",
+                from_var.clone(),
+                " ",
+                forward_to.clone(),
+                " || seq -- ",
+                from_var.clone(),
+                " ",
+                forward_to,
+                ") | paste -sd \" \" -; fi"
             )
         };
 
@@ -127,8 +179,14 @@ impl Range {
     fn generate_forward_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val - 1 } else { to_val };
         let expr = fragments!(
-            "(seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted),
-            " || seq -- ", raw_fragment!("{}", from_val), " ", raw_fragment!("{}", to_adjusted),
+            "(seq -f \"%.0f\" -- ",
+            raw_fragment!("{}", from_val),
+            " ",
+            raw_fragment!("{}", to_adjusted),
+            " || seq -- ",
+            raw_fragment!("{}", from_val),
+            " ",
+            raw_fragment!("{}", to_adjusted),
             ") | paste -sd \" \" -"
         );
         SubprocessFragment::new(expr).to_frag()
@@ -138,8 +196,14 @@ impl Range {
     fn generate_reverse_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val + 1 } else { to_val };
         let expr = fragments!(
-            "(seq -f \"%.0f\" -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted),
-            " || seq -- ", raw_fragment!("{}", from_val), " -1 ", raw_fragment!("{}", to_adjusted),
+            "(seq -f \"%.0f\" -- ",
+            raw_fragment!("{}", from_val),
+            " -1 ",
+            raw_fragment!("{}", to_adjusted),
+            " || seq -- ",
+            raw_fragment!("{}", from_val),
+            " -1 ",
+            raw_fragment!("{}", to_adjusted),
             ") | paste -sd \" \" -"
         );
         SubprocessFragment::new(expr).to_frag()
@@ -176,7 +240,7 @@ impl Range {
                 let length = max(to - offset, 0);
                 return (
                     RawFragment::from(offset.to_string()).to_frag(),
-                    RawFragment::from(length.to_string()).to_frag()
+                    RawFragment::from(length.to_string()).to_frag(),
                 );
             }
         }
@@ -185,9 +249,15 @@ impl Range {
             let upper_id = meta.gen_value_id();
             let mut upper_val = self.to.translate(meta);
             if !self.neq {
-                upper_val = translate_float_computation(meta, ArithOp::Add, Some(upper_val), Some(fragments!("1")));
+                upper_val = translate_float_computation(
+                    meta,
+                    ArithOp::Add,
+                    Some(upper_val),
+                    Some(fragments!("1")),
+                );
             }
-            let upper_var_stmt = VarStmtFragment::new("slice_upper", Type::Int, upper_val).with_global_id(upper_id);
+            let upper_var_stmt =
+                VarStmtFragment::new("slice_upper", Type::Int, upper_val).with_global_id(upper_id);
             meta.push_ephemeral_variable(upper_var_stmt).to_frag()
         };
 
@@ -195,21 +265,38 @@ impl Range {
         let offset = {
             let offset_id = meta.gen_value_id();
             let offset_val = self.from.translate(meta);
-            let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_val).with_global_id(offset_id);
+            let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_val)
+                .with_global_id(offset_id);
             let offset_var_expr = meta.push_ephemeral_variable(offset_var_stmt).to_frag();
-            let offset_cap = fragments!("$((", offset_var_expr.clone().with_quotes(false), " > 0 ? ", offset_var_expr.with_quotes(false), " : 0))");
-            let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_cap).with_global_id(offset_id);
+            let offset_cap = fragments!(
+                "$((",
+                offset_var_expr.clone().with_quotes(false),
+                " > 0 ? ",
+                offset_var_expr.with_quotes(false),
+                " : 0))"
+            );
+            let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_cap)
+                .with_global_id(offset_id);
             meta.push_ephemeral_variable(offset_var_stmt).to_frag()
         };
 
         // Cap the slice length at zero.
         let length = {
             let length_id = meta.gen_value_id();
-            let length_val = translate_float_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
-            let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_val).with_global_id(length_id);
+            let length_val =
+                translate_float_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
+            let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_val)
+                .with_global_id(length_id);
             let length_var_expr = meta.push_ephemeral_variable(length_var_stmt).to_frag();
-            let length_cap = fragments!("$((", length_var_expr.clone().with_quotes(false), " > 0 ? ", length_var_expr.with_quotes(false), " : 0))");
-            let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_cap).with_global_id(length_id);
+            let length_cap = fragments!(
+                "$((",
+                length_var_expr.clone().with_quotes(false),
+                " > 0 ? ",
+                length_var_expr.with_quotes(false),
+                " : 0))"
+            );
+            let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_cap)
+                .with_global_id(length_id);
             meta.push_ephemeral_variable(length_var_stmt).to_frag()
         };
 

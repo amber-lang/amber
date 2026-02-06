@@ -189,10 +189,10 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
     let result = []
     trust $ [ -n "\$ZSH_VERSION" ] $ exited(code): if {
         code == 0: $ 
-            IFS="\n" read -rd '' -A {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | sort {sort_flag} {desc_flag})
+            LC_ALL=C IFS="\n" IFS="\n" read -rd '' -A {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | sort {sort_flag} {desc_flag})
             {nameof result}[-1]=()
         $
-        else: $ IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | sort {sort_flag} {desc_flag}) $
+        else: $ LC_ALL=C IFS="\n" IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | sort {sort_flag} {desc_flag}) $
     }
     return result
 }

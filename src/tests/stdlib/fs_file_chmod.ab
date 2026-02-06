@@ -7,7 +7,7 @@ main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     touch("{tmpdir}/amber-symbolic")
     trust file_chmod("{tmpdir}/amber-symbolic", "+x")
-    if status == 0 {
+    if status() == 0 {
         echo("created")
     }
 } 

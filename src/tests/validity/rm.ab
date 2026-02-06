@@ -1,0 +1,19 @@
+import * from "std/fs"
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    touch("{tmpdir}/a")
+    touch("{tmpdir}/b")
+
+    rm("{tmpdir}/a", false, true)?
+    if file_exists("{tmpdir}/a") {
+        echo("File still exists")
+    }
+
+    rm("{tmpdir}/b")?
+    if not file_exists("{tmpdir}/b") {
+        echo("Succeeded")
+    } else {
+        echo("File still exists")
+    }
+}

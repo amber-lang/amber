@@ -10,7 +10,7 @@ import { match_regex, join, replace_regex, split, trim } from "std/text"
 /// ```
 pub fun dir_exists(path: Text): Bool {
     trust $ [ -d "{path}" ] $
-    return status == 0
+    return status() == 0
 }
 
 /// Checks if a file exists.
@@ -23,7 +23,7 @@ pub fun dir_exists(path: Text): Bool {
 /// ```
 pub fun file_exists(path: Text): Bool {
     trust $ [ -f "{path}" ] $
-    return status == 0
+    return status() == 0
 }
 
 /// Gets file contents from a path.
@@ -177,12 +177,6 @@ pub fun file_chown(path: Text, user: Text): Null? {
     fail 1
 }
 
-/// Escapes all characters in the passed-in glob except "*", "?" and "/",
-/// to prevent injection attacks.
-fun escape_non_glob_chars(path: Text): Text {
-    return replace_regex(path, "\([^*?/]\)", "\\\\\1")
-}
-
 /// Finds all files or directories matching multiple file globs. When
 /// we have union types, this functionality can be merged into the main
 /// `file_glob` function.
@@ -191,20 +185,15 @@ fun escape_non_glob_chars(path: Text): Text {
 /// ```ab
 /// let files = file_glob_all(["*.txt", "*.md"])
 /// ```
-pub fun file_glob_all(paths: [Text]): [Text]? {
-    let combined = ""
-    if len(paths) == 1 {
-        combined = escape_non_glob_chars(paths[0])
-    } else {
-        let items = [Text]
-        for item in paths {
-            item = escape_non_glob_chars(item)
-            items += [item]
+pub fun file_glob_all(paths: [Text]): [Text] {
+    let files = []
+    for path in paths {
+        files += suppress ls(path,true) failed {
+            //this can fail when no file could be found
+            continue
         }
-        combined = join(items, " ")
     }
-    const files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && printf \"%s\\n\" \\"\\\$file\\"; done" $?
-    return split(files, "\n")
+    return files
 }
 
 /// Finds all files or directories matching a file glob.
@@ -213,8 +202,8 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
 /// ```ab
 /// let files = file_glob("*.txt")
 /// ```
-pub fun file_glob(path: Text): [Text]? {
-    return file_glob_all([path])?
+pub fun file_glob(path: Text): [Text] {
+    return file_glob_all([path])
 }
 
 /// Extract the file detecting from the filename the extension

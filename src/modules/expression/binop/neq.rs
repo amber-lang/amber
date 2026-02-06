@@ -1,16 +1,16 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
+use super::BinOp;
 use crate::fragments;
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
 use crate::translate::compare::translate_array_equality;
 use crate::translate::compute::{translate_float_computation, ArithOp};
-use crate::modules::expression::expr::Expr;
-use super::BinOp;
-use crate::modules::types::{Typed, Type};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Neq {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
 }
 
 impl Typed for Neq {
@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Neq {
     fn new() -> Self {
         Neq {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 
@@ -69,10 +69,19 @@ impl TranslateModule for Neq {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, true)
                 } else {
-                    unreachable!("Arrays are always represented as variable expressions when used as values")
+                    unreachable!(
+                        "Arrays are always represented as variable expressions when used as values"
+                    )
                 }
             }
-            _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" == \"_", right, "\" ]; echo $?")).to_frag()
+            _ => SubprocessFragment::new(fragments!(
+                "[ \"_",
+                left,
+                "\" == \"_",
+                right,
+                "\" ]; echo $?"
+            ))
+            .to_frag(),
         }
     }
 }

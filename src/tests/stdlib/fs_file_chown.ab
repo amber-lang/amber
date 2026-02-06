@@ -10,7 +10,7 @@ main {
     }
     const owner = trust $ whoami $
     trust file_chown("{tmpdir}/amber-symbolic", owner)
-    if status == 0 {
+    if status() == 0 {
         echo("Succeeded")
     } else {
         echo("File {tmpdir}/amber-symbolic not exists")

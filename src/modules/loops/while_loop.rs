@@ -1,10 +1,10 @@
-use heraclitus_compiler::prelude::*;
 use crate::fragments;
-use crate::modules::prelude::*;
-use crate::utils::context::Context;
 use crate::modules::block::Block;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::utils::context::Context;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct WhileLoop {
@@ -30,10 +30,14 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
 
         // Validate that the condition is a boolean expression
         if self.condition.get_type() != Type::Bool {
-            return error!(meta, tok, format!(
-                "Expected boolean expression in while condition, got {}",
-                self.condition.get_type()
-            ));
+            return error!(
+                meta,
+                tok,
+                format!(
+                    "Expected boolean expression in while condition, got {}",
+                    self.condition.get_type()
+                )
+            );
         }
 
         syntax(meta, &mut self.block)?;
@@ -57,7 +61,7 @@ impl TranslateModule for WhileLoop {
         let result = vec![
             fragments!("while [ ", self.condition.translate(meta), " != 0 ]; do"),
             self.block.translate(meta),
-            fragments!("done")
+            fragments!("done"),
         ];
         BlockFragment::new(result, false).to_frag()
     }

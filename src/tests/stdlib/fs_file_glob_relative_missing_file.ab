@@ -1,8 +1,5 @@
 import * from "std/fs"
 
-// Output
-// FAILED
-
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
@@ -16,8 +13,9 @@ main {
     }
     cd(tmpdir)
 
-    const files = file_glob("missing*") failed {
-        echo("FAILED")
+    const files = file_glob("missing*")
+    if len(files) == 0 {
+        echo("Succeeded")
     }
     for file in files {
         echo("[{file}]")

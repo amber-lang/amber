@@ -1,7 +1,7 @@
-use crate::modules::types::{Type, Typed};
-use crate::modules::variable::{handle_variable_reference, variable_name_extensions};
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
+use crate::modules::types::{Type, Typed};
+use crate::modules::variable::{handle_variable_reference, variable_name_extensions};
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -10,7 +10,7 @@ pub struct VariableGet {
     kind: Type,
     global_id: Option<usize>,
     is_ref: bool,
-    tok: Option<Token>
+    tok: Option<Token>,
 }
 
 impl Typed for VariableGet {
@@ -34,7 +34,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
             kind: Type::Null,
             global_id: None,
             is_ref: false,
-            tok: None
+            tok: None,
         }
     }
 

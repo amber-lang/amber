@@ -1,0 +1,22 @@
+import * from "std/fs"
+import { array_contains } from "std/array"
+
+// Output
+// Succeeded
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    touch("{tmpdir}/file1.txt")
+    touch("{tmpdir}/file2.txt")
+    touch("{tmpdir}/file99.txt")
+
+    // ? matches exactly one character
+    const files = ls("{tmpdir}/file?.txt")?
+    if array_contains(files, "{tmpdir}/file1.txt") and
+       array_contains(files, "{tmpdir}/file2.txt") and
+       not array_contains(files, "{tmpdir}/file99.txt") {
+        echo("Succeeded")
+    } else {
+        echo("Failed: {files}")
+    }
+}

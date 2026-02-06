@@ -1,12 +1,12 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Integer {
-    pub value: String
+    pub value: String,
 }
 
 impl Typed for Integer {
@@ -20,7 +20,7 @@ impl SyntaxModule<ParserMetadata> for Integer {
 
     fn new() -> Self {
         Integer {
-            value: String::new()
+            value: String::new(),
         }
     }
 

@@ -1,7 +1,7 @@
 use super::fragment::{FragmentKind, FragmentRenderable};
 use super::interpolable::InterpolableRenderType;
-use crate::utils::TranslateMetadata;
 use crate::modules::types::Type;
+use crate::utils::TranslateMetadata;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogFragment {
@@ -34,9 +34,9 @@ impl LogFragment {
                 }
                 // Check first string chunk
                 if let Some(first) = interpolable.strings.front() {
-                     first.is_empty() || first.starts_with('-')
+                    first.is_empty() || first.starts_with('-')
                 } else {
-                     true
+                    true
                 }
             }
             FragmentKind::List(list) => {
@@ -51,7 +51,6 @@ impl LogFragment {
         }
     }
 }
-
 
 impl FragmentRenderable for LogFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {

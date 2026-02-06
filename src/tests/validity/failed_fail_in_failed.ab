@@ -11,5 +11,5 @@ fun foo() {
 }
 
 echo(foo() failed {
-    echo("Failed with error {status}")
+    echo("Failed with error {status()}")
 })
