@@ -139,7 +139,7 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
             let result = match compiler.compile() {
                 Ok((_, bash_code)) => {
                     match Command::new("bash")
-                        .args(["-o", "noalias", "-c"])
+                        .args(["--norc", "-c"])
                         .arg(&bash_code)
                         .output()
                     {
