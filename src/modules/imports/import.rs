@@ -233,7 +233,6 @@ impl SyntaxModule<ParserMetadata> for Import {
                             Ok(_) => Some(variable(meta, variable_name_extensions())?),
                             Err(_) => None,
                         };
-                        // exports.push((name, alias, tok));
                         wants.push(ImportWant::new(name, alias, tok));
                         if token(meta, "}").is_ok() {
                             break;
