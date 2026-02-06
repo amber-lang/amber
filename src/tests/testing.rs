@@ -7,18 +7,6 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_find_amber_files() {
-        let dir = PathBuf::from("src/tests/validity");
-        let mut files = vec![];
-
-        let result = find_amber_files(&dir, &mut files);
-
-        assert!(result.is_ok());
-        assert!(!files.is_empty());
-        assert!(files.iter().all(|f| f.extension() == Some("ab".as_ref())));
-    }
-
-    #[test]
     fn test_find_amber_files_dir_with_amber_files() {
         let dir = PathBuf::from("src/tests/validity");
         let mut files = vec![];
@@ -120,21 +108,6 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_with_failed_tests() {
-        let test_file = PathBuf::from("src/tests/validity/block_test.ab");
-
-        let command = TestCommand {
-            input: test_file.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn test_handle_test_with_get_tests_error() {
         let test_dir = PathBuf::from("/non/existent/directory/abc123");
 
@@ -151,59 +124,8 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_with_empty_test_directory() {
-        let test_dir = PathBuf::from("src/tests/testing_empty");
-        std::fs::create_dir_all(&test_dir).unwrap();
-        let test_file = test_dir.join("empty.ab");
-        std::fs::write(&test_file, "").unwrap();
-
-        let command = TestCommand {
-            input: test_dir.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 0);
-
-        std::fs::remove_dir_all(test_dir).ok();
-    }
-
-    #[test]
     fn test_handle_test_with_empty_output() {
-        let test_dir = PathBuf::from("src/tests/testing_empty_output");
-        std::fs::create_dir_all(&test_dir).unwrap();
-        let test_file = test_dir.join("empty_out.ab");
-        std::fs::write(
-            &test_file,
-            r#"
- test "empty output test" {
-     exit 1
- }
- "#,
-        )
-        .unwrap();
-
-        let command = TestCommand {
-            input: test_dir.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 1);
-
-        std::fs::remove_dir_all(test_dir).ok();
-    }
-
-    #[test]
-    fn test_handle_test_with_tokenize_error() {
-        let test_dir = PathBuf::from("src/tests/testing");
-        let test_file = test_dir.join("malformed.ab");
+        let test_file = PathBuf::from("src/tests/testing/empty_out.ab");
 
         let command = TestCommand {
             input: test_file.clone(),
@@ -218,9 +140,56 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_with_empty_message() {
-        let test_dir = PathBuf::from("src/tests/validity");
-        let test_file = test_dir.join("block_test.ab");
+    fn test_handle_test_with_tokenize_error() {
+        let test_file = PathBuf::from("src/tests/testing/malformed.ab");
+
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_handle_test_with_failed_bash_output() {
+        let test_file = PathBuf::from("src/tests/testing/bash_error.ab");
+
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_handle_test_with_compilation_error() {
+        let test_file = PathBuf::from("src/tests/testing/compile_error.ab");
+
+        let command = TestCommand {
+            input: test_file.clone(),
+            args: vec![],
+            no_proc: Vec::new(),
+        };
+
+        let result = handle_test(command);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_handle_test_with_skipped_message() {
+        let test_file = PathBuf::from("src/tests/validity/block_test.ab");
 
         let command = TestCommand {
             input: test_file.clone(),

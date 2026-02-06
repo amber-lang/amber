@@ -1,0 +1,5 @@
+test "bash output capture" {
+    echo "stdout message"
+    echo "stderr message" >&2
+    exit 1
+}
