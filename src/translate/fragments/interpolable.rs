@@ -169,66 +169,48 @@ impl FragmentRenderable for InterpolableFragment {
         FragmentKind::Interpolable(self)
     }
 }
-/*
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn create_interpolable(render_type: InterpolableRenderType) -> InterpolableFragment {
-        InterpolableFragment::new(vec![], vec![], render_type)
+        InterpolableFragment::new(vec![], render_type)
     }
 
     #[test]
     fn test_translate_escaped_string() {
         // Test StringLiteral translation
         let i_str = create_interpolable(InterpolableRenderType::StringLiteral);
-        assert_eq!(
-            i_str.translate_escaped_string(r#"hello"#.to_string()),
-            r#"hello"#
-        );
-        assert_eq!(i_str.translate_escaped_string(r#"\"#.to_string()), r#"\\"#);
-        assert_eq!(i_str.translate_escaped_string(r#"""#.to_string()), r#"\""#);
-        assert_eq!(i_str.translate_escaped_string(r#"'"#.to_string()), r#"'"#);
-        assert_eq!(i_str.translate_escaped_string(r#"$"#.to_string()), r#"\$"#);
-        assert_eq!(
-            i_str.translate_escaped_string(r#"\$"#.to_string()),
-            r#"\\\$"#
-        );
-        assert_eq!(i_str.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
-        assert_eq!(i_str.translate_escaped_string(r#"`"#.to_string()), r#"\`"#);
-        assert_eq!(
-            i_str.translate_escaped_string(r#"!"#.to_string()),
-            r#""'!'""#
-        );
-        assert_eq!(
-            i_str.translate_escaped_string(r#"\ "#.to_string()),
-            r#"\\ "#
-        );
-        assert_eq!(
-            i_str.translate_escaped_string(r#"${var}"#.to_string()),
-            r#"\${var}"#
-        );
+        assert_eq!(i_str.translate_escaped_string(r#"hello"#), r#"hello"#);
+        assert_eq!(i_str.translate_escaped_string(r#"\"#), r#"\\"#);
+        assert_eq!(i_str.translate_escaped_string(r#"""#), r#"\""#);
+        assert_eq!(i_str.translate_escaped_string(r#"'"#), r#"'"#);
+        assert_eq!(i_str.translate_escaped_string(r#"$"#), r#"\$"#);
+        assert_eq!(i_str.translate_escaped_string(r#"\$"#), r#"\\\$"#);
+        assert_eq!(i_str.translate_escaped_string(r#"{"#), r#"{"#);
+        assert_eq!(i_str.translate_escaped_string(r#"`"#), r#"\`"#);
+        assert_eq!(i_str.translate_escaped_string(r#"!"#), r#""'!'""#);
+        assert_eq!(i_str.translate_escaped_string(r#"\ "#), r#"\\ "#);
+        assert_eq!(i_str.translate_escaped_string(r#"${var}"#), r#"\${var}"#);
 
         // Test GlobalContext translation
         let i_glo = create_interpolable(InterpolableRenderType::GlobalContext);
+        assert_eq!(i_glo.translate_escaped_string(r#"hello"#), r#"hello"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\a"#), r#"\a"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\"#), r#"\"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\\"#), r#"\\"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"""#), r#"""#);
+        assert_eq!(i_glo.translate_escaped_string(r#"'"#), r#"'"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"$"#), r#"$"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\$"#), r#"\$"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"{"#), r#"{"#);
+        assert_eq!(i_glo.translate_escaped_string(r#"!"#), r#"!"#);
         assert_eq!(
-            i_glo.translate_escaped_string(r#"hello"#.to_string()),
-            r#"hello"#
-        );
-        assert_eq!(i_glo.translate_escaped_string(r#"\a"#.to_string()), r#"\a"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"\"#.to_string()), r#"\"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"\\"#.to_string()), r#"\\"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"""#.to_string()), r#"""#);
-        assert_eq!(i_glo.translate_escaped_string(r#"'"#.to_string()), r#"'"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"$"#.to_string()), r#"$"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"\$"#.to_string()), r#"\$"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"!"#.to_string()), r#"!"#);
-        assert_eq!(
-            i_glo.translate_escaped_string(r#"basename `pwd`"#.to_string()),
+            i_glo.translate_escaped_string(r#"basename `pwd`"#),
             r#"basename `pwd`"#
         );
-        assert_eq!(i_glo.translate_escaped_string(r#"\ "#.to_string()), r#"\ "#);
+        assert_eq!(i_glo.translate_escaped_string(r#"\ "#), r#"\ "#);
     }
 
     #[test]
@@ -276,5 +258,3 @@ mod tests {
         assert!(dq);
     }
 }
-
- */
