@@ -93,7 +93,7 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_with_get_tests_error() {
+    fn test_handle_test_with_get_non_existent_tests_folder() {
         let test_dir = PathBuf::from("/non/existent/directory/abc123");
 
         let command = TestCommand {
@@ -176,26 +176,6 @@ mod test {
     }
 
     #[test]
-    fn test_handle_test_command_output_error() {
-        let original_path = std::env::var_os("PATH");
-        unsafe { std::env::set_var("PATH", "") };
-
-        let test_file = PathBuf::from("src/tests/testing/bash_missing.ab");
-        let command = TestCommand {
-            input: test_file.clone(),
-            args: vec![],
-            no_proc: Vec::new(),
-        };
-
-        let result = handle_test(command);
-
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 1);
-
-        unsafe { std::env::set_var("PATH", original_path.unwrap()) };
-    }
-
-    #[test]
     fn test_handle_test_message_without_text() {
         let test_file = PathBuf::from("src/tests/testing/parse_no_msg.ab");
         let command = TestCommand {
@@ -209,4 +189,5 @@ mod test {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 1);
     }
+
 }

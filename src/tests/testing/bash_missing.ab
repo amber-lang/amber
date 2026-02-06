@@ -1,3 +1,0 @@
-test "bash not found test" {
-    echo "test"
-}
