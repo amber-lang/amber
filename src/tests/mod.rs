@@ -19,7 +19,6 @@ pub mod translating;
 mod validity;
 mod warning;
 mod testing;
-mod test_mode;
 
 #[macro_export]
 macro_rules! unwrap_fragment {
@@ -81,7 +80,7 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
     let mut cmd = Command::new("bash");
-    cmd.args(["-o", "noalias", "-c"]).args(["-o", "noalias", "-c"]);
+    cmd.args(["-o", "noalias", "-c"]);
     cmd.arg(code.into());
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
