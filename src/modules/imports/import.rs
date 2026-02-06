@@ -148,15 +148,16 @@ impl Import {
         }
     }
 
-    fn load_or_compile(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+    fn load_or_compile(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
         match meta.import_cache.get_imports(Some(self.path.value.clone())) {
             Some(pubs) => self.add_imported_deps(meta, pubs.0, pubs.1),
-            None => self.compile_import(meta, code),
+            None => self.compile_import(meta),
         }
     }
 
-    fn compile_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+    fn compile_import(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let code = self.read_import_source(meta)?;
         let options = CompilerOptions::default();
         let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
         match compiler.tokenize() {
@@ -282,8 +283,7 @@ impl TypeCheckModule for Import {
             );
         }
         self.add_import_path_to_cache(meta, &self.path.value.clone())?;
-        let code = self.read_import_source(meta)?;
-        self.load_or_compile(meta, code)?;
+        self.load_or_compile(meta)?;
         Ok(())
     }
 }
