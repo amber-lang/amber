@@ -238,13 +238,10 @@ impl SyntaxModule<ParserMetadata> for Import {
                             break;
                         }
                         match token(meta, ",") {
+                            #[rustfmt::skip]
                             Ok(_) => {
                                 // Skip comments and newlines after comma
-                                while token_by(meta, |token| {
-                                    token.starts_with("//") || token.starts_with('\n')
-                                })
-                                .is_ok()
-                                {
+                                while token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
                                     // Keep consuming
                                 }
                                 if token(meta, "}").is_ok() {
