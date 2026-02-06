@@ -7,7 +7,6 @@ use crate::modules::expression::interpolated_region::{
 use crate::modules::expression::literal::text::TextPart;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::fragments::interpolable::InterpolablePart;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -85,25 +84,7 @@ impl TranslateModule for Command {
         let translation = meta.with_silenced(is_silenced, |meta| {
             meta.with_suppress(is_suppress, |meta| {
                 meta.with_sudoed(is_sudoed, |meta| {
-                    let parts = self
-                        .parts
-                        .iter()
-                        .map(|part| match part {
-                            TextPart::String(s) => InterpolablePart::String(s.clone()),
-                            TextPart::Expr(expr) => {
-                                let frag = expr.translate(meta).with_quotes(false);
-                                if let FragmentKind::VarExpr(mut var) = frag {
-                                    if var.kind.is_array() {
-                                        var = var.with_array_to_string(true);
-                                    }
-                                    InterpolablePart::Interp(var.to_frag())
-                                } else {
-                                    InterpolablePart::Interp(frag)
-                                }
-                            }
-                        })
-                        .collect::<Vec<_>>();
-
+                    let parts = TextPart::to_interpolable_parts(&self.parts, meta);
                     InterpolableFragment::new(parts, InterpolableRenderType::GlobalContext)
                         .to_frag()
                 })

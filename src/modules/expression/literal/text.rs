@@ -22,6 +22,30 @@ impl TextPart {
             TextPart::Expr(expr) => expr.typecheck(meta),
         }
     }
+
+    /// Converts TextParts to InterpolableParts for translation
+    pub fn to_interpolable_parts(
+        parts: &[TextPart],
+        meta: &mut TranslateMetadata,
+    ) -> Vec<InterpolablePart> {
+        parts
+            .iter()
+            .map(|part| match part {
+                TextPart::String(s) => InterpolablePart::String(s.clone()),
+                TextPart::Expr(expr) => {
+                    let frag = expr.translate(meta).with_quotes(false);
+                    if let FragmentKind::VarExpr(mut var) = frag {
+                        if var.kind.is_array() {
+                            var = var.with_array_to_string(true);
+                        }
+                        InterpolablePart::Interp(var.to_frag())
+                    } else {
+                        InterpolablePart::Interp(frag)
+                    }
+                }
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -59,25 +83,7 @@ impl TypeCheckModule for Text {
 
 impl TranslateModule for Text {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let parts = self
-            .parts
-            .iter()
-            .map(|part| match part {
-                TextPart::String(s) => InterpolablePart::String(s.clone()),
-                TextPart::Expr(expr) => {
-                    let frag = expr.translate(meta).with_quotes(false);
-                    if let FragmentKind::VarExpr(mut var) = frag {
-                        if var.kind.is_array() {
-                            var = var.with_array_to_string(true);
-                        }
-                        InterpolablePart::Interp(var.to_frag())
-                    } else {
-                        InterpolablePart::Interp(frag)
-                    }
-                }
-            })
-            .collect::<Vec<_>>();
-
+        let parts = TextPart::to_interpolable_parts(&self.parts, meta);
         InterpolableFragment::new(parts, InterpolableRenderType::StringLiteral).to_frag()
     }
 }
