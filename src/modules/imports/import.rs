@@ -32,7 +32,7 @@ pub struct Import {
 }
 
 impl Import {
-    fn handle_export(
+    fn add_imported_deps(
         &mut self,
         meta: &mut ParserMetadata,
         mut pub_funs: Vec<FunctionDecl>,
@@ -110,7 +110,7 @@ impl Import {
         Ok(())
     }
 
-    fn add_import(&mut self, meta: &mut ParserMetadata, path: &str) -> SyntaxResult {
+    fn add_import_path_to_cache(&mut self, meta: &mut ParserMetadata, path: &str) -> SyntaxResult {
         if meta
             .import_cache
             .add_import_entry(meta.get_path(), path.to_string())
@@ -124,7 +124,7 @@ impl Import {
         Ok(())
     }
 
-    fn resolve_import(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
+    fn read_import_source(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
         if self.path.value.starts_with("std/") {
             match stdlib::resolve(self.path.value.replace("std/", "")) {
                 Some(v) => Ok(v),
@@ -148,18 +148,15 @@ impl Import {
         }
     }
 
-    fn handle_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+    fn load_or_compile(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
-        match meta
-            .import_cache
-            .get_import_pub_funs(Some(self.path.value.clone()))
-        {
-            Some(pubs) => self.handle_export(meta, pubs.0, pubs.1),
-            None => self.handle_compile_code(meta, code),
+        match meta.import_cache.get_imports(Some(self.path.value.clone())) {
+            Some(pubs) => self.add_imported_deps(meta, pubs.0, pubs.1),
+            None => self.compile_import(meta, code),
         }
     }
 
-    fn handle_compile_code(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
+    fn compile_import(&mut self, meta: &mut ParserMetadata, code: String) -> SyntaxResult {
         let options = CompilerOptions::default();
         let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
         match compiler.tokenize() {
@@ -182,7 +179,7 @@ impl Import {
                     context.pub_vars.clone(),
                 );
                 // Handle exports (add to current file)
-                self.handle_export(meta, context.pub_funs, context.pub_vars)?;
+                self.add_imported_deps(meta, context.pub_funs, context.pub_vars)?;
                 Ok(())
             }
             Err(err) => Err(Failure::Loud(err)),
@@ -288,9 +285,9 @@ impl TypeCheckModule for Import {
                 "Imports must be in the global scope"
             );
         }
-        self.add_import(meta, &self.path.value.clone())?;
-        let code = self.resolve_import(meta)?;
-        self.handle_import(meta, code)?;
+        self.add_import_path_to_cache(meta, &self.path.value.clone())?;
+        let code = self.read_import_source(meta)?;
+        self.load_or_compile(meta, code)?;
         Ok(())
     }
 }

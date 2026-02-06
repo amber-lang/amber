@@ -112,7 +112,7 @@ impl ImportCache {
         });
     }
 
-    pub fn get_import_pub_funs(
+    pub fn get_imports(
         &mut self,
         path: Option<String>,
     ) -> Option<(Vec<FunctionDecl>, Vec<VariableDecl>)> {
