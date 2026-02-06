@@ -56,7 +56,7 @@ fn main_args_passed_correctly() {
 
     // Execute the bash code and check the output
     let output = std::process::Command::new("bash")
-        .arg("-c")
+        .args(["-o", "noalias", "-c"])
         .arg(bash_code_with_args)
         .output()
         .expect("Failed to execute bash");

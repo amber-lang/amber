@@ -80,7 +80,7 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
     let mut cmd = Command::new("bash");
-    cmd.arg("-c");
+    cmd.args(["-o", "noalias", "-c"]).args(["-o", "noalias", "-c"]);
     cmd.arg(code.into());
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
