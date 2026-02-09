@@ -19,7 +19,6 @@ mod testing;
 pub mod translating;
 mod validity;
 mod warning;
-mod test_mode;
 mod functional;
 
 #[macro_export]
