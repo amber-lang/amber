@@ -18,6 +18,7 @@ mod validity;
 mod erroring;
 mod warning;
 mod test_mode;
+mod functional;
 
 #[macro_export]
 macro_rules! unwrap_fragment {

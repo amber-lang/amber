@@ -135,9 +135,6 @@ fn test_execute_output_without_messages() {
     assert!(result.is_ok());
 }
 
-// skipped: test_handle_completion_success causes stdout output from clap_complete::generate
-// To test completion, run: amber completion > /tmp/completion.sh
-
 #[test]
 fn test_handle_test_success() {
     use std::path::Path;
