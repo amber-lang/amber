@@ -214,7 +214,7 @@ jobs:
         with:
           components: llvm-tools-preview
       - name: Cache llvm-cov
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache-llvm-cov
         with:
           path: ~/.cargo/bin/cargo-llvm-cov
