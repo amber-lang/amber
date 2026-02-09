@@ -390,7 +390,7 @@ impl AmberCompiler {
     }
 
     #[cfg(windows)]
-    fn find_bash() -> Option<Command> {
+    pub fn find_bash() -> Option<Command> {
         if let Some(paths) = env::var_os("PATH") {
             for path in env::split_paths(&paths) {
                 let path = path.join("bash.exe");
@@ -405,7 +405,7 @@ impl AmberCompiler {
 
     /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
-    fn find_bash() -> Option<Command> {
+    pub fn find_bash() -> Option<Command> {
         if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
             let mut command = Command::new("docker");
             let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
