@@ -1,18 +1,18 @@
-use heraclitus_compiler::prelude::*;
+use super::expr::Expr;
 use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::FragmentKind;
-use crate::modules::types::{Type, Typed};
 use crate::modules::typecheck::TypeCheckModule;
-use crate::utils::metadata::ParserMetadata;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
-use super::expr::Expr;
+use crate::utils::metadata::ParserMetadata;
+use heraclitus_compiler::prelude::*;
 
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Parentheses {
     value: Box<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Parentheses {
@@ -24,7 +24,6 @@ impl Parentheses {
         self.value.extract_facts()
     }
 }
-
 
 impl Typed for Parentheses {
     fn get_type(&self) -> Type {
@@ -38,7 +37,7 @@ impl SyntaxModule<ParserMetadata> for Parentheses {
     fn new() -> Self {
         Parentheses {
             value: Box::new(Expr::new()),
-            kind: Type::Null
+            kind: Type::Null,
         }
     }
 

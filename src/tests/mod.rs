@@ -8,14 +8,16 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 pub mod cli;
-pub mod extra;
-pub mod postprocessor;
-pub mod translating;
 pub mod compiling;
-pub mod optimizing;
-mod stdlib;
-mod validity;
 mod erroring;
+pub mod extra;
+pub mod optimizing;
+pub mod postprocessor;
+mod stdlib;
+mod test_mode;
+mod testing;
+pub mod translating;
+mod validity;
 mod warning;
 mod test_mode;
 mod functional;
@@ -58,7 +60,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
             Err(err) => {
                 panic!("ERROR: {}", err.message.unwrap())
             }
-        }
+        },
         TestOutcomeTarget::Failure => match evaluated {
             Ok(stdout) => {
                 panic!("Expected error, got: {stdout}")
@@ -67,7 +69,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
                 let message = err.message.expect("Error message expected");
                 assert_eq!(message, result)
             }
-        }
+        },
     }
 }
 
@@ -80,6 +82,7 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
     let mut cmd = Command::new("bash");
+    cmd.arg("--norc");
     cmd.arg("-c");
     cmd.arg(code.into());
     cmd.stdout(Stdio::piped());
@@ -106,8 +109,8 @@ fn extract_output(code: impl Into<String>) -> String {
 
 /// Inner test logic for testing script output in case of success or failure
 pub fn script_test(input: &str, target: TestOutcomeTarget) {
-    let code = fs::read_to_string(input)
-        .unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    let code =
+        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
     // Extract output from script comment
     let mut output = extract_output(&code);
     // If output is not in comment, try to read from .output.txt file

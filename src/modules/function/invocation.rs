@@ -1,15 +1,13 @@
-
-
-use heraclitus_compiler::prelude::*;
-use crate::{fragments, raw_fragment};
-use crate::modules::prelude::*;
-use itertools::izip;
+use super::invocation_utils::*;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
+use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::modules::expression::expr::{Expr, ExprType};
-use super::invocation_utils::*;
+use crate::{fragments, raw_fragment};
+use heraclitus_compiler::prelude::*;
+use itertools::izip;
 
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
@@ -24,7 +22,7 @@ pub struct FunctionInvocation {
     col: usize,
     failure_handler: FailureHandler,
     modifier: CommandModifier,
-    is_failable: bool
+    is_failable: bool,
 }
 
 impl Typed for FunctionInvocation {
@@ -56,7 +54,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             col: 0,
             failure_handler: FailureHandler::new(),
             modifier: CommandModifier::new_expr(),
-            is_failable: false
+            is_failable: false,
         }
     }
 
@@ -76,11 +74,15 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             token(meta, "(")?;
             loop {
                 // Skip comments and newlines
-                if token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                if token_by(meta, |token| {
+                    token.starts_with("//") || token.starts_with('\n')
+                })
+                .is_ok()
+                {
                     continue;
                 }
                 if token(meta, ")").is_ok() {
-                    break
+                    break;
                 }
                 let mut arg = Expr::new();
                 syntax(meta, &mut arg)?;
@@ -92,7 +94,12 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
             }
 
             // Store position for later error reporting
-            self.failure_handler.set_position(PositionInfo::from_between_tokens(meta, tok.clone(), meta.get_current_token()));
+            self.failure_handler
+                .set_position(PositionInfo::from_between_tokens(
+                    meta,
+                    tok.clone(),
+                    meta.get_current_token(),
+                ));
 
             // Try to parse the failed block if present (optional in parse phase)
             if let Err(Failure::Loud(msg)) = syntax(meta, &mut self.failure_handler) {
@@ -199,21 +206,41 @@ impl TranslateModule for FunctionInvocation {
         meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             let silent = meta.gen_silent().to_frag();
             let suppress = meta.gen_suppress().to_frag();
-            let args = izip!(self.args.iter(), self.refs.iter()).map(| (arg, is_ref) | match arg.translate(meta) {
-                FragmentKind::VarExpr(var) if *is_ref => var.with_render_type(VarRenderType::BashRef).to_frag(),
-                FragmentKind::VarExpr(var) if var.kind.is_array() && var.index.is_some() => {
-                    let id = meta.gen_value_id();
-                    let temp_name = format!("{}_{id}", var.get_index_typename());
-                    let stmt = VarStmtFragment::new(&temp_name, var.kind.clone(), FragmentKind::VarExpr(var.clone()));
-                    let temp_var = meta.push_ephemeral_variable(stmt);
-                    fragments!(temp_var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]")
-                },
-                FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(var.with_render_type(VarRenderType::BashRef).to_frag().with_quotes(false), "[@]"),
-                _ if *is_ref => unreachable!("Reference value accepts only variables"),
-                var => var
-            }).collect::<Vec<FragmentKind>>();
+            let args = izip!(self.args.iter(), self.refs.iter())
+                .map(|(arg, is_ref)| match arg.translate(meta) {
+                    FragmentKind::VarExpr(var) if *is_ref => {
+                        var.with_render_type(VarRenderType::BashRef).to_frag()
+                    }
+                    FragmentKind::VarExpr(var) if var.kind.is_array() && var.index.is_some() => {
+                        let id = meta.gen_value_id();
+                        let temp_name = format!("{}_{id}", var.get_index_typename());
+                        let stmt = VarStmtFragment::new(
+                            &temp_name,
+                            var.kind.clone(),
+                            FragmentKind::VarExpr(var.clone()),
+                        );
+                        let temp_var = meta.push_ephemeral_variable(stmt);
+                        fragments!(
+                            temp_var
+                                .with_render_type(VarRenderType::BashRef)
+                                .to_frag()
+                                .with_quotes(false),
+                            "[@]"
+                        )
+                    }
+                    FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(
+                        var.with_render_type(VarRenderType::BashRef)
+                            .to_frag()
+                            .with_quotes(false),
+                        "[@]"
+                    ),
+                    _ if *is_ref => unreachable!("Reference value accepts only variables"),
+                    var => var,
+                })
+                .collect::<Vec<FragmentKind>>();
             let args = ListFragment::new(args).with_spaces().to_frag();
-            meta.stmt_queue.push_back(fragments!(name.clone(), " ", args, suppress, silent));
+            meta.stmt_queue
+                .push_back(fragments!(name.clone(), " ", args, suppress, silent));
         });
         if self.is_failable && self.failure_handler.is_parsed {
             let handler = self.failure_handler.translate(meta);
@@ -222,10 +249,21 @@ impl TranslateModule for FunctionInvocation {
         if self.kind != Type::Null {
             // Get the variable prefix for return values
             let prefix = meta.gen_variable_prefix(&self.name);
-            let invocation_return = format!("{}ret_{}{}_v{}", prefix, self.name, self.id, self.variant_id);
-            let invocation_instance = format!("{}ret_{}{}_v{}__{}_{}", prefix, self.name, self.id, self.variant_id, self.line, self.col);
-            let parsed_invocation_return = VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
-            let var_stmt = VarStmtFragment::new(&invocation_instance, self.kind.clone(), parsed_invocation_return);
+            let invocation_return = format!(
+                "{}ret_{}{}_v{}",
+                prefix, self.name, self.id, self.variant_id
+            );
+            let invocation_instance = format!(
+                "{}ret_{}{}_v{}__{}_{}",
+                prefix, self.name, self.id, self.variant_id, self.line, self.col
+            );
+            let parsed_invocation_return =
+                VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
+            let var_stmt = VarStmtFragment::new(
+                &invocation_instance,
+                self.kind.clone(),
+                parsed_invocation_return,
+            );
             meta.push_ephemeral_variable(var_stmt).to_frag()
         } else {
             fragments!("''")

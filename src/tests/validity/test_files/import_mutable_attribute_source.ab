@@ -1,0 +1,2 @@
+#[allow_public_mutable]
+pub let MUTABLE_VALUE = 100;

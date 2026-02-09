@@ -1,19 +1,20 @@
 use std::fmt::Display;
 
+use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use crate::utils::ParserMetadata;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum Type {
-    #[default] Null,
+    #[default]
+    Null,
     Text,
     Bool,
     Num,
     Int,
     Array(Box<Type>),
     Union(Vec<Type>),
-    Generic
+    Generic,
 }
 
 impl Type {
@@ -34,7 +35,7 @@ impl Type {
             },
             (Type::Union(types), other) => types.iter().all(|t| t.is_allowed_in(other)),
             (other, Type::Union(types)) => types.iter().any(|t| other.is_allowed_in(t)),
-            _ => false
+            _ => false,
         }
     }
 
@@ -50,7 +51,7 @@ impl Type {
                 // Iterate over all types and exclude the type from the union
                 for t in types {
                     if let Some(remaining) = t.exclude(other) {
-                         new_types.push(remaining);
+                        new_types.push(remaining);
                     }
                 }
                 if new_types.is_empty() {
@@ -60,7 +61,7 @@ impl Type {
                 } else {
                     Some(Type::Union(new_types))
                 }
-            },
+            }
             t => {
                 if t.is_subseteq_of(other) {
                     None
@@ -109,7 +110,7 @@ impl Type {
             // Generic can be anything
             (Type::Generic, _) | (_, Type::Generic) => true,
             // Different primitive types never intersect
-            _ => false
+            _ => false,
         }
     }
 }
@@ -122,13 +123,15 @@ impl Display for Type {
             Type::Num => write!(f, "Num"),
             Type::Int => write!(f, "Int"),
             Type::Null => write!(f, "Null"),
-            Type::Array(t) => if **t == Type::Generic {
+            Type::Array(t) => {
+                if **t == Type::Generic {
                     write!(f, "[]")
                 } else {
                     write!(f, "[{t}]")
-                },
+                }
+            }
             Type::Union(types) => write!(f, "{}", types.iter().map(|t| t.to_string()).join(" | ")),
-            Type::Generic => write!(f, "Generic")
+            Type::Generic => write!(f, "Generic"),
         }
     }
 }
@@ -140,8 +143,9 @@ pub trait Typed {
 // Tries to parse the type - if it fails, it fails loudly
 pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
-    try_parse_type(meta)
-        .map_err(|_| Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type")))
+    try_parse_type(meta).map_err(|_| {
+        Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type"))
+    })
 }
 
 // Tries to parse the type - if it fails, it fails quietly
@@ -154,17 +158,17 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
             (Type::Union(mut left_types), Type::Union(mut right_types)) => {
                 left_types.append(&mut right_types);
                 Type::Union(left_types)
-            },
+            }
             (Type::Union(mut left_types), right) => {
                 left_types.push(right);
                 Type::Union(left_types)
-            },
+            }
             (left, Type::Union(mut right_types)) => {
                 let mut left_types = vec![left];
                 left_types.append(&mut right_types);
                 Type::Union(left_types)
-            },
-            (left, right) => Type::Union(vec![left, right])
+            }
+            (left, right) => Type::Union(vec![left, right]),
         }
     }
 
@@ -179,23 +183,23 @@ fn try_parse_simple_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                 "Text" => {
                     meta.increment_index();
                     Ok(Type::Text)
-                },
+                }
                 "Bool" => {
                     meta.increment_index();
                     Ok(Type::Bool)
-                },
+                }
                 "Num" => {
                     meta.increment_index();
                     Ok(Type::Num)
-                },
+                }
                 "Int" => {
                     meta.increment_index();
                     Ok(Type::Int)
-                },
+                }
                 "Null" => {
                     meta.increment_index();
                     Ok(Type::Null)
-                },
+                }
                 "[" => {
                     let index = meta.get_index();
                     meta.increment_index();
@@ -203,41 +207,53 @@ fn try_parse_simple_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                         Ok(Type::Array(Box::new(Type::Generic)))
                     } else {
                         match try_parse_type(meta) {
-                            Ok(Type::Array(_)) => error!(meta, tok, "Arrays cannot be nested due to the Bash limitations"),
+                            Ok(Type::Array(_)) => error!(
+                                meta,
+                                tok, "Arrays cannot be nested due to the Bash limitations"
+                            ),
                             Ok(result_type) => {
                                 token(meta, "]")?;
                                 Ok(Type::Array(Box::new(result_type)))
-                            },
+                            }
                             Err(_) => {
                                 meta.set_index(index);
                                 Err(Failure::Quiet(PositionInfo::at_eof(meta)))
                             }
                         }
                     }
-                },
+                }
                 // Error messages to help users of other languages understand the syntax
                 text @ ("String" | "Char") => {
-                    error!(meta, tok, format!("'{text}' is not a valid data type. Did you mean 'Text'?"))
-                },
+                    error!(
+                        meta,
+                        tok,
+                        format!("'{text}' is not a valid data type. Did you mean 'Text'?")
+                    )
+                }
                 number @ ("Number" | "Float" | "Double") => {
-                    error!(meta, tok, format!("'{number}' is not a valid data type. Did you mean 'Num'?"))
-                },
+                    error!(
+                        meta,
+                        tok,
+                        format!("'{number}' is not a valid data type. Did you mean 'Num'?")
+                    )
+                }
                 "Boolean" => {
-                    error!(meta, tok, "'Boolean' is not a valid data type. Did you mean 'Bool'?")
-                },
+                    error!(
+                        meta,
+                        tok, "'Boolean' is not a valid data type. Did you mean 'Bool'?"
+                    )
+                }
                 array @ ("List" | "Array") => {
                     error!(meta, tok => {
                         message: format!("'{array}'<T> is not a valid data type. Did you mean '[T]'?"),
                         comment: "Where 'T' is the type of the array elements"
                     })
-                },
+                }
                 // The quiet error
-                _ => Err(Failure::Quiet(PositionInfo::at_eof(meta)))
+                _ => Err(Failure::Quiet(PositionInfo::at_eof(meta))),
             }
-        },
-        None => {
-            Err(Failure::Quiet(PositionInfo::at_eof(meta)))
         }
+        None => Err(Failure::Quiet(PositionInfo::at_eof(meta))),
     };
 
     res

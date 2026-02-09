@@ -1,11 +1,11 @@
 mod compiler;
 mod docs;
 mod modules;
+mod optimizer;
 mod rules;
 mod stdlib;
 mod translate;
 mod utils;
-mod optimizer;
 
 mod testing;
 
@@ -174,7 +174,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
+                let options =
+                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
                 0

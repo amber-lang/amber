@@ -1,16 +1,16 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::fragments;
-use crate::modules::expression::expr::Expr;
 use crate::modules::block::Block;
-use crate::utils::cc_flags::{CCFlags, get_ccflag_name};
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
 use crate::modules::statement::comment::Comment;
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use heraclitus_compiler::prelude::*;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct IfChain {
     cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
-    false_block: Option<(Vec<Comment>, Box<Block>)>
+    false_block: Option<(Vec<Comment>, Box<Block>)>,
 }
 
 impl IfChain {
@@ -21,7 +21,9 @@ impl IfChain {
         let flag_name = get_ccflag_name(CCFlags::AllowDeadCode);
         let message = Message::new_warn_at_position(meta, pos)
             .message(reason)
-            .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
+            .comment(format!(
+                "To suppress this warning, use '{flag_name}' compiler flag"
+            ));
         meta.add_message(message);
     }
 }
@@ -47,7 +49,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
 
             // Handle new lines
             if token_by(meta, |token| token.starts_with('\n')).is_ok() {
-                continue
+                continue;
             }
 
             // Handle comments
@@ -72,13 +74,17 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 syntax(meta, &mut *false_block)?;
                 self.false_block = Some((comments, false_block));
                 if token(meta, "}").is_err() {
-                  return error!(meta, meta.get_current_token(), "Expected `else` condition to be the last in the if chain")?
+                    return error!(
+                        meta,
+                        meta.get_current_token(),
+                        "Expected `else` condition to be the last in the if chain"
+                    )?;
                 }
-                return Ok(())
+                return Ok(());
             }
             // Handle end of the if chain
             if token(meta, "}").is_ok() {
-                return Ok(())
+                return Ok(());
             }
             syntax(meta, &mut cond)?;
             syntax(meta, &mut block)?;
@@ -87,7 +93,6 @@ impl SyntaxModule<ParserMetadata> for IfChain {
         }
     }
 }
-
 
 impl TypeCheckModule for IfChain {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -103,13 +108,15 @@ impl TypeCheckModule for IfChain {
                 comment.typecheck(meta)?;
             }
             // Typecheck condition with accumulated negative facts
-            meta.with_narrowed_scope(accumulated_neg_facts.clone(), |meta| {
-                cond.typecheck(meta)
-            })?;
+            meta.with_narrowed_scope(accumulated_neg_facts.clone(), |meta| cond.typecheck(meta))?;
             let pos = cond.get_position();
 
             if chain_deadcode {
-                Self::warn_dead_code(meta, pos, "Condition is unreachable, previous condition is always true");
+                Self::warn_dead_code(
+                    meta,
+                    pos,
+                    "Condition is unreachable, previous condition is always true",
+                );
                 continue;
             }
 
@@ -119,29 +126,29 @@ impl TypeCheckModule for IfChain {
                     // Merge accumulated negative facts with current positive facts for the block
                     let mut block_facts = accumulated_neg_facts.clone();
                     block_facts.extend(facts);
-                    
-                    meta.with_narrowed_scope(block_facts, |meta| {
-                        block.typecheck(meta)
-                    })?;
+
+                    meta.with_narrowed_scope(block_facts, |meta| block.typecheck(meta))?;
                     new_chain.push((comments, cond, block));
                     chain_deadcode = true;
                     first_true_pos = Some(pos);
-                },
+                }
                 Some(false) => {
-                    Self::warn_dead_code(meta, pos, "Condition is always false, block will never execute");
-                },
+                    Self::warn_dead_code(
+                        meta,
+                        pos,
+                        "Condition is always false, block will never execute",
+                    );
+                }
                 None => {
                     let (facts, neg_facts) = cond.extract_facts();
                     // Merge accumulated negative facts with current positive facts for the block
                     let mut block_facts = accumulated_neg_facts.clone();
                     block_facts.extend(facts);
 
-                    meta.with_narrowed_scope(block_facts, |meta| {
-                        block.typecheck(meta)
-                    })?;
+                    meta.with_narrowed_scope(block_facts, |meta| block.typecheck(meta))?;
                     // Add current negative facts to the accumulated set for next branches
                     accumulated_neg_facts.extend(neg_facts);
-                    
+
                     new_chain.push((comments, cond, block));
                 }
             }
@@ -152,7 +159,11 @@ impl TypeCheckModule for IfChain {
         if chain_deadcode {
             if self.false_block.is_some() {
                 if let Some(pos) = first_true_pos {
-                    Self::warn_dead_code(meta, pos, "Condition is always true, 'else' block will never execute");
+                    Self::warn_dead_code(
+                        meta,
+                        pos,
+                        "Condition is always true, 'else' block will never execute",
+                    );
                 }
             }
             self.false_block = None;
@@ -160,9 +171,7 @@ impl TypeCheckModule for IfChain {
             for comment in comments {
                 comment.typecheck(meta)?;
             }
-            meta.with_narrowed_scope(accumulated_neg_facts, |meta| {
-                false_block.typecheck(meta)
-            })?;
+            meta.with_narrowed_scope(accumulated_neg_facts, |meta| false_block.typecheck(meta))?;
         }
 
         Ok(())
@@ -177,7 +186,7 @@ impl TranslateModule for IfChain {
             }
             return FragmentKind::Empty;
         }
-        
+
         // In case of when only the first condition is true, we can just leave the truth block without any condition
         if let Some((_, first_cond, first_block)) = self.cond_blocks.first() {
             if first_cond.analyze_control_flow() == Some(true) {
@@ -211,7 +220,6 @@ impl TranslateModule for IfChain {
         BlockFragment::new(result, false).to_frag()
     }
 }
-
 
 impl DocumentationModule for IfChain {
     fn document(&self, _meta: &ParserMetadata) -> String {

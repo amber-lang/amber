@@ -1,10 +1,13 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
+use super::{
+    handle_index_accessor, handle_variable_reference, prevent_constant_mutation,
+    validate_index_accessor, variable_name_extensions,
+};
 use crate::docs::module::DocumentationModule;
-use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
-use super::{handle_index_accessor, handle_variable_reference, prevent_constant_mutation, variable_name_extensions, validate_index_accessor};
-use crate::modules::types::{Typed, Type};
+use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VariableSet {
@@ -60,11 +63,22 @@ impl TypeCheckModule for VariableSet {
         if let Some(ref index_expr) = self.index {
             if !matches!(variable.kind, Type::Array(_)) {
                 let left_type = variable.kind.clone();
-                return error!(meta, self.tok.clone(), format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'"));
+                return error!(
+                    meta,
+                    self.tok.clone(),
+                    format!(
+            "Cannot assign a value to an index of a non-array variable of type '{left_type}'"
+          )
+                );
             }
 
             // Validate the index type (must be integer, not range, for assignment)
-            validate_index_accessor(meta, index_expr, false, PositionInfo::from_token(meta, self.tok.clone()))?;
+            validate_index_accessor(
+                meta,
+                index_expr,
+                false,
+                PositionInfo::from_token(meta, self.tok.clone()),
+            )?;
         }
 
         let expr_type = self.expr.get_type();
@@ -81,12 +95,19 @@ impl TypeCheckModule for VariableSet {
 
                 if !expr_type.is_allowed_in(kind) {
                     let tok = self.expr.get_position();
-                    return error_pos!(meta, tok, format!("Cannot assign value of type '{expr_type}' to an array of '{kind}'"));
+                    return error_pos!(
+                        meta,
+                        tok,
+                        format!(
+                            "Cannot assign value of type '{expr_type}' to an array of '{kind}'"
+                        )
+                    );
                 }
             }
         } else {
             // Check for type inference
-            if let (Type::Array(inner_var), Type::Array(inner_right)) = (&self.var_type, &expr_type) {
+            if let (Type::Array(inner_var), Type::Array(inner_right)) = (&self.var_type, &expr_type)
+            {
                 if **inner_var == Type::Generic && **inner_right != Type::Generic {
                     meta.update_var_type(&self.name, expr_type.clone());
                     self.var_type = expr_type;
@@ -96,7 +117,14 @@ impl TypeCheckModule for VariableSet {
 
             if !expr_type.is_allowed_in(&self.var_type) {
                 let tok = self.expr.get_position();
-                return error_pos!(meta, tok, format!("Cannot assign value of type '{expr_type}' to a variable of type '{}'", self.var_type));
+                return error_pos!(
+                    meta,
+                    tok,
+                    format!(
+                        "Cannot assign value of type '{expr_type}' to a variable of type '{}'",
+                        self.var_type
+                    )
+                );
             }
         }
 
