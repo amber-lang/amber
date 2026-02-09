@@ -224,7 +224,7 @@ jobs:
       - name: Test coverage
         run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,release,${{ github.event.release.tag_name }}
