@@ -11,11 +11,11 @@ build = "build.rs"
 [package.metadata.deb]
  maintainer = "Amber-Lang project"
  license-file = "LICENSE.md"
- copyright = "LGPL-3"
+ copyright = "2024, Amber-Lang project"
 
 [package.metadata.generate-rpm]
  name = "amber"
- license = "LGPL-3"
+ license = "LGPL-3.0-only"
  summary = "The Programming Language compiled to Bash."
  url = "https://amber-lang.com/"
  assets = [
