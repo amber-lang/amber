@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
-use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
+use crate::utils::TranslateMetadata;
 
 /// Represents a region that can be interpolated. Similarly to what Heraclitus returns when parsing a region.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -21,7 +21,11 @@ pub struct InterpolableFragment {
 }
 
 impl InterpolableFragment {
-    pub fn new(strings: Vec<String>, interps: Vec<FragmentKind>, render_type: InterpolableRenderType) -> Self {
+    pub fn new(
+        strings: Vec<String>,
+        interps: Vec<FragmentKind>,
+        render_type: InterpolableRenderType,
+    ) -> Self {
         InterpolableFragment {
             strings: VecDeque::from_iter(strings),
             interps: VecDeque::from_iter(interps),
@@ -50,7 +54,8 @@ impl InterpolableFragment {
             if let Some(translated) = self.interps.pop_front() {
                 // Quotes inside of interpolable strings are not necessary
                 if let FragmentKind::Interpolable(mut interpolable) = translated {
-                    interpolable = interpolable.with_render_type(InterpolableRenderType::GlobalContext);
+                    interpolable =
+                        interpolable.with_render_type(InterpolableRenderType::GlobalContext);
                     result.push(interpolable.to_string(meta));
                 } else {
                     result.push(translated.to_string(meta));
@@ -94,16 +99,14 @@ impl InterpolableFragment {
         let mut result = String::new();
         for c in chars {
             match self.render_type {
-                InterpolableRenderType::StringLiteral => {
-                    match c {
-                        '"' =>  result += r#"\""#,
-                        '$' =>  result += r#"\$"#,
-                        '`' =>  result += r#"\`"#,
-                        '\\' =>  result += r#"\\"#,
-                        '!' =>  result += r#""'!'""#,
-                        _ => result.push(c),
-                    }
-                }
+                InterpolableRenderType::StringLiteral => match c {
+                    '"' => result += r#"\""#,
+                    '$' => result += r#"\$"#,
+                    '`' => result += r#"\`"#,
+                    '\\' => result += r#"\\"#,
+                    '!' => result += r#""'!'""#,
+                    _ => result.push(c),
+                },
                 InterpolableRenderType::GlobalContext => result.push(c),
             }
         }
@@ -164,21 +167,39 @@ mod tests {
     fn test_translate_escaped_string() {
         // Test StringLiteral translation
         let i_str = create_interpolable(InterpolableRenderType::StringLiteral);
-        assert_eq!(i_str.translate_escaped_string(r#"hello"#.to_string()), r#"hello"#);
+        assert_eq!(
+            i_str.translate_escaped_string(r#"hello"#.to_string()),
+            r#"hello"#
+        );
         assert_eq!(i_str.translate_escaped_string(r#"\"#.to_string()), r#"\\"#);
         assert_eq!(i_str.translate_escaped_string(r#"""#.to_string()), r#"\""#);
         assert_eq!(i_str.translate_escaped_string(r#"'"#.to_string()), r#"'"#);
         assert_eq!(i_str.translate_escaped_string(r#"$"#.to_string()), r#"\$"#);
-        assert_eq!(i_str.translate_escaped_string(r#"\$"#.to_string()), r#"\\\$"#);
+        assert_eq!(
+            i_str.translate_escaped_string(r#"\$"#.to_string()),
+            r#"\\\$"#
+        );
         assert_eq!(i_str.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
         assert_eq!(i_str.translate_escaped_string(r#"`"#.to_string()), r#"\`"#);
-        assert_eq!(i_str.translate_escaped_string(r#"!"#.to_string()), r#""'!'""#);
-        assert_eq!(i_str.translate_escaped_string(r#"\ "#.to_string()), r#"\\ "#);
-        assert_eq!(i_str.translate_escaped_string(r#"${var}"#.to_string()), r#"\${var}"#);
+        assert_eq!(
+            i_str.translate_escaped_string(r#"!"#.to_string()),
+            r#""'!'""#
+        );
+        assert_eq!(
+            i_str.translate_escaped_string(r#"\ "#.to_string()),
+            r#"\\ "#
+        );
+        assert_eq!(
+            i_str.translate_escaped_string(r#"${var}"#.to_string()),
+            r#"\${var}"#
+        );
 
         // Test GlobalContext translation
         let i_glo = create_interpolable(InterpolableRenderType::GlobalContext);
-        assert_eq!(i_glo.translate_escaped_string(r#"hello"#.to_string()), r#"hello"#);
+        assert_eq!(
+            i_glo.translate_escaped_string(r#"hello"#.to_string()),
+            r#"hello"#
+        );
         assert_eq!(i_glo.translate_escaped_string(r#"\a"#.to_string()), r#"\a"#);
         assert_eq!(i_glo.translate_escaped_string(r#"\"#.to_string()), r#"\"#);
         assert_eq!(i_glo.translate_escaped_string(r#"\\"#.to_string()), r#"\\"#);
@@ -188,7 +209,10 @@ mod tests {
         assert_eq!(i_glo.translate_escaped_string(r#"\$"#.to_string()), r#"\$"#);
         assert_eq!(i_glo.translate_escaped_string(r#"{"#.to_string()), r#"{"#);
         assert_eq!(i_glo.translate_escaped_string(r#"!"#.to_string()), r#"!"#);
-        assert_eq!(i_glo.translate_escaped_string(r#"basename `pwd`"#.to_string()), r#"basename `pwd`"#);
+        assert_eq!(
+            i_glo.translate_escaped_string(r#"basename `pwd`"#.to_string()),
+            r#"basename `pwd`"#
+        );
         assert_eq!(i_glo.translate_escaped_string(r#"\ "#.to_string()), r#"\ "#);
     }
 

@@ -1,15 +1,15 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
-use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use heraclitus_compiler::prelude::*;
 
 use super::TypeOp;
 
 #[derive(Debug, Clone)]
 pub struct Cast {
     expr: Box<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Cast {
@@ -39,7 +39,7 @@ impl SyntaxModule<ParserMetadata> for Cast {
     fn new() -> Self {
         Cast {
             expr: Box::new(Expr::new()),
-            kind: Type::default()
+            kind: Type::default(),
         }
     }
 
@@ -58,20 +58,29 @@ impl TypeCheckModule for Cast {
             let l_type = self.expr.get_type();
             let r_type = self.kind.clone();
             let message = Message::new_warn_at_position(meta, pos)
-                .message(format!("Casting a value of type '{l_type}' to '{r_type}' is not recommended"))
-                .comment(format!("To suppress this warning, use '{flag_name}' compiler flag"));
+                .message(format!(
+                    "Casting a value of type '{l_type}' to '{r_type}' is not recommended"
+                ))
+                .comment(format!(
+                    "To suppress this warning, use '{flag_name}' compiler flag"
+                ));
             match (l_type, r_type) {
                 (Type::Array(left), Type::Array(right)) => {
-                    if *left != *right && !matches!(*left, Type::Bool | Type::Num) && !matches!(*right, Type::Bool | Type::Num) {
+                    if *left != *right
+                        && !matches!(*left, Type::Bool | Type::Num)
+                        && !matches!(*right, Type::Bool | Type::Num)
+                    {
                         meta.add_message(message);
                     }
-                },
-                (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => meta.add_message(message),
+                }
+                (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => {
+                    meta.add_message(message)
+                }
                 (Type::Text, _) => {
                     if self.kind != Type::Text {
                         meta.add_message(message)
                     }
-                },
+                }
                 _ => {}
             }
         }

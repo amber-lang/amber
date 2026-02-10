@@ -1,7 +1,7 @@
-use heraclitus_compiler::prelude::*;
-use crate::utils::ParserMetadata;
 use super::expr::Expr;
 use crate::modules::typecheck::TypeCheckModule;
+use crate::utils::ParserMetadata;
+use heraclitus_compiler::prelude::*;
 
 pub mod ternary;
 

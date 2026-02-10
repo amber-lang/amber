@@ -23,11 +23,7 @@ impl PostProcessor {
         command.stdout(Stdio::piped());
         command.stderr(Stdio::piped());
         let command = Rc::new(RefCell::new(command));
-        Self {
-            name,
-            bin,
-            command,
-        }
+        Self { name, bin, command }
     }
 
     pub fn cmd(&self) -> Rc<RefCell<Command>> {
@@ -36,25 +32,25 @@ impl PostProcessor {
 
     pub fn is_available(&self) -> bool {
         match Command::new(self.bin.clone()).spawn() {
-            Ok(mut v) => {
-                v.kill().is_ok()
-            },
-            Err(_) => false
+            Ok(mut v) => v.kill().is_ok(),
+            Err(_) => false,
         }
     }
 
     pub fn execute(&self, code: String) -> Result<String, Box<dyn std::error::Error>> {
-        if !self.is_available() { return Ok(code) }
+        if !self.is_available() {
+            return Ok(code);
+        }
 
         let mut spawned = self.cmd().borrow_mut().spawn()?;
-        
+
         // send to stdin
         if let Some(stdin) = spawned.stdin.as_mut() {
             let mut writer = BufWriter::new(stdin);
             writer.write_all(code.as_bytes())?;
             writer.flush()?;
         } else {
-            return Err(String::new().into())
+            return Err(String::new().into());
         }
 
         // read from stdout or stderr
@@ -83,10 +79,7 @@ impl PostProcessor {
 
         default
             .iter()
-            .filter(|x| {
-                filters.iter()  
-                    .all(|xx| !xx.matches(&x.name))
-            })
+            .filter(|x| filters.iter().all(|xx| !xx.matches(&x.name)))
             .cloned()
             .collect_vec()
     }

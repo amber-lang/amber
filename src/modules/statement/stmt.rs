@@ -1,60 +1,36 @@
-use heraclitus_compiler::prelude::*;
-use amber_meta::StatementDispatch;
-use crate::modules::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
-use crate::modules::expression::expr::Expr;
-use crate::translate::module::TranslateModule;
-use crate::modules::variable::{
-    init::VariableInit,
-    init_destruct::VariableInitDestruct,
-    set::VariableSet,
-    set_destruct::VariableSetDestruct
-};
-use crate::modules::command::modifier::CommandModifier;
-use crate::modules::command::cmd::Command;
-use crate::parse_statement;
-use crate::modules::condition::{
-    ifchain::IfChain,
-    ifcond::IfCondition,
-};
-use crate::modules::shorthand::{
-    add::ShorthandAdd,
-    sub::ShorthandSub,
-    mul::ShorthandMul,
-    div::ShorthandDiv,
-    modulo::ShorthandModulo,
-};
-use crate::modules::loops::{
-    infinite_loop::InfiniteLoop,
-    iter_loop::IterLoop,
-    while_loop::WhileLoop,
-    break_stmt::Break,
-    continue_stmt::Continue,
-};
-use crate::modules::function::{
-    declaration::FunctionDeclaration,
-    ret::Return,
-    fail::Fail,
-};
-use crate::modules::imports::import::Import;
-use crate::modules::main::Main;
-use crate::modules::test::Test;
-use crate::modules::builtin::{
-    echo::Echo,
-    mv::Mv,
-    cd::Cd,
-    exit::Exit,
-    touch::Touch,
-    clear::Clear,
-    rm::Rm,
-    sleep::Sleep,
-    wait::Await,
-    cp::Cp,
-    disown::Disown,
-};
-use super::comment_doc::CommentDoc;
 use super::comment::Comment;
+use super::comment_doc::CommentDoc;
+use crate::docs::module::DocumentationModule;
+use crate::modules::builtin::{
+    cd::Cd, clear::Clear, cp::Cp, disown::Disown, echo::Echo, exit::Exit, mv::Mv, rm::Rm,
+    sleep::Sleep, touch::Touch, wait::Await,
+};
+use crate::modules::command::cmd::Command;
+use crate::modules::command::modifier::CommandModifier;
+use crate::modules::condition::{ifchain::IfChain, ifcond::IfCondition};
+use crate::modules::expression::expr::Expr;
+use crate::modules::function::{declaration::FunctionDeclaration, fail::Fail, ret::Return};
+use crate::modules::imports::import::Import;
+use crate::modules::loops::{
+    break_stmt::Break, continue_stmt::Continue, infinite_loop::InfiniteLoop, iter_loop::IterLoop,
+    while_loop::WhileLoop,
+};
+use crate::modules::main::Main;
+use crate::modules::prelude::*;
+use crate::modules::shorthand::{
+    add::ShorthandAdd, div::ShorthandDiv, modulo::ShorthandModulo, mul::ShorthandMul,
+    sub::ShorthandSub,
+};
+use crate::modules::test::Test;
+use crate::modules::variable::{
+    init::VariableInit, init_destruct::VariableInitDestruct, set::VariableSet,
+    set_destruct::VariableSetDestruct,
+};
+use crate::parse_statement;
+use crate::translate::module::TranslateModule;
+use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use amber_meta::StatementDispatch;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, StatementDispatch)]
 pub enum StmtType {
@@ -101,7 +77,7 @@ pub enum StmtType {
 
 #[derive(Debug, Clone)]
 pub struct Statement {
-    pub value: Option<StmtType>
+    pub value: Option<StmtType>,
 }
 
 impl Statement {
@@ -117,45 +93,72 @@ impl SyntaxModule<ParserMetadata> for Statement {
     syntax_name!("Statement");
 
     fn new() -> Self {
-        Statement {
-            value: None
-        }
+        Statement { value: None }
     }
 
     #[allow(unused_assignments)]
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Order matters here
-        parse_statement!([
-            // Imports
-            Import,
-            // Functions
-            FunctionDeclaration, Main, Test, Return, Fail,
-            // Loops
-            InfiniteLoop, IterLoop, WhileLoop, Break, Continue,
-            // Conditions
-            IfChain, IfCondition,
-            // Command
-            Echo, Mv, Cd, Exit, CommandModifier, Command, Sleep, Rm,
-            Clear, Await, Cp, Touch, Disown,
-            // Variables
-            VariableInitDestruct, VariableSetDestruct, VariableInit, VariableSet,
-            // Short hand
-            ShorthandAdd, ShorthandSub,
-            ShorthandMul, ShorthandDiv,
-            ShorthandModulo,
-            // Comment doc
-            CommentDoc, Comment,
-            // Expression
-            Expr
-        ], |module, cons| {
-            match syntax(meta, &mut module) {
-                Ok(()) => {
-                    self.value = Some(cons(module));
-                    Ok(())
+        parse_statement!(
+            [
+                // Imports
+                Import,
+                // Functions
+                FunctionDeclaration,
+                Main,
+                Test,
+                Return,
+                Fail,
+                // Loops
+                InfiniteLoop,
+                IterLoop,
+                WhileLoop,
+                Break,
+                Continue,
+                // Conditions
+                IfChain,
+                IfCondition,
+                // Command
+                Echo,
+                Mv,
+                Cd,
+                Exit,
+                CommandModifier,
+                Command,
+                Sleep,
+                Rm,
+                Clear,
+                Await,
+                Cp,
+                Touch,
+                Disown,
+                // Variables
+                VariableInitDestruct,
+                VariableSetDestruct,
+                VariableInit,
+                VariableSet,
+                // Short hand
+                ShorthandAdd,
+                ShorthandSub,
+                ShorthandMul,
+                ShorthandDiv,
+                ShorthandModulo,
+                // Comment doc
+                CommentDoc,
+                Comment,
+                // Expression
+                Expr
+            ],
+            |module, cons| {
+                match syntax(meta, &mut module) {
+                    Ok(()) => {
+                        self.value = Some(cons(module));
+                        Ok(())
+                    }
+                    Err(details) => Err(details),
                 }
-                Err(details) => Err(details)
             }
-        })
+        )
     }
 }
 

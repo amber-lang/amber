@@ -1,15 +1,15 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::translate::compute::{ArithOp, translate_float_computation};
-use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Typed, Type};
 use super::BinOp;
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compute::{translate_float_computation, ArithOp};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Modulo {
     left: Box<Expr>,
     right: Box<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Modulo {
@@ -40,7 +40,7 @@ impl SyntaxModule<ParserMetadata> for Modulo {
         Modulo {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
-            kind: Type::Generic
+            kind: Type::Generic,
         }
     }
 
@@ -53,10 +53,13 @@ impl TypeCheckModule for Modulo {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        self.kind = Self::typecheck_allowed_types(meta, "modulo", &mut self.left, &mut self.right, &[
-            Type::Num,
-            Type::Int,
-        ])?;
+        self.kind = Self::typecheck_allowed_types(
+            meta,
+            "modulo",
+            &mut self.left,
+            &mut self.right,
+            &[Type::Num, Type::Int],
+        )?;
         Ok(())
     }
 }
@@ -66,8 +69,12 @@ impl TranslateModule for Modulo {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         match self.kind {
-            Type::Int => FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Modulo, right)),
-            Type::Num => translate_float_computation(meta, ArithOp::Modulo, Some(left), Some(right)),
+            Type::Int => {
+                FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Modulo, right))
+            }
+            Type::Num => {
+                translate_float_computation(meta, ArithOp::Modulo, Some(left), Some(right))
+            }
             _ => unreachable!("Unsupported type {} in subtraction operation", self.kind),
         }
     }

@@ -1,11 +1,11 @@
-use heraclitus_compiler::prelude::*;
-use crate::raw_fragment;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::raw_fragment;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Bool {
-    value: bool
+    value: bool,
 }
 
 impl Bool {
@@ -24,9 +24,7 @@ impl SyntaxModule<ParserMetadata> for Bool {
     syntax_name!("Bool");
 
     fn new() -> Self {
-        Bool {
-            value: false
-        }
+        Bool { value: false }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {

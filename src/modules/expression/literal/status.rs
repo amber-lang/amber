@@ -1,10 +1,10 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::FragmentKind;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Status;

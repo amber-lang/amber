@@ -1,6 +1,6 @@
-use std::mem;
 use super::fragment::{FragmentKind, FragmentRenderable};
 use crate::utils::TranslateMetadata;
+use std::mem;
 
 /// Renders blocks of statements in Bash code.
 
@@ -37,7 +37,9 @@ impl BlockFragment {
     }
 
     pub fn is_empty_logic(&self) -> bool {
-        self.statements.iter().all(|fragment| fragment.is_empty_logic())
+        self.statements
+            .iter()
+            .all(|fragment| fragment.is_empty_logic())
     }
 }
 
