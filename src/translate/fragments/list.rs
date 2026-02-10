@@ -1,10 +1,10 @@
-use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
+use crate::utils::TranslateMetadata;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum ListFragmentSeparator {
     Space,
-    Empty
+    Empty,
 }
 
 /// Represents a list of fragments that can be separated by a given separator.
@@ -38,7 +38,8 @@ impl FragmentRenderable for ListFragment {
             ListFragmentSeparator::Space => " ",
             ListFragmentSeparator::Empty => "",
         };
-        self.values.into_iter()
+        self.values
+            .into_iter()
             .filter(|x| !matches!(x, FragmentKind::Empty))
             .map(|x| x.to_string(meta))
             .collect::<Vec<String>>()

@@ -1,17 +1,19 @@
-use crate::modules::types::{Type, Typed};
+use super::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
-use crate::modules::expression::interpolated_region::{InterpolatedRegionType, parse_interpolated_region};
-use super::modifier::CommandModifier;
-use heraclitus_compiler::prelude::*;
+use crate::modules::expression::interpolated_region::{
+    parse_interpolated_region, InterpolatedRegionType,
+};
 use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Command {
     strings: Vec<String>,
     interps: Vec<Expr>,
     modifier: CommandModifier,
-    failure_handler: FailureHandler
+    failure_handler: FailureHandler,
 }
 
 impl Typed for Command {
@@ -28,7 +30,7 @@ impl SyntaxModule<ParserMetadata> for Command {
             strings: vec![],
             interps: vec![],
             modifier: CommandModifier::new_expr(),
-            failure_handler: FailureHandler::new()
+            failure_handler: FailureHandler::new(),
         }
     }
 
@@ -78,25 +80,28 @@ impl TranslateModule for Command {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let translation = {
             meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
-            meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
-                let interps = self.interps.iter()
-                    .map(|item| item.translate(meta).with_quotes(false))
-                    .collect::<Vec<FragmentKind>>();
+                meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
+                    let interps = self
+                        .interps
+                        .iter()
+                        .map(|item| item.translate(meta).with_quotes(false))
+                        .collect::<Vec<FragmentKind>>();
 
-                let translation = InterpolableFragment::new(
-                    self.strings.clone(),
-                    interps,
-                    InterpolableRenderType::GlobalContext
-                ).to_frag();
+                    let translation = InterpolableFragment::new(
+                        self.strings.clone(),
+                        interps,
+                        InterpolableRenderType::GlobalContext,
+                    )
+                    .to_frag();
 
-                let silent = meta.gen_silent().to_frag();
-                let suppress = meta.gen_suppress().to_frag();
-                let sudo_prefix = meta.gen_sudo_prefix().to_frag();
-                ListFragment::new(vec![sudo_prefix, translation, suppress, silent])
-                    .with_spaces()
-                    .to_frag()
+                    let silent = meta.gen_silent().to_frag();
+                    let suppress = meta.gen_suppress().to_frag();
+                    let sudo_prefix = meta.gen_sudo_prefix().to_frag();
+                    ListFragment::new(vec![sudo_prefix, translation, suppress, silent])
+                        .with_spaces()
+                        .to_frag()
+                })
             })
-        })
         };
 
         let handler = self.failure_handler.translate(meta);
@@ -113,7 +118,8 @@ impl TranslateModule for Command {
             (false, true) => {
                 let id = meta.gen_value_id();
                 let value = SubprocessFragment::new(translation).to_frag();
-                let var_stmt = VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
+                let var_stmt =
+                    VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
                 let var_expr = meta.push_ephemeral_variable(var_stmt);
                 meta.stmt_queue.push_back(handler);
                 var_expr.to_frag()

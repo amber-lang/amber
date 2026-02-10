@@ -86,7 +86,8 @@ pub fn run_function_with_args(
 
     // Calculate the variant id
     let variant_id = meta.fun_cache.get_instances(fun.id).unwrap().len();
-    meta.parsing_functions.insert((fun.id, args.to_vec()), variant_id);
+    meta.parsing_functions
+        .insert((fun.id, args.to_vec()), variant_id);
 
     // Update the function's global scope with the current global scope's functions to support forward references (mutual recursion)
     if let Some(current_global_scope) = meta.context.scopes.first() {
@@ -101,7 +102,9 @@ pub fn run_function_with_args(
     // Capture caller trace and path for the correct trace in errors
     let caller_trace = meta.context.trace.clone();
     let caller_path = meta.context.path.clone();
-    let call_site_pos = tok.as_ref().map(|t| PositionInfo::from_token(meta, Some(t.clone())));
+    let call_site_pos = tok
+        .as_ref()
+        .map(|t| PositionInfo::from_token(meta, Some(t.clone())));
 
     // Suppress warnings only after first-pass typechecking with declared types has emitted them
     let suppress = meta.fun_cache.is_first_pass_done(fun.id);
@@ -209,9 +212,7 @@ pub fn handle_function_parameters(
 
     // On first invocation, run first-pass with declared types (or Generic) to emit correct warnings.
     if !meta.fun_cache.is_first_pass_done(id) {
-        let declared_types: Vec<Type> = fun.args.iter()
-            .map(|arg| arg.kind.clone())
-            .collect();
+        let declared_types: Vec<Type> = fun.args.iter().map(|arg| arg.kind.clone()).collect();
         // We set persist to false, because we don't want to cache the function instance
         let _ = meta.with_first_pass_ctx(true, |meta| {
             run_function_with_args(meta, fun.clone(), &declared_types, tok.clone(), false)
@@ -228,7 +229,13 @@ pub fn handle_function_parameters(
         .find(|fun| fun.args == args)
     {
         Some(fun) => Ok((fun.returns.clone(), fun.variant_id)),
-        None => Ok(run_function_with_args(meta, fun, args, tok, !meta.first_pass_ctx)?),
+        None => Ok(run_function_with_args(
+            meta,
+            fun,
+            args,
+            tok,
+            !meta.first_pass_ctx,
+        )?),
     };
 
     result

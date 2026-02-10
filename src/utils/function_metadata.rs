@@ -15,7 +15,12 @@ impl FunctionMetadata {
     pub fn new<T: Into<String>>(name: T, id: usize, variant: usize, returns: &Type) -> Self {
         let name = name.into();
         let returns = returns.clone();
-        FunctionMetadata { name, id, variant, returns }
+        FunctionMetadata {
+            name,
+            id,
+            variant,
+            returns,
+        }
     }
 
     pub fn mangled_name(&self) -> String {

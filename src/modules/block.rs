@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 use std::ops::Index;
 
+use super::statement::stmt::Statement;
 use crate::modules::prelude::*;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use super::statement::stmt::Statement;
 
 #[derive(Debug, Clone)]
 pub struct Block {
@@ -76,8 +76,8 @@ impl SyntaxModule<ParserMetadata> for Block {
             if let Err(failure) = statement.parse(meta) {
                 return match failure {
                     Failure::Quiet(pos) => error_pos!(meta, pos, "Unexpected token"),
-                    Failure::Loud(err) => return Err(Failure::Loud(err))
-                }
+                    Failure::Loud(err) => return Err(Failure::Loud(err)),
+                };
             }
             self.statements.push(statement);
             // Handle the semicolon
@@ -129,13 +129,16 @@ impl TranslateModule for Block {
 
 impl DocumentationModule for Block {
     fn document(&self, meta: &ParserMetadata) -> String {
-        let indices = self.statements.iter()
+        let indices = self
+            .statements
+            .iter()
             .enumerate()
             .map(|(index, statement)| (index, statement.get_docs_item_name()))
             .filter_map(|(index, name)| name.map(|n| (n, index)))
             .sorted()
             .collect::<Vec<_>>();
-        indices.iter()
+        indices
+            .iter()
             .map(|(_, index)| self.statements.index(*index))
             .map(|statement| statement.document(meta))
             .collect::<Vec<_>>()

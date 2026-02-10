@@ -1,7 +1,7 @@
-use heraclitus_compiler::prelude::*;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::utils::metadata::ParserMetadata;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Test {
@@ -34,7 +34,11 @@ impl SyntaxModule<ParserMetadata> for Test {
                     self.name = token.word.trim_matches('"').to_string();
                     meta.set_index(meta.get_index() + 1);
                 } else {
-                    return error!(meta, Some(token.clone()), "Test name must be a string literal");
+                    return error!(
+                        meta,
+                        Some(token.clone()),
+                        "Test name must be a string literal"
+                    );
                 }
             }
         }
@@ -54,17 +58,18 @@ impl SyntaxModule<ParserMetadata> for Test {
         if !meta.context.trace.is_empty() {
             self.is_skipped = true;
         }
-        context!({
-            meta.context.is_main_ctx = true;
-            meta.context.is_test_ctx = true;
-            // Parse the block
-            syntax(meta, &mut self.block)?;
-            meta.context.is_main_ctx = false;
-            meta.context.is_test_ctx = false;
-            Ok(())
-        }, |pos| {
-            error_pos!(meta, pos, "Undefined syntax in test block")
-        })
+        context!(
+            {
+                meta.context.is_main_ctx = true;
+                meta.context.is_test_ctx = true;
+                // Parse the block
+                syntax(meta, &mut self.block)?;
+                meta.context.is_main_ctx = false;
+                meta.context.is_test_ctx = false;
+                Ok(())
+            },
+            |pos| { error_pos!(meta, pos, "Undefined syntax in test block") }
+        )
     }
 }
 
@@ -72,7 +77,7 @@ impl TypeCheckModule for Test {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Test cannot be parsed inside of a block
         if !meta.is_global_scope() {
-            return error!(meta, self.token.clone(), "Test must be in the global scope")
+            return error!(meta, self.token.clone(), "Test must be in the global scope");
         }
 
         // Typecheck the test block content

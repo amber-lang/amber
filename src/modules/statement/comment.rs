@@ -1,9 +1,9 @@
-use heraclitus_compiler::prelude::*;
 use crate::modules::prelude::*;
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Comment {
-    pub value: String
+    pub value: String,
 }
 
 impl SyntaxModule<ParserMetadata> for Comment {
@@ -11,7 +11,7 @@ impl SyntaxModule<ParserMetadata> for Comment {
 
     fn new() -> Self {
         Comment {
-            value: String::new()
+            value: String::new(),
         }
     }
 

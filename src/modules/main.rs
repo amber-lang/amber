@@ -1,9 +1,9 @@
 use heraclitus_compiler::prelude::*;
 
-use crate::raw_fragment;
-use crate::modules::types::Type;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
+use crate::modules::types::Type;
+use crate::raw_fragment;
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 
@@ -29,7 +29,7 @@ impl SyntaxModule<ParserMetadata> for Main {
             args_global_id: None,
             block: Block::new().with_no_indent(),
             token: None,
-            is_skipped: false
+            is_skipped: false,
         }
     }
 
@@ -40,20 +40,21 @@ impl SyntaxModule<ParserMetadata> for Main {
         if !meta.context.trace.is_empty() {
             self.is_skipped = true;
         }
-        context!({
-            meta.context.is_main_ctx = true;
-            if token(meta, "(").is_ok() {
-                self.args_tok = meta.get_current_token();
-                self.args = Some(variable(meta, variable_name_extensions())?);
-                token(meta, ")")?;
-            }
-            // Parse the block
-            syntax(meta, &mut self.block)?;
-            meta.context.is_main_ctx = false;
-            Ok(())
-        }, |pos| {
-            error_pos!(meta, pos, "Undefined syntax in main block")
-        })
+        context!(
+            {
+                meta.context.is_main_ctx = true;
+                if token(meta, "(").is_ok() {
+                    self.args_tok = meta.get_current_token();
+                    self.args = Some(variable(meta, variable_name_extensions())?);
+                    token(meta, ")")?;
+                }
+                // Parse the block
+                syntax(meta, &mut self.block)?;
+                meta.context.is_main_ctx = false;
+                Ok(())
+            },
+            |pos| { error_pos!(meta, pos, "Undefined syntax in main block") }
+        )
     }
 }
 
@@ -61,7 +62,7 @@ impl TypeCheckModule for Main {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Main cannot be parsed inside of a block
         if !meta.is_global_scope() {
-            return error!(meta, self.token.clone(), "Main must be in the global scope")
+            return error!(meta, self.token.clone(), "Main must be in the global scope");
         }
 
         if self.is_skipped {
@@ -96,8 +97,10 @@ impl TranslateModule for Main {
                 || FragmentKind::Empty,
                 |name| {
                     let id = self.args_global_id.unwrap_or(global_id);
-                    raw_fragment!("declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
-                }
+                    raw_fragment!(
+                        "declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
+                    )
+                },
             );
             // Temporarily decrease the indentation level to counteract
             // the indentation applied by the block translation.  Unlike

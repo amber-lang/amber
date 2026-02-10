@@ -1,8 +1,8 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Typed, Type};
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compute::{translate_float_computation, ArithOp};
+use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
 
@@ -10,7 +10,7 @@ use super::BinOp;
 pub struct Mul {
     left: Box<Expr>,
     right: Box<Expr>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Mul {
@@ -41,7 +41,7 @@ impl SyntaxModule<ParserMetadata> for Mul {
         Mul {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
-            kind: Type::Generic
+            kind: Type::Generic,
         }
     }
 
@@ -54,10 +54,13 @@ impl TypeCheckModule for Mul {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        self.kind = Self::typecheck_allowed_types(meta, "multiplication", &mut self.left, &mut self.right, &[
-            Type::Num,
-            Type::Int,
-        ])?;
+        self.kind = Self::typecheck_allowed_types(
+            meta,
+            "multiplication",
+            &mut self.left,
+            &mut self.right,
+            &[Type::Num, Type::Int],
+        )?;
         Ok(())
     }
 }
@@ -67,9 +70,11 @@ impl TranslateModule for Mul {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
         match self.kind {
-            Type::Int => FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Mul, right)),
+            Type::Int => {
+                FragmentKind::Arithmetic(ArithmeticFragment::new(left, ArithOp::Mul, right))
+            }
             Type::Num => translate_float_computation(meta, ArithOp::Mul, Some(left), Some(right)),
-            _ => unreachable!("Unsupported type {} in multiplication operation", self.kind)
+            _ => unreachable!("Unsupported type {} in multiplication operation", self.kind),
         }
     }
 }
