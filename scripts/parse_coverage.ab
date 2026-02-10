@@ -1,0 +1,74 @@
+#!/usr/bin/env amber
+
+import { file_read, file_exists } from "std/fs"
+import { split_lines } from "std/text"
+import { parse_int } from "std/text"
+
+main(args) {
+    if len(args) < 2 {
+        echo("Usage: amber parse_coverage.ab <rust_source_file> [html_dir]")
+        echo("Example: amber parse_coverage.ab src/main.rs")
+        echo("Example: amber parse_coverage.ab src/main.rs target/llvm-cov/html")
+        exit(1)
+    }
+    
+    let rust_file = args[1]
+    let html_dir = "target/llvm-cov/html"
+    
+    // Default coverage HTML directory
+    if len(args) > 2 {
+        html_dir = args[2]
+    }
+
+    // HTML path: html_dir/coverage/relative_path/rust_file.html
+    let html_file = "{html_dir}/coverage/{rust_file}.html"
+    
+    if not file_exists(html_file) {
+        echo("Coverage HTML not found: {html_file}")
+        echo("Run cargo llvm-cov --html first to generate coverage report")
+        exit(1)
+    }
+    
+    let content = file_read(html_file) failed {
+        echo("Cannot read coverage HTML: {html_file}")
+        exit(1)
+    }
+    
+     // Extract all line numbers using shell
+    let all_lines = $ echo {content} | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $ failed { "" }
+    let all_numbers = [Int]
+    for line in split_lines(all_lines) {
+        if line != "" {
+            let num = parse_int(line)?
+            all_numbers += [num]
+        }
+    }
+
+    // Extract skipped (uncovered) lines
+    let skipped = $ echo {content} | grep "skipped-line" | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $ failed { "" }
+    let skipped_numbers = [Int]
+    for line in split_lines(skipped) {
+        if line != "" {
+            let num = parse_int(line)?
+            skipped_numbers += [num]
+        }
+    }
+
+    // Extract covered lines
+    let covered = $ echo {content} | grep "covered-line" | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $ failed { "" }
+    let covered_numbers = [Int]
+    for line in split_lines(covered) {
+        if line != "" {
+            let num = parse_int(line)?
+            covered_numbers += [num]
+        }
+    }
+    
+    const total = len(all_numbers)
+    
+    echo("Total number of lines: {total}")
+    echo("")
+    echo("Skipped-line (uncovered) line numbers: {skipped_numbers}")
+    echo("")
+    echo("Coverage-line (covered) line numbers: {covered_numbers}")
+}

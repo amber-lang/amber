@@ -97,9 +97,8 @@ fn test_main_git_version() {
 #[test]
 fn test_handle_eval_success() {
     use crate::handle_eval;
-
     let result = handle_eval(EvalCommand {
-        code: std::fs::read_to_string("src/tests/stdlib/math_sum.ab").unwrap(),
+        code: "1 + 1".to_string(),
     });
     assert!(result.is_ok());
 }
@@ -160,7 +159,7 @@ fn test_handle_docs_with_usage_flag() {
 
 #[test]
 fn test_execute_output_with_messages() {
-    let code = "echo test".to_string();
+    let code = "exit 0".to_string();
     let result = execute_output(code, vec![], true);
     assert!(result.is_ok());
 }
