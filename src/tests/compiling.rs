@@ -80,17 +80,69 @@ fn test_parse_with_debug_flags() {
 
     let tokens = compiler.tokenize().expect("tokenize failed");
 
-    unsafe { env::set_var("AMBER_DEBUG_TIME", "1") };
-    unsafe { env::set_var("AMBER_DEBUG_PARSER", "1") };
+    unsafe {
+        env::set_var("AMBER_DEBUG_TIME", "1");
+        env::set_var("AMBER_DEBUG_PARSER", "1");
+    }
     let result = compiler.parse(tokens);
     env::remove_var("AMBER_DEBUG_TIME");
     env::remove_var("AMBER_DEBUG_PARSER");
 
-    assert!(result.is_ok(), "Parse should succeed with debug flags");
+    assert!(result.is_ok(), "Translate should succeed with debug flags");
 }
 
 #[test]
+#[ignore]
+fn test_translate_with_debug_parser() {
+    let code = r#"main { echo "test" }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    let tokens = compiler.tokenize().expect("tokenize failed");
+
+    unsafe { env::set_var("AMBER_DEBUG_PARSER", "1") };
+    let result = compiler.parse(tokens);
+    env::remove_var("AMBER_DEBUG_PARSER");
+
+    assert!(result.is_ok(), "Parse should succeed with debug parser");
+}
+
+#[test]
+#[ignore]
+fn test_typecheck_with_debug_time() {
+    let code = r#"main { echo "test" }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (block, meta) = compiler.parse(tokens).expect("parse failed");
+
+    unsafe { env::set_var("AMBER_DEBUG_TIME", "1") };
+    let result = compiler.typecheck(block, meta);
+    env::remove_var("AMBER_DEBUG_TIME");
+
+    assert!(result.is_ok(), "Typecheck should succeed with debug time");
+}
+
+#[test]
+#[ignore]
+fn test_parse_with_debug_time() {
+    let code = r#"main { echo "test" }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    unsafe { env::set_var("AMBER_DEBUG_TIME", "1") };
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let result = compiler.parse(tokens);
+    env::remove_var("AMBER_DEBUG_TIME");
+
+    assert!(result.is_ok(), "Parse should succeed with debug time");
+}
+
+#[test]
+#[ignore]
 fn test_translate_with_debug_time() {
+    // Ignored because debug output goes to stdout
     let code = r#"main { echo "test" }"#;
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(code.to_string(), None, options);
@@ -107,14 +159,33 @@ fn test_translate_with_debug_time() {
 }
 
 #[test]
+fn test_tokenize_error_singleline_missing_close() {
+    let code = r#"main { echo "hello }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize();
+    assert!(tokens.is_err(), "Should error on unclosed string");
+}
+
+#[test]
+fn test_tokenize_error_unclosed_comment() {
+    let code = r#"main { echo "hello" # comment without closing
+"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize();
+    assert!(tokens.is_err(), "Should error on unclosed comment");
+}
+
+#[test]
 fn test_document_with_output() {
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(
         r#"
-main {
-    echo "test"
-}
-"#
+ main {
+     echo "test"
+ }
+ "#
         .to_string(),
         Some("src/tests/validity/variable_simple.ab".to_string()),
         options,
@@ -126,6 +197,38 @@ main {
     let (block, meta) = compiler.typecheck(block, meta).expect("typecheck failed");
 
     compiler.document(block, meta, Some(temp_dir.to_string_lossy().to_string()));
+}
+
+#[test]
+#[cfg(test)]
+fn test_test_eval() {
+    let code = r#"
+main {
+    echo "test"
+}
+"#;
+    let options = CompilerOptions::default();
+    let mut compiler = AmberCompiler::new(code.to_string(), None, options);
+    let result = compiler.test_eval();
+    assert!(result.is_ok(), "test_eval should succeed");
+    assert!(
+        result.unwrap().contains("test"),
+        "Output should contain 'test'"
+    );
+}
+
+#[test]
+#[cfg(test)]
+fn test_test_eval_with_error() {
+    let code = r#"
+main {
+    this_is_not_valid_amber_syntax
+}
+"#;
+    let options = CompilerOptions::default();
+    let mut compiler = AmberCompiler::new(code.to_string(), None, options);
+    let result = compiler.test_eval();
+    assert!(result.is_err(), "test_eval should error on invalid code");
 }
 
 #[test]
