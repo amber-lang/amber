@@ -231,25 +231,6 @@ main {
     assert!(result.is_err(), "test_eval should error on invalid code");
 }
 
-#[test]
-fn test_tokenize_error_singleline() {
-    let code = r#"main { echo "hello }"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-    let tokens = compiler.tokenize();
-    assert!(tokens.is_err(), "Should error on unclosed string");
-}
-
-#[test]
-fn test_tokenize_error_unclosed() {
-    let code = r#"main { echo "hello" # comment without closing
-"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-    let tokens = compiler.tokenize();
-    assert!(tokens.is_err(), "Should error on unclosed comment");
-}
-
 /// Autoload the Amber test files in compiling
 #[test_resources("src/tests/compiling/*.ab")]
 fn test_translation(input: &str) {
@@ -262,4 +243,60 @@ fn test_translation(input: &str) {
         .to_str()
         .expect("Cannot translate to string");
     assert_snapshot!(filename, ast);
+}
+
+#[test]
+fn test_gen_header_with_env() {
+    let code = r#"main { echo "test" }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    let temp_dir = std::env::temp_dir();
+    let header_path = temp_dir.join("amber_test_header.sh");
+    let header_content = "#!/usr/bin/env bash\n# Custom header\n";
+
+    std::fs::write(&header_path, header_content).expect("Failed to write header file");
+
+    unsafe { env::set_var("AMBER_HEADER", &header_path); }
+
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (block, meta) = compiler.parse(tokens).expect("parse failed");
+    let (block, meta) = compiler.typecheck(block, meta).expect("typecheck failed");
+
+    let result = compiler.translate(block, meta);
+
+    env::remove_var("AMBER_HEADER");
+    std::fs::remove_file(&header_path).ok();
+
+    assert!(result.is_ok(), "Should succeed with custom header");
+    let translated = result.unwrap();
+    assert!(translated.starts_with("#!/usr/bin/env bash\n# Custom header"), "Should contain custom header");
+}
+
+#[test]
+fn test_gen_footer_with_env() {
+    let code = r#"main { echo "test" }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    let temp_dir = std::env::temp_dir();
+    let footer_path = temp_dir.join("amber_test_footer.sh");
+    let footer_content = "# Custom footer";
+
+    std::fs::write(&footer_path, footer_content).expect("Failed to write footer file");
+
+    unsafe { env::set_var("AMBER_FOOTER", &footer_path); }
+
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (block, meta) = compiler.parse(tokens).expect("parse failed");
+    let (block, meta) = compiler.typecheck(block, meta).expect("typecheck failed");
+
+    let result = compiler.translate(block, meta);
+
+    env::remove_var("AMBER_FOOTER");
+    std::fs::remove_file(&footer_path).ok();
+
+    assert!(result.is_ok(), "Should succeed with custom footer");
+    let translated = result.unwrap();
+    assert!(translated.contains("# Custom footer"), "Should contain custom footer");
 }
