@@ -289,10 +289,14 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_completion() {
+pub(crate) fn handle_completion() {
+    handle_completion_with_output(&mut io::stdout());
+}
+
+pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
     let mut command = Cli::command();
     let name = command.get_name().to_string();
-    clap_complete::generate(Shell::Bash, &mut command, name, &mut io::stdout());
+    clap_complete::generate(Shell::Bash, &mut command, name, output);
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

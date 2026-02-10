@@ -1,5 +1,6 @@
 use crate::built_info;
 use crate::execute_output;
+use crate::handle_completion_with_output;
 use crate::handle_docs;
 use crate::handle_eval;
 use crate::render_dash;
@@ -7,6 +8,7 @@ use crate::write_output;
 use crate::DocsCommand;
 use crate::EvalCommand;
 use std::path::PathBuf;
+use std::process::Command;
 
 #[test]
 fn test_create_output_with_output_flag() {
@@ -162,4 +164,25 @@ fn test_execute_output_with_messages() {
     let code = "exit 0".to_string();
     let result = execute_output(code, vec![], true);
     assert!(result.is_ok());
+}
+
+#[test]
+fn test_handle_completion_does_not_panic() {
+    let mut output = Vec::new();
+    handle_completion_with_output(&mut output);
+    let stdout = String::from_utf8_lossy(&output);
+    assert!(stdout.contains("_amber"));
+    assert!(stdout.contains("amber)"));
+}
+
+#[test]
+fn test_handle_completion_main() {
+    let output = Command::new("cargo")
+        .args(["run", "--", "completion"])
+        .output()
+        .expect("Failed to execute command");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("_amber"));
 }

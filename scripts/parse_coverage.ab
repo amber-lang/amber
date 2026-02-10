@@ -1,8 +1,7 @@
 #!/usr/bin/env amber
 
 import { file_read, file_exists } from "std/fs"
-import { split_lines } from "std/text"
-import { parse_int } from "std/text"
+import { parse_int, replace, split_lines } from "std/text"
 
 main(args) {
     if len(args) < 2 {
@@ -15,17 +14,17 @@ main(args) {
     let rust_file = args[1]
     let html_dir = "target/llvm-cov/html"
     
-    // Default coverage HTML directory
     if len(args) > 2 {
         html_dir = args[2]
     }
 
-    // HTML path: html_dir/coverage/relative_path/rust_file.html
-    let html_file = "{html_dir}/coverage/{rust_file}.html"
+    let abs_rust_file = $ realpath -m "{rust_file}" $ failed { rust_file }
+     
+    let html_file = "{html_dir}/coverage/{abs_rust_file}.html"
     
     if not file_exists(html_file) {
         echo("Coverage HTML not found: {html_file}")
-        echo("Run cargo llvm-cov --html first to generate coverage report")
+        echo("Run `cargo llvm-cov --all-features --workspace --html` first to generate coverage report")
         exit(1)
     }
     
@@ -33,9 +32,10 @@ main(args) {
         echo("Cannot read coverage HTML: {html_file}")
         exit(1)
     }
-    
-     // Extract all line numbers using shell
-    let all_lines = $ echo {content} | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $ failed { "" }
+
+    let content_lines = replace(content, "<tr>", "<tr>\n")
+
+    let all_lines = trust $ echo "{content_lines}" | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $
     let all_numbers = [Int]
     for line in split_lines(all_lines) {
         if line != "" {
@@ -44,8 +44,7 @@ main(args) {
         }
     }
 
-    // Extract skipped (uncovered) lines
-    let skipped = $ echo {content} | grep "skipped-line" | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $ failed { "" }
+    let skipped = trust $ echo "{content_lines}" | grep 'uncovered-line' | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $
     let skipped_numbers = [Int]
     for line in split_lines(skipped) {
         if line != "" {
@@ -54,8 +53,7 @@ main(args) {
         }
     }
 
-    // Extract covered lines
-    let covered = $ echo {content} | grep "covered-line" | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $ failed { "" }
+    let covered = trust $ echo "{content_lines}" | grep 'covered-line' | grep -oE "name='L[0-9]+'" | grep -oE "[0-9]+" | sort -n | uniq $
     let covered_numbers = [Int]
     for line in split_lines(covered) {
         if line != "" {
@@ -63,9 +61,9 @@ main(args) {
             covered_numbers += [num]
         }
     }
-    
+     
     const total = len(all_numbers)
-    
+     
     echo("Total number of lines: {total}")
     echo("")
     echo("Skipped-line (uncovered) line numbers: {skipped_numbers}")
