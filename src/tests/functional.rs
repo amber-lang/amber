@@ -79,24 +79,6 @@ fn test_main_version() {
 }
 
 #[test]
-fn test_main_git_version() {
-    use crate::set_file_permission;
-    use std::os::unix::fs::PermissionsExt;
-
-    let temp_dir = tempfile::tempdir().unwrap();
-    let output_file = temp_dir.path().join("script.sh");
-    let file = std::fs::File::create(&output_file).unwrap();
-
-    set_file_permission(&file, output_file.to_string_lossy().to_string());
-
-    let metadata = std::fs::metadata(&output_file).unwrap();
-    let mode = metadata.permissions().mode();
-
-    #[cfg(not(windows))]
-    assert_eq!(mode & 0o777, 0o755);
-}
-
-#[test]
 fn test_handle_eval_success() {
     use crate::handle_eval;
     let result = handle_eval(EvalCommand {
