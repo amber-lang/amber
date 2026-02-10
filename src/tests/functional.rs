@@ -9,6 +9,7 @@ use crate::DocsCommand;
 use crate::EvalCommand;
 use std::path::PathBuf;
 use std::process::Command;
+use tempfile::tempdir;
 
 #[test]
 fn test_create_output_with_output_flag() {
@@ -129,7 +130,8 @@ fn test_handle_eval_with_error() {
 #[test]
 fn test_handle_docs_with_usage_flag() {
     let input_path = PathBuf::from("src/tests/stdlib/math_sum.ab");
-    let output_path = PathBuf::from("/tmp/doc_test_usage_index.html");
+    let temp_dir = tempdir().unwrap();
+    let output_path = temp_dir.path().join("index.html");
 
     let cmd = DocsCommand {
         input: input_path,

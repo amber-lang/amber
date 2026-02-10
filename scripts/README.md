@@ -8,4 +8,4 @@ Automatic script which returns alphabetically sorted list of keywords that are u
 
 ## parse_coverage.ab
 
-Automated script that based on the specific file check the llvm-cov html report `cargo llvm-cov --all-features --workspace --html` what lines are not covered
+Automated script that, for a given file, checks the LLVM-Cov HTML report (`cargo llvm-cov --all-features --workspace --html`) to identify uncovered lines.
