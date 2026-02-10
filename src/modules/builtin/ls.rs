@@ -2,6 +2,7 @@ use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
+use crate::utils::ShellType;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
 use crate::{fragments, raw_fragment};
@@ -189,14 +190,17 @@ impl TranslateModule for Ls {
             VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
+      //  dbg!(&meta.target.shell);
+        let read_option = if matches!(&meta.target.shell, ShellType::Zsh) { "-A" } else { "-a" };
         meta.stmt_queue.extend([
             fragments!(
                 raw_fragment!(
-                    "IFS=$'\\n' read -rd '' -a {} < <(LC_ALL=C IFS=$'\\n';",
+                    // custom LC_ALL breaks sorting inside tests
+                    "LC_ALL=C IFS=$'\\n' read -rd '' {read_option} {} < <(IFS=$'\\n'; ",
                     var_expr.get_name()
                 ),
                 sudo_prefix,
-                "ls -1",
+                "LC_ALL=C ls -1",
                 all_frag,
                 recursive_frag,
                 " ",
@@ -204,8 +208,18 @@ impl TranslateModule for Ls {
                 suppress
             ),
             handler,
-            fragments!(")"),
+            fragments!(");"),
+            
         ]);
+        if matches!(&meta.target.shell, ShellType::Zsh) {
+            meta.stmt_queue.extend([fragments!(
+                raw_fragment!(
+                // in ZSH, null characters are appended to the array, it's the simplest option to remove them
+                "{}[-1]=();",
+                var_expr.get_name()
+            ))
+            ])
+        }
         var_expr.to_frag()
     }
 }

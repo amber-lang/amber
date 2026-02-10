@@ -98,7 +98,8 @@ impl TranslateModule for Main {
                 |name| {
                     let id = self.args_global_id.unwrap_or(global_id);
                     raw_fragment!(
-                        "declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
+                        // typeset is supported by all 3 shells, no need for extra logic
+                        "typeset -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
                     )
                 },
             );

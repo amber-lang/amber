@@ -45,7 +45,17 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "echo ",
+                                                value: "bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " <<< ",
                                             },
                                         ),
                                         VarExpr(
@@ -67,22 +77,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '%' ",
+                                                value: "'%'",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "7.2",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " | bc ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "",
                                             },
                                         ),
                                         Raw(
@@ -149,7 +149,17 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "echo ",
+                                                value: "bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " <<< ",
                                             },
                                         ),
                                         VarExpr(
@@ -171,22 +181,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '%' ",
+                                                value: "'%'",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "6.3",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " | bc ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "",
                                             },
                                         ),
                                         Raw(

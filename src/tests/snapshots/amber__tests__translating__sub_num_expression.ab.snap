@@ -14,7 +14,17 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "echo ",
+                                                value: "bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "-l",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " <<< ",
                                             },
                                         ),
                                         Raw(
@@ -24,7 +34,7 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '-' ",
+                                                value: "'-'",
                                             },
                                         ),
                                         Raw(
@@ -34,16 +44,6 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " | bc ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "-l",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
                                                 value: " | sed '",
                                             },
                                         ),
@@ -75,7 +75,17 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "echo ",
+                                                value: "bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "-l",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " <<< ",
                                             },
                                         ),
                                         Subprocess(
@@ -85,7 +95,17 @@ Block(
                                                         values: [
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "echo ",
+                                                                    value: "bc ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "-l",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " <<< ",
                                                                 },
                                                             ),
                                                             Raw(
@@ -95,22 +115,12 @@ Block(
                                                             ),
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: " '-' ",
+                                                                    value: "'-'",
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "1.12",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: " | bc ",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: "-l",
                                                                 },
                                                             ),
                                                             Raw(
@@ -137,22 +147,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '-' ",
+                                                value: "'-'",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "3.32",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " | bc ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "-l",
                                             },
                                         ),
                                         Raw(
@@ -188,7 +188,17 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "echo ",
+                                                value: "bc ",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "-l",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " <<< ",
                                             },
                                         ),
                                         Subprocess(
@@ -198,7 +208,17 @@ Block(
                                                         values: [
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "echo ",
+                                                                    value: "bc ",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: "-l",
+                                                                },
+                                                            ),
+                                                            Raw(
+                                                                RawFragment {
+                                                                    value: " <<< ",
                                                                 },
                                                             ),
                                                             Raw(
@@ -208,22 +228,12 @@ Block(
                                                             ),
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: " '-' ",
+                                                                    value: "'-'",
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "3.5",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: " | bc ",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: "-l",
                                                                 },
                                                             ),
                                                             Raw(
@@ -250,22 +260,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " '-' ",
+                                                value: "'-'",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "2.5",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " | bc ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "-l",
                                             },
                                         ),
                                         Raw(

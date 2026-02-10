@@ -166,8 +166,8 @@ impl VarExprFragment {
         }
     }
 
-    // Returns the variable name in the bash context Ex. "varname"
-    pub fn render_bash_reference(self, meta: &mut TranslateMetadata) -> String {
+    // Returns the variable name in the bash/zsh/ksh context Ex. "varname"
+    pub fn render_variable_reference(self, meta: &mut TranslateMetadata) -> String {
         let dollar = meta.gen_dollar();
         let mut name = self.get_name();
         // Dereference variable if it's a reference and is passed by reference
@@ -183,8 +183,8 @@ impl VarExprFragment {
         }
     }
 
-    // Returns the variable value in the bash context Ex. "$varname" or "${varname[@]}"
-    pub fn render_bash_value(mut self, meta: &mut TranslateMetadata) -> String {
+    // Returns the variable value in the bash/zsh/ksh context Ex. "$varname" or "${varname[@]}"
+    pub fn render_variable_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
         let index = self.index.take();
         let default_value = self.default_value.take();
@@ -261,16 +261,17 @@ impl VarExprFragment {
         let arr_open = if self.kind.is_array() { "(" } else { "" };
         let arr_close = if self.kind.is_array() { ")" } else { "" };
         let arr_suffix = if self.kind.is_array() { "[@]" } else { "" };
-        
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
         let dollar = meta.gen_dollar();
         let id = meta.gen_value_id();
         // Use [0] subscript only for array refs stored in local variables (has global_id)
         let subscript = if self.global_id.is_some() && self.kind.is_array() { "[0]" } else { "" };
-        let eval_value = format!("{prefix}${{{name}{subscript}}}{suffix}");
+        // we assume that the {name} will expand to variable[@], so we remove dublicate `[@]`
+        let eval_value = format!("{prefix}${{{name}{subscript}//\\[@\\]}}{suffix}");
         let var_name = format!("__deref_{name}_{id}");
-        let eval_stmt = format!("eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"");
-        meta.stmt_queue.push_back(RawFragment::from(eval_stmt).to_frag());
+        meta.stmt_queue.push_back(RawFragment::from(
+            format!("eval \"typeset {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
+        ).to_frag());
 
         format!("{quote}{dollar}{{{var_name}{arr_suffix}}}{quote}")
     }
@@ -280,8 +281,8 @@ impl FragmentRenderable for VarExprFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match self.render_type {
             VarRenderType::NameOf => self.get_name(),
-            VarRenderType::BashRef => self.render_bash_reference(meta),
-            VarRenderType::BashValue => self.render_bash_value(meta),
+            VarRenderType::BashRef => self.render_variable_reference(meta),
+            VarRenderType::BashValue => self.render_variable_value(meta),
         }
     }
 

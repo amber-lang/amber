@@ -1,6 +1,7 @@
 use crate::eval_context;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
+use crate::utils::ShellType;
 
 use super::get_variable_name;
 
@@ -107,6 +108,8 @@ impl VarStmtFragment {
         let var_name = self.render_variable_name();
         let is_running_command = self.value.is_running_command();
         let mut assignment_parts = vec![];
+        let value = self.value.to_string(meta);
+
         assignment_parts.push(var_name.clone());
         assignment_parts.extend(
             self.index
@@ -115,20 +118,47 @@ impl VarStmtFragment {
         assignment_parts.push(self.operator);
 
         if self.kind.is_array() {
-            assignment_parts.push(format!("({})", self.value.to_string(meta)));
+            assignment_parts.push(format!("({})", value.clone()));
         } else {
-            assignment_parts.push(self.value.to_string(meta));
+            assignment_parts.push(value.clone());
         }
         let assignment = assignment_parts.join("");
 
-        // `local` command consumes exit code of command that it is assigned to.
-        // To preserve the exit code of the assignment we split the local declaration into two parts.
-        if self.is_local && is_running_command {
-            format!("local {var_name}\n{}{assignment}", meta.gen_indent())
-        } else if self.is_local {
-            format!("local {assignment}")
-        } else {
-            assignment
+        match meta.target.shell {
+            ShellType::Bash | ShellType::Zsh => {
+            // `local` command consumes exit code of command that it is assigned to.
+            // To preserve the exit code of the assignment we split the local declaration into two parts.
+                if self.is_local && is_running_command {
+                    format!("local {var_name}\n{}{assignment}", meta.gen_indent())
+                } else if self.is_local {
+                    format!("local {assignment}")
+                } else {
+                    assignment
+                }
+            }
+            ShellType::Ksh => {
+                if self.is_local && is_running_command {
+                    format!("typeset {var_name}\n{}{assignment}", meta.gen_indent())
+                } else if self.is_local {
+                    // in ksh, if you don't define variable as array, () is treated as string instead of empty array
+                    if self.kind.is_array() && value.is_empty() {
+                        format!("typeset -ga {assignment}")
+                    } else if self.kind.is_array() {
+                        // ksh has static scoping, it can't access local variables outside of function scope, 
+                        // which means that recursive functions related to array trimming never end,
+                        // because array reference is simply not accessible
+                        assignment
+                    } else {
+                        format!("typeset {assignment}")
+                    }
+                } else {
+                    if self.kind.is_array() && value.is_empty() {
+                        format!("typeset -ga {assignment}")
+                    } else {
+                        assignment
+                    }
+                }
+            }
         }
     }
 }
