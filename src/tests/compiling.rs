@@ -4,6 +4,7 @@ use crate::modules::prelude::TranslateModule;
 use crate::modules::prelude::*;
 use crate::utils::TranslateMetadata;
 use insta::assert_snapshot;
+use std::env;
 use std::fs;
 use std::path::Path;
 use test_generator::test_resources;
@@ -72,14 +73,78 @@ fn test_find_bash() {
 }
 
 #[test]
-fn test_test_eval() {
+fn test_parse_with_debug_flags() {
+    let code = r#"main { echo "test" }"#;
     let options = CompilerOptions::default();
-    let mut compiler = AmberCompiler::new("main { echo \"test\" }".to_string(), None, options);
-    let result = compiler.test_eval();
-    assert!(
-        result.is_ok(),
-        "test_eval should succeed or return error for invalid bash"
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    let tokens = compiler.tokenize().expect("tokenize failed");
+
+    unsafe { env::set_var("AMBER_DEBUG_TIME", "1") };
+    unsafe { env::set_var("AMBER_DEBUG_PARSER", "1") };
+    let result = compiler.parse(tokens);
+    env::remove_var("AMBER_DEBUG_TIME");
+    env::remove_var("AMBER_DEBUG_PARSER");
+
+    assert!(result.is_ok(), "Parse should succeed with debug flags");
+}
+
+#[test]
+fn test_translate_with_debug_time() {
+    let code = r#"main { echo "test" }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (ast, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+
+    unsafe { env::set_var("AMBER_DEBUG_TIME", "1") };
+    let result = compiler.translate(ast, meta);
+    env::remove_var("AMBER_DEBUG_TIME");
+
+    assert!(result.is_ok(), "Translate should succeed with debug time");
+}
+
+#[test]
+fn test_document_with_output() {
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(
+        r#"
+main {
+    echo "test"
+}
+"#
+        .to_string(),
+        Some("src/tests/validity/variable_simple.ab".to_string()),
+        options,
     );
+
+    let temp_dir = std::env::temp_dir();
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (block, meta) = compiler.parse(tokens).expect("parse failed");
+    let (block, meta) = compiler.typecheck(block, meta).expect("typecheck failed");
+
+    compiler.document(block, meta, Some(temp_dir.to_string_lossy().to_string()));
+}
+
+#[test]
+fn test_tokenize_error_singleline() {
+    let code = r#"main { echo "hello }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize();
+    assert!(tokens.is_err(), "Should error on unclosed string");
+}
+
+#[test]
+fn test_tokenize_error_unclosed() {
+    let code = r#"main { echo "hello" # comment without closing
+"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize();
+    assert!(tokens.is_err(), "Should error on unclosed comment");
 }
 
 /// Autoload the Amber test files in compiling
