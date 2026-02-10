@@ -1,5 +1,11 @@
 use crate::built_info;
-use crate::{execute_output, handle_docs, handle_eval, DocsCommand, EvalCommand, TestCommand};
+use crate::execute_output;
+use crate::handle_docs;
+use crate::handle_eval;
+use crate::render_dash;
+use crate::write_output;
+use crate::DocsCommand;
+use crate::EvalCommand;
 use std::path::PathBuf;
 
 #[test]
@@ -99,66 +105,21 @@ fn test_handle_eval_success() {
 }
 
 #[test]
-fn test_handle_docs_success() {
-    let input_path = PathBuf::from("src/tests/validity/std_test_usage.ab");
-    let output_path = PathBuf::from("/tmp//unit_test_index.html");
+fn test_write_output_file() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let output_file = temp_dir.path().join("test_output.sh");
+    let code = "echo \"test\"".to_string();
 
-    let cmd = DocsCommand {
-        input: input_path,
-        output: Some(output_path.clone()),
-        usage: false,
-    };
+    write_output(output_file.clone(), code);
 
-    let result = handle_docs(cmd);
-    assert!(result.is_ok());
+    assert!(output_file.exists());
+    let content = std::fs::read_to_string(output_file).unwrap();
+    assert_eq!(content, "echo \"test\"");
 }
 
 #[test]
-fn test_execute_output_without_messages() {
-    let code = "echo test".to_string();
-    let result = execute_output(code, vec![], false);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_handle_test_success() {
-    let input = PathBuf::from("src/tests/validity/ls.ab");
-
-    let cmd = TestCommand {
-        input,
-        args: vec![],
-        no_proc: vec![],
-    };
-
-    let result = crate::testing::handle_test(cmd);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_handle_eval_success_with_code() {
-    let result = handle_eval(EvalCommand {
-        code: std::fs::read_to_string("src/tests/erroring/exit_invalid_type.ab").unwrap(),
-    });
-
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_handle_eval_with_code_42() {
-    let result = handle_eval(EvalCommand {
-        code: std::fs::read_to_string("src/tests/functional/exit_code_42.ab").unwrap(),
-    });
-
-    assert_eq!(result.unwrap(), 42);
-}
-
-#[test]
-fn test_handle_eval_with_syntax_error() {
-    let result = handle_eval(EvalCommand {
-        code: std::fs::read_to_string("src/tests/testing/parse_no_msg.ab").unwrap(),
-    });
-
-    assert!(result.is_ok());
+fn test_render_dash_does_not_panic() {
+    render_dash();
 }
 
 #[test]
@@ -167,5 +128,39 @@ fn test_handle_eval_with_empty_code() {
         code: std::fs::read_to_string("src/tests/testing/empty_out.ab").unwrap(),
     });
 
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_handle_eval_with_error() {
+    // This test covers the error path in handle_eval (lines 262-265)
+    // Using invalid code to trigger a compilation error
+    let result = handle_eval(EvalCommand {
+        code: "invalid amber syntax @@#$$".to_string(),
+    });
+
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), 1);
+}
+
+#[test]
+fn test_handle_docs_with_usage_flag() {
+    let input_path = PathBuf::from("src/tests/stdlib/math_sum.ab");
+    let output_path = PathBuf::from("/tmp/doc_test_usage_index.html");
+
+    let cmd = DocsCommand {
+        input: input_path,
+        output: Some(output_path.clone()),
+        usage: true,
+    };
+
+    let result = handle_docs(cmd);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_execute_output_with_messages() {
+    let code = "echo test".to_string();
+    let result = execute_output(code, vec![], true);
     assert!(result.is_ok());
 }

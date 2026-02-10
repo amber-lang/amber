@@ -11,6 +11,7 @@ pub mod cli;
 pub mod compiling;
 mod erroring;
 pub mod extra;
+mod functional;
 pub mod optimizing;
 pub mod postprocessor;
 mod stdlib;
@@ -19,7 +20,6 @@ mod testing;
 pub mod translating;
 mod validity;
 mod warning;
-mod functional;
 
 #[macro_export]
 macro_rules! unwrap_fragment {
