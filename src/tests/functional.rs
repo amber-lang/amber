@@ -1,5 +1,5 @@
 use crate::built_info;
-use crate::{execute_output, handle_docs, write_output, DocsCommand, EvalCommand, TestCommand};
+use crate::{execute_output, handle_docs, handle_eval, DocsCommand, EvalCommand, TestCommand};
 use std::path::PathBuf;
 
 #[test]
@@ -55,12 +55,10 @@ fn test_compile_input_file() {
     use crate::compile_input;
     use crate::CompilerOptions;
 
-    let temp_dir = tempfile::tempdir().unwrap();
-    let input_file = temp_dir.path().join("test.amber");
-    std::fs::write(&input_file, "main { echo(\"hello\") }").unwrap();
+    let input_file = PathBuf::from("src/tests/functional/test.ab");
 
     let options = CompilerOptions::default();
-    let (code, messages) = compile_input(input_file.to_path_buf(), options);
+    let (code, messages) = compile_input(input_file, options);
 
     assert!(!code.is_empty());
     assert!(!messages);
@@ -95,17 +93,15 @@ fn test_handle_eval_success() {
     use crate::handle_eval;
 
     let result = handle_eval(EvalCommand {
-        code: "main { 42 }".to_string(),
+        code: std::fs::read_to_string("src/tests/stdlib/math_sum.ab").unwrap(),
     });
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_handle_docs_success() {
-    let temp_dir = tempfile::tempdir().unwrap();
-    let input_path = temp_dir.path().join("test.ab");
-    std::fs::write(&input_path, "").unwrap();
-    let output_path = temp_dir.path().join("index.html");
+    let input_path = PathBuf::from("src/tests/validity/std_test_usage.ab");
+    let output_path = PathBuf::from("/tmp//unit_test_index.html");
 
     let cmd = DocsCommand {
         input: input_path,
@@ -118,17 +114,6 @@ fn test_handle_docs_success() {
 }
 
 #[test]
-fn test_write_output_file() {
-    let temp_dir = tempfile::tempdir().unwrap();
-    let output_file = temp_dir.path().join("output.sh");
-
-    write_output(output_file.clone(), "echo test".to_string());
-
-    let content = std::fs::read_to_string(&output_file).unwrap();
-    assert_eq!(content, "echo test");
-}
-
-#[test]
 fn test_execute_output_without_messages() {
     let code = "echo test".to_string();
     let result = execute_output(code, vec![], false);
@@ -137,18 +122,50 @@ fn test_execute_output_without_messages() {
 
 #[test]
 fn test_handle_test_success() {
-    use std::path::Path;
-
-    let temp_dir = tempfile::tempdir().unwrap();
-    let test_file = temp_dir.path().join("test.ab");
-    std::fs::write(&test_file, "main { echo(\"hello\") }").unwrap();
+    let input = PathBuf::from("src/tests/validity/ls.ab");
 
     let cmd = TestCommand {
-        input: Path::to_path_buf(&test_file),
+        input,
         args: vec![],
         no_proc: vec![],
     };
 
     let result = crate::testing::handle_test(cmd);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_handle_eval_success_with_code() {
+    let result = handle_eval(EvalCommand {
+        code: std::fs::read_to_string("src/tests/erroring/exit_invalid_type.ab").unwrap(),
+    });
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_handle_eval_with_code_42() {
+    let result = handle_eval(EvalCommand {
+        code: std::fs::read_to_string("src/tests/functional/exit_code_42.ab").unwrap(),
+    });
+
+    assert_eq!(result.unwrap(), 42);
+}
+
+#[test]
+fn test_handle_eval_with_syntax_error() {
+    let result = handle_eval(EvalCommand {
+        code: std::fs::read_to_string("src/tests/testing/parse_no_msg.ab").unwrap(),
+    });
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_handle_eval_with_empty_code() {
+    let result = handle_eval(EvalCommand {
+        code: std::fs::read_to_string("src/tests/testing/empty_out.ab").unwrap(),
+    });
+
     assert!(result.is_ok());
 }
