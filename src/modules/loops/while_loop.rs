@@ -4,9 +4,11 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::context::Context;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "while"]
 pub struct WhileLoop {
     condition: Expr,
     block: Block,

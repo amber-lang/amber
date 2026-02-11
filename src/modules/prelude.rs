@@ -15,3 +15,4 @@ pub use crate::translate::fragments::var_expr::{VarExprFragment, VarRenderType};
 pub use crate::translate::fragments::var_stmt::VarStmtFragment;
 pub use crate::translate::module::TranslateModule;
 pub use crate::utils::{ParserMetadata, TranslateMetadata};
+pub use amber_meta::AutoKeyword;

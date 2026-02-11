@@ -8,6 +8,7 @@ use crate::modules::types::Typed;
 use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
+use amber_meta::AutoKeyword;
 
 #[derive(Debug, Clone)]
 pub struct VariableInit {
@@ -20,6 +21,16 @@ pub struct VariableInit {
     tok: Option<Token>,
     flags: HashSet<CCFlags>,
 }
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "const"]
+#[kind = "stmt"]
+pub struct Const;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "let"]
+#[kind = "stmt"]
+pub struct Let;
 
 impl SyntaxModule<ParserMetadata> for VariableInit {
     syntax_name!("Variable Initialize");

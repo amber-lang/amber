@@ -27,6 +27,7 @@ dependencies = [
  "heraclitus-compiler",
  "include_dir",
  "insta",
+ "inventory",
  "itertools",
  "predicates",
  "pretty_assertions",
@@ -43,6 +44,7 @@ dependencies = [
 name = "amber-meta"
 version = "0.1.0"
 dependencies = [
+ "inventory",
  "proc-macro2 1.0.95",
  "quote 1.0.40",
  "syn 2.0.104",
@@ -621,6 +623,15 @@ dependencies = [
  "console",
  "once_cell",
  "similar",
+]
+
+[[package]]
+name = "inventory"
+version = "0.3.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc61209c082fbeb19919bee74b176221b27223e27b65d781eb91af24eb1fb46e"
+dependencies = [
+ "rustversion",
 ]
 
 [[package]]

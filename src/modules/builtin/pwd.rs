@@ -1,3 +1,4 @@
+
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
@@ -5,7 +6,9 @@ use crate::raw_fragment;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "pwd"]
+#[kind = "builtin_expr" ]
 pub struct Pwd {}
 
 impl Typed for Pwd {
@@ -49,3 +52,4 @@ impl DocumentationModule for Pwd {
         "".to_string()
     }
 }
+

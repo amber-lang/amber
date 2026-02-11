@@ -5,6 +5,7 @@ pub mod condition;
 pub mod expression;
 pub mod function;
 pub mod imports;
+pub mod keywords;
 pub mod loops;
 pub mod main;
 pub mod prelude;

@@ -1,5 +1,6 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
+
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
@@ -7,10 +8,13 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "len"]
+#[kind = "builtin_expr" ]
 pub struct Len {
     value: Box<Expr>,
 }
+
 
 impl Typed for Len {
     fn get_type(&self) -> Type {

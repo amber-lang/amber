@@ -5,9 +5,12 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compare::translate_array_equality;
 use crate::translate::compute::{translate_float_computation, ArithOp};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "eq"]
+#[kind = "binary_op"]
 pub struct Eq {
     left: Box<Expr>,
     right: Box<Expr>,

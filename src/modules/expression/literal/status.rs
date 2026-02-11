@@ -4,9 +4,12 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "status"]
+#[kind = "stmt"]
 pub struct Status;
 
 impl Typed for Status {

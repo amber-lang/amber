@@ -1,12 +1,15 @@
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "cp"]
+#[kind = "builtin_stmt" ]
 pub struct Cp {
     source: Box<Expr>,
     destination: Box<Expr>,
@@ -164,3 +167,4 @@ impl DocumentationModule for Cp {
         "".to_string()
     }
 }
+

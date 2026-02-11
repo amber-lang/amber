@@ -6,9 +6,12 @@ use crate::translate::compare::{
     translate_array_lexical_comparison, translate_lexical_comparison, ComparisonOperator,
 };
 use crate::translate::compute::{translate_float_computation, ArithOp};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "le"]
+#[kind = "binary_op"]
 pub struct Le {
     left: Box<Expr>,
     right: Box<Expr>,

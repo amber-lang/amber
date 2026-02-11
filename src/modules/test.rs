@@ -1,9 +1,12 @@
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::utils::metadata::ParserMetadata;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "test"]
+#[kind = "stmt"]
 pub struct Test {
     pub block: Block,
     pub token: Option<Token>,

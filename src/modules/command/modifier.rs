@@ -1,6 +1,7 @@
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use amber_meta::ContextManager;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, ContextManager)]
@@ -16,6 +17,31 @@ pub struct CommandModifier {
     pub is_suppress: bool,
     pub is_sudo: bool,
 }
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "sudo"]
+#[kind = "stmt"]
+pub struct Sudo;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "silent"]
+#[kind = "stmt"]
+pub struct Silent;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "suppress"]
+#[kind = "stmt"]
+pub struct Suppress;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "trust"]
+#[kind = "stmt"]
+pub struct Trust;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "unsafe"]
+#[kind = "stmt"]
+pub struct Unsafe;
 
 impl CommandModifier {
     pub fn new_expr() -> Self {

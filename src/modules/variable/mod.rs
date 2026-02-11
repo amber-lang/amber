@@ -6,7 +6,7 @@ use crate::utils::is_all_caps;
 use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
-
+use amber_meta::AutoKeyword;
 pub mod get;
 pub mod init;
 pub mod init_destruct;
@@ -81,6 +81,35 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "while",
     ]
 }
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "as"]
+#[kind = "stmt"]
+pub struct As;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "else"]
+#[kind = "stmt"]
+pub struct Else;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "from"]
+#[kind = "stmt"]
+pub struct From;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "in"]
+#[kind = "stmt"]
+pub struct In;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "is"]
+#[kind = "stmt"]
+pub struct Is;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "then"]
+#[kind = "stmt"]
+pub struct Then;
 
 pub fn handle_variable_reference(
     meta: &mut ParserMetadata,

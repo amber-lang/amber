@@ -2,11 +2,14 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::{translate_float_computation, ArithOp};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "mul"]
+#[kind = "binary_op"]
 pub struct Mul {
     left: Box<Expr>,
     right: Box<Expr>,

@@ -1,8 +1,10 @@
 use crate::fragments;
 use crate::modules::prelude::*;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "continue"]
 pub struct Continue {
     tok: Option<Token>,
 }

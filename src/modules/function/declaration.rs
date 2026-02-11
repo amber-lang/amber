@@ -22,6 +22,8 @@ use std::path::Path;
 
 use crate::modules::block::Block;
 
+use amber_meta::AutoKeyword;
+
 #[derive(Debug, Clone)]
 pub struct FunctionDeclarationArgument {
     pub name: String,
@@ -31,7 +33,14 @@ pub struct FunctionDeclarationArgument {
     pub tok: Option<Token>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "ref"]
+#[kind = "stmt"]
+pub struct Ref;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "fun"]
+#[kind = "stmt"]
 pub struct FunctionDeclaration {
     pub name: String,
     pub args: Vec<FunctionDeclarationArgument>,

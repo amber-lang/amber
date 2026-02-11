@@ -25,6 +25,7 @@ fn validate_variant(variant: &Variant) -> Result<(), Error> {
 }
 
 /// Generate the StatementDispatch implementations for an enum
+#[doc(hidden)]
 pub fn generate_dispatch(input: &DeriveInput) -> TokenStream {
     generate_dispatch_inner(input).unwrap_or_else(|err| err.to_compile_error())
 }

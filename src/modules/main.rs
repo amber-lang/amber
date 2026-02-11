@@ -6,10 +6,12 @@ use crate::modules::types::Type;
 use crate::raw_fragment;
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
-
+use amber_meta::AutoKeyword;
 use super::variable::variable_name_extensions;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "main"]
+#[kind = "stmt"]
 pub struct Main {
     pub args: Option<String>,
     pub args_tok: Option<Token>,
