@@ -1,4 +1,4 @@
-# `docs.ab` and `keywords.ab`
+# Scripts
 
 ## docs.ab 
 Automated script that generates documentation for our standard library (`stdlib`) based on `src/std/` directory
