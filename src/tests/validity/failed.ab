@@ -7,7 +7,7 @@ let requirements = [true, true, true]
 
 main {
     silent {
-        $ seq 1 $ failed: requirements[0] = false
+        $ echo "ok" $ failed: requirements[0] = false
         $ ls $ failed: requirements[1] = false
         $ you_do_not_have_this $ failed: requirements[2] = false
     }
