@@ -4,7 +4,6 @@ use crate::modules::prelude::TranslateModule;
 use crate::modules::prelude::*;
 use crate::utils::TranslateMetadata;
 use insta::assert_snapshot;
-use std::env;
 use std::fs;
 use std::path::Path;
 use test_generator::test_resources;
@@ -75,20 +74,14 @@ fn test_find_bash() {
 #[test]
 fn test_parse_with_debug_flags() {
     let code = r#"main { echo "test" }"#;
-    let options = CompilerOptions::default();
+    let mut options = CompilerOptions::default();
+    options.debug_time = true;
+    options.debug_parser = true;
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
 
-    unsafe {
-        env::set_var("AMBER_DEBUG_TIME", "1");
-        env::set_var("AMBER_DEBUG_PARSER", "1");
-    }
     let result = compiler.parse(tokens);
-    unsafe {
-        env::remove_var("AMBER_DEBUG_TIME");
-        env::remove_var("AMBER_DEBUG_PARSER");
-    }
 
     assert!(result.is_ok(), "Translate should succeed with debug flags");
 }
@@ -96,17 +89,13 @@ fn test_parse_with_debug_flags() {
 #[test]
 fn test_translate_with_debug_parser() {
     let code = r#"main { echo "test" }"#;
-    let options = CompilerOptions::default();
+    let mut options = CompilerOptions::default();
+    options.debug_parser = true;
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
 
-    let result = unsafe {
-        env::set_var("AMBER_DEBUG_PARSER", "1");
-        let result = compiler.parse(tokens);
-        env::remove_var("AMBER_DEBUG_PARSER");
-        result
-    };
+    let result = compiler.parse(tokens);
 
     assert!(result.is_ok(), "Parse should succeed with debug parser");
 }
@@ -114,18 +103,14 @@ fn test_translate_with_debug_parser() {
 #[test]
 fn test_typecheck_with_debug_time() {
     let code = r#"main { echo "test" }"#;
-    let options = CompilerOptions::default();
+    let mut options = CompilerOptions::default();
+    options.debug_time = true;
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
     let (block, meta) = compiler.parse(tokens).expect("parse failed");
 
-    let result = unsafe {
-        env::set_var("AMBER_DEBUG_TIME", "1");
-        let result = compiler.typecheck(block, meta);
-        env::remove_var("AMBER_DEBUG_TIME");
-        result
-    };
+    let result = compiler.typecheck(block, meta);
 
     assert!(result.is_ok(), "Typecheck should succeed with debug time");
 }
@@ -133,16 +118,12 @@ fn test_typecheck_with_debug_time() {
 #[test]
 fn test_parse_with_debug_time() {
     let code = r#"main { echo "test" }"#;
-    let options = CompilerOptions::default();
+    let mut options = CompilerOptions::default();
+    options.debug_time = true;
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
-    let result = unsafe {
-        env::set_var("AMBER_DEBUG_TIME", "1");
-        let tokens = compiler.tokenize().expect("tokenize failed");
-        let result = compiler.parse(tokens);
-        env::remove_var("AMBER_DEBUG_TIME");
-        result
-    };
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let result = compiler.parse(tokens);
 
     assert!(result.is_ok(), "Parse should succeed with debug time");
 }
@@ -237,18 +218,15 @@ fn test_translation(input: &str) {
 #[test]
 fn test_gen_header_with_env() {
     let code = r#"main { echo "test" }"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-
     let temp_dir = std::env::temp_dir();
     let header_path = temp_dir.join("amber_test_header.sh");
     let header_content = "#!/usr/bin/env bash\n# Custom header\n";
 
     std::fs::write(&header_path, header_content).expect("Failed to write header file");
 
-    unsafe {
-        env::set_var("AMBER_HEADER", &header_path);
-    }
+    let mut options = CompilerOptions::default();
+    options.header_path = Some(header_path.to_string_lossy().to_string());
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
     let (block, meta) = compiler.parse(tokens).expect("parse failed");
@@ -256,9 +234,6 @@ fn test_gen_header_with_env() {
 
     let result = compiler.translate(block, meta);
 
-    unsafe {
-        env::remove_var("AMBER_HEADER");
-    }
     std::fs::remove_file(&header_path).ok();
 
     assert!(result.is_ok(), "Should succeed with custom header");
@@ -272,18 +247,15 @@ fn test_gen_header_with_env() {
 #[test]
 fn test_gen_footer_with_env() {
     let code = r#"main { echo "test" }"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-
     let temp_dir = std::env::temp_dir();
     let footer_path = temp_dir.join("amber_test_footer.sh");
     let footer_content = "# Custom footer";
 
     std::fs::write(&footer_path, footer_content).expect("Failed to write footer file");
 
-    unsafe {
-        env::set_var("AMBER_FOOTER", &footer_path);
-    }
+    let mut options = CompilerOptions::default();
+    options.footer_path = Some(footer_path.to_string_lossy().to_string());
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
     let (block, meta) = compiler.parse(tokens).expect("parse failed");
@@ -291,9 +263,6 @@ fn test_gen_footer_with_env() {
 
     let result = compiler.translate(block, meta);
 
-    unsafe {
-        env::remove_var("AMBER_FOOTER");
-    }
     std::fs::remove_file(&footer_path).ok();
 
     assert!(result.is_ok(), "Should succeed with custom footer");

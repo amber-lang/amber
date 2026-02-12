@@ -250,7 +250,7 @@ pub(crate) fn write_output(output: PathBuf, code: String) {
 }
 
 fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
-    let options = CompilerOptions::default();
+    let options = CompilerOptions::default().with_env_vars();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
         Ok((messages, code)) => {
@@ -275,7 +275,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     };
-    let options = CompilerOptions::default();
+    let options = CompilerOptions::default().with_env_vars();
     let compiler = AmberCompiler::new(code, Some(input), options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
@@ -305,19 +305,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         match command {
             CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
                 compile_input(command.input, options);
                 0
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
                 let options =
-                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
+                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None).with_env_vars();
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
                 0
@@ -333,7 +333,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             CommandKind::Test(command) => testing::handle_test(command)?,
         }
     } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None);
+        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None).with_env_vars();
         let (code, messages) = compile_input(input, options);
         execute_output(code, cli.args, messages)?
     } else {
