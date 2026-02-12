@@ -74,9 +74,11 @@ fn test_find_bash() {
 #[test]
 fn test_parse_with_debug_flags() {
     let code = r#"main { echo "test" }"#;
-    let mut options = CompilerOptions::default();
-    options.debug_time = true;
-    options.debug_parser = true;
+    let options = CompilerOptions {
+        debug_time: true,
+        debug_parser: true,
+        ..Default::default()
+    };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
@@ -89,8 +91,10 @@ fn test_parse_with_debug_flags() {
 #[test]
 fn test_translate_with_debug_parser() {
     let code = r#"main { echo "test" }"#;
-    let mut options = CompilerOptions::default();
-    options.debug_parser = true;
+    let options = CompilerOptions {
+        debug_parser: true,
+        ..Default::default()
+    };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
@@ -103,8 +107,10 @@ fn test_translate_with_debug_parser() {
 #[test]
 fn test_typecheck_with_debug_time() {
     let code = r#"main { echo "test" }"#;
-    let mut options = CompilerOptions::default();
-    options.debug_time = true;
+    let options = CompilerOptions {
+        debug_time: true,
+        ..Default::default()
+    };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
@@ -118,8 +124,10 @@ fn test_typecheck_with_debug_time() {
 #[test]
 fn test_parse_with_debug_time() {
     let code = r#"main { echo "test" }"#;
-    let mut options = CompilerOptions::default();
-    options.debug_time = true;
+    let options = CompilerOptions {
+        debug_time: true,
+        ..Default::default()
+    };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
@@ -224,8 +232,10 @@ fn test_gen_header_with_env() {
 
     std::fs::write(&header_path, header_content).expect("Failed to write header file");
 
-    let mut options = CompilerOptions::default();
-    options.header_path = Some(header_path.to_string_lossy().to_string());
+    let options = CompilerOptions {
+        header_path: Some(header_path.to_string_lossy().to_string()),
+        ..Default::default()
+    };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
@@ -253,8 +263,10 @@ fn test_gen_footer_with_env() {
 
     std::fs::write(&footer_path, footer_content).expect("Failed to write footer file");
 
-    let mut options = CompilerOptions::default();
-    options.footer_path = Some(footer_path.to_string_lossy().to_string());
+    let options = CompilerOptions {
+        footer_path: Some(footer_path.to_string_lossy().to_string()),
+        ..Default::default()
+    };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
 
     let tokens = compiler.tokenize().expect("tokenize failed");
