@@ -20,11 +20,25 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     Some(result)
 }
 
+/// Autoload the Amber test files in compiling
+#[test_resources("src/tests/compiling/*.ab")]
+fn test_translation(input: &str) {
+    let code =
+        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    let ast = translate_amber_code(code).expect("Couldn't translate Amber code");
+    let filename = Path::new(input)
+        .file_name()
+        .expect("Provided directory")
+        .to_str()
+        .expect("Cannot translate to string");
+    assert_snapshot!(filename, ast);
+}
+
 #[test]
 fn test_translate_sudo_preamble() {
     let code = r#"
 main {
-    echo "test"
+    echo("test")
 }
 "#;
     let options = CompilerOptions::default();
@@ -45,7 +59,7 @@ main {
 fn test_translate_with_sudo() {
     let code = r#"
 main {
-    sudo $ echo "sudo test" $?
+    sudo $ echo "test" $?
 }
 "#;
     let options = CompilerOptions::default();
@@ -57,8 +71,8 @@ main {
     let ast = ast.translate(&mut translate_meta);
     let result = ast.to_string(&mut translate_meta);
     assert!(
-        result.contains("sudo") || result.contains("sudo "),
-        "Output may contain sudo"
+        result.contains("sudo"),
+        "Output should contain sudo"
     );
 }
 
@@ -73,16 +87,14 @@ fn test_find_bash() {
 
 #[test]
 fn test_parse_with_debug_flags() {
-    let code = r#"main { echo "test" }"#;
+    let code = r#"main { echo("test") }"#;
     let options = CompilerOptions {
         debug_time: true,
         debug_parser: true,
         ..Default::default()
     };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
-
     let tokens = compiler.tokenize().expect("tokenize failed");
-
     let result = compiler.parse(tokens);
 
     assert!(result.is_ok(), "Translate should succeed with debug flags");
@@ -90,15 +102,13 @@ fn test_parse_with_debug_flags() {
 
 #[test]
 fn test_translate_with_debug_parser() {
-    let code = r#"main { echo "test" }"#;
+    let code = r#"main { echo("test") }"#;
     let options = CompilerOptions {
         debug_parser: true,
         ..Default::default()
     };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
-
     let tokens = compiler.tokenize().expect("tokenize failed");
-
     let result = compiler.parse(tokens);
 
     assert!(result.is_ok(), "Parse should succeed with debug parser");
@@ -106,7 +116,7 @@ fn test_translate_with_debug_parser() {
 
 #[test]
 fn test_typecheck_with_debug_time() {
-    let code = r#"main { echo "test" }"#;
+    let code = r#"main { echo("test") }"#;
     let options = CompilerOptions {
         debug_time: true,
         ..Default::default()
@@ -123,7 +133,7 @@ fn test_typecheck_with_debug_time() {
 
 #[test]
 fn test_parse_with_debug_time() {
-    let code = r#"main { echo "test" }"#;
+    let code = r#"main { echo("test") }"#;
     let options = CompilerOptions {
         debug_time: true,
         ..Default::default()
@@ -147,7 +157,7 @@ fn test_tokenize_error_singleline_missing_close() {
 
 #[test]
 fn test_tokenize_error_unclosed_comment() {
-    let code = r#"main { echo "hello" # comment without closing
+    let code = r#"main { echo "hello" // comment without closing
 "#;
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(code.to_string(), None, options);
@@ -161,7 +171,7 @@ fn test_document_with_output() {
     let compiler = AmberCompiler::new(
         r#"
  main {
-     echo "test"
+     echo("test")
  }
  "#
         .to_string(),
@@ -182,7 +192,7 @@ fn test_document_with_output() {
 fn test_test_eval() {
     let code = r#"
 main {
-    echo "test"
+    echo("test")
 }
 "#;
     let options = CompilerOptions::default();
@@ -200,7 +210,7 @@ main {
 fn test_test_eval_with_error() {
     let code = r#"
 main {
-    this_is_not_valid_amber_syntax
+    this_is_not_valid_amber
 }
 "#;
     let options = CompilerOptions::default();
@@ -209,23 +219,9 @@ main {
     assert!(result.is_err(), "test_eval should error on invalid code");
 }
 
-/// Autoload the Amber test files in compiling
-#[test_resources("src/tests/compiling/*.ab")]
-fn test_translation(input: &str) {
-    let code =
-        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
-    let ast = translate_amber_code(code).expect("Couldn't translate Amber code");
-    let filename = Path::new(input)
-        .file_name()
-        .expect("Provided directory")
-        .to_str()
-        .expect("Cannot translate to string");
-    assert_snapshot!(filename, ast);
-}
-
 #[test]
 fn test_gen_header_with_env() {
-    let code = r#"main { echo "test" }"#;
+    let code = r#"main { echo("test") }"#;
     let temp_dir = std::env::temp_dir();
     let header_path = temp_dir.join("amber_test_header.sh");
     let header_content = "#!/usr/bin/env bash\n# Custom header\n";
@@ -237,11 +233,9 @@ fn test_gen_header_with_env() {
         ..Default::default()
     };
     let compiler = AmberCompiler::new(code.to_string(), None, options);
-
     let tokens = compiler.tokenize().expect("tokenize failed");
     let (block, meta) = compiler.parse(tokens).expect("parse failed");
     let (block, meta) = compiler.typecheck(block, meta).expect("typecheck failed");
-
     let result = compiler.translate(block, meta);
 
     std::fs::remove_file(&header_path).ok();
@@ -256,7 +250,7 @@ fn test_gen_header_with_env() {
 
 #[test]
 fn test_gen_footer_with_env() {
-    let code = r#"main { echo "test" }"#;
+    let code = r#"main { echo("test") }"#;
     let temp_dir = std::env::temp_dir();
     let footer_path = temp_dir.join("amber_test_footer.sh");
     let footer_content = "# Custom footer";
