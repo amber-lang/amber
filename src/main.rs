@@ -32,7 +32,7 @@ fn get_version() -> &'static str {
 }
 
 #[derive(Parser, Clone, Debug)]
-#[command(version(get_version()), arg_required_else_help(true))]
+#[command(version(get_version()), subcommand_required = true)]
 struct Cli {
     #[command(subcommand)]
     command: Option<CommandKind>,
@@ -300,24 +300,38 @@ pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => match err.kind() {
+            clap::error::ErrorKind::MissingSubcommand => {
+                eprintln!("Unknown command");
+                Cli::command().print_help().unwrap();
+                println!();
+                std::process::exit(1);
+            }
+            _ => err.exit(),
+        },
+    };
     let exit_code = if let Some(command) = cli.command {
         match command {
             CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                    .with_env_vars();
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                    .with_env_vars();
                 compile_input(command.input, options);
                 0
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
                 let options =
-                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None).with_env_vars();
+                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+                        .with_env_vars();
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
                 0
