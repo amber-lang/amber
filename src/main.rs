@@ -160,56 +160,6 @@ pub struct TestCommand {
     pub no_proc: Vec<String>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let cli = Cli::parse();
-    let exit_code = if let Some(command) = cli.command {
-        match command {
-            CommandKind::Eval(command) => handle_eval(command)?,
-            CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
-                let (code, messages) = compile_input(command.input, options);
-                execute_output(code, command.args, messages)?
-            }
-            CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
-                compile_input(command.input, options);
-                0
-            }
-            CommandKind::Build(command) => {
-                let output = create_output(&command);
-                let options =
-                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
-                let (code, _) = compile_input(command.input, options);
-                write_output(output, code);
-                0
-            }
-            CommandKind::Docs(command) => {
-                handle_docs(command)?;
-                0
-            }
-            CommandKind::Completion => {
-                handle_completion();
-                0
-            }
-            CommandKind::GrammarEbnf => {
-                let output = grammar_ebnf::generate_grammar_ebnf();
-                let output_path = PathBuf::from("grammar.ebnf");
-                std::fs::write(&output_path, output).expect("Failed to write grammar.ebnf");
-                0
-            }
-            CommandKind::Test(command) => testing::handle_test(command)?,
-        }
-    } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None);
-        let (code, messages) = compile_input(input, options);
-        execute_output(code, cli.args, messages)?
-    } else {
-        0
-    };
-
-    std::process::exit(exit_code);
-}
-
 fn create_output(command: &BuildCommand) -> PathBuf {
     if let Some(output) = &command.output {
         output.clone()
@@ -381,6 +331,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             CommandKind::Completion => {
                 handle_completion();
+                0
+            }
+            CommandKind::GrammarEbnf => {
+                let output = grammar_ebnf::generate_grammar_ebnf();
+                let output_path = PathBuf::from("grammar.ebnf");
+                std::fs::write(&output_path, output).expect("Failed to write grammar.ebnf");
                 0
             }
             CommandKind::Test(command) => testing::handle_test(command)?,

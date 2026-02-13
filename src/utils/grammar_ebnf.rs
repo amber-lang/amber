@@ -168,6 +168,7 @@ comment = '//', { ANY_CHAR }, '\n' ;
 (* Test *)
 test_name = '"', { ANY_CHAR }, '"' ;
 test = KEYWORD_TEST, [ test_name ], block ;
+
 "#;
 
 pub fn generate_grammar_ebnf() -> String {
