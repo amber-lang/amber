@@ -21,6 +21,7 @@ pub struct ImportWant {
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "pub"]
 #[kind = "stmt"]
+#[allow(dead_code)]
 pub struct Pub;
 
 impl ImportWant {

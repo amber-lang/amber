@@ -43,6 +43,7 @@ impl KeywordRegistration {
         }
     }
 
+    #[allow(dead_code)]
     pub const fn new(struct_name: &'static str, keyword: &'static str) -> Self {
         Self {
             struct_name,

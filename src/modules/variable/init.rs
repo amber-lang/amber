@@ -25,11 +25,13 @@ pub struct VariableInit {
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "const"]
 #[kind = "stmt"]
+#[allow(dead_code)]
 pub struct Const;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "let"]
 #[kind = "stmt"]
+#[allow(dead_code)]
 pub struct Let;
 
 impl SyntaxModule<ParserMetadata> for VariableInit {

@@ -36,6 +36,7 @@ pub struct FunctionDeclarationArgument {
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "ref"]
 #[kind = "stmt"]
+#[allow(dead_code)]
 pub struct Ref;
 
 #[derive(Debug, Clone, AutoKeyword)]
