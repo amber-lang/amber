@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "if"]
-#[kind = "binary_op"]
+#[kind = "stmt"]
 pub struct IfChain {
     pub cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
     pub false_block: Option<(Vec<Comment>, Box<Block>)>,
