@@ -188,24 +188,6 @@ pub fn generate_grammar_ebnf() -> String {
         .map(|r| r.keyword)
         .collect();
 
-    // Separate builtins into statement and expression categories
-    let stmt_builtins: Vec<&str> = builtin_stmt_keywords
-        .iter()
-        .filter(|&&kw| {
-            matches!(
-                kw,
-                "await" | "cd" | "clear" | "cp" | "echo" | "exit" | "mv" | "rm" | "sleep" | "touch"
-            )
-        })
-        .copied()
-        .collect();
-
-    let expr_builtins: Vec<&str> = builtin_expr_keywords
-        .iter()
-        .filter(|&&kw| matches!(kw, "len" | "lines" | "ls" | "nameof" | "pid" | "pwd"))
-        .copied()
-        .collect();
-
     // Collect unique keywords using HashSet to deduplicate
     let mut keyword_defs = String::new();
     let mut keyword_list: Vec<_> = keywords.into_iter().collect();
@@ -218,7 +200,7 @@ pub fn generate_grammar_ebnf() -> String {
 
     // Generate individual builtin rules for statement builtins
     let mut builtin_stmt_rules = String::new();
-    for kw in &stmt_builtins {
+    for kw in &builtin_stmt_keywords {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
         match kw.as_ref() {
@@ -235,7 +217,7 @@ pub fn generate_grammar_ebnf() -> String {
 
     // Generate individual builtin rules for expression builtins
     let mut builtin_expr_rules = String::new();
-    for kw in &expr_builtins {
+    for kw in &builtin_expr_keywords {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
         match kw.as_ref() {
@@ -251,10 +233,10 @@ pub fn generate_grammar_ebnf() -> String {
     builtin_expr_rules.push('\n');
 
     // Generate builtins_statement rule
-    let builtins_stmt_rule = if stmt_builtins.is_empty() {
+    let builtins_stmt_rule = if builtin_stmt_keywords.is_empty() {
         String::new()
     } else {
-        let alternatives: Vec<String> = stmt_builtins
+        let alternatives: Vec<String> = builtin_stmt_keywords
             .iter()
             .map(|kw| format!("builtin_{}", kw))
             .collect();
@@ -262,10 +244,10 @@ pub fn generate_grammar_ebnf() -> String {
     };
 
     // Generate builtins_expression rule
-    let builtins_expr_rule = if expr_builtins.is_empty() {
+    let builtins_expr_rule = if builtin_expr_keywords.is_empty() {
         String::new()
     } else {
-        let alternatives: Vec<String> = expr_builtins
+        let alternatives: Vec<String> = builtin_expr_keywords
             .iter()
             .map(|kw| format!("builtin_{}", kw))
             .collect();
