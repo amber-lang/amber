@@ -11,3 +11,6 @@
 
 # [target.aarch64-unknown-linux-musl]
 # linker = "aarch64-unknown-linux-musl-gcc"
+
+[alias]
+lint = "clippy --all-targets --all-features -- -D warnings"

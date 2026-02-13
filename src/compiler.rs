@@ -26,15 +26,17 @@ use wildmatch::WildMatchPattern;
 pub mod postprocessor;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
-const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
-const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
-const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
     pub minify: bool,
     pub test_mode: bool,
     pub test_name: Option<String>,
+    pub debug_parser: bool,
+    pub debug_time: bool,
+    pub no_optimize: bool,
+    pub header_path: Option<String>,
+    pub footer_path: Option<String>,
 }
 
 impl Default for CompilerOptions {
@@ -45,6 +47,11 @@ impl Default for CompilerOptions {
             minify: false,
             test_mode: false,
             test_name: None,
+            debug_parser: false,
+            debug_time: false,
+            no_optimize: false,
+            header_path: None,
+            footer_path: None,
         }
     }
 }
@@ -62,7 +69,33 @@ impl CompilerOptions {
             minify,
             test_mode,
             test_name,
+            debug_parser: false,
+            debug_time: false,
+            no_optimize: false,
+            header_path: None,
+            footer_path: None,
         }
+    }
+
+    pub fn with_env_vars(mut self) -> Self {
+        let is_true = |v: String| v == "1" || v == "true";
+
+        if std::env::var("AMBER_DEBUG_PARSER").is_ok_and(is_true) {
+            self.debug_parser = true;
+        }
+        if std::env::var("AMBER_DEBUG_TIME").is_ok_and(is_true) {
+            self.debug_time = true;
+        }
+        if std::env::var("AMBER_NO_OPTIMIZE").is_ok_and(is_true) {
+            self.no_optimize = true;
+        }
+        if let Ok(path) = std::env::var("AMBER_HEADER") {
+            self.header_path = Some(path);
+        }
+        if let Ok(path) = std::env::var("AMBER_FOOTER") {
+            self.footer_path = Some(path);
+        }
+        self
     }
 }
 
@@ -87,13 +120,6 @@ impl AmberCompiler {
         }
     }
 
-    fn env_flag_set(flag: &str) -> bool {
-        if let Ok(value) = env::var(flag) {
-            value == "1" || value == "true"
-        } else {
-            false
-        }
-    }
 
     pub fn load_code(mut self, code: String) -> Self {
         self.cc.load(code);
@@ -104,7 +130,7 @@ impl AmberCompiler {
         let time = Instant::now();
         match self.cc.tokenize() {
             Ok(tokens) => {
-                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                if self.options.debug_time {
                     let pathname = self.path.clone().unwrap_or(String::from("unknown"));
                     println!(
                         "[{}]\tin\t{}ms\t{pathname}",
@@ -139,12 +165,12 @@ impl AmberCompiler {
         let mut block = Block::new().with_no_syntax();
         let time = Instant::now();
         // Parse with debug or not
-        let result = if Self::env_flag_set(AMBER_DEBUG_PARSER) {
+        let result = if self.options.debug_parser {
             block.parse_debug(&mut meta)
         } else {
             block.parse(&mut meta)
         };
-        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+        if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
@@ -186,8 +212,8 @@ impl AmberCompiler {
     }
 
     fn gen_header(&self) -> String {
-        let header_template = if let Ok(dynamic) = env::var("AMBER_HEADER") {
-            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+        let header_template = if let Some(dynamic) = &self.options.header_path {
+            fs::read_to_string(dynamic).unwrap_or_else(|_| {
                 let msg = format!("Couldn't read the dynamic header file from path '{dynamic}'");
                 Message::new_err_msg(msg).show();
                 exit(1);
@@ -200,8 +226,8 @@ impl AmberCompiler {
     }
 
     fn gen_footer(&self) -> String {
-        let footer_template = if let Ok(dynamic) = env::var("AMBER_FOOTER") {
-            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+        let footer_template = if let Some(dynamic) = &self.options.footer_path {
+            fs::read_to_string(dynamic).unwrap_or_else(|_| {
                 let msg = format!("Couldn't read the dynamic footer file from path '{dynamic}'");
                 Message::new_err_msg(msg).show();
                 exit(1);
@@ -232,7 +258,7 @@ impl AmberCompiler {
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));
         }
-        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+        if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
@@ -242,7 +268,7 @@ impl AmberCompiler {
         }
 
         let mut result = result.to_frag();
-        if !Self::env_flag_set(AMBER_NO_OPTIMIZE) {
+        if !self.options.no_optimize {
             optimize_fragments(&mut result);
         }
 
@@ -358,7 +384,7 @@ impl AmberCompiler {
             return Err(failure.unwrap_loud());
         }
 
-        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+        if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
@@ -439,7 +465,7 @@ impl AmberCompiler {
     }
 
     #[cfg(windows)]
-    fn find_bash() -> Option<Command> {
+    pub fn find_bash() -> Option<Command> {
         if let Some(paths) = env::var_os("PATH") {
             for path in env::split_paths(&paths) {
                 let path = path.join("bash.exe");
@@ -454,7 +480,7 @@ impl AmberCompiler {
 
     /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
     #[cfg(not(windows))]
-    fn find_bash() -> Option<Command> {
+    pub fn find_bash() -> Option<Command> {
         if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
             let mut command = Command::new("docker");
             let args_string = env::var("AMBER_TEST_ARGS")
