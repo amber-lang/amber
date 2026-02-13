@@ -9,7 +9,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "if"]
-#[kind = "binary_op"]
+#[kind = "stmt"]
 pub struct IfCondition {
     expr: Box<Expr>,
     true_block: Option<Box<Block>>,
