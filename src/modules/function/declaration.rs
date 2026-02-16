@@ -68,14 +68,17 @@ impl FunctionDeclaration {
                     VarExprFragment::new(&format!("{}", index + 1), Type::Generic).with_ref(false);
                 let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                     .with_local(true)
-                    .with_optimization_when_unused(false);
+                    .with_optimization_when_unused(false)
+                    .with_ref(arg.is_ref)
+                    .with_declare(false);
                 match (arg.is_ref, kind) {
-                    (false, Type::Array(_)) => {
+                   (false, Type::Array(_)) => {
                         let val = VarExprFragment::new(&format!("{}", index + 1), kind.clone()).with_ref(true);
                         result.push(var.with_index(None).with_value(val.to_frag()).to_frag());
                     }
                     _ => result.push(var.to_frag()),
                 }
+                //result.push(var.to_frag());
             }
             Some(BlockFragment::new(result, true).to_frag())
         } else {

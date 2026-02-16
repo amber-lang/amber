@@ -5,7 +5,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::RawFragment;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
-use crate::utils::TranslateMetadata;
+use crate::utils::{TranslateMetadata, ShellType};
 
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,6 +38,8 @@ pub struct VarExprFragment {
     pub is_quoted: bool,
     // Bash's `${array[*]}` expansion
     pub is_array_to_string: bool,
+    // a "workaround" to properly generate array declaration by copying the origin array
+   // pub is_array_copy: bool,
     // Variable is inside an arithmetic expression
     pub is_math_var: bool,
     pub render_type: VarRenderType,
@@ -172,7 +174,7 @@ impl VarExprFragment {
         let mut name = self.get_name();
         // Dereference variable if it's a reference and is passed by reference
         if self.is_ref {
-            name = format!("{dollar}{name}");
+            name = format!("{dollar}{{!{name}}}");
         }
 
         if self.is_quoted {
@@ -191,12 +193,15 @@ impl VarExprFragment {
         let index_is_none = index.is_none();
         let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index, default_value);
-
-        if self.is_ref {
+        
+        //dbg!(name, self.kind.is_array());
+        if self.kind.is_array() && self.is_ref {
             self.render_deref_variable(meta, prefix, &name, &suffix)
         } else if self.is_math_var && !self.is_length && index_is_none {
             name.to_string()
         } else {
+           // let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+            
             let quote = if self.is_quoted { meta.gen_quote() } else { "" };
             let dollar = meta.gen_dollar();
             format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
@@ -252,7 +257,7 @@ impl VarExprFragment {
     }
 
     fn render_deref_variable(
-        self,
+        mut self,
         meta: &mut TranslateMetadata,
         prefix: &str,
         name: &str,
@@ -260,20 +265,38 @@ impl VarExprFragment {
     ) -> String {
         let arr_open = if self.kind.is_array() { "(" } else { "" };
         let arr_close = if self.kind.is_array() { ")" } else { "" };
-        let arr_suffix = if self.kind.is_array() { "[@]" } else { "" };
+        //let arr_prefix = if self.kind.is_array() { "!" } else { "" };
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
         let dollar = meta.gen_dollar();
         let id = meta.gen_value_id();
-        // Use [0] subscript only for array refs stored in local variables (has global_id)
-        let subscript = if self.global_id.is_some() && self.kind.is_array() { "[0]" } else { "" };
-        // we assume that the {name} will expand to variable[@], so we remove dublicate `[@]`
-        let eval_value = format!("{prefix}${{{name}{subscript}//\\[@\\]}}{suffix}");
         let var_name = format!("__deref_{name}_{id}");
-        meta.stmt_queue.push_back(RawFragment::from(
-            format!("eval \"typeset {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
-        ).to_frag());
+        match meta.target.shell {
+            ShellType::Bash => {
+                //meta.stmt_queue.push_back(RawFragment::from(
+                //    format!("declare -n {var_name}=\"${{{name}}}\"")
+                //).to_frag());
+                meta.stmt_queue.push_back(RawFragment::from(
+                    format!("local {var_name}={arr_open}{quote}{dollar}{{!{name}}}{quote}{arr_close}")
+                ).to_frag());
+                format!("{quote}${{{var_name}[@]}}{quote}")
+            }
+            ShellType::Ksh => {
+                format!("{quote}{arr_open}{dollar}{{!{name}}}{arr_close}{quote}")
+            }
+            ShellType::Zsh => {
+                format!("{quote}{arr_open}{dollar}{{!{name}}}{arr_close}{quote}")
+            }
+        }
+        // Use [0] subscript only for array refs stored in local variables (has global_id)
+        //let subscript = if self.global_id.is_some() && self.kind.is_array() { "[0]" } else { "" };
+        // we assume that the {name} will expand to variable[@], so we remove dublicate `[@]`
+        //let eval_value = format!("{prefix}${{{name}{subscript}//\\[@\\]}}{suffix}");
+        //
+       // meta.stmt_queue.push_back(RawFragment::from(
+       //     format!("eval \"typeset {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\"")
+        //).to_frag());
 
-        format!("{quote}{dollar}{{{var_name}{arr_suffix}}}{quote}")
+        //format!("{quote}{dollar}{{{var_name}{arr_suffix}}}{quote}")
     }
 }
 

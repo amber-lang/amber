@@ -222,7 +222,7 @@ impl TranslateModule for FunctionInvocation {
                         let temp_var = meta.push_ephemeral_variable(stmt);
                         fragments!(
                             temp_var
-                                .with_render_type(VarRenderType::BashRef)
+                                .with_render_type(VarRenderType::NameOf)
                                 .to_frag()
                                 .with_quotes(false),
                             "[@]"

@@ -15,6 +15,7 @@ pub struct VarStmtFragment {
     pub is_ephemeral: bool,
     pub is_ref: bool,
     pub is_local: bool,
+    pub is_declared: bool,
     // Determines if the variable can be removed when not used
     pub optimize_unused: bool,
     pub operator: String,
@@ -33,6 +34,7 @@ impl Default for VarStmtFragment {
             is_ephemeral: false,
             is_ref: false,
             is_local: false,
+            is_declared: true,
             optimize_unused: true,
             operator: "=".to_string(),
             value: Box::new(FragmentKind::Empty),
@@ -75,6 +77,11 @@ impl VarStmtFragment {
         self
     }
 
+    pub fn with_declare(mut self, is_declared: bool) -> Self {
+        self.is_declared = is_declared;
+        self
+    }
+
     pub fn with_index<T: Into<Option<FragmentKind>>>(mut self, index: T) -> Self {
         self.index = index.into().map(Box::new);
         self
@@ -97,11 +104,11 @@ impl VarStmtFragment {
     pub fn render_variable_name(&self) -> String {
         let variable = self.get_name();
 
-        if self.is_ref {
-            format!("${{{variable}}}")
-        } else {
+        //if self.is_ref {
+       //     format!("${{{variable}}}")
+       // } else {
             variable.to_string()
-        }
+        //}
     }
 
     fn render_variable_statement(self, meta: &mut TranslateMetadata) -> String {
@@ -116,22 +123,26 @@ impl VarStmtFragment {
                 .map(|index| format!("[{}]", index.to_string(meta))),
         );
         assignment_parts.push(self.operator);
-
-        if self.kind.is_array() {
+        // it only adds () to the value IF the variable has already been declared, because otherwise namerefs fail with () syntax
+        if self.is_declared && self.kind.is_array() {
             assignment_parts.push(format!("({})", value.clone()));
         } else {
             assignment_parts.push(value.clone());
         }
         let assignment = assignment_parts.join("");
-
         match meta.target.shell {
             ShellType::Bash | ShellType::Zsh => {
             // `local` command consumes exit code of command that it is assigned to.
             // To preserve the exit code of the assignment we split the local declaration into two parts.
-                if self.is_local && is_running_command {
-                    format!("local {var_name}\n{}{assignment}", meta.gen_indent())
-                } else if self.is_local {
-                    format!("local {assignment}")
+                if self.is_local {
+                    if is_running_command {
+                        format!("local {var_name}\n{}{assignment}", meta.gen_indent())
+                    } else if self.is_ref {
+                        format!("local -n {assignment}")
+                    } else {
+                        format!("local {assignment}")
+                    }
+                    
                 } else {
                     assignment
                 }
@@ -165,12 +176,11 @@ impl VarStmtFragment {
 
 impl FragmentRenderable for VarStmtFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-        if self.is_ref {
-            let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
-            format!("eval \"{stmt}\"")
-        } else {
+       //     let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+       //     format!("eval \"{stmt}\"")
+       // } else {
             self.render_variable_statement(meta)
-        }
+      //  }
     }
 
     fn to_frag(self) -> FragmentKind {
