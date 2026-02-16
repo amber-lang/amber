@@ -157,50 +157,6 @@ pub struct TestCommand {
     pub no_proc: Vec<String>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let cli = Cli::parse();
-    let exit_code = if let Some(command) = cli.command {
-        match command {
-            CommandKind::Eval(command) => handle_eval(command)?,
-            CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
-                let (code, messages) = compile_input(command.input, options);
-                execute_output(code, command.args, messages)?
-            }
-            CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None);
-                compile_input(command.input, options);
-                0
-            }
-            CommandKind::Build(command) => {
-                let output = create_output(&command);
-                let options =
-                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None);
-                let (code, _) = compile_input(command.input, options);
-                write_output(output, code);
-                0
-            }
-            CommandKind::Docs(command) => {
-                handle_docs(command)?;
-                0
-            }
-            CommandKind::Completion => {
-                handle_completion();
-                0
-            }
-            CommandKind::Test(command) => testing::handle_test(command)?,
-        }
-    } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None);
-        let (code, messages) = compile_input(input, options);
-        execute_output(code, cli.args, messages)?
-    } else {
-        0
-    };
-
-    std::process::exit(exit_code);
-}
-
 fn create_output(command: &BuildCommand) -> PathBuf {
     if let Some(output) = &command.output {
         output.clone()
@@ -209,6 +165,17 @@ fn create_output(command: &BuildCommand) -> PathBuf {
     } else {
         command.input.with_extension("sh")
     }
+}
+
+#[cfg(windows)]
+fn set_file_permission(_file: &fs::File, _output: String) {}
+
+#[cfg(not(windows))]
+pub(crate) fn set_file_permission(file: &fs::File, path: String) {
+    use std::os::unix::prelude::PermissionsExt;
+    let mut perm = fs::metadata(path).unwrap().permissions();
+    perm.set_mode(0o755);
+    file.set_permissions(perm).unwrap();
 }
 
 fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
@@ -237,6 +204,24 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
     (bash_code, !messages.is_empty())
 }
 
+fn handle_err(err: std::io::Error) -> ! {
+    Message::new_err_msg(err.to_string()).show();
+    std::process::exit(1);
+}
+
+#[inline]
+#[allow(unused_must_use)]
+pub fn render_dash() {
+    let str = "%.s─".dimmed();
+    Command::new("bash")
+        .arg("-c")
+        .arg(format!("printf {str} $(seq 1 $(tput cols))"))
+        .spawn()
+        .unwrap()
+        .wait();
+    println!();
+}
+
 fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<i32, Box<dyn Error>> {
     if messages {
         render_dash();
@@ -245,7 +230,8 @@ fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<i32
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn write_output(output: PathBuf, code: String) {
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) fn write_output(output: PathBuf, code: String) {
     let output = output.to_string_lossy().to_string();
     if output == "-" {
         print!("{code}");
@@ -264,7 +250,7 @@ fn write_output(output: PathBuf, code: String) {
 }
 
 fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
-    let options = CompilerOptions::default();
+    let options = CompilerOptions::default().with_env_vars();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
         Ok((messages, code)) => {
@@ -289,7 +275,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     };
-    let options = CompilerOptions::default();
+    let options = CompilerOptions::default().with_env_vars();
     let compiler = AmberCompiler::new(code, Some(input), options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
@@ -303,39 +289,56 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_completion() {
+pub(crate) fn handle_completion() {
+    handle_completion_with_output(&mut io::stdout());
+}
+
+pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
     let mut command = Cli::command();
     let name = command.get_name().to_string();
-    clap_complete::generate(Shell::Bash, &mut command, name, &mut io::stdout());
+    clap_complete::generate(Shell::Bash, &mut command, name, output);
 }
 
-#[cfg(windows)]
-fn set_file_permission(_file: &fs::File, _output: String) {
-    // We don't need to set permission on Windows
-}
+fn main() -> Result<(), Box<dyn Error>> {
+    let cli = Cli::parse();
+    let exit_code = if let Some(command) = cli.command {
+        match command {
+            CommandKind::Eval(command) => handle_eval(command)?,
+            CommandKind::Run(command) => {
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
+                let (code, messages) = compile_input(command.input, options);
+                execute_output(code, command.args, messages)?
+            }
+            CommandKind::Check(command) => {
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
+                compile_input(command.input, options);
+                0
+            }
+            CommandKind::Build(command) => {
+                let output = create_output(&command);
+                let options =
+                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None).with_env_vars();
+                let (code, _) = compile_input(command.input, options);
+                write_output(output, code);
+                0
+            }
+            CommandKind::Docs(command) => {
+                handle_docs(command)?;
+                0
+            }
+            CommandKind::Completion => {
+                handle_completion();
+                0
+            }
+            CommandKind::Test(command) => testing::handle_test(command)?,
+        }
+    } else if let Some(input) = cli.input {
+        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None).with_env_vars();
+        let (code, messages) = compile_input(input, options);
+        execute_output(code, cli.args, messages)?
+    } else {
+        0
+    };
 
-#[cfg(not(windows))]
-fn set_file_permission(file: &fs::File, path: String) {
-    use std::os::unix::prelude::PermissionsExt;
-    let mut perm = fs::metadata(path).unwrap().permissions();
-    perm.set_mode(0o755);
-    file.set_permissions(perm).unwrap();
-}
-
-fn handle_err(err: std::io::Error) -> ! {
-    Message::new_err_msg(err.to_string()).show();
-    std::process::exit(1);
-}
-
-#[inline]
-#[allow(unused_must_use)]
-pub fn render_dash() {
-    let str = "%.s─".dimmed();
-    Command::new("bash")
-        .arg("-c")
-        .arg(format!("printf {str} $(seq 1 $(tput cols))"))
-        .spawn()
-        .unwrap()
-        .wait();
-    println!();
+    std::process::exit(exit_code);
 }

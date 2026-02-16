@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: amber
+Source: https://github.com/amber-lang/amber
+
+Files: *
+Copyright: Paweł Karaś <pawel.karas@icloud.com>
+License: LGPL-3
+
+
+Files: debian/*
+Copyright: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+License: LGPL-3

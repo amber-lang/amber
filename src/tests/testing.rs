@@ -189,5 +189,4 @@ mod test {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 1);
     }
-
 }
