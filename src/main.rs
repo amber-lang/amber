@@ -32,13 +32,13 @@ fn get_version() -> &'static str {
 }
 
 #[derive(Parser, Clone, Debug)]
-#[command(version(get_version()), subcommand_required = true)]
+#[command(version(get_version()))]
 struct Cli {
-    #[command(subcommand)]
-    command: Option<CommandKind>,
-
     /// Input filename ('-' to read from stdin)
     input: Option<PathBuf>,
+
+    #[command(subcommand)]
+    command: Option<CommandKind>,
 
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
@@ -209,6 +209,38 @@ fn handle_err(err: std::io::Error) -> ! {
     std::process::exit(1);
 }
 
+fn levenshtein_distance(a: &str, b: &str) -> usize {
+    let a_len = a.chars().count();
+    let b_len = b.chars().count();
+    if a_len == 0 {
+        return b_len;
+    }
+    if b_len == 0 {
+        return a_len;
+    }
+
+    let mut dp = vec![vec![0; b_len + 1]; a_len + 1];
+
+    for i in 0..=a_len {
+        dp[i][0] = i;
+    }
+    for j in 0..=b_len {
+        dp[0][j] = j;
+    }
+
+    for (i, ac) in a.chars().enumerate() {
+        for (j, bc) in b.chars().enumerate() {
+            let cost = if ac == bc { 0 } else { 1 };
+            dp[i + 1][j + 1] = vec![dp[i][j + 1] + 1, dp[i + 1][j] + 1, dp[i][j] + cost]
+                .into_iter()
+                .min()
+                .unwrap();
+        }
+    }
+
+    dp[a_len][b_len]
+}
+
 #[inline]
 #[allow(unused_must_use)]
 pub fn render_dash() {
@@ -302,17 +334,75 @@ pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
-        Err(err) => match err.kind() {
-            clap::error::ErrorKind::MissingSubcommand => {
-                eprintln!("Unknown command");
+        Err(err) => err.exit(),
+    };
+
+    if let Some(ref input) = cli.input {
+        let input_str = input.to_string_lossy();
+        // Allow "-" as stdin
+        if input_str != "-" && (input_str.starts_with('-') || input_str == "help") {
+            eprintln!("Error: Unknown command or invalid option: {}", input_str);
+            Cli::command().print_help().unwrap();
+            println!();
+            std::process::exit(1);
+        }
+    }
+
+    let exit_code = if let Some(ref input) = cli.input {
+        let input_str = input.to_string_lossy();
+        // Allow "-" as stdin
+        if !input_str.starts_with('-') || input_str == "-" {
+            let cli_cmd = Cli::command();
+            let subcommands: Vec<&str> = cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
+            if subcommands.contains(&input_str.as_ref()) {
+                eprintln!("Error: Missing required subcommand argument: {}", input_str);
                 Cli::command().print_help().unwrap();
                 println!();
                 std::process::exit(1);
             }
-            _ => err.exit(),
-        },
-    };
-    let exit_code = if let Some(command) = cli.command {
+
+            // Check if input looks like a typo of a subcommand
+            for subcommand in &subcommands {
+                if input_str.len() >= 3 && subcommand.len() >= 3 {
+                    let len_diff =
+                        (input_str.len() as i32 - subcommand.len() as i32).abs() as usize;
+                    if len_diff <= 2 {
+                        let similar = input_str
+                            .chars()
+                            .zip(subcommand.chars())
+                            .take(3)
+                            .filter(|(a, b)| a == b)
+                            .count()
+                            >= 2
+                            || levenshtein_distance(&input_str, subcommand) <= 2;
+                        if similar {
+                            eprintln!("Error: Unknown command: {}", input_str);
+                            eprintln!("Did you mean '{}'?", subcommand);
+                            Cli::command().print_help().unwrap();
+                            println!();
+                            std::process::exit(1);
+                        }
+                    }
+                }
+            }
+
+            if !input.exists() && input_str != "-" {
+                eprintln!("Error: File not found: {}", input_str);
+                Cli::command().print_help().unwrap();
+                println!();
+                std::process::exit(1);
+            }
+        } else {
+            eprintln!("Error: Unknown command or invalid option: {}", input_str);
+            Cli::command().print_help().unwrap();
+            println!();
+            std::process::exit(1);
+        }
+
+        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None).with_env_vars();
+        let (code, messages) = compile_input(input.clone(), options);
+        execute_output(code, cli.args.clone(), messages)?
+    } else if let Some(command) = cli.command {
         match command {
             CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
@@ -346,12 +436,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             CommandKind::Test(command) => testing::handle_test(command)?,
         }
-    } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None).with_env_vars();
-        let (code, messages) = compile_input(input, options);
-        execute_output(code, cli.args, messages)?
     } else {
-        0
+        Cli::command().print_help().unwrap();
+        println!();
+        std::process::exit(0);
     };
 
     std::process::exit(exit_code);

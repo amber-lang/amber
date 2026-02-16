@@ -120,7 +120,6 @@ impl AmberCompiler {
         }
     }
 
-
     pub fn load_code(mut self, code: String) -> Self {
         self.cc.load(code);
         self
