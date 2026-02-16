@@ -1,0 +1,12 @@
+amber (0.5.1-0parrot1) unstable; urgency=medium
+
+  * Import new upstream release.
+  * Release for Parrot OS.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 16 Feb 2026 10:04:51 +0100
+
+amber (0.1) testing; urgency=medium
+
+  * Initial release.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sun, 30 Apr 2017 20:34:05 +0200
