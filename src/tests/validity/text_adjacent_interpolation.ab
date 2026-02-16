@@ -1,0 +1,25 @@
+// Adjacent interpolations must preserve their ordering (Issue #1016)
+// Output
+// ABCD
+// AB
+// ABC
+// ABCDE
+// AB XX
+// XX AB
+// XX AB YY
+// A-BC
+
+let a = "A"
+let b = "B"
+let c = "C"
+let d = "D"
+let e = "E"
+
+echo("{a}{b}{c}{d}")
+echo("{a}{b}")
+echo("{a}{b}{c}")
+echo("{a}{b}{c}{d}{e}")
+echo("{a}{b} XX")
+echo("XX {a}{b}")
+echo("XX {a}{b} YY")
+echo("{a}-{b}{c}")
