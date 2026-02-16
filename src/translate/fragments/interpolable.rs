@@ -105,6 +105,9 @@ impl InterpolableFragment {
                 }
             }
         }
+        if reopen_single_quotes {
+            self.parts.push_back(InterpolablePart::String("\"".to_string()));
+        }
     }
 
     fn translate_escaped_string(&self, string: &str) -> String {
