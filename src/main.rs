@@ -309,13 +309,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(ref input) = cli.input {
         let input_str = input.to_string_lossy();
         // Allow "-" as stdin
-        if input_str != "-" && (input_str.starts_with('-') || input_str == "help") {
-            if !input.exists() {
-                eprintln!("Error: Unknown command or invalid option: {}", input_str);
-                Cli::command().print_help().unwrap();
-                println!();
-                std::process::exit(1);
-            }
+        if input_str != "-" && (input_str.starts_with('-') || input_str == "help") && !input.exists() {
+            eprintln!("Error: Unknown command or invalid option: {}", input_str);
+            Cli::command().print_help().unwrap();
+            println!();
+            std::process::exit(1);
         }
     }
 
