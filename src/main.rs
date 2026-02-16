@@ -21,6 +21,7 @@ use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use similar_string::find_best_similarity;
 use std::error::Error;
 use std::io::{prelude::*, stdin};
 use std::path::PathBuf;
@@ -209,38 +210,6 @@ fn handle_err(err: std::io::Error) -> ! {
     std::process::exit(1);
 }
 
-fn levenshtein_distance(a: &str, b: &str) -> usize {
-    let a_len = a.chars().count();
-    let b_len = b.chars().count();
-    if a_len == 0 {
-        return b_len;
-    }
-    if b_len == 0 {
-        return a_len;
-    }
-
-    let mut dp = vec![vec![0; b_len + 1]; a_len + 1];
-
-    for i in 0..=a_len {
-        dp[i][0] = i;
-    }
-    for j in 0..=b_len {
-        dp[0][j] = j;
-    }
-
-    for (i, ac) in a.chars().enumerate() {
-        for (j, bc) in b.chars().enumerate() {
-            let cost = if ac == bc { 0 } else { 1 };
-            dp[i + 1][j + 1] = vec![dp[i][j + 1] + 1, dp[i + 1][j] + 1, dp[i][j] + cost]
-                .into_iter()
-                .min()
-                .unwrap();
-        }
-    }
-
-    dp[a_len][b_len]
-}
-
 #[inline]
 #[allow(unused_must_use)]
 pub fn render_dash() {
@@ -361,32 +330,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                 std::process::exit(1);
             }
 
-            // Check if input looks like a typo of a subcommand
-            for subcommand in &subcommands {
-                if input_str.len() >= 3 && subcommand.len() >= 3 {
-                    let len_diff =
-                        (input_str.len() as i32 - subcommand.len() as i32).abs() as usize;
-                    if len_diff <= 2 {
-                        let similar = input_str
-                            .chars()
-                            .zip(subcommand.chars())
-                            .take(3)
-                            .filter(|(a, b)| a == b)
-                            .count()
-                            >= 2
-                            || levenshtein_distance(&input_str, subcommand) <= 2;
-                        if similar {
-                            eprintln!("Error: Unknown command: {}", input_str);
-                            eprintln!("Did you mean '{}'?", subcommand);
-                            Cli::command().print_help().unwrap();
-                            println!();
-                            std::process::exit(1);
-                        }
+            if !input.exists() && input_str != "-" {
+                let subcommands: Vec<&str> =
+                    cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
+                if let Some((match_name, score)) = find_best_similarity(&input_str, &subcommands) {
+                    if score >= 0.75 {
+                        eprintln!("Error: Unknown command: {}", input_str);
+                        eprintln!("Did you mean '{}'?", match_name);
+                        Cli::command().print_help().unwrap();
+                        println!();
+                        std::process::exit(1);
                     }
                 }
-            }
-
-            if !input.exists() && input_str != "-" {
                 eprintln!("Error: File not found: {}", input_str);
                 Cli::command().print_help().unwrap();
                 println!();
