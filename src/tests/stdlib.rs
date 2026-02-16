@@ -28,7 +28,7 @@ mod stdlib_tests {
     }
 
     #[test]
-    fn test_resolve_different_extensions() {
+    fn test_resolve_test_module() {
         let result = resolve("test");
         assert!(result.is_some(), "should find module");
     }
