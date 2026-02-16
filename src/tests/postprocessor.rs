@@ -75,7 +75,6 @@ fn test_postprocessor_filter_default() {
 fn test_postprocessor_filter_default_removes_matching() {
     use wildmatch::WildMatchPattern;
 
-    let _processors = PostProcessor::get_default();
     let filter = vec![WildMatchPattern::new("bshchk")];
     let filtered = PostProcessor::filter_default(filter);
     let bshchk_exists = filtered.iter().any(|pp| pp.name == "bshchk");
