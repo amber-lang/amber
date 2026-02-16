@@ -4,7 +4,7 @@ use super::fragment::{FragmentKind, FragmentRenderable};
 use crate::utils::TranslateMetadata;
 
 /// Represents a region that can be interpolated. Similarly to what Heraclitus returns when parsing a region.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InterpolableRenderType {
     /// This should be rendered to Bash's double quoted string
     StringLiteral,
@@ -60,19 +60,17 @@ impl InterpolableFragment {
         if self.render_type == InterpolableRenderType::GlobalContext {
             self.balance_single_quotes();
         }
-
-        for part in &self.parts {
+        for part in std::mem::take(&mut self.parts) {
             match part {
-                InterpolablePart::String(s) => result.push(self.translate_escaped_string(s)),
+                InterpolablePart::String(s) => result.push(self.translate_escaped_string(&s)),
                 InterpolablePart::Interp(frag) => {
                     let rendered = match frag {
-                        FragmentKind::Interpolable(interpolable) => {
-                            let mut interpolable = interpolable.clone();
+                        FragmentKind::Interpolable(mut interpolable) => {
                             interpolable.render_type = InterpolableRenderType::GlobalContext;
                             interpolable.quoted = false;
                             interpolable.to_string(meta)
                         }
-                        _ => frag.clone().to_string(meta),
+                        _ => frag.to_string(meta),
                     };
                     result.push(rendered);
                 }
@@ -110,9 +108,8 @@ impl InterpolableFragment {
     }
 
     fn translate_escaped_string(&self, string: &str) -> String {
-        let chars = string.chars();
         let mut result = String::new();
-        for c in chars {
+        for c in string.chars() {
             match self.render_type {
                 InterpolableRenderType::StringLiteral => match c {
                     '"' => result += r#"\""#,
@@ -156,7 +153,7 @@ fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut
 
 impl FragmentRenderable for InterpolableFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-        let render_type = self.render_type.clone();
+        let render_type = self.render_type;
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         let result = self.render_interpolated_region(meta);
         match render_type {
