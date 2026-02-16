@@ -70,10 +70,7 @@ main {
     let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
     let ast = ast.translate(&mut translate_meta);
     let result = ast.to_string(&mut translate_meta);
-    assert!(
-        result.contains("sudo"),
-        "Output should contain sudo"
-    );
+    assert!(result.contains("sudo"), "Output should contain sudo");
 }
 
 #[test]
