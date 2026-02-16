@@ -14,4 +14,3 @@ incremental = true
 # linker = "aarch64-unknown-linux-musl-gcc"
 [env]
 RUSTFLAGS = "-C debuginfo=0"
-RUST_TEST_THREADS = "4"
