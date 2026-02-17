@@ -278,6 +278,7 @@ fn test_input_confirm_stdin() {
 
 use predicates::prelude::*;
 use assert_cmd::Command;
+use tempfile::NamedTempFile;
 
 #[test]
 fn test_cli_error_invalid_command() {
@@ -299,24 +300,23 @@ fn test_cli_typo_suggestion() {
 
 #[test]
 fn test_cli_file_starting_with_dash() {
-    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
-    let temp_dir = std::env::temp_dir();
-    let test_file = temp_dir.join("test-file.ab");
-
+    let amber_bin = std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or_else(|_| "target/debug/amber".to_string());
+    let mut cmd = Command::new(amber_bin);
+    
+    let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
     let amber_code = r#"
         main {
             echo("Hello from dash file")
         }
         "#;
-
-    std::fs::write(&test_file, amber_code).expect("Failed to write test file");
-
-    let output = cmd.arg(test_file.to_str().unwrap()).assert().success();
-
-    let _ = std::fs::remove_file(&test_file);
+    
+    std::fs::write(temp_file.path(), amber_code).expect("Failed to write test file");
+    
+    let output = cmd.arg(temp_file.path()).assert().success();
+    let _ = temp_file.close();
+    
     output.stderr(predicate::str::contains("Hello from dash file").not());
 }
-
 #[test]
 fn test_cli_no_arguments_shows_help() {
     let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
