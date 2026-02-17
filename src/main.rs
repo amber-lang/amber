@@ -319,36 +319,29 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let exit_code = if let Some(ref input) = cli.input {
         let input_str = input.to_string_lossy();
-        // Allow "-" as stdin
-        if !input_str.starts_with('-') || input_str == "-" {
-            let cli_cmd = Cli::command();
-            let subcommands: Vec<&str> = cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
-            if subcommands.contains(&input_str.as_ref()) {
-                eprintln!("Error: Missing required subcommand argument: {}", input_str);
+
+        let cli_cmd = Cli::command();
+        let subcommands: Vec<&str> = cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
+
+        if !input.exists() && input_str != "-" {
+            if input_str.starts_with('-') || input_str == "help" {
+                eprintln!("Error: Unknown command or invalid option: {}", input_str);
                 Cli::command().print_help().unwrap();
                 println!();
                 std::process::exit(1);
             }
 
-            if !input.exists() && input_str != "-" {
-                let subcommands: Vec<&str> =
-                    cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
-                if let Some((match_name, score)) = find_best_similarity(&input_str, &subcommands) {
-                    if score >= 0.75 {
-                        eprintln!("Error: Unknown command: {}", input_str);
-                        eprintln!("Did you mean '{}'?", match_name);
-                        Cli::command().print_help().unwrap();
-                        println!();
-                        std::process::exit(1);
-                    }
+            if let Some((match_name, score)) = find_best_similarity(&input_str, &subcommands) {
+                if score >= 0.75 {
+                    eprintln!("Error: Unknown command: {}", input_str);
+                    eprintln!("Did you mean '{}'?", match_name);
+                    Cli::command().print_help().unwrap();
+                    println!();
+                    std::process::exit(1);
                 }
-                eprintln!("Error: File not found: {}", input_str);
-                Cli::command().print_help().unwrap();
-                println!();
-                std::process::exit(1);
             }
-        } else {
-            eprintln!("Error: Unknown command or invalid option: {}", input_str);
+
+            eprintln!("Error: File not found: {}", input_str);
             Cli::command().print_help().unwrap();
             println!();
             std::process::exit(1);
