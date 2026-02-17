@@ -277,7 +277,6 @@ fn test_input_confirm_stdin() {
 
 
 use predicates::prelude::*;
-use assert_cmd::prelude::*;
 use assert_cmd::Command;
 
 #[test]
