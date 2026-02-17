@@ -303,7 +303,7 @@ fn test_cli_file_starting_with_dash() {
     let amber_bin = std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or_else(|_| "target/debug/amber".to_string());
     let mut cmd = Command::new(amber_bin);
     
-    let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
+    let temp_file = NamedTempFile::new().expect("Failed to create temp file");
     let amber_code = r#"
         main {
             echo("Hello from dash file")
