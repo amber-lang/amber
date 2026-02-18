@@ -45,10 +45,8 @@ impl SyntaxModule<ParserMetadata> for Lock {
 impl TypeCheckModule for Lock {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         if let Some(ref mut expr) = self.path {
-            // First typecheck the expression
             expr.typecheck(meta)?;
 
-            // Then check if it's the correct type (Text)
             let path_type = expr.get_type();
             if path_type != Type::Text {
                 let position = expr.get_position();
@@ -65,53 +63,53 @@ impl TypeCheckModule for Lock {
 impl TranslateModule for Lock {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let lock_var = format!("__lock_file_{}", meta.gen_value_id());
+        let lock_var_expr = RawFragment::new(&lock_var).to_frag();
 
-        let lock_var_frag = RawFragment::new(&lock_var).to_frag();
-        let eq_frag = RawFragment::new("=").to_frag();
-
-        // Determine lock path - default is /tmp/${0##*/}.lock
         let lock_path_expr = self
             .path
             .as_ref()
             .map(|expr| expr.translate(meta))
             .unwrap_or(RawFragment::new("/tmp/${0##*/}.lock").to_frag());
 
-        // Atomic lock acquisition using noclobber to avoid TOCTOU race condition.
-        let lock_acquire_start =
-            RawFragment::new("if ! ( set -o noclobber; echo $$ > \"${").to_frag();
-        let lock_acquire_var = RawFragment::new(&lock_var).to_frag();
-        let lock_acquire_end = RawFragment::new("}\" ) 2>/dev/null; then\n").to_frag();
+        // Variable assignment: lock_var=path
+        meta.stmt_queue.push_back(fragments!(
+            lock_var_expr,
+            "=\"",
+            lock_path_expr.clone(),
+            "\"\n"
+        ));
 
-        let exit_frag = RawFragment::new("    exit 1\n").to_frag();
-        let fi_frag = RawFragment::new("fi\n").to_frag();
-
-        let touch_code = RawFragment::new("touch \"${").to_frag();
-        let touch_var = RawFragment::new(&lock_var).to_frag();
-        let touch_close = RawFragment::new("}\"\n").to_frag();
-
-        // Install trap only after successful lock acquisition
-        let trap_prefix = RawFragment::new("trap 'rm -f \"${").to_frag();
-        let trap_var = RawFragment::new(&lock_var).to_frag();
-        let trap_suffix = RawFragment::new("}\"' EXIT INT TERM\n").to_frag();
-
-        fragments!(
+        // Atomic lock acquisition using noclobber
+        let lock_var_name = format!("${{{}}}", lock_var);
+        let lock_var_frag = RawFragment::new(&lock_var_name).to_frag();
+        meta.stmt_queue.push_back(fragments!(
+            "if ! ( set -o noclobber; echo $$ > \"",
+            lock_var_frag.clone(),
+            "\" ) 2>/dev/null; then\n    exit 1\nfi\n",
+            "touch \"",
             lock_var_frag,
-            eq_frag,
+            "\"\n"
+        ));
+
+        // Install cleanup trap once (only if __amber_cleanup_files is not defined yet)
+        let trap_install_check = RawFragment::new("${__amber_cleanup_files+x}").to_frag();
+        meta.stmt_queue.push_back(fragments!(
+            "if [ -z \"",
+            trap_install_check,
+            "\" ]; then trap 'for f in \"${__amber_cleanup_files[@]}\"; do rm -f \"$f\"; done' EXIT INT TERM; fi\n"
+        ));
+
+        // Add lock file to cleanup array
+        let lock_path_clone = lock_path_expr.clone();
+        meta.stmt_queue.push_back(fragments!(
+            "if [ -z \"${__amber_cleanup_files+x}\" ]; then __amber_cleanup_files=( ",
+            lock_path_clone,
+            " ); else __amber_cleanup_files+=( ",
             lock_path_expr,
-            "\n",
-            lock_acquire_start,
-            lock_acquire_var,
-            lock_acquire_end,
-            exit_frag,
-            fi_frag,
-            touch_code,
-            touch_var,
-            touch_close,
-            "\n",
-            trap_prefix,
-            trap_var,
-            trap_suffix
-        )
+            " ); fi\n"
+        ));
+
+        FragmentKind::Empty
     }
 }
 
