@@ -21,10 +21,13 @@ impl SyntaxModule<ParserMetadata> for Lock {
         token(meta, "lock")?;
 
         if token(meta, "(").is_ok() {
-            let mut expr = Expr::new();
-            syntax(meta, &mut expr)?;
-            self.path = Some(expr);
-            token(meta, ")")?;
+            // Check if there's an argument or if it's just lock()
+            if token(meta, ")").is_err() {
+                let mut expr = Expr::new();
+                syntax(meta, &mut expr)?;
+                self.path = Some(expr);
+                token(meta, ")")?;
+            }
         } else {
             let tok = meta.get_token_at(position);
             let warning = Message::new_warn_at_token(meta, tok)
@@ -70,7 +73,6 @@ impl TranslateModule for Lock {
         let var_ref = RawFragment::new(&lock_var).to_frag();
         let close_var = RawFragment::new("}\" ]; then\n").to_frag();
 
-        let echo_frag = RawFragment::new("    echo \"Script is already running\"\n").to_frag();
         let exit_frag = RawFragment::new("    exit 1\n").to_frag();
         let fi_frag = RawFragment::new("fi\n").to_frag();
 
@@ -89,7 +91,6 @@ impl TranslateModule for Lock {
             if_check,
             var_ref,
             close_var,
-            echo_frag,
             exit_frag,
             fi_frag,
             touch_code,
