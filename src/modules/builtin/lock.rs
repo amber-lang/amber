@@ -76,15 +76,15 @@ impl TranslateModule for Lock {
         // Trap to ensure the lock file is removed on exit
         let trap_prefix = RawFragment::new("trap 'rm -f \"${").to_frag();
         let trap_var = RawFragment::new(&lock_var).to_frag();
-        let trap_suffix = RawFragment::new("}' EXIT INT TERM\n").to_frag();
+        let trap_suffix = RawFragment::new("}\"' EXIT INT TERM\n").to_frag();
 
         // Atomic lock acquisition using noclobber to avoid TOCTOU race condition.
         let lock_acquire_start =
-            RawFragment::new("if ! (set -o noclobber; echo $$ > \"${").to_frag();
+            RawFragment::new("if ! ( set -o noclobber; echo $$ > \"${").to_frag();
         let lock_acquire_var = RawFragment::new(&lock_var).to_frag();
-        let lock_acquire_end = RawFragment::new("}\" 2>/dev/null; then\n").to_frag();
+        let lock_acquire_end = RawFragment::new("}\" ) 2>/dev/null; then\n").to_frag();
 
-        let exit_frag = RawFragment::new(" exit 1\n").to_frag();
+        let exit_frag = RawFragment::new("    exit 1\n").to_frag();
         let fi_frag = RawFragment::new("fi\n").to_frag();
 
         let touch_code = RawFragment::new("touch \"${").to_frag();
