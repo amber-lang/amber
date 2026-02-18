@@ -74,7 +74,9 @@ impl TranslateModule for Lock {
         let trap_var = RawFragment::new(&lock_var).to_frag();
         let trap_suffix = RawFragment::new("}\"' EXIT INT TERM\n").to_frag();
 
-        // Atomic lock acquisition using noclobber to avoid TOCTOU race condition
+        // Atomic lock acquisition using noclobber to avoid TOCTOU race condition.
+        // The subshell with 'set -o noclobber' ensures the file creation is atomic:
+        // it will fail if the file already exists, preventing concurrent execution.
         let lock_acquire_start = RawFragment::new("if ! (set -o noclobber; echo $$ > \"${").to_frag();
         let lock_acquire_var = RawFragment::new(&lock_var).to_frag();
         let lock_acquire_end = RawFragment::new("}\") 2>/dev/null; then\n").to_frag();
