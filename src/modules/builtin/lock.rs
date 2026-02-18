@@ -99,14 +99,14 @@ impl TranslateModule for Lock {
             "\" ]; then trap 'for f in \"${__amber_cleanup_files[@]}\"; do rm -f \"$f\"; done' EXIT INT TERM; fi\n"
         ));
 
-        // Add lock file to cleanup array
-        let lock_path_clone = lock_path_expr.clone();
+        // Add lock file to cleanup array using the already-assigned variable
+        let lock_var_frag = RawFragment::new(&lock_var_name).to_frag();
         meta.stmt_queue.push_back(fragments!(
-            "if [ -z \"${__amber_cleanup_files+x}\" ]; then __amber_cleanup_files=( ",
-            lock_path_clone,
-            " ); else __amber_cleanup_files+=( ",
-            lock_path_expr,
-            " ); fi\n"
+            "if [ -z \"${__amber_cleanup_files+x}\" ]; then __amber_cleanup_files=( \"",
+            lock_var_frag.clone(),
+            "\" ); else __amber_cleanup_files+=( \"",
+            lock_var_frag,
+            "\" ); fi\n"
         ));
 
         FragmentKind::Empty
