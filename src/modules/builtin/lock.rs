@@ -69,34 +69,32 @@ impl TranslateModule for Lock {
             .map(|expr| expr.translate(meta))
             .unwrap_or(RawFragment::new("/tmp/${0##*/}.lock").to_frag());
 
-        let if_check = RawFragment::new("if [ -f \"${").to_frag();
-        let var_ref = RawFragment::new(&lock_var).to_frag();
-        let close_var = RawFragment::new("}\" ]; then\n").to_frag();
+        // Trap to ensure the lock file is removed on exit
+        let trap_prefix = RawFragment::new("trap 'rm -f \"${").to_frag();
+        let trap_var = RawFragment::new(&lock_var).to_frag();
+        let trap_suffix = RawFragment::new("}\"' EXIT INT TERM\n").to_frag();
 
+        // Atomic lock acquisition using noclobber to avoid TOCTOU race condition
+        let lock_acquire_start = RawFragment::new("if ! (set -o noclobber; echo $$ > \"${").to_frag();
+        let lock_acquire_var = RawFragment::new(&lock_var).to_frag();
+        let lock_acquire_end = RawFragment::new("}\") 2>/dev/null; then\n").to_frag();
+        
         let exit_frag = RawFragment::new("    exit 1\n").to_frag();
         let fi_frag = RawFragment::new("fi\n").to_frag();
-
-        let touch_code = RawFragment::new("touch \"${").to_frag();
-        let touch_var = RawFragment::new(&lock_var).to_frag();
-        let touch_close = RawFragment::new("}\"\n").to_frag();
-
-        // TODO fix, don't use the path parameter
-        let trap_cleanup = RawFragment::new("trap 'rm -f \"/tmp/${0##*/}.lock\"' EXIT\n").to_frag();
 
         fragments!(
             lock_var_frag,
             eq_frag,
             lock_path_expr,
             "\n",
-            if_check,
-            var_ref,
-            close_var,
+            trap_prefix,
+            trap_var,
+            trap_suffix,
+            lock_acquire_start,
+            lock_acquire_var,
+            lock_acquire_end,
             exit_frag,
-            fi_frag,
-            touch_code,
-            touch_var,
-            touch_close,
-            trap_cleanup
+            fi_frag
         )
     }
 }
