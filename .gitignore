@@ -7,6 +7,7 @@
 /test*.md
 /docs/
 src/std/docs/
+src/tests/**/*.sh
 
 # Flamegraph files
 flamegraph.svg
