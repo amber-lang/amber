@@ -34,6 +34,9 @@ impl SyntaxModule<ParserMetadata> for Lock {
             let warning = Message::new_warn_at_token(meta, tok)
                 .message("Calling a builtin without parentheses is deprecated");
             meta.add_message(warning);
+            let mut expr = Expr::new();
+            syntax(meta, &mut expr)?;
+            self.path = Some(expr);
         }
         Ok(())
     }
