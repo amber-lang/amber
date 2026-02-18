@@ -15,7 +15,8 @@ pub struct VarStmtFragment {
     pub is_ephemeral: bool,
     pub is_ref: bool,
     pub is_local: bool,
-    pub is_declared: bool,
+    // a "workaround" to properly generate array declaration by copying the origin array
+    pub is_array_ref: bool,
     // Determines if the variable can be removed when not used
     pub optimize_unused: bool,
     pub operator: String,
@@ -34,7 +35,7 @@ impl Default for VarStmtFragment {
             is_ephemeral: false,
             is_ref: false,
             is_local: false,
-            is_declared: true,
+            is_array_ref: false,
             optimize_unused: true,
             operator: "=".to_string(),
             value: Box::new(FragmentKind::Empty),
@@ -77,10 +78,11 @@ impl VarStmtFragment {
         self
     }
 
-    pub fn with_declare(mut self, is_declared: bool) -> Self {
-        self.is_declared = is_declared;
+    pub fn with_array_ref(mut self, is_array_ref: bool) -> Self {
+        self.is_array_ref = is_array_ref;
         self
     }
+
 
     pub fn with_index<T: Into<Option<FragmentKind>>>(mut self, index: T) -> Self {
         self.index = index.into().map(Box::new);
@@ -124,7 +126,7 @@ impl VarStmtFragment {
         );
         assignment_parts.push(self.operator);
         // it only adds () to the value IF the variable has already been declared, because otherwise namerefs fail with () syntax
-        if self.is_declared && self.kind.is_array() {
+        if self.kind.is_array() && !self.is_array_ref {
             assignment_parts.push(format!("({})", value.clone()));
         } else {
             assignment_parts.push(value.clone());

@@ -64,19 +64,56 @@ impl FunctionDeclaration {
                 izip!(self.args.iter(), &function.args, &function.args_global_ids).enumerate()
             {
                 let name = get_variable_name(&arg.name, *global_id);
-                let val =
-                    VarExprFragment::new(&format!("{}", index + 1), Type::Generic).with_ref(false);
-                let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
-                    .with_local(true)
-                    .with_optimization_when_unused(false)
-                    .with_ref(arg.is_ref)
-                    .with_declare(false);
+                // 
+                
                 match (arg.is_ref, kind) {
+                    // array copy => VarStmt(no ref) + VarExpr(with name reference (array[@]), not declared yet)
+                    //
+                    // with_declared only influences whether `!` should be added
+                    // produces:
+                    // (declare|local) <name>=("${!array name}")
                    (false, Type::Array(_)) => {
-                        let val = VarExprFragment::new(&format!("{}", index + 1), kind.clone()).with_ref(true);
-                        result.push(var.with_index(None).with_value(val.to_frag()).to_frag());
+                        let val =
+                        VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                            .with_ref(true)
+                            .with_declared(false);
+                        
+                        let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                            .with_local(true)
+                            .with_optimization_when_unused(false);
+
+                        result.push(var.to_frag())
                     }
-                    _ => result.push(var.to_frag()),
+                    // array + reference => VarStmt(with ref + array reference) + VarExpr(not a ref, since it just contains array name)
+                    //
+                    // with_array_ref tells VarStmt to not add braces, since it has nameref modifier (-n)
+                    // produces:
+                    // (declare|local) -n <name>="${array name}"
+                    (true, Type::Array(_)) => {
+                        let val =
+                        VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                            .with_ref(false);
+                        
+                        let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                            .with_local(true)
+                            .with_optimization_when_unused(false)
+                            .with_ref(true)
+                            .with_array_ref(true);
+
+                        result.push(var.to_frag())
+                    }
+                    _ => {
+                        let val =
+                        VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                            .with_ref(false);
+
+                        let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                            .with_local(true)
+                            .with_optimization_when_unused(false)
+                            .with_ref(arg.is_ref);
+
+                        result.push(var.to_frag())
+                    }
                 }
                 //result.push(var.to_frag());
             }

@@ -16,6 +16,7 @@ Block(
                     is_ephemeral: false,
                     is_ref: false,
                     is_local: false,
+                    is_array_ref: false,
                     optimize_unused: true,
                     operator: "=",
                     value: Raw(
@@ -36,6 +37,7 @@ Block(
                     is_ephemeral: false,
                     is_ref: false,
                     is_local: false,
+                    is_array_ref: false,
                     optimize_unused: true,
                     operator: "=",
                     value: Arithmetic(
@@ -53,6 +55,7 @@ Block(
                                         default_value: None,
                                         is_quoted: true,
                                         is_array_to_string: false,
+                                        is_declared: true,
                                         is_math_var: false,
                                         render_type: BashValue,
                                         index: None,
@@ -83,6 +86,7 @@ Block(
                     is_ephemeral: false,
                     is_ref: false,
                     is_local: false,
+                    is_array_ref: false,
                     optimize_unused: true,
                     operator: "=",
                     value: Raw(
@@ -103,6 +107,7 @@ Block(
                     is_ephemeral: false,
                     is_ref: false,
                     is_local: false,
+                    is_array_ref: false,
                     optimize_unused: true,
                     operator: "=",
                     value: Arithmetic(
@@ -120,6 +125,7 @@ Block(
                                         default_value: None,
                                         is_quoted: true,
                                         is_array_to_string: false,
+                                        is_declared: true,
                                         is_math_var: false,
                                         render_type: BashValue,
                                         index: None,
