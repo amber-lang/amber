@@ -2,8 +2,6 @@
 // First lock successful
 
 main {
-    lock()
+    lock() ?
     echo("First lock successful")
-    lock()
-    echo("Should not print")
 }

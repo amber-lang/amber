@@ -1,115 +1,143 @@
 use crate::fragments;
+use crate::modules::command::modifier::CommandModifier;
+use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::raw_fragment;
+use crate::translate::fragments::var_stmt::VarStmtFragment;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Lock {
     path: Option<Expr>,
+    modifier: CommandModifier,
+    failure_handler: FailureHandler,
 }
 
 impl SyntaxModule<ParserMetadata> for Lock {
     syntax_name!("Lock");
 
     fn new() -> Self {
-        Lock { path: None }
+        Lock {
+            path: None,
+            modifier: CommandModifier::new_expr(),
+            failure_handler: FailureHandler::new(),
+        }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let position = meta.get_index();
-        token(meta, "lock")?;
+        syntax(meta, &mut self.modifier)?;
 
-        if token(meta, "(").is_ok() {
-            if token(meta, ")").is_err() {
+        self.modifier.use_modifiers(meta, |_, meta| {
+            let position = meta.get_index();
+            token(meta, "lock")?;
+
+            if token(meta, "(").is_ok() {
+                if token(meta, ")").is_err() {
+                    let mut expr = Expr::new();
+                    syntax(meta, &mut expr)?;
+                    self.path = Some(expr);
+                    token(meta, ")")?;
+                } else {
+                    self.path = None;
+                }
+            } else {
+                let tok = meta.get_token_at(position);
+                let warning = Message::new_warn_at_token(meta, tok)
+                    .message("Calling a builtin without parentheses is deprecated");
+                meta.add_message(warning);
                 let mut expr = Expr::new();
                 syntax(meta, &mut expr)?;
                 self.path = Some(expr);
-                token(meta, ")")?;
-            } else {
-                self.path = None;
             }
-        } else {
-            let tok = meta.get_token_at(position);
-            let warning = Message::new_warn_at_token(meta, tok)
-                .message("Calling a builtin without parentheses is deprecated");
-            meta.add_message(warning);
-            let mut expr = Expr::new();
-            syntax(meta, &mut expr)?;
-            self.path = Some(expr);
-        }
-        Ok(())
+
+            if let Err(e) = syntax(meta, &mut self.failure_handler) {
+                match e {
+                    Failure::Quiet(pos) => {
+                        return error_pos!(meta, pos => {
+                            message: "The `lock` builtin can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.",
+                            comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both, or 'trust' modifier to ignore results"
+                        });
+                    },
+                    _ => return Err(e)
+                }
+            }
+            Ok(())
+        })
     }
 }
 
 impl TypeCheckModule for Lock {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        if let Some(ref mut expr) = self.path {
-            expr.typecheck(meta)?;
+        self.modifier.use_modifiers(meta, |_, meta| {
+            if let Some(ref mut expr) = self.path {
+                expr.typecheck(meta)?;
 
-            let path_type = expr.get_type();
-            if path_type != Type::Text {
-                let position = expr.get_position();
-                return error_pos!(meta, position => {
-                    message: "Builtin function `lock` can only be used with values of type Text",
-                    comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
-                });
+                let path_type = expr.get_type();
+                if path_type != Type::Text {
+                    let position = expr.get_position();
+                    return error_pos!(meta, position => {
+                        message: "Builtin function `lock` can only be used with values of type Text",
+                        comment: format!("Given type: {}, expected type: {}", path_type, Type::Text)
+                    });
+                }
             }
-        }
-        Ok(())
+
+            self.failure_handler.typecheck(meta)?;
+            Ok(())
+        })
     }
 }
 
 impl TranslateModule for Lock {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let lock_var = format!("__lock_file_{}", meta.gen_value_id());
-        let lock_var_expr = RawFragment::new(&lock_var).to_frag();
-
+        let lock_var_id = meta.gen_value_id();
         let lock_path_expr = self
             .path
             .as_ref()
             .map(|expr| expr.translate(meta))
-            .unwrap_or(RawFragment::new("/tmp/${0##*/}.lock").to_frag());
+            .unwrap_or(raw_fragment!("/tmp/${{0##*/}}.lock"));
 
-        // Variable assignment: lock_var=path
-        meta.stmt_queue.push_back(fragments!(
-            lock_var_expr,
-            "=\"",
-            lock_path_expr.clone(),
-            "\"\n"
-        ));
+        let lock_var_stmt = VarStmtFragment::new(
+            &format!("__lock_file_{}", lock_var_id),
+            Type::Text,
+            lock_path_expr,
+        )
+        .with_global_id(lock_var_id);
+        let lock_var_expr = meta.push_ephemeral_variable(lock_var_stmt);
 
-        // Atomic lock acquisition using noclobber
-        let lock_var_name = format!("${{{}}}", lock_var);
-        let lock_var_frag = RawFragment::new(&lock_var_name).to_frag();
-        meta.stmt_queue.push_back(fragments!(
+        let lock_var_frag = lock_var_expr.with_quotes(false).to_frag();
+        let lock_var_frag_first = lock_var_frag.clone();
+        let lock_var_frag_second = lock_var_frag.clone();
+        let lock_var_frag_third = lock_var_frag.clone();
+
+        let blocker = fragments!(
             "if ! ( set -o noclobber; echo $$ > \"",
-            lock_var_frag.clone(),
+            lock_var_frag_first,
             "\" ) 2>/dev/null; then\n    exit 1\nfi\n",
             "touch \"",
-            lock_var_frag,
+            lock_var_frag_second,
             "\"\n"
-        ));
+        );
 
-        // Install cleanup trap once (only if __amber_cleanup_files is not defined yet)
-        let trap_install_check = RawFragment::new("${__amber_cleanup_files+x}").to_frag();
-        meta.stmt_queue.push_back(fragments!(
-            "if [ -z \"",
-            trap_install_check,
-            "\" ]; then trap 'for f in \"${__amber_cleanup_files[@]}\"; do rm -f \"$f\"; done' EXIT INT TERM; fi\n"
-        ));
-
-        // Add lock file to cleanup array using the already-assigned variable
-        let lock_var_frag = RawFragment::new(&lock_var_name).to_frag();
-        meta.stmt_queue.push_back(fragments!(
+        let cleanup_array_update = fragments!(
             "if [ -z \"${__amber_cleanup_files+x}\" ]; then __amber_cleanup_files=( \"",
-            lock_var_frag.clone(),
+            lock_var_frag_third.clone(),
             "\" ); else __amber_cleanup_files+=( \"",
-            lock_var_frag,
+            lock_var_frag_third,
             "\" ); fi\n"
-        ));
+        );
 
-        FragmentKind::Empty
+        BlockFragment::new(
+            vec![
+                blocker,
+                cleanup_array_update,
+                self.failure_handler.translate(meta),
+            ],
+            false,
+        )
+        .to_frag()
     }
 }
 
