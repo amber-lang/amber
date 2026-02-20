@@ -14,6 +14,7 @@ use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::function_metadata::FunctionMetadata;
+use crate::utils::ShellType;
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
 use std::collections::HashSet;
@@ -55,7 +56,7 @@ pub struct FunctionDeclaration {
 impl FunctionDeclaration {
     fn set_args_as_variables(
         &self,
-        _meta: &mut TranslateMetadata,
+        meta: &mut TranslateMetadata,
         function: &FunctionInstance,
     ) -> Option<FragmentKind> {
         if !self.args.is_empty() {
@@ -71,7 +72,7 @@ impl FunctionDeclaration {
                     //
                     // with_declared only influences whether `!` should be added
                     // produces:
-                    // (declare|local) <name>=("${!array name}")
+                    // (declare|local) <name>=("${(!|(P))array name}")
                    (false, Type::Array(_)) => {
                         let val =
                         VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
@@ -84,21 +85,34 @@ impl FunctionDeclaration {
 
                         result.push(var.to_frag())
                     }
+					// if target = bash/ksh:
                     // array + reference => VarStmt(with ref + array reference) + VarExpr(not a ref, since it just contains array name)
                     //
                     // with_array_ref tells VarStmt to not add braces, since it has nameref modifier (-n)
                     // produces:
                     // (declare|local) -n <name>="${array name}"
+
+					// if target = zsh:
+					// array + reference => VarStmt
                     (true, Type::Array(_)) => {
                         let val =
                         VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
                             .with_ref(false);
                         
-                        let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                        let var = if matches!(meta.target.shell, ShellType::Zsh) {
+							 VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                            .with_local(true)
+                            .with_optimization_when_unused(false)
+							.with_ref(false)
+                            .with_array_ref(true)
+							.with_declared(false)
+						} else {
+							VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                             .with_local(true)
                             .with_optimization_when_unused(false)
                             .with_ref(true)
-                            .with_array_ref(true);
+                            .with_array_ref(true)
+						};
 
                         result.push(var.to_frag())
                     }
@@ -110,6 +124,7 @@ impl FunctionDeclaration {
                         let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                             .with_local(true)
                             .with_optimization_when_unused(false)
+							.with_declared(!arg.is_ref)
                             .with_ref(arg.is_ref);
 
                         result.push(var.to_frag())

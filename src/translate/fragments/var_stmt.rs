@@ -17,6 +17,7 @@ pub struct VarStmtFragment {
     pub is_local: bool,
     // a "workaround" to properly generate array declaration by copying the origin array
     pub is_array_ref: bool,
+    pub is_declared: bool,
     // Determines if the variable can be removed when not used
     pub optimize_unused: bool,
     pub operator: String,
@@ -36,6 +37,7 @@ impl Default for VarStmtFragment {
             is_ref: false,
             is_local: false,
             is_array_ref: false,
+            is_declared: true,
             optimize_unused: true,
             operator: "=".to_string(),
             value: Box::new(FragmentKind::Empty),
@@ -60,6 +62,11 @@ impl VarStmtFragment {
 
     pub fn with_ref(mut self, is_ref: bool) -> Self {
         self.is_ref = is_ref;
+        self
+    }
+
+    pub fn with_declared(mut self, is_declared: bool) -> Self {
+        self.is_declared = is_declared;
         self
     }
 
@@ -103,23 +110,28 @@ impl VarStmtFragment {
         get_variable_name(&self.name, self.global_id)
     }
 
-    pub fn render_variable_name(&self) -> String {
+    pub fn render_variable_name(&self, meta: &mut TranslateMetadata) -> String {
         let variable = self.get_name();
 
-        //if self.is_ref {
-       //     format!("${{{variable}}}")
-       // } else {
+        if matches!(meta.target.shell, ShellType::Zsh) && self.is_ref && self.is_declared {
+            format!("${{{variable}}}")
+        } else {
             variable.to_string()
-        //}
+        }
     }
 
     fn render_variable_statement(self, meta: &mut TranslateMetadata) -> String {
-        let var_name = self.render_variable_name();
+        let var_name = self.render_variable_name(meta);
         let is_running_command = self.value.is_running_command();
         let mut assignment_parts = vec![];
+        //dbg!(&var_name, self.is_array_ref, self.is_declared, &self.value);
         let value = self.value.to_string(meta);
-
-        assignment_parts.push(var_name.clone());
+        
+        //if matches!(meta.target.shell, ShellType::Zsh) && self.is_array_ref && self.is_declared {
+        //    assignment_parts.push(format!("${{{}}}", var_name.clone()));
+        //} else {
+            assignment_parts.push(var_name.clone());
+       // }
         assignment_parts.extend(
             self.index
                 .map(|index| format!("[{}]", index.to_string(meta))),
@@ -133,7 +145,7 @@ impl VarStmtFragment {
         }
         let assignment = assignment_parts.join("");
         match meta.target.shell {
-            ShellType::Bash | ShellType::Zsh => {
+            ShellType::Bash => {
             // `local` command consumes exit code of command that it is assigned to.
             // To preserve the exit code of the assignment we split the local declaration into two parts.
                 if self.is_local {
@@ -149,6 +161,18 @@ impl VarStmtFragment {
                     assignment
                 }
             }
+            ShellType::Zsh => {
+                if self.is_local {
+                    if is_running_command {
+                        format!("local {var_name}\n{}{assignment}", meta.gen_indent())
+                    } else {
+                        format!("local {assignment}")
+                    }
+                    
+                } else {
+                    assignment
+                }
+            }
             ShellType::Ksh => {
                 if self.is_local && is_running_command {
                     format!("typeset {var_name}\n{}{assignment}", meta.gen_indent())
@@ -156,6 +180,8 @@ impl VarStmtFragment {
                     // in ksh, if you don't define variable as array, () is treated as string instead of empty array
                     if self.kind.is_array() && value.is_empty() {
                         format!("typeset -ga {assignment}")
+                    } else if self.is_ref {
+                        format!("typeset -n {assignment}")
                     } else if self.kind.is_array() {
                         // ksh has static scoping, it can't access local variables outside of function scope, 
                         // which means that recursive functions related to array trimming never end,
@@ -178,11 +204,12 @@ impl VarStmtFragment {
 
 impl FragmentRenderable for VarStmtFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-       //     let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
-       //     format!("eval \"{stmt}\"")
-       // } else {
+        if matches!(meta.target.shell, ShellType::Zsh) && self.is_ref && self.is_declared {
+            let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+            format!("eval \"{stmt}\"")
+        } else {
             self.render_variable_statement(meta)
-      //  }
+        }
     }
 
     fn to_frag(self) -> FragmentKind {

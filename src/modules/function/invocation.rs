@@ -3,6 +3,7 @@ use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
+use crate::utils::ShellType;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::{fragments, raw_fragment};
@@ -209,7 +210,7 @@ impl TranslateModule for FunctionInvocation {
             let args = izip!(self.args.iter(), self.refs.iter())
                 .map(|(arg, is_ref)| match arg.translate(meta) {
                     FragmentKind::VarExpr(var) if *is_ref => {
-                        var.with_render_type(VarRenderType::BashRef).to_frag()
+                        var.with_render_type(VarRenderType::BashRef).with_array_ref(matches!(meta.target.shell, ShellType::Zsh)).to_frag()
                     }
                     FragmentKind::VarExpr(var) if var.kind.is_array() && var.index.is_some() => {
                         let id = meta.gen_value_id();
@@ -223,6 +224,7 @@ impl TranslateModule for FunctionInvocation {
                         fragments!(
                             temp_var
                                 .with_render_type(VarRenderType::NameOf)
+                                .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
                                 .to_frag()
                                 .with_quotes(false),
                             "[@]"
@@ -230,6 +232,7 @@ impl TranslateModule for FunctionInvocation {
                     }
                     FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(
                         var.with_render_type(VarRenderType::BashRef)
+                            .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
                             .to_frag()
                             .with_quotes(false),
                         "[@]"

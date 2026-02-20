@@ -38,6 +38,7 @@ pub struct VarExprFragment {
     pub is_quoted: bool,
     // Bash's `${array[*]}` expansion
     pub is_array_to_string: bool,
+	pub is_array_ref: bool,
     pub is_declared: bool,
     // Variable is inside an arithmetic expression
     pub is_math_var: bool,
@@ -59,6 +60,7 @@ impl Default for VarExprFragment {
             is_array_to_string: false,
             is_math_var: false,
             is_quoted: true,
+			is_array_ref: false,
             is_declared: true,
             render_type: VarRenderType::BashValue,
             index: None,
@@ -98,6 +100,11 @@ impl VarExprFragment {
 
     pub fn with_math_var(mut self, is_math_var: bool) -> Self {
         self.is_math_var = is_math_var;
+        self
+    }
+
+	pub fn with_array_ref(mut self, is_array_ref: bool) -> Self {
+        self.is_array_ref = is_array_ref;
         self
     }
 
@@ -179,7 +186,11 @@ impl VarExprFragment {
         let mut name = self.get_name();
         // Dereference variable if it's a reference and is passed by reference
         if self.is_ref {
-            name = format!("{dollar}{{!{name}}}");
+            name = match meta.target.shell {
+				ShellType::Bash => format!("{dollar}{{!{name}}}"),
+				ShellType::Zsh => if self.is_array_ref { format!("{dollar}{{{name}}}") } else { format!("{dollar}{{(P){name}}}") },
+				ShellType::Ksh => format!("{dollar}{{{name}}}")
+			}
         }
 
         if self.is_quoted {
@@ -194,23 +205,46 @@ impl VarExprFragment {
     pub fn render_variable_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
         let index = self.index.take();
+		let default_value = self.default_value.take();
         let index_is_none = index.is_none();
+    	let prefix = self.get_variable_prefix();
+        let suffix = self.get_variable_suffix(meta, index.clone(), default_value);
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array 
-        if self.is_ref && !self.is_declared {
-            let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-            let dollar = meta.gen_dollar();
-            format!("{quote}{dollar}{{!{name}}}{quote}")
-        } else if self.is_math_var && !self.is_length && index_is_none {
-            name.to_string()
-        } else {
-            let default_value = self.default_value.take();
-            let prefix = self.get_variable_prefix();
-            let suffix = self.get_variable_suffix(meta, index, default_value);
-            let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-            let dollar = meta.gen_dollar();
-            format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
+        match meta.target.shell {
+            ShellType::Bash | ShellType::Ksh => {
+                if self.is_ref && !self.is_declared {
+                    let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+                    let dollar = meta.gen_dollar();
+                    format!("{quote}{dollar}{{!{name}}}{quote}")
+                } else if self.is_math_var && !self.is_length && index_is_none {
+                    name.to_string()
+                } else {
+                    let default_value = self.default_value.take();
+                    let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+                    let dollar = meta.gen_dollar();
+                    format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
+                }
+            }
+            ShellType::Zsh => {
+                if self.is_ref {
+                  	if self.is_declared {
+                    	self.render_deref_variable(meta, prefix, &name, &suffix)
+                  	} else {
+                    	let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+                    	let dollar = meta.gen_dollar();
+                    	format!("{quote}{dollar}{{(P){name}}}{quote}")
+                    }
+                } else if self.is_math_var && !self.is_length && index_is_none {
+                    name.to_string()
+                } else {
+                    let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+                    let dollar = meta.gen_dollar();
+                    format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
+                }
+            }
         }
+        
     }
 
     // Get variable prefix ${PREFIX-varname-suffix}
@@ -258,6 +292,41 @@ impl VarExprFragment {
                 format!("[@]{default_value}")
             }
             _ => default_value,
+        }
+    }
+
+    fn render_deref_variable(
+        self,
+        meta: &mut TranslateMetadata,
+        prefix: &str,
+        name: &str,
+        suffix: &str,
+    ) -> String {
+        let arr_open = if self.kind.is_array() { "(" } else { "" };
+        let arr_close = if self.kind.is_array() { ")" } else { "" };
+        let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+        let dollar = meta.gen_dollar();
+        if prefix.is_empty() && suffix.is_empty() {
+            match meta.target.shell {
+				ShellType::Bash => return format!("{quote}{dollar}{{!{name}}}{quote}"),
+				ShellType::Zsh => return format!("{quote}{dollar}{{(P){name}}}{quote}"),
+				ShellType::Ksh => ()
+			}
+        }
+        let id = meta.gen_value_id();
+        let eval_value = format!("{prefix}${{{name}}}{suffix}");
+        let var_name = format!("{name}_deref_{id}");
+        meta.stmt_queue.push_back(
+            RawFragment::from(format!(
+                "eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\""
+            ))
+            .to_frag(),
+        );
+
+        if self.kind.is_array() {
+            format!("{quote}{dollar}{{{var_name}[@]}}{quote}")
+        } else {
+            format!("{quote}{dollar}{{{var_name}}}{quote}")
         }
     }
 }
