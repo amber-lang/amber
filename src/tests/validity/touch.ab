@@ -1,5 +1,4 @@
 import * from "std/fs"
-import { shell_name } from "std/env"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?

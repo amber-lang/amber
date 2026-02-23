@@ -213,7 +213,6 @@ impl VarExprFragment {
         let dollar = meta.gen_dollar();
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array 
-        dbg!(&name);
         match meta.target.shell {
             ShellType::Bash => {
                 if self.is_ref && !self.is_declared {
