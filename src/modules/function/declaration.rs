@@ -81,6 +81,7 @@ impl FunctionDeclaration {
                         
                         let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                             .with_local(true)
+							.with_declared(false)
                             .with_optimization_when_unused(false);
 
                         result.push(var.to_frag())
@@ -449,7 +450,12 @@ impl TranslateModule for FunctionDeclaration {
             ));
             // Parse the function body
             let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
-            result.push(fragments!(name, "() {"));
+            // required for the local scope in ksh
+			if matches!(meta.target.shell, ShellType::Ksh) { 
+				result.push(fragments!("function ", name, " {")); 
+			} else { 
+				result.push(fragments!(name, "() {")); 
+			}
             if let Some(args) = self.set_args_as_variables(meta, function) {
                 result.push(args);
             }

@@ -209,37 +209,41 @@ impl VarExprFragment {
         let index_is_none = index.is_none();
     	let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index.clone(), default_value);
+		let quote = if self.is_quoted { meta.gen_quote() } else { "" };
+        let dollar = meta.gen_dollar();
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array 
+        dbg!(&name);
         match meta.target.shell {
-            ShellType::Bash | ShellType::Ksh => {
+            ShellType::Bash => {
                 if self.is_ref && !self.is_declared {
-                    let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-                    let dollar = meta.gen_dollar();
+                    
                     format!("{quote}{dollar}{{!{name}}}{quote}")
                 } else if self.is_math_var && !self.is_length && index_is_none {
                     name.to_string()
                 } else {
-                    let default_value = self.default_value.take();
-                    let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-                    let dollar = meta.gen_dollar();
                     format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
                 }
             }
+			ShellType::Ksh => {
+				if self.is_ref && !self.is_declared {
+                    format!("\\\"\\${{${{{name}}}}}\\\"")
+                } else if self.is_math_var && !self.is_length && index_is_none {
+                    name.to_string()
+                } else {
+                    format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
+                }
+			}
             ShellType::Zsh => {
                 if self.is_ref {
                   	if self.is_declared {
                     	self.render_deref_variable(meta, prefix, &name, &suffix)
                   	} else {
-                    	let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-                    	let dollar = meta.gen_dollar();
                     	format!("{quote}{dollar}{{(P){name}}}{quote}")
                     }
                 } else if self.is_math_var && !self.is_length && index_is_none {
                     name.to_string()
                 } else {
-                    let quote = if self.is_quoted { meta.gen_quote() } else { "" };
-                    let dollar = meta.gen_dollar();
                     format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
                 }
             }

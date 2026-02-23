@@ -1,3 +1,12 @@
+// We cannot import `shell_name` from `env.ab` because it imports `array.ab` making a circular dependency.
+// This is a workaround to avoid that issue and the import system should be improved in the future.
+#[allow_absurd_cast]
+fun shell_name(): Text {
+    trust silent $ [ -n "\$ZSH_VERSION" ] $ succeeded: return "zsh"
+	trust silent $ [ -n "\$KSH_VERSION" ] $ succeeded: return "ksh"
+    return "bash"
+}
+
 /// Returns index of the first value found in the specified array.
 ///
 /// If the value is not found, the function returns -1.
@@ -187,12 +196,25 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
     }
 
     let result = []
-    // for ksh
-    // set -s -A {nameof result} -- \$(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
-    trust $ 
-        LC_ALL=C IFS="\n" read -rd '' \$__read_args {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
-        [ -n "\$ZSH_VERSION" ] && {nameof result}[-1]=()
-    $
+    const shell_name = shell_name()
+    if {
+        shell_name == "bash" {
+            trust $ 
+                LC_ALL=C IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+            $
+        }
+        shell_name == "zsh" {
+            trust $ 
+                LC_ALL=C IFS="\n" read -rd '' -A {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                {nameof result}[-1]=()
+            $
+        }
+        shell_name == "ksh" {
+            trust $
+                set -s -A {nameof result} -- \$(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+            $
+        }
+    }
     return result
 }
 

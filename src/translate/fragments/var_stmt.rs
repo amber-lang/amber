@@ -204,11 +204,25 @@ impl VarStmtFragment {
 
 impl FragmentRenderable for VarStmtFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-        if matches!(meta.target.shell, ShellType::Zsh) && self.is_ref && self.is_declared {
-            let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
-            format!("eval \"{stmt}\"")
-        } else {
-            self.render_variable_statement(meta)
+        match meta.target.shell {
+            // if array is a direct reference and is already declared, use eval to modify directly
+            ShellType::Zsh => {
+                if self.is_ref && self.is_declared {
+                    let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+                    format!("eval \"{stmt}\"")
+                } else {
+                    self.render_variable_statement(meta)
+                }
+            }
+            ShellType::Ksh => {
+                if self.kind.is_array() && !self.is_declared {
+                    let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+                    format!("eval \"{stmt}\"")
+                } else {
+                    self.render_variable_statement(meta)
+                }
+            }
+            ShellType::Bash => self.render_variable_statement(meta)
         }
     }
 
