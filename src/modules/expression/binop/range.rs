@@ -284,7 +284,8 @@ impl Range {
         let length = {
             let length_id = meta.gen_value_id();
             let length_val =
-                translate_float_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
+                ArithmeticFragment::new(Some(upper), ArithOp::Sub, Some(offset.clone()))
+                .to_frag();
             let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_val)
                 .with_global_id(length_id);
             let length_var_expr = meta.push_ephemeral_variable(length_var_stmt).to_frag();
