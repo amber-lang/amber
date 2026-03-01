@@ -33,7 +33,7 @@ impl TextPart {
             .map(|part| match part {
                 TextPart::String(s) => InterpolablePart::String(s.clone()),
                 TextPart::Expr(expr) => {
-                    let frag = expr.translate(meta);
+                    let frag = expr.translate(meta).with_quotes(false);
                     if let FragmentKind::VarExpr(var) = frag {
                         InterpolablePart::Interp(var.to_frag())
                     } else {
