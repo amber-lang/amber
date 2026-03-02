@@ -1,0 +1,14 @@
+// Output
+// foo
+// bar baz
+// foo bar baz
+// foo
+// bar
+// baz
+
+main {
+    const a = ["foo", "bar baz"]
+    echo("{a}")
+    trust $ echo {a} $
+    trust $ printf '%s\n' {a} $
+}
