@@ -80,17 +80,18 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_add() {
-        let result = translate_bc_sed_computation(ArithOp::Add, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Add, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
-
-        assert!(code.contains("echo"), "should contain echo");
+        // new code generates herestring instead of creating extra echo pipe:
+        // `echo ... | bc` => `bc <<< ...`
+        assert!(code.contains("<<<"), "should contain herestring");
         assert!(code.contains("+"), "should contain + operator");
     }
 
     #[test]
     fn test_translate_bc_sed_computation_sub() {
-        let result = translate_bc_sed_computation(ArithOp::Sub, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Sub, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -99,7 +100,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_mul() {
-        let result = translate_bc_sed_computation(ArithOp::Mul, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Mul, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -108,7 +109,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_div() {
-        let result = translate_bc_sed_computation(ArithOp::Div, raw_frag("6"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Div, raw_frag("6"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -117,7 +118,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_modulo() {
-        let result = translate_bc_sed_computation(ArithOp::Modulo, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Modulo, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -126,7 +127,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_gt() {
-        let result = translate_bc_sed_computation(ArithOp::Gt, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Gt, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -135,7 +136,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_ge() {
-        let result = translate_bc_sed_computation(ArithOp::Ge, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Ge, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -144,7 +145,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_lt() {
-        let result = translate_bc_sed_computation(ArithOp::Lt, raw_frag("3"), raw_frag("5"));
+        let result = translate_bc_sed_computation(ArithOp::Lt, raw_frag("3"), raw_frag("5"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -153,7 +154,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_le() {
-        let result = translate_bc_sed_computation(ArithOp::Le, raw_frag("3"), raw_frag("5"));
+        let result = translate_bc_sed_computation(ArithOp::Le, raw_frag("3"), raw_frag("5"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -162,7 +163,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_eq() {
-        let result = translate_bc_sed_computation(ArithOp::Eq, raw_frag("5"), raw_frag("5"));
+        let result = translate_bc_sed_computation(ArithOp::Eq, raw_frag("5"), raw_frag("5"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -171,7 +172,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_neq() {
-        let result = translate_bc_sed_computation(ArithOp::Neq, raw_frag("5"), raw_frag("3"));
+        let result = translate_bc_sed_computation(ArithOp::Neq, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -180,7 +181,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_neg() {
-        let result = translate_bc_sed_computation(ArithOp::Neg, raw_frag("5"), raw_frag(""));
+        let result = translate_bc_sed_computation(ArithOp::Neg, raw_frag("5"), raw_frag(""), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -189,7 +190,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_not() {
-        let result = translate_bc_sed_computation(ArithOp::Not, raw_frag("true"), raw_frag(""));
+        let result = translate_bc_sed_computation(ArithOp::Not, raw_frag("true"), raw_frag(""), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -198,7 +199,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_and() {
-        let result = translate_bc_sed_computation(ArithOp::And, raw_frag("true"), raw_frag("true"));
+        let result = translate_bc_sed_computation(ArithOp::And, raw_frag("true"), raw_frag("true"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -207,7 +208,7 @@ mod compute_tests {
 
     #[test]
     fn test_translate_bc_sed_computation_or() {
-        let result = translate_bc_sed_computation(ArithOp::Or, raw_frag("true"), raw_frag("false"));
+        let result = translate_bc_sed_computation(ArithOp::Or, raw_frag("true"), raw_frag("false"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -237,7 +238,8 @@ mod compute_tests {
         let result = translate_float_computation(&meta, ArithOp::Add, None, None);
         let mut meta2 = create_test_metadata();
         let code = result.to_string(&mut meta2);
-
-        assert!(code.contains("echo"), "should contain echo");
+        // new code generates herestring instead of creating extra echo pipe:
+        // `echo ... | bc` => `bc <<< ...`
+        assert!(code.contains("<<<"), "should contain herestring");
     }
 }

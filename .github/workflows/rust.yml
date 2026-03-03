@@ -137,7 +137,7 @@ jobs:
           docker stop test_container -t 0
           docker rm --force test_container
   macos-test:
-    name: Rust tests on a native macOS Bash
+    name: Rust tests on a native macOS zsh
     runs-on: macos-latest
     if: github.event_name != 'release'
     steps:
@@ -154,6 +154,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
+        env:
+          SHELL: '/bin/zsh'
         run: |
           cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
