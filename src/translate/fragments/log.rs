@@ -1,6 +1,7 @@
 use super::fragment::{FragmentKind, FragmentRenderable};
 use super::interpolable::InterpolableRenderType;
 use crate::modules::types::Type;
+use crate::translate::fragments::interpolable::InterpolablePart;
 use crate::utils::TranslateMetadata;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -32,11 +33,12 @@ impl LogFragment {
                 if interpolable.render_type != InterpolableRenderType::StringLiteral {
                     return true;
                 }
-                // Check first string chunk
-                if let Some(first) = interpolable.strings.front() {
-                    first.is_empty() || first.starts_with('-')
-                } else {
-                    true
+
+                let front = interpolable.parts.front();
+                match front {
+                    Some(InterpolablePart::String(s)) => s.is_empty() || s.starts_with('-'),
+                    Some(InterpolablePart::Interp(_)) => true,
+                    None => true,
                 }
             }
             FragmentKind::List(list) => {

@@ -55,7 +55,7 @@ impl FragmentKind {
             FragmentKind::VarStmt(var_stmt) => var_stmt.value.is_mutating(),
             FragmentKind::Block(block) => block.statements.iter().any(|stmt| stmt.is_mutating()),
             FragmentKind::Interpolable(interpolable) => {
-                interpolable.interps.iter().any(|item| item.is_mutating())
+                interpolable.parts.iter().any(|item| item.is_mutating())
             }
             FragmentKind::List(list) => list.values.iter().any(|item| item.is_mutating()),
             FragmentKind::Arithmetic(arithmetic) => {
@@ -84,7 +84,7 @@ impl FragmentKind {
                 .iter()
                 .any(|stmt| stmt.is_running_command()),
             FragmentKind::Interpolable(interpolable) => interpolable
-                .interps
+                .parts
                 .iter()
                 .any(|item| item.is_running_command()),
             FragmentKind::List(list) => list.values.iter().any(|item| item.is_running_command()),

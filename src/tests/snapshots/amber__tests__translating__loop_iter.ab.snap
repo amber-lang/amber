@@ -1,5 +1,6 @@
 ---
 source: src/tests/translating.rs
+assertion_line: 31
 expression: ast
 ---
 Block(
@@ -181,30 +182,33 @@ Block(
                             values: [
                                 Interpolable(
                                     InterpolableFragment {
-                                        strings: [
-                                            "A",
+                                        parts: [
+                                            String(
+                                                "A",
+                                            ),
                                         ],
-                                        interps: [],
                                         render_type: StringLiteral,
                                         quoted: true,
                                     },
                                 ),
                                 Interpolable(
                                     InterpolableFragment {
-                                        strings: [
-                                            "B",
+                                        parts: [
+                                            String(
+                                                "B",
+                                            ),
                                         ],
-                                        interps: [],
                                         render_type: StringLiteral,
                                         quoted: true,
                                     },
                                 ),
                                 Interpolable(
                                     InterpolableFragment {
-                                        strings: [
-                                            "C",
+                                        parts: [
+                                            String(
+                                                "C",
+                                            ),
                                         ],
-                                        interps: [],
                                         render_type: StringLiteral,
                                         quoted: true,
                                     },
@@ -457,8 +461,11 @@ Block(
                                                                             },
                                                                         ),
                                                                     ),
-                                                                ),
-                                                            },
+                                                                },
+                                                            ),
+                                                        ),
+                                                        String(
+                                                            "",
                                                         ),
                                                     ],
                                                     render_type: StringLiteral,
