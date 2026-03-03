@@ -77,14 +77,18 @@ pub fn translate_float_computation(
     left: Option<FragmentKind>,
     right: Option<FragmentKind>,
 ) -> FragmentKind {
-    let (left, right) = (
-        left.unwrap_or(FragmentKind::Empty),
-        right.unwrap_or(FragmentKind::Empty),
-    );
-    match meta.target.shell {
-        ShellType::Bash | ShellType::Zsh => translate_bc_sed_computation(operator, left, right, true),
-        // ksh doesn't support quoting inside arithmetic blocks
-        ShellType::Ksh => translate_bc_sed_computation(operator, left, right, false)
+    match meta.arith_module {
+        ArithType::BcSed => {
+            let (left, right) = (
+                left.unwrap_or(FragmentKind::Empty),
+                right.unwrap_or(FragmentKind::Empty),
+            );
+            match meta.target.shell {
+                ShellType::Bash | ShellType::Zsh => translate_bc_sed_computation(operator, left, right, true),
+                // ksh doesn't support quoting inside arithmetic blocks
+                ShellType::Ksh => translate_bc_sed_computation(operator, left, right, false)
+            }
+        }
     }
 }
 

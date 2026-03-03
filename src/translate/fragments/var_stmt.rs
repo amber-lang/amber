@@ -75,11 +75,6 @@ impl VarStmtFragment {
         self
     }
 
-    pub fn with_value(mut self, value: FragmentKind) -> Self {
-        self.value = Box::new(value);
-        self
-    }
-
     pub fn with_local(mut self, is_local: bool) -> Self {
         self.is_local = is_local;
         self
@@ -190,12 +185,10 @@ impl VarStmtFragment {
                     } else {
                         format!("typeset {assignment}")
                     }
+                } else if self.kind.is_array() && value.is_empty() {
+                    format!("typeset -ga {assignment}")
                 } else {
-                    if self.kind.is_array() && value.is_empty() {
-                        format!("typeset -ga {assignment}")
-                    } else {
-                        assignment
-                    }
+                    assignment
                 }
             }
         }

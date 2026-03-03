@@ -78,7 +78,6 @@ jobs:
           - "bash:5.0"
           - "bash:4.4"
           - "bash:4.3"
-          - "bash:4.2"
         sed:
           - GNU_sed
         include:
@@ -154,8 +153,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
-        env:
-          SHELL: '/bin/zsh'
+        shell: zsh {0}
         run: |
           cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
