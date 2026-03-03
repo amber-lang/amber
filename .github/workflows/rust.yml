@@ -153,7 +153,9 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
-        shell: zsh {0}
+        env:
+            SHELL: '/bin/zsh'
+        shell: /bin/zsh --login --eo pipefail {0}
         run: |
           cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
