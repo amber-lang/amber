@@ -74,13 +74,15 @@ impl TranslateModule for IterLoop {
             }
         }
 
-        let iter_name = raw_fragment!(
-            "{}",
-            get_variable_name(&self.iter_name, self.iter_global_id)
-        );
+        let iter_name_str = get_variable_name(&self.iter_name, self.iter_global_id);
+        let iter_name = raw_fragment!("{}", iter_name_str);
 
         let for_loop_prefix = match iter_path.is_some() {
-            true => fragments!("while IFS= read -r ", iter_name, "; do"),
+            // NOTE: The same read-loop pattern also exists in lines.rs (LinesInvocation::translate).
+            // If you change this, update that one too.
+            true => raw_fragment!(
+                "while IFS= read -r {iter_name_str} || [ -n \"${iter_name_str}\" ]; do"
+            ),
             false => fragments!(
                 "for ",
                 iter_name,
