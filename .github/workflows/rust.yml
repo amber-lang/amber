@@ -155,7 +155,7 @@ jobs:
       - name: Run tests
         env:
             SHELL: '/bin/zsh'
-        shell: /bin/zsh --login --eo pipefail {0}
+        shell: /bin/zsh {0}
         run: |
           cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
