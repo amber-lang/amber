@@ -34,10 +34,7 @@ impl TextPart {
                 TextPart::String(s) => InterpolablePart::String(s.clone()),
                 TextPart::Expr(expr) => {
                     let frag = expr.translate(meta).with_quotes(false);
-                    if let FragmentKind::VarExpr(mut var) = frag {
-                        if var.kind.is_array() {
-                            var = var.with_array_to_string(true);
-                        }
+                    if let FragmentKind::VarExpr(var) = frag {
                         InterpolablePart::Interp(var.to_frag())
                     } else {
                         InterpolablePart::Interp(frag)
