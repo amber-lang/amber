@@ -30,8 +30,17 @@ impl SyntaxModule<ParserMetadata> for Lock {
         syntax(meta, &mut self.modifier)?;
 
         self.modifier.use_modifiers(meta, |_, meta| {
+            let tok = meta.get_current_token();
             let position = meta.get_index();
             token(meta, "lock")?;
+
+            if !meta.context.is_main_ctx && !meta.context.is_test_ctx {
+                return error!(
+                    meta,
+                    tok,
+                    "The `lock` builtin can only be used in the main block or test blocks"
+                );
+            }
 
             if token(meta, "(").is_ok() {
                 if token(meta, ")").is_err() {
@@ -107,26 +116,22 @@ impl TranslateModule for Lock {
         )
         .with_global_id(lock_var_id);
         let lock_var_expr = meta.push_ephemeral_variable(lock_var_stmt);
-
         let lock_var_frag = lock_var_expr.with_quotes(false).to_frag();
-        let lock_var_frag_first = lock_var_frag.clone();
-        let lock_var_frag_second = lock_var_frag.clone();
-        let lock_var_frag_third = lock_var_frag.clone();
 
         let blocker = fragments!(
             "if ! ( set -o noclobber; echo $$ > \"",
-            lock_var_frag_first,
+            lock_var_frag.clone(),
             "\" ) 2>/dev/null; then\n    exit 1\nfi\n",
             "touch \"",
-            lock_var_frag_second,
+            lock_var_frag.clone(),
             "\"\n"
         );
 
         let cleanup_array_update = fragments!(
             "if [ -z \"${__amber_cleanup_files+x}\" ]; then __amber_cleanup_files=( \"",
-            lock_var_frag_third.clone(),
+            lock_var_frag.clone(),
             "\" ); else __amber_cleanup_files+=( \"",
-            lock_var_frag_third,
+            lock_var_frag.clone(),
             "\" ); fi\n"
         );
 
