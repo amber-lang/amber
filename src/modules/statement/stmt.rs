@@ -68,7 +68,7 @@ pub enum StmtType {
     Comment(Comment),
     CommentDoc(CommentDoc),
     Sleep(Sleep),
-    Lock(Lock),
+    Lock(Box<Lock>),
     Rm(Rm),
     Clear(Clear),
     Await(Await),

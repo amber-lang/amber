@@ -135,10 +135,18 @@ impl TranslateModule for Lock {
             "\" ); fi\n"
         );
 
+        let cleanup_trap_setup = fragments!(
+            "if [ -z \"${__amber_cleanup_trap_installed+x}\" ]; then\n",
+            "    __amber_cleanup_trap_installed=1\n",
+            "    trap 'for __amber_cleanup_file in \"${__amber_cleanup_files[@]}\"; do rm -f -- \"$__amber_cleanup_file\"; done' EXIT\n",
+            "fi\n"
+        );
+
         BlockFragment::new(
             vec![
                 blocker,
                 cleanup_array_update,
+                cleanup_trap_setup,
                 self.failure_handler.translate(meta),
             ],
             false,
