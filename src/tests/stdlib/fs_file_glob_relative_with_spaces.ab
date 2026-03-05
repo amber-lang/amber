@@ -31,9 +31,7 @@ main {
         "1st file with spaces.txt",
         "2nd file with spaces.txt",
     ]
-    const actual = file_glob("*with spaces*") failed {
-        echo("FAILED")
-    }
+    const actual = file_glob("*with spaces*")
     if compare(actual, expected) {
         echo("Succeeded")
     } else {

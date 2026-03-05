@@ -187,7 +187,7 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
     }
 
     let result = []
-    trust $ IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | sort {sort_flag} {desc_flag}) $
+    trust $ LC_ALL=C IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag}) $
     return result
 }
 

@@ -5,4 +5,4 @@
 silent $ you_do_not_have_this $ failed(error) {
     echo("Inside: {error}")
 }
-echo("Outside: {status}")
+echo("Outside: {status()}")

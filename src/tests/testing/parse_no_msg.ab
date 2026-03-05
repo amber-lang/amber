@@ -1,0 +1,3 @@
+test "parse error" {
+    let =
+}

@@ -13,12 +13,12 @@ fn test_test_mode() {
             echo("Main executed")
         }
     "#;
-    
+
     let options = CompilerOptions::from_args(&[], false, true, None);
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
     assert!(messages.is_empty());
-    
+
     let (stdout, stderr) = eval_bash(bash_code);
     assert_eq!(stdout, "Test executed");
     assert_eq!(stderr, "");
@@ -36,12 +36,12 @@ fn test_default_mode_skips_test() {
             echo("Main executed")
         }
     "#;
-    
+
     let options = CompilerOptions::from_args(&[], false, false, None);
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let (messages, bash_code) = compiler.compile().unwrap();
     assert!(messages.is_empty());
-    
+
     let (stdout, stderr) = eval_bash(bash_code);
     assert_eq!(stdout, "Main executed");
     assert_eq!(stderr, "");

@@ -1,6 +1,6 @@
 use crate::eval_context;
-use crate::modules::types::Type;
 use crate::modules::prelude::*;
+use crate::modules::types::Type;
 
 use super::get_variable_name;
 
@@ -108,9 +108,11 @@ impl VarStmtFragment {
         let is_running_command = self.value.is_running_command();
         let mut assignment_parts = vec![];
         assignment_parts.push(var_name.clone());
-        assignment_parts.extend(self.index.map(|index| format!("[{}]", index.to_string(meta))));
+        assignment_parts.extend(
+            self.index
+                .map(|index| format!("[{}]", index.to_string(meta))),
+        );
         assignment_parts.push(self.operator);
-
 
         if self.kind.is_array() {
             assignment_parts.push(format!("({})", self.value.to_string(meta)));
@@ -134,9 +136,7 @@ impl VarStmtFragment {
 impl FragmentRenderable for VarStmtFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         if self.is_ref {
-            let stmt = eval_context!(meta, self.is_ref, {
-                self.render_variable_statement(meta)
-            });
+            let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
             format!("eval \"{stmt}\"")
         } else {
             self.render_variable_statement(meta)

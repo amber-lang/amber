@@ -1,8 +1,8 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::translate::compute::ArithOp;
 use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Typed, Type};
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compute::ArithOp;
+use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
 
@@ -11,7 +11,7 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub struct Or {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
 }
 
 impl Or {
@@ -19,10 +19,10 @@ impl Or {
         let left = self.left.analyze_control_flow();
         let right = self.right.analyze_control_flow();
         match (left, right) {
-             (Some(true), _) => Some(true),
-             (_, Some(true)) => Some(true),
-             (Some(false), Some(false)) => Some(false),
-             _ => None
+            (Some(true), _) => Some(true),
+            (_, Some(true)) => Some(true),
+            (Some(false), Some(false)) => Some(false),
+            _ => None,
         }
     }
 
@@ -47,7 +47,6 @@ impl Or {
         (true_facts, false_facts)
     }
 }
-
 
 impl Typed for Or {
     fn get_type(&self) -> Type {
@@ -76,7 +75,7 @@ impl SyntaxModule<ParserMetadata> for Or {
     fn new() -> Self {
         Or {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 
@@ -89,9 +88,13 @@ impl TypeCheckModule for Or {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "logical OR", &mut self.left, &mut self.right, &[
-            Type::Bool,
-        ])?;
+        Self::typecheck_allowed_types(
+            meta,
+            "logical OR",
+            &mut self.left,
+            &mut self.right,
+            &[Type::Bool],
+        )?;
         Ok(())
     }
 }

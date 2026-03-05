@@ -8,5 +8,5 @@ main {
         trust $ true $
         echo("Exit code: {error}")
     }
-    echo(status)
+    echo(status())
 }

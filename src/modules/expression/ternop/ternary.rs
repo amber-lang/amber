@@ -1,18 +1,18 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
+use super::TernOp;
 use crate::docs::module::DocumentationModule;
 use crate::fragments;
 use crate::modules::expression::binop::get_binop_position_info;
-use crate::modules::types::{Type, Typed};
 use crate::modules::expression::expr::Expr;
-use super::TernOp;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Option<Box<Expr>>,
     false_expr: Option<Box<Expr>>,
-    kind: Type
+    kind: Type,
 }
 
 impl Typed for Ternary {
@@ -53,7 +53,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
             cond: Box::new(Expr::new()),
             true_expr: Some(Box::new(Expr::new())),
             false_expr: Some(Box::new(Expr::new())),
-            kind: Type::Null
+            kind: Type::Null,
         }
     }
 
@@ -66,7 +66,9 @@ impl TypeCheckModule for Ternary {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.cond.typecheck(meta)?;
         if self.cond.get_type() != Type::Bool {
-            let msg = self.cond.get_error_message(meta)
+            let msg = self
+                .cond
+                .get_error_message(meta)
                 .message("Expected expression that evaluates to 'Bool' in ternary condition");
             return Err(Failure::Loud(msg));
         }
@@ -76,40 +78,32 @@ impl TypeCheckModule for Ternary {
             Some(true) => {
                 let (facts, _) = self.cond.extract_facts();
                 let true_expr = self.true_expr.as_mut().unwrap();
-                meta.with_narrowed_scope(facts, |meta| {
-                    true_expr.typecheck(meta)
-                })?;
+                meta.with_narrowed_scope(facts, |meta| true_expr.typecheck(meta))?;
                 self.kind = true_expr.get_type();
                 self.false_expr = None;
                 return Ok(());
-            },
+            }
             Some(false) => {
                 let (_, facts) = self.cond.extract_facts();
                 let false_expr = self.false_expr.as_mut().unwrap();
-                meta.with_narrowed_scope(facts, |meta| {
-                    false_expr.typecheck(meta)
-                })?;
+                meta.with_narrowed_scope(facts, |meta| false_expr.typecheck(meta))?;
                 self.kind = false_expr.get_type();
                 self.true_expr = None;
                 return Ok(());
-            },
+            }
             _ => {}
         }
 
         let (true_facts, false_facts) = self.cond.extract_facts();
         let true_expr = self.true_expr.as_mut().unwrap();
         let false_expr = self.false_expr.as_mut().unwrap();
-        meta.with_narrowed_scope(true_facts, |meta| {
-            true_expr.typecheck(meta)
-        })?;
-        meta.with_narrowed_scope(false_facts, |meta| {
-            false_expr.typecheck(meta)
-        })?;
-        
+        meta.with_narrowed_scope(true_facts, |meta| true_expr.typecheck(meta))?;
+        meta.with_narrowed_scope(false_facts, |meta| false_expr.typecheck(meta))?;
+
         // Unification Logic for dynamic case
         let true_type = true_expr.get_type();
         let false_type = false_expr.get_type();
-        
+
         if true_type == false_type {
             self.kind = true_type;
         } else {
@@ -132,9 +126,10 @@ impl TypeCheckModule for Ternary {
                 let pos = get_binop_position_info(meta, true_expr, false_expr);
                 let msg = Message::new_err_at_position(meta, pos)
                     .message("Ternary operation can only evaluate to value of one type.")
-                    .comment(format!("Provided branches of type '{}' and '{}'.",
-                        true_type,
-                        false_type));
+                    .comment(format!(
+                        "Provided branches of type '{}' and '{}'.",
+                        true_type, false_type
+                    ));
                 return Err(Failure::Loud(msg));
             }
         }
@@ -145,31 +140,48 @@ impl TypeCheckModule for Ternary {
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         match self.cond.analyze_control_flow() {
-            Some(true) => {
-                self.true_expr.as_ref()
-                    .map(|e| e.translate(meta))
-                    .unwrap_or(FragmentKind::Empty)
-            },
-            Some(false) => {
-                self.false_expr.as_ref()
-                    .map(|e| e.translate(meta))
-                    .unwrap_or(FragmentKind::Empty)
-            },
+            Some(true) => self
+                .true_expr
+                .as_ref()
+                .map(|e| e.translate(meta))
+                .unwrap_or(FragmentKind::Empty),
+            Some(false) => self
+                .false_expr
+                .as_ref()
+                .map(|e| e.translate(meta))
+                .unwrap_or(FragmentKind::Empty),
             None => {
-                let true_type = self.true_expr.as_ref().map(|e| e.get_type()).unwrap_or(Type::Null);
+                let true_type = self
+                    .true_expr
+                    .as_ref()
+                    .map(|e| e.get_type())
+                    .unwrap_or(Type::Null);
                 let is_array = true_type.is_array();
                 let cond = self.cond.translate(meta);
-                let true_expr = self.true_expr.as_ref()
+                let true_expr = self
+                    .true_expr
+                    .as_ref()
                     .map(|e| e.translate(meta))
                     .unwrap_or(FragmentKind::Empty);
-                let false_expr = self.false_expr.as_ref()
+                let false_expr = self
+                    .false_expr
+                    .as_ref()
                     .map(|e| e.translate(meta))
                     .unwrap_or(FragmentKind::Empty);
-                let expr = fragments!("if [ ", cond, " != 0 ]; then echo ", true_expr, "; else echo ", false_expr, "; fi");
+                let expr = fragments!(
+                    "if [ ",
+                    cond,
+                    " != 0 ]; then echo ",
+                    true_expr,
+                    "; else echo ",
+                    false_expr,
+                    "; fi"
+                );
                 if is_array {
                     let id = meta.gen_value_id();
                     let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
-                    let var_stmt = VarStmtFragment::new("ternary", true_type, value).with_global_id(id);
+                    let var_stmt =
+                        VarStmtFragment::new("ternary", true_type, value).with_global_id(id);
                     meta.push_ephemeral_variable(var_stmt).to_frag()
                 } else {
                     SubprocessFragment::new(expr).to_frag()

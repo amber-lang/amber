@@ -53,10 +53,13 @@ expression =
 (* Keywords *)
 KEYWORD_AND = 'and' ;
 KEYWORD_AS = 'as' ;
+KEYWORD_AWAIT = 'await' ;
 KEYWORD_BREAK = 'break' ;
 KEYWORD_CD = 'cd' ;
+KEYWORD_CLEAR = 'clear' ;
 KEYWORD_CONST = 'const' ;
 KEYWORD_CONTINUE = 'continue' ;
+KEYWORD_CP = 'cp' ;
 KEYWORD_ECHO = 'echo' ;
 KEYWORD_ELSE = 'else' ;
 KEYWORD_EXIT = 'exit' ;
@@ -73,15 +76,21 @@ KEYWORD_LEN = 'len' ;
 KEYWORD_LET = 'let' ;
 KEYWORD_LINES = 'lines' ;
 KEYWORD_LOOP = 'loop' ;
+KEYWORD_LS = 'ls' ;
 KEYWORD_MAIN = 'main' ;
 KEYWORD_MV = 'mv' ;
 KEYWORD_NAMEOF = 'nameof' ;
 KEYWORD_NOT = 'not' ;
 KEYWORD_OR = 'or' ;
+KEYWORD_PID = 'pid' ;
 KEYWORD_PUB = 'pub' ;
+KEYWORD_PWD = 'pwd' ;
 KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
+KEYWORD_RM = 'rm' ;
 KEYWORD_SILENT = 'silent' ;
+KEYWORD_SUPPRESS = 'suppress' ;
+KEYWORD_SLEEP = 'sleep' ;
 KEYWORD_STATUS = 'status' ;
 KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
@@ -130,7 +139,7 @@ array = empty_array | full_array ;
 
 (* Command expression *)
 (* The ordering of command modifiers doesn't matter *)
-command_modifier = [ KEYWORD_SILENT ], [ KEYWORD_TRUST ], [ KEYWORD_SUDO ] ;
+command_modifier = [ KEYWORD_SILENT | KEYWORD_SUPPRESS ], [ KEYWORD_TRUST ], [ KEYWORD_SUDO ] ;
 command_modifier_block = command_modifier, multiline_block ;
 command_base = '$', { ANY_CHAR | interpolation }, '$' ;
 command = command_modifier, command_base, [ handler ] ;
@@ -159,18 +168,22 @@ exited_handler = exited_block ;
 (* All handlers combined *)
 handler = success_handler | failure_handler | exited_handler ;
 
+(* Attributes *)
+attribute_name = any_identifier ;
+attribute = '#[', attribute_name, ']' ;
+
 (* Variable *)
 variable_index = '[', expression, ']' ;
-variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
-variable_init_const = KEYWORD_CONST, identifier, '=', expression ;
+variable_init_mut = { attribute }, [ VISIBILITY ], KEYWORD_LET, identifier, '=', expression ;
+variable_init_const = { attribute }, [ VISIBILITY ], KEYWORD_CONST, identifier, '=', expression ;
 variable_get = identifier ;
 variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
-function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
-function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
+function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+function_def_typed = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
 
 (* Loop *)
@@ -201,23 +214,39 @@ comment = '//', { ANY_CHAR }, '\n' ;
 
 (* Built-ins *)
 builtins_statement =
+    builtin_await |
     builtin_cd |
+    builtin_clear |
+    builtin_cp |
     builtin_echo |
     builtin_exit |
-    builtin_mv ;
+    builtin_mv |
+    builtin_rm |
+    builtin_sleep ;
+builtin_await = KEYWORD_AWAIT, expression ;
 builtin_cd = KEYWORD_CD, expression ;
+builtin_clear = KEYWORD_CLEAR ;
+builtin_cp = KEYWORD_CP, expression ;
 builtin_echo = KEYWORD_ECHO, expression ;
 builtin_exit = KEYWORD_EXIT, expression ;
 builtin_mv = KEYWORD_MV, expression ;
+builtin_rm = KEYWORD_RM, expression ;
+builtin_sleep = KEYWORD_SLEEP, expression ;
 builtin_touch = KEYWORD_TOUCH, expression ;
 
 builtins_expression =
     builtin_len |
     builtin_lines |
-    builtin_nameof ;
+    builtin_ls |
+    builtin_nameof |
+    builtin_pid |
+    builtin_pwd ;
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
+builtin_ls = KEYWORD_LS, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
+builtin_pid = KEYWORD_PID ;
+builtin_pwd = KEYWORD_PWD, expression ;
 
 (* Test *)
 test_name = '"', { ANY_CHAR }, '"' ;

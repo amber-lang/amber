@@ -1,6 +1,6 @@
-pub mod stmt;
 pub mod comment;
 pub mod comment_doc;
+pub mod stmt;
 
 #[macro_export]
 macro_rules! parse_statement {

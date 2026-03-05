@@ -14,9 +14,7 @@ main {
     // apart from "*", "?" and "/", to prevent injection attacks.  If we
     // didn't do this, the following code would output "[HACKED]" instead
     // of the filename.
-    const files = file_glob("xxx; do echo HACKED; done; for file in") failed {
-        echo("FAILED")
-    }
+    const files = file_glob("xxx; do echo HACKED; done; for file in")
     for file in files {
         echo("[{file}]")
     }

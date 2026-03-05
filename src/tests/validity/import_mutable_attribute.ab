@@ -1,0 +1,11 @@
+// Output
+// Value: 100
+// Modified: 200
+
+import { MUTABLE_VALUE } from "src/tests/validity/test_files/import_mutable_attribute_source.ab"
+
+main {
+    echo("Value: {MUTABLE_VALUE}")
+    MUTABLE_VALUE = 200
+    echo("Modified: {MUTABLE_VALUE}")
+}

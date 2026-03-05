@@ -1,14 +1,14 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::modules::expression::expr::Expr;
-use crate::modules::types::{Typed, Type};
 use super::BinOp;
+use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use heraclitus_compiler::prelude::*;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct And {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
 }
 
 impl And {
@@ -16,10 +16,10 @@ impl And {
         let left = self.left.analyze_control_flow();
         let right = self.right.analyze_control_flow();
         match (left, right) {
-             (Some(false), _) => Some(false),
-             (_, Some(false)) => Some(false),
-             (Some(true), Some(true)) => Some(true),
-             _ => None
+            (Some(false), _) => Some(false),
+            (_, Some(false)) => Some(false),
+            (Some(true), Some(true)) => Some(true),
+            _ => None,
         }
     }
 
@@ -44,7 +44,6 @@ impl And {
         (true_facts, false_facts)
     }
 }
-
 
 impl Typed for And {
     fn get_type(&self) -> Type {
@@ -73,7 +72,7 @@ impl SyntaxModule<ParserMetadata> for And {
     fn new() -> Self {
         And {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 
@@ -86,9 +85,13 @@ impl TypeCheckModule for And {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "logical AND", &mut self.left, &mut self.right, &[
-            Type::Bool,
-        ])?;
+        Self::typecheck_allowed_types(
+            meta,
+            "logical AND",
+            &mut self.left,
+            &mut self.right,
+            &[Type::Bool],
+        )?;
         Ok(())
     }
 }

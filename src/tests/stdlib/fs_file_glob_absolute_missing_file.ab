@@ -1,8 +1,5 @@
 import * from "std/fs"
 
-// Output
-// FAILED
-
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
@@ -15,8 +12,9 @@ main {
         touch("{tmpdir}/other.csv")
     }
 
-    const files = file_glob("{tmpdir}/missing*") failed {
-        echo("FAILED")
+    const files = file_glob("{tmpdir}/missing*")
+    if len(files) == 0 {
+        echo("Succeeded")
     }
     for file in files {
         echo("[{file}]")

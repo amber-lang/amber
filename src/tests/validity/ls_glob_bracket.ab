@@ -1,0 +1,22 @@
+import * from "std/fs"
+import { array_contains } from "std/array"
+
+// Output
+// Succeeded
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    touch("{tmpdir}/alpha.txt")
+    touch("{tmpdir}/beta.txt")
+    touch("{tmpdir}/gamma.txt")
+
+    // [ab]* matches files starting with 'a' or 'b'
+    const files = ls("{tmpdir}/[ab]*")?
+    if array_contains(files, "{tmpdir}/alpha.txt") and
+       array_contains(files, "{tmpdir}/beta.txt") and
+       not array_contains(files, "{tmpdir}/gamma.txt") {
+        echo("Succeeded")
+    } else {
+        echo("Failed: {files}")
+    }
+}

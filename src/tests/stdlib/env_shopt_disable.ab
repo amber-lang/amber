@@ -1,0 +1,10 @@
+import { shopt_disable } from "std/env"
+
+// Output
+// .
+
+main {
+   shopt_disable("dotglob")?
+   trust $ echo . $
+   shopt_disable("noglob", true)?
+}

@@ -1,16 +1,16 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
-use crate::modules::types::{Type, Typed};
-use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
 use super::UnOp;
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
+use heraclitus_compiler::prelude::*;
 
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Not {
-    expr: Box<Expr>
+    expr: Box<Expr>,
 }
 
 impl Not {
@@ -23,7 +23,6 @@ impl Not {
         (false_facts, true_facts)
     }
 }
-
 
 impl Typed for Not {
     fn get_type(&self) -> Type {
@@ -47,7 +46,7 @@ impl SyntaxModule<ParserMetadata> for Not {
 
     fn new() -> Self {
         Not {
-            expr: Box::new(Expr::new())
+            expr: Box::new(Expr::new()),
         }
     }
 

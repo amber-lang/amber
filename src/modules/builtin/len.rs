@@ -1,8 +1,8 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
 use crate::modules::prelude::*;
-use crate::modules::types::{Type, Typed};
 use crate::modules::typecheck::TypeCheckModule;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
@@ -47,7 +47,7 @@ impl TypeCheckModule for Len {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Typecheck the expression first
         self.value.typecheck(meta)?;
-        
+
         let accepted_types = Type::Union(vec![Type::Text, Type::array_of(Type::Generic)]);
         if !self.value.get_type().is_allowed_in(&accepted_types) {
             let msg = self
@@ -64,8 +64,11 @@ impl TranslateModule for Len {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
         let id = meta.gen_value_id();
-        let var_stmt = VarStmtFragment::new("__length", self.value.get_type(), value).with_global_id(id);
-        meta.push_ephemeral_variable(var_stmt).with_length_getter(true).to_frag()
+        let var_stmt =
+            VarStmtFragment::new("__length", self.value.get_type(), value).with_global_id(id);
+        meta.push_ephemeral_variable(var_stmt)
+            .with_length_getter(true)
+            .to_frag()
     }
 }
 

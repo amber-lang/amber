@@ -1,5 +1,3 @@
-
-
 use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;

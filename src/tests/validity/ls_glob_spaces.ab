@@ -1,0 +1,24 @@
+import * from "std/fs"
+import { array_contains } from "std/array"
+
+// Output
+// Succeeded
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    const subdir = "{tmpdir}/dir with spaces"
+    dir_create(subdir)?
+    touch("{subdir}/file1.txt")
+    touch("{subdir}/file2.txt")
+    touch("{subdir}/other.csv")
+
+    // Glob with spaces in path
+    const files = ls("{subdir}/*.txt")?
+    if array_contains(files, "{subdir}/file1.txt") and
+       array_contains(files, "{subdir}/file2.txt") and
+       not array_contains(files, "{subdir}/other.csv") {
+        echo("Succeeded")
+    } else {
+        echo("Failed: {files}")
+    }
+}

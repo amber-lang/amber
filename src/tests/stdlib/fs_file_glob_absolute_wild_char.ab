@@ -30,9 +30,7 @@ main {
         "{tmpdir}/file1.txt",
         "{tmpdir}/file2.txt",
     ]
-    const actual = file_glob("{tmpdir}/file?.txt") failed {
-        echo("FAILED")
-    }
+    const actual = file_glob("{tmpdir}/file?.txt")
     if compare(actual, expected) {
         echo("Succeeded")
     } else {

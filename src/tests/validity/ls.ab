@@ -1,0 +1,32 @@
+import * from "std/fs"
+import { array_contains } from "std/array"
+
+// Output
+// .b
+// a
+// c
+// a
+// c
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    dir_create("{tmpdir}/a")?
+    touch("{tmpdir}/a/a1")
+    touch("{tmpdir}/.b")
+    touch("{tmpdir}/c")
+    for file in ls(tmpdir, true)? {
+        echo(file)
+    }
+    cd(tmpdir)
+    for file in ls()? {
+        echo(file)
+    }
+    const files = ls(".", false, true)?
+    if not array_contains(files, "a") or
+       not array_contains(files, "c") or
+       not array_contains(files, "./a:") or
+       not array_contains(files, "a1") {
+        echo("value missing: {files}")
+    }
+
+}

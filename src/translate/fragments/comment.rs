@@ -1,5 +1,5 @@
-use crate::utils::TranslateMetadata;
 use super::fragment::{FragmentKind, FragmentRenderable};
+use crate::utils::TranslateMetadata;
 
 /// Represents a comment fragment in the translation process.
 #[derive(Debug, Clone, PartialEq, Eq)]
