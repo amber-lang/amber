@@ -118,15 +118,6 @@ impl TranslateModule for Lock {
         let lock_var_expr = meta.push_ephemeral_variable(lock_var_stmt);
         let lock_var_frag = lock_var_expr.with_quotes(false).to_frag();
 
-        let blocker = fragments!(
-            "if ! ( set -o noclobber; echo $$ > \"",
-            lock_var_frag.clone(),
-            "\" ) 2>/dev/null; then\n    exit 1\nfi\n",
-            "touch \"",
-            lock_var_frag.clone(),
-            "\"\n"
-        );
-
         let cleanup_array_update = fragments!(
             "if [ -z \"${__amber_cleanup_files+x}\" ]; then __amber_cleanup_files=( \"",
             lock_var_frag.clone(),
@@ -135,18 +126,36 @@ impl TranslateModule for Lock {
             "\" ); fi\n"
         );
 
-        let cleanup_trap_setup = fragments!(
-            "if [ -z \"${__amber_cleanup_trap_installed+x}\" ]; then\n",
-            "    __amber_cleanup_trap_installed=1\n",
-            "    trap 'for __amber_cleanup_file in \"${__amber_cleanup_files[@]}\"; do rm -f -- \"$__amber_cleanup_file\"; done' EXIT\n",
-            "fi\n"
+        let cleanup_trap_setup = raw_fragment!(
+            "if [ -z \"${{__amber_cleanup_trap_installed+x}}\" ]; then __amber_cleanup_trap_installed=1; trap 'for __amber_cleanup_file in \"${{__amber_cleanup_files[@]}}\"; do rm -f -- \"$__amber_cleanup_file\"; done' EXIT; fi"
+        );
+
+        let blocker = BlockFragment::new(
+            vec![
+                fragments!(
+                    "if ( set -o noclobber; echo $$ > \"",
+                    lock_var_frag.clone(),
+                    "\" ) 2>/dev/null; then"
+                ),
+                BlockFragment::new(
+                    vec![
+                        fragments!("touch \"", lock_var_frag.clone(), "\""),
+                        cleanup_array_update,
+                        cleanup_trap_setup,
+                    ],
+                    true,
+                )
+                .to_frag(),
+                raw_fragment!("else"),
+                BlockFragment::new(vec![raw_fragment!("false")], true).to_frag(),
+                raw_fragment!("fi"),
+            ],
+            false,
         );
 
         BlockFragment::new(
             vec![
-                blocker,
-                cleanup_array_update,
-                cleanup_trap_setup,
+                blocker.to_frag(),
                 self.failure_handler.translate(meta),
             ],
             false,
