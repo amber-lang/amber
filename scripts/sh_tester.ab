@@ -30,7 +30,6 @@ main {
         exit(1)
     }
     echo("Using {path}")
-    const report = "{path}/checkstyle.xml"
 
     let parallel_mkdir = ""
     let parallel_build = ""
@@ -47,7 +46,5 @@ main {
     // Bulid amber files. This can fail because some amber file contains warnings
     trust $ echo "{parallel_build}" | parallel $
     // Run ShellCheck. This also can fail because it is the purpose of this script.
-    trust $ shellcheck --format checkstyle {file_globstar("{path}/**/*.sh")?} 2>&1 > {report} $
-
-    echo("Report: {report}")
+    trust $ shellcheck --format gcc {file_globstar("{path}/**/*.sh")?} $
 }

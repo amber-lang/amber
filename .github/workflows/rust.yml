@@ -205,6 +205,8 @@ jobs:
           name: target
           path: artifact
       - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Add shellcheck problem matcher
+        run: echo "::add-matcher::.github/shellcheck-matcher.json"
       - name: Run sh_tester.ab
         env:
           CS_TEMP_DIR: ${{ github.workspace }}/amber.sc.tests
@@ -213,9 +215,6 @@ jobs:
         run: |
           cargo build --release
           cargo run -- run scripts/sh_tester.ab
-      - uses: staabm/annotate-pull-request-from-checkstyle-action@a7dbcfcab1a6892dae7893a160cc87f23af94de4 # v1
-        with:
-          files: amber.sc.tests/checkstyle.xml
   coverage:
     needs:
       - test
