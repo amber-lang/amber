@@ -45,6 +45,7 @@ main {
     $ echo "{parallel_mkdir}" | parallel $?
     // Bulid amber files. This can fail because some amber file contains warnings
     trust $ echo "{parallel_build}" | parallel $
-    // Run ShellCheck. This also can fail because it is the purpose of this script.
+    // Run ShellCheck. Show all issues for annotations, then fail if errors exist.
     trust $ shellcheck --format gcc {file_globstar("{path}/**/*.sh")?} $
+    $ shellcheck --format gcc --severity=error {file_globstar("{path}/**/*.sh")?} > /dev/null $?
 }
