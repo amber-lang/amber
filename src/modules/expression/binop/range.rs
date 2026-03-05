@@ -2,7 +2,7 @@ use crate::modules::expression::binop::BinOp;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::compute::{translate_float_computation, ArithOp};
+use crate::translate::compute::ArithOp;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 use std::cmp::max;
@@ -249,12 +249,8 @@ impl Range {
             let upper_id = meta.gen_value_id();
             let mut upper_val = self.to.translate(meta);
             if !self.neq {
-                upper_val = translate_float_computation(
-                    meta,
-                    ArithOp::Add,
-                    Some(upper_val),
-                    Some(fragments!("1")),
-                );
+                upper_val = ArithmeticFragment::new(Some(upper_val), ArithOp::Add, Some(fragments!("1")))
+                .to_frag();
             }
             let upper_var_stmt =
                 VarStmtFragment::new("slice_upper", Type::Int, upper_val).with_global_id(upper_id);
@@ -284,7 +280,8 @@ impl Range {
         let length = {
             let length_id = meta.gen_value_id();
             let length_val =
-                translate_float_computation(meta, ArithOp::Sub, Some(upper), Some(offset.clone()));
+                ArithmeticFragment::new(Some(upper), ArithOp::Sub, Some(offset.clone()))
+                .to_frag();
             let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_val)
                 .with_global_id(length_id);
             let length_var_expr = meta.push_ephemeral_variable(length_var_stmt).to_frag();
