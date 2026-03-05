@@ -1,0 +1,12 @@
+import * from "std/text"
+
+// Output
+// 04200
+// 004200
+// 42
+
+main {
+    echo(cpad("42", "0", 5))
+    echo(cpad("42", "0", 6))
+    echo(cpad("42", "0", 1))
+}
