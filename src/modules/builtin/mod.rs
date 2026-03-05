@@ -11,6 +11,7 @@ pub mod mv;
 pub mod nameof;
 pub mod pid;
 pub mod pwd;
+pub mod shellname;
 pub mod rm;
 pub mod sleep;
 pub mod touch;

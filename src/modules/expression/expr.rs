@@ -12,7 +12,7 @@ use super::typeop::{cast::Cast, is::Is};
 use super::unop::{neg::Neg, not::Not};
 use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::len::Len;
-use crate::modules::builtin::{lines::LinesInvocation, ls::Ls, nameof::Nameof, pid::Pid, pwd::Pwd};
+use crate::modules::builtin::{lines::LinesInvocation, ls::Ls, nameof::Nameof, pid::Pid, pwd::Pwd, shellname::Shellname};
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::access::Access;
 use crate::modules::expression::binop::BinOp;
@@ -73,6 +73,7 @@ pub enum ExprType {
     Pwd(Pwd),
     Ls(Ls),
     Pid(Pid),
+    Shellname(Shellname),
 }
 
 impl ExprType {
@@ -182,7 +183,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 Parentheses, Bool, Number, Integer, Text,
                 Array, Null, Status, Nameof,
                 // Builtin invocation
-                LinesInvocation, Pwd, Ls, Pid,
+                LinesInvocation, Pwd, Ls, Pid, Shellname,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -236,7 +237,8 @@ impl TypeCheckModule for Expr {
                 Access,
                 Pwd,
                 Ls,
-                Pid
+                Pid,
+                Shellname
             ]
         );
         Ok(())
@@ -286,7 +288,8 @@ impl TranslateModule for Expr {
                     Access,
                     Pwd,
                     Ls,
-                    Pid
+                    Pid,
+                    Shellname
                 ]
             )
         })
@@ -335,7 +338,8 @@ impl DocumentationModule for Expr {
                 Access,
                 Pwd,
                 Ls,
-                Pid
+                Pid,
+                Shellname
             ]
         )
     }

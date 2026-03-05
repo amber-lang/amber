@@ -1,25 +1,17 @@
-// We cannot import `shell_name` and `shell_version` from `env.ab` because it imports `text.ab` making a circular dependency.
+// We cannot import `shell_version` from `env.ab` because it imports `text.ab` making a circular dependency.
 // This is a workaround to avoid that issue and the import system should be improved in the future.
-
-#[allow_absurd_cast]
-fun shell_name(): Text {
-    trust silent $ [ -n "\$ZSH_VERSION" ] $ succeeded: return "zsh"
-	trust silent $ [ -n "\$KSH_VERSION" ] $ succeeded: return "ksh"
-    return "bash"
-}
 
 #[allow_absurd_cast]
 fun shell_version(): [Int] {
     let result = []
-    const shell_name = shell_name()
     if {
-        shell_name == "zsh" {
+        shellname() == "zsh" {
         	trust $ {nameof result}=(\$\{(s:.:)ZSH_VERSION}) $
-        } 
-		shell_name == "ksh" {
+        }
+		shellname() == "ksh" {
 			let version = "";
-			trust $ 
-				{nameof version}="\$\{.sh.version\//*\\\/}" 
+			trust $
+				{nameof version}="\$\{.sh.version\//*\\\/}"
 				{nameof version}="\$\{{nameof version}%% *}"
 				IFS='.' read -a KSH_VERSINFO <<< "\$\{shell%% *}"
 				{nameof result}=(\$\{KSH_VERSINFO[@]})
@@ -45,7 +37,7 @@ fun shell_version(): [Int] {
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if shell_name() == "bash" and shell_version() >= [4, 3] {
+    if shellname() == "bash" and shell_version() >= [4, 3] {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -63,7 +55,7 @@ pub fun replace(source, search, replace) {
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if shell_name() == "bash" and shell_version() >= [4, 3] {
+    if shellname() == "bash" and shell_version() >= [4, 3] {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -476,7 +468,7 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        if shell_name()  == "bash" and shell_version() >= [4] {
+        if shellname()  == "bash" and shell_version() >= [4] {
             return $ printf '%s\n' "\$\{{nameof text}^}" $
         }
         if sed_version() == SED_VERSION_GNU {
@@ -574,10 +566,10 @@ pub fun count_chars(text: Text): Int {
 /// ```ab
 /// let sorted = sort_lines("banana\napple\ncherry")
 /// echo(sorted) // "apple\nbanana\ncherry"
-/// 
+///
 /// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
 /// echo(sorted) // "cherry\nbanana\napple"
-/// 
+///
 /// sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
 /// echo(sorted) // "1\n2\n10"
 /// ```
@@ -601,6 +593,6 @@ pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text 
 pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
     if not remove_all:
         return trust $ uniq <<< "{text}" $
-    else: 
+    else:
         return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }

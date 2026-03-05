@@ -1,7 +1,7 @@
 import * from "std/env"
 
 main {
-    if shell_name() == "bash" {
+    if shellname() == "bash" {
         trust env_const_set("test_shell_constant_set", "Succe")
         let str = ""
         str += trust $ echo "\$test_shell_constant_set" $

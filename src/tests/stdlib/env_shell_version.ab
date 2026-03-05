@@ -1,9 +1,9 @@
-import { shell_name, shell_version } from "std/env"
+import { shell_version } from "std/env"
 
 main {
-    // Verify shell_name returns a valid value
-    const name = shell_name()
-    if name != "bash" and name != "zsh" {
+    // Verify shellname returns a valid value
+    const name = shellname()
+    if name != "bash" and name != "zsh" and name != "ksh" {
         echo("Failed")
     }
     

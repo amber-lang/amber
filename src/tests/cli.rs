@@ -55,16 +55,20 @@ fn main_args_passed_correctly() {
     let bash_code_with_args = format!("set -- one two three\n{}", bash_code);
 
     // Execute the bash code and check the output
-    let output = std::process::Command::new("bash")
-        .arg("--norc")
+    let output = AmberCompiler::find_bash()
+        .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code_with_args)
         .output()
-        .expect("Failed to execute bash");
+        .expect("Failed to execute shell");
 
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert_eq!(stdout.trim(), "bash\none\ntwo\nthree");
+    let lines: Vec<&str> = stdout.trim().lines().collect();
+    assert_eq!(lines.len(), 4);
+    assert_eq!(lines[1], "one");
+    assert_eq!(lines[2], "two");
+    assert_eq!(lines[3], "three");
 }
 
 #[test]
@@ -148,13 +152,14 @@ fn test_input_prompt_stdin() {
 
     // Execute the bash code with stdin input
     // We pipe "World" into the process
-    let mut child = std::process::Command::new("bash")
+    let mut child = AmberCompiler::find_bash()
+        .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .expect("Failed to spawn bash");
+        .expect("Failed to spawn shell");
 
     {
         use std::io::Write;
@@ -199,13 +204,14 @@ fn test_input_hidden_stdin() {
 
     // Execute the bash code with stdin input
     // We pipe "SecretCode" into the process
-    let mut child = std::process::Command::new("bash")
+    let mut child = AmberCompiler::find_bash()
+        .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .expect("Failed to spawn bash");
+        .expect("Failed to spawn shell");
 
     {
         use std::io::Write;
@@ -253,13 +259,14 @@ fn test_input_confirm_stdin() {
 
     // Execute the bash code with stdin input
     // We pipe "y" into the process
-    let mut child = std::process::Command::new("bash")
+    let mut child = AmberCompiler::find_bash()
+        .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .expect("Failed to spawn bash");
+        .expect("Failed to spawn shell");
 
     {
         use std::io::Write;

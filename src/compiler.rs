@@ -239,7 +239,7 @@ impl AmberCompiler {
         footer_template.replace("{{ version }}", get_version())
     }
 
-    fn gen_preamble(&self, sudo_used: bool, target_shell: &ShellType) -> FragmentKind {
+    fn gen_preamble(&self, sudo_used: bool, shellname_used: bool, target_shell: &ShellType) -> FragmentKind {
         let mut preamble = Vec::new();
         match target_shell {
             ShellType::Bash => {
@@ -258,20 +258,23 @@ impl AmberCompiler {
             }
         }
         if sudo_used {
-            // Check if sudo is available
-            preamble.push(RawFragment::new(r#"[ "$EUID" -ne 0 ] && { { command -v sudo >/dev/null 2>&1 && __sudo=sudo; } || { command -v doas >/dev/null 2>&1 && __sudo=doas; }; }"#).to_frag());
+            preamble.push(RawFragment::new(include_str!("preambles/sudo.sh").trim_end()).to_frag());
+        }
+        if shellname_used {
+            preamble.push(RawFragment::new(include_str!("preambles/shellname.sh").trim_end()).to_frag());
         }
         BlockFragment::new(preamble, false).to_frag()
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let sudo_used = meta.sudo_used;
+        let shellname_used = meta.shellname_used;
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
         // Add preamble that contains all code that should be executed before the main code
-        result.append(self.gen_preamble(sudo_used, &meta_translate.target.shell));
+        result.append(self.gen_preamble(sudo_used, shellname_used, &meta_translate.target.shell));
 
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));

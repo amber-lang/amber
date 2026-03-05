@@ -1,14 +1,5 @@
 import { match_regex, join, replace_regex, split, trim } from "std/text"
 
-// We cannot import `shell_name` from `env.ab` because it imports `fs.ab` making a circular dependency.
-// This is a workaround to avoid that issue and the import system should be improved in the future.
-#[allow_absurd_cast]
-fun shell_name(): Text {
-    trust silent $ [ -n "\$ZSH_VERSION" ] $ succeeded: return "zsh"
-	trust silent $ [ -n "\$KSH_VERSION" ] $ succeeded: return "ksh"
-    return "bash"
-}
-
 /// Checks if a directory exists.
 ///
 /// ### Usage
@@ -136,7 +127,7 @@ pub fun temp_dir_create(
         echo("Failed to make a temporary directory")
         fail 1
     }
-    if auto_delete and shell_name() != "ksh"  {
+    if auto_delete and shellname() != "ksh"  {
         if force_delete {
             $ trap 'rm -rf {filename}' EXIT $ failed {
                 echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
