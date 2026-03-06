@@ -75,6 +75,7 @@ KEYWORD_IS = 'is' ;
 KEYWORD_LEN = 'len' ;
 KEYWORD_LET = 'let' ;
 KEYWORD_LINES = 'lines' ;
+KEYWORD_LOCK = 'lock' ;
 KEYWORD_LOOP = 'loop' ;
 KEYWORD_LS = 'ls' ;
 KEYWORD_MAIN = 'main' ;
@@ -220,6 +221,7 @@ builtins_statement =
     builtin_cp |
     builtin_echo |
     builtin_exit |
+    builtin_lock |
     builtin_mv |
     builtin_rm |
     builtin_sleep ;
@@ -229,6 +231,7 @@ builtin_clear = KEYWORD_CLEAR ;
 builtin_cp = KEYWORD_CP, expression ;
 builtin_echo = KEYWORD_ECHO, expression ;
 builtin_exit = KEYWORD_EXIT, expression ;
+builtin_lock = KEYWORD_LOCK, expression ;
 builtin_mv = KEYWORD_MV, expression ;
 builtin_rm = KEYWORD_RM, expression ;
 builtin_sleep = KEYWORD_SLEEP, expression ;
