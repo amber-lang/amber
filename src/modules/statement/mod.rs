@@ -8,7 +8,7 @@ macro_rules! parse_statement {
         let mut error = None;
         $(
             let mut $module = $stmt::new();
-            let $cons = StmtType::$stmt;
+            let $cons = |module: $stmt| StmtType::$stmt(module.into());
             match $body {
                 Ok(()) => return Ok(()),
                 Err(failure) => {

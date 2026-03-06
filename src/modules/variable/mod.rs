@@ -57,6 +57,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "len",
         "let",
         "lines",
+        "lock",
         "loop",
         "main",
         "mv",

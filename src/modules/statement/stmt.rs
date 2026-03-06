@@ -2,8 +2,8 @@ use super::comment::Comment;
 use super::comment_doc::CommentDoc;
 use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::{
-    cd::Cd, clear::Clear, cp::Cp, disown::Disown, echo::Echo, exit::Exit, mv::Mv, rm::Rm,
-    sleep::Sleep, touch::Touch, wait::Await,
+    cd::Cd, clear::Clear, cp::Cp, disown::Disown, echo::Echo, exit::Exit, lock::Lock, mv::Mv,
+    rm::Rm, sleep::Sleep, touch::Touch, wait::Await,
 };
 use crate::modules::command::cmd::Command;
 use crate::modules::command::modifier::CommandModifier;
@@ -68,6 +68,7 @@ pub enum StmtType {
     Comment(Comment),
     CommentDoc(CommentDoc),
     Sleep(Sleep),
+    Lock(Box<Lock>),
     Rm(Rm),
     Clear(Clear),
     Await(Await),
@@ -126,6 +127,7 @@ impl SyntaxModule<ParserMetadata> for Statement {
                 CommandModifier,
                 Command,
                 Sleep,
+                Lock,
                 Rm,
                 Clear,
                 Await,
