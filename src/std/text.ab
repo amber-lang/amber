@@ -504,7 +504,7 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
 /// echo padded // "04200"
 ///
 /// padded = cpad("42", "0", 6)
-/// echo padded // "000420"
+/// echo padded // "004200"
 ///
 /// padded = cpad("42", "0", 1)
 /// echo padded // "42"
@@ -513,7 +513,8 @@ pub fun cpad(text: Text, pad: Text, length: Int): Text {
     const text_length = len(text)
     if length <= text_length: return text
 
-    const left_padding_length = length / 2 + text_length / 2
+    const total_padding = length - text_length
+    const left_padding_length = text_length + total_padding / 2
     const left_padded = lpad(text, pad, left_padding_length)
     const center_padded = rpad(left_padded, pad, length)
 
