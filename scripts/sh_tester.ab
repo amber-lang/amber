@@ -1,0 +1,50 @@
+import { array_contains } from "std/array"
+import { env_var_get } from "std/env"
+import { replace_regex, split, split_lines, text_contains } from "std/text"
+import { file_write, file_append, dir_exists, file_exists, dir_create, temp_dir_create } from "std/fs"
+
+/// file_glob() with globstar option which is not support by stdlib.
+/// https://github.com/amber-lang/amber/issues/650
+fun file_globstar(path: Text): [Text]? {
+    let temp_globstar_enabled = false
+    // -q for quiet. the return status dicates whether the globstap is set or unset
+    $ shopt -q globstar $ exited(code): temp_globstar_enabled = code == 0
+
+    // -s for set
+    silent trust $ shopt -s globstar $
+    const files = $ eval "for file in {path}; do [ -e \\"\\\$file\\" ] && printf \"%s\\n\" \\"\\\$file\\"; done" $?
+
+    if temp_globstar_enabled: silent trust $ shopt -s globstar $
+    else: silent trust $ shopt -u globstar $
+
+    return split_lines(files)
+}
+
+const temp_dir = trust env_var_get("CS_TEMP_DIR")
+const include_path = trust env_var_get("INCLUDE_PATH")
+const exclude_path = trust env_var_get("EXCLUDE_PATH")
+
+main {
+    const path = temp_dir != "" then temp_dir else temp_dir_create("amber.sc.tests.XXXXX") failed {
+        echo("Failed to create temporary directory")
+        exit(1)
+    }
+    echo("Using {path}")
+
+    let parallel_mkdir = ""
+    let parallel_build = ""
+    const exclude_files = file_globstar(exclude_path)?
+    for amber_file in file_globstar(include_path != "" then include_path else "**/*.ab")? {
+        if array_contains(exclude_files, amber_file): continue
+        const dirname = $ dirname {amber_file} $?
+        const bash_file = replace_regex(amber_file, ".ab$", ".sh")
+        parallel_mkdir += "mkdir -p \"{path}/{dirname}\"\n"
+        parallel_build += "./target/release/amber build \"{amber_file}\" \"{path}/{bash_file}\"\n"
+    }
+
+    $ echo "{parallel_mkdir}" | parallel $?
+    // Bulid amber files. This can fail because some amber file contains warnings
+    trust $ echo "{parallel_build}" | parallel $
+    // Run ShellCheck. This also can fail because it is the purpose of this script.
+    trust $ shellcheck --format gcc {file_globstar("{path}/**/*.sh")?} $
+}
