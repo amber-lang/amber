@@ -115,7 +115,7 @@ impl Range {
                 " -gt ",
                 to_var.clone(),
                 " ]; then ",
-                "(seq -f \"%.0f\" -- ",
+                "{ seq -f \"%.0f\" -- ",
                 from_var.clone(),
                 " -1 ",
                 reverse_to.clone(),
@@ -123,13 +123,13 @@ impl Range {
                 from_var.clone(),
                 " -1 ",
                 reverse_to,
-                ") | paste -sd \" \" -; ",
+                "; } | paste -sd \" \" -; ",
                 "elif [ ",
                 from_var.clone(),
                 " -lt ",
                 to_var.clone(),
                 " ]; then ",
-                "(seq -f \"%.0f\" -- ",
+                "{ seq -f \"%.0f\" -- ",
                 from_var.clone(),
                 " ",
                 forward_to.clone(),
@@ -137,7 +137,7 @@ impl Range {
                 from_var.clone(),
                 " ",
                 forward_to,
-                ") | paste -sd \" \" -; fi"
+                "; } | paste -sd \" \" -; fi"
             )
         } else {
             fragments!(
@@ -146,7 +146,7 @@ impl Range {
                 " -gt ",
                 to_var.clone(),
                 " ]; then ",
-                "(seq -f \"%.0f\" -- ",
+                "{ seq -f \"%.0f\" -- ",
                 from_var.clone(),
                 " -1 ",
                 reverse_to.clone(),
@@ -154,8 +154,8 @@ impl Range {
                 from_var.clone(),
                 " -1 ",
                 reverse_to,
-                ") | paste -sd \" \" -; ",
-                "else (seq -f \"%.0f\" -- ",
+                "; } | paste -sd \" \" -; ",
+                "else { seq -f \"%.0f\" -- ",
                 from_var.clone(),
                 " ",
                 forward_to.clone(),
@@ -163,7 +163,7 @@ impl Range {
                 from_var.clone(),
                 " ",
                 forward_to,
-                ") | paste -sd \" \" -; fi"
+                "; } | paste -sd \" \" -; fi"
             )
         };
 
@@ -179,7 +179,7 @@ impl Range {
     fn generate_forward_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val - 1 } else { to_val };
         let expr = fragments!(
-            "(seq -f \"%.0f\" -- ",
+            "{ seq -f \"%.0f\" -- ",
             raw_fragment!("{}", from_val),
             " ",
             raw_fragment!("{}", to_adjusted),
@@ -187,7 +187,7 @@ impl Range {
             raw_fragment!("{}", from_val),
             " ",
             raw_fragment!("{}", to_adjusted),
-            ") | paste -sd \" \" -"
+            "; } | paste -sd \" \" -"
         );
         SubprocessFragment::new(expr).to_frag()
     }
@@ -196,7 +196,7 @@ impl Range {
     fn generate_reverse_seq(&self, from_val: isize, to_val: isize) -> FragmentKind {
         let to_adjusted = if self.neq { to_val + 1 } else { to_val };
         let expr = fragments!(
-            "(seq -f \"%.0f\" -- ",
+            "{ seq -f \"%.0f\" -- ",
             raw_fragment!("{}", from_val),
             " -1 ",
             raw_fragment!("{}", to_adjusted),
@@ -204,7 +204,7 @@ impl Range {
             raw_fragment!("{}", from_val),
             " -1 ",
             raw_fragment!("{}", to_adjusted),
-            ") | paste -sd \" \" -"
+            "; } | paste -sd \" \" -"
         );
         SubprocessFragment::new(expr).to_frag()
     }
