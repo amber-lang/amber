@@ -2,7 +2,7 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
-foo__0_v0() {
+function foo__0_v0 {
     touch "file.txt"
 }
 

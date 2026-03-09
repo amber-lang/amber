@@ -187,9 +187,8 @@ impl VarExprFragment {
         // Dereference variable if it's a reference and is passed by reference
         if self.is_ref {
             name = match meta.target.shell {
-				ShellType::Bash => format!("{dollar}{{!{name}}}"),
+				ShellType::Ksh | ShellType::Bash => format!("{dollar}{{!{name}}}"),
 				ShellType::Zsh => if self.is_array_ref { format!("{dollar}{{{name}}}") } else { format!("{dollar}{{(P){name}}}") },
-				ShellType::Ksh => format!("{dollar}{{{name}}}")
 			}
         }
 

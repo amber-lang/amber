@@ -190,17 +190,27 @@ impl TranslateModule for Ls {
             VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
-      //  dbg!(&meta.target.shell);
-        let read_option = if matches!(&meta.target.shell, ShellType::Zsh) { "-A" } else { "-a" };
-        meta.stmt_queue.extend([
-            fragments!(
-                raw_fragment!(
-                    // custom LC_ALL breaks sorting inside tests
-                    "LC_ALL=C IFS=$'\\n' read -rd '' {read_option} {} < <(IFS=$'\\n'; ",
+        let read_command = match &meta.target.shell {
+            ShellType::Bash => raw_fragment!(
+                    "LC_ALL=C IFS=$'\\n' read -rd '' -a {} < <(",
                     var_expr.get_name()
                 ),
+            ShellType::Zsh => raw_fragment!(
+                    "LC_ALL=C IFS=$'\\n' read -rd '' -A {} < <(",
+                    var_expr.get_name()
+                ),
+                // ksh is bad at splitting newlines
+            ShellType::Ksh => raw_fragment!(
+                    "while read -r __ls_line; do {}+=(\"${{__ls_line}}\"); done < <(",
+                    var_expr.get_name()
+                ),
+            
+        };
+        meta.stmt_queue.extend([
+            fragments!(
+                read_command,
                 sudo_prefix,
-                "LC_ALL=C ls -1",
+                "IFS=$'\\n'; LC_ALL=C ls -1",
                 all_frag,
                 recursive_frag,
                 " ",

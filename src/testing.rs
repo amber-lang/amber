@@ -137,7 +137,7 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
 
             let result = match compiler.compile() {
                 Ok((_, bash_code)) => {
-                    match AmberCompiler::find_bash() {
+                    match AmberCompiler::find_shell() {
                         Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
                             Ok(output) => {
                                 if output.status.success() {

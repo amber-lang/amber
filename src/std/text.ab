@@ -11,9 +11,8 @@ fun shell_version(): [Int] {
 		shellname() == "ksh" {
 			let version = "";
 			trust $
-				{nameof version}="\$\{.sh.version\//*\\\/}"
-				{nameof version}="\$\{{nameof version}%% *}"
-				IFS='.' read -a KSH_VERSINFO <<< "\$\{shell%% *}"
+				{nameof version}="\$\{.sh.version##*\/}"
+				IFS='.' read -a KSH_VERSINFO <<< "\$\{{nameof version}%% *}"
 				{nameof result}=(\$\{KSH_VERSINFO[@]})
 			$
 		}
@@ -37,7 +36,7 @@ fun shell_version(): [Int] {
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if shellname() == "bash" and shell_version() >= [4, 3] {
+    if shellname() == "ksh" or (shellname() == "bash" and shell_version() >= [4, 3]) {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -55,7 +54,7 @@ pub fun replace(source, search, replace) {
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if shellname() == "bash" and shell_version() >= [4, 3] {
+    if shellname() == "ksh" or (shellname() == "bash" and shell_version() >= [4, 3]) {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -128,10 +127,18 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    // zsh uses -A for array, bash uses -a
-    trust $ [ -n "\$ZSH_VERSION" ] $ exited(code): if {
-        code == 0: $ IFS="{delimiter}" read -rd '' -A {nameof result} < <(printf %s "\${nameof text}") $
-        else: $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+    // zsh uses -A for array, bash uses -a, ksh is VERY bad at splitting anything
+    trust {
+        if {
+            shellname() == "zsh": $ IFS="{delimiter}" read -rd '' -A {nameof result} < <(printf %s "\${nameof text}") $
+            shellname() == "ksh" {
+                if delimiter == "\n":
+                    $ while read -r -d \$'\\n'; do {nameof result}+=("\$REPLY"); done < <(echo "\${nameof text}") $
+                else:
+                    $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+            } 
+            shellname() == "bash": $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+        }
     }
     return result
 }
@@ -217,7 +224,8 @@ pub fun trim(text: Text): Text {
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    return trust $ tr '[:upper:]' '[:lower:]' <<< "{text}" $
+    trust $ typeset -l {nameof text} $
+    return text
 }
 
 /// Makes the text input uppercase using `tr`.
@@ -228,7 +236,8 @@ pub fun lowercase(text: Text): Text {
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    return trust $ tr '[:lower:]' '[:upper:]' <<< "{text}" $
+    trust $ typeset -u {nameof text} $
+    return text
 }
 
 /// Attempts to parse a given text into an `Int` number.
@@ -468,12 +477,9 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        if shellname()  == "bash" and shell_version() >= [4] {
-            return $ printf '%s\n' "\$\{{nameof text}^}" $
-        }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ printf '%s\n' "{text}" | sed "s/^\(.\)/\U\1/" $
+            return $ printf '%s\n' "{text}" | sed 's/^\(.\)/\U\1/' $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)

@@ -2,14 +2,14 @@
 source: src/tests/compiling.rs
 expression: ast
 ---
-foo__0_v0() {
-    local arg_7="${1}"
+function foo__0_v0 {
+    typeset arg_7="${1}"
     echo "Value: ${arg_7}"
 }
 
-bar__1_v0() {
-    local a_5="${1}"
-    local b_6="${2}"
+function bar__1_v0 {
+    typeset a_5="${1}"
+    typeset b_6="${2}"
     foo__0_v0 "${a_5}"
     foo__0_v0 "${b_6}"
 }

@@ -70,9 +70,10 @@ impl IterLoopRange for IterLoop {
         match (self.iter_index.as_ref(), self.iter_index_global_id) {
             (Some(index), Some(global_id)) => {
                 let idx_var = get_variable_name(index, Some(global_id));
+                // extra spacing before comma prevents ksh from returning a error due to how it parses arithmetic
                 (
-                    raw_fragment!(", {idx_var}=0"),
-                    raw_fragment!(", {idx_var}++"),
+                    raw_fragment!(" , {idx_var}=0"),
+                    raw_fragment!(" , {idx_var}++"),
                 )
             }
             _ => (FragmentKind::Empty, FragmentKind::Empty),
