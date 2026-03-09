@@ -224,7 +224,10 @@ pub fun trim(text: Text): Text {
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    trust $ typeset -l {nameof text} $
+    trust $ 
+        typeset -l {nameof text} 
+        {nameof text}="{text}" 
+    $
     return text
 }
 
@@ -236,7 +239,10 @@ pub fun lowercase(text: Text): Text {
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    trust $ typeset -u {nameof text} $
+    trust $ 
+        typeset -u {nameof text} 
+        {nameof text}="{text}" 
+    $
     return text
 }
 
