@@ -494,6 +494,33 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
     return text + padding
 }
 
+/// Pads `text` with the specified `pad` character to the center within the desired `length`
+///
+/// ### Usage
+/// ```ab
+/// let padded: Text
+///
+/// padded = cpad("42", "0", 5)
+/// echo(padded) // "04200"
+///
+/// padded = cpad("42", "0", 6)
+/// echo(padded) // "004200"
+///
+/// padded = cpad("42", "0", 1)
+/// echo(padded) // "42"
+/// ```
+pub fun cpad(text: Text, pad: Text, length: Int): Text {
+    const text_length = len(text)
+    if length <= text_length: return text
+
+    const total_padding = length - text_length
+    const left_padding_length = text_length + total_padding / 2
+    const left_padded = lpad(text, pad, left_padding_length)
+    const center_padded = rpad(left_padded, pad, length)
+
+    return center_padded
+}
+
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
 ///
 /// ### Usage
@@ -548,10 +575,10 @@ pub fun count_chars(text: Text): Int {
 /// ```ab
 /// let sorted = sort_lines("banana\napple\ncherry")
 /// echo(sorted) // "apple\nbanana\ncherry"
-/// 
+///
 /// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
 /// echo(sorted) // "cherry\nbanana\napple"
-/// 
+///
 /// sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
 /// echo(sorted) // "1\n2\n10"
 /// ```
@@ -575,6 +602,6 @@ pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text 
 pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
     if not remove_all:
         return trust $ uniq <<< "{text}" $
-    else: 
+    else:
         return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }

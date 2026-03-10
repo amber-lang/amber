@@ -6,6 +6,7 @@ pub mod echo;
 pub mod exit;
 pub mod len;
 pub mod lines;
+pub mod lock;
 pub mod ls;
 pub mod mv;
 pub mod nameof;

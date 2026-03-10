@@ -71,7 +71,9 @@ impl TranslateModule for LinesInvocation {
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
         meta.stmt_queue.extend([
-            raw_fragment!("while IFS= read -r {temp}; do"),
+            // NOTE: The same read-loop pattern also exists in iter_loop.rs (IterLoop::translate).
+            // If you change this, update that one too.
+            raw_fragment!("while IFS= read -r {temp} || [ -n \"${temp}\" ]; do"),
             raw_fragment!("{indent}{}+=(\"${}\")", var_expr.get_name(), temp),
             fragments!("done <", path),
         ]);

@@ -1,4 +1,5 @@
 [build]
+incremental = true
 # target = [
 #     'aarch64-apple-darwin',
 #     'aarch64-unknown-linux-musl',
@@ -11,6 +12,9 @@
 
 # [target.aarch64-unknown-linux-musl]
 # linker = "aarch64-unknown-linux-musl-gcc"
+[env]
+RUSTFLAGS = "-C debuginfo=0"
 
 [alias]
 lint = "clippy --all-targets --all-features -- -D warnings"
+

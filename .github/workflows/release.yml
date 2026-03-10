@@ -232,11 +232,14 @@ jobs:
           cargo run --release -- build ./setup/install.ab   ./dist/install.sh
           cargo run --release -- build ./setup/uninstall.ab ./dist/uninstall.sh
 
-      - name: Install cargo-deb
-        run: cargo install cargo-deb
+      - name: Install cargo-deb and cargo-generate-rpm
+        run: cargo install cargo-deb cargo-generate-rpm
 
       - name: Create Debian package (x86_64)
         run: cargo deb --no-build --output="./dist/amber-linux-debian-x86_64.deb"
+
+      - name: Create RPM package (x86_64)
+        run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
 
       - name: Upload artifacts (scripts & deb)
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

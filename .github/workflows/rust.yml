@@ -179,6 +179,42 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
+        with:
+          packages: parallel shellcheck
+          version: 1.0
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./target/deps
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - uses: actions/download-artifact@v4
+        with:
+          name: target
+          path: artifact
+      - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Add shellcheck problem matcher
+        run: echo "::add-matcher::.github/shellcheck-matcher.json"
+      - name: Run sh_tester.ab
+        env:
+          CS_TEMP_DIR: ${{ github.workspace }}/amber.sc.tests
+          INCLUDE_PATH: "**/*.ab"
+          EXCLUDE_PATH: "src/tests/{erroring,warning}/*.ab"
+        run: |
+          cargo build --release
+          cargo run -- run scripts/sh_tester.ab
   coverage:
     needs:
       - test

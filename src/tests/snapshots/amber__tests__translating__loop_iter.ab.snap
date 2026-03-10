@@ -1,5 +1,6 @@
 ---
 source: src/tests/translating.rs
+assertion_line: 31
 expression: ast
 ---
 Block(
@@ -100,27 +101,31 @@ Block(
                                         LogFragment {
                                             value: Interpolable(
                                                 InterpolableFragment {
-                                                    strings: [
-                                                        "Item: ",
-                                                        "",
-                                                    ],
-                                                    interps: [
-                                                        VarExpr(
-                                                            VarExprFragment {
-                                                                name: "item",
-                                                                global_id: Some(
-                                                                    0,
-                                                                ),
-                                                                kind: Int,
-                                                                is_ref: false,
-                                                                is_length: false,
-                                                                default_value: None,
-                                                                is_quoted: false,
-                                                                is_array_to_string: false,
-                                                                is_math_var: false,
-                                                                render_type: BashValue,
-                                                                index: None,
-                                                            },
+                                                    parts: [
+                                                        String(
+                                                            "Item: ",
+                                                        ),
+                                                        Interp(
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "item",
+                                                                    global_id: Some(
+                                                                        0,
+                                                                    ),
+                                                                    kind: Int,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    is_math_var: false,
+                                                                    render_type: BashValue,
+                                                                    index: None,
+                                                                },
+                                                            ),
+                                                        ),
+                                                        String(
+                                                            "",
                                                         ),
                                                     ],
                                                     render_type: StringLiteral,
@@ -173,30 +178,33 @@ Block(
                             values: [
                                 Interpolable(
                                     InterpolableFragment {
-                                        strings: [
-                                            "A",
+                                        parts: [
+                                            String(
+                                                "A",
+                                            ),
                                         ],
-                                        interps: [],
                                         render_type: StringLiteral,
                                         quoted: true,
                                     },
                                 ),
                                 Interpolable(
                                     InterpolableFragment {
-                                        strings: [
-                                            "B",
+                                        parts: [
+                                            String(
+                                                "B",
+                                            ),
                                         ],
-                                        interps: [],
                                         render_type: StringLiteral,
                                         quoted: true,
                                     },
                                 ),
                                 Interpolable(
                                     InterpolableFragment {
-                                        strings: [
-                                            "C",
+                                        parts: [
+                                            String(
+                                                "C",
+                                            ),
                                         ],
-                                        interps: [],
                                         render_type: StringLiteral,
                                         quoted: true,
                                     },
@@ -343,45 +351,53 @@ Block(
                                         LogFragment {
                                             value: Interpolable(
                                                 InterpolableFragment {
-                                                    strings: [
-                                                        "Index: ",
-                                                        ", Item: ",
-                                                        "",
-                                                    ],
-                                                    interps: [
-                                                        VarExpr(
-                                                            VarExprFragment {
-                                                                name: "index",
-                                                                global_id: Some(
-                                                                    3,
-                                                                ),
-                                                                kind: Int,
-                                                                is_ref: false,
-                                                                is_length: false,
-                                                                default_value: None,
-                                                                is_quoted: false,
-                                                                is_array_to_string: false,
-                                                                is_math_var: false,
-                                                                render_type: BashValue,
-                                                                index: None,
-                                                            },
+                                                    parts: [
+                                                        String(
+                                                            "Index: ",
                                                         ),
-                                                        VarExpr(
-                                                            VarExprFragment {
-                                                                name: "item",
-                                                                global_id: Some(
-                                                                    2,
-                                                                ),
-                                                                kind: Int,
-                                                                is_ref: false,
-                                                                is_length: false,
-                                                                default_value: None,
-                                                                is_quoted: false,
-                                                                is_array_to_string: false,
-                                                                is_math_var: false,
-                                                                render_type: BashValue,
-                                                                index: None,
-                                                            },
+                                                        Interp(
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "index",
+                                                                    global_id: Some(
+                                                                        3,
+                                                                    ),
+                                                                    kind: Int,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    is_math_var: false,
+                                                                    render_type: BashValue,
+                                                                    index: None,
+                                                                },
+                                                            ),
+                                                        ),
+                                                        String(
+                                                            ", Item: ",
+                                                        ),
+                                                        Interp(
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "item",
+                                                                    global_id: Some(
+                                                                        2,
+                                                                    ),
+                                                                    kind: Int,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    is_math_var: false,
+                                                                    render_type: BashValue,
+                                                                    index: None,
+                                                                },
+                                                            ),
+                                                        ),
+                                                        String(
+                                                            "",
                                                         ),
                                                     ],
                                                     render_type: StringLiteral,
@@ -394,47 +410,51 @@ Block(
                                         LogFragment {
                                             value: Interpolable(
                                                 InterpolableFragment {
-                                                    strings: [
-                                                        "Item from list: ",
-                                                        "",
-                                                    ],
-                                                    interps: [
-                                                        VarExpr(
-                                                            VarExprFragment {
-                                                                name: "items",
-                                                                global_id: Some(
-                                                                    1,
-                                                                ),
-                                                                kind: Text,
-                                                                is_ref: false,
-                                                                is_length: false,
-                                                                default_value: None,
-                                                                is_quoted: false,
-                                                                is_array_to_string: false,
-                                                                is_math_var: false,
-                                                                render_type: BashValue,
-                                                                index: Some(
-                                                                    Index(
-                                                                        VarExpr(
-                                                                            VarExprFragment {
-                                                                                name: "index",
-                                                                                global_id: Some(
-                                                                                    3,
-                                                                                ),
-                                                                                kind: Int,
-                                                                                is_ref: false,
-                                                                                is_length: false,
-                                                                                default_value: None,
-                                                                                is_quoted: true,
-                                                                                is_array_to_string: false,
-                                                                                is_math_var: false,
-                                                                                render_type: BashValue,
-                                                                                index: None,
-                                                                            },
+                                                    parts: [
+                                                        String(
+                                                            "Item from list: ",
+                                                        ),
+                                                        Interp(
+                                                            VarExpr(
+                                                                VarExprFragment {
+                                                                    name: "items",
+                                                                    global_id: Some(
+                                                                        1,
+                                                                    ),
+                                                                    kind: Text,
+                                                                    is_ref: false,
+                                                                    is_length: false,
+                                                                    default_value: None,
+                                                                    is_quoted: false,
+                                                                    is_array_to_string: false,
+                                                                    is_math_var: false,
+                                                                    render_type: BashValue,
+                                                                    index: Some(
+                                                                        Index(
+                                                                            VarExpr(
+                                                                                VarExprFragment {
+                                                                                    name: "index",
+                                                                                    global_id: Some(
+                                                                                        3,
+                                                                                    ),
+                                                                                    kind: Int,
+                                                                                    is_ref: false,
+                                                                                    is_length: false,
+                                                                                    default_value: None,
+                                                                                    is_quoted: true,
+                                                                                    is_array_to_string: false,
+                                                                                    is_math_var: false,
+                                                                                    render_type: BashValue,
+                                                                                    index: None,
+                                                                                },
+                                                                            ),
                                                                         ),
                                                                     ),
-                                                                ),
-                                                            },
+                                                                },
+                                                            ),
+                                                        ),
+                                                        String(
+                                                            "",
                                                         ),
                                                     ],
                                                     render_type: StringLiteral,
