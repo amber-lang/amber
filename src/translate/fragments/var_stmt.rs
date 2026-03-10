@@ -163,9 +163,11 @@ impl VarStmtFragment {
                 if self.is_local && is_running_command {
                     format!("typeset {var_name}\n{}{assignment}", meta.gen_indent())
                 } else if self.is_local {
-                    // in ksh, if you don't define variable as array, () is treated as string instead of empty array
+                    // In ksh93, `arr=()` becomes a literal `()` value, and `typeset -a arr`
+                    // does not clear an existing value. `typeset -a arr=()` is required to
+                    // create a real empty array while preserving overwrite semantics.
                     if self.kind.is_array() && value.is_empty() {
-                        format!("typeset -ga {assignment}")
+                        format!("typeset -a {assignment}")
                     } else if self.is_ref {
                         format!("typeset -n {assignment}")
                     } else if self.kind.is_array() {
@@ -176,7 +178,7 @@ impl VarStmtFragment {
                         format!("typeset {assignment}")
                     }
                 } else if self.kind.is_array() && value.is_empty() {
-                    format!("typeset -ga {assignment}")
+                    format!("typeset -a {assignment}")
                 } else {
                     assignment
                 }
