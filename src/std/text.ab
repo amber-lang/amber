@@ -524,6 +524,33 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
     return text + padding
 }
 
+/// Pads `text` with the specified `pad` character to the center within the desired `length`
+///
+/// ### Usage
+/// ```ab
+/// let padded: Text
+///
+/// padded = cpad("42", "0", 5)
+/// echo(padded) // "04200"
+///
+/// padded = cpad("42", "0", 6)
+/// echo(padded) // "004200"
+///
+/// padded = cpad("42", "0", 1)
+/// echo(padded) // "42"
+/// ```
+pub fun cpad(text: Text, pad: Text, length: Int): Text {
+    const text_length = len(text)
+    if length <= text_length: return text
+
+    const total_padding = length - text_length
+    const left_padding_length = text_length + total_padding / 2
+    const left_padded = lpad(text, pad, left_padding_length)
+    const center_padded = rpad(left_padded, pad, length)
+
+    return center_padded
+}
+
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
 ///
 /// ### Usage
