@@ -1,0 +1,69 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to this project are documented in this file.
+"""
+body = """
+{%- if version %}
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{%- else %}
+## [unreleased]
+{%- endif %}
+
+{%- for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+{%- for commit in commits %}
+* {{ commit.author.name }}{% if commit.author.email %} <{{ commit.author.email }}>{% endif %}: {% if commit.scope %}({{ commit.scope }}) {% endif %}{% if commit.breaking %}[breaking] {% endif %}{{ commit.message | upper_first }} ({{ commit.id | truncate(length=7, end="") }})
+{%- endfor %}
+{%- endfor %}
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+require_conventional = false
+split_commits = false
+protect_breaking_commits = true
+sort_commits = "oldest"
+
+commit_preprocessors = [
+  { pattern = "(?s)\\n.*", replace = "" },
+  { pattern = "\\s*\\(#\\d+\\)$", replace = "" },
+]
+
+commit_parsers = [
+  { body = "(?i)breaking change", group = "Breaking Changes" },
+  { message = "^[a-zA-Z]+(\\([^)]+\\))?!:", group = "Breaking Changes" },
+
+  { message = "^feat(\\([^)]+\\))?!?:", group = "Features" },
+  { message = "^fix(\\([^)]+\\))?!?:", group = "Bug Fixes" },
+  { message = "^(docs|doc)(\\([^)]+\\))?!?:", group = "Documentation" },
+  { message = "^refactor(\\([^)]+\\))?!?:", group = "Refactoring" },
+  { message = "^perf(\\([^)]+\\))?!?:", group = "Performance" },
+  { message = "^test(\\([^)]+\\))?!?:", group = "Testing" },
+  { message = "^(ci|build)(\\([^)]+\\))?!?:", group = "CI / Build" },
+  { message = "^chore(\\([^)]+\\))?!?:", group = "Chores" },
+  { message = "^revert(\\([^)]+\\))?!?:", group = "Reverts" },
+
+  { message = "^Merge pull request", skip = true },
+  { message = "^Merge branch", skip = true },
+  { message = "^merge:", skip = true },
+  { message = "^qf:\\s*github workflow", skip = true },
+
+  { message = "^(?i)(release|bump version|new release|new alpha release|release of amber)", group = "Releases" },
+  { message = "^(?i)(add|added|implement|implemented|introduce|introduced|support|supported|enable|enabled|create|created|move|migrate|extract|switch|repurpose|allow|rename|update standard library)", group = "Features" },
+  { message = "^(?i)(fix|fixed|hotfix|bugfix|resolve|resolved|correct|repair|patch|quick fix|qf:)", group = "Bug Fixes" },
+  { message = "^(?i)(docs|doc|readme|changelog|license|grammar)\\b", group = "Documentation" },
+  { message = "^(?i)(refactor|rework|cleanup|denest|simplify|standardize|miscellaneous refactoring)", group = "Refactoring" },
+  { message = "^(?i)(optimi[sz]e|improve performance|make .* smaller)", group = "Performance" },
+  { message = "^(?i)(test|tests|testing|validity tests|add test|added test)", group = "Testing" },
+  { message = "^(?i)(ci|workflow|github workflow|fix ci|fixes ci/cd pipeline|snap:)", group = "CI / Build" },
+
+  { message = ".*", group = "Legacy / Other" },
+]
+
+link_parsers = [
+  { pattern = "#(\\d+)", href = "https://github.com/amber-lang/amber/issues/$1" },
+]
