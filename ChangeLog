@@ -151,6 +151,11 @@ All notable changes to this project are documented in this file.
 * Paweł Karaś <pkaras.it@gmail.com>: Fix duplicate function generation in Bash (f3ac483)
 * Mohamed Magdi <mohamed.magdi@maxab.io>: Sudo prefix for mv builtin (f6a15cb)
 * Lens0021 / Leslie <lorentz0021@gmail.com>: Fix comment formatting in uniq_lines documentation (6a880d8)
+* callframe <fabrice@schaub-dev.xyz>: 'es last line being dropped issue (39d9345)
+* callframe <fabrice@schaub-dev.xyz>: 'ing string interpolation close #1016 (82e51f1)
+* Daniele Scasciafratte <mte90net@gmail.com>: (erroring) Another test (40402c8)
+* Tirito <99983969+Tirito6626@users.noreply.github.com>: (compiler) Remove bc and sed computation from ranges (0178601)
+* Tirito <99983969+Tirito6626@users.noreply.github.com>: Fix array interpolable expansion (dd1b7dc)
 ### CI / Build
 * Soumyadeep Ghosh <soumyadeepghosh2004@zohomail.in>: Added snap manifest (9171432)
 * Soumyadeep Ghosh <soumyadeepghosh2004@zohomail.in>: Change name and add icon (ccafab2)
@@ -171,6 +176,7 @@ All notable changes to this project are documented in this file.
 * Lens0021 / Leslie <lorentz0021@gmail.com>: (codecov) Add code coverage reporting (d3c7af4)
 * Lens0021 / Leslie <lorentz0021@gmail.com>: (codecov) Add release coverage with tag flags (f830c84)
 * Lens0021 / Leslie <lorentz0021@gmail.com>: Pin codecov-action (e4e18f1)
+* Lens0021 / Leslie <lorentz0021@gmail.com>: Add ShellCheck job (daf2663)
 ### Chores
 * Absolutex <88281489+lxl66566@users.noreply.github.com>: Update dependencies (c8a8f1e)
 * Lens0021 / Leslie <lorentz0021@gmail.com>: (test) Fix bash_error_exit_code of macos runner (06c34fe)
@@ -180,6 +186,7 @@ All notable changes to this project are documented in this file.
 * dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>: (deps) Bump the github-actions group with 5 updates (1ec2859)
 * dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>: (deps) Bump peter-evans/create-pull-request (77b6aa9)
 * dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>: (deps) Bump actions/cache from 4 to 5 in the github-actions group (7a86e5b)
+* dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>: (deps) Bump cachix/install-nix-action in the github-actions group (a3dc9c8)
 ### Documentation
 * b1ek <me@blek.codes>: Add arch aur package (52648b0)
 * blek! <me@blek.codes>: Add packages badge (0a2a8f9)
@@ -192,6 +199,7 @@ All notable changes to this project are documented in this file.
 * Lens0021 / Leslie <lorentz0021@gmail.com>: Fix glitches and notes (af34df4)
 * Lens0021 / Leslie <lorentz0021@gmail.com>: Docs cleanup (77bfbbe)
 * Lens0021 / Leslie <lorentz0021@gmail.com>: `?` consistency (831de3c)
+* Lens0021 / Leslie <lorentz0021@gmail.com>: (stdlib) Use `echo()` form in usage docs (6b0d977)
 ### Features
 * Ph0enixKM <pkaras.it@gmail.com>: Add readme (80e901f)
 * Ph0enixKM <pkaras.it@gmail.com>: Add basic statement (cf17c75)
@@ -398,6 +406,11 @@ All notable changes to this project are documented in this file.
 * Tirito <99983969+Tirito6626@users.noreply.github.com>: (stdlib) File_compress() (24ef149)
 * callframe <fabrice@schaub-dev.xyz>: Adds public variables (6e90e4d)
 * Daniele Scasciafratte <mte90net@gmail.com>: Added more tests to improve code coverage (c28b151)
+* Fabrice <fabrice@schaub-dev.xyz>: Adding changelog generation (be306ba)
+* Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>: Add debian packaging (38e8b46)
+* Daniele Scasciafratte <mte90net@gmail.com>: (package) Added rpm build on release (2106923)
+* Daniele Scasciafratte <mte90net@gmail.com>: (cargo) Incremental and threads for tests (20df8a0)
+* Adam Walkiewicz <57951750+ajwalkiewicz@users.noreply.github.com>: Add cpad function standard library (d8da34c)
 ### Legacy / Other
 * Ph0enixKM <pkaras.it@gmail.com>: Initial commit (cb493fe)
 * Phoenix Himself <pkaras.it@gmail.com>: Update rust.yml (36f1abe)
@@ -540,6 +553,8 @@ All notable changes to this project are documented in this file.
 * Max Karou <maxkarou@protonmail.com>: Remove non-portable `\b` (ef85f6f)
 * kryske <124899205+kryske@users.noreply.github.com>: Feat/new builtins (75a5702)
 * Daniele Scasciafratte <mte90net@gmail.com>: Disable bash alias and ls/array tests fixed (d66d3dd)
+* Daniele Scasciafratte <mte90net@gmail.com>: More tests on other files (3944702)
+* Daniele Scasciafratte <mte90net@gmail.com>: Lock builtin, #448 (2aa876d)
 ### Performance
 * b1ek <me@blek.codes>: Optimize emitted code size (3594817)
 * setop <7794056+setop@users.noreply.github.com>: Make binary smaller (30bf233)

@@ -7,6 +7,7 @@ on:
       - staging
     paths:
       - .github/workflows/rust.yml
+      - cliff.toml
       - src/**
       - test_files/**
       - .cargo/**
@@ -18,6 +19,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/rust.yml
+      - cliff.toml
       - src/**
       - test_files/**
       - .cargo/**
@@ -266,3 +268,24 @@ jobs:
           flags: rust,release,${{ github.event.release.tag_name }}
           fail_ci_if_error: true
           verbose: true
+
+  changelog:
+    name: Generate ChangeLog staging
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+      - name: Generate ChangeLog unreleased
+        run: git cliff --unreleased --output ChangeLog
+      - name: Upload ChangeLog artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: changelog-staging
+          path: ChangeLog
