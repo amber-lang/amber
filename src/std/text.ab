@@ -501,13 +501,13 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
 /// let padded: Text
 ///
 /// padded = cpad("42", "0", 5)
-/// echo padded // "04200"
+/// echo(padded) // "04200"
 ///
 /// padded = cpad("42", "0", 6)
-/// echo padded // "004200"
+/// echo(padded) // "004200"
 ///
 /// padded = cpad("42", "0", 1)
-/// echo padded // "42"
+/// echo(padded) // "42"
 /// ```
 pub fun cpad(text: Text, pad: Text, length: Int): Text {
     const text_length = len(text)
