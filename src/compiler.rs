@@ -288,7 +288,7 @@ impl AmberCompiler {
         // Add preamble that contains all code that should be executed before the main code
         result.append(self.gen_preamble(
             sudo_used,
-            shellname_used.clone(),
+            shellname_used,
             &meta_translate.target.shell,
         ));
 
