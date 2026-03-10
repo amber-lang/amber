@@ -85,7 +85,6 @@ impl VarStmtFragment {
         self
     }
 
-
     pub fn with_index<T: Into<Option<FragmentKind>>>(mut self, index: T) -> Self {
         self.index = index.into().map(Box::new);
         self
@@ -119,14 +118,8 @@ impl VarStmtFragment {
         let var_name = self.render_variable_name(meta);
         let is_running_command = self.value.is_running_command();
         let mut assignment_parts = vec![];
-        //dbg!(&var_name, self.is_array_ref, self.is_declared, &self.value);
         let value = self.value.to_string(meta);
-        
-        //if matches!(meta.target.shell, ShellType::Zsh) && self.is_array_ref && self.is_declared {
-        //    assignment_parts.push(format!("${{{}}}", var_name.clone()));
-        //} else {
-            assignment_parts.push(var_name.clone());
-       // }
+        assignment_parts.push(var_name.clone());
         assignment_parts.extend(
             self.index
                 .map(|index| format!("[{}]", index.to_string(meta))),
@@ -141,8 +134,8 @@ impl VarStmtFragment {
         let assignment = assignment_parts.join("");
         match meta.target.shell {
             ShellType::Bash => {
-            // `local` command consumes exit code of command that it is assigned to.
-            // To preserve the exit code of the assignment we split the local declaration into two parts.
+                // `local` command consumes exit code of command that it is assigned to.
+                // To preserve the exit code of the assignment we split the local declaration into two parts.
                 if self.is_local {
                     if is_running_command {
                         format!("local {var_name}\n{}{assignment}", meta.gen_indent())
@@ -151,7 +144,6 @@ impl VarStmtFragment {
                     } else {
                         format!("local {assignment}")
                     }
-                    
                 } else {
                     assignment
                 }
@@ -163,7 +155,6 @@ impl VarStmtFragment {
                     } else {
                         format!("local {assignment}")
                     }
-                    
                 } else {
                     assignment
                 }
@@ -178,10 +169,9 @@ impl VarStmtFragment {
                     } else if self.is_ref {
                         format!("typeset -n {assignment}")
                     } else if self.kind.is_array() {
-                        // ksh has static scoping, it can't access local variables outside of function scope, 
-                        // which means that recursive functions related to array trimming never end,
-                        // because array reference is simply not accessible
-                        assignment
+                        // ksh function-local arrays are required for recursive array operations to keep
+                        // each frame isolated once the argument has been rebound through a nameref.
+                        format!("typeset {assignment}")
                     } else {
                         format!("typeset {assignment}")
                     }
@@ -201,7 +191,8 @@ impl FragmentRenderable for VarStmtFragment {
             // if array is a direct reference and is already declared, use eval to modify directly
             ShellType::Zsh => {
                 if self.is_ref && self.is_declared {
-                    let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+                    let stmt =
+                        eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
                     format!("eval \"{stmt}\"")
                 } else {
                     self.render_variable_statement(meta)
@@ -209,13 +200,14 @@ impl FragmentRenderable for VarStmtFragment {
             }
             ShellType::Ksh => {
                 if self.kind.is_array() && !self.is_declared {
-                    let stmt = eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+                    let stmt =
+                        eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
                     format!("eval \"{stmt}\"")
                 } else {
                     self.render_variable_statement(meta)
                 }
             }
-            ShellType::Bash => self.render_variable_statement(meta)
+            ShellType::Bash => self.render_variable_statement(meta),
         }
     }
 

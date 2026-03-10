@@ -106,7 +106,8 @@ impl InterpolableFragment {
             }
         }
         if reopen_single_quotes {
-            self.parts.push_back(InterpolablePart::String("\"".to_string()));
+            self.parts
+                .push_back(InterpolablePart::String("\"".to_string()));
         }
     }
 

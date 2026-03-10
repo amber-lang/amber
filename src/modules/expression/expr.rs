@@ -12,7 +12,9 @@ use super::typeop::{cast::Cast, is::Is};
 use super::unop::{neg::Neg, not::Not};
 use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::len::Len;
-use crate::modules::builtin::{lines::LinesInvocation, ls::Ls, nameof::Nameof, pid::Pid, pwd::Pwd, shellname::Shellname};
+use crate::modules::builtin::{
+    lines::LinesInvocation, ls::Ls, nameof::Nameof, pid::Pid, pwd::Pwd, shellname::Shellname,
+};
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::access::Access;
 use crate::modules::expression::binop::BinOp;

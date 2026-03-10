@@ -1,10 +1,10 @@
+use super::fragments::subprocess::SubprocessFragment;
 use crate::fragments;
 use crate::modules::prelude::*;
 use crate::utils::ShellType;
-use super::fragments::subprocess::SubprocessFragment;
 
 pub enum ArithType {
-    BcSed
+    BcSed,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,7 +30,7 @@ pub fn translate_bc_sed_computation(
     op: ArithOp,
     left: FragmentKind,
     right: FragmentKind,
-    with_quotes: bool
+    with_quotes: bool,
 ) -> FragmentKind {
     let mut math_lib_flag = true;
     // Removes trailing zeros from the expression
@@ -68,7 +68,9 @@ pub fn translate_bc_sed_computation(
         sed_regex,
         "'"
     );
-    SubprocessFragment::new(value).with_quotes(with_quotes).to_frag()
+    SubprocessFragment::new(value)
+        .with_quotes(with_quotes)
+        .to_frag()
 }
 
 pub fn translate_float_computation(
@@ -84,9 +86,11 @@ pub fn translate_float_computation(
                 right.unwrap_or(FragmentKind::Empty),
             );
             match meta.target.shell {
-                ShellType::Bash | ShellType::Zsh => translate_bc_sed_computation(operator, left, right, true),
+                ShellType::Bash | ShellType::Zsh => {
+                    translate_bc_sed_computation(operator, left, right, true)
+                }
                 // ksh doesn't support quoting inside arithmetic blocks
-                ShellType::Ksh => translate_bc_sed_computation(operator, left, right, false)
+                ShellType::Ksh => translate_bc_sed_computation(operator, left, right, false),
             }
         }
     }

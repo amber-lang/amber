@@ -2,9 +2,9 @@ use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
-use crate::utils::ShellType;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
+use crate::utils::ShellType;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 
@@ -192,19 +192,18 @@ impl TranslateModule for Ls {
         let var_expr = meta.push_ephemeral_variable(var_stmt);
         let read_command = match &meta.target.shell {
             ShellType::Bash => raw_fragment!(
-                    "LC_ALL=C IFS=$'\\n' read -rd '' -a {} < <(",
-                    var_expr.get_name()
-                ),
+                "LC_ALL=C IFS=$'\\n' read -rd '' -a {} < <(",
+                var_expr.get_name()
+            ),
             ShellType::Zsh => raw_fragment!(
-                    "LC_ALL=C IFS=$'\\n' read -rd '' -A {} < <(",
-                    var_expr.get_name()
-                ),
-                // ksh is bad at splitting newlines
+                "LC_ALL=C IFS=$'\\n' read -rd '' -A {} < <(",
+                var_expr.get_name()
+            ),
+            // ksh is bad at splitting newlines
             ShellType::Ksh => raw_fragment!(
-                    "while read -r __ls_line; do {}+=(\"${{__ls_line}}\"); done < <(",
-                    var_expr.get_name()
-                ),
-            
+                "while read -r __ls_line; do {}+=(\"${{__ls_line}}\"); done < <(",
+                var_expr.get_name()
+            ),
         };
         meta.stmt_queue.extend([
             fragments!(
@@ -219,16 +218,13 @@ impl TranslateModule for Ls {
             ),
             handler,
             fragments!(");"),
-            
         ]);
         if matches!(&meta.target.shell, ShellType::Zsh) {
-            meta.stmt_queue.extend([fragments!(
-                raw_fragment!(
+            meta.stmt_queue.extend([fragments!(raw_fragment!(
                 // in ZSH, null characters are appended to the array, it's the simplest option to remove them
                 "{}[-1]=();",
                 var_expr.get_name()
-            ))
-            ])
+            ))])
         }
         var_expr.to_frag()
     }

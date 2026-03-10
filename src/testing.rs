@@ -136,32 +136,33 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
             );
 
             let result = match compiler.compile() {
-                Ok((_, bash_code)) => {
-                    match AmberCompiler::find_shell() {
-                        Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
-                            Ok(output) => {
-                                if output.status.success() {
-                                    Ok(())
+                Ok((_, bash_code)) => match AmberCompiler::find_shell() {
+                    Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
+                        Ok(output) => {
+                            if output.status.success() {
+                                Ok(())
+                            } else {
+                                let err_msg = format!(
+                                    "{}\n{}",
+                                    String::from_utf8_lossy(&output.stdout),
+                                    String::from_utf8_lossy(&output.stderr)
+                                )
+                                .trim()
+                                .to_string();
+                                if err_msg.is_empty() {
+                                    Err(Message::new_err_msg("(No output)".dimmed().to_string()))
                                 } else {
-                                    let err_msg = format!(
-                                        "{}\n{}",
-                                        String::from_utf8_lossy(&output.stdout),
-                                        String::from_utf8_lossy(&output.stderr)
-                                    )
-                                    .trim()
-                                    .to_string();
-                                    if err_msg.is_empty() {
-                                        Err(Message::new_err_msg("(No output)".dimmed().to_string()))
-                                    } else {
-                                        Err(Message::new_err_msg(err_msg))
-                                    }
+                                    Err(Message::new_err_msg(err_msg))
                                 }
                             }
-                            Err(e) => Err(Message::new_err_msg(format!("Error executing shell: {}", e))),
-                        },
-                        None => Err(Message::new_err_msg("Failed to find shell command")),
-                    }
-                }
+                        }
+                        Err(e) => Err(Message::new_err_msg(format!(
+                            "Error executing shell: {}",
+                            e
+                        ))),
+                    },
+                    None => Err(Message::new_err_msg("Failed to find shell command")),
+                },
                 Err(e) => Err(e),
             };
 

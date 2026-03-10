@@ -154,10 +154,7 @@ impl TranslateModule for Lock {
         );
 
         BlockFragment::new(
-            vec![
-                blocker.to_frag(),
-                self.failure_handler.translate(meta),
-            ],
+            vec![blocker.to_frag(), self.failure_handler.translate(meta)],
             false,
         )
         .to_frag()

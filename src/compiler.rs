@@ -8,7 +8,7 @@ use crate::optimizer::optimize_fragments;
 use crate::rules;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
-use crate::utils::{pluralize, ParserMetadata, TranslateMetadata, ShellType};
+use crate::utils::{pluralize, ParserMetadata, ShellType, TranslateMetadata};
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
@@ -120,7 +120,6 @@ impl AmberCompiler {
         }
     }
 
-
     pub fn load_code(mut self, code: String) -> Self {
         self.cc.load(code);
         self
@@ -226,7 +225,9 @@ impl AmberCompiler {
             ShellType::Zsh => "zsh",
             ShellType::Ksh => "ksh",
         };
-        header_template.replace("{{ version }}", get_version()).replace("{{ shell }}", shell_name)
+        header_template
+            .replace("{{ version }}", get_version())
+            .replace("{{ shell }}", shell_name)
     }
 
     fn gen_footer(&self) -> String {
@@ -243,7 +244,12 @@ impl AmberCompiler {
         footer_template.replace("{{ version }}", get_version())
     }
 
-    fn gen_preamble(&self, sudo_used: bool, shellname_used: bool, target_shell: &ShellType) -> FragmentKind {
+    fn gen_preamble(
+        &self,
+        sudo_used: bool,
+        shellname_used: bool,
+        target_shell: &ShellType,
+    ) -> FragmentKind {
         let mut preamble = Vec::new();
         match target_shell {
             ShellType::Bash => (),
@@ -254,7 +260,7 @@ impl AmberCompiler {
                 preamble.push(RawFragment::new(r#"emulate ksh"#).to_frag());
                 preamble.push(RawFragment::new(r#"setopt BSD_echo"#).to_frag());
                 preamble.push(RawFragment::new(r#"__read_args='-A'"#).to_frag());
-            },
+            }
             ShellType::Ksh => {
                 // if the shell is KSH:
                 // - enable job control
@@ -265,7 +271,9 @@ impl AmberCompiler {
             preamble.push(RawFragment::new(include_str!("preambles/sudo.sh").trim_end()).to_frag());
         }
         if shellname_used {
-            preamble.push(RawFragment::new(include_str!("preambles/shellname.sh").trim_end()).to_frag());
+            preamble.push(
+                RawFragment::new(include_str!("preambles/shellname.sh").trim_end()).to_frag(),
+            );
         }
         BlockFragment::new(preamble, false).to_frag()
     }
@@ -278,7 +286,11 @@ impl AmberCompiler {
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
         // Add preamble that contains all code that should be executed before the main code
-        result.append(self.gen_preamble(sudo_used, shellname_used.clone(), &meta_translate.target.shell));
+        result.append(self.gen_preamble(
+            sudo_used,
+            shellname_used.clone(),
+            &meta_translate.target.shell,
+        ));
 
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));
@@ -527,17 +539,17 @@ impl AmberCompiler {
     }
     #[cfg(not(windows))]
     pub fn find_shell_type() -> ShellType {
-            let shell = env::var("SHELL")
-                .ok()
-                .and_then(|s| s.rsplit('/').next().map(String::from))
-                .filter(|s| s == "bash" || s == "zsh" || s == "ksh")
-                .unwrap_or_else(|| String::from("bash"));
+        let shell = env::var("SHELL")
+            .ok()
+            .and_then(|s| s.rsplit('/').next().map(String::from))
+            .filter(|s| s == "bash" || s == "zsh" || s == "ksh")
+            .unwrap_or_else(|| String::from("bash"));
 
-            match shell.as_ref() {
-                "bash" => ShellType::Bash,
-                "zsh" => ShellType::Zsh,
-                "ksh" => ShellType::Ksh,
-                _  => ShellType::Bash
-            }
+        match shell.as_ref() {
+            "bash" => ShellType::Bash,
+            "zsh" => ShellType::Zsh,
+            "ksh" => ShellType::Ksh,
+            _ => ShellType::Bash,
+        }
     }
 }

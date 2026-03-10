@@ -2,7 +2,7 @@ use std::cmp;
 use std::collections::VecDeque;
 
 use super::ParserMetadata;
-use crate::compiler::{CompilerOptions, AmberCompiler};
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
@@ -14,15 +14,14 @@ use amber_meta::ContextManager;
 
 const INDENT_SPACES: &str = "    ";
 
-
 pub enum ShellType {
     Bash,
     Zsh,
-    Ksh
+    Ksh,
 }
 
 pub struct TargetShell {
-  pub shell: ShellType
+    pub shell: ShellType,
 }
 
 #[derive(ContextManager)]
@@ -68,7 +67,9 @@ impl TranslateMetadata {
     pub fn new(meta: ParserMetadata, options: &CompilerOptions) -> Self {
         let target_shell = AmberCompiler::find_shell_type();
         TranslateMetadata {
-            target: TargetShell { shell: target_shell },
+            target: TargetShell {
+                shell: target_shell,
+            },
             arith_module: ArithType::BcSed,
             fun_cache: meta.fun_cache,
             fun_meta: None,

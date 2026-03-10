@@ -299,19 +299,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         match command {
             CommandKind::Eval(command) => handle_eval(command)?,
             CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                    .with_env_vars();
                 let (code, messages) = compile_input(command.input, options);
                 execute_output(code, command.args, messages)?
             }
             CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None).with_env_vars();
+                let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                    .with_env_vars();
                 compile_input(command.input, options);
                 0
             }
             CommandKind::Build(command) => {
                 let output = create_output(&command);
                 let options =
-                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None).with_env_vars();
+                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+                        .with_env_vars();
                 let (code, _) = compile_input(command.input, options);
                 write_output(output, code);
                 0

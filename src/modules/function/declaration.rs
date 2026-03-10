@@ -65,67 +65,78 @@ impl FunctionDeclaration {
                 izip!(self.args.iter(), &function.args, &function.args_global_ids).enumerate()
             {
                 let name = get_variable_name(&arg.name, *global_id);
-                // 
-                
                 match (arg.is_ref, kind) {
-                    // array copy => VarStmt(no ref) + VarExpr(with name reference (array[@]), not declared yet)
-                    //
-                    // with_declared only influences whether `!` should be added
-                    // produces:
-                    // (declare|local) <name>=("${(!|(P))array name}")
-                   (false, Type::Array(_)) => {
-                        let val =
-                        VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
-                            .with_ref(true)
-                            .with_declared(false);
-                        
-                        let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                    // Copy array arguments into a function-local array variable.
+                    (false, Type::Array(_)) => {
+                        // ksh cannot copy a caller-local array through indirect expansion, so bind
+                        // the argument name as a nameref first and then copy from that local alias.
+                        if matches!(meta.target.shell, ShellType::Ksh) {
+                            let source_name = format!("{name}_source");
+                            let source_ref = VarStmtFragment::new(
+                                &source_name,
+                                Type::Generic,
+                                VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                                    .to_frag(),
+                            )
                             .with_local(true)
-							.with_declared(false)
+                            .with_ref(true)
                             .with_optimization_when_unused(false);
 
-                        result.push(var.to_frag())
-                    }
-					// if target = bash/ksh:
-                    // array + reference => VarStmt(with ref + array reference) + VarExpr(not a ref, since it just contains array name)
-                    //
-                    // with_array_ref tells VarStmt to not add braces, since it has nameref modifier (-n)
-                    // produces:
-                    // (declare|local) -n <name>="${array name}"
+                            let var = VarStmtFragment::new(
+                                &name,
+                                kind.clone(),
+                                VarExprFragment::new(&source_name, kind.clone()).to_frag(),
+                            )
+                            .with_local(true)
+                            .with_optimization_when_unused(false);
 
-					// if target = zsh:
-					// array + reference => VarStmt
+                            result.push(source_ref.to_frag());
+                            result.push(var.to_frag());
+                        } else {
+                            let val =
+                                VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                                    .with_ref(true)
+                                    .with_declared(false);
+
+                            let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_declared(false)
+                                .with_optimization_when_unused(false);
+
+                            result.push(var.to_frag())
+                        }
+                    }
+                    // Bind array `ref` arguments so the function can mutate the caller-owned array.
                     (true, Type::Array(_)) => {
-                        let val =
-                        VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                        let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
                             .with_ref(false);
-                        
+
                         let var = if matches!(meta.target.shell, ShellType::Zsh) {
-							 VarStmtFragment::new(&name, kind.clone(), val.to_frag())
-                            .with_local(true)
-                            .with_optimization_when_unused(false)
-							.with_ref(false)
-                            .with_array_ref(true)
-							.with_declared(false)
-						} else {
-							VarStmtFragment::new(&name, kind.clone(), val.to_frag())
-                            .with_local(true)
-                            .with_optimization_when_unused(false)
-                            .with_ref(true)
-                            .with_array_ref(true)
-						};
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(false)
+                                .with_array_ref(true)
+                                .with_declared(false)
+                        } else {
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(true)
+                                .with_array_ref(true)
+                        };
 
                         result.push(var.to_frag())
                     }
+                    // Bind scalar arguments as local variables, preserving `ref` semantics when requested.
                     _ => {
-                        let val =
-                        VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                        let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
                             .with_ref(false);
 
                         let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                             .with_local(true)
                             .with_optimization_when_unused(false)
-							.with_declared(!arg.is_ref)
+                            .with_declared(!arg.is_ref)
                             .with_ref(arg.is_ref);
 
                         result.push(var.to_frag())
@@ -451,11 +462,11 @@ impl TranslateModule for FunctionDeclaration {
             // Parse the function body
             let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
             // required for the local scope in ksh
-			if matches!(meta.target.shell, ShellType::Ksh) { 
-				result.push(fragments!("function ", name, " {")); 
-			} else { 
-				result.push(fragments!(name, "() {")); 
-			}
+            if matches!(meta.target.shell, ShellType::Ksh) {
+                result.push(fragments!("function ", name, " {"));
+            } else {
+                result.push(fragments!(name, "() {"));
+            }
             if let Some(args) = self.set_args_as_variables(meta, function) {
                 result.push(args);
             }
