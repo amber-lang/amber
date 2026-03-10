@@ -1,0 +1,130 @@
+---
+source: src/tests/translating.rs
+expression: ast
+---
+Block(
+    BlockFragment {
+        statements: [
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "10",
+                                    },
+                                ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "3",
+                                    },
+                                ),
+                            ),
+                            op: Modulo,
+                            quoted: true,
+                        },
+                    ),
+                },
+            ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Arithmetic(
+                                    ArithmeticFragment {
+                                        left: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "20",
+                                                },
+                                            ),
+                                        ),
+                                        right: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "6",
+                                                },
+                                            ),
+                                        ),
+                                        op: Modulo,
+                                        quoted: true,
+                                    },
+                                ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "3",
+                                    },
+                                ),
+                            ),
+                            op: Modulo,
+                            quoted: true,
+                        },
+                    ),
+                },
+            ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Arithmetic(
+                                    ArithmeticFragment {
+                                        left: Some(
+                                            Arithmetic(
+                                                ArithmeticFragment {
+                                                    left: Some(
+                                                        Raw(
+                                                            RawFragment {
+                                                                value: "100",
+                                                            },
+                                                        ),
+                                                    ),
+                                                    right: Some(
+                                                        Raw(
+                                                            RawFragment {
+                                                                value: "7",
+                                                            },
+                                                        ),
+                                                    ),
+                                                    op: Modulo,
+                                                    quoted: true,
+                                                },
+                                            ),
+                                        ),
+                                        right: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "3",
+                                                },
+                                            ),
+                                        ),
+                                        op: Modulo,
+                                        quoted: true,
+                                    },
+                                ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "2",
+                                    },
+                                ),
+                            ),
+                            op: Modulo,
+                            quoted: true,
+                        },
+                    ),
+                },
+            ),
+        ],
+        increase_indent: true,
+        needs_noop: false,
+        is_conditional: false,
+    },
+)

@@ -1,6 +1,5 @@
 ---
 source: src/tests/compiling.rs
-assertion_line: 34
 expression: ast
 ---
 x_0=1

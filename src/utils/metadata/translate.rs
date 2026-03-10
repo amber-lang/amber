@@ -1,5 +1,6 @@
 use std::cmp;
 use std::collections::VecDeque;
+use std::fmt;
 
 use super::ParserMetadata;
 use crate::compiler::{AmberCompiler, CompilerOptions};
@@ -18,6 +19,17 @@ pub enum ShellType {
     Bash,
     Zsh,
     Ksh,
+}
+
+impl fmt::Display for ShellType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let shell = match self {
+            ShellType::Bash => "bash",
+            ShellType::Zsh => "zsh",
+            ShellType::Ksh => "ksh",
+        };
+        write!(f, "{shell}")
+    }
 }
 
 pub struct TargetShell {

@@ -522,7 +522,11 @@ impl AmberCompiler {
             let mut command = Command::new("docker");
             let args_string = env::var("AMBER_TEST_ARGS")
                 .expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
-            let args: Vec<&str> = args_string.split_whitespace().collect();
+            let mut args: Vec<&str> = args_string.split_whitespace().collect();
+            if args.first() == Some(&"exec") && !args.contains(&"-i") {
+                // `docker exec` needs `-i` to pass piped stdin through to interactive Amber input tests.
+                args.insert(1, "-i");
+            }
             command.args(args);
             Some(command)
         } else {
