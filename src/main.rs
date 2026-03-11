@@ -300,84 +300,92 @@ pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
     clap_complete::generate(Shell::Bash, &mut command, name, output);
 }
 
+fn handle_bad_command_name(
+    input: &PathBuf,
+    no_proc: &[String],
+    args: Vec<String>,
+) -> Result<i32, Box<dyn Error>> {
+    let input_str = input.to_string_lossy();
+
+    let cli_cmd = Cli::command();
+    let subcommands: Vec<&str> = cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
+
+    if !input.exists() && input_str != "-" {
+        if input_str.starts_with('-') || input_str == "help" {
+            eprintln!("Error: Unknown command or invalid option: {}", input_str);
+            Cli::command().print_help().unwrap();
+            println!();
+            std::process::exit(1);
+        }
+
+        if let Some((match_name, score)) = find_best_similarity(&input_str, &subcommands) {
+            if score >= 0.75 {
+                eprintln!("Error: Unknown command: {}", input_str);
+                eprintln!("Did you mean '{}'?", match_name);
+                Cli::command().print_help().unwrap();
+                println!();
+                std::process::exit(1);
+            }
+        }
+
+        eprintln!("Error: File not found: {}", input_str);
+        Cli::command().print_help().unwrap();
+        println!();
+        std::process::exit(1);
+    }
+
+    let options = CompilerOptions::from_args(no_proc, false, false, None).with_env_vars();
+    let (code, messages) = compile_input(input.clone(), options);
+    execute_output(code, args, messages)
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
         Err(err) => err.exit(),
     };
 
+    if let Some(ref input) = cli.input {
+        std::process::exit(handle_bad_command_name(input, &cli.no_proc, cli.args)?);
+    }
 
-    let exit_code = if let Some(ref input) = cli.input {
-        let input_str = input.to_string_lossy();
-
-        let cli_cmd = Cli::command();
-        let subcommands: Vec<&str> = cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
-
-        if !input.exists() && input_str != "-" {
-            if input_str.starts_with('-') || input_str == "help" {
-                eprintln!("Error: Unknown command or invalid option: {}", input_str);
-                Cli::command().print_help().unwrap();
-                println!();
-                std::process::exit(1);
-            }
-
-            if let Some((match_name, score)) = find_best_similarity(&input_str, &subcommands) {
-                if score >= 0.75 {
-                    eprintln!("Error: Unknown command: {}", input_str);
-                    eprintln!("Did you mean '{}'?", match_name);
-                    Cli::command().print_help().unwrap();
-                    println!();
-                    std::process::exit(1);
-                }
-            }
-
-            eprintln!("Error: File not found: {}", input_str);
-            Cli::command().print_help().unwrap();
-            println!();
-            std::process::exit(1);
-        }
-
-        let options = CompilerOptions::from_args(&cli.no_proc, false, false, None).with_env_vars();
-        let (code, messages) = compile_input(input.clone(), options);
-        execute_output(code, cli.args.clone(), messages)?
-    } else if let Some(command) = cli.command {
-        match command {
-            CommandKind::Eval(command) => handle_eval(command)?,
-            CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
-                    .with_env_vars();
-                let (code, messages) = compile_input(command.input, options);
-                execute_output(code, command.args, messages)?
-            }
-            CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
-                    .with_env_vars();
-                compile_input(command.input, options);
-                0
-            }
-            CommandKind::Build(command) => {
-                let output = create_output(&command);
-                let options =
-                    CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
-                        .with_env_vars();
-                let (code, _) = compile_input(command.input, options);
-                write_output(output, code);
-                0
-            }
-            CommandKind::Docs(command) => {
-                handle_docs(command)?;
-                0
-            }
-            CommandKind::Completion => {
-                handle_completion();
-                0
-            }
-            CommandKind::Test(command) => testing::handle_test(command)?,
-        }
-    } else {
+    let Some(command) = cli.command else {
         Cli::command().print_help().unwrap();
         println!();
         std::process::exit(0);
+    };
+
+    let exit_code = match command {
+        CommandKind::Eval(command) => handle_eval(command)?,
+        CommandKind::Run(command) => {
+            let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                .with_env_vars();
+            let (code, messages) = compile_input(command.input, options);
+            execute_output(code, command.args, messages)?
+        }
+        CommandKind::Check(command) => {
+            let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                .with_env_vars();
+            compile_input(command.input, options);
+            0
+        }
+        CommandKind::Build(command) => {
+            let output = create_output(&command);
+            let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+                .with_env_vars();
+            let (code, _) = compile_input(command.input, options);
+            write_output(output, code);
+            0
+        }
+        CommandKind::Docs(command) => {
+            handle_docs(command)?;
+            0
+        }
+        CommandKind::Completion => {
+            handle_completion();
+            0
+        }
+        CommandKind::Test(command) => testing::handle_test(command)?,
     };
 
     std::process::exit(exit_code);
