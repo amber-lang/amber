@@ -24,7 +24,7 @@ use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 use std::error::Error;
 use std::io::{prelude::*, stdin};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{fs, io};
 
@@ -301,7 +301,7 @@ pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
 }
 
 fn handle_bad_command_name(
-    input: &PathBuf,
+    input: &Path,
     no_proc: &[String],
     args: Vec<String>,
 ) -> Result<i32, Box<dyn Error>> {
@@ -335,7 +335,7 @@ fn handle_bad_command_name(
     }
 
     let options = CompilerOptions::from_args(no_proc, false, false, None).with_env_vars();
-    let (code, messages) = compile_input(input.clone(), options);
+    let (code, messages) = compile_input(input.to_path_buf(), options);
     execute_output(code, args, messages)
 }
 
