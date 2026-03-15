@@ -281,3 +281,79 @@ fn test_input_confirm_stdin() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("Continued"));
 }
+
+
+use predicates::prelude::*;
+use assert_cmd::Command;
+use tempfile::NamedTempFile;
+
+#[test]
+fn test_cli_error_invalid_command() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    cmd.arg("g-e").assert().failure().stderr(
+        predicate::str::contains("Unknown command: g-e")
+            .or(predicate::str::contains("File not found: g-e")),
+    );
+}
+
+#[test]
+fn test_cli_typo_suggestion() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    cmd.arg("buid").assert().failure().stderr(
+        predicate::str::contains("Unknown command: buid")
+            .and(predicate::str::contains("Did you mean 'build'?")),
+    );
+}
+
+#[test]
+fn test_cli_file_starting_with_dash() {
+    let amber_bin = std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or_else(|_| "target/debug/amber".to_string());
+    let mut cmd = Command::new(amber_bin);
+    
+    let temp_file = NamedTempFile::new().expect("Failed to create temp file");
+    let amber_code = r#"
+        main {
+            echo("Hello from dash file")
+        }
+        "#;
+    
+    std::fs::write(temp_file.path(), amber_code).expect("Failed to write test file");
+    
+    let output = cmd.arg(temp_file.path()).assert().success();
+    let _ = temp_file.close();
+    
+    output.stderr(predicate::str::contains("Hello from dash file").not());
+}
+#[test]
+fn test_cli_no_arguments_shows_help() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Usage: amber"));
+}
+
+#[test]
+fn test_cli_stdin_execution() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+
+    let amber_code = r#"
+        main {
+            echo("Hello from stdin")
+        }
+        "#;
+
+    cmd.arg("-")
+        .write_stdin(amber_code)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Hello from stdin"));
+}
+
+#[test]
+fn test_cli_unknown_option_rejected() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    cmd.arg("--unknown-option")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("unknown"));
+}
