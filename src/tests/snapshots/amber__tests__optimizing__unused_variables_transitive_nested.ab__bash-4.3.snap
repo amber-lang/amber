@@ -1,0 +1,7 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+outer_0=10
+inner_2="${outer_0}"
+echo "${inner_2}"

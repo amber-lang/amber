@@ -24,7 +24,7 @@ fn exit_with_code() {
         .expect("Failed to open validity/no_output/exit_with_code.ab test file");
 
     let code = compile_code(code);
-    let mut cmd = AmberCompiler::find_shell()
+    let mut cmd = AmberCompiler::find_shell(None)
         .expect("Couldn't find shell")
         .arg("-c")
         .arg(code)
@@ -47,7 +47,7 @@ fn exit_with_no_code() {
         .expect("Failed to open validity/no_output/exit_with_no_code.ab test file");
 
     let code = compile_code(code);
-    let mut cmd = AmberCompiler::find_shell()
+    let mut cmd = AmberCompiler::find_shell(None)
         .expect("Couldn't find shell")
         .arg("-c")
         .arg(code)

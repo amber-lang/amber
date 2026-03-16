@@ -187,7 +187,14 @@ impl VarExprFragment {
         // Dereference variable if it's a reference and is passed by reference
         if self.is_ref {
             name = match meta.target.shell {
-                ShellType::Ksh | ShellType::Bash => format!("{dollar}{{!{name}}}"),
+                ShellType::Ksh => format!("{dollar}{{!{name}}}"),
+                shell @ ShellType::Bash(_) => {
+                    if shell.uses_indirect_bash_refs() {
+                        format!("{dollar}{{{name}}}")
+                    } else {
+                        format!("{dollar}{{!{name}}}")
+                    }
+                }
                 ShellType::Zsh => {
                     if self.is_array_ref {
                         format!("{dollar}{{{name}}}")
@@ -219,8 +226,14 @@ impl VarExprFragment {
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array
         match meta.target.shell {
-            ShellType::Bash => {
-                if self.is_ref && !self.is_declared {
+            shell @ ShellType::Bash(_) => {
+                if shell.uses_indirect_bash_refs() && self.is_ref {
+                    if self.is_declared {
+                        self.render_deref_variable(meta, prefix, &name, &suffix)
+                    } else {
+                        format!("{quote}{dollar}{{!{name}}}{quote}")
+                    }
+                } else if self.is_ref && !self.is_declared {
                     format!("{quote}{dollar}{{!{name}}}{quote}")
                 } else if self.is_math_var && !self.is_length && index_is_none {
                     name.to_string()
@@ -289,6 +302,14 @@ impl VarExprFragment {
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
+                if meta.target.shell.uses_indirect_bash_refs() && !(self.is_ref && self.is_declared)
+                {
+                    let name = self.get_name();
+                    let length = format!("${{#{name}[@]}}");
+                    return format!(
+                        "[$(( ({index}) < 0 ? {length} + ({index}) : ({index}) ))]{default_value}"
+                    );
+                }
                 format!("[{index}]{default_value}")
             }
             (Type::Array(_), None) if self.is_array_to_string => {
@@ -314,7 +335,7 @@ impl VarExprFragment {
         let dollar = meta.gen_dollar();
         if prefix.is_empty() && suffix.is_empty() {
             match meta.target.shell {
-                ShellType::Bash => return format!("{quote}{dollar}{{!{name}}}{quote}"),
+                ShellType::Bash(_) => return format!("{quote}{dollar}{{!{name}}}{quote}"),
                 ShellType::Zsh => return format!("{quote}{dollar}{{(P){name}}}{quote}"),
                 ShellType::Ksh => (),
             }
@@ -322,6 +343,31 @@ impl VarExprFragment {
         let id = meta.gen_value_id();
         let eval_value = format!("{prefix}${{{name}}}{suffix}");
         let var_name = format!("{name}_deref_{id}");
+        if meta.target.shell.uses_indirect_bash_refs() && !suffix.is_empty() {
+            let deref_array = format!("{var_name}_array");
+            let deref_array_value = ["\\${", "${", name, "}[@]}"].concat();
+            meta.stmt_queue.push_back(
+                RawFragment::from(format!(
+                    "eval \"local {deref_array}=(\\\"{deref_array_value}\\\")\""
+                ))
+                .to_frag(),
+            );
+            let normalized_suffix = if let Some(end) = suffix.find(']') {
+                let index = &suffix[1..end];
+                let rest = &suffix[end + 1..];
+                if suffix.starts_with("[@]") || suffix.starts_with("[*]") {
+                    suffix.to_string()
+                } else {
+                    let length = format!("${{#{deref_array}[@]}}");
+                    format!(
+                        "[$(( ({index}) < 0 ? {length} + ({index}) : ({index}) ))]{rest}"
+                    )
+                }
+            } else {
+                suffix.to_string()
+            };
+            return format!("{quote}{dollar}{{{deref_array}{normalized_suffix}}}{quote}");
+        }
         meta.stmt_queue.push_back(
             RawFragment::from(format!(
                 "eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\""

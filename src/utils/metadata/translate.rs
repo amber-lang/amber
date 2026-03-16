@@ -1,6 +1,7 @@
 use std::cmp;
 use std::collections::VecDeque;
 use std::fmt;
+use std::str::FromStr;
 
 use super::ParserMetadata;
 use crate::compiler::{AmberCompiler, CompilerOptions};
@@ -15,20 +16,66 @@ use amber_meta::ContextManager;
 
 const INDENT_SPACES: &str = "    ";
 
+pub type BashVersion = (u8, u8);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShellType {
-    Bash,
+    Bash(BashVersion),
     Zsh,
     Ksh,
 }
 
 impl fmt::Display for ShellType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let shell = match self {
-            ShellType::Bash => "bash",
+        write!(f, "{}", self.canonical_name())
+    }
+}
+
+impl FromStr for ShellType {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "bash" | "bash-4.3" => Ok(ShellType::Bash((4, 3))),
+            "bash-3.2" => Ok(ShellType::Bash((3, 2))),
+            "zsh" => Ok(ShellType::Zsh),
+            "ksh" => Ok(ShellType::Ksh),
+            _ => Err(format!(
+                "invalid shell target '{value}', expected one of: bash, bash-4.3, bash-3.2, zsh, ksh"
+            )),
+        }
+    }
+}
+
+impl ShellType {
+    pub fn canonical_name(self) -> &'static str {
+        match self {
+            ShellType::Bash((4, 3)) => "bash-4.3",
+            ShellType::Bash((3, 2)) => "bash-3.2",
+            ShellType::Bash(_) => "bash-4.3",
             ShellType::Zsh => "zsh",
             ShellType::Ksh => "ksh",
-        };
-        write!(f, "{shell}")
+        }
+    }
+
+    pub fn family_name(self) -> &'static str {
+        match self {
+            ShellType::Bash(_) => "bash",
+            ShellType::Zsh => "zsh",
+            ShellType::Ksh => "ksh",
+        }
+    }
+
+    pub fn is_bash(self) -> bool {
+        matches!(self, ShellType::Bash(_))
+    }
+
+    pub fn supports_bash_nameref(self) -> bool {
+        matches!(self, ShellType::Bash((major, minor)) if (major, minor) >= (4, 3))
+    }
+
+    pub fn uses_indirect_bash_refs(self) -> bool {
+        matches!(self, ShellType::Bash(_)) && !self.supports_bash_nameref()
     }
 }
 
@@ -77,7 +124,7 @@ pub struct TranslateMetadata {
 
 impl TranslateMetadata {
     pub fn new(meta: ParserMetadata, options: &CompilerOptions) -> Self {
-        let target_shell = AmberCompiler::find_shell_type();
+        let target_shell = AmberCompiler::resolve_target_shell(options.target);
         TranslateMetadata {
             target: TargetShell {
                 shell: target_shell,

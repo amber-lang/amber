@@ -107,7 +107,11 @@ impl VarStmtFragment {
     pub fn render_variable_name(&self, meta: &mut TranslateMetadata) -> String {
         let variable = self.get_name();
 
-        if matches!(meta.target.shell, ShellType::Zsh) && self.is_ref && self.is_declared {
+        if (matches!(meta.target.shell, ShellType::Zsh)
+            || meta.target.shell.uses_indirect_bash_refs())
+            && self.is_ref
+            && self.is_declared
+        {
             format!("${{{variable}}}")
         } else {
             variable.to_string()
@@ -133,13 +137,13 @@ impl VarStmtFragment {
         }
         let assignment = assignment_parts.join("");
         match meta.target.shell {
-            ShellType::Bash => {
+            shell @ ShellType::Bash(_) => {
                 // `local` command consumes exit code of command that it is assigned to.
                 // To preserve the exit code of the assignment we split the local declaration into two parts.
                 if self.is_local {
                     if is_running_command {
                         format!("local {var_name}\n{}{assignment}", meta.gen_indent())
-                    } else if self.is_ref {
+                    } else if self.is_ref && shell.supports_bash_nameref() {
                         format!("local -n {assignment}")
                     } else {
                         format!("local {assignment}")
@@ -209,7 +213,15 @@ impl FragmentRenderable for VarStmtFragment {
                     self.render_variable_statement(meta)
                 }
             }
-            ShellType::Bash => self.render_variable_statement(meta),
+            shell @ ShellType::Bash(_) => {
+                if shell.uses_indirect_bash_refs() && self.is_ref && self.is_declared && !self.is_local {
+                    let stmt =
+                        eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
+                    format!("eval \"{stmt}\"")
+                } else {
+                    self.render_variable_statement(meta)
+                }
+            }
         }
     }
 
