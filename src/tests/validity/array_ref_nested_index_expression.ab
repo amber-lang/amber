@@ -1,0 +1,12 @@
+// Output
+// two
+
+fun show(ref values, idxs) {
+    echo("{values[idxs[0]]}")
+}
+
+main {
+    const values = ["zero", "one", "two"]
+    const idxs = [-1]
+    show(values, idxs)
+}

@@ -229,7 +229,7 @@ impl VarExprFragment {
             shell @ ShellType::Bash(_) => {
                 if shell.uses_indirect_bash_refs() && self.is_ref {
                     if self.is_declared {
-                        self.render_deref_variable(meta, prefix, &name, &suffix)
+                        self.render_deref_variable(meta, prefix, &name, &suffix, index.as_deref())
                     } else {
                         format!("{quote}{dollar}{{!{name}}}{quote}")
                     }
@@ -253,7 +253,7 @@ impl VarExprFragment {
             ShellType::Zsh => {
                 if self.is_ref {
                     if self.is_declared {
-                        self.render_deref_variable(meta, prefix, &name, &suffix)
+                        self.render_deref_variable(meta, prefix, &name, &suffix, index.as_deref())
                     } else {
                         format!("{quote}{dollar}{{(P){name}}}{quote}")
                     }
@@ -328,6 +328,7 @@ impl VarExprFragment {
         prefix: &str,
         name: &str,
         suffix: &str,
+        index: Option<&VarIndexValue>,
     ) -> String {
         let arr_open = if self.kind.is_array() { "(" } else { "" };
         let arr_close = if self.kind.is_array() { ")" } else { "" };
@@ -352,19 +353,28 @@ impl VarExprFragment {
                 ))
                 .to_frag(),
             );
-            let normalized_suffix = if let Some(end) = suffix.find(']') {
-                let index = &suffix[1..end];
-                let rest = &suffix[end + 1..];
-                if suffix.starts_with("[@]") || suffix.starts_with("[*]") {
-                    suffix.to_string()
-                } else {
+            let normalized_suffix = if suffix.starts_with("[@]") || suffix.starts_with("[*]") {
+                suffix.to_string()
+            } else if let Some(VarIndexValue::Index(index)) = index {
+                let index_source = index.clone().with_quotes(false).to_string(meta);
+                let rest = suffix
+                    .strip_prefix(&format!("[{index_source}]"))
+                    .unwrap_or("");
+                let length = format!("${{#{deref_array}[@]}}");
+                format!(
+                    "[$(( ({index_source}) < 0 ? {length} + ({index_source}) : ({index_source}) ))]{rest}"
+                )
+            } else {
+                if let Some(end) = suffix.find(']') {
+                    let index = &suffix[1..end];
+                    let rest = &suffix[end + 1..];
                     let length = format!("${{#{deref_array}[@]}}");
                     format!(
                         "[$(( ({index}) < 0 ? {length} + ({index}) : ({index}) ))]{rest}"
                     )
+                } else {
+                    suffix.to_string()
                 }
-            } else {
-                suffix.to_string()
             };
             return format!("{quote}{dollar}{{{deref_array}{normalized_suffix}}}{quote}");
         }
