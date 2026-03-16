@@ -126,7 +126,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (Linux ${{ matrix.libc }} ${{ matrix.arch }})
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: linux-${{ matrix.libc }}-${{ matrix.arch }}
           path: dist/*
@@ -176,7 +176,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (macOS ${{ matrix.arch }})
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: macos-${{ matrix.arch }}
           path: dist/*
@@ -205,7 +205,7 @@ jobs:
           tar -C target/release -cJf dist/amber-windows-x86_64.tar.xz ${BIN_NAME}.exe
 
       - name: Upload artifacts (Windows x86_64)
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: windows-x86_64
           path: dist/*
@@ -242,7 +242,7 @@ jobs:
         run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
 
       - name: Upload artifacts (scripts & deb)
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: scripts-deb
           path: dist/*
@@ -273,7 +273,7 @@ jobs:
           gh release delete nightly --cleanup-tag -y || true
 
       - name: Upload to GitHub Release
-        uses: svenstaro/upload-release-action@6b7fa9f267e90b50a19fef07b3596790bb941741 # v2.11.3
+        uses: svenstaro/upload-release-action@b98a3b12e86552593f3e4e577ca8a62aa2f3f22b # v2.11.4
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*

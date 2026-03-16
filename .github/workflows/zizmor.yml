@@ -16,7 +16,7 @@ jobs:
   zizmor:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b # v5.0.1
+      - uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c # v5.0.1
         id: cache-zizmor
         with:
           path: ~/.tools
