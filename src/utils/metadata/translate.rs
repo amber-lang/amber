@@ -66,10 +66,6 @@ impl ShellType {
         }
     }
 
-    pub fn is_bash(self) -> bool {
-        matches!(self, ShellType::Bash(_))
-    }
-
     pub fn supports_bash_nameref(self) -> bool {
         matches!(self, ShellType::Bash((major, minor)) if (major, minor) >= (4, 3))
     }
@@ -230,5 +226,32 @@ impl TranslateMetadata {
         } else {
             ""
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::ShellType;
+
+    #[test]
+    fn shell_type_from_str_accepts_all_supported_targets() {
+        assert_eq!(ShellType::from_str("bash"), Ok(ShellType::Bash((4, 3))));
+        assert_eq!(ShellType::from_str("bash-4.3"), Ok(ShellType::Bash((4, 3))));
+        assert_eq!(ShellType::from_str("bash-3.2"), Ok(ShellType::Bash((3, 2))));
+        assert_eq!(ShellType::from_str("zsh"), Ok(ShellType::Zsh));
+        assert_eq!(ShellType::from_str("ksh"), Ok(ShellType::Ksh));
+    }
+
+    #[test]
+    fn shell_type_from_str_rejects_invalid_target() {
+        assert_eq!(
+            ShellType::from_str("fish"),
+            Err(
+                "invalid shell target 'fish', expected one of: bash, bash-4.3, bash-3.2, zsh, ksh"
+                    .to_string()
+            )
+        );
     }
 }
