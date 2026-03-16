@@ -278,6 +278,7 @@ pub(crate) fn write_output(output: PathBuf, code: String) {
     }
 }
 
+#[cfg(test)]
 fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
     handle_eval_with_target(command, None)
 }

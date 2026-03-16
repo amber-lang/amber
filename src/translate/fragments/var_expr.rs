@@ -364,17 +364,15 @@ impl VarExprFragment {
                 format!(
                     "[$(( ({index_source}) < 0 ? {length} + ({index_source}) : ({index_source}) ))]{rest}"
                 )
+            } else if let Some(end) = suffix.find(']') {
+                let index = &suffix[1..end];
+                let rest = &suffix[end + 1..];
+                let length = format!("${{#{deref_array}[@]}}");
+                format!(
+                    "[$(( ({index}) < 0 ? {length} + ({index}) : ({index}) ))]{rest}"
+                )
             } else {
-                if let Some(end) = suffix.find(']') {
-                    let index = &suffix[1..end];
-                    let rest = &suffix[end + 1..];
-                    let length = format!("${{#{deref_array}[@]}}");
-                    format!(
-                        "[$(( ({index}) < 0 ? {length} + ({index}) : ({index}) ))]{rest}"
-                    )
-                } else {
-                    suffix.to_string()
-                }
+                suffix.to_string()
             };
             return format!("{quote}{dollar}{{{deref_array}{normalized_suffix}}}{quote}");
         }
