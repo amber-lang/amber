@@ -374,7 +374,7 @@ impl VarExprFragment {
             } else {
                 suffix.to_string()
             };
-            return format!("{quote}{dollar}{{{deref_array}{normalized_suffix}}}{quote}");
+            return format!("{quote}{dollar}{{{prefix}{deref_array}{normalized_suffix}}}{quote}");
         }
         meta.stmt_queue.push_back(
             RawFragment::from(format!(

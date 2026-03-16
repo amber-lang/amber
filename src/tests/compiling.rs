@@ -1,7 +1,9 @@
 /// Tests for Amber scripts that check snapshot of generated bash code.
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::TranslateModule;
-use crate::modules::prelude::*;
+use crate::modules::types::Type;
+use crate::translate::fragments::fragment::FragmentRenderable;
+use crate::translate::fragments::var_expr::VarExprFragment;
 use crate::utils::{ShellType, TranslateMetadata};
 use insta::assert_snapshot;
 use std::fs;
@@ -70,6 +72,26 @@ fn test_bash_32_snapshot_array_assign_by_ref() {
         "src/tests/validity/array_assign_by_ref.ab",
         ShellType::Bash((3, 2)),
     );
+}
+
+#[test]
+fn test_bash_32_ref_array_len_preserves_prefix() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::Bash((3, 2))));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarExprFragment::new("items", Type::array_of(Type::Text))
+        .with_global_id(0)
+        .with_ref(true)
+        .with_declared(true)
+        .with_length_getter(true)
+        .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, "\"${#items_0_deref_0_array[@]}\"");
 }
 
 #[test]
