@@ -39,6 +39,13 @@ impl AmberCompiler {
 
     #[cfg(not(windows))]
     pub fn resolve_target_shell(target: Option<ShellType>) -> ShellType {
+        // Allow docker-based test runs to force a compiler target that matches the container shell.
+        if let Some(target) = env::var("AMBER_TEST_TARGET")
+            .ok()
+            .map(|target| target.parse().unwrap())
+        {
+            return target;
+        }
         if let Some(target) = target {
             return target;
         }
@@ -90,6 +97,62 @@ impl AmberCompiler {
             Some(target.family_name().to_string())
         } else {
             Self::find_runtime_shell_name()
+        }
+    }
+}
+
+#[cfg(all(test, not(windows)))]
+mod tests {
+    use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    fn env_lock() -> &'static Mutex<()> {
+        static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        ENV_LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    #[test]
+    fn resolve_target_shell_uses_test_target_override_when_target_is_missing() {
+        let _guard = env_lock().lock().unwrap();
+        let previous = env::var("AMBER_TEST_TARGET").ok();
+        unsafe {
+            env::set_var("AMBER_TEST_TARGET", "bash-3.2");
+        }
+
+        assert_eq!(AmberCompiler::resolve_target_shell(None), ShellType::Bash((3, 2)));
+
+        if let Some(previous) = previous {
+            unsafe {
+                env::set_var("AMBER_TEST_TARGET", previous);
+            }
+        } else {
+            unsafe {
+                env::remove_var("AMBER_TEST_TARGET");
+            }
+        }
+    }
+
+    #[test]
+    fn resolve_target_shell_prefers_test_target_override_over_explicit_target() {
+        let _guard = env_lock().lock().unwrap();
+        let previous = env::var("AMBER_TEST_TARGET").ok();
+        unsafe {
+            env::set_var("AMBER_TEST_TARGET", "bash-3.2");
+        }
+
+        assert_eq!(
+            AmberCompiler::resolve_target_shell(Some(ShellType::Zsh)),
+            ShellType::Bash((3, 2))
+        );
+
+        if let Some(previous) = previous {
+            unsafe {
+                env::set_var("AMBER_TEST_TARGET", previous);
+            }
+        } else {
+            unsafe {
+                env::remove_var("AMBER_TEST_TARGET");
+            }
         }
     }
 }

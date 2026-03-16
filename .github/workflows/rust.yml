@@ -134,6 +134,7 @@ jobs:
         env:
           AMBER_TEST_STRATEGY: docker
           AMBER_TEST_ARGS: exec test_container bash
+          AMBER_TEST_TARGET: ${{ contains(fromJSON('["bash:4.2","bash:4.1","bash:4.0","bash:3.2"]'), matrix.bash_docker_image) && 'bash-3.2' || 'bash-4.3' }}
         run: |
           docker run --network host --detach --name test_container testenv
           cargo test --all-targets --all-features
