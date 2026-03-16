@@ -255,6 +255,10 @@ fn execute_output(
     Ok(exit_status.code().unwrap_or(1))
 }
 
+fn resolve_command_target(command_target: Option<ShellType>, cli_target: Option<ShellType>) -> Option<ShellType> {
+    command_target.or(cli_target)
+}
+
 #[cfg_attr(not(test), allow(dead_code))]
 pub(crate) fn write_output(output: PathBuf, code: String) {
     let output = output.to_string_lossy().to_string();
@@ -275,15 +279,23 @@ pub(crate) fn write_output(output: PathBuf, code: String) {
 }
 
 fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
+    handle_eval_with_target(command, None)
+}
+
+fn handle_eval_with_target(
+    command: EvalCommand,
+    cli_target: Option<ShellType>,
+) -> Result<i32, Box<dyn Error>> {
+    let target = resolve_command_target(command.target, cli_target);
     let options = CompilerOptions::default()
-        .with_target(command.target)
+        .with_target(target)
         .with_env_vars();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
-            let exit_status = AmberCompiler::execute_with_target(code, vec![], command.target)?;
+            let exit_status = AmberCompiler::execute_with_target(code, vec![], target)?;
             Ok(exit_status.code().unwrap_or(1))
         }
         Err(err) => {
@@ -385,25 +397,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let exit_code = match command {
-        CommandKind::Eval(command) => handle_eval(command)?,
+        CommandKind::Eval(command) => handle_eval_with_target(command, cli.target)?,
         CommandKind::Run(command) => {
+            let target = resolve_command_target(command.target, cli.target);
             let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
-                .with_target(command.target)
+                .with_target(target)
                 .with_env_vars();
             let (code, messages) = compile_input(command.input, options);
-            execute_output(code, command.args, messages, command.target)?
+            execute_output(code, command.args, messages, target)?
         }
         CommandKind::Check(command) => {
+            let target = resolve_command_target(command.target, cli.target);
             let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
-                .with_target(command.target)
+                .with_target(target)
                 .with_env_vars();
             compile_input(command.input, options);
             0
         }
         CommandKind::Build(command) => {
+            let target = resolve_command_target(command.target, cli.target);
             let output = create_output(&command);
             let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
-                .with_target(command.target)
+                .with_target(target)
                 .with_env_vars();
             let (code, _) = compile_input(command.input, options);
             write_output(output, code);
@@ -417,7 +432,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             handle_completion();
             0
         }
-        CommandKind::Test(command) => testing::handle_test(command)?,
+        CommandKind::Test(mut command) => {
+            command.target = resolve_command_target(command.target, cli.target);
+            testing::handle_test(command)?
+        }
     };
 
     std::process::exit(exit_code);

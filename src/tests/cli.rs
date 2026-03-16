@@ -376,6 +376,38 @@ fn test_cli_target_build_zsh_shebang() {
 }
 
 #[test]
+fn test_cli_top_level_target_build_zsh_shebang() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    cmd.args([
+        "--target",
+        "zsh",
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env zsh"));
+}
+
+#[test]
+fn test_cli_subcommand_target_overrides_top_level_target() {
+    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    cmd.args([
+        "--target",
+        "bash",
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--target",
+        "zsh",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env zsh"));
+}
+
+#[test]
 fn test_cli_target_build_ksh_shebang() {
     let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
     cmd.args([
