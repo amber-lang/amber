@@ -2,14 +2,17 @@
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::TranslateModule;
 use crate::modules::prelude::*;
-use crate::utils::TranslateMetadata;
+use crate::utils::{ShellType, TranslateMetadata};
 use insta::assert_snapshot;
 use std::fs;
 use std::path::Path;
 use test_generator::test_resources;
 
-pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
-    let options = CompilerOptions::default();
+pub fn translate_amber_code_with_target<T: Into<String>>(
+    code: T,
+    target: Option<ShellType>,
+) -> Option<String> {
+    let options = CompilerOptions::default().with_target(target);
     let compiler = AmberCompiler::new(code.into(), None, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
@@ -18,6 +21,10 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     let ast = ast.translate(&mut translate_meta);
     let result = ast.to_string(&mut translate_meta);
     Some(result)
+}
+
+pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
+    translate_amber_code_with_target(code, None)
 }
 
 /// Autoload the Amber test files in compiling
@@ -31,8 +38,38 @@ fn test_translation(input: &str) {
         .expect("Provided directory")
         .to_str()
         .expect("Cannot translate to string");
-    let filename = format!("{filename}__{}", AmberCompiler::find_shell_type());
+    let filename = format!("{filename}__{}", AmberCompiler::resolve_target_shell(None));
     assert_snapshot!(filename, ast);
+}
+
+fn assert_target_snapshot(input: &str, target: ShellType) {
+    let code =
+        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    let ast = translate_amber_code_with_target(code, Some(target))
+        .expect("Couldn't translate Amber code");
+    let filename = Path::new(input)
+        .file_name()
+        .expect("Provided directory")
+        .to_str()
+        .expect("Cannot translate to string");
+    let filename = format!("{filename}__{}", target.canonical_name());
+    assert_snapshot!(filename, ast);
+}
+
+#[test]
+fn test_bash_32_snapshot_variable_ref_set_number() {
+    assert_target_snapshot(
+        "src/tests/validity/variable_ref_set_number.ab",
+        ShellType::Bash((3, 2)),
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_assign_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_assign_by_ref.ab",
+        ShellType::Bash((3, 2)),
+    );
 }
 
 #[test]
@@ -76,10 +113,57 @@ main {
 
 #[test]
 fn test_find_shell() {
-    let bash_cmd = AmberCompiler::find_shell();
+    let bash_cmd = AmberCompiler::find_shell(None);
     assert!(
         bash_cmd.is_some(),
         "find_shell should return Some(Command) on non-Windows"
+    );
+}
+
+#[test]
+fn test_target_from_shell_path() {
+    assert_eq!(
+        AmberCompiler::target_from_shell_path("/bin/zsh"),
+        Some(ShellType::Zsh)
+    );
+    assert_eq!(
+        AmberCompiler::target_from_shell_path("/bin/ksh"),
+        Some(ShellType::Ksh)
+    );
+    assert_eq!(
+        AmberCompiler::target_from_shell_path("/bin/bash"),
+        Some(ShellType::Bash((4, 3)))
+    );
+}
+
+#[test]
+fn test_runtime_shell_command_uses_target_family_when_shell_is_unset() {
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(None, Some(ShellType::Bash((3, 2)))),
+        Some("bash".to_string())
+    );
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(None, Some(ShellType::Zsh)),
+        Some("zsh".to_string())
+    );
+}
+
+#[test]
+fn test_runtime_shell_command_prefers_amber_shell_over_target() {
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(
+            Some("/bin/bash".to_string()),
+            Some(ShellType::Zsh)
+        ),
+        Some("/bin/bash".to_string())
+    );
+}
+
+#[test]
+fn test_runtime_shell_command_uses_shell_env_without_target() {
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(Some("/bin/bash".to_string()), None),
+        Some("/bin/bash".to_string())
     );
 }
 

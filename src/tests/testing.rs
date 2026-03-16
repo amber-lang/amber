@@ -25,6 +25,7 @@ mod test {
             input: test_file.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -42,6 +43,7 @@ mod test {
             input: test_file.clone(),
             args: vec!["foo".to_string()],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -55,6 +57,7 @@ mod test {
             input: PathBuf::from("/non/existent/path.ab"),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -70,6 +73,7 @@ mod test {
             input: test_dir.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -85,6 +89,7 @@ mod test {
             input: test_file.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = handle_test(command);
@@ -100,6 +105,7 @@ mod test {
             input: test_dir.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = handle_test(command);
@@ -116,6 +122,7 @@ mod test {
             input: test_file.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = handle_test(command);
@@ -132,6 +139,7 @@ mod test {
             input: test_file.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = handle_test(command);
@@ -148,6 +156,7 @@ mod test {
             input: test_file.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -165,6 +174,7 @@ mod test {
             input: temp_empty.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = handle_test(command);
@@ -182,6 +192,7 @@ mod test {
             input: test_file.clone(),
             args: vec![],
             no_proc: Vec::new(),
+            target: None,
         };
 
         let result = handle_test(command);
