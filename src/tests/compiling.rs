@@ -282,29 +282,23 @@ fn test_shell_injection_command_substitution_blocked() {
     let amber_code = r#"main(args) { echo(args[1]) }"#;
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    let (messages, bash_code) = compiler.compile().unwrap();
+
+    // Pass a malicious argument that would normally trigger command substitution
+    let args = vec![
+        "program-name".to_string(),
+        "$(echo INJECTED)".to_string(),
+    ];
+
+    let (messages, output) = compiler.execute(args).expect("Failed to execute Amber script");
 
     // Allow 1 message for deprecation warning
     assert!(messages.len() <= 1);
 
-    // Use set -- to pass arguments without shell expansion
-    let bash_code_with_args = format!(
-        "set -- {}\n{}",
-        "'$(echo INJECTED)'",
-        bash_code
-    );
-
-    let output = AmberCompiler::find_shell()
-        .expect("Failed to find shell")
-        .arg("-c")
-        .arg(bash_code_with_args)
-        .output()
-        .expect("Failed to execute shell");
-
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    // Must contain literal "$(echo INJECTED)", not "INJECTED"
+    // Must contain literal "$(echo INJECTED)", not the expanded "INJECTED"
     assert!(stdout.contains("$(echo INJECTED)"));
+    assert!(!stdout.contains("INJECTED\n") || stdout.contains("$(echo INJECTED)"));
 }
 
 #[test]
@@ -312,25 +306,20 @@ fn test_shell_injection_variable_expansion_blocked() {
     let amber_code = r#"main(args) { echo(args[1]) }"#;
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    let (messages, bash_code) = compiler.compile().unwrap();
+
+    // Pass a malicious argument that would normally trigger variable expansion
+    let args = vec![
+        "program-name".to_string(),
+        "$HOME".to_string(),
+    ];
+
+    let (messages, output) = compiler.execute(args).expect("Failed to execute Amber script");
 
     assert!(messages.len() <= 1);
 
-    let bash_code_with_args = format!(
-        "set -- {}\n{}",
-        "'$HOME'",
-        bash_code
-    );
-
-    let output = AmberCompiler::find_shell()
-        .expect("Failed to find shell")
-        .arg("-c")
-        .arg(bash_code_with_args)
-        .output()
-        .expect("Failed to execute shell");
-
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
+    // Must contain literal "$HOME", not the value of the HOME variable
     assert!(stdout.contains("$HOME"));
 }
 
@@ -339,23 +328,19 @@ fn test_shell_injection_backslash_handled() {
     let amber_code = r#"main(args) { echo(args[1]) }"#;
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    let (messages, bash_code) = compiler.compile().unwrap();
+
+    // Pass a backslash argument to ensure it is handled and escaped correctly
+    let args = vec![
+        "program-name".to_string(),
+        "\\".to_string(),
+    ];
+
+    let (messages, output) = compiler.execute(args).expect("Failed to execute Amber script");
 
     assert!(messages.len() <= 1);
 
-    let bash_code_with_args = format!(
-        "set -- {}\n{}",
-        "'\\\\'",
-        bash_code
-    );
-
-    let output = AmberCompiler::find_shell()
-        .expect("Failed to find shell")
-        .arg("-c")
-        .arg(bash_code_with_args)
-        .output()
-        .expect("Failed to execute shell");
-
     assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("\\"));
 }
 

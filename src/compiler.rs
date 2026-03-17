@@ -35,7 +35,7 @@ fn escape_shell_arg(s: &str) -> String {
             '$' => result.push_str(r#"\$"#),
             '`' => result.push_str(r#"\`"#),
             '\\' => result.push_str(r#"\\"#),
-            '!' => result.push_str("'!'"),
+            '!' => result.push_str(r#"\!"#),
             _ => result.push(c),
         }
     }
