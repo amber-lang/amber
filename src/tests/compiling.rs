@@ -285,7 +285,7 @@ fn test_shell_injection_command_substitution_blocked() {
 
     let (messages, bash_code) = compiler.compile().expect("Failed to compile");
 
-    // Pass: args[0]=program-name, args[1]=safe, args[2]=malicious
+    // Pass: args[1]=program-name, args[2]=safe, args[3]=malicious
     let args = vec![
         "program-name".to_string(),
         "safe-arg".to_string(),
