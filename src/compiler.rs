@@ -462,7 +462,7 @@ impl AmberCompiler {
     pub fn execute(mut code: String, args: Vec<String>) -> Result<(ExitStatus, Vec<u8>), std::io::Error> {
         if let Some(mut command) = Self::find_shell() {
             if !args.is_empty() {
-let args = args
+                let args = args
                     .into_iter()
                     .map(|arg| format!("\"{}\"", escape_shell_arg(&arg)))
                     .collect::<Vec<String>>();
