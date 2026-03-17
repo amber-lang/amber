@@ -24,6 +24,23 @@ use std::time::Instant;
 use wildmatch::WildMatchPattern;
 
 pub mod postprocessor;
+/// Escapes a string for safe use as a shell argument in double quotes.
+/// Handles shell-special characters: $ ` " \ !
+/// This prevents shell command injection attacks.
+fn escape_shell_arg(s: &str) -> String {
+    let mut result = String::new();
+    for c in s.chars() {
+        match c {
+            '"' => result.push_str(r#"\""#),
+            '$' => result.push_str(r#"\$"#),
+            '`' => result.push_str(r#"\`"#),
+            '\\' => result.push_str(r#"\\"#),
+            '!' => result.push_str("'!'"),
+            _ => result.push(c),
+        }
+    }
+    result
+}
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 
@@ -445,10 +462,9 @@ impl AmberCompiler {
     pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         if let Some(mut command) = Self::find_shell() {
             if !args.is_empty() {
-                let args = args
+let args = args
                     .into_iter()
-                    .map(|arg| arg.replace("\"", "\\\""))
-                    .map(|arg| format!("\"{arg}\""))
+                    .map(|arg| format!("\"{}\"", escape_shell_arg(&arg)))
                     .collect::<Vec<String>>();
                 code = format!("set -- {}\n{}", args.join(" "), code);
             }
