@@ -27,7 +27,7 @@ pub mod postprocessor;
 /// Escapes a string for safe use as a shell argument in double quotes.
 /// Handles shell-special characters: $ ` " \ !
 /// This prevents shell command injection attacks.
-fn escape_shell_arg(s: &str) -> String {
+pub fn escape_shell_arg(s: &str) -> String {
     let mut result = String::new();
     for c in s.chars() {
         match c {
@@ -459,7 +459,7 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
-    pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
+    pub fn execute(mut code: String, args: Vec<String>) -> Result<(ExitStatus, Vec<u8>), std::io::Error> {
         if let Some(mut command) = Self::find_shell() {
             if !args.is_empty() {
 let args = args
@@ -468,7 +468,8 @@ let args = args
                     .collect::<Vec<String>>();
                 code = format!("set -- {}\n{}", args.join(" "), code);
             }
-            command.arg("-c").arg(code).spawn()?.wait()
+            let output = command.arg("-c").arg(code).output()?;
+            Ok((output.status, output.stdout))
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find shell");
             Err(error)

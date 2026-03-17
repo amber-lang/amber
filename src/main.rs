@@ -16,7 +16,7 @@ pub mod built_info {
 #[cfg(test)]
 pub mod tests;
 
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{escape_shell_arg, AmberCompiler, CompilerOptions};
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use colored::Colorize;
@@ -213,16 +213,28 @@ fn handle_err(err: std::io::Error) -> ! {
 #[allow(unused_must_use)]
 pub fn render_dash() {
     let str = "%.s─".dimmed();
-    AmberCompiler::execute(format!("printf {str} $(seq 1 $(tput cols))"), vec![]);
+    let _ = AmberCompiler::execute(format!("printf {str} $(seq 1 $(tput cols))"), vec![]);
     println!();
 }
 
-fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<i32, Box<dyn Error>> {
+fn execute_output(mut code: String, args: Vec<String>, messages: bool) -> Result<i32, Box<dyn Error>> {
     if messages {
         render_dash();
     }
-    let exit_status = AmberCompiler::execute(code, args)?;
-    Ok(exit_status.code().unwrap_or(1))
+    // Use spawn().wait() to let stdout/stderr go directly to terminal
+    if let Some(mut command) = AmberCompiler::find_shell() {
+        if !args.is_empty() {
+            let escaped_args: Vec<String> = args
+                .into_iter()
+                .map(|arg| format!("\"{}\"", escape_shell_arg(&arg)))
+                .collect();
+            code = format!("set -- {}\n{}", escaped_args.join(" "), code);
+        }
+        let status = command.arg("-c").arg(code).spawn()?.wait()?;
+        return Ok(status.code().unwrap_or(1));
+    }
+    let error = std::io::Error::new(std::io::ErrorKind::NotFound, "Failed to find shell");
+    Err(error.into())
 }
 
 #[cfg_attr(not(test), allow(dead_code))]
@@ -251,7 +263,7 @@ fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
-            let exit_status = AmberCompiler::execute(code, vec![])?;
+            let (exit_status, _stdout) = AmberCompiler::execute(code, vec![])?;
             Ok(exit_status.code().unwrap_or(1))
         }
         Err(err) => {

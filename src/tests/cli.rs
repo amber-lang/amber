@@ -26,7 +26,7 @@ fn bash_error_exit_code() {
     assert_eq!(messages.len(), 0);
 
     // Execute the bash code and check the exit status
-    let exit_status = AmberCompiler::execute(bash_code, vec![]).unwrap();
+    let (exit_status, _stdout) = AmberCompiler::execute(bash_code, vec![]).unwrap();
     assert_eq!(exit_status.code(), Some(127));
 }
 
@@ -70,6 +70,7 @@ fn main_args_passed_correctly() {
     assert_eq!(lines[2], "two");
     assert_eq!(lines[3], "three");
 }
+
 
 #[test]
 fn test_filtering() {
