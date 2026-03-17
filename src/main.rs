@@ -213,7 +213,11 @@ fn handle_err(err: std::io::Error) -> ! {
 #[allow(unused_must_use)]
 pub fn render_dash() {
     let str = "%.s─".dimmed();
-    let _ = AmberCompiler::execute(format!("printf {str} $(seq 1 $(tput cols))"), vec![]);
+    if let Some(mut command) = AmberCompiler::find_shell() {
+        let cmd = format!("printf {str} $(seq 1 $(tput cols))");
+        // Use spawn().wait() so the divider is written directly to the terminal.
+        let _ = command.arg("-c").arg(cmd).spawn().and_then(|mut c| c.wait());
+    }
     println!();
 }
 
