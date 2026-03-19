@@ -66,12 +66,8 @@ impl ShellType {
         }
     }
 
-    pub fn supports_bash_nameref(self) -> bool {
-        matches!(self, ShellType::Bash((major, minor)) if (major, minor) >= (4, 3))
-    }
-
-    pub fn uses_indirect_bash_refs(self) -> bool {
-        matches!(self, ShellType::Bash(_)) && !self.supports_bash_nameref()
+    pub fn is_bash_legacy(self) -> bool {
+        matches!(self, ShellType::Bash((major, minor)) if (major, minor) < (4, 3))
     }
 }
 

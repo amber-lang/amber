@@ -118,7 +118,7 @@ impl FunctionDeclaration {
                                 .with_ref(false)
                                 .with_array_ref(true)
                                 .with_declared(false)
-                        } else if meta.target.shell.uses_indirect_bash_refs() {
+                        } else if meta.target.shell.is_bash_legacy() {
                             VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
                                 .with_optimization_when_unused(false)

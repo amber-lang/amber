@@ -189,7 +189,7 @@ impl VarExprFragment {
             name = match meta.target.shell {
                 ShellType::Ksh => format!("{dollar}{{!{name}}}"),
                 shell @ ShellType::Bash(_) => {
-                    if shell.uses_indirect_bash_refs() {
+                    if shell.is_bash_legacy() {
                         format!("{dollar}{{{name}}}")
                     } else {
                         format!("{dollar}{{!{name}}}")
@@ -227,7 +227,7 @@ impl VarExprFragment {
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array
         match meta.target.shell {
             shell @ ShellType::Bash(_) => {
-                if shell.uses_indirect_bash_refs() && self.is_ref {
+                if shell.is_bash_legacy() && self.is_ref {
                     if self.is_declared {
                         self.render_deref_variable(meta, prefix, &name, &suffix, index.as_deref())
                     } else {
@@ -302,8 +302,7 @@ impl VarExprFragment {
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
-                if meta.target.shell.uses_indirect_bash_refs() && !(self.is_ref && self.is_declared)
-                {
+                if meta.target.shell.is_bash_legacy() && !(self.is_ref && self.is_declared) {
                     let name = self.get_name();
                     let length = format!("${{#{name}[@]}}");
                     return format!(
@@ -344,7 +343,7 @@ impl VarExprFragment {
         let id = meta.gen_value_id();
         let eval_value = format!("{prefix}${{{name}}}{suffix}");
         let var_name = format!("{name}_deref_{id}");
-        if meta.target.shell.uses_indirect_bash_refs() && !suffix.is_empty() {
+        if meta.target.shell.is_bash_legacy() && !suffix.is_empty() {
             let deref_array = format!("{var_name}_array");
             let deref_array_value = ["\\${", "${", name, "}[@]}"].concat();
             meta.stmt_queue.push_back(
