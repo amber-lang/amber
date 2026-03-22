@@ -1,4 +1,5 @@
 use crate::modules::block::Block;
+use crate::modules::handle_symbol_scope_declaration;
 use crate::modules::types::Type;
 use crate::modules::variable::handle_identifier_name;
 use crate::utils::context::Context;
@@ -72,10 +73,7 @@ pub fn handle_existing_function(
     tok: Option<Token>,
 ) -> Result<(), Failure> {
     let name = tok.as_ref().unwrap().word.clone();
-    if meta.get_fun_declaration(&name).is_some() {
-        return error!(meta, tok, format!("Function '{}' already exists", name));
-    }
-    Ok(())
+    handle_symbol_scope_declaration(meta, &name, tok)
 }
 
 pub fn handle_add_function(

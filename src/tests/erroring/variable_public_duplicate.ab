@@ -1,0 +1,8 @@
+// Output
+// Name 'foo' is used multiple times
+
+#[allow_public_mutable]
+pub let foo = 123
+
+#[allow_public_mutable]
+pub let foo = 123

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 use super::{handle_identifier_name, variable_name_extensions};
 use crate::modules::expression::expr::Expr;
-use crate::modules::prelude::*;
+use crate::modules::{handle_symbol_scope_declaration, prelude::*};
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::get_default_value_fragment;
 use crate::raw_fragment;
@@ -125,8 +125,11 @@ impl TypeCheckModule for VariableInitDestruct {
             }
         };
 
+        
         for (name, tok) in self.names.iter().zip(self.toks.iter()) {
+
             handle_identifier_name(meta, name, tok.clone())?;
+            handle_symbol_scope_declaration(meta, name, tok.clone())?;
             let var = VariableDecl::new(name.clone(), inner_type.clone())
                 .with_warn(
                     VariableDeclWarn::from_token(meta, tok.clone())

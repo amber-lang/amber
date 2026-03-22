@@ -1,0 +1,6 @@
+// Output
+// Cannot redeclare 'foo' in the same scope
+
+const foo = 123
+
+const foo = 123

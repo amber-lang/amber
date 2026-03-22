@@ -1,4 +1,9 @@
 let var = "abc"
-let var = "Succeeded"
+
+{
+  let var = "Succeeded"
+
+  echo(var)
+}
 
 echo(var)
