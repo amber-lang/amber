@@ -1,5 +1,5 @@
 // Output
-// Name 'foo' is used multiple times
+// Cannot redeclare 'foo' in the same scope
 
 #[allow_public_mutable]
 pub let foo = 123
