@@ -15,29 +15,35 @@
 // Le: 1
 // Lt: 1
 
-let left = "xyz"
-let right = "abc"
+{
+  const left = "xyz"
+  const right = "abc"
 
-echo("Gt and Ge")
-echo("Ge: {left >= right}")
-echo("Gt: {left > right}")
-echo("Le: {left <= right}")
-echo("Lt: {left < right}")
+  echo("Gt and Ge")
+  echo("Ge: {left >= right}")
+  echo("Gt: {left > right}")
+  echo("Le: {left <= right}")
+  echo("Lt: {left < right}")
+}
 
-let left = "this is same"
-let right = "this is same"
+{
+  const left = "this is same"
+  const right = "this is same"
 
-echo("Ge and Le (equality)")
-echo("Ge: {left >= right}")
-echo("Gt: {left > right}")
-echo("Le: {left <= right}")
-echo("Lt: {left < right}")
+  echo("Ge and Le (equality)")
+  echo("Ge: {left >= right}")
+  echo("Gt: {left > right}")
+  echo("Le: {left <= right}")
+  echo("Lt: {left < right}")
+}
 
-let left = "abc"
-let right = "abd"
+{
+  const left = "abc"
+  const right = "abd"
 
-echo("Lt and Le")
-echo("Ge: {left >= right}")
-echo("Gt: {left > right}")
-echo("Le: {left <= right}")
-echo("Lt: {left < right}")
+  echo("Lt and Le")
+  echo("Ge: {left >= right}")
+  echo("Gt: {left > right}")
+  echo("Le: {left <= right}")
+  echo("Lt: {left < right}")
+}

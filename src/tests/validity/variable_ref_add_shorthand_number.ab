@@ -10,6 +10,6 @@ let a = 24
 foo(a)
 echo(a)
 
-let a = 24.24
-foo(a)
-echo(a)
+let b = 24.24
+foo(b)
+echo(b)

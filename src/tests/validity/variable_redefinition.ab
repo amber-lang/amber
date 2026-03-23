@@ -1,7 +1,11 @@
-let var = "abc"
+// Output
+// Succeeded
+// abc
+
+const var = "abc"
 
 {
-  let var = "Succeeded"
+  const var = "Succeeded"
 
   echo(var)
 }
