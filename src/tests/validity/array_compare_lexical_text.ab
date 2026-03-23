@@ -34,7 +34,7 @@
   echo("Ge: {left >= right}")
   echo("Gt: {left > right}")
   echo("Le: {left <= right}")
-echo("Lt: {left < right}")
+  echo("Lt: {left < right}")
 }
 
 {
