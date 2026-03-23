@@ -80,7 +80,7 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
 }
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
-    let mut cmd = AmberCompiler::find_shell().expect("Failed to find shell");
+    let mut cmd = AmberCompiler::find_shell(None).expect("Failed to find shell");
     cmd.arg("-c");
     cmd.arg(code.into());
     cmd.stdout(Stdio::piped());

@@ -53,7 +53,8 @@ pub fn get_tests_to_run(
             }
         };
 
-        let options = CompilerOptions::from_args(&command.no_proc, false, true, None);
+        let options = CompilerOptions::from_args(&command.no_proc, false, true, None)
+            .with_target(command.target);
         let compiler = AmberCompiler::new(
             code.clone(),
             Some(file.to_string_lossy().to_string()),
@@ -128,7 +129,8 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
             };
 
             let options =
-                CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()));
+                CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()))
+                    .with_target(command.target);
             let compiler = AmberCompiler::new(
                 code.clone(),
                 Some(file.to_string_lossy().to_string()),
@@ -136,7 +138,7 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
             );
 
             let result = match compiler.compile() {
-                Ok((_, bash_code)) => match AmberCompiler::find_shell() {
+                Ok((_, bash_code)) => match AmberCompiler::find_shell(command.target) {
                     Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
                         Ok(output) => {
                             if output.status.success() {

@@ -28,7 +28,7 @@ fn test_translation(input: &str) {
         .expect("Provided directory")
         .to_str()
         .expect("Cannot translate to string");
-    let filename = format!("{filename}__{}", AmberCompiler::find_shell_type());
+    let filename = format!("{filename}__{}", AmberCompiler::resolve_target_shell(None));
     assert_debug_snapshot!(filename, ast);
 }
 

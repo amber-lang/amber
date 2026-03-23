@@ -1,31 +1,3 @@
-// We cannot import `shell_version` from `env.ab` because it imports `text.ab` making a circular dependency.
-// This is a workaround to avoid that issue and the import system should be improved in the future.
-
-#[allow_absurd_cast]
-fun shell_version(): [Int] {
-    let result = []
-    if {
-        shellname() == "zsh" {
-        	trust $ {nameof result}=(\$\{(s:.:)ZSH_VERSION}) $
-        }
-		shellname() == "ksh" {
-			let version = "";
-			trust $
-				{nameof version}="\$\{.sh.version##*\/}"
-				IFS='.' read -a KSH_VERSINFO <<< "\$\{{nameof version}%% *}"
-				{nameof result}=(\$\{KSH_VERSINFO[@]})
-			$
-		}
-		else {
-        	const major = trust $ printf "%s\n" "\$\{BASH_VERSINFO[0]}" $ as Int
-        	const minor = trust $ printf "%s\n" "\$\{BASH_VERSINFO[1]}" $ as Int
-        	const patch = trust $ printf "%s\n" "\$\{BASH_VERSINFO[2]}" $ as Int
-        	result = [major, minor, patch]
-        }
-    }
-    return result
-}
-
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 ///
 /// ### Usage
@@ -36,7 +8,7 @@ fun shell_version(): [Int] {
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if shellname() == "ksh" or (shellname() == "bash" and shell_version() >= [4, 3]) {
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -54,7 +26,7 @@ pub fun replace(source, search, replace) {
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if shellname() == "ksh" or (shellname() == "bash" and shell_version() >= [4, 3]) {
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -224,10 +196,21 @@ pub fun trim(text: Text): Text {
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    trust $ 
-        typeset -l {nameof text} 
-        {nameof text}="{text}" 
-    $
+    if shellname() == "bash" {
+        if shellversion() < [4, 3] {
+            trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:upper:]' '[:lower:]')" $
+        } else {
+            trust $
+                typeset -l {nameof text}
+                {nameof text}="{text}"
+            $
+        }
+    } else {
+        trust $
+            typeset -l {nameof text}
+            {nameof text}="{text}"
+        $
+    }
     return text
 }
 
@@ -239,10 +222,21 @@ pub fun lowercase(text: Text): Text {
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    trust $ 
-        typeset -u {nameof text} 
-        {nameof text}="{text}" 
-    $
+    if shellname() == "bash" {
+        if shellversion() < [4, 3] {
+            trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:lower:]' '[:upper:]')" $
+        } else {
+            trust $
+                typeset -u {nameof text}
+                {nameof text}="{text}"
+            $
+        }
+    } else {
+        trust $
+            typeset -u {nameof text}
+            {nameof text}="{text}"
+        $
+    }
     return text
 }
 

@@ -1,15 +1,22 @@
 /// Tests for Amber scripts that check snapshot of generated bash code.
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::TranslateModule;
-use crate::modules::prelude::*;
-use crate::utils::TranslateMetadata;
+use crate::modules::types::Type;
+use crate::translate::fragments::fragment::FragmentRenderable;
+use crate::translate::fragments::raw::RawFragment;
+use crate::translate::fragments::var_expr::{VarExprFragment, VarIndexValue};
+use crate::translate::fragments::var_stmt::VarStmtFragment;
+use crate::utils::{ShellType, TranslateMetadata};
 use insta::assert_snapshot;
 use std::fs;
 use std::path::Path;
 use test_generator::test_resources;
 
-pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
-    let options = CompilerOptions::default();
+pub fn translate_amber_code_with_target<T: Into<String>>(
+    code: T,
+    target: Option<ShellType>,
+) -> Option<String> {
+    let options = CompilerOptions::default().with_target(target);
     let compiler = AmberCompiler::new(code.into(), None, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
@@ -18,6 +25,22 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     let ast = ast.translate(&mut translate_meta);
     let result = ast.to_string(&mut translate_meta);
     Some(result)
+}
+
+pub fn translate_compiler_output_with_target<T: Into<String>>(
+    code: T,
+    target: Option<ShellType>,
+) -> Option<String> {
+    let options = CompilerOptions::default().with_target(target);
+    let compiler = AmberCompiler::new(code.into(), None, options);
+    let tokens = compiler.tokenize().ok()?;
+    let (ast, meta) = compiler.parse(tokens).ok()?;
+    let (ast, meta) = compiler.typecheck(ast, meta).ok()?;
+    compiler.translate(ast, meta).ok()
+}
+
+pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
+    translate_amber_code_with_target(code, None)
 }
 
 /// Autoload the Amber test files in compiling
@@ -31,8 +54,146 @@ fn test_translation(input: &str) {
         .expect("Provided directory")
         .to_str()
         .expect("Cannot translate to string");
-    let filename = format!("{filename}__{}", AmberCompiler::find_shell_type());
+    let filename = format!("{filename}__{}", AmberCompiler::resolve_target_shell(None));
     assert_snapshot!(filename, ast);
+}
+
+fn assert_target_snapshot(input: &str, target: ShellType) {
+    let code =
+        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    let ast = translate_amber_code_with_target(code, Some(target))
+        .expect("Couldn't translate Amber code");
+    let filename = Path::new(input)
+        .file_name()
+        .expect("Provided directory")
+        .to_str()
+        .expect("Cannot translate to string");
+    let filename = format!("{filename}__{}", target.canonical_name());
+    assert_snapshot!(filename, ast);
+}
+
+#[test]
+fn test_bash_32_snapshot_variable_ref_set_number() {
+    assert_target_snapshot(
+        "src/tests/validity/variable_ref_set_number.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_assign_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_assign_by_ref.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_get_negative_index_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_get_negative_index_by_ref.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_get_excl_range_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_get_excl_range_by_ref.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_get_incl_range_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_get_incl_range_by_ref.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_ref_array_len_preserves_prefix() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::BashLegacy));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarExprFragment::new("items", Type::array_of(Type::Text))
+        .with_global_id(0)
+        .with_ref(true)
+        .with_declared(true)
+        .with_length_getter(true)
+        .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, "\"${#items_0_deref_0_array[@]}\"");
+}
+
+#[test]
+fn test_bash_32_ref_array_negative_index_uses_pass_through_deref_access() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::BashLegacy));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarExprFragment::new("items", Type::Text)
+        .with_global_id(0)
+        .with_ref(true)
+        .with_declared(true)
+        .with_index_by_value(VarIndexValue::Index(crate::raw_fragment!("idx")))
+        .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, "\"${items_0_deref_0_array[idx]}\"");
+}
+
+#[test]
+fn test_zsh_declared_ref_array_assignment_defers_array_expansion_to_inner_eval() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::Zsh));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarStmtFragment::new(
+        "target",
+        Type::array_of(Type::Text),
+        VarExprFragment::new("source", Type::array_of(Type::Text)).to_frag(),
+    )
+    .with_ref(true)
+    .with_declared(true)
+    .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
+}
+
+#[test]
+fn test_bash_32_declared_ref_array_assignment_defers_array_expansion_to_inner_eval() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::BashLegacy));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarStmtFragment::new(
+        "target",
+        Type::array_of(Type::Text),
+        VarExprFragment::new("source", Type::array_of(Type::Text)).to_frag(),
+    )
+    .with_ref(true)
+    .with_declared(true)
+    .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
 }
 
 #[test]
@@ -57,6 +218,55 @@ main {
 }
 
 #[test]
+fn test_translate_shellversion_preamble() {
+    let code = r#"
+main {
+    echo(shellversion()[0])
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"IFS='.' read -A EXEC_SHELL_VERSION <<< "$ZSH_VERSION""#),
+        "Output should contain the zsh shellversion preamble"
+    );
+    assert!(
+        result.contains(r#"IFS='.' read -a EXEC_SHELL_VERSION <<< "${__exec_shell_version%% *}""#),
+        "Output should contain the ksh shellversion preamble"
+    );
+    assert!(
+        result.contains(
+            r#"EXEC_SHELL_VERSION=("${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}" "${BASH_VERSINFO[2]}")"#,
+        ),
+        "Output should contain the bash shellversion preamble"
+    );
+    assert!(
+        result.contains("EXEC_SHELL_VERSION[0]"),
+        "Output should reference the shellversion builtin variable"
+    );
+}
+
+#[test]
+fn test_translate_shellname_and_shellversion_share_single_preamble() {
+    let code = r#"
+main {
+    echo(shellname())
+    echo(shellversion()[0])
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert_eq!(
+        result.matches(r#"if [ -n "$ZSH_VERSION" ]; then"#).count(),
+        1
+    );
+    assert!(result.contains("EXEC_SHELL"));
+    assert!(result.contains("EXEC_SHELL_VERSION"));
+}
+
+#[test]
 fn test_translate_with_sudo() {
     let code = r#"
 main {
@@ -76,10 +286,54 @@ main {
 
 #[test]
 fn test_find_shell() {
-    let bash_cmd = AmberCompiler::find_shell();
+    let bash_cmd = AmberCompiler::find_shell(None);
     assert!(
         bash_cmd.is_some(),
         "find_shell should return Some(Command) on non-Windows"
+    );
+}
+
+#[test]
+fn test_target_from_shell_path() {
+    assert_eq!(
+        AmberCompiler::target_from_shell_path("/bin/zsh"),
+        Some(ShellType::Zsh)
+    );
+    assert_eq!(
+        AmberCompiler::target_from_shell_path("/bin/ksh"),
+        Some(ShellType::Ksh)
+    );
+    assert_eq!(
+        AmberCompiler::target_from_shell_path("/bin/bash"),
+        Some(ShellType::BashModern)
+    );
+}
+
+#[test]
+fn test_runtime_shell_command_uses_target_family_when_shell_is_unset() {
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(None, Some(ShellType::BashLegacy)),
+        Some("bash".to_string())
+    );
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(None, Some(ShellType::Zsh)),
+        Some("zsh".to_string())
+    );
+}
+
+#[test]
+fn test_runtime_shell_command_prefers_amber_shell_over_target() {
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(Some("/bin/bash".to_string()), Some(ShellType::Zsh)),
+        Some("/bin/bash".to_string())
+    );
+}
+
+#[test]
+fn test_runtime_shell_command_uses_shell_env_without_target() {
+    assert_eq!(
+        AmberCompiler::runtime_shell_command(Some("/bin/bash".to_string()), None),
+        Some("/bin/bash".to_string())
     );
 }
 

@@ -1,0 +1,130 @@
+---
+source: src/tests/translating.rs
+expression: ast
+---
+Block(
+    BlockFragment {
+        statements: [
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "15",
+                                    },
+                                ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "45",
+                                    },
+                                ),
+                            ),
+                            op: Add,
+                            quoted: true,
+                        },
+                    ),
+                },
+            ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Arithmetic(
+                                    ArithmeticFragment {
+                                        left: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "39",
+                                                },
+                                            ),
+                                        ),
+                                        right: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "21",
+                                                },
+                                            ),
+                                        ),
+                                        op: Add,
+                                        quoted: true,
+                                    },
+                                ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "80",
+                                    },
+                                ),
+                            ),
+                            op: Add,
+                            quoted: true,
+                        },
+                    ),
+                },
+            ),
+            Log(
+                LogFragment {
+                    value: Arithmetic(
+                        ArithmeticFragment {
+                            left: Some(
+                                Arithmetic(
+                                    ArithmeticFragment {
+                                        left: Some(
+                                            Arithmetic(
+                                                ArithmeticFragment {
+                                                    left: Some(
+                                                        Raw(
+                                                            RawFragment {
+                                                                value: "3",
+                                                            },
+                                                        ),
+                                                    ),
+                                                    right: Some(
+                                                        Raw(
+                                                            RawFragment {
+                                                                value: "9",
+                                                            },
+                                                        ),
+                                                    ),
+                                                    op: Add,
+                                                    quoted: true,
+                                                },
+                                            ),
+                                        ),
+                                        right: Some(
+                                            Raw(
+                                                RawFragment {
+                                                    value: "648",
+                                                },
+                                            ),
+                                        ),
+                                        op: Add,
+                                        quoted: true,
+                                    },
+                                ),
+                            ),
+                            right: Some(
+                                Raw(
+                                    RawFragment {
+                                        value: "1232",
+                                    },
+                                ),
+                            ),
+                            op: Add,
+                            quoted: true,
+                        },
+                    ),
+                },
+            ),
+        ],
+        increase_indent: true,
+        needs_noop: false,
+        is_conditional: false,
+    },
+)

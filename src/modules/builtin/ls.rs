@@ -190,8 +190,8 @@ impl TranslateModule for Ls {
             VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
-        let read_command = match &meta.target.shell {
-            ShellType::Bash => raw_fragment!(
+        let read_command = match meta.target.shell {
+            ShellType::BashModern | ShellType::BashLegacy => raw_fragment!(
                 "LC_ALL=C IFS=$'\\n' read -rd '' -a {} < <(",
                 var_expr.get_name()
             ),

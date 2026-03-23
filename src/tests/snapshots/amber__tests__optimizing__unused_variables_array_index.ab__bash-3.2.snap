@@ -1,0 +1,7 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+array_0=(1 2 3 4)
+i_1=2
+echo "${array_0[${i_1}]}"
