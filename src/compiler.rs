@@ -251,7 +251,7 @@ impl AmberCompiler {
     fn gen_preamble(
         &self,
         sudo_used: bool,
-        shellname_used: bool,
+        shell_metadata_used: bool,
         target_shell: &ShellType,
     ) -> FragmentKind {
         let mut preamble = Vec::new();
@@ -274,9 +274,10 @@ impl AmberCompiler {
         if sudo_used {
             preamble.push(RawFragment::new(include_str!("preambles/sudo.sh").trim_end()).to_frag());
         }
-        if shellname_used {
+        if shell_metadata_used {
             preamble.push(
-                RawFragment::new(include_str!("preambles/shellname.sh").trim_end()).to_frag(),
+                RawFragment::new(include_str!("preambles/shellname-shellversion.sh").trim_end())
+                    .to_frag(),
             );
         }
         BlockFragment::new(preamble, false).to_frag()
@@ -285,12 +286,17 @@ impl AmberCompiler {
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let sudo_used = meta.sudo_used;
         let shellname_used = meta.shellname_used;
+        let shellversion_used = meta.shellversion_used;
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
         // Add preamble that contains all code that should be executed before the main code
-        result.append(self.gen_preamble(sudo_used, shellname_used, &meta_translate.target.shell));
+        result.append(self.gen_preamble(
+            sudo_used,
+            shellname_used || shellversion_used,
+            &meta_translate.target.shell,
+        ));
 
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));

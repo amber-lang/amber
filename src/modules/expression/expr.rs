@@ -14,6 +14,7 @@ use crate::docs::module::DocumentationModule;
 use crate::modules::builtin::len::Len;
 use crate::modules::builtin::{
     lines::LinesInvocation, ls::Ls, nameof::Nameof, pid::Pid, pwd::Pwd, shellname::Shellname,
+    shellversion::Shellversion,
 };
 use crate::modules::command::cmd::Command;
 use crate::modules::expression::access::Access;
@@ -76,6 +77,7 @@ pub enum ExprType {
     Ls(Ls),
     Pid(Pid),
     Shellname(Shellname),
+    Shellversion(Shellversion),
 }
 
 impl ExprType {
@@ -185,7 +187,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 Parentheses, Bool, Number, Integer, Text,
                 Array, Null, Status, Nameof,
                 // Builtin invocation
-                LinesInvocation, Pwd, Ls, Pid, Shellname,
+                LinesInvocation, Pwd, Ls, Pid, Shellname, Shellversion,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
@@ -240,7 +242,8 @@ impl TypeCheckModule for Expr {
                 Pwd,
                 Ls,
                 Pid,
-                Shellname
+                Shellname,
+                Shellversion
             ]
         );
         Ok(())
@@ -291,7 +294,8 @@ impl TranslateModule for Expr {
                     Pwd,
                     Ls,
                     Pid,
-                    Shellname
+                    Shellname,
+                    Shellversion
                 ]
             )
         })
@@ -341,7 +345,8 @@ impl DocumentationModule for Expr {
                 Pwd,
                 Ls,
                 Pid,
-                Shellname
+                Shellname,
+                Shellversion
             ]
         )
     }

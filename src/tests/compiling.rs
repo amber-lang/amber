@@ -27,6 +27,18 @@ pub fn translate_amber_code_with_target<T: Into<String>>(
     Some(result)
 }
 
+pub fn translate_compiler_output_with_target<T: Into<String>>(
+    code: T,
+    target: Option<ShellType>,
+) -> Option<String> {
+    let options = CompilerOptions::default().with_target(target);
+    let compiler = AmberCompiler::new(code.into(), None, options);
+    let tokens = compiler.tokenize().ok()?;
+    let (ast, meta) = compiler.parse(tokens).ok()?;
+    let (ast, meta) = compiler.typecheck(ast, meta).ok()?;
+    compiler.translate(ast, meta).ok()
+}
+
 pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     translate_amber_code_with_target(code, None)
 }
@@ -203,6 +215,55 @@ main {
         result.contains("echo \"test\""),
         "Output should contain bash code"
     );
+}
+
+#[test]
+fn test_translate_shellversion_preamble() {
+    let code = r#"
+main {
+    echo(shellversion()[0])
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"IFS='.' read -A EXEC_SHELL_VERSION <<< "$ZSH_VERSION""#),
+        "Output should contain the zsh shellversion preamble"
+    );
+    assert!(
+        result.contains(r#"IFS='.' read -a EXEC_SHELL_VERSION <<< "${__exec_shell_version%% *}""#),
+        "Output should contain the ksh shellversion preamble"
+    );
+    assert!(
+        result.contains(
+            r#"EXEC_SHELL_VERSION=("${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}" "${BASH_VERSINFO[2]}")"#,
+        ),
+        "Output should contain the bash shellversion preamble"
+    );
+    assert!(
+        result.contains("EXEC_SHELL_VERSION[0]"),
+        "Output should reference the shellversion builtin variable"
+    );
+}
+
+#[test]
+fn test_translate_shellname_and_shellversion_share_single_preamble() {
+    let code = r#"
+main {
+    echo(shellname())
+    echo(shellversion()[0])
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert_eq!(
+        result.matches(r#"if [ -n "$ZSH_VERSION" ]; then"#).count(),
+        1
+    );
+    assert!(result.contains("EXEC_SHELL"));
+    assert!(result.contains("EXEC_SHELL_VERSION"));
 }
 
 #[test]

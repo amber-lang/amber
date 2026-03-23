@@ -7,17 +7,15 @@ expression: ast
 # Value at -3: "one"
 # Value at -2: "two"
 # Value at -1: "three"
-test_index__163_v0() {
-    local byref_18="${1}"
-    for (( index_19=-4; index_19 <= -1; index_19++ )); do
-        eval "local byref_18_deref_3_array=(\"\${${byref_18}[@]}\")"
-        echo "Value at ${index_19}: \"${byref_18_deref_3_array[${index_19}]}\""
+test_index__0_v0() {
+    local byref_3="${1}"
+    for (( index_4=-4; index_4 <= -1; index_4++ )); do
+        eval "local byref_3_deref_3_array=(\"\${${byref_3}[@]}\")"
+        echo "Value at ${index_4}: \"${byref_3_deref_3_array[${index_4}]}\""
 done
 }
 
-shell_version__119_v0 
-ret_shell_version119_v0__16_34=("${ret_shell_version119_v0[@]}")
-left_comp=("${ret_shell_version119_v0__16_34[@]}")
+left_comp=("${EXEC_SHELL_VERSION[@]}")
 array_1=(4 3)
 right_comp=("${array_1[@]}")
 comp="$(
@@ -41,5 +39,5 @@ if [ "$(( $([ "_${EXEC_SHELL}" != "_bash" ]; echo $?) && comp ))" != 0 ]; then
     exit 0
 fi
 array_2=("zero" "one" "two" "three")
-array_15=("${array_2[@]}")
-test_index__163_v0 "array_15"
+array_0=("${array_2[@]}")
+test_index__0_v0 "array_0"
