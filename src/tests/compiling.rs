@@ -3,7 +3,9 @@ use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::TranslateModule;
 use crate::modules::types::Type;
 use crate::translate::fragments::fragment::FragmentRenderable;
-use crate::translate::fragments::var_expr::VarExprFragment;
+use crate::translate::fragments::raw::RawFragment;
+use crate::translate::fragments::var_expr::{VarExprFragment, VarIndexValue};
+use crate::translate::fragments::var_stmt::VarStmtFragment;
 use crate::utils::{ShellType, TranslateMetadata};
 use insta::assert_snapshot;
 use std::fs;
@@ -62,7 +64,7 @@ fn assert_target_snapshot(input: &str, target: ShellType) {
 fn test_bash_32_snapshot_variable_ref_set_number() {
     assert_target_snapshot(
         "src/tests/validity/variable_ref_set_number.ab",
-        ShellType::Bash((3, 2)),
+        ShellType::BashLegacy,
     );
 }
 
@@ -70,14 +72,38 @@ fn test_bash_32_snapshot_variable_ref_set_number() {
 fn test_bash_32_snapshot_array_assign_by_ref() {
     assert_target_snapshot(
         "src/tests/validity/array_assign_by_ref.ab",
-        ShellType::Bash((3, 2)),
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_get_negative_index_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_get_negative_index_by_ref.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_get_excl_range_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_get_excl_range_by_ref.ab",
+        ShellType::BashLegacy,
+    );
+}
+
+#[test]
+fn test_bash_32_snapshot_array_get_incl_range_by_ref() {
+    assert_target_snapshot(
+        "src/tests/validity/array_get_incl_range_by_ref.ab",
+        ShellType::BashLegacy,
     );
 }
 
 #[test]
 fn test_bash_32_ref_array_len_preserves_prefix() {
     let code = "main { echo(\"ok\") }";
-    let options = CompilerOptions::default().with_target(Some(ShellType::Bash((3, 2))));
+    let options = CompilerOptions::default().with_target(Some(ShellType::BashLegacy));
     let compiler = AmberCompiler::new(code.to_string(), None, options);
     let tokens = compiler.tokenize().expect("tokenize failed");
     let (ast, meta) = compiler.parse(tokens).expect("parse failed");
@@ -92,6 +118,70 @@ fn test_bash_32_ref_array_len_preserves_prefix() {
         .to_string(&mut translate_meta);
 
     assert_eq!(rendered, "\"${#items_0_deref_0_array[@]}\"");
+}
+
+#[test]
+fn test_bash_32_ref_array_negative_index_uses_pass_through_deref_access() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::BashLegacy));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarExprFragment::new("items", Type::Text)
+        .with_global_id(0)
+        .with_ref(true)
+        .with_declared(true)
+        .with_index_by_value(VarIndexValue::Index(crate::raw_fragment!("idx")))
+        .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, "\"${items_0_deref_0_array[idx]}\"");
+}
+
+#[test]
+fn test_zsh_declared_ref_array_assignment_defers_array_expansion_to_inner_eval() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::Zsh));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarStmtFragment::new(
+        "target",
+        Type::array_of(Type::Text),
+        VarExprFragment::new("source", Type::array_of(Type::Text)).to_frag(),
+    )
+    .with_ref(true)
+    .with_declared(true)
+    .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
+}
+
+#[test]
+fn test_bash_32_declared_ref_array_assignment_defers_array_expansion_to_inner_eval() {
+    let code = "main { echo(\"ok\") }";
+    let options = CompilerOptions::default().with_target(Some(ShellType::BashLegacy));
+    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let tokens = compiler.tokenize().expect("tokenize failed");
+    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
+    let (_, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
+    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
+
+    let rendered = VarStmtFragment::new(
+        "target",
+        Type::array_of(Type::Text),
+        VarExprFragment::new("source", Type::array_of(Type::Text)).to_frag(),
+    )
+    .with_ref(true)
+    .with_declared(true)
+    .to_string(&mut translate_meta);
+
+    assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
 }
 
 #[test]
@@ -154,14 +244,14 @@ fn test_target_from_shell_path() {
     );
     assert_eq!(
         AmberCompiler::target_from_shell_path("/bin/bash"),
-        Some(ShellType::Bash((4, 3)))
+        Some(ShellType::BashModern)
     );
 }
 
 #[test]
 fn test_runtime_shell_command_uses_target_family_when_shell_is_unset() {
     assert_eq!(
-        AmberCompiler::runtime_shell_command(None, Some(ShellType::Bash((3, 2)))),
+        AmberCompiler::runtime_shell_command(None, Some(ShellType::BashLegacy)),
         Some("bash".to_string())
     );
     assert_eq!(
@@ -173,10 +263,7 @@ fn test_runtime_shell_command_uses_target_family_when_shell_is_unset() {
 #[test]
 fn test_runtime_shell_command_prefers_amber_shell_over_target() {
     assert_eq!(
-        AmberCompiler::runtime_shell_command(
-            Some("/bin/bash".to_string()),
-            Some(ShellType::Zsh)
-        ),
+        AmberCompiler::runtime_shell_command(Some("/bin/bash".to_string()), Some(ShellType::Zsh)),
         Some("/bin/bash".to_string())
     );
 }

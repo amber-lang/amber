@@ -1,3 +1,5 @@
+import { shell_version } from "std/env"
+
 // Output
 // Value at -4: "zero"
 // Value at -3: "one"
@@ -11,6 +13,10 @@ fun test_index(ref byref) {
 }
 
 main {
+    if shellname() == "bash" and shell_version() < [4, 3] {
+        echo("Succeeded")
+        exit(0)
+    }
     const array = ["zero", "one", "two", "three"]
     test_index(array)
 }

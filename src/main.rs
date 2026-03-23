@@ -255,7 +255,10 @@ fn execute_output(
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn resolve_command_target(command_target: Option<ShellType>, cli_target: Option<ShellType>) -> Option<ShellType> {
+fn resolve_command_target(
+    command_target: Option<ShellType>,
+    cli_target: Option<ShellType>,
+) -> Option<ShellType> {
     command_target.or(cli_target)
 }
 
@@ -388,7 +391,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     if let Some(ref input) = cli.input {
-        std::process::exit(handle_bad_command_name(input, &cli.no_proc, cli.args, cli.target)?);
+        std::process::exit(handle_bad_command_name(
+            input,
+            &cli.no_proc,
+            cli.args,
+            cli.target,
+        )?);
     }
 
     let Some(command) = cli.command else {

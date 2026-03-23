@@ -39,9 +39,8 @@ impl AmberCompiler {
 
     #[cfg(not(windows))]
     pub fn resolve_target_shell(target: Option<ShellType>) -> ShellType {
-        // Allow docker-based test runs to force a compiler target that matches the container shell.
-        if target.is_none() && env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker")
-        {
+        // Allow test runs to force a compiler target that differs from the runtime shell.
+        if target.is_none() {
             if let Some(target) = env::var("AMBER_TEST_TARGET")
                 .ok()
                 .map(|target| target.parse().unwrap())
@@ -60,7 +59,7 @@ impl AmberCompiler {
         Self::find_runtime_shell_name()
             .as_deref()
             .and_then(Self::target_from_shell_path)
-            .unwrap_or(ShellType::Bash((4, 3)))
+            .unwrap_or(ShellType::BashModern)
     }
 
     #[cfg(not(windows))]
@@ -71,7 +70,7 @@ impl AmberCompiler {
         } else if shell.contains("ksh") {
             Some(ShellType::Ksh)
         } else if shell.contains("bash") {
-            Some(ShellType::Bash((4, 3)))
+            Some(ShellType::BashModern)
         } else {
             None
         }
@@ -124,7 +123,10 @@ mod tests {
             env::set_var("AMBER_TEST_STRATEGY", "docker");
         }
 
-        assert_eq!(AmberCompiler::resolve_target_shell(None), ShellType::Bash((3, 2)));
+        assert_eq!(
+            AmberCompiler::resolve_target_shell(None),
+            ShellType::BashLegacy
+        );
 
         if let Some(previous) = previous_target {
             unsafe {
@@ -156,7 +158,45 @@ mod tests {
             env::set_var("AMBER_TEST_STRATEGY", "docker");
         }
 
-        assert_eq!(AmberCompiler::resolve_target_shell(Some(ShellType::Zsh)), ShellType::Zsh);
+        assert_eq!(
+            AmberCompiler::resolve_target_shell(Some(ShellType::Zsh)),
+            ShellType::Zsh
+        );
+
+        if let Some(previous) = previous_target {
+            unsafe {
+                env::set_var("AMBER_TEST_TARGET", previous);
+            }
+        } else {
+            unsafe {
+                env::remove_var("AMBER_TEST_TARGET");
+            }
+        }
+        if let Some(previous) = previous_strategy {
+            unsafe {
+                env::set_var("AMBER_TEST_STRATEGY", previous);
+            }
+        } else {
+            unsafe {
+                env::remove_var("AMBER_TEST_STRATEGY");
+            }
+        }
+    }
+
+    #[test]
+    fn resolve_target_shell_uses_test_target_override_without_docker_strategy() {
+        let _guard = env_lock().lock().unwrap();
+        let previous_target = env::var("AMBER_TEST_TARGET").ok();
+        let previous_strategy = env::var("AMBER_TEST_STRATEGY").ok();
+        unsafe {
+            env::set_var("AMBER_TEST_TARGET", "bash-3.2");
+            env::remove_var("AMBER_TEST_STRATEGY");
+        }
+
+        assert_eq!(
+            AmberCompiler::resolve_target_shell(None),
+            ShellType::BashLegacy
+        );
 
         if let Some(previous) = previous_target {
             unsafe {

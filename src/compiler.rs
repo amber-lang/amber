@@ -256,7 +256,7 @@ impl AmberCompiler {
     ) -> FragmentKind {
         let mut preamble = Vec::new();
         match target_shell {
-            ShellType::Bash(_) => (),
+            ShellType::BashModern | ShellType::BashLegacy => (),
             ShellType::Zsh => {
                 // if the shell is ZSH:
                 // - emulate ksh (ksh arrays, word splitting, ...) which matches more with bash
@@ -290,11 +290,7 @@ impl AmberCompiler {
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
         // Add preamble that contains all code that should be executed before the main code
-        result.append(self.gen_preamble(
-            sudo_used,
-            shellname_used,
-            &meta_translate.target.shell,
-        ));
+        result.append(self.gen_preamble(sudo_used, shellname_used, &meta_translate.target.shell));
 
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));

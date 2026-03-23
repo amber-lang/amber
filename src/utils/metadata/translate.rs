@@ -16,11 +16,12 @@ use amber_meta::ContextManager;
 
 const INDENT_SPACES: &str = "    ";
 
-pub type BashVersion = (u8, u8);
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShellType {
-    Bash(BashVersion),
+    /// Supports Bash 4.3+.
+    BashModern,
+    /// Supports Bash 3.2+.
+    BashLegacy,
     Zsh,
     Ksh,
 }
@@ -36,8 +37,8 @@ impl FromStr for ShellType {
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
-            "bash" | "bash-4.3" => Ok(ShellType::Bash((4, 3))),
-            "bash-3.2" => Ok(ShellType::Bash((3, 2))),
+            "bash" | "bash-4.3" => Ok(ShellType::BashModern),
+            "bash-3.2" => Ok(ShellType::BashLegacy),
             "zsh" => Ok(ShellType::Zsh),
             "ksh" => Ok(ShellType::Ksh),
             _ => Err(format!(
@@ -50,9 +51,8 @@ impl FromStr for ShellType {
 impl ShellType {
     pub fn canonical_name(self) -> &'static str {
         match self {
-            ShellType::Bash((4, 3)) => "bash-4.3",
-            ShellType::Bash((3, 2)) => "bash-3.2",
-            ShellType::Bash(_) => "bash-4.3",
+            ShellType::BashModern => "bash-4.3",
+            ShellType::BashLegacy => "bash-3.2",
             ShellType::Zsh => "zsh",
             ShellType::Ksh => "ksh",
         }
@@ -60,14 +60,14 @@ impl ShellType {
 
     pub fn family_name(self) -> &'static str {
         match self {
-            ShellType::Bash(_) => "bash",
+            ShellType::BashModern | ShellType::BashLegacy => "bash",
             ShellType::Zsh => "zsh",
             ShellType::Ksh => "ksh",
         }
     }
 
     pub fn is_bash_legacy(self) -> bool {
-        matches!(self, ShellType::Bash((major, minor)) if (major, minor) < (4, 3))
+        matches!(self, ShellType::BashLegacy)
     }
 }
 
@@ -233,9 +233,9 @@ mod tests {
 
     #[test]
     fn shell_type_from_str_accepts_all_supported_targets() {
-        assert_eq!(ShellType::from_str("bash"), Ok(ShellType::Bash((4, 3))));
-        assert_eq!(ShellType::from_str("bash-4.3"), Ok(ShellType::Bash((4, 3))));
-        assert_eq!(ShellType::from_str("bash-3.2"), Ok(ShellType::Bash((3, 2))));
+        assert_eq!(ShellType::from_str("bash"), Ok(ShellType::BashModern));
+        assert_eq!(ShellType::from_str("bash-4.3"), Ok(ShellType::BashModern));
+        assert_eq!(ShellType::from_str("bash-3.2"), Ok(ShellType::BashLegacy));
         assert_eq!(ShellType::from_str("zsh"), Ok(ShellType::Zsh));
         assert_eq!(ShellType::from_str("ksh"), Ok(ShellType::Ksh));
     }

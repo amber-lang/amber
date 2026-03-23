@@ -100,7 +100,6 @@ impl FunctionDeclaration {
 
                             let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_declared(false)
                                 .with_optimization_when_unused(false);
 
                             result.push(var.to_frag())

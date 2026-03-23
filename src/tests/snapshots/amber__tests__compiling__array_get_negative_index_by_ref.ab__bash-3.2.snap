@@ -1,0 +1,45 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+# Output
+# Value at -4: "zero"
+# Value at -3: "one"
+# Value at -2: "two"
+# Value at -1: "three"
+test_index__163_v0() {
+    local byref_18="${1}"
+    for (( index_19=-4; index_19 <= -1; index_19++ )); do
+        eval "local byref_18_deref_3_array=(\"\${${byref_18}[@]}\")"
+        echo "Value at ${index_19}: \"${byref_18_deref_3_array[${index_19}]}\""
+done
+}
+
+shell_version__119_v0 
+ret_shell_version119_v0__16_34=("${ret_shell_version119_v0[@]}")
+left_comp=("${ret_shell_version119_v0__16_34[@]}")
+array_1=(4 3)
+right_comp=("${array_1[@]}")
+comp="$(
+    # Compare if left array < right array
+    len_comp="$( (( "${#left_comp[@]}" < "${#right_comp[@]}" )) && echo "${#left_comp[@]}"|| echo "${#right_comp[@]}")"
+    for (( i=0; i<len_comp; i++ )); do
+        left="${left_comp[i]:-0}"
+        right="${right_comp[i]:-0}"
+        if (( "${left}" < "${right}" )); then
+            echo 1
+            exit
+        elif (( "${left}" > "${right}" )); then
+            echo 0
+            exit
+        fi
+    done
+    (( "${#left_comp[@]}" < "${#right_comp[@]}" )) && echo 1 || echo 0
+)"
+if [ "$(( $([ "_${EXEC_SHELL}" != "_bash" ]; echo $?) && comp ))" != 0 ]; then
+    echo "Succeeded"
+    exit 0
+fi
+array_2=("zero" "one" "two" "three")
+array_15=("${array_2[@]}")
+test_index__163_v0 "array_15"
