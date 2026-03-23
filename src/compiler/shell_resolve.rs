@@ -37,7 +37,6 @@ impl AmberCompiler {
         }
     }
 
-    #[cfg(not(windows))]
     pub fn resolve_target_shell(target: Option<ShellType>) -> ShellType {
         // Allow test runs to force a compiler target that differs from the runtime shell.
         if target.is_none() {
@@ -56,13 +55,21 @@ impl AmberCompiler {
                 return target;
             }
         }
-        Self::find_runtime_shell_name()
-            .as_deref()
-            .and_then(Self::target_from_shell_path)
-            .unwrap_or(ShellType::BashModern)
+
+        #[cfg(not(windows))]
+        {
+            Self::find_runtime_shell_name()
+                .as_deref()
+                .and_then(Self::target_from_shell_path)
+                .unwrap_or(ShellType::BashModern)
+        }
+
+        #[cfg(windows)]
+        {
+            ShellType::BashModern
+        }
     }
 
-    #[cfg(not(windows))]
     pub(crate) fn target_from_shell_path(shell: &str) -> Option<ShellType> {
         let shell = shell.to_ascii_lowercase();
         if shell.contains("zsh") {
