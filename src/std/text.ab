@@ -196,15 +196,8 @@ pub fun trim(text: Text): Text {
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    if shellname() == "bash" {
-        if shellversion() < [4, 3] {
-            trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:upper:]' '[:lower:]')" $
-        } else {
-            trust $
-                typeset -l {nameof text}
-                {nameof text}="{text}"
-            $
-        }
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:upper:]' '[:lower:]')" $
     } else {
         trust $
             typeset -l {nameof text}
@@ -222,15 +215,8 @@ pub fun lowercase(text: Text): Text {
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    if shellname() == "bash" {
-        if shellversion() < [4, 3] {
-            trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:lower:]' '[:upper:]')" $
-        } else {
-            trust $
-                typeset -u {nameof text}
-                {nameof text}="{text}"
-            $
-        }
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:lower:]' '[:upper:]')" $
     } else {
         trust $
             typeset -u {nameof text}
