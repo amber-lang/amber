@@ -11,4 +11,4 @@ foo__0_v0
 x_0="${ret_foo0_v0}"
 arr_1=("")
 arr_1["${x_0}"]="A"
-printf '%s\n' "${arr_1[0]:?"Index out of bounds"}"
+printf '%s\n' "${arr_1[0]?"Index out of bounds"}"
