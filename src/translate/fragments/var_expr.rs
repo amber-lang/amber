@@ -286,7 +286,7 @@ impl VarExprFragment {
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
-                format!("[{index}]:?\"Index out of bounds\"")
+                format!("[{index}]?\"Index out of bounds\"")
             }
             (Type::Array(_), None) if self.is_array_to_string => String::from("[*]"),
             (Type::Array(_), None) => String::from("[@]"),

@@ -1,5 +1,5 @@
 // Output
-// "Index out of bounds"
+// Index out of bounds
 
 
 const arr = [1, 2]

@@ -3,14 +3,15 @@
 // Value at 1: "one"
 // Value at 2: "two"
 // Value at 3: "three"
+// Value at 4: ""
 
 fun test_index(array) {
-    for index in 0..4 {
+    for index in 0..=4 {
         echo("Value at {index}: \"{array[index]}\"")
     }
 }
 
 main {
-    const array = ["zero", "one", "two", "three"]
+    const array = ["zero", "one", "two", "three", ""]
     test_index(array)
 }

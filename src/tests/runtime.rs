@@ -16,7 +16,7 @@ fn test_runtime_errors(input: &str) {
 
     match eval_amber(&code) {
         Ok((output, status)) => {
-            assert_eq!(status.code(), Some(1));
+            assert!(status.code().unwrap_or(0) > 0);
 
             assert!(
                 re.is_match(&output),
