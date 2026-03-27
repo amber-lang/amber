@@ -107,7 +107,10 @@ impl VarStmtFragment {
     pub fn render_variable_name(&self, meta: &mut TranslateMetadata) -> String {
         let variable = self.get_name();
 
-        if matches!(meta.target.shell, ShellType::Zsh) && self.is_ref && self.is_declared {
+        if matches!(meta.target.shell, ShellType::Zsh | ShellType::BashLegacy)
+            && self.is_ref
+            && self.is_declared
+        {
             format!("${{{variable}}}")
         } else {
             variable.to_string()
@@ -133,7 +136,7 @@ impl VarStmtFragment {
         }
         let assignment = assignment_parts.join("");
         match meta.target.shell {
-            ShellType::Bash => {
+            ShellType::BashModern => {
                 // `local` command consumes exit code of command that it is assigned to.
                 // To preserve the exit code of the assignment we split the local declaration into two parts.
                 if self.is_local {
@@ -148,7 +151,7 @@ impl VarStmtFragment {
                     assignment
                 }
             }
-            ShellType::Zsh => {
+            ShellType::BashLegacy | ShellType::Zsh => {
                 if self.is_local {
                     if is_running_command {
                         format!("local {var_name}\n{}{assignment}", meta.gen_indent())
@@ -191,7 +194,7 @@ impl FragmentRenderable for VarStmtFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         match meta.target.shell {
             // if array is a direct reference and is already declared, use eval to modify directly
-            ShellType::Zsh => {
+            ShellType::BashLegacy | ShellType::Zsh => {
                 if self.is_ref && self.is_declared {
                     let stmt =
                         eval_context!(meta, self.is_ref, { self.render_variable_statement(meta) });
@@ -209,7 +212,7 @@ impl FragmentRenderable for VarStmtFragment {
                     self.render_variable_statement(meta)
                 }
             }
-            ShellType::Bash => self.render_variable_statement(meta),
+            ShellType::BashModern => self.render_variable_statement(meta),
         }
     }
 

@@ -1,6 +1,7 @@
 use std::cmp;
 use std::collections::VecDeque;
 use std::fmt;
+use std::str::FromStr;
 
 use super::ParserMetadata;
 use crate::compiler::{AmberCompiler, CompilerOptions};
@@ -15,20 +16,58 @@ use amber_meta::ContextManager;
 
 const INDENT_SPACES: &str = "    ";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShellType {
-    Bash,
+    /// Supports Bash 4.3+.
+    BashModern,
+    /// Supports Bash 3.2+.
+    BashLegacy,
     Zsh,
     Ksh,
 }
 
 impl fmt::Display for ShellType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let shell = match self {
-            ShellType::Bash => "bash",
+        write!(f, "{}", self.canonical_name())
+    }
+}
+
+impl FromStr for ShellType {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "bash" | "bash-4.3" => Ok(ShellType::BashModern),
+            "bash-3.2" => Ok(ShellType::BashLegacy),
+            "zsh" => Ok(ShellType::Zsh),
+            "ksh" => Ok(ShellType::Ksh),
+            _ => Err(format!(
+                "invalid shell target '{value}', expected one of: bash, bash-4.3, bash-3.2, zsh, ksh"
+            )),
+        }
+    }
+}
+
+impl ShellType {
+    pub fn canonical_name(self) -> &'static str {
+        match self {
+            ShellType::BashModern => "bash-4.3",
+            ShellType::BashLegacy => "bash-3.2",
             ShellType::Zsh => "zsh",
             ShellType::Ksh => "ksh",
-        };
-        write!(f, "{shell}")
+        }
+    }
+
+    pub fn family_name(self) -> &'static str {
+        match self {
+            ShellType::BashModern | ShellType::BashLegacy => "bash",
+            ShellType::Zsh => "zsh",
+            ShellType::Ksh => "ksh",
+        }
+    }
+
+    pub fn is_bash_legacy(self) -> bool {
+        matches!(self, ShellType::BashLegacy)
     }
 }
 
@@ -77,7 +116,7 @@ pub struct TranslateMetadata {
 
 impl TranslateMetadata {
     pub fn new(meta: ParserMetadata, options: &CompilerOptions) -> Self {
-        let target_shell = AmberCompiler::find_shell_type();
+        let target_shell = AmberCompiler::resolve_target_shell(options.target);
         TranslateMetadata {
             target: TargetShell {
                 shell: target_shell,
@@ -183,5 +222,32 @@ impl TranslateMetadata {
         } else {
             ""
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::ShellType;
+
+    #[test]
+    fn shell_type_from_str_accepts_all_supported_targets() {
+        assert_eq!(ShellType::from_str("bash"), Ok(ShellType::BashModern));
+        assert_eq!(ShellType::from_str("bash-4.3"), Ok(ShellType::BashModern));
+        assert_eq!(ShellType::from_str("bash-3.2"), Ok(ShellType::BashLegacy));
+        assert_eq!(ShellType::from_str("zsh"), Ok(ShellType::Zsh));
+        assert_eq!(ShellType::from_str("ksh"), Ok(ShellType::Ksh));
+    }
+
+    #[test]
+    fn shell_type_from_str_rejects_invalid_target() {
+        assert_eq!(
+            ShellType::from_str("fish"),
+            Err(
+                "invalid shell target 'fish', expected one of: bash, bash-4.3, bash-3.2, zsh, ksh"
+                    .to_string()
+            )
+        );
     }
 }

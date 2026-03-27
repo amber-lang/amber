@@ -1,0 +1,16 @@
+// Output
+// two
+
+fun show(ref values, idxs) {
+    echo("{values[idxs[0]]}")
+}
+
+main {
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        echo("Succeeded")
+        exit(0)
+    }
+    const values = ["zero", "one", "two"]
+    const idxs = [-1]
+    show(values, idxs)
+}

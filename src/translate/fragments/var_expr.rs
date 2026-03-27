@@ -187,7 +187,8 @@ impl VarExprFragment {
         // Dereference variable if it's a reference and is passed by reference
         if self.is_ref {
             name = match meta.target.shell {
-                ShellType::Ksh | ShellType::Bash => format!("{dollar}{{!{name}}}"),
+                ShellType::Ksh | ShellType::BashModern => format!("{dollar}{{!{name}}}"),
+                ShellType::BashLegacy => format!("{dollar}{{{name}}}"),
                 ShellType::Zsh => {
                     if self.is_array_ref {
                         format!("{dollar}{{{name}}}")
@@ -219,9 +220,22 @@ impl VarExprFragment {
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array
         match meta.target.shell {
-            ShellType::Bash => {
+            ShellType::BashModern => {
                 if self.is_ref && !self.is_declared {
                     format!("{quote}{dollar}{{!{name}}}{quote}")
+                } else if self.is_math_var && !self.is_length && index_is_none {
+                    name.to_string()
+                } else {
+                    format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
+                }
+            }
+            ShellType::BashLegacy => {
+                if self.is_ref {
+                    if self.is_declared {
+                        self.render_deref_variable(meta, prefix, &name, &suffix)
+                    } else {
+                        format!("{quote}{dollar}{{!{name}}}{quote}")
+                    }
                 } else if self.is_math_var && !self.is_length && index_is_none {
                     name.to_string()
                 } else {
@@ -314,7 +328,9 @@ impl VarExprFragment {
         let dollar = meta.gen_dollar();
         if prefix.is_empty() && suffix.is_empty() {
             match meta.target.shell {
-                ShellType::Bash => return format!("{quote}{dollar}{{!{name}}}{quote}"),
+                ShellType::BashModern | ShellType::BashLegacy => {
+                    return format!("{quote}{dollar}{{!{name}}}{quote}");
+                }
                 ShellType::Zsh => return format!("{quote}{dollar}{{(P){name}}}{quote}"),
                 ShellType::Ksh => (),
             }
@@ -322,6 +338,17 @@ impl VarExprFragment {
         let id = meta.gen_value_id();
         let eval_value = format!("{prefix}${{{name}}}{suffix}");
         let var_name = format!("{name}_deref_{id}");
+        if matches!(meta.target.shell, ShellType::BashLegacy) && suffix.starts_with('[') {
+            let deref_array = format!("{var_name}_array");
+            let deref_array_value = ["\\${", "${", name, "}[@]}"].concat();
+            meta.stmt_queue.push_back(
+                RawFragment::from(format!(
+                    "eval \"local {deref_array}=(\\\"{deref_array_value}\\\")\""
+                ))
+                .to_frag(),
+            );
+            return format!("{quote}{dollar}{{{prefix}{deref_array}{suffix}}}{quote}");
+        }
         meta.stmt_queue.push_back(
             RawFragment::from(format!(
                 "eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\""
