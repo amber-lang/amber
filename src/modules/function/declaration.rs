@@ -16,7 +16,7 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::ShellType;
 use heraclitus_compiler::prelude::*;
-use itertools::izip;
+use itertools::{Itertools, izip};
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::path::Path;
@@ -465,6 +465,12 @@ impl TranslateModule for FunctionDeclaration {
                 index,
                 &self.returns,
             ));
+
+            // Document in code function variant
+            let argument_types = function.args.iter().map(|ty| ty.to_string()).join(", ");
+            let function_name = &self.name;
+            result.push(raw_fragment!("# {function_name}({argument_types})"));
+            
             // Parse the function body
             let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
             // required for the local scope in ksh
