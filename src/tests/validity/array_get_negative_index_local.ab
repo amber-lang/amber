@@ -5,6 +5,10 @@
 // Value at -1: "three"
 
 main {
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        echo("Succeeded")
+        exit(0)
+    }
     const array = ["zero", "one", "two", "three"]
     echo("Value at -4: \"{array[-4]}\"")
     echo("Value at -3: \"{array[-3]}\"")

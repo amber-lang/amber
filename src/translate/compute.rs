@@ -86,7 +86,7 @@ pub fn translate_float_computation(
                 right.unwrap_or(FragmentKind::Empty),
             );
             match meta.target.shell {
-                ShellType::Bash | ShellType::Zsh => {
+                ShellType::BashModern | ShellType::BashLegacy | ShellType::Zsh => {
                     translate_bc_sed_computation(operator, left, right, true)
                 }
                 // ksh doesn't support quoting inside arithmetic blocks

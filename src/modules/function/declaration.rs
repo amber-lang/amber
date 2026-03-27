@@ -100,7 +100,6 @@ impl FunctionDeclaration {
 
                             let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_declared(false)
                                 .with_optimization_when_unused(false);
 
                             result.push(var.to_frag())
@@ -116,6 +115,13 @@ impl FunctionDeclaration {
                                 .with_local(true)
                                 .with_optimization_when_unused(false)
                                 .with_ref(false)
+                                .with_array_ref(true)
+                                .with_declared(false)
+                        } else if meta.target.shell.is_bash_legacy() {
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(true)
                                 .with_array_ref(true)
                                 .with_declared(false)
                         } else {

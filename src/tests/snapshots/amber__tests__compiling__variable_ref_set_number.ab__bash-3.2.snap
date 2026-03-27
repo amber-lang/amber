@@ -1,0 +1,23 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+# Output
+# 42
+# 42
+foo__0_v0() {
+    local a_2="${1}"
+    eval "${a_2}=42"
+}
+
+foo__0_v1() {
+    local a_4="${1}"
+    eval "${a_4}=42"
+}
+
+a_0=24
+foo__0_v0 "a_0"
+echo "${a_0}"
+a_3=11.11
+foo__0_v1 "a_3"
+echo "${a_3}"

@@ -1,0 +1,18 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+# Output
+# 1 2 42 4 5
+# 1 2 42 4 5
+test_func__0_v0() {
+    local a_2="${1}"
+    eval "${a_2}[2]=42"
+    eval "local a_2_deref_1_array=(\"\${${a_2}[@]}\")"
+    echo "${a_2_deref_1_array[*]}"
+}
+
+array_0=(1 2 3 4 5)
+a_0=("${array_0[@]}")
+test_func__0_v0 "a_0"
+echo "${a_0[*]}"
