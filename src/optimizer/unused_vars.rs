@@ -212,9 +212,6 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                     }
                 }
             }
-            if let Some(default_value) = &var_expr.default_value {
-                find_unused_variables(default_value, meta);
-            }
         }
         FragmentKind::Subprocess(subprocess) => {
             find_unused_variables(&subprocess.fragment, meta);

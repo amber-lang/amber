@@ -1,6 +1,6 @@
 import * from "std/env"
 import * from "std/text"
-import { array_contains } from "std/array"
+
 /// Downloads a file from a given URL and saves it to a specified path using available command-line tools.
 ///
 /// It checks for the availability of common command-line tools (`curl`, `wget`, and `aria2c`, in order) and uses the first available tool to perform the download.
@@ -46,8 +46,9 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
         is_command("curl") {
             const post_data = len(data) > 0 then "-d {data}" else ""
 
-            if len(headers[0]) > 0: for header in headers {
-                full_headers = full_headers + " -H \"{header}\""
+            for header in headers {
+                if len(header) > 0:
+                    full_headers = full_headers + " -H \"{header}\""
             }
 
             const output = trust $ curl -L "{url}" --silent -S -X {method} {full_headers} {post_data} 2>&1 $ 
@@ -57,8 +58,9 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
         }
         is_command("wget") {
             const post_data = len(data) > 0 then "--body-data {data}" else ""
-            if len(headers[0]) > 0: for header in headers {
-                full_headers = full_headers + " --header='{header}'"
+            for header in headers {
+                if len(header) > 0:
+                    full_headers += " --header='{header}'"
             }
             return $ wget "{url}" -qO- --method="{method}" {full_headers} {post_data} $ failed {
                 echo_error("wget request failed with exit code {status()}", status())
@@ -81,14 +83,18 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                     path = len(parts[1]) > 0 then parts[1] else ""
                 }
 
-                if len(headers[0]) > 1: for header in headers {
-                    full_headers = full_headers + "{header}\r\n"
+                let has_headers = false
+                for header in headers {
+                    if len(header) > 1 {
+                        full_headers += "{header}\r\n"
+                        has_headers = true
+                    }
                 }
 
                 if len(data) > 0 {
-                    full_headers = full_headers + "content-length: {len(data)}\r\n" 
-                    if len(headers[0]) == 0: full_headers = full_headers + "content-type: application/x-www-form-urlencoded\r\n" 
-                    full_headers = full_headers + "\r\n{data}\r\n"
+                    full_headers += "content-length: {len(data)}\r\n" 
+                    if not has_headers: full_headers += "content-type: application/x-www-form-urlencoded\r\n" 
+                    full_headers += "\r\n{data}\r\n"
                 }
                 
               $ exec 3<>/dev/tcp/{url}/{port} $ succeeded {

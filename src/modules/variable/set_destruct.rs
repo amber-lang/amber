@@ -2,7 +2,6 @@ use super::{handle_variable_reference, prevent_constant_mutation, variable_name_
 use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::modules::variable::get_default_value_fragment;
 use crate::raw_fragment;
 use crate::translate::fragments::var_expr::VarIndexValue;
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -140,7 +139,6 @@ impl TranslateModule for VariableSetDestruct {
         for (i, name) in self.names.iter().enumerate() {
             let assign_expr = VarExprFragment::from_stmt(&assign_temp)
                 .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
-                .with_default_value(get_default_value_fragment(&inner_type))
                 .to_frag();
 
             let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)

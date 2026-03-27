@@ -286,11 +286,7 @@ impl AmberCompiler {
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
         // Add preamble that contains all code that should be executed before the main code
-        result.append(self.gen_preamble(
-            sudo_used,
-            shellname_used,
-            &meta_translate.target.shell,
-        ));
+        result.append(self.gen_preamble(sudo_used, shellname_used, &meta_translate.target.shell));
 
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));
@@ -469,7 +465,7 @@ impl AmberCompiler {
     }
 
     #[cfg(test)]
-    pub fn test_eval(&mut self) -> Result<String, Message> {
+    pub fn test_eval(&mut self) -> Result<(String, ExitStatus), Message> {
         self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(warnings, code)| {
             if let Some(mut command) = Self::find_shell() {
@@ -493,7 +489,7 @@ impl AmberCompiler {
                         warn_log + "\n"
                     }
                 };
-                Ok(warning_log + &output + &err_output)
+                Ok((warning_log + &output + &err_output, child.status))
             } else {
                 let message = Message::new_err_msg("Failed to find Bash");
                 Err(message)

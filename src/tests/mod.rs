@@ -5,7 +5,7 @@ use itertools::Itertools;
 use pretty_assertions::assert_eq;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Stdio;
+use std::process::{ExitStatus, Stdio};
 
 pub mod cli;
 pub mod compiling;
@@ -14,6 +14,7 @@ pub mod extra;
 mod functional;
 pub mod optimizing;
 pub mod postprocessor;
+mod runtime;
 mod stdlib;
 mod test_mode;
 mod testing;
@@ -38,7 +39,7 @@ pub enum TestOutcomeTarget {
     Failure,
 }
 
-fn eval_amber(code: &str) -> Result<String, Message> {
+pub fn eval_amber(code: &str) -> Result<(String, ExitStatus), Message> {
     let options = CompilerOptions::default();
     let mut compiler = AmberCompiler::new(code.to_string(), None, options);
     compiler.test_eval()
@@ -49,7 +50,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
     let evaluated = eval_amber(code);
     match target {
         TestOutcomeTarget::Success => match evaluated {
-            Ok(stdout) => {
+            Ok((stdout, _)) => {
                 let stdout = stdout.trim_end_matches('\n');
                 if stdout != SUCCEEDED {
                     let result = result.trim_end_matches('\n');
@@ -61,7 +62,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
             }
         },
         TestOutcomeTarget::Failure => match evaluated {
-            Ok(stdout) => {
+            Ok((stdout, _)) => {
                 panic!("Expected error, got: {stdout}")
             }
             Err(err) => {
@@ -95,7 +96,7 @@ pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
 }
 
 /// Extracts the output from the comment of Amber code
-fn extract_output(code: impl Into<String>) -> String {
+pub fn extract_output(code: impl Into<String>) -> String {
     code.into()
         .lines()
         .skip_while(|line| !line.starts_with("// Output"))

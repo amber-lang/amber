@@ -1,0 +1,9 @@
+// Output
+// "Index out of bounds"
+
+let a = 1;
+let b = 2;
+
+[a, b] = [1]
+
+echo(b)

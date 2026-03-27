@@ -5,7 +5,6 @@ use super::{handle_identifier_name, variable_name_extensions};
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::modules::variable::get_default_value_fragment;
 use crate::raw_fragment;
 use crate::translate::fragments::var_expr::VarIndexValue;
 use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
@@ -163,7 +162,6 @@ impl TranslateModule for VariableInitDestruct {
         for (i, name) in self.names.iter().enumerate() {
             let assign_expr = VarExprFragment::from_stmt(&assign_temp)
                 .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
-                .with_default_value(get_default_value_fragment(&inner_type))
                 .to_frag();
 
             let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)

@@ -1,0 +1,8 @@
+// Output
+// "Index out of bounds"
+
+
+const arr = [1, 2]
+const a = arr[2]
+
+echo(a)

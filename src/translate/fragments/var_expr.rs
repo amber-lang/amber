@@ -32,8 +32,6 @@ pub struct VarExprFragment {
     pub is_ref: bool,
     // Bash's length getter `${#var}`
     pub is_length: bool,
-    // Bash's default value `${var:-default}`
-    pub default_value: Option<Box<FragmentKind>>,
     // Quotes around this expression
     pub is_quoted: bool,
     // Bash's `${array[*]}` expansion
@@ -64,7 +62,6 @@ impl Default for VarExprFragment {
             is_declared: true,
             render_type: VarRenderType::BashValue,
             index: None,
-            default_value: None,
         }
     }
 }
@@ -148,11 +145,6 @@ impl VarExprFragment {
         self
     }
 
-    pub fn with_default_value<T: Into<Option<FragmentKind>>>(mut self, default_value: T) -> Self {
-        self.default_value = default_value.into().map(Box::new);
-        self
-    }
-
     pub fn with_length_getter(mut self, value: bool) -> Self {
         self.is_length = value;
         self
@@ -210,10 +202,9 @@ impl VarExprFragment {
     pub fn render_variable_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
         let index = self.index.take();
-        let default_value = self.default_value.take();
         let index_is_none = index.is_none();
         let prefix = self.get_variable_prefix();
-        let suffix = self.get_variable_suffix(meta, index.clone(), default_value);
+        let suffix = self.get_variable_suffix(meta, index.clone());
         let quote = if self.is_quoted { meta.gen_quote() } else { "" };
         let dollar = meta.gen_dollar();
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
@@ -267,17 +258,9 @@ impl VarExprFragment {
         &self,
         meta: &mut TranslateMetadata,
         index: Option<Box<VarIndexValue>>,
-        default_value: Option<Box<FragmentKind>>,
     ) -> String {
-        let default_value = default_value
-            .map(|value| value.to_string(meta))
-            .map(|value| format!(":-{value}"))
-            .unwrap_or_default();
         match (&self.kind, index.map(|var| *var)) {
             (Type::Array(_), Some(VarIndexValue::Range(offset, length))) => {
-                if self.default_value.is_some() {
-                    unreachable!("It's impossible to render default value when slicing");
-                }
                 let offset = offset.with_quotes(false).to_string(meta);
                 let length = length.with_quotes(false).to_string(meta);
                 let slice = if self.is_array_to_string {
@@ -289,15 +272,11 @@ impl VarExprFragment {
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
-                format!("[{index}]{default_value}")
+                format!("[{index}]:?\"Index out of bounds\"")
             }
-            (Type::Array(_), None) if self.is_array_to_string => {
-                format!("[*]{default_value}")
-            }
-            (Type::Array(_), None) => {
-                format!("[@]{default_value}")
-            }
-            _ => default_value,
+            (Type::Array(_), None) if self.is_array_to_string => String::from("[*]"),
+            (Type::Array(_), None) => String::from("[@]"),
+            _ => String::new(),
         }
     }
 

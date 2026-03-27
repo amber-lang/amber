@@ -1,0 +1,6 @@
+// Output
+// "Index out of bounds"
+
+const [a, b] = [1]
+
+echo(b)

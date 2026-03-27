@@ -198,7 +198,7 @@ main {
     let result = compiler.test_eval();
     assert!(result.is_ok(), "test_eval should succeed");
     assert!(
-        result.unwrap().contains("test"),
+        result.unwrap().0.contains("test"),
         "Output should contain 'test'"
     );
 }
