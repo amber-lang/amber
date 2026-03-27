@@ -467,7 +467,7 @@ impl TranslateModule for FunctionDeclaration {
             ));
 
             // Document in code function variant
-            let argument_types = function.args.iter().map(|ty| ty.to_string()).join(", ");
+            let argument_types = izip!(self.args.iter(), function.args.iter()).map(|(arg, ty)| format!("{}: {}", arg.name, ty)).join(", ");
             let function_name = &self.name;
             result.push(raw_fragment!("# {function_name}({argument_types})"));
             
