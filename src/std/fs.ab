@@ -127,7 +127,7 @@ pub fun temp_dir_create(
         echo("Failed to make a temporary directory")
         fail 1
     }
-    if auto_delete {
+    if auto_delete and shellname() != "ksh"  {
         if force_delete {
             $ trap 'rm -rf {filename}' EXIT $ failed {
                 echo("Setting auto deletion fails. You must delete temporary dir {filename}.")

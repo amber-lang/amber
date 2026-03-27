@@ -21,7 +21,7 @@ jobs:
         with:
           packages: bc
           version: 1.0
-      - uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15 # v31.9.0
+      - uses: cachix/install-nix-action@1ca7d21a94afc7c957383a2d217460d980de4934 # v31.10.1
       - name: Check Nix flake
         run: nix flake check --all-systems
       - name: Build in Nix shell

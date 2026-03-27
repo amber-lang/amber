@@ -21,6 +21,7 @@ fn test_create_output_with_output_flag() {
         output: Some(PathBuf::from("output.sh")),
         no_proc: vec![],
         minify: false,
+        target: None,
     };
 
     let result = create_output(&cmd);
@@ -37,6 +38,7 @@ fn test_create_output_with_stdin() {
         output: None,
         no_proc: vec![],
         minify: false,
+        target: None,
     };
 
     let result = create_output(&cmd);
@@ -53,6 +55,7 @@ fn test_create_output_default_extension() {
         output: None,
         no_proc: vec![],
         minify: false,
+        target: None,
     };
 
     let result = create_output(&cmd);
@@ -84,6 +87,7 @@ fn test_handle_eval_success() {
     use crate::handle_eval;
     let result = handle_eval(EvalCommand {
         code: "1 + 1".to_string(),
+        target: None,
     });
     assert!(result.is_ok());
 }
@@ -110,6 +114,7 @@ fn test_render_dash_does_not_panic() {
 fn test_handle_eval_with_empty_code() {
     let result = handle_eval(EvalCommand {
         code: std::fs::read_to_string("src/tests/testing/empty_out.ab").unwrap(),
+        target: None,
     });
 
     assert!(result.is_ok());
@@ -121,6 +126,7 @@ fn test_handle_eval_with_error() {
     // Using invalid code to trigger a compilation error
     let result = handle_eval(EvalCommand {
         code: "invalid amber syntax @@#$$".to_string(),
+        target: None,
     });
 
     assert!(result.is_ok());
@@ -146,7 +152,7 @@ fn test_handle_docs_with_usage_flag() {
 #[test]
 fn test_execute_output_with_messages() {
     let code = "exit 0".to_string();
-    let result = execute_output(code, vec![], true);
+    let result = execute_output(code, vec![], true, None);
     assert!(result.is_ok());
 }
 

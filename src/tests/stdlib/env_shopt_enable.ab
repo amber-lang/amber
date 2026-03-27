@@ -6,8 +6,12 @@ import { shopt_enable } from "std/env"
 // *
 
 main {
-   shopt_enable("xpg_echo")?
-   trust $ echo "hello\\nworld" $
-   shopt_enable("noglob", true)?
-   trust $ echo * $
+   if shellname() == "bash" {
+      shopt_enable("xpg_echo")?
+      trust $ echo "hello\\nworld" $
+      shopt_enable("noglob", true)?
+      trust $ echo * $
+   } else {
+      echo("Succeeded")
+   }
 }

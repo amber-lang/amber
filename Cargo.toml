@@ -9,9 +9,18 @@ rust-version = "1.79"
 build = "build.rs"
 
 [package.metadata.deb]
-maintainer = "Amber-Lang project"
-license-file = "LICENSE.md"
-copyright = "LGPL-3"
+ maintainer = "Amber-Lang project"
+ license-file = "LICENSE.md"
+ copyright = "2024, Amber-Lang project"
+
+[package.metadata.generate-rpm]
+ name = "amber"
+ license = "LGPL-3.0-only"
+ summary = "The Programming Language compiled to Bash."
+ url = "https://amber-lang.com/"
+ assets = [
+     { source = "target/release/amber", dest = "/usr/bin/amber", mode = "755" },
+ ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

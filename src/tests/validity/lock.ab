@@ -1,0 +1,7 @@
+// Output
+// First lock successful
+
+main {
+    lock() ?
+    echo("First lock successful")
+}

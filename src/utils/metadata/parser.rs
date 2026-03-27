@@ -46,6 +46,10 @@ pub struct ParserMetadata {
     pub first_pass_ctx: bool,
     /// Whether sudo modifier is used anywhere in the code
     pub sudo_used: bool,
+    /// Whether shellname() builtin is used anywhere in the code
+    pub shellname_used: bool,
+    /// Whether shellversion() builtin is used anywhere in the code
+    pub shellversion_used: bool,
 }
 
 impl ParserMetadata {
@@ -299,6 +303,8 @@ impl Metadata for ParserMetadata {
             narrowed_types: Vec::new(),
             suppress_warnings: false,
             sudo_used: false,
+            shellname_used: false,
+            shellversion_used: false,
             first_pass_ctx: false,
         }
     }

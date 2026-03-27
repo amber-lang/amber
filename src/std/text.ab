@@ -1,18 +1,3 @@
-// We cannot import `bash_version` from `env.ab` because it imports `text.ab` making a circular dependency.
-// This is a workaround to avoid that issue and the import system should be improved in the future.
-#[allow_absurd_cast]
-fun bash_version(): [Int] {
-    let major = 0
-    let minor = 0
-    let patch = 0
-    trust $
-        {nameof major}=\$\{BASH_VERSINFO[0]}
-        {nameof minor}=\$\{BASH_VERSINFO[1]}
-        {nameof patch}=\$\{BASH_VERSINFO[2]}
-    $
-    return [major, minor, patch]
-}
-
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 ///
 /// ### Usage
@@ -23,7 +8,7 @@ fun bash_version(): [Int] {
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4, 3] {
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -41,7 +26,7 @@ pub fun replace(source, search, replace) {
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4, 3] {
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
     } else {
         trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
@@ -114,7 +99,19 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+    // zsh uses -A for array, bash uses -a, ksh is VERY bad at splitting anything
+    trust {
+        if {
+            shellname() == "zsh": $ IFS="{delimiter}" read -rd '' -A {nameof result} < <(printf %s "\${nameof text}") $
+            shellname() == "ksh" {
+                if delimiter == "\n":
+                    $ while read -r -d \$'\\n'; do {nameof result}+=("\$REPLY"); done < <(echo "\${nameof text}") $
+                else:
+                    $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+            } 
+            shellname() == "bash": $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+        }
+    }
     return result
 }
 
@@ -199,7 +196,15 @@ pub fun trim(text: Text): Text {
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    return trust $ tr '[:upper:]' '[:lower:]' <<< "{text}" $
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:upper:]' '[:lower:]')" $
+    } else {
+        trust $
+            typeset -l {nameof text}
+            {nameof text}="{text}"
+        $
+    }
+    return text
 }
 
 /// Makes the text input uppercase using `tr`.
@@ -210,7 +215,15 @@ pub fun lowercase(text: Text): Text {
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    return trust $ tr '[:lower:]' '[:upper:]' <<< "{text}" $
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof text}="\$(printf '%s' "{text}" | tr '[:lower:]' '[:upper:]')" $
+    } else {
+        trust $
+            typeset -u {nameof text}
+            {nameof text}="{text}"
+        $
+    }
+    return text
 }
 
 /// Attempts to parse a given text into an `Int` number.
@@ -450,12 +463,9 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        if bash_version() >= [4] {
-            return $ printf '%s\n' "\$\{{nameof text}^}" $
-        }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ printf '%s\n' "{text}" | sed "s/^\(.\)/\U\1/" $
+            return $ printf '%s\n' "{text}" | sed 's/^\(.\)/\U\1/' $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
@@ -492,6 +502,33 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
     trust $ printf -v {nameof padding} "%{pad_len}s" "" $
     trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
     return text + padding
+}
+
+/// Pads `text` with the specified `pad` character to the center within the desired `length`
+///
+/// ### Usage
+/// ```ab
+/// let padded: Text
+///
+/// padded = cpad("42", "0", 5)
+/// echo(padded) // "04200"
+///
+/// padded = cpad("42", "0", 6)
+/// echo(padded) // "004200"
+///
+/// padded = cpad("42", "0", 1)
+/// echo(padded) // "42"
+/// ```
+pub fun cpad(text: Text, pad: Text, length: Int): Text {
+    const text_length = len(text)
+    if length <= text_length: return text
+
+    const total_padding = length - text_length
+    const left_padding_length = text_length + total_padding / 2
+    const left_padded = lpad(text, pad, left_padding_length)
+    const center_padded = rpad(left_padded, pad, length)
+
+    return center_padded
 }
 
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
@@ -548,10 +585,10 @@ pub fun count_chars(text: Text): Int {
 /// ```ab
 /// let sorted = sort_lines("banana\napple\ncherry")
 /// echo(sorted) // "apple\nbanana\ncherry"
-/// 
+///
 /// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
 /// echo(sorted) // "cherry\nbanana\napple"
-/// 
+///
 /// sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
 /// echo(sorted) // "1\n2\n10"
 /// ```
@@ -575,6 +612,6 @@ pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text 
 pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
     if not remove_all:
         return trust $ uniq <<< "{text}" $
-    else: 
+    else:
         return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }

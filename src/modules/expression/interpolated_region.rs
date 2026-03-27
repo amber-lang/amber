@@ -1,4 +1,5 @@
 use crate::modules::expression::expr::Expr;
+use crate::modules::expression::literal::text::TextPart;
 use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 
@@ -80,75 +81,78 @@ fn parse_escaped_string(string: String, region_type: &InterpolatedRegionType) ->
     result
 }
 
+fn parse_simple_region(word: &str, interpolated_type: &InterpolatedRegionType) -> Vec<TextPart> {
+    let content = &word[1..word.len() - 1];
+    vec![TextPart::String(parse_escaped_string(
+        content.to_string(),
+        interpolated_type,
+    ))]
+}
+
+fn parse_complex_region(
+    meta: &mut ParserMetadata,
+    start: String,
+    letter: char,
+    interpolated_type: &InterpolatedRegionType,
+) -> Result<Vec<TextPart>, Failure> {
+    let mut parts = vec![];
+    let mut is_interp = false;
+
+    parts.push(TextPart::String(parse_escaped_string(
+        start[1..].to_string(),
+        interpolated_type,
+    )));
+
+    while let Some(tok) = meta.get_current_token() {
+        match tok.word.as_str() {
+            "{" => is_interp = true,
+            "}" => is_interp = false,
+            _ => {
+                if is_interp {
+                    let mut expr = Expr::new();
+                    syntax(meta, &mut expr)?;
+                    parts.push(TextPart::Expr(Box::new(expr)));
+                    meta.offset_index(-1);
+                } else {
+                    if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
+                        meta.increment_index();
+                        let content = &tok.word[..tok.word.len() - 1];
+                        parts.push(TextPart::String(parse_escaped_string(
+                            content.to_string(),
+                            interpolated_type,
+                        )));
+                        return Ok(parts);
+                    }
+                    parts.push(TextPart::String(parse_escaped_string(
+                        tok.word.clone(),
+                        interpolated_type,
+                    )));
+                }
+            }
+        }
+        meta.increment_index();
+    }
+
+    Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
+}
+
 pub fn parse_interpolated_region(
     meta: &mut ParserMetadata,
     interpolated_type: &InterpolatedRegionType,
-) -> Result<(Vec<String>, Vec<Expr>), Failure> {
-    let mut strings = vec![];
-    let mut interps = vec![];
+) -> Result<Vec<TextPart>, Failure> {
     let letter = interpolated_type.to_char();
-    // Handle full string
+
     if let Ok(word) = token_by(meta, |word| {
         word.starts_with(letter)
             && word.ends_with(letter)
             && word.len() > 1
             && !is_escaped(word, letter)
     }) {
-        let stripped = word
-            .chars()
-            .take(word.chars().count() - 1)
-            .skip(1)
-            .collect::<String>();
-        strings.push(parse_escaped_string(stripped, interpolated_type));
-        Ok((strings, interps))
-    } else {
-        let mut is_interp = false;
-        // Initialize string
-        let start = token_by(meta, |word| word.starts_with(letter))?;
-        strings.push(parse_escaped_string(
-            start.chars().skip(1).collect::<String>(),
-            interpolated_type,
-        ));
-        // Factor rest of the interpolation
-        while let Some(tok) = meta.get_current_token() {
-            // Track interpolations
-            match tok.word.as_str() {
-                "{" => is_interp = true,
-                "}" => is_interp = false,
-                // Manage inserting strings and intrpolations
-                _ => {
-                    if is_interp {
-                        let mut expr = Expr::new();
-                        syntax(meta, &mut expr)?;
-                        interps.push(expr);
-                        meta.offset_index(-1);
-                    } else {
-                        strings.push(parse_escaped_string(tok.word.clone(), interpolated_type));
-                        if tok.word.ends_with(letter) && !is_escaped(&tok.word, letter) {
-                            meta.increment_index();
-                            // Right trim the symbol
-                            let trimmed = strings
-                                .last()
-                                .unwrap()
-                                .chars()
-                                .take(
-                                    parse_escaped_string(tok.word, interpolated_type)
-                                        .chars()
-                                        .count()
-                                        - 1,
-                                )
-                                .collect::<String>();
-                            // replace the last string
-                            *strings.last_mut().unwrap() = trimmed;
-                            return Ok((strings, interps));
-                        }
-                    }
-                }
-            }
-            meta.increment_index();
-        }
-        Err(Failure::Quiet(PositionInfo::from_metadata(meta)))
+        return Ok(parse_simple_region(&word, interpolated_type));
     }
+
+    let start = token_by(meta, |word| word.starts_with(letter))?;
+    parse_complex_region(meta, start, letter, interpolated_type)
 }
 
 #[cfg(test)]

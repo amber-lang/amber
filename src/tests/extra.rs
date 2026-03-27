@@ -2,9 +2,10 @@
 extern crate test_generator;
 use super::test_amber;
 use super::TestOutcomeTarget;
+use crate::compiler::AmberCompiler;
 use crate::tests::compile_code;
 use std::fs;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::time::Duration;
 
 fn http_server() {
@@ -23,18 +24,18 @@ fn exit_with_code() {
         .expect("Failed to open validity/no_output/exit_with_code.ab test file");
 
     let code = compile_code(code);
-    let mut cmd = Command::new("bash")
-        .arg("--norc")
+    let mut cmd = AmberCompiler::find_shell(None)
+        .expect("Couldn't find shell")
         .arg("-c")
         .arg(code)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
-        .expect("Couldn't spawn bash");
+        .expect("Couldn't spawn shell");
 
     assert_eq!(
         cmd.wait()
-            .expect("Couldn't wait for bash to execute")
+            .expect("Couldn't wait for shell to execute")
             .code(),
         Some(37)
     );
@@ -46,17 +47,18 @@ fn exit_with_no_code() {
         .expect("Failed to open validity/no_output/exit_with_no_code.ab test file");
 
     let code = compile_code(code);
-    let mut cmd = Command::new("bash")
+    let mut cmd = AmberCompiler::find_shell(None)
+        .expect("Couldn't find shell")
         .arg("-c")
         .arg(code)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
-        .expect("Couldn't spawn bash");
+        .expect("Couldn't spawn shell");
 
     assert_eq!(
         cmd.wait()
-            .expect("Couldn't wait for bash to execute")
+            .expect("Couldn't wait for shell to execute")
             .code(),
         Some(0)
     );

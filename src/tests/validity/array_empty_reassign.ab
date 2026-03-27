@@ -1,0 +1,15 @@
+// Output
+// global: 0 []
+// local: 0 []
+
+let global = [1, 2, 3]
+global = [Int]
+echo("global: {len(global)} [{global}]")
+
+fun reset_local(): Null {
+    let local = [4, 5]
+    local = [Int]
+    echo("local: {len(local)} [{local}]")
+}
+
+reset_local()

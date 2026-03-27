@@ -4,6 +4,7 @@
 # Test files
 /test*.ab
 /test*.sh
+/src/tests/*/*.sh
 /test*.md
 /docs/
 src/std/docs/

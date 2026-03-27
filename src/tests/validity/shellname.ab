@@ -1,0 +1,6 @@
+let name = shellname()
+if name == "bash" or name == "zsh" or name == "ksh" {
+    echo("Succeeded")
+} else {
+    echo("Unexpected shell name: {name}")
+}

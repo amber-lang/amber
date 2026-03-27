@@ -57,7 +57,7 @@ jobs:
           cargo test --no-run --all-targets --all-features
       - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
         run: tar -cvzf target.tgz target/
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           include-hidden-files: true
           name: target
@@ -108,7 +108,7 @@ jobs:
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: target
           path: artifact
@@ -134,13 +134,14 @@ jobs:
         env:
           AMBER_TEST_STRATEGY: docker
           AMBER_TEST_ARGS: exec test_container bash
+          AMBER_TEST_TARGET: ${{ contains(fromJSON('["bash:4.2","bash:4.1","bash:4.0","bash:3.2"]'), matrix.bash_docker_image) && 'bash-3.2' || 'bash-4.3' }}
         run: |
           docker run --network host --detach --name test_container testenv
           cargo test --all-targets --all-features
           docker stop test_container -t 0
           docker rm --force test_container
   macos-test:
-    name: Rust tests on a native macOS Bash
+    name: Rust tests on a native macOS zsh
     runs-on: macos-latest
     if: github.event_name != 'release'
     steps:
@@ -157,6 +158,9 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
+        env:
+            AMBER_SHELL: '/bin/zsh'
+        shell: /bin/zsh {0}
         run: |
           cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
@@ -179,6 +183,42 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
+        with:
+          packages: parallel shellcheck
+          version: 1.0
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ./target/deps
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - uses: actions/download-artifact@v8
+        with:
+          name: target
+          path: artifact
+      - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Add shellcheck problem matcher
+        run: echo "::add-matcher::.github/shellcheck-matcher.json"
+      - name: Run sh_tester.ab
+        env:
+          CS_TEMP_DIR: ${{ github.workspace }}/amber.sc.tests
+          INCLUDE_PATH: "**/*.ab"
+          EXCLUDE_PATH: "src/tests/{erroring,warning}/*.ab"
+        run: |
+          cargo build --release
+          cargo run -- run scripts/sh_tester.ab
   coverage:
     needs:
       - test
@@ -197,7 +237,7 @@ jobs:
       - run: cargo install cargo-llvm-cov --version ${{ env.LLVM_COV_VERSION }} --locked
         if: steps.cache-llvm-cov.outputs.cache-hit != 'true'
       - name: Test coverage
-        run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
+        run: cargo build && cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
