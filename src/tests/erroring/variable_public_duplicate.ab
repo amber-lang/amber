@@ -1,0 +1,8 @@
+// Output
+// Cannot redeclare 'foo' in the same scope
+
+#[allow_public_mutable]
+pub let foo = 123
+
+#[allow_public_mutable]
+pub let foo = 123

@@ -1,4 +1,13 @@
-let var = "abc"
-let var = "Succeeded"
+// Output
+// Succeeded
+// abc
+
+const var = "abc"
+
+{
+  const var = "Succeeded"
+
+  echo(var)
+}
 
 echo(var)

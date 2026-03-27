@@ -134,6 +134,14 @@ impl ParserMetadata {
             .find_map(|scope| scope.get_var(name))
     }
 
+    /// Gets a variable from the current scope
+    pub fn get_var_in_current_scope(&self, name: &str) -> Option<&VariableDecl> {
+        self.context
+            .scopes
+            .last()
+            .and_then(|scope| scope.get_var(name))
+    }
+
     /// Gets variable names
     pub fn get_var_names(&self) -> BTreeSet<&String> {
         self.context
@@ -252,6 +260,14 @@ impl ParserMetadata {
             .iter()
             .rev()
             .find_map(|scope| scope.get_fun(name))
+    }
+
+    /// Gets a function from the current scope
+    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionDecl> {
+        self.context
+            .scopes
+            .last()
+            .and_then(|scope| scope.get_fun(name))
     }
 
     /// Gets function names

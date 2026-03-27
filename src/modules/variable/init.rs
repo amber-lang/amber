@@ -3,8 +3,8 @@ use std::collections::HashSet;
 
 use super::{handle_identifier_name, variable_name_extensions};
 use crate::modules::expression::expr::Expr;
-use crate::modules::prelude::*;
 use crate::modules::types::Typed;
+use crate::modules::{handle_symbol_scope_declaration, prelude::*};
 use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
@@ -75,7 +75,10 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
 impl TypeCheckModule for VariableInit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
+
         handle_identifier_name(meta, &self.name, self.tok.clone())?;
+        handle_symbol_scope_declaration(meta, &self.name, self.tok.clone())?;
+
         let var = VariableDecl::new(self.name.clone(), self.expr.get_type())
             .with_warn(
                 VariableDeclWarn::from_token(meta, self.tok.clone())

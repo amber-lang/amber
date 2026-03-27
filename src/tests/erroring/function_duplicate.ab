@@ -1,0 +1,5 @@
+// Output
+// Cannot redeclare 'foo' in the same scope
+
+fun foo() {}
+fun foo() {}
