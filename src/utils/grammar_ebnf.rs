@@ -202,7 +202,7 @@ pub fn generate_grammar_ebnf() -> String {
     for kw in &builtin_stmt_keywords {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
-        match kw.as_ref() {
+        match *kw {
             "clear" | "pid" => {
                 builtin_stmt_rules.push_str(&format!("{} = KEYWORD_{} ;\n", builtin_name, kw_upper))
             }
@@ -219,7 +219,7 @@ pub fn generate_grammar_ebnf() -> String {
     for kw in &builtin_expr_keywords {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
-        match kw.as_ref() {
+        match *kw {
             "pid" => {
                 builtin_expr_rules.push_str(&format!("{} = KEYWORD_{} ;\n", builtin_name, kw_upper))
             }
