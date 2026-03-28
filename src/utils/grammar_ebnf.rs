@@ -165,9 +165,7 @@ import_ids = [ VISIBILITY ], KEYWORD_IMPORT, '{', { identifier, [ KEYWORD_AS, id
 (* Comment *)
 comment = '//', { ANY_CHAR }, '\n' ;
 
-(* Test *)
-test_name = '"', { ANY_CHAR }, '"' ;
-test = KEYWORD_TEST, [ test_name ], block ;
+
 
 "#;
 
@@ -200,7 +198,7 @@ pub fn generate_grammar_ebnf() -> String {
     keyword_defs.push('\n');
 
     // Generate individual builtin rules for statement builtins
-    let mut builtin_stmt_rules = String::new();
+    let mut builtin_stmt_rules = String::from("(* Builtins *)\n");
     for kw in &builtin_stmt_keywords {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
@@ -271,15 +269,23 @@ pub fn generate_grammar_ebnf() -> String {
 
     let keywords_section_with_comment = format!("{}\n{}", keywords_start, keyword_defs);
 
+    // Add test section after builtins
+    let test_section = r#"
+(* Test *)
+test_name = '"', { ANY_CHAR }, '"' ;
+test = KEYWORD_TEST, [ test_name ], block ;
+"#;
+
     // Construct the final grammar with generated builtins
     format!(
-        "{}{}{}{}{}{}{}",
+        "{}{}{}{}{}{}{}{}",
         before_keywords,
         keywords_section_with_comment,
         after_terminals,
         builtins_stmt_rule,
         builtin_stmt_rules,
         builtins_expr_rule,
-        builtin_expr_rules
+        builtin_expr_rules,
+        test_section
     )
 }

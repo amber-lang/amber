@@ -50,7 +50,7 @@ expression =
     unary_operation |
     expression_index ;
 
-(* Keywords *)
+(* Keywords - auto-generated at build time *)
 KEYWORD_AND = 'and' ;
 KEYWORD_AS = 'as' ;
 KEYWORD_AWAIT = 'await' ;
@@ -60,9 +60,11 @@ KEYWORD_CLEAR = 'clear' ;
 KEYWORD_CONST = 'const' ;
 KEYWORD_CONTINUE = 'continue' ;
 KEYWORD_CP = 'cp' ;
+KEYWORD_DISOWN = 'disown' ;
 KEYWORD_ECHO = 'echo' ;
 KEYWORD_ELSE = 'else' ;
 KEYWORD_EXIT = 'exit' ;
+KEYWORD_EXITED = 'exited' ;
 KEYWORD_FAIL = 'fail' ;
 KEYWORD_FAILED = 'failed' ;
 KEYWORD_FOR = 'for' ;
@@ -90,16 +92,15 @@ KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
 KEYWORD_RM = 'rm' ;
 KEYWORD_SILENT = 'silent' ;
-KEYWORD_SUPPRESS = 'suppress' ;
 KEYWORD_SLEEP = 'sleep' ;
 KEYWORD_STATUS = 'status' ;
-KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
+KEYWORD_SUDO = 'sudo' ;
+KEYWORD_SUPPRESS = 'suppress' ;
 KEYWORD_TEST = 'test' ;
 KEYWORD_THEN = 'then' ;
 KEYWORD_TOUCH = 'touch' ;
 KEYWORD_TRUST = 'trust' ;
-KEYWORD_EXITED = 'exited' ;
 KEYWORD_UNSAFE = 'unsafe' ;
 KEYWORD_WHILE = 'while' ;
 
@@ -213,43 +214,33 @@ import_ids = [ VISIBILITY ], KEYWORD_IMPORT, '{', { identifier, [ KEYWORD_AS, id
 (* Comment *)
 comment = '//', { ANY_CHAR }, '\n' ;
 
-(* Built-ins *)
-builtins_statement =
-    builtin_await |
-    builtin_cd |
-    builtin_clear |
-    builtin_cp |
-    builtin_echo |
-    builtin_exit |
-    builtin_lock |
-    builtin_mv |
-    builtin_rm |
-    builtin_sleep ;
+
+
+builtins_statement = builtin_await | builtin_clear | builtin_cp | builtin_mv | builtin_disown | builtin_touch | builtin_cd | builtin_lock | builtin_exit | builtin_sleep | builtin_echo | builtin_rm ;
+
+(* Builtins *)
 builtin_await = KEYWORD_AWAIT, expression ;
-builtin_cd = KEYWORD_CD, expression ;
 builtin_clear = KEYWORD_CLEAR ;
 builtin_cp = KEYWORD_CP, expression ;
-builtin_echo = KEYWORD_ECHO, expression ;
-builtin_exit = KEYWORD_EXIT, expression ;
-builtin_lock = KEYWORD_LOCK, expression ;
 builtin_mv = KEYWORD_MV, expression ;
-builtin_rm = KEYWORD_RM, expression ;
-builtin_sleep = KEYWORD_SLEEP, expression ;
+builtin_disown = KEYWORD_DISOWN, expression ;
 builtin_touch = KEYWORD_TOUCH, expression ;
+builtin_cd = KEYWORD_CD, expression ;
+builtin_lock = KEYWORD_LOCK, expression ;
+builtin_exit = KEYWORD_EXIT, expression ;
+builtin_sleep = KEYWORD_SLEEP, expression ;
+builtin_echo = KEYWORD_ECHO, expression ;
+builtin_rm = KEYWORD_RM, expression ;
 
-builtins_expression =
-    builtin_len |
-    builtin_lines |
-    builtin_ls |
-    builtin_nameof |
-    builtin_pid |
-    builtin_pwd ;
-builtin_len = KEYWORD_LEN, expression ;
-builtin_lines = KEYWORD_LINES, expression ;
-builtin_ls = KEYWORD_LS, expression ;
+builtins_expression = builtin_pwd | builtin_nameof | builtin_pid | builtin_ls | builtin_len | builtin_lines ;
+
+builtin_pwd = KEYWORD_PWD, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
 builtin_pid = KEYWORD_PID ;
-builtin_pwd = KEYWORD_PWD, expression ;
+builtin_ls = KEYWORD_LS, expression ;
+builtin_len = KEYWORD_LEN, expression ;
+builtin_lines = KEYWORD_LINES, expression ;
+
 
 (* Test *)
 test_name = '"', { ANY_CHAR }, '"' ;

@@ -8,7 +8,9 @@ use crate::raw_fragment;
 use crate::translate::fragments::var_stmt::VarStmtFragment;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "lock"]
+#[kind = "builtin_stmt"]
 pub struct Lock {
     path: Option<Expr>,
     modifier: CommandModifier,
