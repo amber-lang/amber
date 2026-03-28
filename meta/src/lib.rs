@@ -182,36 +182,54 @@ pub fn auto_keyword(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident.clone();
 
-    let custom_keyword = parse_keyword_attribute(&input.attrs).unwrap_or_else(|| {
-        panic!(
-            "AutoKeyword requires #[keyword = \"...\"] attribute on {:?}",
-            name
-        );
-    });
+    // Extract generics for proper impl generation
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+
+    let custom_keyword = match parse_keyword_attribute(&input.attrs) {
+        Some(kw) => kw,
+        None => {
+            let err = syn::Error::new(
+                name.span(),
+                "AutoKeyword requires #[keyword = \"...\"] attribute"
+            );
+            return TokenStream::from(err.into_compile_error());
+        }
+    };
 
     let keyword_str = custom_keyword;
 
     let custom_kind = parse_kind_attribute(&input.attrs);
 
-    let ty = quote! { #name };
+    let ty = quote! { #name #ty_generics };
     let keyword_lit = quote! { #keyword_str };
 
     let kind_expression = match custom_kind {
         Some(kind_str) => {
-            // Parse the kind string as an identifier, converting snake_case to PascalCase
-            let kind_upper: String = kind_str
-                .split('_')
-                .map(|s| {
-                    let mut chars = s.chars();
-                    chars
-                        .next()
-                        .map(|c| c.to_uppercase().to_string() + chars.as_str())
-                        .unwrap_or_default()
-                })
-                .collect();
-            let kind_ident = syn::parse_str::<syn::Ident>(&kind_upper)
-                .unwrap_or_else(|_| panic!("Invalid kind: {}", kind_upper));
-            quote! { crate::modules::keywords::KeywordKind::#kind_ident }
+            let kind_str_lower = kind_str.to_lowercase();
+            match kind_str_lower.as_str() {
+                "stmt" | "statement" => {
+                    quote! { crate::modules::keywords::KeywordKind::Stmt }
+                }
+                "builtin_stmt" | "builtin-stmt" | "builtinstatement" => {
+                    quote! { crate::modules::keywords::KeywordKind::BuiltinStmt }
+                }
+                "builtin_expr" | "builtin-expr" | "builtinexpr" => {
+                    quote! { crate::modules::keywords::KeywordKind::BuiltinExpr }
+                }
+                "binary_op" | "binary-op" | "binaryop" => {
+                    quote! { crate::modules::keywords::KeywordKind::BinaryOp }
+                }
+                _ => {
+                    let err = syn::Error::new(
+                        name.span(),
+                        format!(
+                            "Invalid kind '{}'. Expected one of: stmt, builtin_stmt, builtin_expr, binary_op",
+                            kind_str
+                        )
+                    );
+                    return TokenStream::from(err.into_compile_error());
+                }
+            }
         }
         None => {
             quote! { crate::modules::keywords::KeywordKind::Stmt }
@@ -219,19 +237,19 @@ pub fn auto_keyword(input: TokenStream) -> TokenStream {
     };
 
     let expanded = quote! {
-        impl crate::modules::keywords::KeywordStmt for #ty {
+        impl #impl_generics crate::modules::keywords::KeywordStmt for #ty #where_clause {
             fn keyword_stmt() -> &'static str {
                 #keyword_lit
             }
         }
 
-        impl crate::modules::keywords::KeywordExpr for #ty {
+        impl #impl_generics crate::modules::keywords::KeywordExpr for #ty #where_clause {
             fn keyword_expr() -> &'static str {
                 #keyword_lit
             }
         }
 
-        impl crate::modules::keywords::BuiltinName for #ty {
+        impl #impl_generics crate::modules::keywords::BuiltinName for #ty #where_clause {
             fn builtin_name() -> &'static str {
                 #keyword_lit
             }
@@ -240,7 +258,7 @@ pub fn auto_keyword(input: TokenStream) -> TokenStream {
         // Register for auto-discovery via inventory
         inventory::submit! {
             crate::modules::keywords::KeywordRegistration::new_with_kind(
-                stringify!(#ty),
+                stringify!(#name #ty_generics),
                 #keyword_lit,
                 #kind_expression,
             )
