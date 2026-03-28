@@ -5,6 +5,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::{fragments, raw_fragment};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]

@@ -5,7 +5,7 @@
 #![allow(dead_code)]
 
 /// The kind of keyword (statement, builtin, or binary operation)
-/// Also supports dynamic string-based kinds like "binary_op", "builtin_stmt", "builtin_expr", etc.
+/// Fixed set of variants: Stmt, BuiltinStmt, BuiltinExpr, BinaryOp
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KeywordKind {
     /// Statement keyword (if, while, for, etc.)

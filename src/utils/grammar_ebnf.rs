@@ -177,15 +177,17 @@ pub fn generate_grammar_ebnf() -> String {
         .collect();
 
     // Collect builtin statement and expression keywords separately
-    let builtin_stmt_keywords: Vec<&str> = iter_keywords()
+    let mut builtin_stmt_keywords: Vec<&str> = iter_keywords()
         .filter(|r| r.kind == KeywordKind::BuiltinStmt)
         .map(|r| r.keyword)
         .collect();
+    builtin_stmt_keywords.sort_unstable();
 
-    let builtin_expr_keywords: Vec<&str> = iter_keywords()
+    let mut builtin_expr_keywords: Vec<&str> = iter_keywords()
         .filter(|r| r.kind == KeywordKind::BuiltinExpr)
         .map(|r| r.keyword)
         .collect();
+    builtin_expr_keywords.sort_unstable();
 
     // Collect unique keywords using HashSet to deduplicate
     let mut keyword_defs = String::new();
@@ -203,7 +205,7 @@ pub fn generate_grammar_ebnf() -> String {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
         match *kw {
-            "clear" | "pid" => {
+            "clear" => {
                 builtin_stmt_rules.push_str(&format!("{} = KEYWORD_{} ;\n", builtin_name, kw_upper))
             }
             _ => builtin_stmt_rules.push_str(&format!(

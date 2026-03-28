@@ -9,7 +9,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "await"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Await {
     pids: Expr,
 }

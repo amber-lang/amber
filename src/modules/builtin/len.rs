@@ -6,11 +6,12 @@ use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "len"]
-#[kind = "builtin_expr" ]
+#[kind = "builtin_expr"]
 pub struct Len {
     value: Box<Expr>,
 }
