@@ -447,7 +447,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         CommandKind::GrammarEbnf => {
               let output = grammar_ebnf::generate_grammar_ebnf();
               let output_path = PathBuf::from("grammar.ebnf");
-              std::fs::write(&output_path, output).expect("Failed to write grammar.ebnf");
+              std::fs::write(&output_path, output)?;
               0
         }
         CommandKind::Test(mut command) => {
