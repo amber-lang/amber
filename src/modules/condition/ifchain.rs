@@ -13,7 +13,7 @@ use std::collections::HashMap;
 #[keyword = "if"]
 #[kind = "stmt"]
 pub struct IfChain {
-    pub cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
+    cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
     pub false_block: Option<(Vec<Comment>, Box<Block>)>,
 }
 
