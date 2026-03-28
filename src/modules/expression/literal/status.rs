@@ -9,7 +9,6 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "status"]
-#[kind = "stmt"]
 pub struct Status;
 
 impl Typed for Status {

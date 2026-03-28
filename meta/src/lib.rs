@@ -87,6 +87,14 @@ use syn::{parse_macro_input, Attribute, DeriveInput};
 pub fn context_manager(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let syn::DeriveInput { data, ident, .. } = input;
+    
+    if !matches!(data, syn::Data::Struct(_)) {
+        return syn::Error::new_spanned(
+            &ident,
+            "ContextManager only supports structs, not enums or unions"
+        ).into_compile_error().into();
+    }
+    
     let mut visitor = ManagerVisitor::new(&ident);
     visitor.visit_data(&data);
     let output = visitor.make_block();
@@ -100,6 +108,14 @@ pub fn context_manager(input: TokenStream) -> TokenStream {
 pub fn context_helper(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let syn::DeriveInput { data, ident, .. } = input;
+    
+    if !matches!(data, syn::Data::Struct(_)) {
+        return syn::Error::new_spanned(
+            &ident,
+            "ContextHelper only supports structs, not enums or unions"
+        ).into_compile_error().into();
+    }
+    
     let mut visitor = HelperVisitor::new(&ident);
     visitor.visit_data(&data);
     let output = visitor.make_block();
@@ -235,7 +251,7 @@ pub fn auto_keyword(input: TokenStream) -> TokenStream {
 }
 
 /// Parse the `#[kind = "..."]` attribute
-fn parse_kind_attribute(attrs: &[Attribute]) -> Option<&'static str> {
+fn parse_kind_attribute(attrs: &[Attribute]) -> Option<String> {
     for attr in attrs {
         if attr.path().is_ident("kind") {
             let meta = &attr.meta;
@@ -245,7 +261,7 @@ fn parse_kind_attribute(attrs: &[Attribute]) -> Option<&'static str> {
                     ..
                 }) = &name_value.value
                 {
-                    return Some(lit_str.value().leak());
+                    return Some(lit_str.value());
                 }
             }
         }
@@ -254,7 +270,7 @@ fn parse_kind_attribute(attrs: &[Attribute]) -> Option<&'static str> {
 }
 
 /// Parse the `#[keyword = "..."]` attribute
-fn parse_keyword_attribute(attrs: &[Attribute]) -> Option<&'static str> {
+fn parse_keyword_attribute(attrs: &[Attribute]) -> Option<String> {
     for attr in attrs {
         if attr.path().is_ident("keyword") {
             // Parse the attribute value
@@ -265,7 +281,7 @@ fn parse_keyword_attribute(attrs: &[Attribute]) -> Option<&'static str> {
                     ..
                 }) = &name_value.value
                 {
-                    return Some(lit_str.value().leak());
+                    return Some(lit_str.value());
                 }
             }
         }
