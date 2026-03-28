@@ -22,8 +22,8 @@ if n is Num {
     echo("dead")
 }
 
-let x = 1
-if x is Int | Text {
+let y = 1
+if y is Int | Text {
     echo("test")
 } else {
     echo("dead")

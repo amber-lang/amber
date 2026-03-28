@@ -7,6 +7,7 @@ expression: ast
 # Value at -3: "one"
 # Value at -2: "two"
 # Value at -1: "three"
+# test_index(byref: [Text])
 test_index__0_v0() {
     local byref_3="${1}"
     for (( index_4=-4; index_4 <= -1; index_4++ )); do

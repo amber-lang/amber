@@ -2,11 +2,13 @@
 source: src/tests/compiling.rs
 expression: ast
 ---
+# foo(arg: Int)
 foo__0_v0() {
     local arg_7="${1}"
     echo "Value: ${arg_7}"
 }
 
+# bar(a: Int, b: Int)
 bar__1_v0() {
     local a_5="${1}"
     local b_6="${2}"

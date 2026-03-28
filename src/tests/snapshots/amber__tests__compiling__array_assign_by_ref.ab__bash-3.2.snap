@@ -5,6 +5,7 @@ expression: ast
 # Output
 # 1 2 42 4 5
 # 1 2 42 4 5
+# test_func(a: [Int])
 test_func__0_v0() {
     local a_2="${1}"
     eval "${a_2}[2]=42"

@@ -2,6 +2,7 @@
 source: src/tests/optimizing.rs
 expression: output
 ---
+# foo()
 foo__0_v0() {
     ret_foo0_v0=0
     return 0

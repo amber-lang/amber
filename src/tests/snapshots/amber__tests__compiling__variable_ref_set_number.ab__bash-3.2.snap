@@ -5,11 +5,13 @@ expression: ast
 # Output
 # 42
 # 42
+# foo(a: Int)
 foo__0_v0() {
     local a_2="${1}"
     eval "${a_2}=42"
 }
 
+# foo(a: Num)
 foo__0_v1() {
     local a_4="${1}"
     eval "${a_4}=42"

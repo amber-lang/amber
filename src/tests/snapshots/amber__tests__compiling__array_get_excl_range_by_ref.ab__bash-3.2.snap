@@ -33,6 +33,7 @@ expression: ast
 # Values at 4..2: (0) []
 # Values at 4..3: (0) []
 # Values at 4..4: (0) []
+# test_range(byref: [Text])
 test_range__0_v0() {
     local byref_5="${1}"
     for (( begin_6=-1; begin_6 <= 4; begin_6++ )); do
