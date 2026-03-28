@@ -2,7 +2,7 @@
 // This module defines traits that allow importing Rust modules directly
 // to extract keywords without regex parsing.
 
-#[allow(dead_code)]
+#![allow(dead_code)]
 
 /// The kind of keyword (statement, builtin, or binary operation)
 /// Also supports dynamic string-based kinds like "binary_op", "builtin_stmt", "builtin_expr", etc.
