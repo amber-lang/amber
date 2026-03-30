@@ -1,5 +1,5 @@
 // Output
-// Index out of bounds
+// Index out of bounds \(at unknown:4:11\)
 
 const [a, b] = [1]
 

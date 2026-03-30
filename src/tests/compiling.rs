@@ -149,7 +149,10 @@ fn test_bash_32_ref_array_negative_index_uses_pass_through_deref_access() {
         .with_index_by_value(VarIndexValue::Index(crate::raw_fragment!("idx")))
         .to_string(&mut translate_meta);
 
-    assert_eq!(rendered, "\"${items_0_deref_0_array[idx]?\"Index out of bounds\"}\"");
+    assert_eq!(
+        rendered,
+        "\"${items_0_deref_0_array[idx]?\"Index out of bounds (at unknown)\"}\""
+    );
 }
 
 #[test]

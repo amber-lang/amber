@@ -6,6 +6,20 @@ use crate::modules::prelude::RawFragment;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::utils::{ShellType, TranslateMetadata};
+use heraclitus_compiler::prelude::Position;
+use heraclitus_compiler::prelude::PositionInfo;
+
+/// Format a `PositionInfo` into a `"file:line"` string for runtime error messages.
+pub fn format_position(pos: Option<&PositionInfo>) -> Option<String> {
+    pos.and_then(|info| {
+        let path = info.path.as_deref().unwrap_or("unknown");
+        if let Position::Pos(row, col) = info.position {
+            Some(format!("{path}:{row}:{col}"))
+        } else {
+            None
+        }
+    })
+}
 
 /// Represents a variable expression such as `$var` or `${var}`
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,6 +57,8 @@ pub struct VarExprFragment {
     pub render_type: VarRenderType,
     // Amber's array subscript like `arr[0]` or `arr[1..5]`
     pub index: Option<Box<VarIndexValue>>,
+    // Source location for index access (formatted as "file:line")
+    pub index_pos: Option<String>,
 }
 
 // Represents variable that resolves to a value. Prefixed with `$`.
@@ -62,6 +78,7 @@ impl Default for VarExprFragment {
             is_declared: true,
             render_type: VarRenderType::BashValue,
             index: None,
+            index_pos: None,
         }
     }
 }
@@ -121,6 +138,7 @@ impl VarExprFragment {
         index: T,
     ) -> Self {
         if let Some(index) = index.into() {
+            self.index_pos = format_position(index.position.as_ref());
             let index = match index.value {
                 Some(ExprType::Range(range)) => {
                     let (offset, length) = range.get_array_index(meta);
@@ -142,6 +160,11 @@ impl VarExprFragment {
 
     pub fn with_index_by_value<T: Into<Option<VarIndexValue>>>(mut self, index: T) -> Self {
         self.index = index.into().map(Box::new);
+        self
+    }
+
+    pub fn with_index_pos(mut self, pos: Option<String>) -> Self {
+        self.index_pos = pos;
         self
     }
 
@@ -286,7 +309,8 @@ impl VarExprFragment {
             }
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
-                format!("[{index}]?\"Index out of bounds\"")
+                let location = self.index_pos.as_deref().unwrap_or("unknown");
+                format!("[{index}]?\"Index out of bounds (at {location})\"")
             }
             (Type::Array(_), None) if self.is_array_to_string => String::from("[*]"),
             (Type::Array(_), None) => String::from("[@]"),

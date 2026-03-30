@@ -6,9 +6,9 @@ use test_generator::test_resources;
 use crate::tests::{eval_amber, extract_output};
 
 #[test_resources("src/tests/runtime/*.ab")]
-fn test_runtime_errors(input: &str) {
+fn test_runtime_errors(file: &str) {
     let code =
-        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+        fs::read_to_string(file).unwrap_or_else(|_| panic!("Failed to open {file} test file"));
 
     let output = extract_output(&code);
 
