@@ -310,7 +310,22 @@ impl VarExprFragment {
             (_, Some(VarIndexValue::Index(index))) => {
                 let index = index.with_quotes(false).to_string(meta);
                 let location = self.index_pos.as_deref().unwrap_or("unknown");
-                format!("[{index}]?\"Index out of bounds (at {location})\"")
+
+                match meta.target.shell {
+                    ShellType::Ksh => {
+                        // In ksh, ${array[idx]?"msg"} doesn't error for out-of-bounds access.
+                        // Emit an explicit bounds check before the access instead.
+                        let var_name = self.get_name();
+                        meta.stmt_queue.push_back(
+                            RawFragment::from(format!(
+                                "(( {index} >= 0 && {index} < ${{#{var_name}[@]}} )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
+                            ))
+                            .to_frag(),
+                        );
+                        format!("[{index}]")
+                    }
+                    _ => format!("[{index}]?\"Index out of bounds (at {location})\""),
+                }
             }
             (Type::Array(_), None) if self.is_array_to_string => String::from("[*]"),
             (Type::Array(_), None) => String::from("[@]"),

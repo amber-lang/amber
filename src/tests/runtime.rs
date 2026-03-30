@@ -3,7 +3,7 @@ use std::fs;
 use regex::Regex;
 use test_generator::test_resources;
 
-use crate::tests::{eval_amber, extract_output};
+use crate::{compiler::{AmberCompiler, CompilerOptions}, tests::extract_output};
 
 #[test_resources("src/tests/runtime/*.ab")]
 fn test_runtime_errors(file: &str) {
@@ -14,7 +14,11 @@ fn test_runtime_errors(file: &str) {
 
     let re = Regex::new(&format!(r#"(?m)"?{output}"?$"#)).unwrap();
 
-    match eval_amber(&code) {
+    let target = AmberCompiler::resolve_target_shell(None);
+    let options = CompilerOptions::default().with_target(Some(target));
+    let mut compiler = AmberCompiler::new(code.to_string(), Some(file.to_string()), options);
+    
+    match compiler.test_eval() {
         Ok((output, status)) => {
             assert!(status.code().unwrap_or(0) > 0);
 
