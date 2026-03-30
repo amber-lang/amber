@@ -354,7 +354,7 @@ impl VarExprFragment {
             }
         }
         let id = meta.gen_value_id();
-        let eval_value = format!("{prefix}${{{name}}}{suffix}");
+        
         let var_name = format!("{name}_deref_{id}");
         if matches!(meta.target.shell, ShellType::BashLegacy) && suffix.starts_with('[') {
             let deref_array = format!("{var_name}_array");
@@ -367,6 +367,8 @@ impl VarExprFragment {
             );
             return format!("{quote}{dollar}{{{prefix}{deref_array}{suffix}}}{quote}");
         }
+
+        let eval_value = format!("{prefix}${{{name}}}{suffix}").replace("\"", "\\\"");
         meta.stmt_queue.push_back(
             RawFragment::from(format!(
                 "eval \"local {var_name}={arr_open}\\\"\\${{{eval_value}}}\\\"{arr_close}\""
