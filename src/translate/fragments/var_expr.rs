@@ -9,7 +9,7 @@ use crate::utils::{ShellType, TranslateMetadata};
 use heraclitus_compiler::prelude::Position;
 use heraclitus_compiler::prelude::PositionInfo;
 
-/// Format a `PositionInfo` into a `"file:line"` string for runtime error messages.
+/// Format a `PositionInfo` into a `"file:line:col"` string for runtime error messages.
 pub fn format_position(pos: Option<&PositionInfo>) -> Option<String> {
     pos.and_then(|info| {
         let path = info.path.as_deref().unwrap_or("unknown");
