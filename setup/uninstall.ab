@@ -1,7 +1,6 @@
+import { input_confirm } from "std/env"
 import { array_contains } from "std/array"
-import { get_arch, get_place, get_bins_folder } from "./shared.ab"
-
-echo("")
+import { get_place, get_bins_folder } from "./shared.ab"
 
 main(args) {
     const user_only_install = array_contains(args, "--user")
@@ -11,6 +10,10 @@ main(args) {
     trust $ test -d "{place}" > /dev/null $
 
     if status() == 0 {
+        if not input_confirm("Are you SURE you want to uninstall Amber?", false) {
+            exit(0)
+        }
+
         const sudo_cmd = user_only_install then "" else "sudo"
         $ {sudo_cmd} rm -rf "{place}" $ failed {
             echo("Failed to remove Amber from {place}")
@@ -22,7 +25,7 @@ main(args) {
             echo("Make sure root has the correct permissions to access this directory")
             exit(1)
         }
-        echo("Uninstalled Amber successfully 🎉")
+        echo("Uninstalled Amber successfully. Sorry to see you go... See you later 🐊!")
     }
     else {
         echo("Amber is not installed")
