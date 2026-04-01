@@ -91,6 +91,8 @@ KEYWORD_PWD = 'pwd' ;
 KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
 KEYWORD_RM = 'rm' ;
+KEYWORD_SHELLNAME = 'shellname' ;
+KEYWORD_SHELLVERSION = 'shellversion' ;
 KEYWORD_SILENT = 'silent' ;
 KEYWORD_SLEEP = 'sleep' ;
 KEYWORD_STATUS = 'status' ;
@@ -232,7 +234,7 @@ builtin_rm = KEYWORD_RM, expression ;
 builtin_sleep = KEYWORD_SLEEP, expression ;
 builtin_touch = KEYWORD_TOUCH, expression ;
 
-builtins_expression = builtin_len | builtin_lines | builtin_ls | builtin_nameof | builtin_pid | builtin_pwd ;
+builtins_expression = builtin_len | builtin_lines | builtin_ls | builtin_nameof | builtin_pid | builtin_pwd | builtin_shellname | builtin_shellversion ;
 
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
@@ -240,6 +242,8 @@ builtin_ls = KEYWORD_LS, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
 builtin_pid = KEYWORD_PID ;
 builtin_pwd = KEYWORD_PWD, expression ;
+builtin_shellname = KEYWORD_SHELLNAME ;
+builtin_shellversion = KEYWORD_SHELLVERSION ;
 
 
 (* Test *)

@@ -222,7 +222,7 @@ pub fn generate_grammar_ebnf() -> String {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
         match *kw {
-            "pid" => {
+            "pid" | "shellname" | "shellversion" => {
                 builtin_expr_rules.push_str(&format!("{} = KEYWORD_{} ;\n", builtin_name, kw_upper))
             }
             _ => builtin_expr_rules.push_str(&format!(
