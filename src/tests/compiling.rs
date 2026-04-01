@@ -43,6 +43,13 @@ pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     translate_amber_code_with_target(code, None)
 }
 
+#[test]
+fn test_translate_crlf_line_endings() {
+    let code = "main {\r\n    echo(\"ok\")\r\n}\r\n";
+    let output = translate_amber_code(code).expect("Couldn't translate Amber code with CRLF");
+    assert!(output.contains("echo"));
+}
+
 /// Autoload the Amber test files in compiling
 #[test_resources("src/tests/compiling/*.ab")]
 fn test_translation(input: &str) {

@@ -220,6 +220,7 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
             Err(err) => handle_err(err),
         }
     };
+    let amber_code = amber_code.replace("\r\n", "\n").replace('\r', "\n");
     let compiler = AmberCompiler::new(amber_code, Some(input), options);
     let (messages, bash_code) = match compiler.compile() {
         Ok(result) => result,
@@ -321,6 +322,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     };
+    let code = code.replace("\r\n", "\n").replace('\r', "\n");
     let options = CompilerOptions::default().with_env_vars();
     let compiler = AmberCompiler::new(code, Some(input), options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));

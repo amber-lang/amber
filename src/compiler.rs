@@ -115,6 +115,7 @@ pub struct AmberCompiler {
 
 impl AmberCompiler {
     pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
+        let code = code.replace("\r\n", "\n").replace('\r', "\n");
         let cc = Compiler::new("Amber", rules::get_rules());
         let compiler = AmberCompiler { cc, path, options };
         compiler.load_code(AmberCompiler::comment_shebang(code))
