@@ -17,11 +17,7 @@ pub struct IfChain {
     pub false_block: Option<(Vec<Comment>, Box<Block>)>,
 }
 
-impl DocumentationModule for IfChain {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
     fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, reason: &str) {

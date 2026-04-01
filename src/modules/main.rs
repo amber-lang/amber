@@ -115,8 +115,4 @@ impl TranslateModule for Main {
     }
 }
 
-impl DocumentationModule for Main {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Main);

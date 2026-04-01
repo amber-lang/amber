@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::fragments;
 use crate::modules::prelude::*;
 use crate::translate::module::TranslateModule;
@@ -46,8 +45,4 @@ impl TranslateModule for Break {
     }
 }
 
-impl DocumentationModule for Break {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Break);

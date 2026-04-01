@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
@@ -46,8 +45,4 @@ impl TranslateModule for Integer {
     }
 }
 
-impl DocumentationModule for Integer {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Integer);

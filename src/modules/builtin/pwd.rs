@@ -47,8 +47,4 @@ impl TranslateModule for Pwd {
     }
 }
 
-impl DocumentationModule for Pwd {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Pwd);

@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
@@ -45,8 +44,4 @@ impl TranslateModule for Shellversion {
     }
 }
 
-impl DocumentationModule for Shellversion {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Shellversion);

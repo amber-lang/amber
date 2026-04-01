@@ -98,8 +98,4 @@ impl TranslateModule for ShorthandMul {
     }
 }
 
-impl DocumentationModule for ShorthandMul {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(ShorthandMul);

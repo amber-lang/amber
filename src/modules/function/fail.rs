@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::FragmentKind;
 use crate::modules::prelude::*;
@@ -119,8 +118,4 @@ impl TranslateModule for Fail {
     }
 }
 
-impl DocumentationModule for Fail {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Fail);

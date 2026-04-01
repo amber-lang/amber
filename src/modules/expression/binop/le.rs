@@ -106,8 +106,4 @@ impl TranslateModule for Le {
     }
 }
 
-impl DocumentationModule for Le {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Le);

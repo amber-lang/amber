@@ -237,8 +237,4 @@ impl TranslateModule for Ls {
     }
 }
 
-impl DocumentationModule for Ls {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Ls);

@@ -47,8 +47,4 @@ impl TranslateModule for Pid {
     }
 }
 
-impl DocumentationModule for Pid {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Pid);

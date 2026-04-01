@@ -106,8 +106,4 @@ impl TranslateModule for Ge {
     }
 }
 
-impl DocumentationModule for Ge {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Ge);

@@ -1,5 +1,4 @@
 use super::TernOp;
-use crate::docs::module::DocumentationModule;
 use crate::fragments;
 use crate::modules::expression::binop::get_binop_position_info;
 use crate::modules::expression::expr::Expr;
@@ -191,8 +190,4 @@ impl TranslateModule for Ternary {
     }
 }
 
-impl DocumentationModule for Ternary {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Ternary);

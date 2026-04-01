@@ -1,5 +1,4 @@
 use super::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::raw_fragment;
@@ -163,8 +162,4 @@ impl TranslateModule for VariableSetDestruct {
     }
 }
 
-impl DocumentationModule for VariableSetDestruct {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(VariableSetDestruct);

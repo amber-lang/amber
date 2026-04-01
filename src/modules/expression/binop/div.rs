@@ -81,8 +81,4 @@ impl TranslateModule for Div {
     }
 }
 
-impl DocumentationModule for Div {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Div);

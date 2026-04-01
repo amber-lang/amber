@@ -186,8 +186,4 @@ impl TranslateModule for VariableInitDestruct {
     }
 }
 
-impl DocumentationModule for VariableInitDestruct {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(VariableInitDestruct);

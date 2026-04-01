@@ -94,8 +94,4 @@ impl TranslateModule for Add {
     }
 }
 
-impl DocumentationModule for Add {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Add);
