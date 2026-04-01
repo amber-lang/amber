@@ -108,8 +108,8 @@ impl TranslateModule for Lock {
             .path
             .as_ref()
             .map(|expr| expr.translate(meta))
-            // Set a default path to `/tmp/<basename.sh>.lock`
-            .unwrap_or(raw_fragment!("/tmp/${{0##*/}}.lock"));
+            // Set a default path using TMPDIR (falls back to /tmp)
+            .unwrap_or(raw_fragment!("${{TMPDIR:-/tmp}}/${{0##*/}}.lock"));
 
         let lock_var_stmt = VarStmtFragment::new(
             &format!("__lock_file_{}", lock_var_id),

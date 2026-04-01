@@ -221,6 +221,21 @@ main {
 }
 
 #[test]
+fn test_lock_default_path_uses_tmpdir_with_tmp_fallback() {
+    let code = r#"
+main {
+    lock() ?
+}
+"#;
+    let result = translate_amber_code(code).expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains("${TMPDIR:-/tmp}/${0##*/}.lock"),
+        "Output should contain TMPDIR-based lock path with /tmp fallback"
+    );
+}
+
+#[test]
 fn test_translate_shellversion_preamble() {
     let code = r#"
 main {
