@@ -7,7 +7,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "exit"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Exit {
     code: Option<Expr>,
 }
@@ -77,4 +77,3 @@ impl DocumentationModule for Exit {
         "".to_string()
     }
 }
-

@@ -1,4 +1,3 @@
-
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
@@ -9,7 +8,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "pwd"]
-#[kind = "builtin_expr" ]
+#[kind = "builtin_expr"]
 pub struct Pwd {}
 
 impl Typed for Pwd {
@@ -53,4 +52,3 @@ impl DocumentationModule for Pwd {
         "".to_string()
     }
 }
-

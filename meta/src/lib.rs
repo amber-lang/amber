@@ -87,12 +87,14 @@ use syn::{parse_macro_input, Attribute, DeriveInput};
 pub fn context_manager(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let syn::DeriveInput { data, ident, .. } = input;
-    
+
     if !matches!(&data, syn::Data::Struct(_)) {
         return syn::Error::new_spanned(
             &ident,
-            "ContextManager only supports structs, not enums or unions"
-        ).into_compile_error().into();
+            "ContextManager only supports structs, not enums or unions",
+        )
+        .into_compile_error()
+        .into();
     }
 
     let mut visitor = ManagerVisitor::new(&ident);
@@ -108,12 +110,14 @@ pub fn context_manager(input: TokenStream) -> TokenStream {
 pub fn context_helper(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let syn::DeriveInput { data, ident, .. } = input;
-    
+
     if !matches!(&data, syn::Data::Struct(_)) {
         return syn::Error::new_spanned(
             &ident,
-            "ContextHelper only supports structs, not enums or unions"
-        ).into_compile_error().into();
+            "ContextHelper only supports structs, not enums or unions",
+        )
+        .into_compile_error()
+        .into();
     }
 
     let mut visitor = HelperVisitor::new(&ident);
@@ -190,7 +194,7 @@ pub fn auto_keyword(input: TokenStream) -> TokenStream {
         None => {
             let err = syn::Error::new(
                 name.span(),
-                "AutoKeyword requires #[keyword = \"...\"] attribute"
+                "AutoKeyword requires #[keyword = \"...\"] attribute",
             );
             return TokenStream::from(err.into_compile_error());
         }

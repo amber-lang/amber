@@ -10,7 +10,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "cp"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Cp {
     source: Box<Expr>,
     destination: Box<Expr>,
@@ -168,4 +168,3 @@ impl DocumentationModule for Cp {
         "".to_string()
     }
 }
-

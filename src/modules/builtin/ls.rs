@@ -11,7 +11,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "ls"]
-#[kind = "builtin_expr" ]
+#[kind = "builtin_expr"]
 pub struct Ls {
     value: Box<Option<Expr>>,
     all: Box<Option<Expr>>,
@@ -238,4 +238,3 @@ impl DocumentationModule for Ls {
         "".to_string()
     }
 }
-

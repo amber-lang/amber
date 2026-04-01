@@ -16,7 +16,6 @@ pub struct Len {
     value: Box<Expr>,
 }
 
-
 impl Typed for Len {
     fn get_type(&self) -> Type {
         Type::Int

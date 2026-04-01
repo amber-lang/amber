@@ -7,7 +7,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "touch"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Touch {
     value: Expr,
 }
@@ -66,4 +66,3 @@ impl DocumentationModule for Touch {
         String::new()
     }
 }
-

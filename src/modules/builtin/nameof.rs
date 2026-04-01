@@ -10,7 +10,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "nameof"]
-#[kind = "builtin_expr" ]
+#[kind = "builtin_expr"]
 pub struct Nameof {
     name: String,
     token: Option<Token>,
@@ -130,4 +130,3 @@ impl DocumentationModule for Nameof {
         "".to_string()
     }
 }
-

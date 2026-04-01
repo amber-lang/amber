@@ -445,10 +445,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             0
         }
         CommandKind::GrammarEbnf => {
-              let output = grammar_ebnf::generate_grammar_ebnf();
-              let output_path = PathBuf::from("grammar.ebnf");
-              std::fs::write(&output_path, output)?;
-              0
+            let output = grammar_ebnf::generate_grammar_ebnf();
+            let output_path = PathBuf::from("grammar.ebnf");
+            std::fs::write(&output_path, output)?;
+            0
         }
         CommandKind::Test(mut command) => {
             command.target = resolve_command_target(command.target, cli.target);

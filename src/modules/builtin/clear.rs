@@ -7,7 +7,7 @@ use heraclitus_compiler::syntax_name;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "clear"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Clear {}
 
 impl SyntaxModule<ParserMetadata> for Clear {
@@ -42,4 +42,3 @@ impl DocumentationModule for Clear {
         "".to_string()
     }
 }
-

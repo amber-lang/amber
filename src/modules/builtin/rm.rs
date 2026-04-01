@@ -11,7 +11,7 @@ use heraclitus_compiler::syntax_name;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "rm"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Rm {
     value: Box<Expr>,
     recursive: Box<Option<Expr>>,
@@ -181,4 +181,3 @@ impl DocumentationModule for Rm {
         "".to_string()
     }
 }
-

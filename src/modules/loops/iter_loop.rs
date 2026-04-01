@@ -16,7 +16,7 @@ use crate::{fragments, raw_fragment};
 
 #[derive(Debug, Clone, amber_meta::AutoKeyword)]
 #[keyword = "for"]
-#[kind = "stmt" ]
+#[kind = "stmt"]
 pub struct IterLoop {
     pub block: Block,
     pub iter_expr: Expr,

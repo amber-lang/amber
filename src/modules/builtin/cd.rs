@@ -7,11 +7,10 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "cd"]
-#[kind = "builtin_stmt" ]
+#[kind = "builtin_stmt"]
 pub struct Cd {
     value: Expr,
 }
-
 
 impl SyntaxModule<ParserMetadata> for Cd {
     syntax_name!("ChangeDirectory");

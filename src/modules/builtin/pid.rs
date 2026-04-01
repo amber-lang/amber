@@ -8,7 +8,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "pid"]
-#[kind = "builtin_expr" ]
+#[kind = "builtin_expr"]
 pub struct Pid {}
 
 impl Typed for Pid {
@@ -52,4 +52,3 @@ impl DocumentationModule for Pid {
         "".to_string()
     }
 }
-

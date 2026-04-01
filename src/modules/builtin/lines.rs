@@ -10,11 +10,10 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "lines"]
-#[kind = "builtin_expr" ]
+#[kind = "builtin_expr"]
 pub struct LinesInvocation {
     path: Box<Option<Expr>>,
 }
-
 
 impl Typed for LinesInvocation {
     fn get_type(&self) -> Type {
