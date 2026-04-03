@@ -37,9 +37,20 @@ impl SyntaxModule<ParserMetadata> for Nameof {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
         token(meta, "nameof")?;
         self.token = meta.get_current_token();
-        self.name = variable(meta, variable_name_extensions())?;
+
+        if token(meta, "(").is_ok() {
+            self.name = variable(meta, variable_name_extensions())?;
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling a builtin without parentheses is deprecated");
+            meta.add_message(warning);
+            self.name = variable(meta, variable_name_extensions())?;
+        }
         Ok(())
     }
 }
@@ -63,9 +74,9 @@ impl TypeCheckModule for Nameof {
                                 meta,
                                 self.token.clone(),
                                 format!(
-                  "Function '{}' must be strictly typed to be used with 'nameof'.",
-                  self.name
-                ),
+                                    "Function '{}' must be strictly typed to be used with 'nameof'.",
+                                    self.name
+                                ),
                                 "All function parameters have to be of concrete type"
                             );
                         }

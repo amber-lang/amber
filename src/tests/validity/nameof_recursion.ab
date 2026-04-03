@@ -19,10 +19,10 @@ fun is_odd(n: Int): Bool {
     return is_even(n - 1)
 }
 
-$ {nameof is_even} 2 $ failed {
+$ {nameof(is_even)} 2 $ failed {
     echo("Failed 2")
 }
-$ {nameof is_odd} 3 $ failed {
+$ {nameof(is_odd)} 3 $ failed {
     echo("Failed 3")
 }
 echo("Compiled")

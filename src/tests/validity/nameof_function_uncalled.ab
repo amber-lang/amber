@@ -5,4 +5,4 @@ fun foo() {
     echo("hello")
 }
 
-trust $ {nameof foo} $
+trust $ {nameof(foo)} $

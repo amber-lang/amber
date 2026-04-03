@@ -190,18 +190,18 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
     if {
         shellname() == "bash" {
             trust $
-                LC_ALL=C IFS="\n" read -rd '' -a {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                LC_ALL=C IFS="\n" read -rd '' -a {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
             $
         }
         shellname() == "zsh" {
             trust $
-                LC_ALL=C IFS="\n" read -rd '' -A {nameof result} < <(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
-                {nameof result}[-1]=()
+                LC_ALL=C IFS="\n" read -rd '' -A {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                {nameof(result)}[-1]=()
             $
         }
         shellname() == "ksh" {
             trust $
-                set -A {nameof result} -- \$(printf "%s\n" "\$\{{nameof array}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                set -A {nameof(result)} -- \$(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
             $
         }
     }
