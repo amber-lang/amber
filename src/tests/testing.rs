@@ -1,6 +1,7 @@
-use crate::testing::{find_amber_files, get_tests_to_run, handle_test};
+use crate::testing::{get_tests_to_run, handle_test};
 use crate::TestCommand;
 use std::path::PathBuf;
+use crate::utils::io::find_amber_files;
 
 #[cfg(test)]
 mod test {
