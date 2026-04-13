@@ -169,6 +169,10 @@ pub struct TestCommand {
     #[arg(default_value = ".")]
     pub input: PathBuf,
 
+    /// Prefix of test case to run
+    #[arg(long)]
+    pub test_case: Option<String>,
+
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
     pub args: Vec<String>,

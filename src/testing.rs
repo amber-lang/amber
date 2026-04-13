@@ -40,6 +40,7 @@ pub fn get_tests_to_run(
     // Discovery phase
     let mut tests = vec![];
     let mut errors = vec![];
+    let test_case = &command.test_case;
     for file in &files {
         let code = match fs::read_to_string(file) {
             Ok(c) => c,
@@ -65,6 +66,12 @@ pub fn get_tests_to_run(
             Ok(tokens) => match compiler.parse(tokens) {
                 Ok((_, meta)) => {
                     for name in meta.test_names {
+                        if let Some(test_case) = test_case {
+                            if !name.starts_with(&test_case.clone()) {
+                                continue;
+                            }
+                        }
+
                         tests.push((file.clone(), name, code.clone()));
                     }
                 }
