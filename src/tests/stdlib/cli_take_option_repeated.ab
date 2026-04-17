@@ -1,0 +1,12 @@
+import { take_option } from "std/cli"
+
+// Output
+// first=one
+// rest=(4) [build --output two tail]
+
+main {
+    let args = ["build", "--output", "one", "--output", "two", "tail"]
+    const first = take_option(args, "--output")?
+    echo("first={first}")
+    echo("rest=({len(args)}) [{args}]")
+}

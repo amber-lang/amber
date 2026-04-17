@@ -1,0 +1,12 @@
+import { take_flag } from "std/cli"
+
+// Output
+// verbose=1
+// rest=(2) [serve file.txt]
+
+main {
+    let args = ["serve", "-v", "file.txt"]
+    const verbose = take_flag(args, "--verbose", "-v")
+    echo("verbose={verbose}")
+    echo("rest=({len(args)}) [{args}]")
+}

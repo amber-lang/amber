@@ -1,0 +1,263 @@
+import { array_contains, array_extract_at, array_remove_at } from "std/array"
+import { char_at, slice, starts_with } from "std/text"
+
+/// Minimal CLI parsing helpers for Amber scripts.
+///
+/// ### Usage
+/// ```ab
+/// import { cli_args, take_command, take_flag, take_option, take_all_positionals, cli_assert_empty } from "std/cli"
+///
+/// main(raw_args) {
+///     let args = cli_args(raw_args)
+///     const command = take_command(args, ["build", "serve"]) failed { "build" }
+///     const verbose = take_flag(args, "--verbose", "-v")
+///     const output = take_option(args, "--output", "-o") failed { "stdout" }
+///     const paths = take_all_positionals(args)
+///     cli_assert_empty(args)?
+///
+///     echo("command={command}")
+///     echo("verbose={verbose}")
+///     echo("output={output}")
+///     echo("paths={paths}")
+/// }
+/// ```
+
+fun is_long_option(arg: Text): Bool {
+    return starts_with(arg, "--") and not is_option_terminator(arg)
+}
+
+fun is_short_option(arg: Text): Bool {
+    return starts_with(arg, "-") and not starts_with(arg, "--") and len(arg) > 1
+}
+
+fun is_option_terminator(arg: Text): Bool {
+    return arg == "--"
+}
+
+fun split_long_option(arg: Text): [Text] {
+    let index = 0
+    while index < len(arg) {
+        if char_at(arg, index) == "=" {
+            return [slice(arg, 0, index), slice(arg, index + 1)]
+        }
+        index += 1
+    }
+    return [arg, ""]
+}
+
+fun find_option_index(args: [Text], long: Text, short: Text = "", allow_inline_long: Bool = false): Int {
+    const long_eq = long + "="
+    for index, arg in args {
+        if is_option_terminator(arg) {
+            return -1
+        }
+        if arg == long or (short != "" and arg == short) {
+            return index
+        }
+        if allow_inline_long and starts_with(arg, long_eq) {
+            return index
+        }
+    }
+    return -1
+}
+
+fun find_terminator_index(args: [Text]): Int {
+    for index, arg in args {
+        if is_option_terminator(arg) {
+            return index
+        }
+    }
+    return -1
+}
+
+/// Drops the executable or script entry from `raw_args` so callers work with user args only.
+///
+/// ### Usage
+/// ```ab
+/// main(raw_args) {
+///     const args = cli_args(raw_args)
+///     echo(args)
+/// }
+/// ```
+pub fun cli_args(raw_args: [Text]): [Text] {
+    if len(raw_args) <= 1 {
+        const args = [Text]
+        return args
+    }
+    return raw_args[1..len(raw_args)]
+}
+
+/// Removes a matching flag from `args` and returns whether it was present.
+///
+/// Parsing stops at `--`.
+///
+/// ### Usage
+/// ```ab
+/// let args = ["build", "--verbose"]
+/// const verbose = take_flag(args, "--verbose", "-v")
+/// echo(verbose) // true
+/// echo(args) // [build]
+/// ```
+pub fun take_flag(ref args: [Text], long: Text, short: Text = ""): Bool {
+    const index = find_option_index(args, long, short)
+    if index < 0 {
+        return false
+    }
+    array_remove_at(args, index)
+    return true
+}
+
+/// Removes a matching option and its value from `args` and returns the parsed value.
+///
+/// Supports `--name value`, `--name=value`, and `-n value`.
+/// The function fails when the option is absent or when it is present without a value.
+/// Parsing stops at `--`, and `--name=` is treated as malformed usage.
+/// When the same option appears multiple times, the first matching occurrence is consumed.
+///
+/// ### Usage
+/// ```ab
+/// let args = ["--output=dist/app.sh"]
+/// const output = take_option(args, "--output", "-o")?
+/// echo(output) // dist/app.sh
+/// echo(args) // []
+/// ```
+pub fun take_option(ref args: [Text], long: Text, short: Text = ""): Text? {
+    const long_eq = long + "="
+    const index = find_option_index(args, long, short, true)
+    if index < 0 {
+        fail 1
+    }
+
+    const arg = args[index]
+    if starts_with(arg, long_eq) {
+        const parts = split_long_option(arg)
+        if parts[1] == "" {
+            fail 1
+        }
+        array_remove_at(args, index)
+        return parts[1]
+    }
+
+    const value_index = index + 1
+    if value_index >= len(args) {
+        fail 1
+    }
+    if is_option_terminator(args[value_index]) {
+        fail 1
+    }
+    const value = args[value_index]
+    array_remove_at(args, value_index)
+    array_remove_at(args, index)
+    return value
+}
+
+/// Consumes the first remaining token only if it is a non-option command from `commands`.
+///
+/// The function fails when the next token is missing, is an option, or does not match one of the
+/// allowed commands.
+///
+/// ### Usage
+/// ```ab
+/// let args = ["serve", "--verbose"]
+/// const command = take_command(args, ["build", "serve"])?
+/// echo(command) // serve
+/// echo(args) // [--verbose]
+/// ```
+pub fun take_command(ref args: [Text], commands: [Text]): Text? {
+    if len(args) == 0 {
+        fail 1
+    }
+
+    const command = args[0]
+    if is_option_terminator(command) or is_long_option(command) or is_short_option(command) {
+        fail 1
+    }
+    if not array_contains(commands, command) {
+        fail 1
+    }
+
+    array_remove_at(args, 0)
+    return command
+}
+
+/// Consumes the next positional token from `args`.
+///
+/// If `--` is present, the first token after it is always treated as positional.
+/// Otherwise, the first non-option token is consumed, even when later options remain.
+/// The function fails when no positional token remains.
+///
+/// ### Usage
+/// ```ab
+/// let args = ["--verbose", "--", "--raw"]
+/// const value = take_positional(args)?
+/// echo(value) // --raw
+/// echo(args) // [--verbose]
+/// ```
+pub fun take_positional(ref args: [Text]): Text? {
+    const terminator_index = find_terminator_index(args)
+    if terminator_index >= 0 {
+        if terminator_index + 1 >= len(args) {
+            fail 1
+        }
+        array_remove_at(args, terminator_index)
+        return array_extract_at(args, terminator_index)?
+    }
+
+    let index = 0
+    while index < len(args) {
+        const arg = args[index]
+        if not is_long_option(arg) and not is_short_option(arg) {
+            return array_extract_at(args, index)?
+        }
+        index += 1
+    }
+
+    fail 1
+}
+
+/// Consumes and returns all remaining positional tokens from `args`.
+///
+/// If `--` is present, all tokens after it are treated as positional and tokens before it are left unchanged.
+/// Otherwise, every remaining non-option token is consumed in order.
+///
+/// ### Usage
+/// ```ab
+/// let args = ["file1", "--verbose", "file2"]
+/// const files = take_all_positionals(args)
+/// echo(files) // [file1 file2]
+/// echo(args) // [--verbose]
+/// ```
+pub fun take_all_positionals(ref args: [Text]): [Text] {
+    const terminator_index = find_terminator_index(args)
+    if terminator_index >= 0 {
+        const positionals = args[terminator_index + 1..len(args)]
+        args = args[0..terminator_index]
+        return positionals
+    }
+
+    let positionals = [Text]
+    while true {
+        const positional = take_positional(args) failed {
+            return positionals
+        }
+        positionals += [positional]
+    }
+    return positionals
+}
+
+/// Fails when unconsumed arguments remain in `args`.
+///
+/// ### Usage
+/// ```ab
+/// let args = []
+/// cli_assert_empty(args)?
+/// ```
+pub fun cli_assert_empty(args: [Text]): Null? {
+    if len(args) == 0 {
+        return null
+    }
+    if len(args) == 1 and is_option_terminator(args[0]) {
+        return null
+    }
+    fail 1
+}

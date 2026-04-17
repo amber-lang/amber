@@ -1,0 +1,11 @@
+import { take_positional } from "std/cli"
+
+// Output
+// positional missing
+
+main {
+    let args = ["--verbose", "-v"]
+    take_positional(args) failed {
+        echo("positional missing")
+    }
+}

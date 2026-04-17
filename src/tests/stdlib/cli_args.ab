@@ -1,0 +1,9 @@
+import { cli_args } from "std/cli"
+
+// Output
+// args=(0) []
+
+main(raw_args) {
+    const args = cli_args(raw_args)
+    echo("args=({len(args)}) [{args}]")
+}

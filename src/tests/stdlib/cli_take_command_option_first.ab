@@ -1,0 +1,13 @@
+import { take_command } from "std/cli"
+
+// Output
+// command missing
+// rest=(2) [--verbose build]
+
+main {
+    let args = ["--verbose", "build"]
+    take_command(args, ["build", "serve"]) failed {
+        echo("command missing")
+    }
+    echo("rest=({len(args)}) [{args}]")
+}

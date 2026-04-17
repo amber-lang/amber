@@ -1,0 +1,12 @@
+import { take_option } from "std/cli"
+
+// Output
+// output=dist/app.sh
+// rest=(1) [build]
+
+main {
+    let args = ["build", "--output", "dist/app.sh"]
+    const output = take_option(args, "--output")?
+    echo("output={output}")
+    echo("rest=({len(args)}) [{args}]")
+}

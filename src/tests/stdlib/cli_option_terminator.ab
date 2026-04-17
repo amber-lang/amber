@@ -1,0 +1,18 @@
+import { take_flag, take_positional } from "std/cli"
+
+// Output
+// verbose=1
+// first=--verbose
+// second=tail
+// rest=(0) []
+
+main {
+    let args = ["--verbose", "--", "--verbose", "tail"]
+    const verbose = take_flag(args, "--verbose")
+    const first = take_positional(args)?
+    const second = take_positional(args)?
+    echo("verbose={verbose}")
+    echo("first={first}")
+    echo("second={second}")
+    echo("rest=({len(args)}) [{args}]")
+}

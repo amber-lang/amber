@@ -1,0 +1,12 @@
+import { take_all_positionals } from "std/cli"
+
+// Output
+// files=(2) [file1 file2]
+// rest=(1) [--verbose]
+
+main {
+    let args = ["file1", "--verbose", "file2"]
+    const files = take_all_positionals(args)
+    echo("files=({len(files)}) [{files}]")
+    echo("rest=({len(args)}) [{args}]")
+}

@@ -7,6 +7,42 @@ use crate::testing::get_tests_to_run;
 use crate::TestCommand;
 use std::path::PathBuf;
 
+fn compile_without_messages(amber_code: &str) -> String {
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let (messages, bash_code) = compiler.compile().unwrap();
+    assert_eq!(messages.len(), 0);
+    bash_code
+}
+
+fn eval_bash_with_args(bash_code: String, args: &[&str]) -> String {
+    let quoted_args = args
+        .iter()
+        .map(|arg| format!("\"{}\"", arg.replace('"', "\\\"")))
+        .collect::<Vec<String>>();
+    let bash_code = if quoted_args.is_empty() {
+        bash_code
+    } else {
+        format!("set -- {}\n{}", quoted_args.join(" "), bash_code)
+    };
+
+    let output = AmberCompiler::find_shell(None)
+        .expect("Failed to find shell")
+        .arg("-c")
+        .arg(bash_code)
+        .output()
+        .expect("Failed to execute shell");
+
+    assert!(output.status.success());
+    String::from_utf8(output.stdout).unwrap()
+}
+
+fn write_temp_amber_script(amber_code: &str) -> NamedTempFile {
+    let temp_file = NamedTempFile::new().expect("Failed to create temp file");
+    std::fs::write(temp_file.path(), amber_code).expect("Failed to write test file");
+    temp_file
+}
+
 // Test that the bash error code is forwarded to the exit code of amber.
 #[test]
 fn bash_error_exit_code() {
@@ -42,33 +78,72 @@ fn main_args_passed_correctly() {
         }
         "#;
 
-    // Amber compiler setup and parse
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-    let (messages, bash_code) = compiler.compile().unwrap();
-
-    // Assert no warnings
-    assert_eq!(messages.len(), 0);
-
-    // Prepend arguments to the bash code to simulate passing arguments
-    // We use `set --` to set positional parameters
-    let bash_code_with_args = format!("set -- one two three\n{}", bash_code);
-
-    // Execute the bash code and check the output
-    let output = AmberCompiler::find_shell(None)
-        .expect("Failed to find shell")
-        .arg("-c")
-        .arg(bash_code_with_args)
-        .output()
-        .expect("Failed to execute shell");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let bash_code = compile_without_messages(amber_code);
+    let stdout = eval_bash_with_args(bash_code, &["one", "two", "three"]);
     let lines: Vec<&str> = stdout.trim().lines().collect();
     assert_eq!(lines.len(), 4);
     assert_eq!(lines[1], "one");
     assert_eq!(lines[2], "two");
     assert_eq!(lines[3], "three");
+}
+
+#[test]
+fn cli_args_drop_script_name() {
+    let amber_code = r#"
+        import { cli_args } from "std/cli"
+
+        main(raw_args) {
+            const args = cli_args(raw_args)
+            for arg in args {
+                echo(arg)
+            }
+        }
+        "#;
+
+    let bash_code = compile_without_messages(amber_code);
+    let stdout = eval_bash_with_args(bash_code, &["one", "two", "three"]);
+    let lines: Vec<&str> = stdout.trim().lines().collect();
+    assert_eq!(lines, vec!["one", "two", "three"]);
+}
+
+#[test]
+fn cli_args_no_user_arguments() {
+    let amber_code = r#"
+        import { cli_args } from "std/cli"
+
+        main(raw_args) {
+            const args = cli_args(raw_args)
+            echo(len(args))
+        }
+        "#;
+
+    let bash_code = compile_without_messages(amber_code);
+    let stdout = eval_bash_with_args(bash_code, &[]);
+    assert_eq!(stdout.trim(), "0");
+}
+
+#[test]
+fn test_cli_raw_args_forwarded_to_script() {
+    let mut cmd = Command::new(amber_bin());
+
+    let amber_code = r#"
+        import { cli_args } from "std/cli"
+
+        main(raw_args) {
+            const args = cli_args(raw_args)
+            echo("args=({len(args)}) [{args}]")
+        }
+        "#;
+
+    let temp_file = write_temp_amber_script(amber_code);
+
+    cmd.arg(temp_file.path())
+        .args(["one", "two", "three"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("args=(3) [one two three]"));
+
+    let _ = temp_file.close();
 }
 
 #[test]
@@ -329,14 +404,13 @@ fn test_cli_typo_suggestion() {
 fn test_cli_file_starting_with_dash() {
     let mut cmd = Command::new(amber_bin());
 
-    let temp_file = NamedTempFile::new().expect("Failed to create temp file");
     let amber_code = r#"
         main {
             echo("Hello from dash file")
         }
         "#;
 
-    std::fs::write(temp_file.path(), amber_code).expect("Failed to write test file");
+    let temp_file = write_temp_amber_script(amber_code);
 
     let output = cmd.arg(temp_file.path()).assert().success();
     let _ = temp_file.close();
