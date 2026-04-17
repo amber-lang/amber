@@ -18,7 +18,7 @@ fn compile_without_messages(amber_code: &str) -> String {
 fn eval_bash_with_args(bash_code: String, args: &[&str]) -> String {
     let quoted_args = args
         .iter()
-        .map(|arg| format!("\"{}\"", arg.replace('"', "\\\"")))
+        .map(|arg| format!("'{}'", arg.replace('\'', "'\\''")))
         .collect::<Vec<String>>();
     let bash_code = if quoted_args.is_empty() {
         bash_code
@@ -120,6 +120,26 @@ fn cli_args_no_user_arguments() {
     let bash_code = compile_without_messages(amber_code);
     let stdout = eval_bash_with_args(bash_code, &[]);
     assert_eq!(stdout.trim(), "0");
+}
+
+#[test]
+fn eval_bash_with_args_passes_literal_values() {
+    let amber_code = r#"
+        main(args) {
+            for arg in args {
+                echo(arg)
+            }
+        }
+        "#;
+
+    let bash_code = compile_without_messages(amber_code);
+    let stdout = eval_bash_with_args(bash_code, &[r#"$HOME"#, r#"a\b"#, r#"`pwd`"#, r#"can't"#]);
+    let lines: Vec<&str> = stdout.trim().lines().collect();
+    assert_eq!(lines.len(), 5);
+    assert_eq!(lines[1], "$HOME");
+    assert_eq!(lines[2], r#"a\b"#);
+    assert_eq!(lines[3], "`pwd`");
+    assert_eq!(lines[4], "can't");
 }
 
 #[test]

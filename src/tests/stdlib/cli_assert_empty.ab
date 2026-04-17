@@ -5,6 +5,7 @@ import { cli_assert_empty, take_flag } from "std/cli"
 // terminator ok
 // consumed options ok
 // leftover args
+// rest=(1) [build]
 
 main {
     let args = [Text]
@@ -24,4 +25,5 @@ main {
     cli_assert_empty(args) failed {
         echo("leftover args")
     }
+    echo("rest=({len(args)}) [{args}]")
 }

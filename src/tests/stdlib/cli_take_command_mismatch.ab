@@ -2,10 +2,12 @@ import { take_command } from "std/cli"
 
 // Output
 // command mismatch
+// deploy
 
 main {
     let args = ["deploy"]
     take_command(args, ["build", "serve"]) failed {
         echo("command mismatch")
     }
+    echo(args)
 }

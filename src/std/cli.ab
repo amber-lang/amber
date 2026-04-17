@@ -81,8 +81,7 @@ fun find_terminator_index(args: [Text]): Int {
 /// ```
 pub fun cli_args(raw_args: [Text]): [Text] {
     if len(raw_args) <= 1 {
-        const args = [Text]
-        return args
+        return [Text]
     }
     return raw_args[1..len(raw_args)]
 }
@@ -113,6 +112,7 @@ pub fun take_flag(ref args: [Text], long: Text, short: Text = ""): Bool {
 /// The function fails when the option is absent or when it is present without a value.
 /// Parsing stops at `--`, and `--name=` is treated as malformed usage.
 /// When the same option appears multiple times, the first matching occurrence is consumed.
+/// On any failure path, `args` is left unmodified so callers can safely fall back.
 ///
 /// ### Usage
 /// ```ab
@@ -122,14 +122,13 @@ pub fun take_flag(ref args: [Text], long: Text, short: Text = ""): Bool {
 /// echo(args) // []
 /// ```
 pub fun take_option(ref args: [Text], long: Text, short: Text = ""): Text? {
-    const long_eq = long + "="
     const index = find_option_index(args, long, short, true)
     if index < 0 {
         fail 1
     }
 
     const arg = args[index]
-    if starts_with(arg, long_eq) {
+    if is_long_option(arg) and arg != long {
         const parts = split_long_option(arg)
         if parts[1] == "" {
             fail 1
@@ -242,7 +241,6 @@ pub fun take_all_positionals(ref args: [Text]): [Text] {
         }
         positionals += [positional]
     }
-    return positionals
 }
 
 /// Fails when unconsumed arguments remain in `args`.

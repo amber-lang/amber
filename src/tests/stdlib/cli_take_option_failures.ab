@@ -4,6 +4,8 @@ import { take_option } from "std/cli"
 // option absent
 // option missing value
 // option inline missing value
+// short option missing value
+// option value is terminator
 
 main {
     let args = ["build"]
@@ -19,5 +21,15 @@ main {
     args = ["build", "--output="]
     take_option(args, "--output") failed {
         echo("option inline missing value")
+    }
+
+    args = ["build", "-o"]
+    take_option(args, "--output", "-o") failed {
+        echo("short option missing value")
+    }
+
+    args = ["build", "--output", "--"]
+    take_option(args, "--output") failed {
+        echo("option value is terminator")
     }
 }
