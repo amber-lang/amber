@@ -47,7 +47,7 @@ impl TypeCheckModule for Await {
 
 impl TranslateModule for Await {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("wait ", self.pids.translate(meta))
+        fragments!("wait ", self.pids.translate(meta), " || exit")
     }
 }
 

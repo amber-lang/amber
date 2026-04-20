@@ -78,7 +78,7 @@ impl TranslateModule for LinesInvocation {
             // If you change this, update that one too.
             raw_fragment!("while IFS= read -r {temp} || [ -n \"${temp}\" ]; do"),
             raw_fragment!("{indent}{}+=(\"${}\")", var_expr.get_name(), temp),
-            fragments!("done <", path),
+            fragments!("done <", path, " || exit"),
         ]);
         var_expr.to_frag()
     }

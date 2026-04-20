@@ -3,7 +3,7 @@ use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::utils::{ParserMetadata, ShellType, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone, AutoKeyword)]
@@ -13,7 +13,7 @@ pub struct Shellversion {}
 
 impl Typed for Shellversion {
     fn get_type(&self) -> Type {
-        Type::array_of(Type::Int)
+        Type::Text
     }
 }
 
@@ -26,8 +26,9 @@ impl SyntaxModule<ParserMetadata> for Shellversion {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "shellversion")?;
-        token(meta, "(")?;
-        token(meta, ")")?;
+        if token(meta, "(").is_ok() {
+            token(meta, ")")?;
+        }
         meta.shellversion_used = true;
         Ok(())
     }
@@ -40,8 +41,12 @@ impl TypeCheckModule for Shellversion {
 }
 
 impl TranslateModule for Shellversion {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        VarExprFragment::new("EXEC_SHELL_VERSION", Type::array_of(Type::Int)).to_frag()
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        match meta.target.shell {
+            ShellType::Ksh => VarExprFragment::new("VERSION", Type::Text).to_frag(),
+            ShellType::Zsh => VarExprFragment::new("ZSH_VERSION", Type::Text).to_frag(),
+            _ => VarExprFragment::new("BASH_VERSION", Type::Text).to_frag(),
+        }
     }
 }
 
