@@ -126,7 +126,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (Linux ${{ matrix.libc }} ${{ matrix.arch }})
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: linux-${{ matrix.libc }}-${{ matrix.arch }}
           path: dist/*
@@ -176,7 +176,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (macOS ${{ matrix.arch }})
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: macos-${{ matrix.arch }}
           path: dist/*
@@ -205,7 +205,7 @@ jobs:
           tar -C target/release -cJf dist/amber-windows-x86_64.tar.xz ${BIN_NAME}.exe
 
       - name: Upload artifacts (Windows x86_64)
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-x86_64
           path: dist/*
@@ -242,7 +242,7 @@ jobs:
         run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
 
       - name: Upload artifacts (scripts & deb)
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: scripts-deb
           path: dist/*
