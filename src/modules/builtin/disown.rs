@@ -30,14 +30,19 @@ impl SyntaxModule<ParserMetadata> for Disown {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "disown")?;
         if token(meta, "(").is_ok() {
+            // Handle disown() - empty argument list
+            if token(meta, ")").is_ok() {
+                return Ok(());
+            }
+            // Parse first required expression
             let mut job = Expr::new();
-            if syntax(meta, &mut job).is_ok() {
-                self.jobs.push(job);
-                while token(meta, ",").is_ok() {
-                    let mut next_job = Expr::new();
-                    syntax(meta, &mut next_job)?;
-                    self.jobs.push(next_job);
-                }
+            syntax(meta, &mut job)?;
+            self.jobs.push(job);
+            // Parse additional expressions separated by commas
+            while token(meta, ",").is_ok() {
+                let mut next_job = Expr::new();
+                syntax(meta, &mut next_job)?;
+                self.jobs.push(next_job);
             }
             token(meta, ")")?;
         }
