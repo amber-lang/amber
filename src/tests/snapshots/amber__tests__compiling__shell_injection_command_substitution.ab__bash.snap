@@ -1,0 +1,13 @@
+---
+source: src/tests/compiling.rs
+assertion_line: 35
+expression: ast
+---
+# Test: Command substitution $(...) should be passed literally, not executed
+# Issue #1046 - Shell injection prevention
+# 
+# Run: amber run shell_injection_command_substitution.ab -- '$(echo INJECTED)'
+# Expected output: $(echo INJECTED)
+# NOT: INJECTED
+typeset -r args_0=("$0" "$@")
+printf '%s\n' "${args_0[1]}"

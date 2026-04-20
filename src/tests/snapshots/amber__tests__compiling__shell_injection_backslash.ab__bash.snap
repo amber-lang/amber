@@ -1,0 +1,12 @@
+---
+source: src/tests/compiling.rs
+assertion_line: 35
+expression: ast
+---
+# Test: Backslash should not break bash syntax
+# Issue #1046 - Shell injection prevention
+# 
+# Run: amber run shell_injection_backslash.ab -- '\'
+# Expected: Command succeeds, outputs literal backslash
+typeset -r args_0=("$0" "$@")
+printf '%s\n' "${args_0[1]}"

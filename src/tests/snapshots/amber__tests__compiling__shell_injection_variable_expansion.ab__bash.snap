@@ -1,0 +1,13 @@
+---
+source: src/tests/compiling.rs
+assertion_line: 35
+expression: ast
+---
+# Test: Variable expansion $VAR should be passed literally, not expanded
+# Issue #1046 - Shell injection prevention
+# 
+# Run: amber run shell_injection_variable_expansion.ab -- '$HOME'
+# Expected output: $HOME
+# NOT: /home/user
+typeset -r args_0=("$0" "$@")
+printf '%s\n' "${args_0[1]}"
