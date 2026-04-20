@@ -62,7 +62,7 @@ impl TypeCheckModule for Disown {
 impl TranslateModule for Disown {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         if self.jobs.is_empty() {
-            fragments!("disown")
+            fragments!("disown || exit")
         } else {
             let mut result = fragments!("disown ");
             for (i, job) in self.jobs.iter().enumerate() {
@@ -71,7 +71,7 @@ impl TranslateModule for Disown {
                 }
                 result = fragments!(result, job.translate(meta));
             }
-            result
+            fragments!(result, " || exit")
         }
     }
 }
