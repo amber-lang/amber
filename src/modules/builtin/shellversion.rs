@@ -13,7 +13,7 @@ pub struct Shellversion {}
 
 impl Typed for Shellversion {
     fn get_type(&self) -> Type {
-        Type::Array(Box::new(Type::Text))
+        Type::Array(Box::new(Type::Int))
     }
 }
 

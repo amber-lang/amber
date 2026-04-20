@@ -4,7 +4,7 @@ expression: output
 ---
 # foo()
 foo__0_v0() {
-    touch "file.txt"
+    touch "file.txt" || exit
 }
 
 foo__0_v0 
