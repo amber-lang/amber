@@ -2,10 +2,11 @@
 // These tests use internal compilation and execution functions instead of
 // relying on the external binary, making them more reliable and faster.
 
+use std::fs::copy;
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::testing::get_tests_to_run;
 use crate::TestCommand;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 // Test that the bash error code is forwarded to the exit code of amber.
 #[test]
@@ -287,7 +288,7 @@ fn test_input_confirm_stdin() {
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::sync::OnceLock;
-use tempfile::NamedTempFile;
+use tempfile::{NamedTempFile, TempDir};
 
 fn amber_bin() -> String {
     static BUILD_AMBER_BIN: OnceLock<()> = OnceLock::new();
@@ -523,4 +524,65 @@ fn test_cli_bash_32_nested_ref_runtime() {
         .assert()
         .success()
         .stdout(predicate::str::contains("John\n1\n2\n3"));
+}
+
+#[test]
+fn test_cli_build_dir_no_output() {
+    let tmp_dir = TempDir::new().expect("Failed to create temp dir");
+
+    let variable_path = tmp_dir.path().join("variable.ab");
+    copy(Path::new("src/tests/validity/variable.ab"), &variable_path).unwrap();
+    let while_loop_path = tmp_dir.path().join("while_loop.ab");
+    copy(Path::new("src/tests/validity/while_loop.ab"), &while_loop_path).unwrap();
+
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "build",
+            tmp_dir.path().to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+
+    assert_eq!(variable_path.with_extension("sh").is_file(), true);
+    assert_eq!(while_loop_path.with_extension("sh").is_file(), true);
+
+    let _ = tmp_dir.close();
+}
+
+#[test]
+fn test_cli_build_dir_with_output_dir() {
+    let tmp_dir = TempDir::new().expect("Failed to create temp dir");
+
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "build",
+            "src/tests/validity/test_files",
+            tmp_dir.path().to_str().unwrap()
+        ])
+        .assert()
+        .success();
+
+    assert_eq!(tmp_dir.path().join(Path::new("str/trim.sh")).is_file(), true);
+    assert_eq!(tmp_dir.path().join(Path::new("import_mutable_attribute_source.sh")).is_file(), true);
+    assert_eq!(tmp_dir.path().join(Path::new("import_public_variable_source.sh")).is_file(), true);
+    assert_eq!(tmp_dir.path().join(Path::new("is_even.sh")).is_file(), true);
+
+    let _ = tmp_dir.close();
+}
+
+#[test]
+fn test_cli_build_dir_invalid_output() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "build",
+            "src/tests/validity/no_output",
+            "src/tests/validity/text.ab"
+        ])
+        .assert()
+        .failure()
+        .code(1)
+        .stderr(predicate::str::contains("Output is not a directory"));
 }
