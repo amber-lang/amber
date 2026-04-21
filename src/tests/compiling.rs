@@ -235,7 +235,7 @@ main {
         "Output should contain the zsh shellversion preamble"
     );
     assert!(
-        result.contains(r#"IFS='.' read -a EXEC_SHELL_VERSION <<< "${__exec_shell_version%% *}""#),
+        result.contains(r#"IFS='-' read -A EXEC_SHELL_VERSION <<< "${__exec_shell_version}""#),
         "Output should contain the ksh shellversion preamble"
     );
     assert!(
