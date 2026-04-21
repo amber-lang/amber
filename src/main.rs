@@ -18,6 +18,7 @@ pub mod built_info {
 pub mod tests;
 
 use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::utils::io::find_amber_files;
 use crate::utils::ShellType;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
@@ -28,6 +29,7 @@ use std::error::Error;
 use std::io::{prelude::*, stdin};
 use std::path::{Path, PathBuf};
 use std::{fs, io};
+use std::fs::create_dir_all;
 
 fn get_version() -> &'static str {
     built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)
@@ -128,10 +130,10 @@ struct CheckCommand {
 
 #[derive(Args, Clone, Debug)]
 struct BuildCommand {
-    /// Input filename ('-' to read from stdin)
+    /// Input file or directory name ('-' to read from stdin)
     input: PathBuf,
 
-    /// Output filename ('-' to output to stdout)
+    /// Output file or directory ('-' to output to stdout)
     output: Option<PathBuf>,
 
     /// Disable a postprocessor
@@ -335,6 +337,61 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
+fn handle_build(
+    command: BuildCommand,
+    cli_target: Option<ShellType>,
+) -> Result<(), Box<dyn Error>> {
+    let target = resolve_command_target(command.target, cli_target);
+
+    if command.input.as_os_str() != "-" && command.input.is_dir() {
+        validate_output_dir(&command.output);
+
+        let mut files = vec![];
+        find_amber_files(&command.input, &mut files)?;
+
+        for input in files {
+            let output = create_output_dir(&command, &input);
+            let parent_dir = output.parent().unwrap();
+            if !parent_dir.exists() {
+                create_dir_all(parent_dir)?;
+            }
+            build_file(&command, &target, input, output);
+        }
+    } else {
+        let output = create_output(&command);
+        build_file(&command, &target, command.input.clone(), output);
+    }
+
+    Ok(())
+}
+
+fn validate_output_dir(output: &Option<PathBuf>) {
+    if let Some(ref output) = output {
+        if !output.is_dir() {
+            Message::new_err_msg("Output is not a directory").show();
+            std::process::exit(1);
+        }
+    }
+}
+
+fn create_output_dir(command: &BuildCommand, file: &PathBuf) -> PathBuf {
+    if let Some(output) = &command.output {
+        let relative = file.strip_prefix(&command.input).ok().unwrap();
+        output.join(relative).with_extension("sh")
+    } else {
+        file.with_extension("sh")
+    }
+}
+
+fn build_file(command: &BuildCommand, target: &Option<ShellType>, input: PathBuf, output: PathBuf) {
+    let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+        .with_target(target.clone())
+        .with_env_vars();
+
+    let (code, _) = compile_input(input, options);
+    write_output(output, code);
+}
+
 pub(crate) fn handle_completion() {
     handle_completion_with_output(&mut io::stdout());
 }
@@ -427,13 +484,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             0
         }
         CommandKind::Build(command) => {
-            let target = resolve_command_target(command.target, cli.target);
-            let output = create_output(&command);
-            let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
-                .with_target(target)
-                .with_env_vars();
-            let (code, _) = compile_input(command.input, options);
-            write_output(output, code);
+            handle_build(command, cli.target)?;
             0
         }
         CommandKind::Docs(command) => {
