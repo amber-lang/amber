@@ -6,9 +6,9 @@ import { array_contains } from "std/array"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    touch("{tmpdir}/file1.txt")
-    touch("{tmpdir}/file2.txt")
-    touch("{tmpdir}/other.csv")
+    trust touch("{tmpdir}/file1.txt")
+    trust touch("{tmpdir}/file2.txt")
+    trust touch("{tmpdir}/other.csv")
 
     const files = ls("{tmpdir}/*.txt")?
     if array_contains(files, "{tmpdir}/file1.txt") and

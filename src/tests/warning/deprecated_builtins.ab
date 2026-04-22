@@ -10,11 +10,11 @@ import * from "std/fs"
 
 main {
     echo "hello"
-    cd "."
+    trust cd "."
     exit 0
     trust mv "a" "b"
     
     // Enter a temporary directory for mutating builtins
-    cd(temp_dir_create("deprecated_builtins.XXXXXX", true, false)?)
-    touch "test.txt"
+    trust cd(temp_dir_create("deprecated_builtins.XXXXXX", true, false)?)
+    trust touch "test.txt"
 }

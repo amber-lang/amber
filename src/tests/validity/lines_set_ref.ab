@@ -8,7 +8,7 @@ import { temp_dir_create } from "std/fs"
 // [  six  ]
 
 fun set_ref(ref inner: [Text], path: Text): Null {
-    inner = lines(path)
+    inner = trust lines(path)
 }
 
 main {

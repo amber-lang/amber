@@ -17,15 +17,15 @@ fun compare(actual: [Text], expected: [Text]): Bool {
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
-        touch("{tmpdir}/1st file with spaces.txt")
-        touch("{tmpdir}/2nd file with spaces.txt")
-        touch("{tmpdir}/file.txt")
-        touch("{tmpdir}/file1.txt")
-        touch("{tmpdir}/file2.txt")
-        touch("{tmpdir}/file99.txt")
-        touch("{tmpdir}/other.csv")
+        trust touch("{tmpdir}/1st file with spaces.txt")
+        trust touch("{tmpdir}/2nd file with spaces.txt")
+        trust touch("{tmpdir}/file.txt")
+        trust touch("{tmpdir}/file1.txt")
+        trust touch("{tmpdir}/file2.txt")
+        trust touch("{tmpdir}/file99.txt")
+        trust touch("{tmpdir}/other.csv")
     }
-    cd(tmpdir)
+    trust cd(tmpdir)
 
     const expected = [
         "file.txt",

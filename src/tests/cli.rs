@@ -432,7 +432,7 @@ fn test_cli_target_invalid_value() {
     ])
     .assert()
     .failure()
-    .stderr(predicate::str::contains("invalid shell target"));
+    .stderr(predicate::str::contains("invalid value 'fish' for '--target <TARGET>'"));
 }
 
 #[test]

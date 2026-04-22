@@ -18,9 +18,9 @@ main {
     const subdir = "{tmpdir}/dir with spaces"
     dir_create(subdir)?
     trust {
-        touch("{subdir}/alpha.txt")
-        touch("{subdir}/beta.txt")
-        touch("{subdir}/gamma.txt")
+        trust touch("{subdir}/alpha.txt")
+        trust touch("{subdir}/beta.txt")
+        trust touch("{subdir}/gamma.txt")
     }
 
     // Test bracket pattern with spaces in path
