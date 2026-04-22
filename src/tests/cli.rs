@@ -75,32 +75,13 @@ fn main_args_passed_correctly() {
 fn test_filtering() {
     let input = PathBuf::from("src/tests/validity");
 
-    // Case 1: Filter by file name substring "named_syntax"
-    // Expect "test_named_syntax.ab" to be included
+    // Filter by test name "foo"
     let command = TestCommand {
         input: input.clone(),
-        args: vec!["named_syntax".to_string()],
+        args: vec![],
         no_proc: vec![],
         target: None,
-    };
-
-    let tests = get_tests_to_run(&command)
-        .map_err(|e| format!("{:?}", e))
-        .expect("Failed to get tests");
-    assert!(
-        !tests.is_empty(),
-        "Should find tests in test_named_syntax.ab"
-    );
-    for (path, _, _) in &tests {
-        assert!(path.to_string_lossy().contains("named_syntax"));
-    }
-
-    // Case 2: Filter by test name "foo"
-    let command = TestCommand {
-        input: input.clone(),
-        args: vec!["foo".to_string()],
-        no_proc: vec![],
-        target: None,
+        test_case: Some("foo".to_string()),
     };
     let tests = get_tests_to_run(&command)
         .map_err(|e| format!("{:?}", e))

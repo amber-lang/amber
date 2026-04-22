@@ -67,7 +67,7 @@ pub fn get_tests_to_run(
                 Ok((_, meta)) => {
                     for name in meta.test_names {
                         if let Some(test_case) = test_case {
-                            if !name.starts_with(&test_case.clone()) {
+                            if !name.trim().starts_with(&test_case.trim()) {
                                 continue;
                             }
                         }
@@ -89,18 +89,6 @@ pub fn get_tests_to_run(
 
     if !errors.is_empty() {
         return Err(errors);
-    }
-
-    // Filter tests
-    if let Some(pattern) = command.args.first() {
-        tests.retain(|(file, name, _)| {
-            let test_name_display = if name.is_empty() {
-                format!("{}", file.display())
-            } else {
-                format!("{} ({})", file.display(), name)
-            };
-            test_name_display.contains(pattern)
-        });
     }
 
     Ok(tests)
