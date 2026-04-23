@@ -26,9 +26,8 @@ impl SyntaxModule<ParserMetadata> for Shellversion {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "shellversion")?;
-        if token(meta, "(").is_ok() {
-            token(meta, ")")?;
-        }
+        token(meta, "(")?;
+        token(meta, ")")?;
         meta.shellversion_used = true;
         Ok(())
     }
@@ -42,7 +41,7 @@ impl TypeCheckModule for Shellversion {
 
 impl TranslateModule for Shellversion {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        VarExprFragment::new("EXEC_SHELL_VERSION", Type::Array(Box::new(Type::Text))).to_frag()
+        VarExprFragment::new("EXEC_SHELL_VERSION", Type::Array(Box::new(Type::Int))).to_frag()
     }
 }
 

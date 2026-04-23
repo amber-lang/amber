@@ -57,7 +57,7 @@ impl TypeCheckModule for Touch {
 
 impl TranslateModule for Touch {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("touch ", self.value.translate(meta), " || exit")
+        fragments!("touch ", self.value.translate(meta))
     }
 }
 

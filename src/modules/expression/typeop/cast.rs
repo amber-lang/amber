@@ -72,7 +72,7 @@ impl TypeCheckModule for Cast {
                 {
                     meta.add_message(message);
                 }
-                (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => {
+                (Type::Null, Type::Array(_) | Type::Null) | (Type::Array(_), Type::Null) => {
                     meta.add_message(message)
                 }
                 (Type::Text, _) if self.kind != Type::Text => meta.add_message(message),

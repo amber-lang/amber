@@ -39,13 +39,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "nameof")?;
         self.token = meta.get_current_token();
-        // Support both syntax: nameof(var) and nameof var
-        if token(meta, "(").is_ok() {
-            self.name = variable(meta, variable_name_extensions())?;
-            token(meta, ")")?;
-        } else {
-            self.name = variable(meta, variable_name_extensions())?;
-        }
+        self.name = variable(meta, variable_name_extensions())?;
         Ok(())
     }
 }

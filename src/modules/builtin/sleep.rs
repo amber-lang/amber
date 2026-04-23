@@ -47,7 +47,7 @@ impl TypeCheckModule for Sleep {
 impl TranslateModule for Sleep {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
-        fragments!("sleep ", value, " || exit")
+        fragments!("sleep ", value)
     }
 }
 
