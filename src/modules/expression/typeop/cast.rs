@@ -65,22 +65,20 @@ impl TypeCheckModule for Cast {
                     "To suppress this warning, use '{flag_name}' compiler flag"
                 ));
             match (l_type, r_type) {
-                (Type::Array(left), Type::Array(right)) => {
+                (Type::Array(left), Type::Array(right))
                     if *left != *right
                         && !matches!(*left, Type::Bool | Type::Num)
                         && !matches!(*right, Type::Bool | Type::Num)
-                    {
+                    => {
                         meta.add_message(message);
                     }
-                }
                 (Type::Array(_) | Type::Null, Type::Array(_) | Type::Null) => {
                     meta.add_message(message)
                 }
-                (Type::Text, _) => {
-                    if self.kind != Type::Text {
+                (Type::Text, _)
+                    if self.kind != Type::Text => {
                         meta.add_message(message)
                     }
-                }
                 _ => {}
             }
         }

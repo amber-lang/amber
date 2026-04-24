@@ -67,7 +67,7 @@ pub fn get_tests_to_run(
                 Ok((_, meta)) => {
                     for name in meta.test_names {
                         if let Some(test_case) = test_case {
-                            if !name.trim().starts_with(&test_case.trim()) {
+                            if !name.trim().starts_with(test_case.trim()) {
                                 continue;
                             }
                         }
