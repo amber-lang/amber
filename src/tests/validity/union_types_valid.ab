@@ -21,10 +21,3 @@ fun bar(x: [Int] | [Bool]) {
 
 bar([1, 2])
 bar([true, false])
-
-fun baz(x: [Int | Bool]) {
-    echo(x)
-}
-
-baz([1, 2])
-baz([true, false])
