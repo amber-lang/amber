@@ -109,7 +109,7 @@ impl TranslateModule for Sleep {
             ),
         };
 
-        let sleep_cmd = fragments!(sudo_prefix, "sleep ", var_expr.to_frag());
+        let sleep_cmd = fragments!(sudo_prefix, "sleep ", var_expr.to_frag(), silent.clone(), suppress.clone());
 
         BlockFragment::new(
             vec![
@@ -117,7 +117,6 @@ impl TranslateModule for Sleep {
                 BlockFragment::new(vec![sleep_cmd], true).to_frag(),
                 raw_fragment!("else"),
                 BlockFragment::new(vec![
-                    // fragments!("echo \"Sleep value needs to be >= 0 (at {})\" >&2", raw_fragment!("{location}"), silent, suppress),
                     fragments!(RawFragment::from(format!(
                         "echo \"Sleep value needs to be >= 0 (at {location})\" >&2"
                     )).to_frag(), silent, suppress),

@@ -17,7 +17,6 @@ pub enum Type {
     Generic,
 }
 
-// FIXME: Array cannot be union [Unin type]
 impl Type {
     #[inline]
     pub fn array_of(kind: Type) -> Self {

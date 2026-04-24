@@ -127,7 +127,7 @@ impl TranslateModule for LinesInvocation {
         };
 
         meta.stmt_queue.extend([
-            raw_fragment!("{fifo_var}=$(mktemp -u) || exit 1"), // panic if fifo canno be created
+            raw_fragment!("{fifo_var}=$(mktemp -u) || exit 1"), // panic if fifo cannot be created
             raw_fragment!("mkfifo \"${fifo_var}\" || exit 1"),
             producer,
             raw_fragment!("{pid_var}=$!"),
@@ -137,8 +137,8 @@ impl TranslateModule for LinesInvocation {
             raw_fragment!("{indent}{}+=(\"${}\")", var_expr.get_name(), temp),
             raw_fragment!("done <\"${fifo_var}\""),
             raw_fragment!("wait ${pid_var}"),
-            handler,
             raw_fragment!("rm -f \"${fifo_var}\""),
+            handler,
         ]);
         var_expr.to_frag()
     }
