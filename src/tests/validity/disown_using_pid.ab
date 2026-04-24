@@ -1,5 +1,3 @@
-import { pgrep, kill } from "std/env"
-
 main {
     trust silent $ killall yes $ // Cleanup before test
 
@@ -14,12 +12,11 @@ main {
     const third_pid = pid()
     disown([second_pid, third_pid])
 
-    kill(first_pid, "KILL")?
-    kill(second_pid, "KILL")?
-    kill(third_pid, "KILL")?
-    if len(pgrep("yes")) == 0 {
+    if len($ jobs -l $?) == 0 {
         echo("Succeeded")
     } else {
         echo("Process still alive")
     }
+
+    trust silent $ killall yes $ // Cleanup after test
 }
