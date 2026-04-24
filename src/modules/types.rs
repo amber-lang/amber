@@ -17,6 +17,7 @@ pub enum Type {
     Generic,
 }
 
+// FIXME: Array cannot be union [Unin type]
 impl Type {
     #[inline]
     pub fn array_of(kind: Type) -> Self {
@@ -210,6 +211,11 @@ fn try_parse_simple_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                             Ok(Type::Array(_)) => error!(
                                 meta,
                                 tok, "Arrays cannot be nested due to the Bash limitations"
+                            ),
+                            Ok(Type::Union(_)) => error!(
+                                meta,
+                                tok,
+                                "Arrays don't support mixed type values"
                             ),
                             Ok(result_type) => {
                                 token(meta, "]")?;
