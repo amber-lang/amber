@@ -26,10 +26,10 @@ use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 use std::error::Error;
+use std::fs::create_dir_all;
 use std::io::{prelude::*, stdin};
 use std::path::{Path, PathBuf};
 use std::{fs, io};
-use std::fs::create_dir_all;
 
 fn get_version() -> &'static str {
     built_info::GIT_VERSION.unwrap_or(built_info::PKG_VERSION)
@@ -337,6 +337,9 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
+/// Responsible for executing the build command.
+///
+/// * `cli_target` Target shell.
 fn handle_build(
     command: BuildCommand,
     cli_target: Option<ShellType>,
@@ -365,6 +368,7 @@ fn handle_build(
     Ok(())
 }
 
+/// Validates the provided output actually points to a directory.
 fn validate_output_dir(output: &Option<PathBuf>) {
     if let Some(ref output) = output {
         if !output.is_dir() {
@@ -374,6 +378,7 @@ fn validate_output_dir(output: &Option<PathBuf>) {
     }
 }
 
+/// Determines the output path that should be used in directory mode for the given input.
 fn create_output_dir(command: &BuildCommand, file: &PathBuf) -> PathBuf {
     if let Some(output) = &command.output {
         let relative = file.strip_prefix(&command.input).ok().unwrap();
@@ -383,6 +388,7 @@ fn create_output_dir(command: &BuildCommand, file: &PathBuf) -> PathBuf {
     }
 }
 
+/// Compiles the input file and writes the result to the output path.wr
 fn build_file(command: &BuildCommand, target: &Option<ShellType>, input: PathBuf, output: PathBuf) {
     let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
         .with_target(target.clone())
