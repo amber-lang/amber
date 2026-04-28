@@ -9,6 +9,7 @@ fn test_find_amber_files_recursive() -> Result<(), Box<dyn std::error::Error>> {
         &mut files,
     )?;
 
+    files.sort();
     let expected_files = vec![
         PathBuf::from("src/tests/io/find_amber_files/normal/script.ab"),
         PathBuf::from("src/tests/io/find_amber_files/normal/subdir/included.ab"),
