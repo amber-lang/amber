@@ -1,27 +1,17 @@
-// We cannot import `bash_version` from `env.ab` because it imports `text.ab` making a circular dependency.
-// This is a workaround to avoid that issue and the import system should be improved in the future.
-#[allow_absurd_cast]
-fun bash_version(): [Int] {
-    let major = trust $ echo "\$\{BASH_VERSINFO[0]}" $ as Int
-    let minor = trust $ echo "\$\{BASH_VERSINFO[1]}" $ as Int
-    let patch = trust $ echo "\$\{BASH_VERSINFO[2]}" $ as Int
-    return [major, minor, patch]
-}
-
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 ///
 /// ### Usage
 /// ```ab
-/// let result = replace("Hello world", "world", "universe")
-/// echo result // "Hello universe"
+/// const result = replace("Hello world", "world", "universe")
+/// echo(result) // "Hello universe"
 /// ```
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4,3] {
-        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
+        trust $ {nameof(result)}="\$\{{nameof(source)}//"\$\{{nameof(search)}}"/"\$\{{nameof(replace)}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
+        trust $ {nameof(result)}="\$\{{nameof(source)}//"\$\{{nameof(search)}}"/\$\{{nameof(replace)}}}" $
     }
     return result
 }
@@ -30,16 +20,16 @@ pub fun replace(source, search, replace) {
 ///
 /// ### Usage
 /// ```ab
-/// let result = replace_one("foo foo foo", "foo", "bar")
-/// echo result // "bar foo foo"
+/// const result = replace_one("foo foo foo", "foo", "bar")
+/// echo(result) // "bar foo foo"
 /// ```
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4,3] {
-        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
+        trust $ {nameof(result)}="\$\{{nameof(source)}/"\$\{{nameof(search)}}"/"\$\{{nameof(replace)}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
+        trust $ {nameof(result)}="\$\{{nameof(source)}/"\$\{{nameof(search)}}"/\$\{{nameof(replace)}}}" $
     }
     return result
 }
@@ -51,26 +41,27 @@ const SED_VERSION_BUSYBOX = 2
 fun sed_version(): Int {
     // We can't match against a word "GNU" because
     // alpine's busybox sed returns "This is not GNU sed version"
-    trust $ re='\bCopyright\b.+\bFree Software Foundation\b'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
-    if status == 0 {
+    trust $ re='Copyright.+Free Software Foundation'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+    if status() == 0 {
         return SED_VERSION_GNU
     }
     // On BSD single `sed` waits for stdin. We must use `sed --help` to avoid this.
-    trust $ re='\bBusyBox\b'; [[ \$(sed --help 2>&1) =~ \$re ]] $
-    if status == 0 {
+    trust $ re='BusyBox'; [[ \$(sed --help 2>&1) =~ \$re ]] $
+    if status() == 0 {
         return SED_VERSION_BUSYBOX
     }
     return SED_VERSION_UNKNOWN
 }
 
 /// Replaces all occurrences of a regex pattern in the content with the provided replace text.
-///
-/// Function uses `sed`
+/// Function uses `sed` and supports capture groups syntax in extended mode.
 ///
 /// ### Usage
 /// ```ab
-/// let result = replace_regex("test123", "[0-9]+", "456", true)
-/// echo result // "test456"
+/// const result = replace_regex("test123", "[0-9]+", "456", true)
+/// echo(result) // "test456"
+/// // Also supports replace regex
+/// echo(replace_regex("Put number 255 in brackets", "([0-9]+)", "(\1)", true)); // Put number (255) in brackets
 /// ```
 pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: Bool = false): Text {
     trust {
@@ -85,16 +76,16 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option
             if sed_version == SED_VERSION_GNU {
-                return $ echo "{source}" | sed -r -e "s/{search}/{replace_text}/g" $
+                return $ sed -r -e "s/{search}/{replace_text}/g" <<<"{source}" $
             } else {
-                return $ echo "{source}" | sed -E -e "s/{search}/{replace_text}/g" $
+                return $ sed -E -e "s/{search}/{replace_text}/g" <<<"{source}" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            return $ echo "{source}" | sed -e "s/{search}/{replace_text}/g" $
+            return $ sed -e "s/{search}/{replace_text}/g" <<<"{source}" $
         }
     }
 }
@@ -103,12 +94,24 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 ///
 /// ### Usage
 /// ```ab
-/// let parts = split("a,b,c", ",")
-/// echo parts[0] // "a"
+/// const parts = split("a,b,c", ",")
+/// echo(parts[0]) // "a"
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+    // zsh uses -A for array, bash uses -a, ksh is VERY bad at splitting anything
+    trust {
+        if {
+            shellname() == "zsh": $ IFS="{delimiter}" read -rd '' -A {nameof(result)} < <(printf %s "\${nameof(text)}") $
+            shellname() == "ksh" {
+                if delimiter == "\n":
+                    $ while read -r -d \$'\\n'; do {nameof(result)}+=("\$REPLY"); done < <(echo "\${nameof(text)}") $
+                else:
+                    $ IFS="{delimiter}" read -rd '' -a {nameof(result)} < <(printf %s "\${nameof(text)}") $
+            } 
+            shellname() == "bash": $ IFS="{delimiter}" read -rd '' -a {nameof(result)} < <(printf %s "\${nameof(text)}") $
+        }
+    }
     return result
 }
 
@@ -116,8 +119,8 @@ pub fun split(text: Text, delimiter: Text): [Text] {
 ///
 /// ### Usage
 /// ```ab
-/// let lines = split_lines("line1\nline2\nline3")
-/// echo lines[0] // "line1"
+/// const lines = split_lines("line1\nline2\nline3")
+/// echo(lines[0]) // "line1"
 /// ```
 pub fun split_lines(text: Text): [Text] {
     return split(text, "\n")
@@ -127,8 +130,8 @@ pub fun split_lines(text: Text): [Text] {
 ///
 /// ### Usage
 /// ```ab
-/// let words = split_words("hello world example")
-/// echo words[1] // "world"
+/// const words = split_words("hello world example")
+/// echo(words[1]) // "world"
 /// ```
 pub fun split_words(text: Text): [Text] {
     return split(text, " ")
@@ -138,74 +141,97 @@ pub fun split_words(text: Text): [Text] {
 ///
 /// ### Usage
 /// ```ab
-/// let joined = join(["a", "b", "c"], ",")
-/// echo joined // "a,b,c"
+/// const joined = join(["a", "b", "c"], ",")
+/// echo(joined) // "a,b,c"
 /// ```
 pub fun join(list: [Text], delimiter: Text): Text {
-    return trust $ IFS="{delimiter}" ; echo "\$\{{nameof list}[*]}" $
+    return trust $ IFS="{delimiter}" ; printf "%s\n" "\$\{{nameof(list)}[*]}" $
 }
 
 /// Trims the spaces at top of the text using `sed`.
 ///
 /// ### Usage
 /// ```ab
-/// let trimmed = trim_left("   hello")
-/// echo trimmed // "hello"
+/// const trimmed = trim_left("   hello")
+/// echo(trimmed) // "hello"
 /// ```
 pub fun trim_left(text: Text): Text {
-    return trust $ echo "{text}" | sed -e 's/^[[:space:]]*//' $
+    let result = ""
+    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
+    return result
 }
 
 /// Trims the spaces at end of the text using `sed`.
 ///
 /// ### Usage
 /// ```ab
-/// let trimmed = trim_right("hello   ")
-/// echo trimmed // "hello"
+/// const trimmed = trim_right("hello   ")
+/// echo(trimmed) // "hello"
 /// ```
 pub fun trim_right(text: Text): Text {
-    return trust $ echo "{text}" | sed -e 's/[[:space:]]*\$//' $
+    let result = ""
+    trust $ {nameof(result)}="\$\{{nameof(text)}%\$\{{nameof(text)}##*[![:space:]]}}" $
+    return result
 }
 
 /// Trims the spaces from the text input.
 ///
 /// ### Usage
 /// ```ab
-/// let trimmed = trim("   hello   ")
-/// echo trimmed // "hello"
+/// const trimmed = trim("   hello   ")
+/// echo(trimmed) // "hello"
 /// ```
 pub fun trim(text: Text): Text {
-    return trim_left(trim_right(text))
+    let result = ""
+    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
+    trust $ {nameof(result)}="\$\{{nameof(result)}%\$\{{nameof(result)}##*[![:space:]]}}" $
+    return result
 }
 
 /// Makes the text input lowercase using `tr`.
 ///
 /// ### Usage
 /// ```ab
-/// let lower = lowercase("HELLO")
-/// echo lower // "hello"
+/// const lower = lowercase("HELLO")
+/// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    return trust $ echo "{text}" | tr '[:upper:]' '[:lower:]' $
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof(text)}="\$(printf '%s' "{text}" | tr '[:upper:]' '[:lower:]')" $
+    } else {
+        trust $
+            typeset -l {nameof(text)}
+            {nameof(text)}="{text}"
+        $
+    }
+    return text
 }
 
 /// Makes the text input uppercase using `tr`.
 ///
 /// ### Usage
 /// ```ab
-/// let upper = uppercase("hello")
-/// echo upper // "HELLO"
+/// const upper = uppercase("hello")
+/// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    return trust $ echo "{text}" | tr '[:lower:]' '[:upper:]' $
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof(text)}="\$(printf '%s' "{text}" | tr '[:lower:]' '[:upper:]')" $
+    } else {
+        trust $
+            typeset -u {nameof(text)}
+            {nameof(text)}="{text}"
+        $
+    }
+    return text
 }
 
 /// Attempts to parse a given text into an `Int` number.
 ///
 /// ### Usage
 /// ```ab
-/// let num = parse_int("42")?
-/// echo num // 42
+/// const num = parse_int("42")?
+/// echo(num) // 42
 /// ```
 #[allow_absurd_cast]
 pub fun parse_int(text: Text): Int? {
@@ -217,13 +243,13 @@ pub fun parse_int(text: Text): Int? {
 ///
 /// ### Usage
 /// ```ab
-/// let num = parse_num("3.14")?
-/// echo num // 3.14
+/// const num = parse_num("3.14")?
+/// echo(num) // 3.14
 /// ```
 #[allow_absurd_cast]
 pub fun parse_num(text: Text): Num? {
-    let re_int="^-?[0-9]+$"
-    let re_float="^-?[0-9]*\.[0-9]+$"
+    const re_int="^-?[0-9]+$"
+    const re_float="^-?[0-9]*\.[0-9]+$"
 
     $ [[ {text} =~ {re_int} ]] || [[ {text} =~ {re_float} ]] $?
     return text as Num
@@ -233,13 +259,13 @@ pub fun parse_num(text: Text): Num? {
 ///
 /// ### Usage
 /// ```ab
-/// let chars = split_chars("hello")
-/// echo chars[0] // "h"
+/// const chars = split_chars("hello")
+/// echo(chars[0]) // "h"
 /// ```
 pub fun split_chars(text: Text): [Text] {
     let chars = [Text]
-    trust $ for ((i=0; i<\$\{#{nameof text}}; i++)); do
-        {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
+    trust $ for ((i=0; i<\$\{#{nameof(text)}}; i++)); do
+        {nameof(chars)}+=( "\$\{{nameof(text)}:\$i:1}" );
     done $
     return chars
 }
@@ -249,15 +275,12 @@ pub fun split_chars(text: Text): [Text] {
 /// ### Usage
 /// ```ab
 /// if text_contains("hello world", "world") {
-///     echo "Found!"
+///     echo("Found!")
 /// }
 /// ```
 pub fun text_contains(source: Text, search: Text): Bool {
-  let result = trust $ if [[ "{source}" == *"{search}"* ]]; then
-    echo 1
-  fi $
-
-  return result == "1"
+    trust $ [[ "{source}" == *"{search}"* ]] $
+    return status() == 0
 }
 
 /// Checks if an array value is in the text.
@@ -265,7 +288,7 @@ pub fun text_contains(source: Text, search: Text): Bool {
 /// ### Usage
 /// ```ab
 /// if text_contains_any("hello world", ["foo", "world", "bar"]) {
-///     echo "Found at least one!"
+///     echo("Found at least one!")
 /// }
 /// ```
 pub fun text_contains_any(source: Text, searches: [Text]): Bool {
@@ -283,7 +306,7 @@ pub fun text_contains_any(source: Text, searches: [Text]): Bool {
 /// ### Usage
 /// ```ab
 /// if text_contains_all("hello world", ["hello", "world"]) {
-///     echo "All found!"
+///     echo("All found!")
 /// }
 /// ```
 pub fun text_contains_all(source: Text, searches: [Text]): Bool {
@@ -302,7 +325,7 @@ pub fun text_contains_all(source: Text, searches: [Text]): Bool {
 /// ### Usage
 /// ```ab
 /// if match_regex("test123", "[0-9]+", true) {
-///     echo "Contains numbers!"
+///     echo("Contains numbers!")
 /// }
 /// ```
 pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
@@ -320,16 +343,16 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
             if sed_version == SED_VERSION_GNU {
                 // '\b' is not in POSIX standards. Disable it
                 search = replace(search, "\b", "\\b")
-                output = $ echo "{source}" | sed -r -ne "/{search}/p" $
+                output = $ sed -r -ne "/{search}/p" <<<"{source}" $
             } else {
-                output = $ echo "{source}" | sed -E -ne "/{search}/p" $
+                output = $ sed -E -ne "/{search}/p" <<<"{source}" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            output = $ echo "{source}" | sed -ne "/{search}/p" $
+            output = $ sed -ne "/{search}/p" <<<"{source}" $
         }
         if output != "" {
             return true
@@ -343,7 +366,7 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
 /// ### Usage
 /// ```ab
 /// if match_regex_any("test123", ["[a-z]+", "[0-9]+"]) {
-///     echo "Matches at least one pattern!"
+///     echo("Matches at least one pattern!")
 /// }
 /// ```
 pub fun match_regex_any(text: Text, terms: [Text]): Bool {
@@ -360,11 +383,11 @@ pub fun match_regex_any(text: Text, terms: [Text]): Bool {
 ///
 /// ### Usage
 /// ```ab
-/// let reversed_text = reversed("hello")
-/// echo reversed_text // "olleh"
+/// const reversed_text = reversed("hello")
+/// echo(reversed_text) // "olleh"
 /// ```
 pub fun reversed(text: Text): Text {
-    return trust $ echo "{text}" | rev $
+    return trust $ rev <<< "{text}" $
 }
 
 /// Checks if text starts with a value.
@@ -372,15 +395,12 @@ pub fun reversed(text: Text): Text {
 /// ### Usage
 /// ```ab
 /// if starts_with("hello world", "hello") {
-///     echo "Starts with hello!"
+///     echo("Starts with hello!")
 /// }
 /// ```
 pub fun starts_with(text: Text, prefix: Text): Bool {
-  let result = trust $ if [[ "{text}" == "{prefix}"* ]]; then
-    echo 1
-  fi $
-
-  return result == "1"
+    trust $ [[ "{text}" == "{prefix}"* ]] $
+    return status() == 0
 }
 
 /// Checks if text ends with a value.
@@ -388,15 +408,12 @@ pub fun starts_with(text: Text, prefix: Text): Bool {
 /// ### Usage
 /// ```ab
 /// if ends_with("hello world", "world") {
-///     echo "Ends with world!"
+///     echo("Ends with world!")
 /// }
 /// ```
 pub fun ends_with(text: Text, suffix: Text): Bool {
-  let result = trust $ if [[ "{text}" == *"{suffix}" ]]; then
-    echo 1
-  fi $
-
-  return result == "1"
+    trust $ [[ "{text}" == *"{suffix}" ]] $
+    return status() == 0
 }
 
 /// Returns a substring from `text` starting at the given `index` (0-based).
@@ -407,13 +424,15 @@ pub fun ends_with(text: Text, suffix: Text): Bool {
 ///
 /// ### Usage
 /// ```ab
-/// let sub = slice("hello world", 6, 5)
-/// echo sub // "world"
+/// const sub = slice("hello world", 6, 5)
+/// echo(sub) // "world"
 /// ```
 pub fun slice(text: Text, index: Int, length: Int = 0): Text {
+    let result = ""
     if length == 0: length = len(text) - index
-    if length <= 0: return ""
-    return trust $ printf "%.{length}s" "\$\{text: {index}}" $
+    if length <= 0: return result
+    trust $ {nameof(result)}="\$\{{nameof(text)}: {index}: {length}}" $
+    return result
 }
 
 /// Returns the character from `text` at the specified `index` (0-based).
@@ -422,19 +441,21 @@ pub fun slice(text: Text, index: Int, length: Int = 0): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let ch = char_at("hello", 1)
-/// echo ch // "e"
+/// const ch = char_at("hello", 1)
+/// echo(ch) // "e"
 /// ```
 pub fun char_at(text: Text, index: Int): Text {
-    return trust $ printf "%.1s" "\$\{text: {index}}" $
+    let result = ""
+    trust $ {nameof(result)}="\$\{{nameof(text)}:{index}:1}" $
+    return result
 }
 
 /// Capitalize the first letter of the given `text`.
 ///
 /// ### Usage
 /// ```ab
-/// let cap = capitalized("hello")
-/// echo cap // "Hello"
+/// const cap = capitalized("hello")
+/// echo(cap) // "Hello"
 /// ```
 #[allow_absurd_cast]
 pub fun capitalized(text: Text): Text {
@@ -442,12 +463,9 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        if bash_version() >= [4] {
-            return $ echo "\$\{{nameof text}^}" $
-        }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ echo "{text}" | sed "s/^\(.\)/\U\1/" $
+            return $ printf '%s\n' "{text}" | sed 's/^\(.\)/\U\1/' $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
@@ -458,37 +476,142 @@ pub fun capitalized(text: Text): Text {
 ///
 /// ### Usage
 /// ```ab
-/// let padded = lpad("42", "0", 5)
-/// echo padded // "00042"
+/// const padded = lpad("42", "0", 5)
+/// echo(padded) // "00042"
 /// ```
 pub fun lpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
-    length = len(text) - length
-    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
-    return pad + text
+    const pad_len = length - len(text)
+    let padding = ""
+    trust $ printf -v {nameof(padding)} "%{pad_len}s" "" $
+    trust $ {nameof(padding)}="\$\{{nameof(padding)}// /{pad}}" $
+    return padding + text
 }
 
 /// Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
 ///
 /// ### Usage
 /// ```ab
-/// let padded = rpad("42", "0", 5)
-/// echo padded // "42000"
+/// const padded = rpad("42", "0", 5)
+/// echo(padded) // "42000"
 /// ```
 pub fun rpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
-    length = len(text) - length
-    pad = trust $ printf "%{length}s" "" | tr " " "{pad}" $
-    return text + pad
+    const pad_len = length - len(text)
+    let padding = ""
+    trust $ printf -v {nameof(padding)} "%{pad_len}s" "" $
+    trust $ {nameof(padding)}="\$\{{nameof(padding)}// /{pad}}" $
+    return text + padding
+}
+
+/// Pads `text` with the specified `pad` character to the center within the desired `length`
+///
+/// ### Usage
+/// ```ab
+/// let padded: Text
+///
+/// padded = cpad("42", "0", 5)
+/// echo(padded) // "04200"
+///
+/// padded = cpad("42", "0", 6)
+/// echo(padded) // "004200"
+///
+/// padded = cpad("42", "0", 1)
+/// echo(padded) // "42"
+/// ```
+pub fun cpad(text: Text, pad: Text, length: Int): Text {
+    const text_length = len(text)
+    if length <= text_length: return text
+
+    const total_padding = length - text_length
+    const left_padding_length = text_length + total_padding / 2
+    const left_padded = lpad(text, pad, left_padding_length)
+    const center_padded = rpad(left_padded, pad, length)
+
+    return center_padded
 }
 
 /// Pads `text` with zeros on the left until it reaches the desired `length`.
 ///
 /// ### Usage
 /// ```ab
-/// let padded = zfill("42", 5)
-/// echo padded // "00042"
+/// const padded = zfill("42", 5)
+/// echo(padded) // "00042"
 /// ```
 pub fun zfill(text: Text, length: Int): Text {
     return lpad(text, "0", length)
+}
+
+/// Counts the number of lines in the given text.
+///
+/// ### Usage
+/// ```ab
+/// const count = count_lines("one\ntwo\nthree")
+/// echo(count) // 3
+/// ```
+#[allow_absurd_cast]
+pub fun count_lines(text: Text): Int {
+    if text == "": return 0
+    return trust $ wc -l <<< "{text}" | tr -d ' ' $ as Int
+}
+
+/// Counts the number of words in the given text.
+///
+/// ### Usage
+/// ```ab
+/// const count = count_words("hello world foo")
+/// echo(count) // 3
+/// ```
+#[allow_absurd_cast]
+pub fun count_words(text: Text): Int {
+    return trust $ wc -w <<< "{text}" | tr -d ' ' $ as Int
+}
+
+/// Counts the number of characters in the given text.
+///
+/// ### Usage
+/// ```ab
+/// const count = count_chars("hello")
+/// echo(count) // 5
+/// ```
+#[allow_absurd_cast]
+pub fun count_chars(text: Text): Int {
+    return trust $ printf "%s" "{text}" | wc -m | tr -d ' ' $ as Int
+}
+
+/// Sorts lines of text in ascending, descending or numerial order.
+///
+/// ### Usage
+/// ```ab
+/// let sorted = sort_lines("banana\napple\ncherry")
+/// echo(sorted) // "apple\nbanana\ncherry"
+///
+/// sorted = sort_lines("banana\napple\ncherry", true) // Sorts lines of text in descending order
+/// echo(sorted) // "cherry\nbanana\napple"
+///
+/// sorted = sort_lines("10\n2\n1", false, true) // Sorts lines of text numerically
+/// echo(sorted) // "1\n2\n10"
+/// ```
+pub fun sort_lines(text: Text, desc: Bool = false, numeric: Bool = false): Text {
+    let args = ""
+    if desc: args += "r"
+    if numeric: args += "n"
+    return trust $ sort -{args} <<< "{text}" $
+}
+
+/// Removes duplicate lines from text.
+///
+/// ### Usage
+/// ```ab
+/// let result = uniq_lines("foo\nfoo\nbar\nbar\nbaz")
+/// echo(result) // "foo\nbar\nbaz"
+///
+/// let result = uniq_lines("foo\nbar\nfoo\nbaz\nbar", true) // Removes all duplicate lines from text (not just consecutive)
+/// echo(result) // "foo\nbar\nbaz"
+/// ```
+pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
+    if not remove_all:
+        return trust $ uniq <<< "{text}" $
+    else:
+        return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }

@@ -1,0 +1,6 @@
+// Output
+// The `lock` builtin can only be used in the main block or test blocks
+
+fun guard() {
+    lock() ?
+}

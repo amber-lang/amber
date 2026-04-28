@@ -1,0 +1,41 @@
+import * from "std/array"
+import * from "std/fs"
+
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    for file in expected {
+        if not array_contains(actual, file) {
+            return false
+        }
+    }
+    return true
+}
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    trust {
+        trust touch("{tmpdir}/a1.txt")
+        trust touch("{tmpdir}/b2.txt")
+        trust touch("{tmpdir}/c3.txt")
+        trust touch("{tmpdir}/d4.txt")
+        trust touch("{tmpdir}/e5.txt")
+        trust touch("{tmpdir}/f6.txt")
+    }
+    trust cd(tmpdir)
+
+    // Test bracket range pattern [a-c]* - should match files starting with a, b, or c
+    const expected = [
+        "a1.txt",
+        "b2.txt",
+        "c3.txt",
+    ]
+    const actual = file_glob("[a-c]*")
+    if compare(actual, expected) {
+        echo("Succeeded")
+    } else {
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
+    }
+}

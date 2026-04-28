@@ -1,7 +1,3 @@
-use crate::raw_fragment;
-use std::collections::HashSet;
-use std::ffi::OsStr;
-use std::path::Path;
 use super::declaration_utils::*;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
@@ -11,15 +7,23 @@ use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::parse_type;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
-use crate::utils::cc_flags::{CCFlags, get_ccflag_by_name};
+use crate::raw_fragment;
+use crate::translate::fragments::get_variable_name;
+use crate::utils::cc_flags::{get_ccflag_by_name, CCFlags};
 use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionInstance;
 use crate::utils::function_interface::FunctionInterface;
 use crate::utils::function_metadata::FunctionMetadata;
+use crate::utils::ShellType;
 use heraclitus_compiler::prelude::*;
-use itertools::izip;
+use itertools::{izip, Itertools};
+use std::collections::HashSet;
+use std::ffi::OsStr;
+use std::path::Path;
 
 use crate::modules::block::Block;
+
+use amber_meta::AutoKeyword;
 
 #[derive(Debug, Clone)]
 pub struct FunctionDeclarationArgument {
@@ -30,7 +34,15 @@ pub struct FunctionDeclarationArgument {
     pub tok: Option<Token>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "ref"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Ref;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "fun"]
+#[kind = "stmt"]
 pub struct FunctionDeclaration {
     pub name: String,
     pub args: Vec<FunctionDeclarationArgument>,
@@ -54,19 +66,99 @@ pub struct FunctionDeclaration {
 impl FunctionDeclaration {
     fn set_args_as_variables(
         &self,
-        _meta: &mut TranslateMetadata,
+        meta: &mut TranslateMetadata,
         function: &FunctionInstance,
     ) -> Option<FragmentKind> {
         if !self.args.is_empty() {
             let mut result = vec![];
-            for (index, (arg, kind)) in izip!(self.args.iter(), &function.args).enumerate() {
-                let name = &arg.name;
+            for (index, (arg, kind, global_id)) in
+                izip!(self.args.iter(), &function.args, &function.args_global_ids).enumerate()
+            {
+                let name = get_variable_name(&arg.name, *global_id);
                 match (arg.is_ref, kind) {
+                    // Copy array arguments into a function-local array variable.
                     (false, Type::Array(_)) => {
-                        result.push(raw_fragment!("local {name}=(\"${{!{}}}\")", index + 1))
+                        // ksh cannot copy a caller-local array through indirect expansion, so bind
+                        // the argument name as a nameref first and then copy from that local alias.
+                        if matches!(meta.target.shell, ShellType::Ksh) {
+                            let source_name = format!("{name}_source");
+                            let source_ref = VarStmtFragment::new(
+                                &source_name,
+                                Type::Generic,
+                                VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                                    .to_frag(),
+                            )
+                            .with_local(true)
+                            .with_ref(true)
+                            .with_optimization_when_unused(false);
+
+                            let var = VarStmtFragment::new(
+                                &name,
+                                kind.clone(),
+                                VarExprFragment::new(&source_name, kind.clone()).to_frag(),
+                            )
+                            .with_local(true)
+                            .with_optimization_when_unused(false);
+
+                            result.push(source_ref.to_frag());
+                            result.push(var.to_frag());
+                        } else {
+                            let val =
+                                VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                                    .with_ref(true)
+                                    .with_declared(false);
+
+                            let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false);
+
+                            result.push(var.to_frag())
+                        }
                     }
-                    _ => result.push(raw_fragment!("local {name}=${}", index + 1)),
+                    // Bind array `ref` arguments so the function can mutate the caller-owned array.
+                    (true, Type::Array(_)) => {
+                        let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                            .with_ref(false);
+
+                        let var = if matches!(meta.target.shell, ShellType::Zsh) {
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(false)
+                                .with_array_ref(true)
+                                .with_declared(false)
+                        } else if meta.target.shell.is_bash_legacy() {
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(true)
+                                .with_array_ref(true)
+                                .with_declared(false)
+                        } else {
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(true)
+                                .with_array_ref(true)
+                        };
+
+                        result.push(var.to_frag())
+                    }
+                    // Bind scalar arguments as local variables, preserving `ref` semantics when requested.
+                    _ => {
+                        let val = VarExprFragment::new(&format!("{}", index + 1), Type::Generic)
+                            .with_ref(false);
+
+                        let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                            .with_local(true)
+                            .with_optimization_when_unused(false)
+                            .with_declared(!arg.is_ref)
+                            .with_ref(arg.is_ref);
+
+                        result.push(var.to_frag())
+                    }
                 }
+                //result.push(var.to_frag());
             }
             Some(BlockFragment::new(result, true).to_frag())
         } else {
@@ -155,7 +247,8 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         // Get all the user-defined compiler flags
         while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
             // Push to the flags vector as it is more safe in case of parsing errors
-            self.flags.insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+            self.flags
+                .insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
         }
         let doc_index = meta.get_index();
         // Check if this function is public
@@ -167,104 +260,118 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         self.name_token = meta.get_current_token();
         self.name = variable(meta, variable_name_extensions())?;
         let mut optional = false;
-        context!({
-            // Get the arguments
-            token(meta, "(")?;
-            loop {
-                if token(meta, ")").is_ok() {
-                    break;
+        context!(
+            {
+                // Get the arguments
+                token(meta, "(")?;
+                loop {
+                    // Skip comments and newlines
+                    if token_by(meta, |token| {
+                        token.starts_with("//") || token.starts_with('\n')
+                    })
+                    .is_ok()
+                    {
+                        continue;
+                    }
+                    if token(meta, ")").is_ok() {
+                        break;
+                    }
+                    let is_ref = token(meta, "ref").is_ok();
+                    let name_token = meta.get_current_token();
+                    let name = variable(meta, variable_name_extensions())?;
+
+                    // Optionally parse the argument type
+                    let arg_type = match token(meta, ":") {
+                        Ok(_) => parse_type(meta)?,
+                        Err(_) => Type::Generic,
+                    };
+
+                    // Optionally parse default value
+                    let optional_expr = match token(meta, "=") {
+                        Ok(_) => {
+                            optional = true;
+                            let mut expr = Expr::new();
+                            syntax(meta, &mut expr)?;
+                            Some(expr)
+                        }
+                        Err(_) => None,
+                    };
+
+                    self.args.push(FunctionDeclarationArgument {
+                        name,
+                        kind: arg_type,
+                        optional: optional_expr,
+                        is_ref,
+                        tok: name_token,
+                    });
+                    match token(meta, ")") {
+                        Ok(_) => break,
+                        Err(_) => token(meta, ",")?,
+                    };
                 }
-                let is_ref = token(meta, "ref").is_ok();
-                let name_token = meta.get_current_token();
-                let name = variable(meta, variable_name_extensions())?;
-
-                // Optionally parse the argument type
-                let arg_type = match token(meta, ":") {
-                    Ok(_) => parse_type(meta)?,
-                    Err(_) => Type::Generic,
-                };
-
-                // Optionally parse default value
-                let optional_expr = match token(meta, "=") {
+                let mut returns_tok = None;
+                let mut question_tok = None;
+                // Optionally parse the return type
+                match token(meta, ":") {
                     Ok(_) => {
-                        optional = true;
-                        let mut expr = Expr::new();
-                        syntax(meta, &mut expr)?;
-                        Some(expr)
+                        returns_tok = meta.get_current_token();
+                        self.returns = parse_type(meta)?;
+                        question_tok = meta.get_current_token();
+                        if token(meta, "?").is_ok() {
+                            self.declared_failable = true;
+                        }
                     }
-                    Err(_) => None,
-                };
-
-                self.args.push(FunctionDeclarationArgument {
-                    name,
-                    kind: arg_type,
-                    optional: optional_expr,
-                    is_ref,
-                    tok: name_token,
-                });
-                match token(meta, ")") {
-                    Ok(_) => break,
-                    Err(_) => token(meta, ",")?,
-                };
-            }
-            let mut returns_tok = None;
-            let mut question_tok = None;
-            // Optionally parse the return type
-            match token(meta, ":") {
-                Ok(_) => {
-                    returns_tok = meta.get_current_token();
-                    self.returns = parse_type(meta)?;
-                    question_tok = meta.get_current_token();
-                    if token(meta, "?").is_ok() {
-                        self.declared_failable = true;
-                    }
+                    Err(_) => self.returns = Type::Generic,
                 }
-                Err(_) => self.returns = Type::Generic,
-            }
-            // Parse the body
-            let start_pos = meta.get_index();
-            token(meta, "{")?;
-            let (_, _, is_failable) = skip_function_body(meta);
-            meta.set_index(start_pos);
+                // Parse the body
+                let start_pos = meta.get_index();
+                token(meta, "{")?;
+                let (_, _, is_failable) = skip_function_body(meta);
+                meta.set_index(start_pos);
 
-            self.is_failable = is_failable;
-            if self.returns == Type::Generic {
-                self.declared_failable = is_failable;
-            }
+                self.is_failable = is_failable;
+                if self.returns == Type::Generic {
+                    self.declared_failable = is_failable;
+                }
 
-            // Validate failable function declarations
-            if is_failable && !self.declared_failable {
-                return error!(
+                // Validate failable function declarations
+                if is_failable && !self.declared_failable {
+                    return error!(
+                        meta,
+                        returns_tok, "Failable functions must have a '?' after the type name"
+                    );
+                }
+                if !is_failable && self.declared_failable {
+                    return error!(
+                        meta,
+                        question_tok.or(returns_tok),
+                        "Infallible functions must not have a '?' after the type name"
+                    );
+                }
+
+                // Store function body for typecheck phase
+                let mut block = Block::new().with_condition();
+                let was_fun_ctx = meta.context.is_fun_ctx;
+                meta.context.is_fun_ctx = true;
+                let result =
+                    meta.with_context_fn(Context::set_cc_flags, self.flags.clone(), |meta| {
+                        syntax(meta, &mut block)
+                    });
+                meta.context.is_fun_ctx = was_fun_ctx;
+                result?;
+                self.function_body = Some(block);
+
+                self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
+                Ok(())
+            },
+            |pos| {
+                error_pos!(
                     meta,
-                    returns_tok, "Failable functions must have a '?' after the type name"
-                );
+                    pos,
+                    format!("Failed to parse function declaration '{}'", self.name)
+                )
             }
-            if !is_failable && self.declared_failable {
-                return error!(
-                    meta,
-                    question_tok.or(returns_tok),
-                    "Infallible functions must not have a '?' after the type name"
-                );
-            }
-
-            // Store function body for typecheck phase
-            let mut block = Block::new().with_condition();
-            let was_fun_ctx = meta.context.is_fun_ctx;
-            meta.context.is_fun_ctx = true;
-            let result = syntax(meta, &mut block);
-            meta.context.is_fun_ctx = was_fun_ctx;
-            result?;
-            self.function_body = Some(block);
-
-            self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
-            Ok(())
-        }, |pos| {
-            error_pos!(
-                meta,
-                pos,
-                format!("Failed to parse function declaration '{}'", self.name)
-            )
-        })
+        )
     }
 }
 
@@ -272,7 +379,9 @@ impl TypeCheckModule for FunctionDeclaration {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Check if we are in the global scope
         if !meta.is_global_scope() {
-            return error!(meta, self.name_token.clone(),
+            return error!(
+                meta,
+                self.name_token.clone(),
                 "Functions can only be declared in the global scope"
             );
         }
@@ -285,7 +394,9 @@ impl TypeCheckModule for FunctionDeclaration {
             let mut seen_argument_names = HashSet::new();
             for arg in &self.args {
                 if !seen_argument_names.insert(arg.name.clone()) {
-                    return error!(meta, arg.tok.clone(),
+                    return error!(
+                        meta,
+                        arg.tok.clone(),
                         format!("Argument '{}' is already defined", arg.name)
                     );
                 }
@@ -306,14 +417,18 @@ impl TypeCheckModule for FunctionDeclaration {
 
                     // Validate optional argument type
                     if !expr.get_type().is_allowed_in(&arg.kind) {
-                        return error!(meta, arg.tok.clone(),
+                        return error!(
+                            meta,
+                            arg.tok.clone(),
                             "Optional argument does not match annotated type"
                         );
                     }
 
                     optional_started = true;
                 } else if optional_started {
-                    return error!(meta, arg.tok.clone(),
+                    return error!(
+                        meta,
+                        arg.tok.clone(),
                         "All arguments following an optional argument must also be optional"
                     );
                 }
@@ -339,6 +454,7 @@ impl TypeCheckModule for FunctionDeclaration {
                 ctx,
                 block,
             )?;
+
             Ok(())
         })
     }
@@ -359,9 +475,22 @@ impl TranslateModule for FunctionDeclaration {
                 index,
                 &self.returns,
             ));
+
+            // Document in code function variant
+            let argument_types = izip!(self.args.iter(), function.args.iter())
+                .map(|(arg, ty)| format!("{}: {}", arg.name, ty))
+                .join(", ");
+            let function_name = &self.name;
+            result.push(raw_fragment!("# {function_name}({argument_types})"));
+
             // Parse the function body
             let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
-            result.push(fragments!(name, "() {"));
+            // required for the local scope in ksh
+            if matches!(meta.target.shell, ShellType::Ksh) {
+                result.push(fragments!("function ", name, " {"));
+            } else {
+                result.push(fragments!(name, "() {"));
+            }
             if let Some(args) = self.set_args_as_variables(meta, function) {
                 result.push(args);
             }
@@ -393,9 +522,16 @@ impl DocumentationModule for FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn insert_usage_import_statement(&self, meta: &ParserMetadata, mut comment_text: String) -> String {
+    fn insert_usage_import_statement(
+        &self,
+        meta: &ParserMetadata,
+        mut comment_text: String,
+    ) -> String {
         if meta.doc_usage {
-            let lib_name = meta.context.path.as_ref()
+            let lib_name = meta
+                .context
+                .path
+                .as_ref()
                 .map(Path::new)
                 .and_then(Path::file_name)
                 .and_then(OsStr::to_str)
@@ -407,9 +543,11 @@ impl FunctionDeclaration {
             let usage_pattern = regex::Regex::new(r"#\s*Usage\s+```ab").unwrap();
             if usage_pattern.is_match(&comment_text) {
                 // Insert import statement after "# Usage"
-                return usage_pattern.replace(&comment_text, |caps: &regex::Captures| {
-                    format!("{}\n{}", &caps[0], import_stmt)
-                }).to_string();
+                return usage_pattern
+                    .replace(&comment_text, |caps: &regex::Captures| {
+                        format!("{}\n{}", &caps[0], import_stmt)
+                    })
+                    .to_string();
             } else {
                 comment_text += "```ab\n";
                 comment_text += &import_stmt;

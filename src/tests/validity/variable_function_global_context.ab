@@ -1,7 +1,0 @@
-fun set() {
-    let var = "abc"
-}
-set()
-let var = "Succeeded"
-
-echo var

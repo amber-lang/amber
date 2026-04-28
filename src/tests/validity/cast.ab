@@ -4,5 +4,5 @@ fun foo(input: Text): Bool {
 }
 
 if foo("15") {
-    echo "Succeeded"
+    echo("Succeeded")
 }

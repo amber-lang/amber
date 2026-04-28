@@ -1,10 +1,10 @@
 import * from "std/fs"
 
 main {
-    let tmpdir = temp_dir_create("amber-XXXX", true)?
+    const tmpdir = temp_dir_create("amber-XXXX", true)?
     if dir_exists(tmpdir) {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

@@ -1,0 +1,13 @@
+// Output
+// hellohello
+
+#[allow_dead_code]
+fun test_narrow_else(x: Text | Int) {
+    if x is Int {
+        echo("is int")
+    } else {
+        echo(x + x)
+    }
+}
+
+test_narrow_else("hello")

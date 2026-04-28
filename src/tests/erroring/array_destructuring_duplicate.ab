@@ -1,0 +1,5 @@
+// Output
+// Cannot redeclare 'a' in the same scope
+
+let array = [1, 2, 3]
+let [a, a] = array

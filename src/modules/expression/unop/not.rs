@@ -1,14 +1,29 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
-use crate::modules::types::{Type, Typed};
-use crate::docs::module::DocumentationModule;
 use super::super::expr::Expr;
 use super::UnOp;
+use crate::docs::module::DocumentationModule;
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
+use amber_meta::AutoKeyword;
+use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+use std::collections::HashMap;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "not"]
 pub struct Not {
-    expr: Box<Expr>
+    expr: Box<Expr>,
+}
+
+impl Not {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        self.expr.analyze_control_flow().map(|b| !b)
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        let (true_facts, false_facts) = self.expr.extract_facts();
+        (false_facts, true_facts)
+    }
 }
 
 impl Typed for Not {
@@ -19,7 +34,7 @@ impl Typed for Not {
 
 impl UnOp for Not {
     fn set_expr(&mut self, expr: Expr) {
-        self.expr = Box::new(expr);
+        *self.expr = expr;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -33,7 +48,7 @@ impl SyntaxModule<ParserMetadata> for Not {
 
     fn new() -> Self {
         Not {
-            expr: Box::new(Expr::new())
+            expr: Box::new(Expr::new()),
         }
     }
 

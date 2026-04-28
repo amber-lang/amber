@@ -3,7 +3,7 @@
 
 fun foo(ref array) {
     for i in array {
-        echo i
+        echo(i)
     }
 }
 

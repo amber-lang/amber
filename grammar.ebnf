@@ -22,6 +22,7 @@ statement_global =
     import_all |
     import_ids |
     main |
+    test |
     statement_local ;
 
 (* Block *)
@@ -38,7 +39,7 @@ expression =
     function_call |
     function_call_failed |
     identifier |
-    list |
+    array |
     null |
     number |
     parentheses |
@@ -49,16 +50,21 @@ expression =
     unary_operation |
     expression_index ;
 
-(* Keywords *)
+(* Keywords - auto-generated at build time *)
 KEYWORD_AND = 'and' ;
 KEYWORD_AS = 'as' ;
+KEYWORD_AWAIT = 'await' ;
 KEYWORD_BREAK = 'break' ;
 KEYWORD_CD = 'cd' ;
+KEYWORD_CLEAR = 'clear' ;
 KEYWORD_CONST = 'const' ;
 KEYWORD_CONTINUE = 'continue' ;
+KEYWORD_CP = 'cp' ;
+KEYWORD_DISOWN = 'disown' ;
 KEYWORD_ECHO = 'echo' ;
 KEYWORD_ELSE = 'else' ;
 KEYWORD_EXIT = 'exit' ;
+KEYWORD_EXITED = 'exited' ;
 KEYWORD_FAIL = 'fail' ;
 KEYWORD_FAILED = 'failed' ;
 KEYWORD_FOR = 'for' ;
@@ -71,22 +77,32 @@ KEYWORD_IS = 'is' ;
 KEYWORD_LEN = 'len' ;
 KEYWORD_LET = 'let' ;
 KEYWORD_LINES = 'lines' ;
+KEYWORD_LOCK = 'lock' ;
 KEYWORD_LOOP = 'loop' ;
+KEYWORD_LS = 'ls' ;
 KEYWORD_MAIN = 'main' ;
 KEYWORD_MV = 'mv' ;
 KEYWORD_NAMEOF = 'nameof' ;
 KEYWORD_NOT = 'not' ;
 KEYWORD_OR = 'or' ;
+KEYWORD_PID = 'pid' ;
 KEYWORD_PUB = 'pub' ;
+KEYWORD_PWD = 'pwd' ;
 KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
+KEYWORD_RM = 'rm' ;
+KEYWORD_SHELLNAME = 'shellname' ;
+KEYWORD_SHELLVERSION = 'shellversion' ;
 KEYWORD_SILENT = 'silent' ;
+KEYWORD_SLEEP = 'sleep' ;
 KEYWORD_STATUS = 'status' ;
-KEYWORD_SUDO = 'sudo' ;
 KEYWORD_SUCCEEDED = 'succeeded' ;
+KEYWORD_SUDO = 'sudo' ;
+KEYWORD_SUPPRESS = 'suppress' ;
+KEYWORD_TEST = 'test' ;
 KEYWORD_THEN = 'then' ;
+KEYWORD_TOUCH = 'touch' ;
 KEYWORD_TRUST = 'trust' ;
-KEYWORD_EXITED = 'exited' ;
 KEYWORD_UNSAFE = 'unsafe' ;
 KEYWORD_WHILE = 'while' ;
 
@@ -94,7 +110,8 @@ KEYWORD_WHILE = 'while' ;
 ANY_CHAR = ? any character ? ;
 LETTER = 'A'..'Z' | 'a'..'z' ;
 DIGIT = '0'..'9' ;
-TYPE = 'Text' | 'Num' | 'Bool' | 'Null';
+TYPE = SIMPLE_TYPE, { '|', SIMPLE_TYPE } ;
+SIMPLE_TYPE = 'Text' | 'Num' | 'Bool' | 'Null' | 'Int' | '[', TYPE, ']' ;
 UNARY_OP = '-' | KEYWORD_NOT ;
 BINARY_OP = '+' | '-' | '*' | '/' | '%' | KEYWORD_AND | KEYWORD_OR | '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 VISIBILITY = KEYWORD_PUB ;
@@ -119,14 +136,14 @@ boolean = 'true' | 'false' ;
 (* `Null` literal *)
 null = 'null' ;
 
-(* `List` literal *)
-empty_list = '[', TYPE, ']' ;
-full_list = '[', [ expression, { ',', expression } ], ']' ;
-list = empty_list | full_list ;
+(* `Array` literal *)
+empty_array = '[', [ TYPE ], ']' ;
+full_array = '[', [ expression, { ',', expression } ], ']' ;
+array = empty_array | full_array ;
 
 (* Command expression *)
 (* The ordering of command modifiers doesn't matter *)
-command_modifier = [ KEYWORD_SILENT ], [ KEYWORD_TRUST ], [ KEYWORD_SUDO ] ;
+command_modifier = [ KEYWORD_SILENT | KEYWORD_SUPPRESS ], [ KEYWORD_TRUST ], [ KEYWORD_SUDO ] ;
 command_modifier_block = command_modifier, multiline_block ;
 command_base = '$', { ANY_CHAR | interpolation }, '$' ;
 command = command_modifier, command_base, [ handler ] ;
@@ -141,7 +158,7 @@ parentheses = '(', expression, ')' ;
 
 (* Failure handler *)
 failure_propagation = '?';
-failure_block = KEYWORD_FAILED, {'(', identifier, ')'}, block ;
+failure_block = KEYWORD_FAILED, [ '(', identifier, ')' ], block ;
 failure_handler = failure_propagation | failure_block ;
 
 (* Success handler *)
@@ -149,24 +166,28 @@ success_block = KEYWORD_SUCCEEDED, block ;
 success_handler = success_block ;
 
 (* Exited handler *)
-exited_block = KEYWORD_EXITED, {'(', identifier, ')'}, block ;
+exited_block = KEYWORD_EXITED, [ '(', identifier, ')' ], block ;
 exited_handler = exited_block ;
 
 (* All handlers combined *)
 handler = success_handler | failure_handler | exited_handler ;
 
+(* Attributes *)
+attribute_name = any_identifier ;
+attribute = '#[', attribute_name, ']' ;
+
 (* Variable *)
 variable_index = '[', expression, ']' ;
-variable_init_mut = KEYWORD_LET, identifier, '=', expression ;
-variable_init_const = KEYWORD_CONST, identifier, '=', expression ;
+variable_init_mut = { attribute }, [ VISIBILITY ], KEYWORD_LET, identifier, '=', expression ;
+variable_init_const = { attribute }, [ VISIBILITY ], KEYWORD_CONST, identifier, '=', expression ;
 variable_get = identifier ;
 variable_set = identifier, variable_index?, '=', expression ;
 
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
-function_def = [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
-function_def_typed = [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
+function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
+function_def_typed = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
     [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
 
 (* Loop *)
@@ -195,21 +216,36 @@ import_ids = [ VISIBILITY ], KEYWORD_IMPORT, '{', { identifier, [ KEYWORD_AS, id
 (* Comment *)
 comment = '//', { ANY_CHAR }, '\n' ;
 
-(* Built-ins *)
-builtins_statement =
-    builtin_cd |
-    builtin_echo |
-    builtin_exit |
-    builtin_mv ;
+
+
+builtins_statement = builtin_await | builtin_cd | builtin_clear | builtin_cp | builtin_disown | builtin_echo | builtin_exit | builtin_lock | builtin_mv | builtin_rm | builtin_sleep | builtin_touch ;
+
+(* Builtins *)
+builtin_await = KEYWORD_AWAIT, expression ;
 builtin_cd = KEYWORD_CD, expression ;
+builtin_clear = KEYWORD_CLEAR ;
+builtin_cp = KEYWORD_CP, expression ;
+builtin_disown = KEYWORD_DISOWN, expression ;
 builtin_echo = KEYWORD_ECHO, expression ;
 builtin_exit = KEYWORD_EXIT, expression ;
+builtin_lock = KEYWORD_LOCK, expression ;
 builtin_mv = KEYWORD_MV, expression ;
+builtin_rm = KEYWORD_RM, expression ;
+builtin_sleep = KEYWORD_SLEEP, expression ;
+builtin_touch = KEYWORD_TOUCH, expression ;
 
-builtins_expression =
-    builtin_len |
-    builtin_lines |
-    builtin_nameof ;
+builtins_expression = builtin_len | builtin_lines | builtin_ls | builtin_nameof | builtin_pid | builtin_pwd | builtin_shellname | builtin_shellversion ;
+
 builtin_len = KEYWORD_LEN, expression ;
 builtin_lines = KEYWORD_LINES, expression ;
+builtin_ls = KEYWORD_LS, expression ;
 builtin_nameof = KEYWORD_NAMEOF, expression ;
+builtin_pid = KEYWORD_PID ;
+builtin_pwd = KEYWORD_PWD, expression ;
+builtin_shellname = KEYWORD_SHELLNAME ;
+builtin_shellversion = KEYWORD_SHELLVERSION ;
+
+
+(* Test *)
+test_name = '"', { ANY_CHAR }, '"' ;
+test = KEYWORD_TEST, [ test_name ], block ;

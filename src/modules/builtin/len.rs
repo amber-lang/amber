@@ -1,13 +1,17 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
+
 use crate::modules::prelude::*;
-use crate::modules::types::{Type, Typed};
 use crate::modules::typecheck::TypeCheckModule;
+use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "len"]
+#[kind = "builtin_expr"]
 pub struct Len {
     value: Box<Expr>,
 }
@@ -20,7 +24,7 @@ impl Typed for Len {
 
 impl UnOp for Len {
     fn set_expr(&mut self, expr: Expr) {
-        self.value = Box::new(expr);
+        *self.value = expr;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -47,8 +51,9 @@ impl TypeCheckModule for Len {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Typecheck the expression first
         self.value.typecheck(meta)?;
-        
-        if !matches!(self.value.get_type(), Type::Text | Type::Array(_)) {
+
+        let accepted_types = Type::Union(vec![Type::Text, Type::array_of(Type::Generic)]);
+        if !self.value.get_type().is_allowed_in(&accepted_types) {
             let msg = self
                 .value
                 .get_error_message(meta)
@@ -63,8 +68,11 @@ impl TranslateModule for Len {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
         let id = meta.gen_value_id();
-        let var_stmt = VarStmtFragment::new("__length", self.value.get_type(), value).with_global_id(id);
-        meta.push_ephemeral_variable(var_stmt).with_length_getter(true).to_frag()
+        let var_stmt =
+            VarStmtFragment::new("__length", self.value.get_type(), value).with_global_id(id);
+        meta.push_ephemeral_variable(var_stmt)
+            .with_length_getter(true)
+            .to_frag()
     }
 }
 

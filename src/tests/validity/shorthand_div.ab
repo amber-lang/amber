@@ -5,12 +5,12 @@
 
 let x = 21
 x /= 3
-echo x
+echo(x)
 
 let y = 39.25
 y /= 3.14
-echo y
+echo(y)
 
 let z = 21.75
 z /= 3
-echo z
+echo(z)

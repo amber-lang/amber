@@ -1,0 +1,9 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+a_1=10
+b_2="${a_1}"
+c_3="${a_1}"
+    c_3="${b_2}"
+echo "${c_3}"

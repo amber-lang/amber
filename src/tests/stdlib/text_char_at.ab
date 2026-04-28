@@ -6,7 +6,7 @@ import * from "std/text"
 // o
 
 main {
-    echo char_at("hello world", 0); 
-    echo char_at("hello world", -1); 
-    echo char_at("hello world", 4); 
+    echo(char_at("hello world", 0))
+    echo(char_at("hello world", -1))
+    echo(char_at("hello world", 4))
 }

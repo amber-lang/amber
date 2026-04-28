@@ -1,0 +1,38 @@
+import * from "std/array"
+import * from "std/fs"
+
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    for file in expected {
+        if not array_contains(actual, file) {
+            return false
+        }
+    }
+    return true
+}
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    const subdir = "{tmpdir}/dir with spaces"
+    dir_create(subdir)?
+    trust {
+        trust touch("{subdir}/alpha.txt")
+        trust touch("{subdir}/beta.txt")
+        trust touch("{subdir}/gamma.txt")
+    }
+
+    // Test bracket pattern with spaces in path
+    const expected = [
+        "{subdir}/alpha.txt",
+        "{subdir}/beta.txt",
+    ]
+    const actual = file_glob("{subdir}/[ab]*")
+    if compare(actual, expected) {
+        echo("Succeeded")
+    } else {
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
+    }
+}

@@ -1,0 +1,42 @@
+import { sort } from "std/array"
+
+// Output
+// Array length: 7
+// [-5 1 12 2 a c d]
+// Array length: 7
+// [1 2 12 a c d -5]
+// Array length: 7
+// [d c a 2 12 1 -5]
+// Array length: 4
+// [-2 5 7 10]
+// Array length: 4
+// [10 7 5 -2]
+// Array length: 4
+// [-2 5 7 10]
+// Array length: 4
+// [-5.4 2.34 6.1 11.5]
+// Array length: 4
+// [11.5 6.1 2.34 -5.4]
+// Array length: 2
+// [0 1]
+// Array length: 2
+// [ ]
+
+fun test_sort(arr: [], desc: Bool, version_sort: Bool) {
+    sort(arr, desc, version_sort)
+    echo("Array length: {len(arr)}")
+    echo("[{arr}]")
+}
+
+main {
+    test_sort(["c", "d", "a", "1", "12", "2", "-5"], false, false)
+    test_sort(["c", "d", "a", "1", "12", "2", "-5"], false, true)
+    test_sort(["c", "d", "a", "1", "12", "2", "-5"], true, false)
+    test_sort([7, 10, 5, -2], false, false)
+    test_sort([7, 10, 5, -2], true, false)
+    test_sort([7, 10, 5, -2], false, true)
+    test_sort([11.5, 6.1, -5.4, 2.34], false, false)
+    test_sort([11.5, 6.1, -5.4, 2.34], true, false)
+    test_sort([true, false], false, false)
+    test_sort([null, null], false, false)
+}

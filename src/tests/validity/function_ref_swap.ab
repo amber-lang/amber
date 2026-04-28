@@ -3,7 +3,7 @@
 // 12
 
 fun swap(ref a, ref b) {
-    let temp = a
+    const temp = a
     a = b
     b = temp
 }
@@ -13,5 +13,5 @@ let b = 24
 
 swap(a, b)
 
-echo a
-echo b
+echo(a)
+echo(b)

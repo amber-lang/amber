@@ -1,0 +1,28 @@
+// Output
+// 30
+// If branch: a is an Int
+// Else branch: a is not an Int
+
+fun test_and(a: Text | Int | Bool, b: Text | Int) {
+    if a is Int and b is Int {
+        const result = a + b
+        echo(result)
+    }
+
+    if a is Int and a is Int {
+        // a is Int
+        const result = a is Int
+            then "a is an Int"
+            else "a is not an Int"
+        echo("If branch: {result}")
+    } else {
+        // a is Text | Bool
+        const result = a is Int
+            then "a is an Int"
+            else "a is not an Int"
+        echo("Else branch: {result}")
+    }
+}
+
+test_and(10, 20)
+test_and("test", 20)

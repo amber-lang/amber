@@ -1,18 +1,20 @@
 use std::fmt::Display;
 
+use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use crate::utils::ParserMetadata;
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum Type {
-    #[default] Null,
+    #[default]
+    Null,
     Text,
     Bool,
     Num,
     Int,
     Array(Box<Type>),
-    Generic
+    Union(Vec<Type>),
+    Generic,
 }
 
 impl Type {
@@ -23,37 +25,92 @@ impl Type {
 
     pub fn is_subset_of(&self, other: &Type) -> bool {
         match (self, other) {
+            (Type::Generic, Type::Generic) => false,
             (_, Type::Generic) => true,
             (Type::Int, Type::Num) => true,
             (Type::Array(current), Type::Array(other)) => match (&**current, &**other) {
                 (current, Type::Generic) if *current != Type::Generic => true,
                 (Type::Int, Type::Num) => true,
-                _ => false
+                (a, b) => a.is_subset_of(b),
             },
-            _ => false
+            (Type::Union(types), other) => types.iter().all(|t| t.is_allowed_in(other)),
+            (other, Type::Union(types)) => types.iter().any(|t| other.is_allowed_in(t)),
+            _ => false,
+        }
+    }
+
+    pub fn is_subseteq_of(&self, other: &Type) -> bool {
+        self == other || self.is_subset_of(other)
+    }
+
+    /// Excludes a type from the current type
+    pub fn exclude(&self, other: &Type) -> Option<Type> {
+        match self {
+            Type::Union(types) => {
+                let mut new_types = Vec::new();
+                // Iterate over all types and exclude the type from the union
+                for t in types {
+                    if let Some(remaining) = t.exclude(other) {
+                        new_types.push(remaining);
+                    }
+                }
+                if new_types.is_empty() {
+                    None
+                } else if new_types.len() == 1 {
+                    Some(new_types[0].clone())
+                } else {
+                    Some(Type::Union(new_types))
+                }
+            }
+            t => {
+                if t.is_subseteq_of(other) {
+                    None
+                } else {
+                    Some(t.clone())
+                }
+            }
         }
     }
 
     pub fn is_allowed_in(&self, other: &Type) -> bool {
-        self == other || self.is_subset_of(other)
+        if self == &Type::Generic || self.is_subseteq_of(other) {
+            return true;
+        }
+
+        if let (Type::Array(const_type), Type::Array(other_type)) = (self, other) {
+            return **const_type == Type::Generic && **other_type != Type::Generic;
+        }
+
+        false
     }
 
     pub fn is_array(&self) -> bool {
         matches!(self, Type::Array(_))
     }
 
-    pub fn pretty_join(types: &[Self], op: &str) -> String {
-        let mut all_types = types.iter().map(|kind| kind.to_string()).collect_vec();
-        let last_item = all_types.pop();
-        let comma_separated = all_types.iter().join(", ");
-        if let Some(last) = last_item {
-            if types.len() == 1 {
-                last
-            } else {
-                [comma_separated, last].join(&format!(" {op} "))
-            }
-        } else {
-            comma_separated
+    pub fn is_strictly_typed(&self) -> bool {
+        match self {
+            Type::Generic => false,
+            Type::Union(_) => false,
+            Type::Array(inner) => inner.is_strictly_typed(),
+            _ => true,
+        }
+    }
+
+    // Checks if two types can possibly intersect
+    pub fn can_intersect(&self, other: &Type) -> bool {
+        match (self, other) {
+            (a, b) if a == b => true,
+            (Type::Int, Type::Num) | (Type::Num, Type::Int) => true,
+            // Union types
+            (Type::Union(types), target) => types.iter().any(|t| t.can_intersect(target)),
+            (target, Type::Union(types)) => types.iter().any(|t| target.can_intersect(t)),
+            // Array types
+            (Type::Array(inner_a), Type::Array(inner_b)) => inner_a.can_intersect(inner_b),
+            // Generic can be anything
+            (Type::Generic, _) | (_, Type::Generic) => true,
+            // Different primitive types never intersect
+            _ => false,
         }
     }
 }
@@ -66,12 +123,15 @@ impl Display for Type {
             Type::Num => write!(f, "Num"),
             Type::Int => write!(f, "Int"),
             Type::Null => write!(f, "Null"),
-            Type::Array(t) => if **t == Type::Generic {
+            Type::Array(t) => {
+                if **t == Type::Generic {
                     write!(f, "[]")
                 } else {
                     write!(f, "[{t}]")
-                },
-            Type::Generic => write!(f, "Generic")
+                }
+            }
+            Type::Union(types) => write!(f, "{}", types.iter().map(|t| t.to_string()).join(" | ")),
+            Type::Generic => write!(f, "Generic"),
         }
     }
 }
@@ -83,12 +143,39 @@ pub trait Typed {
 // Tries to parse the type - if it fails, it fails loudly
 pub fn parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
-    try_parse_type(meta)
-        .map_err(|_| Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type")))
+    try_parse_type(meta).map_err(|_| {
+        Failure::Loud(Message::new_err_at_token(meta, tok).message("Expected a data type"))
+    })
 }
 
 // Tries to parse the type - if it fails, it fails quietly
 pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
+    let mut left = try_parse_simple_type(meta)?;
+    // Parse union type
+    while token(meta, "|").is_ok() {
+        let right = try_parse_simple_type(meta)?;
+        left = match (left, right) {
+            (Type::Union(mut left_types), Type::Union(mut right_types)) => {
+                left_types.append(&mut right_types);
+                Type::Union(left_types)
+            }
+            (Type::Union(mut left_types), right) => {
+                left_types.push(right);
+                Type::Union(left_types)
+            }
+            (left, Type::Union(mut right_types)) => {
+                let mut left_types = vec![left];
+                left_types.append(&mut right_types);
+                Type::Union(left_types)
+            }
+            (left, right) => Type::Union(vec![left, right]),
+        }
+    }
+
+    Ok(left)
+}
+
+fn try_parse_simple_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
     let tok = meta.get_current_token();
     let res = match tok.clone() {
         Some(matched_token) => {
@@ -96,23 +183,23 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                 "Text" => {
                     meta.increment_index();
                     Ok(Type::Text)
-                },
+                }
                 "Bool" => {
                     meta.increment_index();
                     Ok(Type::Bool)
-                },
+                }
                 "Num" => {
                     meta.increment_index();
                     Ok(Type::Num)
-                },
+                }
                 "Int" => {
                     meta.increment_index();
                     Ok(Type::Int)
-                },
+                }
                 "Null" => {
                     meta.increment_index();
                     Ok(Type::Null)
-                },
+                }
                 "[" => {
                     let index = meta.get_index();
                     meta.increment_index();
@@ -120,41 +207,56 @@ pub fn try_parse_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                         Ok(Type::Array(Box::new(Type::Generic)))
                     } else {
                         match try_parse_type(meta) {
-                            Ok(Type::Array(_)) => error!(meta, tok, "Arrays cannot be nested due to the Bash limitations"),
+                            Ok(Type::Array(_)) => error!(
+                                meta,
+                                tok, "Arrays cannot be nested due to the Bash limitations"
+                            ),
+                            Ok(Type::Union(_)) => {
+                                error!(meta, tok, "Arrays don't support mixed type values")
+                            }
                             Ok(result_type) => {
                                 token(meta, "]")?;
                                 Ok(Type::Array(Box::new(result_type)))
-                            },
+                            }
                             Err(_) => {
                                 meta.set_index(index);
                                 Err(Failure::Quiet(PositionInfo::at_eof(meta)))
                             }
                         }
                     }
-                },
+                }
                 // Error messages to help users of other languages understand the syntax
                 text @ ("String" | "Char") => {
-                    error!(meta, tok, format!("'{text}' is not a valid data type. Did you mean 'Text'?"))
-                },
+                    error!(
+                        meta,
+                        tok,
+                        format!("'{text}' is not a valid data type. Did you mean 'Text'?")
+                    )
+                }
                 number @ ("Number" | "Float" | "Double") => {
-                    error!(meta, tok, format!("'{number}' is not a valid data type. Did you mean 'Num'?"))
-                },
+                    error!(
+                        meta,
+                        tok,
+                        format!("'{number}' is not a valid data type. Did you mean 'Num'?")
+                    )
+                }
                 "Boolean" => {
-                    error!(meta, tok, "'Boolean' is not a valid data type. Did you mean 'Bool'?")
-                },
+                    error!(
+                        meta,
+                        tok, "'Boolean' is not a valid data type. Did you mean 'Bool'?"
+                    )
+                }
                 array @ ("List" | "Array") => {
                     error!(meta, tok => {
                         message: format!("'{array}'<T> is not a valid data type. Did you mean '[T]'?"),
                         comment: "Where 'T' is the type of the array elements"
                     })
-                },
+                }
                 // The quiet error
-                _ => Err(Failure::Quiet(PositionInfo::at_eof(meta)))
+                _ => Err(Failure::Quiet(PositionInfo::at_eof(meta))),
             }
-        },
-        None => {
-            Err(Failure::Quiet(PositionInfo::at_eof(meta)))
         }
+        None => Err(Failure::Quiet(PositionInfo::at_eof(meta))),
     };
 
     res
@@ -178,6 +280,7 @@ mod tests {
         let b = Type::Array(Box::new(Type::Generic));
 
         assert!(!b.is_subset_of(&a));
+        assert!(b.is_allowed_in(&a));
     }
 
     #[test]

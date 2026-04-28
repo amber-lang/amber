@@ -1,0 +1,10 @@
+// Output
+// Index out of bounds \(at src/tests/runtime/index_out_of_bounds_array_index_ref.ab:6:14\)
+
+fun foo(ref arr: [Text]) {
+    echo(arr[0])
+    echo(arr[5])
+}
+
+let items = ["a", "b"]
+foo(items)

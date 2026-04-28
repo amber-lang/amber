@@ -1,0 +1,9 @@
+import { uname_kernel_release } from "std/env"
+
+main {
+    let release = uname_kernel_release()
+    // Should return non-empty kernel release version
+    if release != "" {
+        echo("Succeeded")
+    }
+}

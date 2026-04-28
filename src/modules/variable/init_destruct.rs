@@ -1,0 +1,193 @@
+use heraclitus_compiler::prelude::*;
+use std::collections::HashSet;
+
+use super::{handle_identifier_name, variable_name_extensions};
+use crate::modules::expression::expr::Expr;
+use crate::modules::types::{Type, Typed};
+use crate::modules::{handle_symbol_scope_declaration, prelude::*};
+use crate::raw_fragment;
+use crate::translate::fragments::var_expr::{format_position, VarIndexValue};
+use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
+use crate::utils::context::{VariableDecl, VariableDeclWarn};
+use crate::utils::metadata::ParserMetadata;
+
+#[derive(Debug, Clone)]
+pub struct VariableInitDestruct {
+    names: Vec<String>,
+    expr: Box<Expr>,
+    global_ids: Vec<Option<usize>>,
+    is_fun_ctx: bool,
+    is_const: bool,
+    is_public: bool,
+    toks: Vec<Option<Token>>,
+    flags: HashSet<CCFlags>,
+}
+
+impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
+    syntax_name!("Variable Initialize Destructuring");
+
+    fn new() -> Self {
+        VariableInitDestruct {
+            names: vec![],
+            expr: Box::new(Expr::new()),
+            global_ids: vec![],
+            is_fun_ctx: false,
+            is_const: false,
+            is_public: false,
+            toks: vec![],
+            flags: HashSet::new(),
+        }
+    }
+
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        while let Ok(flag) = token_by(meta, |val| val.starts_with("#[")) {
+            self.flags
+                .insert(get_ccflag_by_name(&flag[2..flag.len() - 1]));
+        }
+
+        if token(meta, "pub").is_ok() {
+            self.is_public = true;
+        }
+
+        let keyword = token_by(meta, |word| ["let", "const"].contains(&word.as_str()))?;
+        self.is_const = keyword == "const";
+
+        if self.is_public && !self.is_const && !self.flags.contains(&CCFlags::AllowPublicMutable) {
+            let flag = get_ccflag_name(CCFlags::AllowPublicMutable);
+            return error!(meta, meta.get_current_token() => {
+                message: "Public variables must be constants",
+                comment: format!("Mutable public variables create shared global state.\nUse 'pub const' or add '#[{flag}]' to allow this.")
+            });
+        }
+
+        token(meta, "[")?;
+        loop {
+            let tok = meta.get_current_token();
+            let name = variable(meta, variable_name_extensions())?;
+            self.names.push(name);
+            self.toks.push(tok);
+
+            if token(meta, ",").is_err() {
+                break;
+            }
+        }
+        if let Err(err) = token(meta, "]") {
+            return error_pos!(
+                meta,
+                err.unwrap_quiet(),
+                format!(
+                    "Expected ']' after destructuring '{}'",
+                    self.names.join(", ")
+                )
+            );
+        }
+        if let Err(err) = token(meta, "=") {
+            return error_pos!(
+                meta,
+                err.unwrap_quiet(),
+                format!(
+                    "Expected '=' after destructuring '{}'",
+                    self.names.join(", ")
+                )
+            );
+        }
+        syntax(meta, &mut *self.expr)?;
+        self.is_fun_ctx = meta.context.is_fun_ctx;
+        Ok(())
+    }
+}
+
+impl TypeCheckModule for VariableInitDestruct {
+    fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        self.expr.typecheck(meta)?;
+
+        // Ensure the expression is an array of known type
+        let inner_type = match self.expr.get_type() {
+            Type::Array(inner) if *inner == Type::Generic => {
+                let pos = self.expr.get_position();
+                return error_pos!(meta, pos => {
+                    message: "Cannot destructure array because its concrete type is unknown",
+                    comment: "Please add an explicit type annotation to this array value before destructuring"
+                });
+            }
+            Type::Array(inner) => *inner,
+            _ => {
+                let pos = self.expr.get_position();
+                return error_pos!(
+                    meta,
+                    pos,
+                    format!(
+                        "Destructuring initialization requires an array type, but received '{}'",
+                        self.expr.get_type()
+                    )
+                );
+            }
+        };
+
+        for (name, tok) in self.names.iter().zip(self.toks.iter()) {
+            handle_identifier_name(meta, name, tok.clone())?;
+            handle_symbol_scope_declaration(meta, name, tok.clone())?;
+            let var = VariableDecl::new(name.clone(), inner_type.clone())
+                .with_warn(
+                    VariableDeclWarn::from_token(meta, tok.clone())
+                        .warn_when_unmodified(!self.is_const && !meta.is_global_scope())
+                        .warn_when_unused(!meta.is_global_scope()),
+                )
+                .with_const(self.is_const)
+                .with_public(self.is_public);
+            self.global_ids.push(meta.add_var(var));
+        }
+
+        Ok(())
+    }
+}
+
+impl TranslateModule for VariableInitDestruct {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let expr = self.expr.translate(meta);
+
+        let mut fragments = vec![];
+
+        // Assign expression to temp array
+        let temp_array_name = format!("array_destruct_{}", meta.gen_value_id());
+        let assign_temp = VarStmtFragment::new(&temp_array_name, self.expr.get_type(), expr)
+            .with_local(self.is_fun_ctx)
+            .with_optimization_when_unused(false);
+        fragments.push(assign_temp.clone().to_frag());
+
+        let inner_type = match self.expr.get_type() {
+            Type::Array(t) => *t,
+            _ => unreachable!("Type of expression is not an array in init destructuring"),
+        };
+
+        for (i, name) in self.names.iter().enumerate() {
+            let token = self.toks[i].clone().unwrap();
+            let var_position = PositionInfo::at_pos(
+                self.expr.get_position().path,
+                token.pos,
+                token.start,
+                token.word.chars().count(),
+            );
+            let position = format_position(Some(&var_position));
+
+            let assign_expr = VarExprFragment::from_stmt(&assign_temp)
+                .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
+                .with_index_pos(position)
+                .to_frag();
+
+            let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)
+                .with_global_id(self.global_ids[i])
+                .with_local(self.is_fun_ctx)
+                .to_frag();
+            fragments.push(assign_var);
+        }
+
+        BlockFragment::new(fragments, false).to_frag()
+    }
+}
+
+impl DocumentationModule for VariableInitDestruct {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
+    }
+}

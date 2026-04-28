@@ -1,16 +1,16 @@
-import { match_regex, join, replace_regex, split, trim } from "std/text"
+import { match_regex, trim } from "std/text"
 
 /// Checks if a directory exists.
 ///
 /// ### Usage
 /// ```ab
 /// if dir_exists("/tmp/mydir") {
-///     echo "Directory exists"
+///     echo("Directory exists")
 /// }
 /// ```
 pub fun dir_exists(path: Text): Bool {
     trust $ [ -d "{path}" ] $
-    return status == 0
+    return status() == 0
 }
 
 /// Checks if a file exists.
@@ -18,12 +18,12 @@ pub fun dir_exists(path: Text): Bool {
 /// ### Usage
 /// ```ab
 /// if file_exists("config.txt") {
-///     echo "File exists"
+///     echo("File exists")
 /// }
 /// ```
 pub fun file_exists(path: Text): Bool {
     trust $ [ -f "{path}" ] $
-    return status == 0
+    return status() == 0
 }
 
 /// Gets file contents from a path.
@@ -44,7 +44,7 @@ pub fun file_read(path: Text): Text? {
 /// file_write("output.txt", "Hello, World!")
 /// ```
 pub fun file_write(path: Text, content: Text): Text? {
-    return $ echo "{content}" > "{path}" $?
+    return $ printf '%s\n' "{content}" > "{path}" $?
 }
 
 /// Appends content to a file.
@@ -56,10 +56,10 @@ pub fun file_write(path: Text, content: Text): Text? {
 /// file_append("log.txt", "New log entry")
 /// ```
 pub fun file_append(path: Text, content: Text): Text? {
-    return $ echo "{content}" >> "{path}" $?
+    return $ printf '%s\n' "{content}" >> "{path}" $?
 }
 
-/// Creates a symbolic link.
+/// Creates a symbolic link, if destination exists it will be replaced.
 ///
 /// If the file doesn't exist, it fails and prints a message.
 ///
@@ -69,11 +69,11 @@ pub fun file_append(path: Text, content: Text): Text? {
 /// ```
 pub fun symlink_create(origin: Text, destination: Text): Null? {
     if file_exists(origin) {
-        $ ln -s "{origin}" "{destination}" $?
+        $ ln -fs "{origin}" "{destination}" $?
         return null
     }
 
-    echo "The file {origin} doesn't exist!"
+    echo("The file {origin} doesn't exist!")
     fail 1
 }
 
@@ -111,7 +111,7 @@ pub fun temp_dir_create(
     force_delete: Bool = false
 ): Text? {
     if trim(template) == "" {
-        echo "The template cannot be an empty string!"
+        echo("The template cannot be an empty string!")
         fail 1
     }
 
@@ -124,17 +124,17 @@ pub fun temp_dir_create(
         filename = $ mktemp -d -p "\$TMPDIR" -t "{template}" $?
     }
     if filename == "" {
-        echo "Failed to make a temporary directory"
+        echo("Failed to make a temporary directory")
         fail 1
     }
-    if auto_delete {
+    if auto_delete and shellname() != "ksh"  {
         if force_delete {
             $ trap 'rm -rf {filename}' EXIT $ failed {
-                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+                echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
             }
         } else {
             $ trap 'rmdir {filename}' EXIT $ failed {
-                echo "Setting auto deletion fails. You must delete temporary dir {filename}."
+                echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
             }
         }
     }
@@ -155,7 +155,7 @@ pub fun file_chmod(path: Text, mode: Text): Null? {
         return null
     }
 
-    echo "The file {path} doesn't exist!"
+    echo("The file {path} doesn't exist!")
     fail 1
 }
 
@@ -173,14 +173,8 @@ pub fun file_chown(path: Text, user: Text): Null? {
         return null
     }
 
-    echo "The file {path} doesn't exist!"
+    echo("The file {path} doesn't exist!")
     fail 1
-}
-
-/// Escapes all characters in the passed-in glob except "*", "?" and "/",
-/// to prevent injection attacks.
-fun escape_non_glob_chars(path: Text): Text {
-    return replace_regex(path, "\([^*?/]\)", "\\\\\1")
 }
 
 /// Finds all files or directories matching multiple file globs. When
@@ -191,20 +185,15 @@ fun escape_non_glob_chars(path: Text): Text {
 /// ```ab
 /// let files = file_glob_all(["*.txt", "*.md"])
 /// ```
-pub fun file_glob_all(paths: [Text]): [Text]? {
-    let combined = ""
-    if len(paths) == 1 {
-        combined = escape_non_glob_chars(paths[0])
-    } else {
-        let items = [Text]
-        for item in paths {
-            item = escape_non_glob_chars(item)
-            items += [item]
+pub fun file_glob_all(paths: [Text]): [Text] {
+    let files = []
+    for path in paths {
+        files += suppress ls(path,true) failed {
+            //this can fail when no file could be found
+            continue
         }
-        combined = join(items, " ")
     }
-    let files = $ eval "for file in {combined}; do [ -e \\"\\\$file\\" ] && echo \\"\\\$file\\"; done" $?
-    return split(files, "\n")
+    return files
 }
 
 /// Finds all files or directories matching a file glob.
@@ -213,8 +202,8 @@ pub fun file_glob_all(paths: [Text]): [Text]? {
 /// ```ab
 /// let files = file_glob("*.txt")
 /// ```
-pub fun file_glob(path: Text): [Text]? {
-    return file_glob_all([path])?
+pub fun file_glob(path: Text): [Text] {
+    return file_glob_all([path])
 }
 
 /// Extract the file detecting from the filename the extension
@@ -241,12 +230,41 @@ pub fun file_extract(path: Text, target: Text): Null? {
             match_regex(path, "\.7z$"): $ 7z -y "{path}" -o "{target}" $?
             match_regex(path, "\.\(zip\|war\|jar\)$"): $ unzip "{path}" -d "{target}" $?
             else {
-                echo "Error: Unsupported file type"
+                echo("Error: Unsupported file type")
                 fail 3
             }
         }
     } else {
-        echo "Error: File not found"
+        echo("Error: File not found")
         fail 2
+    }
+}
+
+/// Compress file(s) or directories into an archive
+/// Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
+/// Note: Not all supported methods support multiple files/directories
+/// ### Usage
+/// ```ab
+/// file_compress(["main.ab", "src"], "amber.tar.gz")?
+/// file_compress(["amber"], "amber.gz")?
+/// ```
+pub fun file_compress(files: [Text], target: Text): Null? {
+    if {
+        match_regex(target, "\.(tar\.bz2|tbz|tbz2)$", true): silent $ tar -cjf "{target}" {files} $?
+        match_regex(target, "\.(tar\.gz|tgz)$", true): silent $ tar -czf "{target}" {files} $?
+        match_regex(target, "\.(tar\.xz|txz)$", true): silent $ tar -cJf "{target}" {files} $?
+        match_regex(target, "\.tar$", true): $ tar -cf "{target}" {files} $?
+        match_regex(target, "\.bz2$"): $ bzip2 -k -c {files} > "{target}" $?
+        match_regex(target, "\.gz$"): $ gzip -k -c {files} > "{target}" $?
+        match_regex(target, "\.xz$"): $ xz -k -c {files} > "{target}" $?
+        match_regex(target, "\.7z$"): silent $ 7z a -y "{target}" {files} $?
+        match_regex(target, "\.(zip|war|jar)$", true): silent $ zip -r "{target}" {files} $?
+        match_regex(target, "\.rar$"): silent $ rar a -y "{target}" {files} $?
+        match_regex(target, "\.deb$"): $ dpkg-deb --build {files} "{target}" $?
+        match_regex(target, "\.rpm$"): $ rpmbuild -bb --buildroot="{files}" -D "_rpmdir=\$(dirname "{target}")" specfile.spec $?
+    else {
+            echo("Error: Unsupported file type")
+            fail 3
+        }
     }
 }

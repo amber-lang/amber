@@ -4,10 +4,10 @@ import * from "std/array"
 // Not Found
 
 main {
-    let array = ["foo", "bar", "baz"]
+    const array = ["foo", "bar", "baz"]
     if array_contains(array, "oo ba") {
-        echo "Found"
+        echo("Found")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

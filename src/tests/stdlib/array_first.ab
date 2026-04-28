@@ -5,16 +5,16 @@ import { array_first } from "std/array"
 // First of empty array does not exist
 
 fun test_first(label: Text, data: [Text]): Null {
-    let value = array_first(data) failed {
-        echo "First of empty array does not exist"
+    const value = array_first(data) failed {
+        echo("First of empty array does not exist")
         return null
     }
-    echo "First of {label}: \"{value}\" ({len(data)}) [{data}]"
+    echo("First of {label}: \"{value}\" ({len(data)}) [{data}]")
 }
 
 main {
-    let numbers = ["zero", "one", "two", "three"]
-    let empty = [Text]
+    const numbers = ["zero", "one", "two", "three"]
+    const empty = [Text]
     test_first("numbers", numbers)
     test_first("empty", empty)
 }

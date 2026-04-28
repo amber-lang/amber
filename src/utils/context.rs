@@ -1,7 +1,7 @@
 use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
-use crate::modules::expression::expr::Expr;
 use crate::modules::function::declaration::FunctionDeclarationArgument;
 use crate::modules::types::Type;
+use crate::{modules::expression::expr::Expr, utils::ParserMetadata};
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -50,6 +50,39 @@ impl FunctionDecl {
     }
 }
 
+// Rule set for variable warnings
+// Unused variable warning is enabled by default
+#[derive(Clone, Debug)]
+pub struct VariableDeclWarn {
+    pub pos: Option<PositionInfo>,
+    pub on_unused: bool,
+    pub on_unmodified: bool,
+}
+
+impl VariableDeclWarn {
+    pub fn new(pos: PositionInfo) -> Self {
+        Self {
+            pos: Some(pos),
+            on_unused: true,
+            on_unmodified: false,
+        }
+    }
+
+    pub fn from_token(meta: &mut ParserMetadata, token: impl Into<Option<Token>>) -> Self {
+        Self::new(PositionInfo::from_token(meta, token.into()))
+    }
+
+    pub fn warn_when_unmodified(mut self, warn: bool) -> Self {
+        self.on_unmodified = warn;
+        self
+    }
+
+    pub fn warn_when_unused(mut self, warn: bool) -> Self {
+        self.on_unused = warn;
+        self
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct VariableDecl {
     pub name: String,
@@ -57,6 +90,46 @@ pub struct VariableDecl {
     pub global_id: Option<usize>,
     pub is_ref: bool,
     pub is_const: bool,
+    pub is_used: bool,
+    pub is_modified: bool,
+    pub is_public: bool,
+    pub warn: Option<VariableDeclWarn>,
+}
+
+impl VariableDecl {
+    pub fn new(name: String, kind: Type) -> Self {
+        Self {
+            name,
+            kind,
+            global_id: None,
+            is_ref: false,
+            is_const: false,
+            is_used: false,
+            is_modified: false,
+            is_public: false,
+            warn: None,
+        }
+    }
+
+    pub fn with_const(mut self, is_const: bool) -> Self {
+        self.is_const = is_const;
+        self
+    }
+
+    pub fn with_ref(mut self, is_ref: bool) -> Self {
+        self.is_ref = is_ref;
+        self
+    }
+
+    pub fn with_warn(mut self, warn: VariableDeclWarn) -> Self {
+        self.warn = Some(warn);
+        self
+    }
+
+    pub fn with_public(mut self, is_public: bool) -> Self {
+        self.is_public = is_public;
+        self
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -74,8 +147,9 @@ impl ScopeUnit {
     /* Variables */
 
     /// Persists a variable declaration in the scope
-    pub fn add_var(&mut self, var: VariableDecl) {
-        self.vars.insert(var.name.clone(), var);
+    pub fn add_var(&mut self, var: VariableDecl) -> bool {
+        let name = var.name.clone();
+        self.vars.insert(name, var).is_none()
     }
 
     /// Fetches a variable declaration from the scope
@@ -127,9 +201,14 @@ pub struct Context {
     /// Determines if the context is in the main block
     pub is_main_ctx: bool,
     /// Determines if the context is in a trust block
+    #[context]
     pub is_trust_ctx: bool,
+    /// Determines if the context is in a test block
+    pub is_test_ctx: bool,
     /// This is a list of ids of all the public functions in the file
     pub pub_funs: Vec<FunctionDecl>,
+    /// This is a list of all the public variables in the file
+    pub pub_vars: Vec<VariableDecl>,
     /// The return type of the currently parsed function
     pub fun_ret_type: Option<Type>,
     /// List of compiler flags
@@ -150,7 +229,9 @@ impl Context {
             is_loop_ctx: false,
             is_main_ctx: false,
             is_trust_ctx: false,
+            is_test_ctx: false,
             pub_funs: vec![],
+            pub_vars: vec![],
             fun_ret_type: None,
             cc_flags: HashSet::new(),
         }

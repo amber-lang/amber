@@ -2,7 +2,7 @@ name: Cargo & Clippy Test
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - staging
     paths:
@@ -26,19 +26,25 @@ on:
       - rust-toolchain.toml
       - flake.nix
       - flake.lock
+  release:
+    types: [released]
 
 env:
   CARGO_TERM_COLOR: always
+  LLVM_COV_VERSION: 0.6.16
 
 jobs:
   build:
     name: Rust build
     runs-on: ubuntu-latest
+    if: github.event_name != 'release'
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./target/deps
@@ -51,7 +57,7 @@ jobs:
           cargo test --no-run --all-targets --all-features
       - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
         run: tar -cvzf target.tgz target/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           include-hidden-files: true
           name: target
@@ -60,6 +66,7 @@ jobs:
   test:
     name: Rust tests
     runs-on: ubuntu-latest
+    if: github.event_name != 'release'
     needs: build
     strategy:
       fail-fast: false
@@ -81,8 +88,10 @@ jobs:
           - sed: BusyBox_sed
             bash_docker_image: "bash:latest"
     steps:
-      - uses: actions/checkout@v4
-      - uses: awalsh128/cache-apt-pkgs-action@latest
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
         with:
           packages: bc
           version: 1.0
@@ -90,22 +99,22 @@ jobs:
         run: |
           sudo curl https://github.com/b1ek/bshchk/releases/download/1.1/bshchk.linux.amd64 -L -o /usr/bin/bshchk
           sudo chmod +x /usr/bin/bshchk
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./target/deps
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: target
           path: artifact
       - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
       - name: Cache test docker image
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}
           key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
@@ -125,19 +134,23 @@ jobs:
         env:
           AMBER_TEST_STRATEGY: docker
           AMBER_TEST_ARGS: exec test_container bash
+          AMBER_TEST_TARGET: ${{ contains(fromJSON('["bash:4.2","bash:4.1","bash:4.0","bash:3.2"]'), matrix.bash_docker_image) && 'bash-3.2' || 'bash-4.3' }}
         run: |
           docker run --network host --detach --name test_container testenv
           cargo test --all-targets --all-features
           docker stop test_container -t 0
           docker rm --force test_container
   macos-test:
-    name: Rust tests on a native macOS Bash
+    name: Rust tests on a native macOS zsh
     runs-on: macos-latest
+    if: github.event_name != 'release'
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo
@@ -145,6 +158,9 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run tests
+        env:
+            AMBER_SHELL: '/bin/zsh'
+        shell: /bin/zsh {0}
         run: |
           cargo build # the binary will be used by the cargo test
           cargo test --all-targets --all-features
@@ -152,10 +168,13 @@ jobs:
     name: Clippy tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: r7kamura/rust-problem-matchers@7e46a19e8d2f3a44f97b551aee14a7b3cc18fcd0 # v1.5.1
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./target/deps
@@ -164,3 +183,90 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
       - name: Run clippy check
         run: cargo clippy --all-targets --all-features -- -D warnings
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
+        with:
+          packages: parallel shellcheck
+          version: 1.0
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ./target/deps
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - uses: actions/download-artifact@v8
+        with:
+          name: target
+          path: artifact
+      - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Add shellcheck problem matcher
+        run: echo "::add-matcher::.github/shellcheck-matcher.json"
+      - name: Run sh_tester.ab
+        env:
+          CS_TEMP_DIR: ${{ github.workspace }}/amber.sc.tests
+          INCLUDE_PATH: "**/*.ab"
+          EXCLUDE_PATH: "src/tests/{erroring,warning}/*.ab"
+        run: |
+          cargo build --release
+          cargo run -- run scripts/sh_tester.ab
+  coverage:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+        with:
+          components: llvm-tools-preview
+      - name: Cache llvm-cov
+        uses: actions/cache@v5
+        id: cache-llvm-cov
+        with:
+          path: ~/.cargo/bin/cargo-llvm-cov
+          key: ${{ runner.os }}-cargo-llvm-cov-${{ env.LLVM_COV_VERSION }}
+      - run: cargo install cargo-llvm-cov --version ${{ env.LLVM_COV_VERSION }} --locked
+        if: steps.cache-llvm-cov.outputs.cache-hit != 'true'
+      - name: Test coverage
+        run: cargo build && cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          flags: rust
+          fail_ci_if_error: true
+          verbose: true
+  release-coverage:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+        with:
+          components: llvm-tools-preview
+      - name: Cache llvm-cov
+        uses: actions/cache@v5
+        id: cache-llvm-cov
+        with:
+          path: ~/.cargo/bin/cargo-llvm-cov
+          key: ${{ runner.os }}-cargo-llvm-cov-${{ env.LLVM_COV_VERSION }}
+      - run: cargo install cargo-llvm-cov --version ${{ env.LLVM_COV_VERSION }} --locked
+        if: steps.cache-llvm-cov.outputs.cache-hit != 'true'
+      - name: Test coverage
+        run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          flags: rust,release,${{ github.event.release.tag_name }}
+          fail_ci_if_error: true
+          verbose: true

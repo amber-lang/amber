@@ -1,0 +1,10 @@
+// Output
+// lock failed handled
+
+main {
+    const lock_file = "/tmp/amber-lock-failed-handler-{pid()}.lock"
+    lock(lock_file)?
+    lock(lock_file) failed {
+        echo("lock failed handled")
+    }
+}

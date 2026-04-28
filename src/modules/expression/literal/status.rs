@@ -1,12 +1,14 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
 use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::FragmentKind;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::TranslateMetadata;
+use amber_meta::AutoKeyword;
+use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "status"]
 pub struct Status;
 
 impl Typed for Status {
@@ -23,7 +25,17 @@ impl SyntaxModule<ParserMetadata> for Status {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
+
         token(meta, "status")?;
+        if token(meta, "(").is_ok() {
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling status without parentheses is deprecated");
+            meta.add_message(warning);
+        }
         Ok(())
     }
 }

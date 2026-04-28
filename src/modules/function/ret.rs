@@ -1,13 +1,15 @@
-use heraclitus_compiler::prelude::*;
 use crate::fragments;
-use crate::modules::prelude::*;
 use crate::modules::expression::expr::Expr;
+use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::function_metadata::FunctionMetadata;
+use amber_meta::AutoKeyword;
+use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "return"]
 pub struct Return {
-    pub expr: Expr
+    pub expr: Expr,
 }
 
 impl Typed for Return {
@@ -20,9 +22,7 @@ impl SyntaxModule<ParserMetadata> for Return {
     syntax_name!("Return");
 
     fn new() -> Self {
-        Return {
-            expr: Expr::new()
-        }
+        Return { expr: Expr::new() }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -54,7 +54,7 @@ impl TypeCheckModule for Return {
                         comment: format!("Given type: {}, expected type: {}", expr_type, ret_type)
                     });
                 }
-            },
+            }
             None => {
                 meta.context.fun_ret_type = Some(expr_type.clone());
             }
@@ -65,7 +65,9 @@ impl TypeCheckModule for Return {
 
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let fun_name = meta.fun_meta.as_ref()
+        let fun_name = meta
+            .fun_meta
+            .as_ref()
             .map(FunctionMetadata::mangled_name)
             .expect("Function name and return type not set");
         let result = self.expr.translate(meta);

@@ -1,11 +1,14 @@
 mod compiler;
 mod docs;
 mod modules;
+mod optimizer;
 mod rules;
 mod stdlib;
 mod translate;
 mod utils;
-mod optimizer;
+
+pub use crate::utils::grammar_ebnf;
+mod testing;
 
 pub mod built_info {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
@@ -15,14 +18,15 @@ pub mod built_info {
 pub mod tests;
 
 use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::utils::ShellType;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
+use similar_string::find_best_similarity;
 use std::error::Error;
 use std::io::{prelude::*, stdin};
-use std::path::PathBuf;
-use std::process::Command;
+use std::path::{Path, PathBuf};
 use std::{fs, io};
 
 fn get_version() -> &'static str {
@@ -30,13 +34,13 @@ fn get_version() -> &'static str {
 }
 
 #[derive(Parser, Clone, Debug)]
-#[command(version(get_version()), arg_required_else_help(true))]
+#[command(version(get_version()))]
 struct Cli {
-    #[command(subcommand)]
-    command: Option<CommandKind>,
-
     /// Input filename ('-' to read from stdin)
     input: Option<PathBuf>,
+
+    #[command(subcommand)]
+    command: Option<CommandKind>,
 
     /// Arguments passed to Amber script
     #[arg(trailing_var_arg = true)]
@@ -48,6 +52,10 @@ struct Cli {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -64,12 +72,20 @@ enum CommandKind {
     Docs(DocsCommand),
     /// Generate Bash completion script
     Completion,
+    /// Run Amber tests
+    Test(TestCommand),
+    /// Generate EBNF grammar
+    GrammarEbnf,
 }
 
 #[derive(Args, Clone, Debug)]
 struct EvalCommand {
     /// Code to evaluate
     code: String,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -87,6 +103,10 @@ struct RunCommand {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -100,6 +120,10 @@ struct CheckCommand {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -120,6 +144,10 @@ struct BuildCommand {
     /// Minify the output file
     #[arg(long)]
     minify: bool,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -135,41 +163,30 @@ struct DocsCommand {
     usage: bool,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let cli = Cli::parse();
-    if let Some(command) = cli.command {
-        match command {
-            CommandKind::Eval(command) => {
-                handle_eval(command)?;
-            }
-            CommandKind::Run(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
-                let (code, messages) = compile_input(command.input, options);
-                execute_output(code, command.args, messages)?;
-            }
-            CommandKind::Check(command) => {
-                let options = CompilerOptions::from_args(&command.no_proc, false);
-                compile_input(command.input, options);
-            }
-            CommandKind::Build(command) => {
-                let output = create_output(&command);
-                let options = CompilerOptions::from_args(&command.no_proc, command.minify);
-                let (code, _) = compile_input(command.input, options);
-                write_output(output, code);
-            }
-            CommandKind::Docs(command) => {
-                handle_docs(command)?;
-            }
-            CommandKind::Completion => {
-                handle_completion();
-            }
-        }
-    } else if let Some(input) = cli.input {
-        let options = CompilerOptions::from_args(&cli.no_proc, false);
-        let (code, messages) = compile_input(input, options);
-        execute_output(code, cli.args, messages)?;
-    }
-    Ok(())
+#[derive(Args, Clone, Debug)]
+pub struct TestCommand {
+    /// Input filename or directory ('-' to read from stdin)
+    #[arg(default_value = ".")]
+    pub input: PathBuf,
+
+    /// Prefix of test case to run
+    #[arg(long)]
+    pub test_case: Option<String>,
+
+    /// Arguments passed to Amber script
+    #[arg(trailing_var_arg = true)]
+    pub args: Vec<String>,
+
+    /// Disable a postprocessor
+    /// Available postprocessors: 'bshchk'
+    /// To select multiple, pass multiple times with different values
+    /// Argument also supports a wildcard match, like "*" or "b*chk"
+    #[arg(long, verbatim_doc_comment)]
+    pub no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    pub target: Option<ShellType>,
 }
 
 fn create_output(command: &BuildCommand) -> PathBuf {
@@ -180,6 +197,17 @@ fn create_output(command: &BuildCommand) -> PathBuf {
     } else {
         command.input.with_extension("sh")
     }
+}
+
+#[cfg(windows)]
+fn set_file_permission(_file: &fs::File, _output: String) {}
+
+#[cfg(not(windows))]
+pub(crate) fn set_file_permission(file: &fs::File, path: String) {
+    use std::os::unix::prelude::PermissionsExt;
+    let mut perm = fs::metadata(path).unwrap().permissions();
+    perm.set_mode(0o755);
+    file.set_permissions(perm).unwrap();
 }
 
 fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
@@ -208,15 +236,41 @@ fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
     (bash_code, !messages.is_empty())
 }
 
-fn execute_output(code: String, args: Vec<String>, messages: bool) -> Result<(), Box<dyn Error>> {
+fn handle_err(err: std::io::Error) -> ! {
+    Message::new_err_msg(err.to_string()).show();
+    std::process::exit(1);
+}
+
+#[inline]
+#[allow(unused_must_use)]
+pub fn render_dash() {
+    let str = "%.s─".dimmed();
+    AmberCompiler::execute(format!("printf {str} $(seq 1 $(tput cols))"), vec![]);
+    println!();
+}
+
+fn execute_output(
+    code: String,
+    args: Vec<String>,
+    messages: bool,
+    target: Option<ShellType>,
+) -> Result<i32, Box<dyn Error>> {
     if messages {
         render_dash();
     }
-    let exit_status = AmberCompiler::execute(code, args)?;
-    std::process::exit(exit_status.code().unwrap_or(1));
+    let exit_status = AmberCompiler::execute_with_target(code, args, target)?;
+    Ok(exit_status.code().unwrap_or(1))
 }
 
-fn write_output(output: PathBuf, code: String) {
+fn resolve_command_target(
+    command_target: Option<ShellType>,
+    cli_target: Option<ShellType>,
+) -> Option<ShellType> {
+    command_target.or(cli_target)
+}
+
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) fn write_output(output: PathBuf, code: String) {
     let output = output.to_string_lossy().to_string();
     if output == "-" {
         print!("{code}");
@@ -234,19 +288,30 @@ fn write_output(output: PathBuf, code: String) {
     }
 }
 
-fn handle_eval(command: EvalCommand) -> Result<(), Box<dyn Error>> {
-    let options = CompilerOptions::default();
+#[cfg(test)]
+fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
+    handle_eval_with_target(command, None)
+}
+
+fn handle_eval_with_target(
+    command: EvalCommand,
+    cli_target: Option<ShellType>,
+) -> Result<i32, Box<dyn Error>> {
+    let target = resolve_command_target(command.target, cli_target);
+    let options = CompilerOptions::default()
+        .with_target(target)
+        .with_env_vars();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
-            let exit_status = AmberCompiler::execute(code, vec![])?;
-            std::process::exit(exit_status.code().unwrap_or(1));
+            let exit_status = AmberCompiler::execute_with_target(code, vec![], target)?;
+            Ok(exit_status.code().unwrap_or(1))
         }
         Err(err) => {
             err.show();
-            std::process::exit(1);
+            Ok(1)
         }
     }
 }
@@ -260,7 +325,7 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     };
-    let options = CompilerOptions::default();
+    let options = CompilerOptions::default().with_env_vars();
     let compiler = AmberCompiler::new(code, Some(input), options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
@@ -274,39 +339,126 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn handle_completion() {
+pub(crate) fn handle_completion() {
+    handle_completion_with_output(&mut io::stdout());
+}
+
+pub(crate) fn handle_completion_with_output(output: &mut dyn std::io::Write) {
     let mut command = Cli::command();
     let name = command.get_name().to_string();
-    clap_complete::generate(Shell::Bash, &mut command, name, &mut io::stdout());
+    clap_complete::generate(Shell::Bash, &mut command, name, output);
 }
 
-#[cfg(windows)]
-fn set_file_permission(_file: &fs::File, _output: String) {
-    // We don't need to set permission on Windows
+fn handle_bad_command_name(
+    input: &Path,
+    no_proc: &[String],
+    args: Vec<String>,
+    target: Option<ShellType>,
+) -> Result<i32, Box<dyn Error>> {
+    let input_str = input.to_string_lossy();
+
+    let cli_cmd = Cli::command();
+    let subcommands: Vec<&str> = cli_cmd.get_subcommands().map(|s| s.get_name()).collect();
+
+    if !input.exists() && input_str != "-" {
+        if input_str.starts_with('-') || input_str == "help" {
+            eprintln!("Error: Unknown command or invalid option: {}", input_str);
+            Cli::command().print_help().unwrap();
+            println!();
+            std::process::exit(1);
+        }
+
+        if let Some((match_name, score)) = find_best_similarity(&input_str, &subcommands) {
+            if score >= 0.75 {
+                eprintln!("Error: Unknown command: {}", input_str);
+                eprintln!("Did you mean '{}'?", match_name);
+                Cli::command().print_help().unwrap();
+                println!();
+                std::process::exit(1);
+            }
+        }
+
+        eprintln!("Error: File not found: {}", input_str);
+        Cli::command().print_help().unwrap();
+        println!();
+        std::process::exit(1);
+    }
+
+    let options = CompilerOptions::from_args(no_proc, false, false, None)
+        .with_target(target)
+        .with_env_vars();
+    let (code, messages) = compile_input(input.to_path_buf(), options);
+    execute_output(code, args, messages, target)
 }
 
-#[cfg(not(windows))]
-fn set_file_permission(file: &fs::File, path: String) {
-    use std::os::unix::prelude::PermissionsExt;
-    let mut perm = fs::metadata(path).unwrap().permissions();
-    perm.set_mode(0o755);
-    file.set_permissions(perm).unwrap();
-}
+fn main() -> Result<(), Box<dyn Error>> {
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => err.exit(),
+    };
 
-fn handle_err(err: std::io::Error) -> ! {
-    Message::new_err_msg(err.to_string()).show();
-    std::process::exit(1);
-}
+    if let Some(ref input) = cli.input {
+        std::process::exit(handle_bad_command_name(
+            input,
+            &cli.no_proc,
+            cli.args,
+            cli.target,
+        )?);
+    }
 
-#[inline]
-#[allow(unused_must_use)]
-fn render_dash() {
-    let str = "%.s─".dimmed();
-    Command::new("bash")
-        .arg("-c")
-        .arg(format!("printf {str} $(seq 1 $(tput cols))"))
-        .spawn()
-        .unwrap()
-        .wait();
-    println!();
+    let Some(command) = cli.command else {
+        Cli::command().print_help().unwrap();
+        println!();
+        std::process::exit(0);
+    };
+
+    let exit_code = match command {
+        CommandKind::Eval(command) => handle_eval_with_target(command, cli.target)?,
+        CommandKind::Run(command) => {
+            let target = resolve_command_target(command.target, cli.target);
+            let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                .with_target(target)
+                .with_env_vars();
+            let (code, messages) = compile_input(command.input, options);
+            execute_output(code, command.args, messages, target)?
+        }
+        CommandKind::Check(command) => {
+            let target = resolve_command_target(command.target, cli.target);
+            let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                .with_target(target)
+                .with_env_vars();
+            compile_input(command.input, options);
+            0
+        }
+        CommandKind::Build(command) => {
+            let target = resolve_command_target(command.target, cli.target);
+            let output = create_output(&command);
+            let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+                .with_target(target)
+                .with_env_vars();
+            let (code, _) = compile_input(command.input, options);
+            write_output(output, code);
+            0
+        }
+        CommandKind::Docs(command) => {
+            handle_docs(command)?;
+            0
+        }
+        CommandKind::Completion => {
+            handle_completion();
+            0
+        }
+        CommandKind::GrammarEbnf => {
+            let output = grammar_ebnf::generate_grammar_ebnf();
+            let output_path = PathBuf::from("grammar.ebnf");
+            std::fs::write(&output_path, output)?;
+            0
+        }
+        CommandKind::Test(mut command) => {
+            command.target = resolve_command_target(command.target, cli.target);
+            testing::handle_test(command)?
+        }
+    };
+
+    std::process::exit(exit_code);
 }

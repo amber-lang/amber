@@ -12,8 +12,8 @@ fun bar(ref a, b, c) {
 
 let a = 12
 foo(a, 6)
-echo a
+echo(a)
 
 let b = 132
 bar(b, 12, 4)
-echo b
+echo(b)

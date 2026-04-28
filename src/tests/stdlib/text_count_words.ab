@@ -1,0 +1,14 @@
+import { count_words } from "std/text"
+
+// Output
+// 3
+// 1
+// 0
+// 6
+
+main {
+    echo(count_words("hello world foo"))
+    echo(count_words("single"))
+    echo(count_words(""))
+    echo(count_words("one two\nthree four\nfive six"))
+}

@@ -1,0 +1,9 @@
+// Output
+// /tmp
+// /tmp
+
+trust cd("/tmp/")
+echo(pwd())
+
+let dir = pwd()
+echo(dir)

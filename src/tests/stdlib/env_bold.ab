@@ -4,5 +4,5 @@ import * from "std/env"
 // \x1b[1mHello Amber!\x1b[0m
 
 main {
-    echo bold("Hello Amber!")
+    echo(bold("Hello Amber!"))
 } 

@@ -3,7 +3,7 @@
 /// ### Usage
 /// ```ab
 /// let total = math_sum([1, 2, 3, 4, 5])
-/// echo total // 15
+/// echo(total) // 15
 /// ```
 #[allow_absurd_cast]
 pub fun math_sum(list) {
@@ -17,15 +17,15 @@ pub fun math_sum(list) {
 /// ### Usage
 /// ```ab
 /// let rounded = math_round(3.7)
-/// echo rounded // 4
+/// echo(rounded) // 4
 /// ```
 #[allow_absurd_cast]
 pub fun math_round(number: Num): Int {
     if number > 0 {
-        return trust $ echo "({number}+0.5)/1" | bc $ as Int
+        return trust $ bc <<< "({number}+0.5)/1" $ as Int
     }
 
-    return trust $ echo "({number}-0.5)/1" | bc $ as Int
+    return trust $ bc <<< "({number}-0.5)/1" $ as Int
 }
 
 /// Returns the largest integer less than or equal to a number
@@ -33,11 +33,11 @@ pub fun math_round(number: Num): Int {
 /// ### Usage
 /// ```ab
 /// let floored = math_floor(3.9)
-/// echo floored // 3
+/// echo(floored) // 3
 /// ```
 #[allow_absurd_cast]
 pub fun math_floor(number: Num): Int {
-    return trust $ echo "{number}" | awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}' $ as Int
+    return trust $ awk '\{printf "%d", (\$1 < 0 ? int(\$1) - 1 : int(\$1))}' <<< "{number}" $ as Int
 }
 
 /// Returns the smallest integer greater than or equal to a number
@@ -45,7 +45,7 @@ pub fun math_floor(number: Num): Int {
 /// ### Usage
 /// ```ab
 /// let ceiled = math_ceil(3.1)
-/// echo ceiled // 4
+/// echo(ceiled) // 4
 /// ```
 #[allow_absurd_cast]
 pub fun math_ceil(number: Num): Int {
@@ -57,7 +57,7 @@ pub fun math_ceil(number: Num): Int {
 /// ### Usage
 /// ```ab
 /// let absolute = math_abs(-42)
-/// echo absolute // 42
+/// echo(absolute) // 42
 /// ```
 #[allow_absurd_cast]
 pub fun math_abs(number) {

@@ -4,5 +4,5 @@ import * from "std/text"
 // apple,banana,cherry
 
 main {
-    echo join(["apple", "banana", "cherry"], ", ")
+    echo(join(["apple", "banana", "cherry"], ", "))
 }

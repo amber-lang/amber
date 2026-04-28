@@ -1,10 +1,10 @@
 import * from "std/array"
 
 main {
-    let array = ["apple", "banana cherry"]
+    const array = ["apple", "banana cherry"]
     if array_contains(array, "banana cherry") {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

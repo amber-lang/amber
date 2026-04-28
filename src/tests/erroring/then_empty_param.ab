@@ -3,6 +3,6 @@
 
 main {
     $ echo "test" $ exited() {
-        echo "Success!"
+        echo("Success!")
     }
 }

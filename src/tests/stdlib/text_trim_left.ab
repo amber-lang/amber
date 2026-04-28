@@ -1,6 +1,6 @@
  import * from "std/text"
 
  main {
-    echo trim_left("  hello   world  ")
+    echo(trim_left("  hello   world  "))
 } 
  

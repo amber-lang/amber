@@ -1,16 +1,19 @@
-use heraclitus_compiler::prelude::*;
-use crate::modules::prelude::*;
-use crate::translate::compare::translate_array_equality;
+use super::BinOp;
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
-use crate::translate::compute::{ArithOp, translate_float_computation};
-use super::BinOp;
-use crate::modules::types::{Typed, Type};
+use crate::modules::prelude::*;
+use crate::modules::types::{Type, Typed};
+use crate::translate::compare::translate_array_equality;
+use crate::translate::compute::{translate_float_computation, ArithOp};
+use amber_meta::AutoKeyword;
+use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "eq"]
+#[kind = "binary_op"]
 pub struct Eq {
     left: Box<Expr>,
-    right: Box<Expr>
+    right: Box<Expr>,
 }
 
 impl Typed for Eq {
@@ -21,11 +24,11 @@ impl Typed for Eq {
 
 impl BinOp for Eq {
     fn set_left(&mut self, left: Expr) {
-        self.left = Box::new(left);
+        *self.left = left;
     }
 
     fn set_right(&mut self, right: Expr) {
-        self.right = Box::new(right);
+        *self.right = right;
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -40,7 +43,7 @@ impl SyntaxModule<ParserMetadata> for Eq {
     fn new() -> Self {
         Eq {
             left: Box::new(Expr::new()),
-            right: Box::new(Expr::new())
+            right: Box::new(Expr::new()),
         }
     }
 
@@ -53,7 +56,7 @@ impl TypeCheckModule for Eq {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
-        Self::typecheck_equality(meta, &self.left, &self.right)?;
+        Self::typecheck_equality(meta, &mut self.left, &mut self.right)?;
         Ok(())
     }
 }
@@ -69,10 +72,19 @@ impl TranslateModule for Eq {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, false)
                 } else {
-                    unreachable!("Arrays are always represented as variable expressions when used as values")
+                    unreachable!(
+                        "Arrays are always represented as variable expressions when used as values"
+                    )
                 }
             }
-            _ => SubprocessFragment::new(fragments!("[ \"_", left, "\" != \"_", right, "\" ]; echo $?")).to_frag()
+            _ => SubprocessFragment::new(fragments!(
+                "[ \"_",
+                left,
+                "\" != \"_",
+                right,
+                "\" ]; echo $?"
+            ))
+            .to_frag(),
         }
     }
 }

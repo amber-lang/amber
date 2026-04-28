@@ -1,0 +1,37 @@
+import * from "std/array"
+import * from "std/fs"
+
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    for file in expected {
+        if not array_contains(actual, file) {
+            return false
+        }
+    }
+    return true
+}
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    trust {
+        // Create files with backslash in name (Unix allows this)
+        $ touch "{tmpdir}/file\\with\\backslash.txt" $
+        $ touch "{tmpdir}/normal.txt" $
+    }
+    trust cd(tmpdir)
+
+    // Test that glob * finds files with backslashes in their names
+    const expected = [
+        "file\\with\\backslash.txt",
+        "normal.txt",
+    ]
+    const actual = file_glob("*")
+    if compare(actual, expected) {
+        echo("Succeeded")
+    } else {
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
+    }
+}

@@ -6,9 +6,9 @@ fun increment(): Null {
 
 fun check_counter(): Null {
     if counter > 0 {
-        echo "Counter is positive"
+        echo("Counter is positive")
     } else {
-        echo "Counter is zero"
+        echo("Counter is zero")
     }
 }
 

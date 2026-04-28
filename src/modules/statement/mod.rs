@@ -1,6 +1,6 @@
-pub mod stmt;
 pub mod comment;
 pub mod comment_doc;
+pub mod stmt;
 
 #[macro_export]
 macro_rules! parse_statement {
@@ -8,7 +8,7 @@ macro_rules! parse_statement {
         let mut error = None;
         $(
             let mut $module = $stmt::new();
-            let $cons = StmtType::$stmt;
+            let $cons = |module: $stmt| StmtType::$stmt(module.into());
             match $body {
                 Ok(()) => return Ok(()),
                 Err(failure) => {
@@ -21,37 +21,4 @@ macro_rules! parse_statement {
         )*
         Err(Failure::Quiet(error.unwrap()))
     }};
-}
-
-#[macro_export]
-macro_rules! typecheck_statement {
-    ($meta:expr, $stmt_type:expr, [$($stmt:ident),*]) => {
-        match $stmt_type {
-            $(
-                StmtType::$stmt(stmt) => stmt.typecheck($meta)?,
-            )*
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! translate_statement {
-    ($stmt_type:expr, [$($stmt:ident),*], |$var:ident| $body:expr) => {
-        match $stmt_type {
-            $(
-                StmtType::$stmt($var) => $body,
-            )*
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! document_statement {
-    ($stmt_type:expr, [$($stmt:ident),*], $var:ident, $body:expr) => {
-        match $stmt_type {
-            $(
-                StmtType::$stmt($var) => $body,
-            )*
-        }
-    };
 }

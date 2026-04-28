@@ -1,0 +1,20 @@
+// Output
+// Not false is true
+// Not true is false
+
+#[allow_dead_code]
+fun run() {
+    if not false {
+        echo("Not false is true")
+    } else {    
+        undefined_not_test()
+    }
+
+    if not true {
+        undefined_not_test2()
+    } else {
+        echo("Not true is false")
+    }
+}
+
+run()

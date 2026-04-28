@@ -7,11 +7,11 @@
 
 fun test_index(array) {
     for index in 0..=4 {
-        echo "Value at {index}: \"{array[index]}\""
+        echo("Value at {index}: \"{array[index]}\"")
     }
 }
 
 main {
-    let array = ["zero", "one", "two", "three"]
+    const array = ["zero", "one", "two", "three", ""]
     test_index(array)
 }

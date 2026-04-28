@@ -1,0 +1,21 @@
+// Output
+// If
+// Succeeded
+
+#[allow_nested_if_else]
+fun foo(c: Bool) {
+    if c {
+        echo("If")
+    } else {
+        if c {
+            echo("Else If")
+        } else {
+            echo("Else")
+        }
+    }
+}
+
+main {
+    foo(true)
+    echo("Succeeded")
+}

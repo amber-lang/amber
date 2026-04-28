@@ -1,0 +1,6 @@
+// Output
+// The `await` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.
+
+main {
+    await(1)
+}

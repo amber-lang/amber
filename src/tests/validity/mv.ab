@@ -2,11 +2,11 @@ import * from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ touch {tmpdir}/a $
-    trust mv "{tmpdir}/a" "{tmpdir}/b"
+    trust touch("{tmpdir}/a")
+    trust mv("{tmpdir}/a", "{tmpdir}/b")
     if file_exists("{tmpdir}/b") {
-        echo "Succeeded"
+        echo("Succeeded")
     } else {
-        echo "Not Found"
+        echo("Not Found")
     }
 }

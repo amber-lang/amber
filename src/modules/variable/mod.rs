@@ -2,14 +2,16 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::types::{Type, Typed};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::VariableDecl;
-use crate::utils::metadata::ParserMetadata;
 use crate::utils::is_all_caps;
+use crate::utils::metadata::ParserMetadata;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
-
-pub mod init;
-pub mod set;
 pub mod get;
+pub mod init;
+pub mod init_destruct;
+pub mod set;
+pub mod set_destruct;
 
 pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
@@ -17,33 +19,108 @@ pub fn variable_name_extensions() -> Vec<char> {
 
 pub fn variable_name_keywords() -> Vec<&'static str> {
     vec![
-        // Literals
-        "true", "false", "null",
-        // Variable keywords
-        "let", "as", "is", "const",
-        // Control flow keywords
-        "if", "then", "else",
-        // Loop keywords
-        "for", "loop", "break", "continue", "in", "while",
-        // Module keywords
-        "pub", "import", "from",
-        // Function keywords
-        "fun", "return", "ref", "fail", "failed", "succeeded", "then",
-        // Types
-        "Text", "Number", "Bool", "Null",
-        // Command Modifiers
-        "silent", "trust", "sudo",
-        // Misc
-        "echo", "status", "nameof", "mv", "cd",
-        "exit", "len",
+        "Bool",
+        "Null",
+        "Number",
+        "Text",
+        "and",
+        "as",
+        "break",
+        "cd",
+        "const",
+        "continue",
+        "echo",
+        "else",
+        "exit",
+        "exited",
+        "fail",
+        "failed",
+        "false",
+        "for",
+        "from",
+        "fun",
+        "if",
+        "import",
+        "in",
+        "is",
+        "len",
+        "let",
+        "lines",
+        "lock",
+        "loop",
+        "main",
+        "mv",
+        "nameof",
+        "touch",
+        "not",
+        "null",
+        "or",
+        "pub",
+        "ref",
+        "return",
+        "silent",
+        "sleep",
+        "status",
+        "sudo",
+        "succeeded",
+        "suppress",
+        "then",
+        "trust",
+        "true",
+        "unsafe",
+        "while",
     ]
 }
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "as"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct As;
 
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "else"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Else;
 
-pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str) -> Result<VariableDecl, Failure> {
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "from"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct From;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "in"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct In;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "is"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Is;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "then"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Then;
+
+pub fn handle_variable_reference(
+    meta: &mut ParserMetadata,
+    tok: &Option<Token>,
+    name: &str,
+) -> Result<VariableDecl, Failure> {
     handle_identifier_name(meta, name, tok.clone())?;
-    match meta.get_var(name) {
-        Some(variable_unit) => Ok(variable_unit.clone()),
+    match meta.get_var_used(name) {
+        Some(variable_unit) => {
+            let mut var = variable_unit.clone();
+            if let Some(narrowed) = meta.get_narrowed_type(name) {
+                var.kind = narrowed.clone();
+            }
+            Ok(var)
+        }
         None => {
             let message = format!("Variable '{name}' does not exist");
             // Find other similar variable if exists
@@ -56,9 +133,18 @@ pub fn handle_variable_reference(meta: &mut ParserMetadata, tok: &Option<Token>,
     }
 }
 
-pub fn prevent_constant_mutation(meta: &mut ParserMetadata, tok: &Option<Token>, name: &str, is_const: bool) -> SyntaxResult {
+pub fn prevent_constant_mutation(
+    meta: &mut ParserMetadata,
+    tok: &Option<Token>,
+    name: &str,
+    is_const: bool,
+) -> SyntaxResult {
     if is_const {
-        error!(meta, tok.clone(), format!("Cannot reassign constant '{name}'"))
+        error!(
+            meta,
+            tok.clone(),
+            format!("Cannot reassign constant '{name}'")
+        )
     } else {
         Ok(())
     }
@@ -66,18 +152,23 @@ pub fn prevent_constant_mutation(meta: &mut ParserMetadata, tok: &Option<Token>,
 
 fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> {
     let vars = Vec::from_iter(meta.get_var_names());
-    find_best_similarity(name, &vars)
-        .and_then(|(match_name, score)| (score >= 0.75).then(|| format!("Did you mean '{match_name}'?")))
+    find_best_similarity(name, &vars).and_then(|(match_name, score)| {
+        (score >= 0.75).then(|| format!("Did you mean '{match_name}'?"))
+    })
 }
 
-pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option<Token>) -> Result<(), Failure> {
+pub fn handle_identifier_name(
+    meta: &mut ParserMetadata,
+    name: &str,
+    tok: Option<Token>,
+) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix with fully uppercase names
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 && is_all_caps(name) {
         let new_name = name.get(2..).unwrap();
         return error!(meta, tok => {
             message: format!("Identifier '{name}' is not allowed"),
             comment: format!("Identifiers with double underscores cannot be fully uppercase.\nConsider using '{new_name}' instead.")
-        })
+        });
     }
     if is_camel_case(name) && !meta.context.cc_flags.contains(&CCFlags::AllowCamelCase) {
         let flag = get_ccflag_name(CCFlags::AllowCamelCase);
@@ -91,7 +182,11 @@ pub fn handle_identifier_name(meta: &mut ParserMetadata, name: &str, tok: Option
     }
     // Validate if the variable name is a keyword
     if variable_name_keywords().contains(&name) {
-        return error!(meta, tok, format!("Identifier '{name}' is a reserved keyword"))
+        return error!(
+            meta,
+            tok,
+            format!("Identifier '{name}' is a reserved keyword")
+        );
     }
     Ok(())
 }
@@ -105,14 +200,19 @@ fn is_camel_case(name: &str) -> bool {
             _ if is_lowercase && is_uppercase => return true,
             _ if chr.is_lowercase() => is_lowercase = true,
             _ if chr.is_uppercase() => is_uppercase = true,
-            _ => ()
+            _ => (),
         }
     }
-    if is_lowercase && is_uppercase { return true }
+    if is_lowercase && is_uppercase {
+        return true;
+    }
     false
 }
 
-pub fn handle_index_accessor(meta: &mut ParserMetadata, _range: bool) -> Result<Option<Expr>, Failure> {
+pub fn handle_index_accessor(
+    meta: &mut ParserMetadata,
+    _range: bool,
+) -> Result<Option<Expr>, Failure> {
     if token(meta, "[").is_ok() {
         let mut index = Expr::new();
         syntax(meta, &mut index)?;
@@ -122,12 +222,25 @@ pub fn handle_index_accessor(meta: &mut ParserMetadata, _range: bool) -> Result<
     Ok(None)
 }
 
-pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool, position: PositionInfo) -> SyntaxResult {
+pub fn validate_index_accessor(
+    meta: &ParserMetadata,
+    index: &Expr,
+    range: bool,
+    position: PositionInfo,
+) -> SyntaxResult {
     if !allow_index_accessor(index, range) {
-        let expected = if range { "integer or range" } else { "integer (and not a range)" };
+        let expected = if range {
+            "integer or range"
+        } else {
+            "integer (and not a range)"
+        };
         let side = if range { "right" } else { "left" };
         let message = format!("Index accessor must be an {expected} for {side} side of operation");
-        let comment = format!("The index accessor must be an {} and not {}", expected, index.get_type());
+        let comment = format!(
+            "The index accessor must be an {} and not {}",
+            expected,
+            index.get_type()
+        );
         return error_pos!(meta, position => { message: message, comment: comment });
     }
     Ok(())
@@ -135,8 +248,8 @@ pub fn validate_index_accessor(meta: &ParserMetadata, index: &Expr, range: bool,
 
 fn allow_index_accessor(index: &Expr, range: bool) -> bool {
     match (&index.kind, &index.value) {
-        (Type::Int, _) => true,
-        (Type::Array(_), Some(ExprType::Range(_))) => range,
+        (t, _) if t.is_allowed_in(&Type::Int) => true,
+        (t, Some(ExprType::Range(_))) if t.is_allowed_in(&Type::array_of(Type::Generic)) => range,
         _ => false,
     }
 }

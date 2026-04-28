@@ -1,51 +1,109 @@
 extern crate chrono;
-use crate::get_version;
 use crate::docs::module::DocumentationModule;
+use crate::get_version;
 use crate::modules::block::Block;
-use crate::modules::prelude::{BlockFragment, FragmentRenderable};
+use crate::modules::prelude::{BlockFragment, FragmentKind, FragmentRenderable, RawFragment};
 use crate::modules::typecheck::TypeCheckModule;
 use crate::optimizer::optimize_fragments;
+use crate::rules;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
-use crate::utils::{pluralize, ParserMetadata, TranslateMetadata};
-use crate::rules;
-use postprocessor::PostProcessor;
+use crate::utils::{pluralize, ParserMetadata, ShellType, TranslateMetadata};
 use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
-use wildmatch::WildMatchPattern;
-use std::env;
+use postprocessor::PostProcessor;
 use std::fs;
 use std::fs::File;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
 use std::path::PathBuf;
-use std::process::{exit, Command, ExitStatus};
+use std::process::{exit, ExitStatus};
 use std::time::Instant;
+use wildmatch::WildMatchPattern;
 
 pub mod postprocessor;
+pub mod shell_resolve;
 
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
-const AMBER_DEBUG_PARSER: &str = "AMBER_DEBUG_PARSER";
-const AMBER_DEBUG_TIME: &str = "AMBER_DEBUG_TIME";
-const AMBER_NO_OPTIMIZE: &str = "AMBER_NO_OPTIMIZE";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
+    pub target: Option<ShellType>,
     pub minify: bool,
+    pub test_mode: bool,
+    pub test_name: Option<String>,
+    pub debug_parser: bool,
+    pub debug_time: bool,
+    pub no_optimize: bool,
+    pub header_path: Option<String>,
+    pub footer_path: Option<String>,
 }
 
 impl Default for CompilerOptions {
     fn default() -> Self {
         let no_proc = vec![String::from("*")];
-        Self { no_proc, minify: false }
+        Self {
+            no_proc,
+            target: None,
+            minify: false,
+            test_mode: false,
+            test_name: None,
+            debug_parser: false,
+            debug_time: false,
+            no_optimize: false,
+            header_path: None,
+            footer_path: None,
+        }
     }
 }
 
 impl CompilerOptions {
-    pub fn from_args(no_proc: &[String], minify: bool) -> Self {
+    pub fn from_args(
+        no_proc: &[String],
+        minify: bool,
+        test_mode: bool,
+        test_name: Option<String>,
+    ) -> Self {
         let no_proc = no_proc.to_owned();
-        Self { no_proc, minify }
+        Self {
+            no_proc,
+            target: None,
+            minify,
+            test_mode,
+            test_name,
+            debug_parser: false,
+            debug_time: false,
+            no_optimize: false,
+            header_path: None,
+            footer_path: None,
+        }
+    }
+
+    pub fn with_env_vars(mut self) -> Self {
+        let is_true = |v: String| v == "1" || v == "true";
+
+        if std::env::var("AMBER_DEBUG_PARSER").is_ok_and(is_true) {
+            self.debug_parser = true;
+        }
+        if std::env::var("AMBER_DEBUG_TIME").is_ok_and(is_true) {
+            self.debug_time = true;
+        }
+        if std::env::var("AMBER_NO_OPTIMIZE").is_ok_and(is_true) {
+            self.no_optimize = true;
+        }
+        if let Ok(path) = std::env::var("AMBER_HEADER") {
+            self.header_path = Some(path);
+        }
+        if let Ok(path) = std::env::var("AMBER_FOOTER") {
+            self.footer_path = Some(path);
+        }
+        self
+    }
+
+    pub fn with_target(mut self, target: Option<ShellType>) -> Self {
+        self.target = target;
+        self
     }
 }
 
@@ -70,14 +128,6 @@ impl AmberCompiler {
         }
     }
 
-    fn env_flag_set(flag: &str) -> bool {
-        if let Ok(value) = env::var(flag) {
-            value == "1" || value == "true"
-        } else {
-            false
-        }
-    }
-
     pub fn load_code(mut self, code: String) -> Self {
         self.cc.load(code);
         self
@@ -87,7 +137,7 @@ impl AmberCompiler {
         let time = Instant::now();
         match self.cc.tokenize() {
             Ok(tokens) => {
-                if Self::env_flag_set(AMBER_DEBUG_TIME) {
+                if self.options.debug_time {
                     let pathname = self.path.clone().unwrap_or(String::from("unknown"));
                     println!(
                         "[{}]\tin\t{}ms\t{pathname}",
@@ -122,12 +172,12 @@ impl AmberCompiler {
         let mut block = Block::new().with_no_syntax();
         let time = Instant::now();
         // Parse with debug or not
-        let result = if Self::env_flag_set(AMBER_DEBUG_PARSER) {
+        let result = if self.options.debug_parser {
             block.parse_debug(&mut meta)
         } else {
             block.parse(&mut meta)
         };
-        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+        if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
@@ -148,7 +198,10 @@ impl AmberCompiler {
         meta: &ParserMetadata,
     ) -> Vec<(String, Block)> {
         let imports_sorted = meta.import_cache.topological_sort();
-        let imports_blocks = meta.import_cache.files.iter()
+        let imports_blocks = meta
+            .import_cache
+            .files
+            .iter()
             .map(|file| {
                 file.metadata
                     .as_ref()
@@ -165,9 +218,9 @@ impl AmberCompiler {
         result
     }
 
-    fn gen_header(&self) -> String {
-        let header_template = if let Ok(dynamic) = env::var("AMBER_HEADER") {
-            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+    fn gen_header(&self, target_shell: ShellType) -> String {
+        let header_template = if let Some(dynamic) = &self.options.header_path {
+            fs::read_to_string(dynamic).unwrap_or_else(|_| {
                 let msg = format!("Couldn't read the dynamic header file from path '{dynamic}'");
                 Message::new_err_msg(msg).show();
                 exit(1);
@@ -175,13 +228,15 @@ impl AmberCompiler {
         } else {
             include_str!("header.sh").trim_end().to_string()
         };
-
-        header_template.replace("{{ version }}", get_version())
+        let shell_name = target_shell.family_name();
+        header_template
+            .replace("{{ version }}", get_version())
+            .replace("{{ shell }}", shell_name)
     }
 
     fn gen_footer(&self) -> String {
-        let footer_template = if let Ok(dynamic) = env::var("AMBER_FOOTER") {
-            fs::read_to_string(&dynamic).unwrap_or_else(|_| {
+        let footer_template = if let Some(dynamic) = &self.options.footer_path {
+            fs::read_to_string(dynamic).unwrap_or_else(|_| {
                 let msg = format!("Couldn't read the dynamic footer file from path '{dynamic}'");
                 Message::new_err_msg(msg).show();
                 exit(1);
@@ -193,15 +248,60 @@ impl AmberCompiler {
         footer_template.replace("{{ version }}", get_version())
     }
 
+    fn gen_preamble(
+        &self,
+        sudo_used: bool,
+        shell_metadata_used: bool,
+        target_shell: &ShellType,
+    ) -> FragmentKind {
+        let mut preamble = Vec::new();
+        match target_shell {
+            ShellType::BashModern | ShellType::BashLegacy => (),
+            ShellType::Zsh => {
+                // if the shell is ZSH:
+                // - emulate ksh (ksh arrays, word splitting, ...) which matches more with bash
+                // enable BSD_echo; prevents backslashes from being interpreted twice (causes "\\\\" to return "\")
+                preamble.push(RawFragment::new(r#"emulate ksh"#).to_frag());
+                preamble.push(RawFragment::new(r#"setopt BSD_echo"#).to_frag());
+                preamble.push(RawFragment::new(r#"__read_args='-A'"#).to_frag());
+            }
+            ShellType::Ksh => {
+                // if the shell is KSH:
+                // - enable job control
+                preamble.push(RawFragment::new(r#"set -m"#).to_frag());
+            }
+        }
+        if sudo_used {
+            preamble.push(RawFragment::new(include_str!("preambles/sudo.sh").trim_end()).to_frag());
+        }
+        if shell_metadata_used {
+            preamble.push(
+                RawFragment::new(include_str!("preambles/shellname-shellversion.sh").trim_end())
+                    .to_frag(),
+            );
+        }
+        BlockFragment::new(preamble, false).to_frag()
+    }
+
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
+        let sudo_used = meta.sudo_used;
+        let shellname_used = meta.shellname_used;
+        let shellversion_used = meta.shellversion_used;
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
         let mut result = BlockFragment::new(Vec::new(), false);
+        // Add preamble that contains all code that should be executed before the main code
+        result.append(self.gen_preamble(
+            sudo_used,
+            shellname_used || shellversion_used,
+            &meta_translate.target.shell,
+        ));
+
         for (_path, block) in ast_forest {
             result.append(block.translate(&mut meta_translate));
         }
-        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+        if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
@@ -211,13 +311,16 @@ impl AmberCompiler {
         }
 
         let mut result = result.to_frag();
-        if !Self::env_flag_set(AMBER_NO_OPTIMIZE) {
+        if !self.options.no_optimize {
             optimize_fragments(&mut result);
         }
 
         let mut result = result.to_string(&mut meta_translate);
 
-        let filters = self.options.no_proc.iter()
+        let filters = self
+            .options
+            .no_proc
+            .iter()
             .map(|x| WildMatchPattern::new(x))
             .collect();
         let postprocessors = PostProcessor::filter_default(filters);
@@ -231,15 +334,21 @@ impl AmberCompiler {
                         error.to_string().trim_end(),
                     );
                     return Err(Message::new_err_msg(error));
-                },
+                }
             };
         }
 
-        Ok(format!("{}\n{}\n{}", self.gen_header(), result, self.gen_footer()))
+        Ok(format!(
+            "{}\n{}\n{}",
+            self.gen_header(meta_translate.target.shell),
+            result,
+            self.gen_footer()
+        ))
     }
 
     pub fn document(&self, block: Block, meta: ParserMetadata, output: Option<String>) {
-        let base_path = meta.get_path()
+        let base_path = meta
+            .get_path()
             .map(PathBuf::from)
             .expect("Input file must exist in docs generation");
         let base_dir = fs::canonicalize(base_path).map(|val| {
@@ -278,7 +387,10 @@ impl AmberCompiler {
                     base_dir.join(output).join(file_dir)
                 };
                 if let Err(err) = fs::create_dir_all(dir_path.clone()) {
-                    let message = format!("Couldn't create directory `{}`. Do you have sufficient permissions?", dir_path.display());
+                    let message = format!(
+                        "Couldn't create directory `{}`. Do you have sufficient permissions?",
+                        dir_path.display()
+                    );
                     Message::new_err_msg(message)
                         .comment(err.to_string())
                         .show();
@@ -296,12 +408,18 @@ impl AmberCompiler {
         }
         if !paths.is_empty() {
             let files = pluralize(paths.len(), "File", "Files");
-            let message = once(format!("{files} generated at:")).chain(paths).join("\n");
+            let message = once(format!("{files} generated at:"))
+                .chain(paths)
+                .join("\n");
             Message::new_info_msg(message).show();
         }
     }
 
-    pub fn typecheck(&self, mut block: Block, mut meta: ParserMetadata) -> Result<(Block, ParserMetadata), Message> {
+    pub fn typecheck(
+        &self,
+        mut block: Block,
+        mut meta: ParserMetadata,
+    ) -> Result<(Block, ParserMetadata), Message> {
         let time = Instant::now();
 
         // Perform type checking on the block
@@ -309,7 +427,7 @@ impl AmberCompiler {
             return Err(failure.unwrap_loud());
         }
 
-        if Self::env_flag_set(AMBER_DEBUG_TIME) {
+        if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
@@ -330,10 +448,19 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
-    pub fn execute(mut code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
-        if let Some(mut command) = Self::find_bash() {
+    pub fn execute(code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
+        Self::execute_with_target(code, args, None)
+    }
+
+    pub fn execute_with_target(
+        mut code: String,
+        args: Vec<String>,
+        target: Option<ShellType>,
+    ) -> Result<ExitStatus, std::io::Error> {
+        if let Some(mut command) = Self::find_shell(target) {
             if !args.is_empty() {
-                let args = args.into_iter()
+                let args = args
+                    .into_iter()
                     .map(|arg| arg.replace("\"", "\\\""))
                     .map(|arg| format!("\"{arg}\""))
                     .collect::<Vec<String>>();
@@ -341,7 +468,7 @@ impl AmberCompiler {
             }
             command.arg("-c").arg(code).spawn()?.wait()
         } else {
-            let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find Bash");
+            let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find shell");
             Err(error)
         }
     }
@@ -356,53 +483,35 @@ impl AmberCompiler {
     }
 
     #[cfg(test)]
-    pub fn test_eval(&mut self) -> Result<String, Message> {
+    pub fn test_eval(&mut self) -> Result<(String, ExitStatus), Message> {
         self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(warnings, code)| {
-            if let Some(mut command) = Self::find_bash() {
-                let child = command.arg("-c").arg::<&str>(code.as_ref()).output().unwrap();
+            if let Some(mut command) = Self::find_shell(self.options.target) {
+                let child = command
+                    .arg("-c")
+                    .arg::<&str>(code.as_ref())
+                    .output()
+                    .unwrap();
                 let output = String::from_utf8_lossy(&child.stdout).to_string();
                 let err_output = String::from_utf8_lossy(&child.stderr).to_string();
                 let warning_log = {
-                    let warn_map = warnings.iter().map(|warn| warn.message.clone().unwrap_or_else(|| "Empty warning".to_string()));
+                    let warn_map = warnings.iter().map(|warn| {
+                        warn.message
+                            .clone()
+                            .unwrap_or_else(|| "Empty warning".to_string())
+                    });
                     let warn_log = warn_map.collect::<Vec<String>>().join("\n");
-                    if warn_log.is_empty() { String::new() } else { warn_log + "\n" }
+                    if warn_log.is_empty() {
+                        String::new()
+                    } else {
+                        warn_log + "\n"
+                    }
                 };
-                Ok(warning_log + &output + &err_output)
+                Ok((warning_log + &output + &err_output, child.status))
             } else {
                 let message = Message::new_err_msg("Failed to find Bash");
                 Err(message)
             }
         })
-    }
-
-    #[cfg(windows)]
-    fn find_bash() -> Option<Command> {
-        if let Some(paths) = env::var_os("PATH") {
-            for path in env::split_paths(&paths) {
-                let path = path.join("bash.exe");
-                if path.exists() {
-                    let command = Command::new(path);
-                    return Some(command);
-                }
-            }
-        }
-        return None;
-    }
-
-    /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
-    #[cfg(not(windows))]
-    fn find_bash() -> Option<Command> {
-        if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
-            let mut command = Command::new("docker");
-            let args_string = env::var("AMBER_TEST_ARGS").expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
-            let args: Vec<&str> = args_string.split_whitespace().collect();
-            command.args(args);
-            Some(command)
-        } else {
-            let mut command = Command::new("/usr/bin/env");
-            command.arg("bash");
-            Some(command)
-        }
     }
 }

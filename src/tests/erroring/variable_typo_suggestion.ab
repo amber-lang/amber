@@ -1,0 +1,5 @@
+// Output
+// Variable 'my_variable' does not exist
+
+let my_variabl = 1
+echo my_variable

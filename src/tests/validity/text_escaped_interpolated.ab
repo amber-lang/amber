@@ -2,4 +2,4 @@
 // Hello "World"
 
 let x = "World"
-echo "Hello \"{x}\""
+echo("Hello \"{x}\"")

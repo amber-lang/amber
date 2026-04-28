@@ -1,0 +1,11 @@
+import { kill } from "std/env"
+
+main {
+    trust silent $ killall yes $ // Cleanup before test
+
+    trust $ yes > /dev/null 2>&1 & $
+    disown()
+    const yes_pid = pid()
+    kill(yes_pid, "KILL")?
+    echo("Succeeded")
+}

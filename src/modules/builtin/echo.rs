@@ -1,9 +1,11 @@
-use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "echo"]
+#[kind = "builtin_stmt"]
 pub struct Echo {
     value: Box<Expr>,
 }
@@ -18,8 +20,19 @@ impl SyntaxModule<ParserMetadata> for Echo {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
         token(meta, "echo")?;
-        syntax(meta, &mut *self.value)?;
+
+        if token(meta, "(").is_ok() {
+            syntax(meta, &mut *self.value)?;
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling a builtin without parentheses is deprecated");
+            meta.add_message(warning);
+            syntax(meta, &mut *self.value)?;
+        }
         Ok(())
     }
 }
@@ -32,7 +45,16 @@ impl TypeCheckModule for Echo {
 
 impl TranslateModule for Echo {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        fragments!("echo ", self.value.translate(meta))
+        let value = self.value.translate(meta);
+        // If the variable is an array, it's always passed as a variable expression
+        let value = match value {
+            FragmentKind::VarExpr(var) if var.kind.is_array() => {
+                FragmentKind::VarExpr(var.with_array_to_string(true))
+            }
+            other => other,
+        };
+
+        FragmentKind::Log(LogFragment::new(value))
     }
 }
 

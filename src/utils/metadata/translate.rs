@@ -1,8 +1,10 @@
 use std::cmp;
 use std::collections::VecDeque;
+use std::fmt;
+use std::str::FromStr;
 
 use super::ParserMetadata;
-use crate::compiler::CompilerOptions;
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
@@ -11,11 +13,75 @@ use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::is_all_caps;
 use amber_meta::ContextManager;
+use clap::ValueEnum;
 
 const INDENT_SPACES: &str = "    ";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum ShellType {
+    /// Supports Bash 4.3+. (alias: `bash`)
+    #[value(name = "bash-4.3", alias = "bash", help = "bash-4.3 (alias: bash)")]
+    BashModern,
+    /// Supports Bash 3.2+.
+    #[value(name = "bash-3.2")]
+    BashLegacy,
+    Zsh,
+    Ksh,
+}
+
+impl fmt::Display for ShellType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.canonical_name())
+    }
+}
+
+impl FromStr for ShellType {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "bash" | "bash-4.3" => Ok(ShellType::BashModern),
+            "bash-3.2" => Ok(ShellType::BashLegacy),
+            "zsh" => Ok(ShellType::Zsh),
+            "ksh" => Ok(ShellType::Ksh),
+            _ => Err(format!(
+                "invalid shell target '{value}', expected one of: bash, bash-4.3, bash-3.2, zsh, ksh"
+            )),
+        }
+    }
+}
+
+impl ShellType {
+    pub fn canonical_name(self) -> &'static str {
+        match self {
+            ShellType::BashModern => "bash-4.3",
+            ShellType::BashLegacy => "bash-3.2",
+            ShellType::Zsh => "zsh",
+            ShellType::Ksh => "ksh",
+        }
+    }
+
+    pub fn family_name(self) -> &'static str {
+        match self {
+            ShellType::BashModern | ShellType::BashLegacy => "bash",
+            ShellType::Zsh => "zsh",
+            ShellType::Ksh => "ksh",
+        }
+    }
+
+    pub fn is_bash_legacy(self) -> bool {
+        matches!(self, ShellType::BashLegacy)
+    }
+}
+
+pub struct TargetShell {
+    pub shell: ShellType,
+}
+
 #[derive(ContextManager)]
 pub struct TranslateMetadata {
+    /// Contains information about specified target output.
+    pub target: TargetShell,
     /// The arithmetic module that is used to evaluate math.
     pub arith_module: ArithType,
     /// A cache of defined functions - their body and metadata.
@@ -32,6 +98,9 @@ pub struct TranslateMetadata {
     /// Determines whether the current context should be silenced.
     #[context]
     pub silenced: bool,
+    /// Determines whether the current context stderr should be silenced.
+    #[context]
+    pub suppress: bool,
     /// Determines whether the current context should use sudo.
     #[context]
     pub sudoed: bool,
@@ -42,11 +111,19 @@ pub struct TranslateMetadata {
     /// Determines whether the current context is an expression context.
     #[context]
     pub expr_ctx: bool,
+    /// Determines whether the compiler is in test mode.
+    pub test_mode: bool,
+    /// The name of the test to run.
+    pub test_name: Option<String>,
 }
 
 impl TranslateMetadata {
     pub fn new(meta: ParserMetadata, options: &CompilerOptions) -> Self {
+        let target_shell = AmberCompiler::resolve_target_shell(options.target);
         TranslateMetadata {
+            target: TargetShell {
+                shell: target_shell,
+            },
             arith_module: ArithType::BcSed,
             fun_cache: meta.fun_cache,
             fun_meta: None,
@@ -54,10 +131,13 @@ impl TranslateMetadata {
             value_id: 0,
             eval_ctx: false,
             silenced: false,
+            suppress: false,
             sudoed: false,
             indent: -1,
             minify: options.minify,
             expr_ctx: false,
+            test_mode: options.test_mode,
+            test_name: options.test_name.clone(),
         }
     }
 
@@ -72,7 +152,8 @@ impl TranslateMetadata {
     #[inline]
     /// Create an intermediate variable and return it's variable expression
     pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
-        let stmt = statement.with_ephemeral(true);
+        let is_local = self.fun_meta.is_some();
+        let stmt = statement.with_ephemeral(true).with_local(is_local);
         let expr = VarExprFragment::from_stmt(&stmt);
         self.stmt_queue.push_back(stmt.to_frag());
         expr
@@ -100,14 +181,18 @@ impl TranslateMetadata {
         }
     }
 
+    pub fn gen_suppress(&self) -> FragmentKind {
+        if self.suppress {
+            raw_fragment!(" 2>/dev/null")
+        } else {
+            FragmentKind::Empty
+        }
+    }
+
     pub fn gen_sudo_prefix(&mut self) -> FragmentKind {
         if self.sudoed {
             let var_name = "__sudo";
-            let condition = r#"[ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1 && printf sudo"#;
-            let condition_frag = RawFragment::new(&format!("$({condition})")).to_frag();
-            let var_stmt = VarStmtFragment::new(var_name, Type::Text, condition_frag);
-            let var_expr = VarExprFragment::from_stmt(&var_stmt).with_quotes(false);
-            self.stmt_queue.push_back(var_stmt.to_frag());
+            let var_expr = VarExprFragment::new(var_name, Type::Text).with_quotes(false);
             var_expr.to_frag()
         } else {
             FragmentKind::Empty
@@ -140,5 +225,32 @@ impl TranslateMetadata {
         } else {
             ""
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::ShellType;
+
+    #[test]
+    fn shell_type_from_str_accepts_all_supported_targets() {
+        assert_eq!(ShellType::from_str("bash"), Ok(ShellType::BashModern));
+        assert_eq!(ShellType::from_str("bash-4.3"), Ok(ShellType::BashModern));
+        assert_eq!(ShellType::from_str("bash-3.2"), Ok(ShellType::BashLegacy));
+        assert_eq!(ShellType::from_str("zsh"), Ok(ShellType::Zsh));
+        assert_eq!(ShellType::from_str("ksh"), Ok(ShellType::Ksh));
+    }
+
+    #[test]
+    fn shell_type_from_str_rejects_invalid_target() {
+        assert_eq!(
+            ShellType::from_str("fish"),
+            Err(
+                "invalid shell target 'fish', expected one of: bash, bash-4.3, bash-3.2, zsh, ksh"
+                    .to_string()
+            )
+        );
     }
 }

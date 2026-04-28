@@ -4,4 +4,4 @@
 pub fun test(): Null {
     fail 1
 }
-echo test() failed: echo "Failed"
+echo(test() failed: echo "Failed")

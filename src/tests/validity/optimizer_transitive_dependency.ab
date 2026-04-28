@@ -1,0 +1,10 @@
+// Output
+// 1
+
+main {
+    const a = 1
+    const b = a
+    const c = b
+    const d = c
+    echo(d)
+}

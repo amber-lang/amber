@@ -4,5 +4,5 @@ import * from "std/env"
 // \x1b[4mHello Amber!\x1b[0m
 
 main {
-    echo underlined("Hello Amber!")
+    echo(underlined("Hello Amber!"))
 } 

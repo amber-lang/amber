@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
 use crate::modules::block::Block;
 use crate::modules::types::Type;
@@ -30,10 +30,34 @@ pub struct ParserMetadata {
     pub messages: Vec<Message>,
     /// Show standard library usage in documentation
     pub doc_usage: bool,
+    /// List of functions that are currently being parsed
+    pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
+    /// List of test names found in the file
+    pub test_names: Vec<String>,
+    /// Stack of narrowed types for control flow analysis
+    pub narrowed_types: Vec<HashMap<String, Type>>,
+    /// Suppress warnings during monomorphic function re-typechecking
+    #[context]
+    pub suppress_warnings: bool,
+    /// Skip persisting function instances during first-pass typechecking
+    /// First pass is used for typechecking a function with declared and not concrete types
+    /// This is used to generally assess if a function is valid and emit errors if it is not
+    #[context]
+    pub first_pass_ctx: bool,
+    /// Whether sudo modifier is used anywhere in the code
+    pub sudo_used: bool,
+    /// Whether shellname() builtin is used anywhere in the code
+    pub shellname_used: bool,
+    /// Whether shellversion() builtin is used anywhere in the code
+    pub shellversion_used: bool,
 }
 
 impl ParserMetadata {
     pub fn add_message(&mut self, message: Message) {
+        // Skip warnings if we're in a suppressed context
+        if self.suppress_warnings && matches!(message.kind, MessageType::Warning) {
+            return;
+        }
         self.messages.push(message);
     }
 }
@@ -57,7 +81,24 @@ impl ParserMetadata {
         }
         let result = body(self);
         if predicate {
-            self.context.scopes.pop();
+            let scope = self.context.scopes.pop().unwrap();
+            // Check for unused variables and const correctness
+            for (_, mut var) in scope.vars {
+                if let Some(warn) = var.warn.as_mut() {
+                    if warn.on_unused && !var.is_used && !var.name.starts_with('_') {
+                        let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
+                            .message(format!("Unused variable '{}'", var.name));
+                        self.add_message(message);
+                    } else if !var.is_const && !var.is_modified && warn.on_unmodified {
+                        let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
+                            .message(format!(
+                                "Variable '{}' is never modified, consider using 'const'",
+                                var.name
+                            ));
+                        self.add_message(message);
+                    }
+                }
+            }
         }
         result
     }
@@ -72,31 +113,16 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    pub fn add_var(&mut self, name: &str, kind: Type, is_const: bool) -> Option<usize> {
-        let global_id = Some(self.gen_var_id());
+    /// Adds a variable to the current scope
+    pub fn add_var(&mut self, mut var: VariableDecl) -> Option<usize> {
+        let global_id = self.gen_var_id();
+        var.global_id = Some(global_id);
+        if var.is_public {
+            self.context.pub_vars.push(var.clone());
+        }
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(VariableDecl {
-            name: name.to_string(),
-            kind,
-            global_id,
-            is_ref: false,
-            is_const,
-        });
-        global_id
-    }
-
-    /// Adds a function parameter as variable to the current scope
-    pub fn add_param(&mut self, name: &str, kind: Type, is_ref: bool) -> Option<usize> {
-        let global_id = self.is_global_scope().then(|| self.gen_var_id());
-        let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(VariableDecl {
-            name: name.to_string(),
-            kind,
-            global_id,
-            is_ref,
-            is_const: false,
-        });
-        global_id
+        scope.add_var(var);
+        Some(global_id)
     }
 
     /// Gets a variable from the current scope or any parent scope
@@ -108,6 +134,14 @@ impl ParserMetadata {
             .find_map(|scope| scope.get_var(name))
     }
 
+    /// Gets a variable from the current scope
+    pub fn get_var_in_current_scope(&self, name: &str) -> Option<&VariableDecl> {
+        self.context
+            .scopes
+            .last()
+            .and_then(|scope| scope.get_var(name))
+    }
+
     /// Gets variable names
     pub fn get_var_names(&self) -> BTreeSet<&String> {
         self.context
@@ -116,6 +150,42 @@ impl ParserMetadata {
             .rev()
             .flat_map(|scope| scope.get_var_names())
             .collect()
+    }
+
+    /// Returns a variable and marks it as used
+    pub fn get_var_used(&mut self, name: &str) -> Option<&VariableDecl> {
+        self.mark_var_used(name);
+        self.get_var(name)
+    }
+
+    /// Marks a variable as used
+    fn mark_var_used(&mut self, name: &str) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.is_used = true;
+                return;
+            }
+        }
+    }
+
+    /// Marks a variable as modified
+    pub fn mark_var_modified(&mut self, name: &str) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.is_modified = true;
+                return;
+            }
+        }
+    }
+
+    /// Updates the type of a variable
+    pub fn update_var_type(&mut self, name: &str, new_type: Type) {
+        for scope in self.context.scopes.iter_mut().rev() {
+            if let Some(var) = scope.vars.get_mut(name) {
+                var.kind = new_type;
+                return;
+            }
+        }
     }
 
     /* Functions */
@@ -161,12 +231,26 @@ impl ParserMetadata {
         scope.add_fun(fun).then_some(global_id)
     }
 
+    pub fn add_var_declaration_existing(&mut self, var: VariableDecl) -> Option<usize> {
+        let global_id = self.gen_var_id();
+        if var.is_public {
+            self.context.pub_vars.push(var.clone());
+        }
+        let scope = self.context.scopes.last_mut().unwrap();
+        scope.add_var(var).then_some(global_id)
+    }
+
     /// Adds a function instance to the cache
     /// This function returns the id of the function instance variant
-    pub fn add_fun_instance(&mut self, fun: FunctionInterface, block: Block) -> usize {
+    pub fn add_fun_instance(
+        &mut self,
+        fun: FunctionInterface,
+        args_global_ids: Vec<Option<usize>>,
+        block: Block,
+    ) -> usize {
         let id = fun.id.expect("Function id is not set");
         self.fun_cache
-            .add_instance(id, fun.into_fun_instance(block))
+            .add_instance(id, fun.into_fun_instance(args_global_ids, block))
     }
 
     /// Gets a function declaration from the current scope or any parent scope
@@ -178,6 +262,14 @@ impl ParserMetadata {
             .find_map(|scope| scope.get_fun(name))
     }
 
+    /// Gets a function from the current scope
+    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionDecl> {
+        self.context
+            .scopes
+            .last()
+            .and_then(|scope| scope.get_fun(name))
+    }
+
     /// Gets function names
     pub fn get_fun_names(&self) -> BTreeSet<&String> {
         self.context
@@ -186,6 +278,27 @@ impl ParserMetadata {
             .rev()
             .flat_map(|scope| scope.get_fun_names())
             .collect()
+    }
+
+    pub fn get_narrowed_type(&self, name: &str) -> Option<&Type> {
+        self.narrowed_types
+            .iter()
+            .rev()
+            .find_map(|map| map.get(name))
+    }
+
+    pub fn with_narrowed_scope<B>(
+        &mut self,
+        facts: HashMap<String, Type>,
+        mut body: B,
+    ) -> SyntaxResult
+    where
+        B: FnMut(&mut Self) -> SyntaxResult,
+    {
+        self.narrowed_types.push(facts);
+        let result = body(self);
+        self.narrowed_types.pop();
+        result
     }
 }
 
@@ -201,6 +314,14 @@ impl Metadata for ParserMetadata {
             context: Context::new(path, tokens),
             messages: Vec::new(),
             doc_usage: false,
+            parsing_functions: HashMap::new(),
+            test_names: Vec::new(),
+            narrowed_types: Vec::new(),
+            suppress_warnings: false,
+            sudo_used: false,
+            shellname_used: false,
+            shellversion_used: false,
+            first_pass_ctx: false,
         }
     }
 

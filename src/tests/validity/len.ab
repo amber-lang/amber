@@ -10,13 +10,13 @@ let name = "Andrew"
 let fruits = ["apple", "banana", "cherry", "date"]
 
 fun foo(ref text, ref arr) {
-  echo "Text reference: {len text}"
-  echo "Array reference: {len arr}"
+  echo("Text reference: {len text}")
+  echo("Array reference: {len arr}")
 }
 
-echo "Text literal: {len "Hello"}"
-echo "Array literal: {len [1, 2, 3]}"
-echo "Text variable: {len name}"
-echo "Array variable: {len fruits}"
+echo("Text literal: {len "Hello"}")
+echo("Array literal: {len [1, 2, 3]}")
+echo("Text variable: {len name}")
+echo("Array variable: {len fruits}")
 
 foo(name, fruits)

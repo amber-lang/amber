@@ -1,64 +1,41 @@
-use heraclitus_compiler::prelude::*;
-use crate::docs::module::DocumentationModule;
-use crate::modules::builtin::len::Len;
-use crate::modules::command::cmd::Command;
-use crate::modules::expression::binop::BinOp;
-use crate::modules::prelude::FragmentKind;
-use crate::modules::types::{Typed, Type};
-use crate::modules::typecheck::TypeCheckModule;
-use crate::translate::module::TranslateModule;
-use crate::utils::{ParserMetadata, TranslateMetadata};
-use crate::modules::expression::typeop::TypeOp;
-use crate::modules::expression::ternop::TernOp;
-use crate::modules::expression::unop::UnOp;
-use crate::modules::types::parse_type;
-use super::literal::{
-    bool::Bool,
-    number::Number,
-    integer::Integer,
-    text::Text,
-    array::Array,
-    null::Null,
-    status::Status,
-};
-use crate::modules::expression::access::Access;
 use super::binop::{
-    add::Add,
-    sub::Sub,
-    mul::Mul,
-    div::Div,
-    modulo::Modulo,
-    range::Range,
-    and::And,
-    or::Or,
-    gt::Gt,
-    ge::Ge,
-    lt::Lt,
-    le::Le,
-    eq::Eq,
-    neq::Neq,
+    add::Add, and::And, div::Div, eq::Eq, ge::Ge, gt::Gt, le::Le, lt::Lt, modulo::Modulo, mul::Mul,
+    neq::Neq, or::Or, range::Range, sub::Sub,
 };
-use super::unop::{
-    not::Not,
-    neg::Neg,
-};
-use super::typeop::{
-    cast::Cast,
-    is::Is,
+use super::literal::{
+    array::Array, bool::Bool, integer::Integer, null::Null, number::Number, status::Status,
+    text::Text,
 };
 use super::parentheses::Parentheses;
-use crate::modules::variable::get::VariableGet;
 use super::ternop::ternary::Ternary;
-use crate::modules::function::invocation::FunctionInvocation;
-use crate::modules::builtin::lines::LinesInvocation;
-use crate::modules::builtin::nameof::Nameof;
-use crate::{
-    document_expression,
-    parse_expression,
-    parse_expression_group,
-    typecheck_expression,
-    translate_expression
+use super::typeop::{cast::Cast, is::Is};
+use super::unop::{neg::Neg, not::Not};
+use crate::docs::module::DocumentationModule;
+use crate::modules::builtin::len::Len;
+use crate::modules::builtin::{
+    lines::LinesInvocation, ls::Ls, nameof::Nameof, pid::Pid, pwd::Pwd, shellname::Shellname,
+    shellversion::Shellversion,
 };
+use crate::modules::command::cmd::Command;
+use crate::modules::expression::access::Access;
+use crate::modules::expression::binop::BinOp;
+use crate::modules::expression::ternop::TernOp;
+use crate::modules::expression::typeop::TypeOp;
+use crate::modules::expression::unop::UnOp;
+use crate::modules::function::invocation::FunctionInvocation;
+use crate::modules::prelude::FragmentKind;
+use crate::modules::typecheck::TypeCheckModule;
+use crate::modules::types::parse_type;
+use crate::modules::types::{Type, Typed};
+use crate::modules::variable::get::VariableGet;
+use crate::translate::module::TranslateModule;
+use crate::utils::{ParserMetadata, TranslateMetadata};
+use crate::{
+    document_expression, parse_expression, parse_expression_group, translate_expression,
+    typecheck_expression,
+};
+use heraclitus_compiler::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
@@ -96,14 +73,43 @@ pub enum ExprType {
     Len(Len),
     Is(Is),
     Access(Access),
+    Pwd(Pwd),
+    Ls(Ls),
+    Pid(Pid),
+    Shellname(Shellname),
+    Shellversion(Shellversion),
+}
+
+impl ExprType {
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        match self {
+            ExprType::Bool(v) => v.analyze_control_flow(),
+            ExprType::And(v) => v.analyze_control_flow(),
+            ExprType::Or(v) => v.analyze_control_flow(),
+            ExprType::Not(v) => v.analyze_control_flow(),
+            ExprType::Parentheses(v) => v.analyze_control_flow(),
+            ExprType::Is(v) => v.analyze_control_flow(),
+            _ => None,
+        }
+    }
+
+    pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
+        match self {
+            ExprType::And(v) => v.extract_facts(),
+            ExprType::Or(v) => v.extract_facts(),
+            ExprType::Not(v) => v.extract_facts(),
+            ExprType::Parentheses(v) => v.extract_facts(),
+            ExprType::Is(v) => v.extract_facts(),
+            _ => (HashMap::new(), HashMap::new()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct Expr {
     pub value: Option<ExprType>,
     pub kind: Type,
-    /// Positions of the tokens enclosing the expression
-    pub pos: (usize, usize)
+    pub position: Option<PositionInfo>,
 }
 
 impl Typed for Expr {
@@ -122,15 +128,33 @@ impl Expr {
         }
     }
 
-    pub fn get_position(&self, meta: &mut ParserMetadata) -> PositionInfo {
-        let begin = meta.get_token_at(self.pos.0);
-        let end = meta.get_token_at(self.pos.1);
-        PositionInfo::from_between_tokens(meta, begin, end)
+    pub fn get_position(&self) -> PositionInfo {
+        self.position
+            .clone()
+            .expect("Expr position wasn't set in the parsing stage")
     }
 
     pub fn get_error_message(&self, meta: &mut ParserMetadata) -> Message {
-        let pos = self.get_position(meta);
+        let pos = self.get_position();
         Message::new_err_at_position(meta, pos)
+    }
+
+    pub fn analyze_control_flow(&self) -> Option<bool> {
+        self.value
+            .as_ref()
+            .and_then(|val| val.analyze_control_flow())
+    }
+
+    pub fn extract_facts(
+        &self,
+    ) -> (
+        std::collections::HashMap<String, Type>,
+        std::collections::HashMap<String, Type>,
+    ) {
+        self.value
+            .as_ref()
+            .map(|val| val.extract_facts())
+            .unwrap_or_default()
     }
 }
 
@@ -141,12 +165,12 @@ impl SyntaxModule<ParserMetadata> for Expr {
         Expr {
             value: None,
             kind: Type::Null,
-            pos: (0, 0)
+            position: None,
         }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        let result = parse_expression!(meta, [
+        *self = parse_expression!(meta, [
             ternary @ TernOp => [ Ternary ],
             range @ BinOp => [ Range ],
             or @ BinOp => [ Or ],
@@ -163,26 +187,65 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 Parentheses, Bool, Number, Integer, Text,
                 Array, Null, Status, Nameof,
                 // Builtin invocation
-                LinesInvocation,
+                LinesInvocation, Pwd, Ls, Pid, Shellname, Shellversion,
                 // Function invocation
                 FunctionInvocation, Command,
                 // Variable access
                 VariableGet
             ]
         ]);
-        *self = result;
         Ok(())
     }
 }
 
 impl TypeCheckModule for Expr {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
-        typecheck_expression!(self, meta, self.value.as_mut().unwrap(), [
-            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
-            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
-            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-            Range, Status, Sub, Ternary, Text, VariableGet, Access
-        ]);
+        typecheck_expression!(
+            self,
+            meta,
+            self.value.as_mut().unwrap(),
+            [
+                Add,
+                And,
+                Array,
+                Bool,
+                Cast,
+                Command,
+                Div,
+                Eq,
+                FunctionInvocation,
+                Ge,
+                Gt,
+                Integer,
+                Is,
+                Le,
+                Len,
+                LinesInvocation,
+                Lt,
+                Modulo,
+                Mul,
+                Nameof,
+                Neg,
+                Neq,
+                Not,
+                Null,
+                Number,
+                Or,
+                Parentheses,
+                Range,
+                Status,
+                Sub,
+                Ternary,
+                Text,
+                VariableGet,
+                Access,
+                Pwd,
+                Ls,
+                Pid,
+                Shellname,
+                Shellversion
+            ]
+        );
         Ok(())
     }
 }
@@ -190,23 +253,101 @@ impl TypeCheckModule for Expr {
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         meta.with_expr_ctx(true, |meta| {
-            translate_expression!(meta, self.value.as_ref().unwrap(), [
-                Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
-                Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
-                Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-                Range, Status, Sub, Ternary, Text, VariableGet, Access
-            ])
+            translate_expression!(
+                meta,
+                self.value.as_ref().unwrap(),
+                [
+                    Add,
+                    And,
+                    Array,
+                    Bool,
+                    Cast,
+                    Command,
+                    Div,
+                    Eq,
+                    FunctionInvocation,
+                    Ge,
+                    Gt,
+                    Integer,
+                    Is,
+                    Le,
+                    Len,
+                    LinesInvocation,
+                    Lt,
+                    Modulo,
+                    Mul,
+                    Nameof,
+                    Neg,
+                    Neq,
+                    Not,
+                    Null,
+                    Number,
+                    Or,
+                    Parentheses,
+                    Range,
+                    Status,
+                    Sub,
+                    Ternary,
+                    Text,
+                    VariableGet,
+                    Access,
+                    Pwd,
+                    Ls,
+                    Pid,
+                    Shellname,
+                    Shellversion
+                ]
+            )
         })
     }
 }
 
 impl DocumentationModule for Expr {
     fn document(&self, meta: &ParserMetadata) -> String {
-        document_expression!(meta, self.value.as_ref().unwrap(), [
-            Add, And, Array, Bool, Cast, Command, Div, Eq, FunctionInvocation,
-            Ge, Gt, Integer, Is, Le, Len, LinesInvocation, Lt, Modulo,
-            Mul, Nameof, Neg, Neq, Not, Null, Number, Or, Parentheses,
-            Range, Status, Sub, Ternary, Text, VariableGet, Access
-        ])
+        document_expression!(
+            meta,
+            self.value.as_ref().unwrap(),
+            [
+                Add,
+                And,
+                Array,
+                Bool,
+                Cast,
+                Command,
+                Div,
+                Eq,
+                FunctionInvocation,
+                Ge,
+                Gt,
+                Integer,
+                Is,
+                Le,
+                Len,
+                LinesInvocation,
+                Lt,
+                Modulo,
+                Mul,
+                Nameof,
+                Neg,
+                Neq,
+                Not,
+                Null,
+                Number,
+                Or,
+                Parentheses,
+                Range,
+                Status,
+                Sub,
+                Ternary,
+                Text,
+                VariableGet,
+                Access,
+                Pwd,
+                Ls,
+                Pid,
+                Shellname,
+                Shellversion
+            ]
+        )
     }
 }

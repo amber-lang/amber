@@ -7,8 +7,8 @@ import { text_contains_all } from "std/text"
 // Both: 1
 
 fun test_multiple(label, text, terms) {
-    let result = text_contains_all(text, terms)
-    echo "{label}: {result}"
+    const result = text_contains_all(text, terms)
+    echo("{label}: {result}")
 }
 
 main {

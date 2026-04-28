@@ -1,14 +1,20 @@
 use heraclitus_compiler::prelude::*;
-use crate::raw_fragment;
-use crate::modules::types::Type;
-use crate::modules::block::Block;
-use crate::modules::prelude::*;
 
 use super::variable::variable_name_extensions;
+use crate::modules::block::Block;
+use crate::modules::prelude::*;
+use crate::modules::types::Type;
+use crate::raw_fragment;
+use crate::utils::context::{VariableDecl, VariableDeclWarn};
+use crate::utils::metadata::ParserMetadata;
+use amber_meta::AutoKeyword;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "main"]
+#[kind = "stmt"]
 pub struct Main {
     pub args: Option<String>,
+    pub args_tok: Option<Token>,
     pub args_global_id: Option<usize>,
     pub block: Block,
     pub token: Option<Token>,
@@ -21,10 +27,11 @@ impl SyntaxModule<ParserMetadata> for Main {
     fn new() -> Self {
         Self {
             args: None,
+            args_tok: None,
             args_global_id: None,
             block: Block::new().with_no_indent(),
             token: None,
-            is_skipped: false
+            is_skipped: false,
         }
     }
 
@@ -35,19 +42,21 @@ impl SyntaxModule<ParserMetadata> for Main {
         if !meta.context.trace.is_empty() {
             self.is_skipped = true;
         }
-        context!({
-            meta.context.is_main_ctx = true;
-            if token(meta, "(").is_ok() {
-                self.args = Some(variable(meta, variable_name_extensions())?);
-                token(meta, ")")?;
-            }
-            // Parse the block
-            syntax(meta, &mut self.block)?;
-            meta.context.is_main_ctx = false;
-            Ok(())
-        }, |pos| {
-            error_pos!(meta, pos, "Undefined syntax in main block")
-        })
+        context!(
+            {
+                meta.context.is_main_ctx = true;
+                if token(meta, "(").is_ok() {
+                    self.args_tok = meta.get_current_token();
+                    self.args = Some(variable(meta, variable_name_extensions())?);
+                    token(meta, ")")?;
+                }
+                // Parse the block
+                syntax(meta, &mut self.block)?;
+                meta.context.is_main_ctx = false;
+                Ok(())
+            },
+            |pos| { error_pos!(meta, pos, "Undefined syntax in main block") }
+        )
     }
 }
 
@@ -55,14 +64,21 @@ impl TypeCheckModule for Main {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Main cannot be parsed inside of a block
         if !meta.is_global_scope() {
-            return error!(meta, self.token.clone(), "Main must be in the global scope")
+            return error!(meta, self.token.clone(), "Main must be in the global scope");
+        }
+
+        if self.is_skipped {
+            return Ok(());
         }
 
         // Typecheck the main block content
         meta.with_push_scope(true, |meta| {
             // Create variables for main arguments
             for arg in self.args.iter() {
-                self.args_global_id = meta.add_var(arg, Type::Array(Box::new(Type::Text)), true);
+                let var = VariableDecl::new(arg.clone(), Type::Array(Box::new(Type::Text)))
+                    .with_const(true)
+                    .with_warn(VariableDeclWarn::from_token(meta, self.args_tok.clone()));
+                self.args_global_id = Some(meta.add_var(var).unwrap());
             }
             // Typecheck the block
             self.block.typecheck(meta)?;
@@ -73,7 +89,7 @@ impl TypeCheckModule for Main {
 
 impl TranslateModule for Main {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if self.is_skipped {
+        if self.is_skipped || meta.test_mode {
             FragmentKind::Empty
         } else {
             let quote = meta.gen_quote();
@@ -83,8 +99,11 @@ impl TranslateModule for Main {
                 || FragmentKind::Empty,
                 |name| {
                     let id = self.args_global_id.unwrap_or(global_id);
-                    raw_fragment!("declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})")
-                }
+                    raw_fragment!(
+                        // typeset is supported by all 3 shells, no need for extra logic
+                        "typeset -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
+                    )
+                },
             );
             // Temporarily decrease the indentation level to counteract
             // the indentation applied by the block translation.  Unlike

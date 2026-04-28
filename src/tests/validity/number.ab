@@ -6,9 +6,9 @@
 // 72 is an Int
 // -86 is an Int
 
-echo 15.5 is Num then "15.5 is a Num" else "15.5 is not a Num"
-echo -42.75 is Num then "-42.75 is a Num" else "-42.75 is not a Num"
-echo .20 is Num then ".20 is a Num" else ".20 is not a Num"
-echo -.92 is Num then "-.92 is a Num" else "-.92 is not a Num"
-echo 72 is Int then "72 is an Int" else "72 is not an Int"
-echo -86 is Int then "-86 is an Int" else "-86 is not an Int"
+echo(15.5 is Num then "15.5 is a Num" else "15.5 is not a Num")
+echo(-42.75 is Num then "-42.75 is a Num" else "-42.75 is not a Num")
+echo(.20 is Num then ".20 is a Num" else ".20 is not a Num")
+echo(-.92 is Num then "-.92 is a Num" else "-.92 is not a Num")
+echo(72 is Int then "72 is an Int" else "72 is not an Int")
+echo(-86 is Int then "-86 is an Int" else "-86 is not an Int")

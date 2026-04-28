@@ -1,4 +1,4 @@
 // Output
 // Builtin function `exit` can only be used with values of type Int
 
-exit "hello"
+exit("hello")

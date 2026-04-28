@@ -3,6 +3,6 @@
 
 main {
     $ echo "test" $ failed() {
-        echo "Failed"
+        echo("Failed")
     }
 }

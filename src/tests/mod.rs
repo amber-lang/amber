@@ -5,16 +5,22 @@ use itertools::Itertools;
 use pretty_assertions::assert_eq;
 use std::fs;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::{ExitStatus, Stdio};
 
 pub mod cli;
-pub mod extra;
-pub mod postprocessor;
-pub mod translation;
-pub mod optimizing;
-mod stdlib;
-mod validity;
+pub mod compiling;
 mod erroring;
+pub mod extra;
+mod functional;
+pub mod optimizing;
+pub mod postprocessor;
+mod runtime;
+mod stdlib;
+mod test_mode;
+mod testing;
+pub mod translating;
+mod validity;
+mod warning;
 
 #[macro_export]
 macro_rules! unwrap_fragment {
@@ -33,7 +39,7 @@ pub enum TestOutcomeTarget {
     Failure,
 }
 
-fn eval_amber(code: &str) -> Result<String, Message> {
+pub fn eval_amber(code: &str) -> Result<(String, ExitStatus), Message> {
     let options = CompilerOptions::default();
     let mut compiler = AmberCompiler::new(code.to_string(), None, options);
     compiler.test_eval()
@@ -44,7 +50,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
     let evaluated = eval_amber(code);
     match target {
         TestOutcomeTarget::Success => match evaluated {
-            Ok(stdout) => {
+            Ok((stdout, _)) => {
                 let stdout = stdout.trim_end_matches('\n');
                 if stdout != SUCCEEDED {
                     let result = result.trim_end_matches('\n');
@@ -54,16 +60,16 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
             Err(err) => {
                 panic!("ERROR: {}", err.message.unwrap())
             }
-        }
+        },
         TestOutcomeTarget::Failure => match evaluated {
-            Ok(stdout) => {
+            Ok((stdout, _)) => {
                 panic!("Expected error, got: {stdout}")
             }
             Err(err) => {
                 let message = err.message.expect("Error message expected");
                 assert_eq!(message, result)
             }
-        }
+        },
     }
 }
 
@@ -75,7 +81,7 @@ pub fn compile_code<T: Into<String>>(code: T) -> String {
 }
 
 pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
-    let mut cmd = Command::new("bash");
+    let mut cmd = AmberCompiler::find_shell(None).expect("Failed to find shell");
     cmd.arg("-c");
     cmd.arg(code.into());
     cmd.stdout(Stdio::piped());
@@ -90,7 +96,7 @@ pub fn eval_bash<T: Into<String>>(code: T) -> (String, String) {
 }
 
 /// Extracts the output from the comment of Amber code
-fn extract_output(code: impl Into<String>) -> String {
+pub fn extract_output(code: impl Into<String>) -> String {
     code.into()
         .lines()
         .skip_while(|line| !line.starts_with("// Output"))
@@ -102,8 +108,8 @@ fn extract_output(code: impl Into<String>) -> String {
 
 /// Inner test logic for testing script output in case of success or failure
 pub fn script_test(input: &str, target: TestOutcomeTarget) {
-    let code = fs::read_to_string(input)
-        .unwrap_or_else(|_| panic!("Failed to open {input} test file"));
+    let code =
+        fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
     // Extract output from script comment
     let mut output = extract_output(&code);
     // If output is not in comment, try to read from .output.txt file

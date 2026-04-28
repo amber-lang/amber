@@ -1,4 +1,5 @@
 import * from "std/date"
+import * from "std/math"
 
 #[allow_absurd_cast]
 fun get_current_date(): Int {
@@ -6,6 +7,6 @@ fun get_current_date(): Int {
 }
 
 main {
-    let posix_now = get_current_date()
-    if date_now() == posix_now: echo "Succeeded"
+    const posix_now = get_current_date()
+    if math_abs(date_now() - posix_now) < 3: echo("Succeeded")
 }

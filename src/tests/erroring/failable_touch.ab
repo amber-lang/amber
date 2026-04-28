@@ -1,0 +1,6 @@
+// Output
+// The `touch` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.
+
+main {
+    touch("/tmp/amber_test.txt")
+}

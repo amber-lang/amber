@@ -8,8 +8,8 @@ import { match_regex_any } from "std/text"
 // Both: 1
 
 fun test_multiple(label, text, terms) {
-    let result = match_regex_any(text, terms)
-    echo "{label}: {result}"
+    const result = match_regex_any(text, terms)
+    echo("{label}: {result}")
 }
 
 main {

@@ -1,8 +1,10 @@
 use crate::fragments;
 use crate::modules::prelude::*;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "continue"]
 pub struct Continue {
     tok: Option<Token>,
 }
@@ -11,9 +13,7 @@ impl SyntaxModule<ParserMetadata> for Continue {
     syntax_name!("Continue");
 
     fn new() -> Self {
-        Continue {
-          tok: None
-        }
+        Continue { tok: None }
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
@@ -27,7 +27,11 @@ impl TypeCheckModule for Continue {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Detect if the continue statement is inside a loop
         if !meta.context.is_loop_ctx {
-            return error!(meta, self.tok.clone(), "Continue statement can only be used inside a loop")
+            return error!(
+                meta,
+                self.tok.clone(),
+                "Continue statement can only be used inside a loop"
+            );
         }
         Ok(())
     }

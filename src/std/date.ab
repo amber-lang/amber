@@ -25,10 +25,10 @@
 /// ### Usage
 /// ```ab
 /// let date = date_now() // Example value: 1678887000
-/// echo date_format_posix(date) // Outputs: 2023-03-15 14:30:00
+/// echo(date_format_posix(date)) // Outputs: 2023-03-15 14:30:00
 /// ```
 pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false): Text? {
-    let utc_flag = utc then "-u" else ""
+    const utc_flag = utc then "-u" else ""
     // Case if this is a GNU date command
     return $ date {utc_flag} -d "@{date}" +"{format}" 2>/dev/null $ failed {
         // Case if this is a BSD date command
@@ -43,11 +43,11 @@ pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false):
 /// ### Usage
 /// ```ab
 /// let date = "2023-03-15 14:30:00"
-/// echo date_from_posix(date) // Output: 1678887000
+/// echo(date_from_posix(date)) // Output: 1678887000
 /// ```
 #[allow_absurd_cast]
 pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Int? {
-    let utc_flag = utc then "-u" else ""
+    const utc_flag = utc then "-u" else ""
     // Case if this is a GNU date command
     return $ date {utc_flag} -d "\$(date -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
         // Case if this is a BSD date command

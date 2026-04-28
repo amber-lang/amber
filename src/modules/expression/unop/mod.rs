@@ -1,10 +1,14 @@
-use heraclitus_compiler::prelude::*;
-use crate::{modules::types::{Type, Typed}, utils::{pluralize, ParserMetadata}};
 use super::expr::Expr;
 use crate::modules::typecheck::TypeCheckModule;
+use crate::utils::pretty_join;
+use crate::{
+    modules::types::{Type, Typed},
+    utils::{pluralize, ParserMetadata},
+};
+use heraclitus_compiler::prelude::*;
 
-pub mod not;
 pub mod neg;
+pub mod not;
 
 pub trait UnOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
     fn set_expr(&mut self, expr: Expr);
@@ -17,11 +21,13 @@ pub trait UnOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
         allowed_types: &[Type],
     ) -> Result<Type, Failure> {
         let expr_type = expr.get_type();
-        let expr_match = allowed_types.iter().any(|types| expr_type.is_allowed_in(types));
+        let expr_match = allowed_types
+            .iter()
+            .any(|types| expr_type.is_allowed_in(types));
         if !expr_match {
             let message = expr.get_error_message(meta);
             let msg = format!("Cannot perform {operator} on value of type '{expr_type}'");
-            let pretty_types = Type::pretty_join(allowed_types, "and");
+            let pretty_types = pretty_join(allowed_types, "and");
             let sentence = pluralize(allowed_types.len(), "Allowed type is", "Allowed types are");
             let comment = format!("{sentence} {pretty_types}.");
             Err(Failure::Loud((message).message(msg).comment(comment)))
