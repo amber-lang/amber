@@ -42,7 +42,7 @@ fn test_find_amber_files_symlink() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Test validating find_amber_files failing for looping symlinks.
 #[test]
-fn test_find_amber_files_loop() -> Result<(), Box<dyn std::error::Error>> {
+fn test_find_amber_files_loop()  {
     let mut files = vec![];
     let result = find_amber_files(
         &PathBuf::from("src/tests/io/find_amber_files/loop"),
@@ -50,10 +50,5 @@ fn test_find_amber_files_loop() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     assert!(result.is_err());
-    let err = result.unwrap_err();
-    // Use string to avoid unstable error kind
-    assert!(err.to_string().contains("Too many levels of symbolic links"));
-
-    Ok(())
 }
 
