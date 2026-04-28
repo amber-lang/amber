@@ -350,7 +350,13 @@ fn handle_build(
 ) -> Result<(), Box<dyn Error>> {
     let target = resolve_command_target(command.target, cli_target);
 
-    if command.input.as_os_str() != "-" && command.input.is_dir() {
+    let is_stdin = command.input.as_os_str() == "-";
+
+    if !is_stdin {
+        validate_input_existence(&command.input);
+    }
+
+    if !is_stdin && command.input.is_dir() {
         validate_output_dir(&command.output);
 
         let mut files = vec![];
@@ -370,6 +376,14 @@ fn handle_build(
     }
 
     Ok(())
+}
+
+/// Validates the existence of the provided input file.
+fn validate_input_existence(input: &PathBuf) {
+    if !input.exists() {
+        Message::new_err_msg("Input does not exist").show();
+        std::process::exit(1);
+    }
 }
 
 /// Validates the provided output actually points to a directory.
