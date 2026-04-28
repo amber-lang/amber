@@ -13,14 +13,17 @@ use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::is_all_caps;
 use amber_meta::ContextManager;
+use clap::ValueEnum;
 
 const INDENT_SPACES: &str = "    ";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum ShellType {
-    /// Supports Bash 4.3+.
+    /// Supports Bash 4.3+. (alias: `bash`)
+    #[value(name = "bash-4.3", alias = "bash", help = "bash-4.3 (alias: bash)")]
     BashModern,
     /// Supports Bash 3.2+.
+    #[value(name = "bash-3.2")]
     BashLegacy,
     Zsh,
     Ksh,

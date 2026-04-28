@@ -27,6 +27,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -38,13 +39,14 @@ mod test {
 
     #[test]
     fn test_get_tests_to_run_with_pattern() {
-        let test_file = PathBuf::from("src/tests/validity/test_named_syntax.ab");
+        let test_file: PathBuf = PathBuf::from("src/tests/validity/test_named_syntax.ab");
 
         let command = TestCommand {
             input: test_file.clone(),
-            args: vec!["foo".to_string()],
+            args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: Some("foo".to_string()),
         };
 
         let result = get_tests_to_run(&command);
@@ -59,6 +61,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -75,6 +78,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -91,6 +95,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = handle_test(command);
@@ -107,6 +112,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = handle_test(command);
@@ -124,6 +130,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = handle_test(command);
@@ -141,6 +148,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = handle_test(command);
@@ -158,6 +166,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = get_tests_to_run(&command);
@@ -176,6 +185,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = handle_test(command);
@@ -194,6 +204,7 @@ mod test {
             args: vec![],
             no_proc: Vec::new(),
             target: None,
+            test_case: None,
         };
 
         let result = handle_test(command);

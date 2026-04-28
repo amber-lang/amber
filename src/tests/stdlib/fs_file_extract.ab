@@ -3,8 +3,8 @@ import { array_contains } from "std/array"
 
 main {
     const src_dir = temp_dir_create("amber-test-src-XXXX")?
-    cd(src_dir)
-    touch("test.txt")
+    trust cd(src_dir)
+    trust touch("test.txt")
     file_compress(["test.txt"],"filename.tar.gz")?
     const package = "{src_dir}/filename.tar.gz"
     if not file_exists(package) {

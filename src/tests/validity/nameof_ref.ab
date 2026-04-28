@@ -11,7 +11,7 @@ fun swap(ref a: Int, ref b: Int) {
 trust $ 
 a=1
 b=2
-{nameof swap} a b
+{nameof(swap)} a b
 echo "\$\{a}"
 echo "\$\{b}"
 $

@@ -2,7 +2,7 @@
 // /tmp
 // /tmp
 
-cd("/tmp/")
+trust cd("/tmp/")
 echo(pwd())
 
 let dir = pwd()

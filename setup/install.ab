@@ -14,7 +14,7 @@ fun get_latest_release_tag(): Text? {
     const tag_url = "https://api.github.com/repos/amber-lang/{name}/releases/latest"
     const tag_json = $ curl -sL "{tag_url}" $?
     // Get the tag name from the JSON
-    const tag = $ echo "\${nameof tag_json}" \
+    const tag = $ echo "\${nameof(tag_json)}" \
         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
         | grep -Eo "\\"[^\\"]+\\"\$" \
         | grep -Eo "[^\\"\\s]+" $?

@@ -1,0 +1,4 @@
+// Output
+// Arrays don't support mixed type values
+
+const arr = [Int | Text]

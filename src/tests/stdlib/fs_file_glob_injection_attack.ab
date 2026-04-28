@@ -8,7 +8,7 @@ main {
     trust {
         $ touch "{tmpdir}/xxx; do echo HACKED; done; for file in" $
     }
-    cd(tmpdir)
+    trust cd(tmpdir)
 
     // The glob function escapes all characters in the passed-in glob
     // apart from "*", "?" and "/", to prevent injection attacks.  If we

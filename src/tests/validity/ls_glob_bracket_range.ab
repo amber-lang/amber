@@ -6,10 +6,10 @@ import { array_contains } from "std/array"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    touch("{tmpdir}/a1.txt")
-    touch("{tmpdir}/b2.txt")
-    touch("{tmpdir}/c3.txt")
-    touch("{tmpdir}/d4.txt")
+    trust touch("{tmpdir}/a1.txt")
+    trust touch("{tmpdir}/b2.txt")
+    trust touch("{tmpdir}/c3.txt")
+    trust touch("{tmpdir}/d4.txt")
 
     // [a-c]* matches files starting with a, b, or c
     const files = ls("{tmpdir}/[a-c]*")?

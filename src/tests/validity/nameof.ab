@@ -2,4 +2,4 @@
 // 12
 
 const variable = 12
-trust $ echo \${nameof variable} $
+trust $ echo \${nameof(variable)} $

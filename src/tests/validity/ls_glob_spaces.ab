@@ -8,9 +8,9 @@ main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     const subdir = "{tmpdir}/dir with spaces"
     dir_create(subdir)?
-    touch("{subdir}/file1.txt")
-    touch("{subdir}/file2.txt")
-    touch("{subdir}/other.csv")
+    trust touch("{subdir}/file1.txt")
+    trust touch("{subdir}/file2.txt")
+    trust touch("{subdir}/other.csv")
 
     // Glob with spaces in path
     const files = ls("{subdir}/*.txt")?

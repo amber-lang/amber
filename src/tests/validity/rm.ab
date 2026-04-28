@@ -2,8 +2,8 @@ import * from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    touch("{tmpdir}/a")
-    touch("{tmpdir}/b")
+    trust touch("{tmpdir}/a")
+    trust touch("{tmpdir}/b")
 
     rm("{tmpdir}/a", false, true)?
     if file_exists("{tmpdir}/a") {

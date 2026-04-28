@@ -52,21 +52,11 @@ fn parse_escaped_string(string: String, region_type: &InterpolatedRegionType) ->
                 Some('r') => result.push('\r'),
                 Some('0') => result.push('\0'),
                 Some('{') => result.push('{'),
-                Some('"') => {
-                    if *region_type == InterpolatedRegionType::Text {
-                        result.push('"');
-                    } else {
-                        result.push(c);
-                        continue;
-                    }
+                Some('"') if *region_type == InterpolatedRegionType::Text => {
+                    result.push('"');
                 }
-                Some('$') => {
-                    if *region_type == InterpolatedRegionType::Command {
-                        result.push('$');
-                    } else {
-                        result.push(c);
-                        continue;
-                    }
+                Some('$') if *region_type == InterpolatedRegionType::Command => {
+                    result.push('$');
                 }
                 _ => {
                     result.push(c);

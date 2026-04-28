@@ -1,0 +1,26 @@
+main {
+    trust silent $ killall yes $ // Cleanup before test
+
+    trust $ yes > /dev/null 2>&1 & $
+    const first_pid = pid()
+    disown(first_pid)
+
+    if len($ jobs -l $?) == 0 {
+        trust $ yes > /dev/null 2>&1 & $
+        const second_pid = pid()
+
+        trust $ yes > /dev/null 2>&1 & $
+        const third_pid = pid()
+        disown([second_pid, third_pid])
+
+        if len($ jobs -l $?) == 0 {
+            echo("Succeeded")
+        } else {
+            echo("Process still alive")
+        }
+    } else {
+        echo("Process still alive")
+    }
+
+    trust silent $ killall yes $ // Cleanup after test
+}

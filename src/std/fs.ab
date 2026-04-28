@@ -1,4 +1,4 @@
-import { match_regex, join, replace_regex, split, trim } from "std/text"
+import { match_regex, trim } from "std/text"
 
 /// Checks if a directory exists.
 ///

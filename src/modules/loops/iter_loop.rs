@@ -2,6 +2,7 @@ use heraclitus_compiler::prelude::*;
 
 use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
+use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::loops::utils::iter_loop_range::IterLoopRange;
 use crate::modules::prelude::*;
@@ -67,10 +68,10 @@ impl SyntaxModule<ParserMetadata> for IterLoop {
 
 impl TranslateModule for IterLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let iter_path = self.translate_path(meta);
+        let iter_lines = self.iterates_lines();
 
         // Optimize range loops
-        if iter_path.is_none() {
+        if iter_lines.is_none() {
             if let Some(ExprType::Range(range)) = &self.iter_expr.value {
                 return self.translate_range_loop(range, meta);
             }
@@ -79,13 +80,61 @@ impl TranslateModule for IterLoop {
         let iter_name_str = get_variable_name(&self.iter_name, self.iter_global_id);
         let iter_name = raw_fragment!("{}", iter_name_str);
 
-        let for_loop_prefix = match iter_path.is_some() {
+        let fifo_var = format!("__AMBER_FIFO_{}", meta.gen_value_id());
+        let pid_var = format!("__AMBER_PID_{}", meta.gen_value_id());
+
+        let for_loop_prefix = match iter_lines.clone() {
             // NOTE: The same read-loop pattern also exists in lines.rs (LinesInvocation::translate).
             // If you change this, update that one too.
-            true => raw_fragment!(
-                "while IFS= read -r {iter_name_str} || [ -n \"${iter_name_str}\" ]; do"
-            ),
-            false => fragments!(
+            Some(lines) => {
+                let path = (*lines.path)
+                    .as_ref()
+                    .map(|p| p.translate(meta))
+                    .expect("Cannot read lines without provided path");
+
+                let has_sudo = lines.modifier.is_sudo || meta.sudoed;
+                let sudo_prefix =
+                    meta.with_sudoed(has_sudo, |meta| meta.gen_sudo_prefix().to_frag());
+
+                // Using only suppress to hide stderr, as stdout is passed to arr
+                let suppress = meta.with_suppress(
+                    lines.modifier.is_suppress
+                        || meta.suppress
+                        || lines.modifier.is_silent
+                        || meta.silenced,
+                    |meta| meta.gen_suppress().to_frag(),
+                );
+
+                // Producer writes into the FIFO in the background so that:
+                // - sudo works (process substitution `<(sudo ...)` strips sudo's TTY access)
+                // - the producer's exit status is properly captured via `wait`
+                let producer = if has_sudo {
+                    fragments!(
+                        sudo_prefix,
+                        " cat ",
+                        path,
+                        suppress,
+                        raw_fragment!(" >\"${fifo_var}\" &")
+                    )
+                } else {
+                    fragments!("cat ", path, suppress, raw_fragment!(" >\"${fifo_var}\" &"))
+                };
+
+                BlockFragment::new(
+                    vec![
+                        raw_fragment!("{fifo_var}=$(mktemp -u) || exit 1"), // panic if fifo cannot be created
+                        raw_fragment!("mkfifo \"${fifo_var}\" || exit 1"),
+                        producer,
+                        raw_fragment!("{pid_var}=$!"),
+                        raw_fragment!(
+                            "while IFS= read -r {iter_name_str} || [ -n \"${iter_name_str}\" ]; do"
+                        ),
+                    ],
+                    false,
+                )
+                .to_frag()
+            }
+            None => fragments!(
                 "for ",
                 iter_name,
                 " in ",
@@ -93,9 +142,19 @@ impl TranslateModule for IterLoop {
                 "; do"
             ),
         };
-        let for_loop_suffix = match iter_path.is_some() {
-            true => fragments!("done <", iter_path.unwrap()),
-            false => fragments!("done"),
+
+        let for_loop_suffix = match iter_lines {
+            Some(lines) => BlockFragment::new(
+                vec![
+                    raw_fragment!("done <\"${fifo_var}\""),
+                    raw_fragment!("wait ${pid_var}"),
+                    raw_fragment!("rm -f \"${fifo_var}\""),
+                    lines.failure_handler.translate(meta),
+                ],
+                false,
+            )
+            .to_frag(),
+            None => fragments!("done"),
         };
 
         match (self.iter_index.as_ref(), self.iter_index_global_id) {
@@ -163,9 +222,9 @@ impl TypeCheckModule for IterLoop {
 }
 
 impl IterLoop {
-    fn translate_path(&self, meta: &mut TranslateMetadata) -> Option<FragmentKind> {
+    fn iterates_lines(&self) -> Option<LinesInvocation> {
         if let Some(ExprType::LinesInvocation(value)) = &self.iter_expr.value {
-            Some(value.translate_path(meta))
+            Some(value.clone())
         } else {
             None
         }

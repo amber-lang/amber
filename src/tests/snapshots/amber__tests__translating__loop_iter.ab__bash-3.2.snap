@@ -9,7 +9,7 @@ Block(
                 VarStmtFragment {
                     name: "array",
                     global_id: Some(
-                        0,
+                        2,
                     ),
                     index: None,
                     kind: Array(
@@ -71,7 +71,7 @@ Block(
                                         VarExprFragment {
                                             name: "array",
                                             global_id: Some(
-                                                0,
+                                                2,
                                             ),
                                             kind: Array(
                                                 Int,
@@ -167,7 +167,7 @@ Block(
                 VarStmtFragment {
                     name: "array",
                     global_id: Some(
-                        1,
+                        3,
                     ),
                     index: None,
                     kind: Array(
@@ -243,7 +243,7 @@ Block(
                         VarExprFragment {
                             name: "array",
                             global_id: Some(
-                                1,
+                                3,
                             ),
                             kind: Array(
                                 Text,
@@ -266,7 +266,7 @@ Block(
                 VarStmtFragment {
                     name: "array",
                     global_id: Some(
-                        2,
+                        6,
                     ),
                     index: None,
                     kind: Array(
@@ -333,7 +333,7 @@ Block(
                                         VarExprFragment {
                                             name: "array",
                                             global_id: Some(
-                                                2,
+                                                6,
                                             ),
                                             kind: Array(
                                                 Int,

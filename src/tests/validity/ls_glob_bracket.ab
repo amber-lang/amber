@@ -6,9 +6,9 @@ import { array_contains } from "std/array"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    touch("{tmpdir}/alpha.txt")
-    touch("{tmpdir}/beta.txt")
-    touch("{tmpdir}/gamma.txt")
+    trust touch("{tmpdir}/alpha.txt")
+    trust touch("{tmpdir}/beta.txt")
+    trust touch("{tmpdir}/gamma.txt")
 
     // [ab]* matches files starting with 'a' or 'b'
     const files = ls("{tmpdir}/[ab]*")?

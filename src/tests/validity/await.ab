@@ -3,7 +3,7 @@ import { parse_int } from "std/text"
 main {
     trust $ SECONDS=0 $
     trust $ sleep 2 & $
-    await(pid())
+    trust await(pid())
     const seconds = trust $ echo \$SECONDS $
     if parse_int(seconds)? >= 2 {
         echo("Succeeded")

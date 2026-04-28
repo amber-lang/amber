@@ -103,7 +103,7 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                 const vers = shellversion()
                 trust $ printf "%s\r\n" "{method} /{path} HTTP/1.1\r\nhost: {url}\r\nconnection: close\r\nuser-agent: Amber/bash-{vers[0]}.{vers[1]}.{vers[2]}\r\naccept: */*\r\n{full_headers}" >&3 $
                 trust $
-                  read _ {nameof http_code} _ <&3
+                  read _ {nameof(http_code)} _ <&3
                   while IFS= read -r line; do 
                     [[ "\$line" == \$'\r' || -z "\$line" ]] && break 
                   done <&3 
