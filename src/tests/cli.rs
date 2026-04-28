@@ -569,3 +569,31 @@ fn test_cli_build_dir_invalid_output() {
         .code(1)
         .stderr(predicate::str::contains("Output is not a directory"));
 }
+
+#[test]
+fn test_cli_build_invalid_input() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args(["build", "DO_NOT_EXIST"])
+        .assert()
+        .failure()
+        .code(1)
+        .stderr(predicate::str::contains("Input does not exist"));
+}
+
+#[test]
+fn test_cli_build_stdin() {
+    let amber_code = r#"
+        main {
+            echo("Hello from stdin")
+        }
+        "#;
+
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args(["build", "-"])
+        .write_stdin(amber_code)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Hello from stdin"));
+}
