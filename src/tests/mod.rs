@@ -21,6 +21,7 @@ mod testing;
 pub mod translating;
 mod validity;
 mod warning;
+mod io;
 
 #[macro_export]
 macro_rules! unwrap_fragment {
