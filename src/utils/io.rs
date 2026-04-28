@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-/// Adds all amber files (.ab extension) to from the directory to the vector. The search is recursive.
+/// Adds all amber files (.ab extension) from the directory to the vector. The search is recursive.
 ///
 /// * `dir` Directory to search
 /// * `files` Vector to add results to

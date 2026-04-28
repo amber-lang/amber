@@ -392,7 +392,7 @@ fn create_output_dir(command: &BuildCommand, file: &PathBuf) -> PathBuf {
     }
 }
 
-/// Compiles the input file and writes the result to the output path.wr
+/// Compiles the input file and writes the result to the output path.
 fn build_file(command: &BuildCommand, target: &Option<ShellType>, input: PathBuf, output: PathBuf) {
     let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
         .with_target(target.clone())
