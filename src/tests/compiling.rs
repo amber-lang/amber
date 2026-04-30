@@ -1,5 +1,5 @@
 /// Tests for Amber scripts that check snapshot of generated bash code.
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{escape_shell_arg, AmberCompiler, CompilerOptions};
 use crate::modules::prelude::TranslateModule;
 use crate::modules::types::Type;
 use crate::translate::fragments::fragment::FragmentRenderable;
@@ -534,75 +534,6 @@ fn test_gen_footer_with_env() {
     );
 }
 
-#[test]
-fn test_shell_injection_command_substitution_blocked() {
-    let amber_code = r#"main(args) { echo(args[3]) }"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-
-    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
-
-    // Pass: args[1]=program-name, args[2]=safe, args[3]=malicious
-    let args = vec![
-        "program-name".to_string(),
-        "safe-arg".to_string(),
-        "$(echo INJECTED)".to_string(),
-    ];
-
-    // Note: execute() now returns only ExitStatus, not stdout.
-    // These tests need to be refactored to test escape_shell_arg directly
-    // or use a different execution method that captures output.
-    let status = AmberCompiler::execute(bash_code, args).expect("Failed to execute");
-
-    assert!(messages.len() <= 1);
-    assert!(status.success());
-
-    // TODO: Re-enable stdout verification once execute() supports capturing output
-    // let stdout = String::from_utf8(stdout_bytes).unwrap();
-    // assert!(stdout.contains("$(echo INJECTED)"));
-}
-#[test]
-fn test_shell_injection_variable_expansion_blocked() {
-    let amber_code = r#"main(args) { echo(args[2]) }"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-
-    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
-
-    let args = vec!["program-name".to_string(), "$HOME".to_string()];
-
-    // Note: execute() now returns only ExitStatus, not stdout.
-    // These tests need to be refactored to test escape_shell_arg directly
-    let status = AmberCompiler::execute(bash_code, args).expect("Failed to execute");
-
-    assert!(messages.len() <= 1);
-    assert!(status.success());
-
-    // TODO: Re-enable stdout verification once execute() supports capturing output
-    // let stdout = String::from_utf8(stdout_bytes).unwrap();
-    // assert!(stdout.contains("$HOME"));
-}
-#[test]
-fn test_shell_injection_backslash_handled() {
-    let amber_code = r#"main(args) { echo(args[2]) }"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
-
-    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
-
-    let args = vec!["program-name".to_string(), "\\".to_string()];
-
-    // Note: execute() now returns only ExitStatus, not stdout.
-    // These tests need to be refactored to test escape_shell_arg directly
-    let status = AmberCompiler::execute(bash_code, args).expect("Failed to execute");
-
-    assert!(messages.len() <= 1);
-    assert!(status.success());
-
-    // TODO: Re-enable stdout verification once execute() supports capturing output
-    // let stdout = String::from_utf8(stdout_bytes).unwrap();
-    // assert!(stdout.contains("\\"));
-}
 
 #[test]
 fn test_escape_shell_arg() {
@@ -620,4 +551,122 @@ fn test_escape_shell_arg() {
     assert_eq!(escape_shell_arg("$(whoami)"), "\\$(whoami)");
     assert_eq!(escape_shell_arg("; rm -rf /"), "; rm -rf /"); // semicolon not escaped, but wrapped in quotes
     assert_eq!(escape_shell_arg(r#"test"$`\!"#), r#"test\"\$\`\\\!"#);
+}
+
+#[test]
+fn test_shell_injection_command_substitution_blocked() {
+    let amber_code = r#"main(args) { echo(args[3]) }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+
+    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
+
+    let args = vec![
+        "program-name".to_string(),
+        "safe-arg".to_string(),
+        "$(echo INJECTED)".to_string(),
+    ];
+
+    let target = AmberCompiler::resolve_target_shell(None);
+    let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
+
+    let args_with_escapes = args
+        .iter()
+        .map(|arg| format!("\"{}\"", escape_shell_arg(arg)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let bash_code_with_args = format!("set -- {}\n{}", args_with_escapes, bash_code);
+
+    let output = shell
+        .arg("-c")
+        .arg(&bash_code_with_args)
+        .output()
+        .expect("Failed to execute");
+
+    let status = output.status;
+    assert!(messages.len() <= 1);
+    assert!(status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("$(echo INJECTED)"),
+        "Expected stdout to contain literal '$(echo INJECTED)', got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_shell_injection_variable_expansion_blocked() {
+    let amber_code = r#"main(args) { echo(args[2]) }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+
+    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
+
+    let args = vec!["program-name".to_string(), "$HOME".to_string()];
+
+    let target = AmberCompiler::resolve_target_shell(None);
+    let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
+
+    let args_with_escapes = args
+        .iter()
+        .map(|arg| format!("\"{}\"", escape_shell_arg(arg)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let bash_code_with_args = format!("set -- {}\n{}", args_with_escapes, bash_code);
+
+    let output = shell
+        .arg("-c")
+        .arg(&bash_code_with_args)
+        .output()
+        .expect("Failed to execute");
+
+    let status = output.status;
+    assert!(messages.len() <= 1);
+    assert!(status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("$HOME"),
+        "Expected stdout to contain literal '$HOME', got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_shell_injection_backslash_handled() {
+    let amber_code = r#"main(args) { echo(args[2]) }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+
+    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
+
+    let args = vec!["program-name".to_string(), "\\".to_string()];
+
+    let target = AmberCompiler::resolve_target_shell(None);
+    let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
+
+    let args_with_escapes = args
+        .iter()
+        .map(|arg| format!("\"{}\"", escape_shell_arg(arg)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let bash_code_with_args = format!("set -- {}\n{}", args_with_escapes, bash_code);
+
+    let output = shell
+        .arg("-c")
+        .arg(&bash_code_with_args)
+        .output()
+        .expect("Failed to execute");
+
+    let status = output.status;
+    assert!(messages.len() <= 1);
+    assert!(status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("\\"),
+        "Expected stdout to contain literal '\\\\', got: {}",
+        stdout
+    );
 }
