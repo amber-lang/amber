@@ -241,10 +241,14 @@ fn handle_err(err: std::io::Error) -> ! {
 #[allow(unused_must_use)]
 pub fn render_dash() {
     let str = "%.s─".dimmed();
-    if let Some(mut command) = AmberCompiler::find_shell() {
+    if let Some(mut command) = AmberCompiler::find_shell(None) {
         let cmd = format!("printf {str} $(seq 1 $(tput cols))");
         // Use spawn().wait() so the divider is written directly to the terminal.
-        let _ = command.arg("-c").arg(cmd).spawn().and_then(|mut c| c.wait());
+        let _ = command
+            .arg("-c")
+            .arg(cmd)
+            .spawn()
+            .and_then(|mut c| c.wait());
     }
     println!();
 }
@@ -272,7 +276,6 @@ fn execute_output(
     }
     let error = std::io::Error::new(std::io::ErrorKind::NotFound, "Failed to find shell");
     Err(error.into())
-}
 }
 
 fn resolve_command_target(
