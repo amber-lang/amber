@@ -6,7 +6,9 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "shellname"]
+#[kind = "builtin_expr"]
 pub struct Shellname {}
 
 impl Typed for Shellname {

@@ -13,17 +13,18 @@ use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use postprocessor::PostProcessor;
-use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
 use std::path::PathBuf;
-use std::process::{exit, Command, ExitStatus};
+use std::process::{exit, ExitStatus};
 use std::time::Instant;
 use wildmatch::WildMatchPattern;
 
 pub mod postprocessor;
+pub mod shell_resolve;
+
 /// Escapes a string for safe use as a shell argument in double quotes.
 /// Handles shell-special characters: $ ` " \ !
 /// This prevents shell command injection attacks.
@@ -46,6 +47,7 @@ const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
+    pub target: Option<ShellType>,
     pub minify: bool,
     pub test_mode: bool,
     pub test_name: Option<String>,
@@ -61,6 +63,7 @@ impl Default for CompilerOptions {
         let no_proc = vec![String::from("*")];
         Self {
             no_proc,
+            target: None,
             minify: false,
             test_mode: false,
             test_name: None,
@@ -83,6 +86,7 @@ impl CompilerOptions {
         let no_proc = no_proc.to_owned();
         Self {
             no_proc,
+            target: None,
             minify,
             test_mode,
             test_name,
@@ -112,6 +116,11 @@ impl CompilerOptions {
         if let Ok(path) = std::env::var("AMBER_FOOTER") {
             self.footer_path = Some(path);
         }
+        self
+    }
+
+    pub fn with_target(mut self, target: Option<ShellType>) -> Self {
+        self.target = target;
         self
     }
 }
@@ -237,11 +246,7 @@ impl AmberCompiler {
         } else {
             include_str!("header.sh").trim_end().to_string()
         };
-        let shell_name = match target_shell {
-            ShellType::Bash => "bash",
-            ShellType::Zsh => "zsh",
-            ShellType::Ksh => "ksh",
-        };
+        let shell_name = target_shell.family_name();
         header_template
             .replace("{{ version }}", get_version())
             .replace("{{ shell }}", shell_name)
@@ -264,12 +269,12 @@ impl AmberCompiler {
     fn gen_preamble(
         &self,
         sudo_used: bool,
-        shellname_used: bool,
+        shell_metadata_used: bool,
         target_shell: &ShellType,
     ) -> FragmentKind {
         let mut preamble = Vec::new();
         match target_shell {
-            ShellType::Bash => (),
+            ShellType::BashModern | ShellType::BashLegacy => (),
             ShellType::Zsh => {
                 // if the shell is ZSH:
                 // - emulate ksh (ksh arrays, word splitting, ...) which matches more with bash
@@ -287,9 +292,10 @@ impl AmberCompiler {
         if sudo_used {
             preamble.push(RawFragment::new(include_str!("preambles/sudo.sh").trim_end()).to_frag());
         }
-        if shellname_used {
+        if shell_metadata_used {
             preamble.push(
-                RawFragment::new(include_str!("preambles/shellname.sh").trim_end()).to_frag(),
+                RawFragment::new(include_str!("preambles/shellname-shellversion.sh").trim_end())
+                    .to_frag(),
             );
         }
         BlockFragment::new(preamble, false).to_frag()
@@ -298,6 +304,7 @@ impl AmberCompiler {
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
         let sudo_used = meta.sudo_used;
         let shellname_used = meta.shellname_used;
+        let shellversion_used = meta.shellversion_used;
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
@@ -305,7 +312,7 @@ impl AmberCompiler {
         // Add preamble that contains all code that should be executed before the main code
         result.append(self.gen_preamble(
             sudo_used,
-            shellname_used,
+            shellname_used || shellversion_used,
             &meta_translate.target.shell,
         ));
 
@@ -459,8 +466,16 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
-    pub fn execute(mut code: String, args: Vec<String>) -> Result<(ExitStatus, Vec<u8>), std::io::Error> {
-        if let Some(mut command) = Self::find_shell() {
+    pub fn execute(code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
+        Self::execute_with_target(code, args, None)
+    }
+
+    pub fn execute_with_target(
+        mut code: String,
+        args: Vec<String>,
+        target: Option<ShellType>,
+    ) -> Result<ExitStatus, std::io::Error> {
+        if let Some(mut command) = Self::find_shell(target) {
             if !args.is_empty() {
                 let args = args
                     .into_iter()
@@ -469,7 +484,7 @@ impl AmberCompiler {
                 code = format!("set -- {}\n{}", args.join(" "), code);
             }
             let output = command.arg("-c").arg(code).output()?;
-            Ok((output.status, output.stdout))
+            Ok(output.status)
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find shell");
             Err(error)
@@ -486,10 +501,10 @@ impl AmberCompiler {
     }
 
     #[cfg(test)]
-    pub fn test_eval(&mut self) -> Result<String, Message> {
+    pub fn test_eval(&mut self) -> Result<(String, ExitStatus), Message> {
         self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(warnings, code)| {
-            if let Some(mut command) = Self::find_shell() {
+            if let Some(mut command) = Self::find_shell(self.options.target) {
                 let child = command
                     .arg("-c")
                     .arg::<&str>(code.as_ref())
@@ -510,67 +525,11 @@ impl AmberCompiler {
                         warn_log + "\n"
                     }
                 };
-                Ok(warning_log + &output + &err_output)
+                Ok((warning_log + &output + &err_output, child.status))
             } else {
                 let message = Message::new_err_msg("Failed to find Bash");
                 Err(message)
             }
         })
-    }
-
-    #[cfg(windows)]
-    pub fn find_shell() -> Option<Command> {
-        if let Some(paths) = env::var_os("PATH") {
-            for path in env::split_paths(&paths) {
-                let path = path.join("bash.exe");
-                if path.exists() {
-                    let command = Command::new(path);
-                    return Some(command);
-                }
-            }
-        }
-        return None;
-    }
-
-    /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
-    #[cfg(not(windows))]
-    pub fn find_shell() -> Option<Command> {
-        if env::var("AMBER_TEST_STRATEGY").is_ok_and(|value| value == "docker") {
-            let mut command = Command::new("docker");
-            let args_string = env::var("AMBER_TEST_ARGS")
-                .expect("Please pass docker arguments in AMBER_TEST_ARGS environment variable.");
-            let mut args: Vec<&str> = args_string.split_whitespace().collect();
-            if args.first() == Some(&"exec") && !args.contains(&"-i") {
-                // `docker exec` needs `-i` to pass piped stdin through to interactive Amber input tests.
-                args.insert(1, "-i");
-            }
-            command.args(args);
-            Some(command)
-        } else {
-            // Detect default shell from SHELL env var, use it if it's bash, zsh or ksh
-            let shell = env::var("SHELL")
-                .ok()
-                .and_then(|s| s.rsplit('/').next().map(String::from))
-                .filter(|s| s == "bash" || s == "zsh" || s == "ksh")
-                .unwrap_or_else(|| String::from("bash"));
-            let mut command = Command::new("/usr/bin/env");
-            command.arg(shell);
-            Some(command)
-        }
-    }
-    #[cfg(not(windows))]
-    pub fn find_shell_type() -> ShellType {
-        let shell = env::var("SHELL")
-            .ok()
-            .and_then(|s| s.rsplit('/').next().map(String::from))
-            .filter(|s| s == "bash" || s == "zsh" || s == "ksh")
-            .unwrap_or_else(|| String::from("bash"));
-
-        match shell.as_ref() {
-            "bash" => ShellType::Bash,
-            "zsh" => ShellType::Zsh,
-            "ksh" => ShellType::Ksh,
-            _ => ShellType::Bash,
-        }
     }
 }

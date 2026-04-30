@@ -168,7 +168,7 @@ fn compare_array_lengths(
     fragments!(full_comparison_fragment, " && echo 1 || echo 0").to_frag()
 }
 
-fn create_indexed_variable_with_default_fallback(
+fn create_indexed_variable(
     name: &str,
     index: &str,
     expr: VarExprFragment,
@@ -176,8 +176,7 @@ fn create_indexed_variable_with_default_fallback(
     let expr_value = expr
         .clone()
         .with_length_getter(false)
-        .with_index_by_value(VarIndexValue::Index(raw_fragment!("{index}")))
-        .with_default_value(raw_fragment!("0"));
+        .with_index_by_value(VarIndexValue::Index(raw_fragment!("{index}")));
     let var_stmt = VarStmtFragment::new(name, Type::Num, expr_value.to_frag());
     let var_expr = VarExprFragment::from_stmt(&var_stmt);
     (var_stmt, var_expr)
@@ -200,9 +199,9 @@ pub fn translate_array_lexical_comparison(
     );
     // Iterator variables that will be used in the for loop
     let (left_helper_stmt, left_helper_expr) =
-        create_indexed_variable_with_default_fallback("left", "i", left_expr_length.clone());
+        create_indexed_variable("left", "i", left_expr_length.clone());
     let (right_helper_stmt, right_helper_expr) =
-        create_indexed_variable_with_default_fallback("right", "i", right_expr_length.clone());
+        create_indexed_variable("right", "i", right_expr_length.clone());
     // Get the operator and its opposite for the if statement
     let (op, _) = operator.get_bash_lexical_operators();
     let (inv_op, ..) = operator

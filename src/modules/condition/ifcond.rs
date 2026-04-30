@@ -4,9 +4,12 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::statement::stmt::{Statement, StmtType};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "if"]
+#[kind = "stmt"]
 pub struct IfCondition {
     expr: Box<Expr>,
     true_block: Option<Box<Block>>,

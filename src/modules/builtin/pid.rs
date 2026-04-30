@@ -1,11 +1,14 @@
 use crate::fragments;
+
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "pid"]
+#[kind = "builtin_expr"]
 pub struct Pid {}
 
 impl Typed for Pid {

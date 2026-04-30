@@ -1,4 +1,5 @@
 use crate::modules::function::invocation_utils::run_function_with_args;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
@@ -7,7 +8,9 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "nameof"]
+#[kind = "builtin_expr"]
 pub struct Nameof {
     name: String,
     token: Option<Token>,

@@ -1,11 +1,14 @@
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "sleep"]
+#[kind = "builtin_stmt"]
 pub struct Sleep {
     value: Expr,
 }

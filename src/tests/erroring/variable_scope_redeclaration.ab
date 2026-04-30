@@ -1,0 +1,6 @@
+// Output
+// Cannot redeclare 'foo' in the same scope
+
+let foo = 123
+
+let foo = 123

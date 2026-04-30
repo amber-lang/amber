@@ -2,9 +2,11 @@ use crate::fragments;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::utils::context::Context;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "loop"]
 pub struct InfiniteLoop {
     block: Block,
 }

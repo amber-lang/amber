@@ -2,13 +2,16 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::ArithOp;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
 
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "or"]
+#[kind = "binary_op"]
 pub struct Or {
     left: Box<Expr>,
     right: Box<Expr>,

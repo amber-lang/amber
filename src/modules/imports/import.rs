@@ -5,15 +5,24 @@ use crate::modules::prelude::*;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
 use crate::utils::context::{Context, FunctionDecl, VariableDecl};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use std::fs;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "import"]
+#[kind = "stmt"]
 pub struct ImportWant {
     pub name: String,
     pub alias: Option<String>,
     pub token: Option<Token>,
 }
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "pub"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Pub;
 
 impl ImportWant {
     pub fn new(name: String, alias: Option<String>, token: Option<Token>) -> Self {

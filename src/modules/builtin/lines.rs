@@ -1,5 +1,6 @@
 use crate::fragments;
 use crate::modules::expression::expr::Expr;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::raw_fragment;
@@ -7,7 +8,9 @@ use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "lines"]
+#[kind = "builtin_expr"]
 pub struct LinesInvocation {
     path: Box<Option<Expr>>,
 }

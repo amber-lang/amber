@@ -1,10 +1,13 @@
 use crate::fragments;
+
 use crate::modules::prelude::*;
 use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use heraclitus_compiler::syntax_name;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "clear"]
+#[kind = "builtin_stmt"]
 pub struct Clear {}
 
 impl SyntaxModule<ParserMetadata> for Clear {

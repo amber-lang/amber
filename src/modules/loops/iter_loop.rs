@@ -14,7 +14,9 @@ use crate::utils::context::{Context, VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::{fragments, raw_fragment};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, amber_meta::AutoKeyword)]
+#[keyword = "for"]
+#[kind = "stmt"]
 pub struct IterLoop {
     pub block: Block,
     pub iter_expr: Expr,

@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "amber"
-version = "0.5.1-alpha"
+version = "0.6.0-alpha"
 dependencies = [
  "amber-meta",
  "assert_cmd",
@@ -27,6 +27,7 @@ dependencies = [
  "heraclitus-compiler",
  "include_dir",
  "insta",
+ "inventory",
  "itertools",
  "predicates",
  "pretty_assertions",
@@ -621,6 +622,15 @@ dependencies = [
  "console",
  "once_cell",
  "similar",
+]
+
+[[package]]
+name = "inventory"
+version = "0.3.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "009ae045c87e7082cb72dab0ccd01ae075dd00141ddc108f43a0ea150a9e7227"
+dependencies = [
+ "rustversion",
 ]
 
 [[package]]

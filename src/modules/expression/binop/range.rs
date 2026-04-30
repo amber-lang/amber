@@ -4,10 +4,13 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::ArithOp;
 use crate::{fragments, raw_fragment};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use std::cmp::max;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "range"]
+#[kind = "binary_op"]
 pub struct Range {
     pub from: Box<Expr>,
     pub to: Box<Expr>,

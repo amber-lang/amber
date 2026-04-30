@@ -7,6 +7,7 @@ mod stdlib;
 mod translate;
 mod utils;
 
+pub use crate::utils::grammar_ebnf;
 mod testing;
 
 pub mod built_info {
@@ -17,6 +18,7 @@ pub mod built_info {
 pub mod tests;
 
 use crate::compiler::{escape_shell_arg, AmberCompiler, CompilerOptions};
+use crate::utils::ShellType;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use colored::Colorize;
@@ -50,6 +52,10 @@ struct Cli {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -68,12 +74,18 @@ enum CommandKind {
     Completion,
     /// Run Amber tests
     Test(TestCommand),
+    /// Generate EBNF grammar
+    GrammarEbnf,
 }
 
 #[derive(Args, Clone, Debug)]
 struct EvalCommand {
     /// Code to evaluate
     code: String,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -91,6 +103,10 @@ struct RunCommand {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -104,6 +120,10 @@ struct CheckCommand {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -124,6 +144,10 @@ struct BuildCommand {
     /// Minify the output file
     #[arg(long)]
     minify: bool,
+
+    /// Code generation target shell
+    #[arg(long)]
+    target: Option<ShellType>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -155,6 +179,10 @@ pub struct TestCommand {
     /// Argument also supports a wildcard match, like "*" or "b*chk"
     #[arg(long, verbatim_doc_comment)]
     pub no_proc: Vec<String>,
+
+    /// Code generation target shell
+    #[arg(long)]
+    pub target: Option<ShellType>,
 }
 
 fn create_output(command: &BuildCommand) -> PathBuf {
@@ -221,12 +249,17 @@ pub fn render_dash() {
     println!();
 }
 
-fn execute_output(mut code: String, args: Vec<String>, messages: bool) -> Result<i32, Box<dyn Error>> {
+fn execute_output(
+    mut code: String,
+    args: Vec<String>,
+    messages: bool,
+    target: Option<ShellType>,
+) -> Result<i32, Box<dyn Error>> {
     if messages {
         render_dash();
     }
     // Use spawn().wait() to let stdout/stderr go directly to terminal
-    if let Some(mut command) = AmberCompiler::find_shell() {
+    if let Some(mut command) = AmberCompiler::find_shell(target) {
         if !args.is_empty() {
             let escaped_args: Vec<String> = args
                 .into_iter()
@@ -239,6 +272,14 @@ fn execute_output(mut code: String, args: Vec<String>, messages: bool) -> Result
     }
     let error = std::io::Error::new(std::io::ErrorKind::NotFound, "Failed to find shell");
     Err(error.into())
+}
+}
+
+fn resolve_command_target(
+    command_target: Option<ShellType>,
+    cli_target: Option<ShellType>,
+) -> Option<ShellType> {
+    command_target.or(cli_target)
 }
 
 #[cfg_attr(not(test), allow(dead_code))]
@@ -260,14 +301,25 @@ pub(crate) fn write_output(output: PathBuf, code: String) {
     }
 }
 
+#[cfg(test)]
 fn handle_eval(command: EvalCommand) -> Result<i32, Box<dyn Error>> {
-    let options = CompilerOptions::default().with_env_vars();
+    handle_eval_with_target(command, None)
+}
+
+fn handle_eval_with_target(
+    command: EvalCommand,
+    cli_target: Option<ShellType>,
+) -> Result<i32, Box<dyn Error>> {
+    let target = resolve_command_target(command.target, cli_target);
+    let options = CompilerOptions::default()
+        .with_target(target)
+        .with_env_vars();
     let compiler = AmberCompiler::new(command.code, None, options);
     match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
             (!messages.is_empty()).then(render_dash);
-            let (exit_status, _stdout) = AmberCompiler::execute(code, vec![])?;
+            let exit_status = AmberCompiler::execute_with_target(code, vec![], target)?;
             Ok(exit_status.code().unwrap_or(1))
         }
         Err(err) => {
@@ -314,6 +366,7 @@ fn handle_bad_command_name(
     input: &Path,
     no_proc: &[String],
     args: Vec<String>,
+    target: Option<ShellType>,
 ) -> Result<i32, Box<dyn Error>> {
     let input_str = input.to_string_lossy();
 
@@ -344,9 +397,11 @@ fn handle_bad_command_name(
         std::process::exit(1);
     }
 
-    let options = CompilerOptions::from_args(no_proc, false, false, None).with_env_vars();
+    let options = CompilerOptions::from_args(no_proc, false, false, None)
+        .with_target(target)
+        .with_env_vars();
     let (code, messages) = compile_input(input.to_path_buf(), options);
-    execute_output(code, args, messages)
+    execute_output(code, args, messages, target)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -356,7 +411,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     if let Some(ref input) = cli.input {
-        std::process::exit(handle_bad_command_name(input, &cli.no_proc, cli.args)?);
+        std::process::exit(handle_bad_command_name(
+            input,
+            &cli.no_proc,
+            cli.args,
+            cli.target,
+        )?);
     }
 
     let Some(command) = cli.command else {
@@ -366,22 +426,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let exit_code = match command {
-        CommandKind::Eval(command) => handle_eval(command)?,
+        CommandKind::Eval(command) => handle_eval_with_target(command, cli.target)?,
         CommandKind::Run(command) => {
+            let target = resolve_command_target(command.target, cli.target);
             let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                .with_target(target)
                 .with_env_vars();
             let (code, messages) = compile_input(command.input, options);
-            execute_output(code, command.args, messages)?
+            execute_output(code, command.args, messages, target)?
         }
         CommandKind::Check(command) => {
+            let target = resolve_command_target(command.target, cli.target);
             let options = CompilerOptions::from_args(&command.no_proc, false, false, None)
+                .with_target(target)
                 .with_env_vars();
             compile_input(command.input, options);
             0
         }
         CommandKind::Build(command) => {
+            let target = resolve_command_target(command.target, cli.target);
             let output = create_output(&command);
             let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+                .with_target(target)
                 .with_env_vars();
             let (code, _) = compile_input(command.input, options);
             write_output(output, code);
@@ -395,7 +461,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             handle_completion();
             0
         }
-        CommandKind::Test(command) => testing::handle_test(command)?,
+        CommandKind::GrammarEbnf => {
+            let output = grammar_ebnf::generate_grammar_ebnf();
+            let output_path = PathBuf::from("grammar.ebnf");
+            std::fs::write(&output_path, output)?;
+            0
+        }
+        CommandKind::Test(mut command) => {
+            command.target = resolve_command_target(command.target, cli.target);
+            testing::handle_test(command)?
+        }
     };
 
     std::process::exit(exit_code);

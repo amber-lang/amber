@@ -1,6 +1,7 @@
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
@@ -8,7 +9,9 @@ use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 use heraclitus_compiler::syntax_name;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "rm"]
+#[kind = "builtin_stmt"]
 pub struct Rm {
     value: Box<Expr>,
     recursive: Box<Option<Expr>>,

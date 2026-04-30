@@ -20,10 +20,10 @@ let b = 4
 bar(b, 12, 42)
 echo(b)
 
-let a = 15.15
-foo(a, 12.65)
-echo(a)
+let c = 15.15
+foo(c, 12.65)
+echo(c)
 
-let b = 23.65
-bar(b, 32.67, 546.34)
-echo(b)
+let d = 23.65
+bar(d, 32.67, 546.34)
+echo(d)

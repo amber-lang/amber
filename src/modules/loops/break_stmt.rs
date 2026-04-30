@@ -3,9 +3,11 @@ use crate::fragments;
 use crate::modules::prelude::*;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "break"]
 pub struct Break {
     tok: Option<Token>,
 }

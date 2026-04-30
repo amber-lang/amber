@@ -1,10 +1,13 @@
 use crate::fragments;
 use crate::modules::prelude::*;
 use crate::utils::ParserMetadata;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use heraclitus_compiler::syntax_name;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, AutoKeyword)]
+#[keyword = "disown"]
+#[kind = "builtin_stmt"]
 pub struct Disown {}
 
 impl SyntaxModule<ParserMetadata> for Disown {

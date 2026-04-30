@@ -6,9 +6,11 @@ use crate::modules::types::{Type, Typed};
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::{fragments, raw_fragment};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "fail"]
 pub struct Fail {
     pub expr: Expr,
     pub code: String,

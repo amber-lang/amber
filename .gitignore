@@ -18,3 +18,4 @@ flamegraph.svg
 # Nixos
 .direnv
 /result
+.sisyphus

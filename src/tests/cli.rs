@@ -55,7 +55,7 @@ fn main_args_passed_correctly() {
     let bash_code_with_args = format!("set -- one two three\n{}", bash_code);
 
     // Execute the bash code and check the output
-    let output = AmberCompiler::find_shell()
+    let output = AmberCompiler::find_shell(None)
         .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code_with_args)
@@ -82,6 +82,7 @@ fn test_filtering() {
         input: input.clone(),
         args: vec!["named_syntax".to_string()],
         no_proc: vec![],
+        target: None,
     };
 
     let tests = get_tests_to_run(&command)
@@ -100,6 +101,7 @@ fn test_filtering() {
         input: input.clone(),
         args: vec!["foo".to_string()],
         no_proc: vec![],
+        target: None,
     };
     let tests = get_tests_to_run(&command)
         .map_err(|e| format!("{:?}", e))
@@ -153,7 +155,7 @@ fn test_input_prompt_stdin() {
 
     // Execute the bash code with stdin input
     // We pipe "World" into the process
-    let mut child = AmberCompiler::find_shell()
+    let mut child = AmberCompiler::find_shell(None)
         .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code)
@@ -205,7 +207,7 @@ fn test_input_hidden_stdin() {
 
     // Execute the bash code with stdin input
     // We pipe "SecretCode" into the process
-    let mut child = AmberCompiler::find_shell()
+    let mut child = AmberCompiler::find_shell(None)
         .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code)
@@ -260,7 +262,7 @@ fn test_input_confirm_stdin() {
 
     // Execute the bash code with stdin input
     // We pipe "y" into the process
-    let mut child = AmberCompiler::find_shell()
+    let mut child = AmberCompiler::find_shell(None)
         .expect("Failed to find shell")
         .arg("-c")
         .arg(bash_code)
@@ -283,14 +285,32 @@ fn test_input_confirm_stdin() {
     assert!(stdout.contains("Continued"));
 }
 
-
-use predicates::prelude::*;
 use assert_cmd::Command;
+use predicates::prelude::*;
+use std::sync::OnceLock;
 use tempfile::NamedTempFile;
+
+fn amber_bin() -> String {
+    static BUILD_AMBER_BIN: OnceLock<()> = OnceLock::new();
+
+    BUILD_AMBER_BIN.get_or_init(|| {
+        let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+        let status = std::process::Command::new(cargo)
+            .args(["build", "--quiet", "--bin", "amber"])
+            .status()
+            .expect("Failed to build amber binary for CLI tests");
+        assert!(
+            status.success(),
+            "Failed to build amber binary for CLI tests"
+        );
+    });
+
+    std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or_else(|_| "target/debug/amber".to_string())
+}
 
 #[test]
 fn test_cli_error_invalid_command() {
-    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    let mut cmd = Command::new(amber_bin());
     cmd.arg("g-e").assert().failure().stderr(
         predicate::str::contains("Unknown command: g-e")
             .or(predicate::str::contains("File not found: g-e")),
@@ -299,7 +319,7 @@ fn test_cli_error_invalid_command() {
 
 #[test]
 fn test_cli_typo_suggestion() {
-    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    let mut cmd = Command::new(amber_bin());
     cmd.arg("buid").assert().failure().stderr(
         predicate::str::contains("Unknown command: buid")
             .and(predicate::str::contains("Did you mean 'build'?")),
@@ -308,26 +328,25 @@ fn test_cli_typo_suggestion() {
 
 #[test]
 fn test_cli_file_starting_with_dash() {
-    let amber_bin = std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or_else(|_| "target/debug/amber".to_string());
-    let mut cmd = Command::new(amber_bin);
-    
+    let mut cmd = Command::new(amber_bin());
+
     let temp_file = NamedTempFile::new().expect("Failed to create temp file");
     let amber_code = r#"
         main {
             echo("Hello from dash file")
         }
         "#;
-    
+
     std::fs::write(temp_file.path(), amber_code).expect("Failed to write test file");
-    
+
     let output = cmd.arg(temp_file.path()).assert().success();
     let _ = temp_file.close();
-    
+
     output.stderr(predicate::str::contains("Hello from dash file").not());
 }
 #[test]
 fn test_cli_no_arguments_shows_help() {
-    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    let mut cmd = Command::new(amber_bin());
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Usage: amber"));
@@ -335,7 +354,7 @@ fn test_cli_no_arguments_shows_help() {
 
 #[test]
 fn test_cli_stdin_execution() {
-    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    let mut cmd = Command::new(amber_bin());
 
     let amber_code = r#"
         main {
@@ -352,9 +371,157 @@ fn test_cli_stdin_execution() {
 
 #[test]
 fn test_cli_unknown_option_rejected() {
-    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_AMBER").unwrap_or("target/debug/amber".to_string()));
+    let mut cmd = Command::new(amber_bin());
     cmd.arg("--unknown-option")
         .assert()
         .failure()
         .stderr(predicate::str::contains("unknown"));
+}
+
+#[test]
+fn test_cli_target_build_zsh_shebang() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--target",
+        "zsh",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env zsh"));
+}
+
+#[test]
+fn test_cli_top_level_target_build_zsh_shebang() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "--target",
+        "zsh",
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env zsh"));
+}
+
+#[test]
+fn test_cli_subcommand_target_overrides_top_level_target() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "--target",
+        "bash",
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--target",
+        "zsh",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env zsh"));
+}
+
+#[test]
+fn test_cli_target_build_ksh_shebang() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--target",
+        "ksh",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env ksh"));
+}
+
+#[test]
+fn test_cli_target_invalid_value() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--target",
+        "fish",
+    ])
+    .assert()
+    .failure()
+    .stderr(predicate::str::contains("invalid shell target"));
+}
+
+#[test]
+fn test_cli_target_alias_bash_maps_to_bash_shebang() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--target",
+        "bash",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::starts_with("#!/usr/bin/env bash"));
+}
+
+#[test]
+fn test_cli_bash_32_variable_ref_runtime() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "src/tests/validity/variable_ref_set_number.ab",
+            "--target",
+            "bash-3.2",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("42\n42"));
+}
+
+#[test]
+fn test_cli_bash_32_array_ref_runtime() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "src/tests/validity/array_assign_by_ref.ab",
+            "--target",
+            "bash-3.2",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("1 2 42 4 5\n1 2 42 4 5"));
+}
+
+#[test]
+fn test_cli_bash_32_swap_ref_runtime() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "src/tests/validity/function_ref_swap.ab",
+            "--target",
+            "bash-3.2",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("24\n12"));
+}
+
+#[test]
+fn test_cli_bash_32_nested_ref_runtime() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.env("AMBER_SHELL", "/bin/bash")
+        .args([
+            "src/tests/validity/variable_ref_nested.ab",
+            "--target",
+            "bash-3.2",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("John\n1\n2\n3"));
 }

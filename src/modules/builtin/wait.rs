@@ -4,9 +4,12 @@ use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "await"]
+#[kind = "builtin_stmt"]
 pub struct Await {
     pids: Expr,
 }

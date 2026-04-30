@@ -24,53 +24,75 @@
 //
 // ---
 
-const a = 0
-const b = 10
-echo(a..b)
-echo(a..=b)
-echo("---")
+{
+  const a = 0
+  const b = 10
+  echo(a..b)
+  echo(a..=b)
+}
 
-const a = -5
-const b = 10
-echo(a..b)
-echo(a..=b)
+{
+  echo("---")
+  const a = -5
+  const b = 10
+  echo(a..b)
+  echo(a..=b)
+}
 
-echo("---")
-const a = -5
-const b = -1
-echo(a..b)
-echo(a..=b)
+{
+  echo("---")
+  const a = -5
+  const b = -1
+  echo(a..b)
+  echo(a..=b)
+}
 
-echo("---")
-const a = -5
-const b = -10
-echo(a..b)
-echo(a..=b)
+{
+  echo("---")
+  const a = -5
+  const b = -10
+  echo(a..b)
+  echo(a..=b)
+}
 
-echo("---")
-const a = 5
-const b = -10
-echo(a..b)
-echo(a..=b)
+{
+  echo("---")
+  const a = 5
+  const b = -10
+  echo(a..b)
+  echo(a..=b)
+}
 
-echo("---")
-const c = -5
-echo(c..=c)
+{
+  echo("---")
+  const c = -5
+  echo(c..=c)
+}
 
-const c = 0
-echo(c..=c)
+{
+  const c = 0
+  echo(c..=c)
+}
 
-const c = 5
-echo(c..=c)
-echo("---")
+{
+  const c = 5
+  echo(c..=c)
+  echo("---")
+}
 
-echo("<3 empty lines>")
-const c = 0
-echo(c..c)
+{
+  echo("<3 empty lines>")
+  const c = 0
+  echo(c..c)
+}
 
-const c = 5
-echo(c..c)
+{
+  const c = 5
+  echo(c..c)
+}
 
-const c = -5
-echo(c..c)
-echo("---")
+{
+  const c = -5
+  echo(c..c)
+  echo("---")
+}

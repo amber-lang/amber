@@ -16,12 +16,14 @@ use crate::utils::function_interface::FunctionInterface;
 use crate::utils::function_metadata::FunctionMetadata;
 use crate::utils::ShellType;
 use heraclitus_compiler::prelude::*;
-use itertools::izip;
+use itertools::{izip, Itertools};
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::path::Path;
 
 use crate::modules::block::Block;
+
+use amber_meta::AutoKeyword;
 
 #[derive(Debug, Clone)]
 pub struct FunctionDeclarationArgument {
@@ -32,7 +34,15 @@ pub struct FunctionDeclarationArgument {
     pub tok: Option<Token>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "ref"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Ref;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "fun"]
+#[kind = "stmt"]
 pub struct FunctionDeclaration {
     pub name: String,
     pub args: Vec<FunctionDeclarationArgument>,
@@ -100,7 +110,6 @@ impl FunctionDeclaration {
 
                             let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_declared(false)
                                 .with_optimization_when_unused(false);
 
                             result.push(var.to_frag())
@@ -116,6 +125,13 @@ impl FunctionDeclaration {
                                 .with_local(true)
                                 .with_optimization_when_unused(false)
                                 .with_ref(false)
+                                .with_array_ref(true)
+                                .with_declared(false)
+                        } else if meta.target.shell.is_bash_legacy() {
+                            VarStmtFragment::new(&name, kind.clone(), val.to_frag())
+                                .with_local(true)
+                                .with_optimization_when_unused(false)
+                                .with_ref(true)
                                 .with_array_ref(true)
                                 .with_declared(false)
                         } else {
@@ -459,6 +475,14 @@ impl TranslateModule for FunctionDeclaration {
                 index,
                 &self.returns,
             ));
+
+            // Document in code function variant
+            let argument_types = izip!(self.args.iter(), function.args.iter())
+                .map(|(arg, ty)| format!("{}: {}", arg.name, ty))
+                .join(", ");
+            let function_name = &self.name;
+            result.push(raw_fragment!("# {function_name}({argument_types})"));
+
             // Parse the function body
             let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, index);
             // required for the local scope in ksh

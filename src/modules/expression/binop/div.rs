@@ -3,11 +3,14 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::translate_float_computation;
 use crate::translate::compute::ArithOp;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 use super::BinOp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "div"]
+#[kind = "binary_op"]
 pub struct Div {
     left: Box<Expr>,
     right: Box<Expr>,

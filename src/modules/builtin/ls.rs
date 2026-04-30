@@ -1,6 +1,7 @@
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
@@ -8,7 +9,9 @@ use crate::utils::ShellType;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "ls"]
+#[kind = "builtin_expr"]
 pub struct Ls {
     value: Box<Option<Expr>>,
     all: Box<Option<Expr>>,
@@ -190,8 +193,8 @@ impl TranslateModule for Ls {
             VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
-        let read_command = match &meta.target.shell {
-            ShellType::Bash => raw_fragment!(
+        let read_command = match meta.target.shell {
+            ShellType::BashModern | ShellType::BashLegacy => raw_fragment!(
                 "LC_ALL=C IFS=$'\\n' read -rd '' -a {} < <(",
                 var_expr.get_name()
             ),
