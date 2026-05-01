@@ -94,12 +94,13 @@ impl TypeCheckModule for Nameof {
                             Some(fun_instance) => fun_instance.variant_id,
                             None => {
                                 // Compile the function on demand to get the variant ID
+                                let persist = !meta.first_pass_ctx;
                                 run_function_with_args(
                                     meta,
                                     fun_decl.clone(),
                                     &args_types,
                                     self.token.clone(),
-                                    true,
+                                    persist,
                                 )?
                                 .1
                             }
