@@ -206,26 +206,6 @@ fn test_bash_32_declared_ref_array_assignment_defers_array_expansion_to_inner_ev
     assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
 }
 
-#[test]
-fn test_translate_sudo_preamble() {
-    let code = r#"
-main {
-    echo("test")
-}
-"#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-    let tokens = compiler.tokenize().expect("tokenize failed");
-    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
-    let (ast, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
-    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
-    let ast = ast.translate(&mut translate_meta);
-    let result = ast.to_string(&mut translate_meta);
-    assert!(
-        result.contains("echo \"test\""),
-        "Output should contain bash code"
-    );
-}
 
 #[test]
 fn test_translate_shellversion_preamble() {
@@ -280,18 +260,36 @@ main {
 fn test_translate_with_sudo() {
     let code = r#"
 main {
-    sudo $ echo "test" $?
+    sudo $echo "test"$?
 }
 "#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-    let tokens = compiler.tokenize().expect("tokenize failed");
-    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
-    let (ast, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
-    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
-    let ast = ast.translate(&mut translate_meta);
-    let result = ast.to_string(&mut translate_meta);
-    assert!(result.contains("sudo"), "Output should contain sudo");
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"[ "$EUID" -ne 0 ] && { { command -v sudo >/dev/null 2>&1 && __sudo=sudo; } || { command -v doas >/dev/null 2>&1 && __sudo=doas; }; }"#),
+        "Output should contain the correct sudo preamble"
+    );
+    assert!(
+        result.contains(r#"${__sudo} echo"#),
+        "Output should contain sudo echo command with spaces"
+    );
+}
+
+#[test]
+fn test_translate_with_silent() {
+    let code = r#"
+main {
+    silent $echo test$?
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"echo test >/dev/null"#),
+        "Output should contain echo command with separated /dev/null redirect"
+    );
 }
 
 #[test]
