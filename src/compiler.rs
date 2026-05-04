@@ -466,6 +466,7 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
+    #[allow(dead_code)]
     pub fn execute(code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         Self::execute_with_target(code, args, None)
     }
