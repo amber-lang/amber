@@ -534,7 +534,6 @@ fn test_gen_footer_with_env() {
     );
 }
 
-
 #[test]
 fn test_escape_shell_arg() {
     use crate::compiler::escape_shell_arg;
@@ -561,7 +560,7 @@ fn test_shell_injection_command_substitution_blocked() {
 
     let (messages, bash_code) = compiler.compile().expect("Failed to compile");
 
-    let args = vec![
+    let args = [
         "program-name".to_string(),
         "safe-arg".to_string(),
         "$(echo INJECTED)".to_string(),
@@ -603,7 +602,7 @@ fn test_shell_injection_variable_expansion_blocked() {
 
     let (messages, bash_code) = compiler.compile().expect("Failed to compile");
 
-    let args = vec!["program-name".to_string(), "$HOME".to_string()];
+    let args = ["program-name".to_string(), "$HOME".to_string()];
 
     let target = AmberCompiler::resolve_target_shell(None);
     let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
@@ -641,7 +640,7 @@ fn test_shell_injection_backslash_handled() {
 
     let (messages, bash_code) = compiler.compile().expect("Failed to compile");
 
-    let args = vec!["program-name".to_string(), "\\".to_string()];
+    let args = ["program-name".to_string(), "\\".to_string()];
 
     let target = AmberCompiler::resolve_target_shell(None);
     let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
