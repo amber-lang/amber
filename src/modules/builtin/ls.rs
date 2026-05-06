@@ -212,8 +212,9 @@ impl TranslateModule for Ls {
             ListFragment::new(
                 vec![
                     read_command,
+                    raw_fragment!("IFS=$'\\n';"),
                     sudo_prefix,
-                    fragments!("LC_ALL=C IFS=$'\\n' ls -1"),
+                    fragments!("LC_ALL=C ls -1"),
                     all_frag,
                     recursive_frag,
                     path_expr.to_frag().with_quotes(false),
