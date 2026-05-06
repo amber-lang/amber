@@ -280,15 +280,31 @@ main {
 fn test_translate_with_silent() {
     let code = r#"
 main {
-    silent $echo test$?
+    silent $echo 1$?
 }
 "#;
     let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
         .expect("Couldn't translate Amber code");
 
     assert!(
-        result.contains(r#"echo test >/dev/null"#),
-        "Output should contain echo command with separated /dev/null redirect"
+        result.contains(r#"echo 1 >/dev/null"#),
+        "Output should contain echo command with separated >/dev/null redirect"
+    );
+}
+
+#[test]
+fn test_translate_with_suppress() {
+    let code = r#"
+main {
+    suppress $echo 2$?
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"echo 2 2>/dev/null"#),
+        "Output should contain echo command with separated 2>/dev/null redirect"
     );
 }
 
