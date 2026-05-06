@@ -95,7 +95,9 @@ impl TranslateModule for Touch {
         });
         BlockFragment::new(
             vec![
-                fragments!(sudo_prefix, "touch ", value, suppress, silent),
+                ListFragment::new(vec![sudo_prefix, fragments!("touch"), value, suppress, silent])
+                    .with_spaces()
+                    .to_frag(),
                 handler,
             ],
             false,

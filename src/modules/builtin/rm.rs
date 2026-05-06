@@ -162,17 +162,19 @@ impl TranslateModule for Rm {
             meta.gen_sudo_prefix().to_frag()
         });
 
-        fragments!(
-            sudo_prefix,
-            "rm ",
-            force_frag.with_quotes(false),
-            " ",
-            recursive_frag.with_quotes(false),
-            " ",
-            self.value.translate(meta),
-            suppress,
-            silent
+        ListFragment::new(
+            vec![
+                sudo_prefix,
+                fragments!("rm"),
+                force_frag.with_quotes(false),
+                recursive_frag.with_quotes(false),
+                self.value.translate(meta),
+                suppress,
+                silent
+            ]
         )
+        .with_spaces()
+        .to_frag()
     }
 }
 

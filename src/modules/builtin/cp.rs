@@ -144,17 +144,17 @@ impl TranslateModule for Cp {
 
         BlockFragment::new(
             vec![
-                fragments!(
-                    sudo_prefix,
-                    "cp -r ",
-                    force_frag.with_quotes(false),
-                    " ",
-                    source,
-                    " ",
-                    destination,
-                    suppress,
-                    silent
-                ),
+                ListFragment::new(
+                    vec![
+                        sudo_prefix,
+                        raw_fragment!("cp -r"),
+                        force_frag.with_quotes(false),
+                        source,
+                        destination,
+                        suppress,
+                        silent
+                    ]
+                ).with_spaces().to_frag(),
                 handler,
             ],
             false,

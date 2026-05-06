@@ -1,4 +1,3 @@
-use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
@@ -114,17 +113,26 @@ impl TranslateModule for LinesInvocation {
         // Producer writes into the FIFO in the background so that:
         // - sudo works (process substitution `<(sudo ...)` strips sudo's TTY access)
         // - the producer's exit status is properly captured via `wait`
-        let producer = if has_sudo {
-            fragments!(
-                sudo_prefix,
-                " cat ",
-                path,
-                suppress,
-                raw_fragment!(" >\"${fifo_var}\" &")
-            )
-        } else {
-            fragments!("cat ", path, suppress, raw_fragment!(" >\"${fifo_var}\" &"))
-        };
+        let producer = ListFragment::new(
+                    if has_sudo {
+                        vec![
+                            sudo_prefix,
+                            raw_fragment!("cat"),
+                            path,
+                            suppress,
+                            raw_fragment!(">\"${fifo_var}\" &")
+                        ]
+                    } else {
+                        vec![
+                            raw_fragment!("cat"),
+                            path,
+                            suppress,
+                            raw_fragment!(">\"${fifo_var}\" &")
+                        ]
+                    }
+                )
+                .with_spaces()
+                .to_frag();
 
         meta.stmt_queue.extend([
             raw_fragment!("{fifo_var}=$(mktemp -u) || exit 1"), // panic if fifo cannot be created

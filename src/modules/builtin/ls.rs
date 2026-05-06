@@ -209,16 +209,19 @@ impl TranslateModule for Ls {
             ),
         };
         meta.stmt_queue.extend([
-            fragments!(
-                read_command,
-                sudo_prefix,
-                "IFS=$'\\n'; LC_ALL=C ls -1",
-                all_frag,
-                recursive_frag,
-                " ",
-                path_expr.to_frag().with_quotes(false),
-                suppress
-            ),
+            ListFragment::new(
+                vec![
+                    read_command,
+                    sudo_prefix,
+                    fragments!("IFS=$'\\n'; LC_ALL=C ls -1"),
+                    all_frag,
+                    recursive_frag,
+                    path_expr.to_frag().with_quotes(false),
+                    suppress
+                ]
+            )
+                .with_spaces()
+                .to_frag(),
             handler,
             fragments!(");"),
         ]);
