@@ -459,7 +459,6 @@ impl AmberCompiler {
         Ok((messages, code))
     }
 
-    #[allow(dead_code)]
     pub fn execute(code: String, args: Vec<String>) -> Result<ExitStatus, std::io::Error> {
         Self::execute_with_target(code, args, None)
     }
@@ -477,8 +476,8 @@ impl AmberCompiler {
                     .collect::<Vec<String>>();
                 code = format!("set -- {}\n{}", args.join(" "), code);
             }
-            let output = command.arg("-c").arg(code).output()?;
-            Ok(output.status)
+
+            command.arg("-c").arg(code).spawn()?.wait()
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find shell");
             Err(error)

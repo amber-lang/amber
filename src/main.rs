@@ -17,7 +17,7 @@ pub mod built_info {
 #[cfg(test)]
 pub mod tests;
 
-use crate::compiler::{escape_shell_arg, AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::utils::ShellType;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
@@ -241,20 +241,12 @@ fn handle_err(err: std::io::Error) -> ! {
 #[allow(unused_must_use)]
 pub fn render_dash() {
     let str = "%.s─".dimmed();
-    if let Some(mut command) = AmberCompiler::find_shell(None) {
-        let cmd = format!("printf {str} $(seq 1 $(tput cols))");
-        // Use spawn().wait() so the divider is written directly to the terminal.
-        let _ = command
-            .arg("-c")
-            .arg(cmd)
-            .spawn()
-            .and_then(|mut c| c.wait());
-    }
+    AmberCompiler::execute(format!("printf {str} $(seq 1 $(tput cols))"), vec![]);
     println!();
 }
 
 fn execute_output(
-    mut code: String,
+    code: String,
     args: Vec<String>,
     messages: bool,
     target: Option<ShellType>,
@@ -262,20 +254,9 @@ fn execute_output(
     if messages {
         render_dash();
     }
-    // Use spawn().wait() to let stdout/stderr go directly to terminal
-    if let Some(mut command) = AmberCompiler::find_shell(target) {
-        if !args.is_empty() {
-            let escaped_args: Vec<String> = args
-                .into_iter()
-                .map(|arg| format!("\"{}\"", escape_shell_arg(&arg)))
-                .collect();
-            code = format!("set -- {}\n{}", escaped_args.join(" "), code);
-        }
-        let status = command.arg("-c").arg(code).spawn()?.wait()?;
-        return Ok(status.code().unwrap_or(1));
-    }
-    let error = std::io::Error::new(std::io::ErrorKind::NotFound, "Failed to find shell");
-    Err(error.into())
+
+    let exit_status = AmberCompiler::execute_with_target(code, args, target)?;
+    Ok(exit_status.code().unwrap_or(1))
 }
 
 fn resolve_command_target(
