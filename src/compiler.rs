@@ -28,11 +28,13 @@ pub mod shell_resolve;
 /// Escapes a string for safe use as a shell argument in double quotes.
 /// Handles shell-special characters: $ ` " \ !
 /// This prevents shell command injection attacks.
-fn escape_shell_arg(s: &str) -> String {
-    s.chars().map(|c| match c {
-        '"' | '$' | '`' | '\\' | '!' => format!("\\{}", c),
-        _ => c.to_string()
-    }).join("")
+pub fn escape_shell_arg(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            '"' | '$' | '`' | '\\' | '!' => format!("\\{}", c),
+            _ => c.to_string(),
+        })
+        .join("")
 }
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 
