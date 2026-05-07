@@ -84,9 +84,6 @@ impl TranslateModule for Sleep {
         let location = position.as_deref().unwrap_or("unknown");
 
         let handler = self.failure_handler.translate(meta);
-        let sudo_prefix = meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
-            meta.gen_sudo_prefix().to_frag()
-        });
         let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             meta.gen_silent().to_frag()
         });
@@ -110,7 +107,6 @@ impl TranslateModule for Sleep {
         };
 
         let sleep_cmd = fragments!(
-            sudo_prefix,
             "sleep ",
             var_expr.to_frag(),
             silent.clone(),
