@@ -113,7 +113,9 @@ impl TranslateModule for Sleep {
                 silent.clone(),
                 suppress.clone()
             ]
-        ).to_frag();
+        )
+        .with_spaces()
+        .to_frag();
 
         BlockFragment::new(
             vec![
