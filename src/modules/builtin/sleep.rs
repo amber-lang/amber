@@ -106,12 +106,14 @@ impl TranslateModule for Sleep {
             ),
         };
 
-        let sleep_cmd = fragments!(
-            "sleep ",
-            var_expr.to_frag(),
-            silent.clone(),
-            suppress.clone()
-        );
+        let sleep_cmd = ListFragment::new(
+            vec![
+                raw_fragment!("sleep"),
+                var_expr.to_frag(),
+                silent.clone(),
+                suppress.clone()
+            ]
+        ).to_frag();
 
         BlockFragment::new(
             vec![
