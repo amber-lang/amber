@@ -1,0 +1,7 @@
+// Output
+// Index out of bounds \(at src/tests/runtime/index_out_of_bounds_array_destructuring_init.ab:4:11\)
+
+const [a, b] = [""]
+
+echo(a)
+echo(b)

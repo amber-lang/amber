@@ -46,6 +46,10 @@ pub struct ParserMetadata {
     pub first_pass_ctx: bool,
     /// Whether sudo modifier is used anywhere in the code
     pub sudo_used: bool,
+    /// Whether shellname() builtin is used anywhere in the code
+    pub shellname_used: bool,
+    /// Whether shellversion() builtin is used anywhere in the code
+    pub shellversion_used: bool,
 }
 
 impl ParserMetadata {
@@ -128,6 +132,14 @@ impl ParserMetadata {
             .iter()
             .rev()
             .find_map(|scope| scope.get_var(name))
+    }
+
+    /// Gets a variable from the current scope
+    pub fn get_var_in_current_scope(&self, name: &str) -> Option<&VariableDecl> {
+        self.context
+            .scopes
+            .last()
+            .and_then(|scope| scope.get_var(name))
     }
 
     /// Gets variable names
@@ -250,6 +262,14 @@ impl ParserMetadata {
             .find_map(|scope| scope.get_fun(name))
     }
 
+    /// Gets a function from the current scope
+    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionDecl> {
+        self.context
+            .scopes
+            .last()
+            .and_then(|scope| scope.get_fun(name))
+    }
+
     /// Gets function names
     pub fn get_fun_names(&self) -> BTreeSet<&String> {
         self.context
@@ -299,6 +319,8 @@ impl Metadata for ParserMetadata {
             narrowed_types: Vec::new(),
             suppress_warnings: false,
             sudo_used: false,
+            shellname_used: false,
+            shellversion_used: false,
             first_pass_ctx: false,
         }
     }

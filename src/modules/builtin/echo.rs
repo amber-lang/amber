@@ -1,8 +1,11 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "echo"]
+#[kind = "builtin_stmt"]
 pub struct Echo {
     value: Box<Expr>,
 }

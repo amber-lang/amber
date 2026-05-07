@@ -1,0 +1,16 @@
+// Output
+// helper
+
+fun helper(): Null {
+    echo("helper")
+}
+
+fun named(): Null {
+    helper()
+}
+
+fun caller(): Null {
+    trust $ {nameof(named)} $
+}
+
+caller()

@@ -12,6 +12,6 @@ fun test_index(array) {
 }
 
 main {
-    const array = ["zero", "one", "two", "three"]
+    const array = ["zero", "one", "two", "three", ""]
     test_index(array)
 }

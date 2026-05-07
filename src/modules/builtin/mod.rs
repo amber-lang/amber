@@ -13,6 +13,8 @@ pub mod nameof;
 pub mod pid;
 pub mod pwd;
 pub mod rm;
+pub mod shellname;
+pub mod shellversion;
 pub mod sleep;
 pub mod touch;
 pub mod wait;

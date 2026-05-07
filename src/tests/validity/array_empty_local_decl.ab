@@ -1,0 +1,9 @@
+// Output
+// local: 0 []
+
+fun show_empty(): Null {
+    const local = [Text]
+    echo("local: {len(local)} [{local}]")
+}
+
+show_empty()

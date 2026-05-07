@@ -11,13 +11,13 @@ import { array_contains } from "std/array"
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     dir_create("{tmpdir}/a")?
-    touch("{tmpdir}/a/a1")
-    touch("{tmpdir}/.b")
-    touch("{tmpdir}/c")
+    trust touch("{tmpdir}/a/a1")
+    trust touch("{tmpdir}/.b")
+    trust touch("{tmpdir}/c")
     for file in ls(tmpdir, true)? {
         echo(file)
     }
-    cd(tmpdir)
+    trust cd(tmpdir)
     for file in ls()? {
         echo(file)
     }

@@ -16,14 +16,14 @@ fun compare(actual: [Text], expected: [Text]): Bool {
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust {
-        touch("{tmpdir}/a1.txt")
-        touch("{tmpdir}/b2.txt")
-        touch("{tmpdir}/c3.txt")
-        touch("{tmpdir}/d4.txt")
-        touch("{tmpdir}/e5.txt")
-        touch("{tmpdir}/f6.txt")
+        trust touch("{tmpdir}/a1.txt")
+        trust touch("{tmpdir}/b2.txt")
+        trust touch("{tmpdir}/c3.txt")
+        trust touch("{tmpdir}/d4.txt")
+        trust touch("{tmpdir}/e5.txt")
+        trust touch("{tmpdir}/f6.txt")
     }
-    cd(tmpdir)
+    trust cd(tmpdir)
 
     // Test bracket range pattern [a-c]* - should match files starting with a, b, or c
     const expected = [

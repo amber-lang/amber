@@ -4,11 +4,13 @@ use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "not"]
 pub struct Not {
     expr: Box<Expr>,
 }

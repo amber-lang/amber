@@ -4,13 +4,23 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::statement::comment::Comment;
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
+
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "if"]
+#[kind = "stmt"]
 pub struct IfChain {
     cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
-    false_block: Option<(Vec<Comment>, Box<Block>)>,
+    pub false_block: Option<(Vec<Comment>, Box<Block>)>,
+}
+
+impl DocumentationModule for IfChain {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        "".to_string()
+    }
 }
 
 impl IfChain {
@@ -218,11 +228,5 @@ impl TranslateModule for IfChain {
         }
         result.push(fragments!("fi"));
         BlockFragment::new(result, false).to_frag()
-    }
-}
-
-impl DocumentationModule for IfChain {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
     }
 }

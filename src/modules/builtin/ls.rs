@@ -1,13 +1,17 @@
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::ParserMetadata;
+use crate::utils::ShellType;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "ls"]
+#[kind = "builtin_expr"]
 pub struct Ls {
     value: Box<Option<Expr>>,
     all: Box<Option<Expr>>,
@@ -189,14 +193,26 @@ impl TranslateModule for Ls {
             VarStmtFragment::new("__ls", Type::array_of(Type::Text), FragmentKind::Empty)
                 .with_global_id(id);
         let var_expr = meta.push_ephemeral_variable(var_stmt);
+        let read_command = match meta.target.shell {
+            ShellType::BashModern | ShellType::BashLegacy => raw_fragment!(
+                "LC_ALL=C IFS=$'\\n' read -rd '' -a {} < <(",
+                var_expr.get_name()
+            ),
+            ShellType::Zsh => raw_fragment!(
+                "LC_ALL=C IFS=$'\\n' read -rd '' -A {} < <(",
+                var_expr.get_name()
+            ),
+            // ksh is bad at splitting newlines
+            ShellType::Ksh => raw_fragment!(
+                "while read -r __ls_line; do {}+=(\"${{__ls_line}}\"); done < <(",
+                var_expr.get_name()
+            ),
+        };
         meta.stmt_queue.extend([
             fragments!(
-                raw_fragment!(
-                    "IFS=$'\\n' read -rd '' -a {} < <(LC_ALL=C IFS=$'\\n';",
-                    var_expr.get_name()
-                ),
+                read_command,
                 sudo_prefix,
-                "ls -1",
+                "IFS=$'\\n'; LC_ALL=C ls -1",
                 all_frag,
                 recursive_frag,
                 " ",
@@ -204,8 +220,15 @@ impl TranslateModule for Ls {
                 suppress
             ),
             handler,
-            fragments!(")"),
+            fragments!(");"),
         ]);
+        if matches!(&meta.target.shell, ShellType::Zsh) {
+            meta.stmt_queue.extend([fragments!(raw_fragment!(
+                // in ZSH, null characters are appended to the array, it's the simplest option to remove them
+                "{}[-1]=();",
+                var_expr.get_name()
+            ))])
+        }
         var_expr.to_frag()
     }
 }

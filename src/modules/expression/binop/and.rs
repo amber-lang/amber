@@ -2,10 +2,13 @@ use super::BinOp;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "and"]
+#[kind = "binary_op"]
 pub struct And {
     left: Box<Expr>,
     right: Box<Expr>,

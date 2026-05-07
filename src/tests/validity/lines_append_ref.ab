@@ -8,7 +8,7 @@ import { temp_dir_create } from "std/fs"
 // [  six  ]
 
 fun append_ref(ref inner: [Text], path: Text): Null {
-    inner += lines(path)
+    inner += trust lines(path)
 }
 
 main {
@@ -17,7 +17,7 @@ main {
     trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
 
     // Inefficient for large files.
-    let lines_contents = lines("{tmpdir}/numbers1.txt")
+    let lines_contents = lines("{tmpdir}/numbers1.txt")?
     append_ref(lines_contents, "{tmpdir}/numbers2.txt")
     for line in lines_contents {
         echo("[{line}]")

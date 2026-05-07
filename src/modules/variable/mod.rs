@@ -4,25 +4,14 @@ use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::VariableDecl;
 use crate::utils::is_all_caps;
 use crate::utils::metadata::ParserMetadata;
+use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
-
 pub mod get;
 pub mod init;
 pub mod init_destruct;
 pub mod set;
 pub mod set_destruct;
-use crate::raw_fragment;
-use crate::translate::fragments::fragment::{FragmentKind, FragmentRenderable};
-use crate::translate::fragments::raw::RawFragment;
-
-pub fn get_default_value_fragment(kind: &Type) -> Option<FragmentKind> {
-    match kind {
-        Type::Array(_) => Some(raw_fragment!("()")),
-        Type::Num | Type::Int | Type::Bool => Some(raw_fragment!("0")),
-        _ => None,
-    }
-}
 
 pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
@@ -82,6 +71,41 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "while",
     ]
 }
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "as"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct As;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "else"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Else;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "from"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct From;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "in"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct In;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "is"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Is;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "then"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Then;
 
 pub fn handle_variable_reference(
     meta: &mut ParserMetadata,

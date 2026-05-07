@@ -8,7 +8,9 @@ use crate::raw_fragment;
 use crate::translate::fragments::var_stmt::VarStmtFragment;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "lock"]
+#[kind = "builtin_stmt"]
 pub struct Lock {
     path: Option<Expr>,
     modifier: CommandModifier,
@@ -106,8 +108,8 @@ impl TranslateModule for Lock {
             .path
             .as_ref()
             .map(|expr| expr.translate(meta))
-            // Set a default path to `/tmp/<basename.sh>.lock`
-            .unwrap_or(raw_fragment!("/tmp/${{0##*/}}.lock"));
+            // Set a default path using TMPDIR (falls back to /tmp)
+            .unwrap_or(raw_fragment!("${{TMPDIR:-/tmp}}/${{0##*/}}.lock"));
 
         let lock_var_stmt = VarStmtFragment::new(
             &format!("__lock_file_{}", lock_var_id),
@@ -154,10 +156,7 @@ impl TranslateModule for Lock {
         );
 
         BlockFragment::new(
-            vec![
-                blocker.to_frag(),
-                self.failure_handler.translate(meta),
-            ],
+            vec![blocker.to_frag(), self.failure_handler.translate(meta)],
             false,
         )
         .to_frag()

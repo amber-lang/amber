@@ -1,0 +1,7 @@
+// Output
+// Cannot redeclare 'foo' in the same scope
+
+fun foo() {
+}
+
+let foo = 123

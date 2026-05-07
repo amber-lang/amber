@@ -6,7 +6,6 @@ use rayon::prelude::*;
 use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
 
 pub fn find_amber_files(dir: &PathBuf, files: &mut Vec<PathBuf>) -> std::io::Result<()> {
     if dir.is_dir() {
@@ -41,6 +40,7 @@ pub fn get_tests_to_run(
     // Discovery phase
     let mut tests = vec![];
     let mut errors = vec![];
+    let test_case = &command.test_case;
     for file in &files {
         let code = match fs::read_to_string(file) {
             Ok(c) => c,
@@ -54,7 +54,8 @@ pub fn get_tests_to_run(
             }
         };
 
-        let options = CompilerOptions::from_args(&command.no_proc, false, true, None);
+        let options = CompilerOptions::from_args(&command.no_proc, false, true, None)
+            .with_target(command.target);
         let compiler = AmberCompiler::new(
             code.clone(),
             Some(file.to_string_lossy().to_string()),
@@ -65,6 +66,12 @@ pub fn get_tests_to_run(
             Ok(tokens) => match compiler.parse(tokens) {
                 Ok((_, meta)) => {
                     for name in meta.test_names {
+                        if let Some(test_case) = test_case {
+                            if !name.trim().starts_with(test_case.trim()) {
+                                continue;
+                            }
+                        }
+
                         tests.push((file.clone(), name, code.clone()));
                     }
                 }
@@ -82,18 +89,6 @@ pub fn get_tests_to_run(
 
     if !errors.is_empty() {
         return Err(errors);
-    }
-
-    // Filter tests
-    if let Some(pattern) = command.args.first() {
-        tests.retain(|(file, name, _)| {
-            let test_name_display = if name.is_empty() {
-                format!("{}", file.display())
-            } else {
-                format!("{} ({})", file.display(), name)
-            };
-            test_name_display.contains(pattern)
-        });
     }
 
     Ok(tests)
@@ -129,7 +124,8 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
             };
 
             let options =
-                CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()));
+                CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()))
+                    .with_target(command.target);
             let compiler = AmberCompiler::new(
                 code.clone(),
                 Some(file.to_string_lossy().to_string()),
@@ -137,12 +133,8 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
             );
 
             let result = match compiler.compile() {
-                Ok((_, bash_code)) => {
-                    match Command::new("bash")
-                        .args(["--norc", "-c"])
-                        .arg(&bash_code)
-                        .output()
-                    {
+                Ok((_, bash_code)) => match AmberCompiler::find_shell(command.target) {
+                    Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
                         Ok(output) => {
                             if output.status.success() {
                                 Ok(())
@@ -161,9 +153,13 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
                                 }
                             }
                         }
-                        Err(e) => Err(Message::new_err_msg(format!("Error executing bash: {}", e))),
-                    }
-                }
+                        Err(e) => Err(Message::new_err_msg(format!(
+                            "Error executing shell: {}",
+                            e
+                        ))),
+                    },
+                    None => Err(Message::new_err_msg("Failed to find shell command")),
+                },
                 Err(e) => Err(e),
             };
 

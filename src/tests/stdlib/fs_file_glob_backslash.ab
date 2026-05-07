@@ -20,7 +20,7 @@ main {
         $ touch "{tmpdir}/file\\with\\backslash.txt" $
         $ touch "{tmpdir}/normal.txt" $
     }
-    cd(tmpdir)
+    trust cd(tmpdir)
 
     // Test that glob * finds files with backslashes in their names
     const expected = [

@@ -1,0 +1,9 @@
+// Output
+// Index out of bounds \(at src/tests/runtime/index_out_ofbounds_array_index.ab:6:15\)
+
+const arr = [""]
+const a = arr[0]
+const b = arr[1]
+
+echo(a)
+echo(b)

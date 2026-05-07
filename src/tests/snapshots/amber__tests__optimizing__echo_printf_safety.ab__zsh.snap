@@ -1,0 +1,15 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+bar_0="bar"
+echo "foo"
+array_0=("-foo" "bar")
+printf '%s\n' "${array_0[*]}"
+array_1=("-foo ${bar_0} foobar" "bar")
+printf '%s\n' "${array_1[*]}"
+array_2=("boo ${bar_0} foo" "boo")
+printf '%s\n' "${array_2[*]}"
+printf '%s\n' ""
+printf '%s\n' "-foo"
+echo "foo ${bar_0}"

@@ -5,6 +5,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
+use crate::utils::ShellType;
 use crate::{fragments, raw_fragment};
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
@@ -208,9 +209,12 @@ impl TranslateModule for FunctionInvocation {
             let suppress = meta.gen_suppress().to_frag();
             let args = izip!(self.args.iter(), self.refs.iter())
                 .map(|(arg, is_ref)| match arg.translate(meta) {
-                    FragmentKind::VarExpr(var) if *is_ref => {
-                        var.with_render_type(VarRenderType::BashRef).to_frag()
-                    }
+                    // Pass explicit `ref` arguments as shell references so the callee can alias them directly.
+                    FragmentKind::VarExpr(var) if *is_ref => var
+                        .with_render_type(VarRenderType::BashRef)
+                        .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
+                        .to_frag(),
+                    // Materialize indexed array expressions first so the callee receives a stable temporary array name.
                     FragmentKind::VarExpr(var) if var.kind.is_array() && var.index.is_some() => {
                         let id = meta.gen_value_id();
                         let temp_name = format!("{}_{id}", var.get_index_typename());
@@ -220,21 +224,60 @@ impl TranslateModule for FunctionInvocation {
                             FragmentKind::VarExpr(var.clone()),
                         );
                         let temp_var = meta.push_ephemeral_variable(stmt);
-                        fragments!(
+                        if matches!(meta.target.shell, ShellType::Ksh) {
                             temp_var
-                                .with_render_type(VarRenderType::BashRef)
+                                .with_render_type(VarRenderType::NameOf)
                                 .to_frag()
-                                .with_quotes(false),
-                            "[@]"
-                        )
+                                .with_quotes(false)
+                        } else {
+                            fragments!(
+                                temp_var
+                                    .with_render_type(VarRenderType::NameOf)
+                                    .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
+                                    .to_frag()
+                                    .with_quotes(false),
+                                "[@]"
+                            )
+                        }
                     }
-                    FragmentKind::VarExpr(var) if var.kind.is_array() => fragments!(
-                        var.with_render_type(VarRenderType::BashRef)
-                            .to_frag()
-                            .with_quotes(false),
-                        "[@]"
-                    ),
+                    // Pass whole arrays by name so each shell can lower array copy semantics in its own way.
+                    FragmentKind::VarExpr(var) if var.kind.is_array() => {
+                        if matches!(meta.target.shell, ShellType::Ksh) {
+                            if var.is_ref {
+                                // In ksh93, forwarding a ref-bound local array into a by-copy array
+                                // parameter through nested `function name {}` wrappers can lose the
+                                // caller's contents. Materialize a temp array first and pass that.
+                                let id = meta.gen_value_id();
+                                let temp_name = format!("{}_{id}", var.get_index_typename());
+                                let stmt = VarStmtFragment::new(
+                                    &temp_name,
+                                    var.kind.clone(),
+                                    FragmentKind::VarExpr(var.clone()),
+                                )
+                                .with_optimization_when_unused(false);
+                                let temp_var = meta.push_ephemeral_variable(stmt);
+                                temp_var
+                                    .with_render_type(VarRenderType::NameOf)
+                                    .to_frag()
+                                    .with_quotes(false)
+                            } else {
+                                var.with_render_type(VarRenderType::BashRef)
+                                    .to_frag()
+                                    .with_quotes(false)
+                            }
+                        } else {
+                            fragments!(
+                                var.with_render_type(VarRenderType::BashRef)
+                                    .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
+                                    .to_frag()
+                                    .with_quotes(false),
+                                "[@]"
+                            )
+                        }
+                    }
+                    // Non-variable expressions cannot be passed by reference.
                     _ if *is_ref => unreachable!("Reference value accepts only variables"),
+                    // Plain scalar arguments are passed through unchanged.
                     var => var,
                 })
                 .collect::<Vec<FragmentKind>>();

@@ -211,6 +211,9 @@ fn try_parse_simple_type(meta: &mut ParserMetadata) -> Result<Type, Failure> {
                                 meta,
                                 tok, "Arrays cannot be nested due to the Bash limitations"
                             ),
+                            Ok(Type::Union(_)) => {
+                                error!(meta, tok, "Arrays don't support mixed type values")
+                            }
                             Ok(result_type) => {
                                 token(meta, "]")?;
                                 Ok(Type::Array(Box::new(result_type)))

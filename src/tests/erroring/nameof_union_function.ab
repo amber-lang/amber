@@ -5,4 +5,4 @@ fun foo(a: Text | Num) {
     echo(a)
 }
 
-echo(nameof foo)
+echo(nameof(foo))

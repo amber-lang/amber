@@ -1,0 +1,10 @@
+// Output
+// Index out of bounds \(at src/tests/runtime/index_out_of_bounds_array_destructuring_set.ab:7:5\)
+
+let a = "";
+let b = "";
+
+[a, b] = [""]
+
+echo(a)
+echo(b)

@@ -1,0 +1,14 @@
+---
+source: src/tests/optimizing.rs
+expression: output
+---
+function foo__0_v0 {
+    ret_foo0_v0=0
+    return 0
+}
+
+foo__0_v0 
+x_0="${ret_foo0_v0}"
+arr_1=("")
+arr_1["${x_0}"]="A"
+printf '%s\n' "${arr_1[0]}"

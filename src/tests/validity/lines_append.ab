@@ -13,8 +13,8 @@ main {
     trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
 
     // Inefficient for large files.
-    let lines_contents = lines("{tmpdir}/numbers1.txt")
-    lines_contents += lines("{tmpdir}/numbers2.txt")
+    let lines_contents = lines("{tmpdir}/numbers1.txt")?
+    lines_contents += lines("{tmpdir}/numbers2.txt")?
     for line in lines_contents {
         echo("[{line}]")
     }

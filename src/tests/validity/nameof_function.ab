@@ -8,4 +8,4 @@ fun foo(): Null {
 
 foo()
 
-trust $ {nameof foo} $
+trust $ {nameof(foo)} $

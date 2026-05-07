@@ -1,4 +1,5 @@
 use crate::modules::function::invocation_utils::run_function_with_args;
+
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
@@ -7,7 +8,9 @@ use crate::translate::module::TranslateModule;
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "nameof"]
+#[kind = "builtin_expr"]
 pub struct Nameof {
     name: String,
     token: Option<Token>,
@@ -34,9 +37,20 @@ impl SyntaxModule<ParserMetadata> for Nameof {
     }
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
         token(meta, "nameof")?;
         self.token = meta.get_current_token();
-        self.name = variable(meta, variable_name_extensions())?;
+
+        if token(meta, "(").is_ok() {
+            self.name = variable(meta, variable_name_extensions())?;
+            token(meta, ")")?;
+        } else {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling a builtin without parentheses is deprecated");
+            meta.add_message(warning);
+            self.name = variable(meta, variable_name_extensions())?;
+        }
         Ok(())
     }
 }
@@ -60,9 +74,9 @@ impl TypeCheckModule for Nameof {
                                 meta,
                                 self.token.clone(),
                                 format!(
-                  "Function '{}' must be strictly typed to be used with 'nameof'.",
-                  self.name
-                ),
+                                    "Function '{}' must be strictly typed to be used with 'nameof'.",
+                                    self.name
+                                ),
                                 "All function parameters have to be of concrete type"
                             );
                         }
@@ -80,12 +94,13 @@ impl TypeCheckModule for Nameof {
                             Some(fun_instance) => fun_instance.variant_id,
                             None => {
                                 // Compile the function on demand to get the variant ID
+                                let persist = !meta.first_pass_ctx;
                                 run_function_with_args(
                                     meta,
                                     fun_decl.clone(),
                                     &args_types,
                                     self.token.clone(),
-                                    true,
+                                    persist,
                                 )?
                                 .1
                             }

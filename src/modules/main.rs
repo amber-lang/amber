@@ -1,15 +1,17 @@
 use heraclitus_compiler::prelude::*;
 
+use super::variable::variable_name_extensions;
 use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
+use amber_meta::AutoKeyword;
 
-use super::variable::variable_name_extensions;
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "main"]
+#[kind = "stmt"]
 pub struct Main {
     pub args: Option<String>,
     pub args_tok: Option<Token>,
@@ -98,7 +100,8 @@ impl TranslateModule for Main {
                 |name| {
                     let id = self.args_global_id.unwrap_or(global_id);
                     raw_fragment!(
-                        "declare -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
+                        // typeset is supported by all 3 shells, no need for extra logic
+                        "typeset -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
                     )
                 },
             );

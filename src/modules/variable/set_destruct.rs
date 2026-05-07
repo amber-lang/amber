@@ -2,9 +2,8 @@ use super::{handle_variable_reference, prevent_constant_mutation, variable_name_
 use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::modules::variable::get_default_value_fragment;
 use crate::raw_fragment;
-use crate::translate::fragments::var_expr::VarIndexValue;
+use crate::translate::fragments::var_expr::{format_position, VarIndexValue};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use heraclitus_compiler::prelude::*;
@@ -138,9 +137,18 @@ impl TranslateModule for VariableSetDestruct {
         };
 
         for (i, name) in self.names.iter().enumerate() {
+            let token = self.toks[i].clone().unwrap();
+            let var_position = PositionInfo::at_pos(
+                self.expr.get_position().path,
+                token.pos,
+                token.start,
+                token.word.chars().count(),
+            );
+            let position = format_position(Some(&var_position));
+
             let assign_expr = VarExprFragment::from_stmt(&assign_temp)
                 .with_index_by_value(VarIndexValue::Index(raw_fragment!("{i}")))
-                .with_default_value(get_default_value_fragment(&inner_type))
+                .with_index_pos(position)
                 .to_frag();
 
             let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)

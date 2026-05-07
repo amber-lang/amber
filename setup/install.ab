@@ -1,7 +1,6 @@
 import { has_failed, input_prompt } from "std/env"
-import { split_chars } from "std/text"
 import { array_contains } from "std/array"
-import { file_exists, dir_create, dir_exists } from "std/fs"
+import { file_exists, dir_create } from "std/fs"
 import { get_os, get_arch, get_place, get_bins_folder } from "./shared.ab"
 
 const name = "amber"
@@ -15,7 +14,7 @@ fun get_latest_release_tag(): Text? {
     const tag_url = "https://api.github.com/repos/amber-lang/{name}/releases/latest"
     const tag_json = $ curl -sL "{tag_url}" $?
     // Get the tag name from the JSON
-    const tag = $ echo "\${nameof tag_json}" \
+    const tag = $ echo "\${nameof(tag_json)}" \
         | grep -Eo "tag_name\\"[^\\"]*\\"([^\\"]+)\\"" \
         | grep -Eo "\\"[^\\"]+\\"\$" \
         | grep -Eo "[^\\"\\s]+" $?

@@ -1,18 +1,3 @@
-// We cannot import `bash_version` from `env.ab` because it imports `text.ab` making a circular dependency.
-// This is a workaround to avoid that issue and the import system should be improved in the future.
-#[allow_absurd_cast]
-fun bash_version(): [Int] {
-    let major = 0
-    let minor = 0
-    let patch = 0
-    trust $
-        {nameof major}=\$\{BASH_VERSINFO[0]}
-        {nameof minor}=\$\{BASH_VERSINFO[1]}
-        {nameof patch}=\$\{BASH_VERSINFO[2]}
-    $
-    return [major, minor, patch]
-}
-
 /// Replaces all occurrences of a pattern in the content with the provided replace text.
 ///
 /// ### Usage
@@ -23,10 +8,10 @@ fun bash_version(): [Int] {
 pub fun replace(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4, 3] {
-        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
+        trust $ {nameof(result)}="\$\{{nameof(source)}//"\$\{{nameof(search)}}"/"\$\{{nameof(replace)}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}//"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
+        trust $ {nameof(result)}="\$\{{nameof(source)}//"\$\{{nameof(search)}}"/\$\{{nameof(replace)}}}" $
     }
     return result
 }
@@ -41,10 +26,10 @@ pub fun replace(source, search, replace) {
 pub fun replace_one(source, search, replace) {
     // Here we use a command to avoid #646
     let result = ""
-    if bash_version() >= [4, 3] {
-        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/"\$\{{nameof replace}}"}" $
+    if shellname() == "ksh" or (shellname() == "bash" and shellversion() >= [4, 3]) {
+        trust $ {nameof(result)}="\$\{{nameof(source)}/"\$\{{nameof(search)}}"/"\$\{{nameof(replace)}}"}" $
     } else {
-        trust $ {nameof result}="\$\{{nameof source}/"\$\{{nameof search}}"/\$\{{nameof replace}}}" $
+        trust $ {nameof(result)}="\$\{{nameof(source)}/"\$\{{nameof(search)}}"/\$\{{nameof(replace)}}}" $
     }
     return result
 }
@@ -114,7 +99,19 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
 /// ```
 pub fun split(text: Text, delimiter: Text): [Text] {
     let result = [Text]
-    trust $ IFS="{delimiter}" read -rd '' -a {nameof result} < <(printf %s "\${nameof text}") $
+    // zsh uses -A for array, bash uses -a, ksh is VERY bad at splitting anything
+    trust {
+        if {
+            shellname() == "zsh": $ IFS="{delimiter}" read -rd '' -A {nameof(result)} < <(printf %s "\${nameof(text)}") $
+            shellname() == "ksh" {
+                if delimiter == "\n":
+                    $ while read -r -d \$'\\n'; do {nameof(result)}+=("\$REPLY"); done < <(echo "\${nameof(text)}") $
+                else:
+                    $ IFS="{delimiter}" read -rd '' -a {nameof(result)} < <(printf %s "\${nameof(text)}") $
+            } 
+            shellname() == "bash": $ IFS="{delimiter}" read -rd '' -a {nameof(result)} < <(printf %s "\${nameof(text)}") $
+        }
+    }
     return result
 }
 
@@ -148,7 +145,7 @@ pub fun split_words(text: Text): [Text] {
 /// echo(joined) // "a,b,c"
 /// ```
 pub fun join(list: [Text], delimiter: Text): Text {
-    return trust $ IFS="{delimiter}" ; printf "%s\n" "\$\{{nameof list}[*]}" $
+    return trust $ IFS="{delimiter}" ; printf "%s\n" "\$\{{nameof(list)}[*]}" $
 }
 
 /// Trims the spaces at top of the text using `sed`.
@@ -160,7 +157,7 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// ```
 pub fun trim_left(text: Text): Text {
     let result = ""
-    trust $ {nameof result}="\$\{{nameof text}#\$\{{nameof text}%%[![:space:]]*}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
     return result
 }
 
@@ -173,7 +170,7 @@ pub fun trim_left(text: Text): Text {
 /// ```
 pub fun trim_right(text: Text): Text {
     let result = ""
-    trust $ {nameof result}="\$\{{nameof text}%\$\{{nameof text}##*[![:space:]]}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}%\$\{{nameof(text)}##*[![:space:]]}}" $
     return result
 }
 
@@ -186,8 +183,8 @@ pub fun trim_right(text: Text): Text {
 /// ```
 pub fun trim(text: Text): Text {
     let result = ""
-    trust $ {nameof result}="\$\{{nameof text}#\$\{{nameof text}%%[![:space:]]*}}" $
-    trust $ {nameof result}="\$\{{nameof result}%\$\{{nameof result}##*[![:space:]]}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
+    trust $ {nameof(result)}="\$\{{nameof(result)}%\$\{{nameof(result)}##*[![:space:]]}}" $
     return result
 }
 
@@ -199,7 +196,15 @@ pub fun trim(text: Text): Text {
 /// echo(lower) // "hello"
 /// ```
 pub fun lowercase(text: Text): Text {
-    return trust $ tr '[:upper:]' '[:lower:]' <<< "{text}" $
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof(text)}="\$(printf '%s' "{text}" | tr '[:upper:]' '[:lower:]')" $
+    } else {
+        trust $
+            typeset -l {nameof(text)}
+            {nameof(text)}="{text}"
+        $
+    }
+    return text
 }
 
 /// Makes the text input uppercase using `tr`.
@@ -210,7 +215,15 @@ pub fun lowercase(text: Text): Text {
 /// echo(upper) // "HELLO"
 /// ```
 pub fun uppercase(text: Text): Text {
-    return trust $ tr '[:lower:]' '[:upper:]' <<< "{text}" $
+    if shellname() == "bash" and shellversion() < [4, 3] {
+        trust $ {nameof(text)}="\$(printf '%s' "{text}" | tr '[:lower:]' '[:upper:]')" $
+    } else {
+        trust $
+            typeset -u {nameof(text)}
+            {nameof(text)}="{text}"
+        $
+    }
+    return text
 }
 
 /// Attempts to parse a given text into an `Int` number.
@@ -251,8 +264,8 @@ pub fun parse_num(text: Text): Num? {
 /// ```
 pub fun split_chars(text: Text): [Text] {
     let chars = [Text]
-    trust $ for ((i=0; i<\$\{#{nameof text}}; i++)); do
-        {nameof chars}+=( "\$\{{nameof text}:\$i:1}" );
+    trust $ for ((i=0; i<\$\{#{nameof(text)}}; i++)); do
+        {nameof(chars)}+=( "\$\{{nameof(text)}:\$i:1}" );
     done $
     return chars
 }
@@ -418,7 +431,7 @@ pub fun slice(text: Text, index: Int, length: Int = 0): Text {
     let result = ""
     if length == 0: length = len(text) - index
     if length <= 0: return result
-    trust $ {nameof result}="\$\{{nameof text}: {index}: {length}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}: {index}: {length}}" $
     return result
 }
 
@@ -433,7 +446,7 @@ pub fun slice(text: Text, index: Int, length: Int = 0): Text {
 /// ```
 pub fun char_at(text: Text, index: Int): Text {
     let result = ""
-    trust $ {nameof result}="\$\{{nameof text}:{index}:1}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}:{index}:1}" $
     return result
 }
 
@@ -450,12 +463,9 @@ pub fun capitalized(text: Text): Text {
         if len(text) == 0 {
             return text
         }
-        if bash_version() >= [4] {
-            return $ printf '%s\n' "\$\{{nameof text}^}" $
-        }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ printf '%s\n' "{text}" | sed "s/^\(.\)/\U\1/" $
+            return $ printf '%s\n' "{text}" | sed 's/^\(.\)/\U\1/' $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)
@@ -473,8 +483,8 @@ pub fun lpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
     const pad_len = length - len(text)
     let padding = ""
-    trust $ printf -v {nameof padding} "%{pad_len}s" "" $
-    trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
+    trust $ printf -v {nameof(padding)} "%{pad_len}s" "" $
+    trust $ {nameof(padding)}="\$\{{nameof(padding)}// /{pad}}" $
     return padding + text
 }
 
@@ -489,8 +499,8 @@ pub fun rpad(text: Text, pad: Text, length: Int): Text {
     if length <= len(text): return text
     const pad_len = length - len(text)
     let padding = ""
-    trust $ printf -v {nameof padding} "%{pad_len}s" "" $
-    trust $ {nameof padding}="\$\{{nameof padding}// /{pad}}" $
+    trust $ printf -v {nameof(padding)} "%{pad_len}s" "" $
+    trust $ {nameof(padding)}="\$\{{nameof(padding)}// /{pad}}" $
     return text + padding
 }
 

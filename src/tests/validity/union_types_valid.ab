@@ -4,8 +4,6 @@
 // hello
 // 1 2
 // 1 0
-// 1 2
-// 1 0
 
 fun foo(x: Int | Bool | Text) {
     echo(x)
@@ -21,10 +19,3 @@ fun bar(x: [Int] | [Bool]) {
 
 bar([1, 2])
 bar([true, false])
-
-fun baz(x: [Int | Bool]) {
-    echo(x)
-}
-
-baz([1, 2])
-baz([true, false])

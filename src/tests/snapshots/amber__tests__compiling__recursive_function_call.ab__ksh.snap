@@ -1,0 +1,17 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+function foo__0_v0 {
+    typeset arg_7="${1}"
+    echo "Value: ${arg_7}"
+}
+
+function bar__1_v0 {
+    typeset a_5="${1}"
+    typeset b_6="${2}"
+    foo__0_v0 "${a_5}"
+    foo__0_v0 "${b_6}"
+}
+
+bar__1_v0 1 2

@@ -15,6 +15,24 @@ pub enum FailureType {
     Exited,
 }
 
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "exited"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Exited;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "succeeded"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Succeeded;
+
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "failed"]
+#[kind = "stmt"]
+#[allow(dead_code)]
+pub struct Failed;
+
 impl FailureType {
     pub fn to_string(&self) -> &'static str {
         match self {

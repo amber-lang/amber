@@ -1,0 +1,19 @@
+// Output
+// seen: 3 [one two three]
+// after: 3 [one two three]
+
+fun observe(items: [Text]): Null {
+    echo("seen: {len(items)} [{items}]")
+}
+
+fun forward(ref items: [Text]): Null {
+    observe(items)
+}
+
+fun caller(): Null {
+    let values = ["one", "two", "three"]
+    forward(values)
+    echo("after: {len(values)} [{values}]")
+}
+
+caller()
