@@ -1,5 +1,4 @@
 use super::modifier::CommandModifier;
-use crate::fragments;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::interpolated_region::{
     parse_interpolated_region, InterpolatedRegionType,
@@ -94,7 +93,9 @@ impl TranslateModule for Command {
         let silent = meta.with_silenced(is_silenced, |meta| meta.gen_silent().to_frag());
         let suppress = meta.with_suppress(is_suppress, |meta| meta.gen_suppress().to_frag());
         let sudo_prefix = meta.with_sudoed(is_sudoed, |meta| meta.gen_sudo_prefix().to_frag());
-        let translation = fragments!(sudo_prefix, translation, suppress, silent);
+        let translation = ListFragment::new(vec![sudo_prefix, translation, suppress, silent])
+            .with_spaces()
+            .to_frag();
 
         let handler = self.failure_handler.translate(meta);
         let is_statement = !meta.expr_ctx;

@@ -159,7 +159,7 @@ impl TranslateModule for Ls {
                 " )) && ",
                 raw_fragment!("{}=\"-A\" || {}=\"\"", all_var_name, all_var_name)
             ));
-            raw_fragment!(" ${{{}}}", all_var_name)
+            raw_fragment!("${{{}}}", all_var_name)
         } else {
             FragmentKind::Empty
         };
@@ -177,7 +177,7 @@ impl TranslateModule for Ls {
                     recursive_var_name
                 )
             ));
-            raw_fragment!(" ${{{}}}", recursive_var_name)
+            raw_fragment!("${{{}}}", recursive_var_name)
         } else {
             FragmentKind::Empty
         };
@@ -209,16 +209,20 @@ impl TranslateModule for Ls {
             ),
         };
         meta.stmt_queue.extend([
-            fragments!(
-                read_command,
-                sudo_prefix,
-                "IFS=$'\\n'; LC_ALL=C ls -1",
-                all_frag,
-                recursive_frag,
-                " ",
-                path_expr.to_frag().with_quotes(false),
-                suppress
-            ),
+            ListFragment::new(
+                vec![
+                    read_command,
+                    raw_fragment!("IFS=$'\\n';"),
+                    sudo_prefix,
+                    fragments!("LC_ALL=C ls -1"),
+                    all_frag,
+                    recursive_frag,
+                    path_expr.to_frag().with_quotes(false),
+                    suppress
+                ]
+            )
+                .with_spaces()
+                .to_frag(),
             handler,
             fragments!(");"),
         ]);

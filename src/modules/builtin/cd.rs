@@ -95,7 +95,9 @@ impl TranslateModule for Cd {
         });
         BlockFragment::new(
             vec![
-                fragments!(sudo_prefix, "cd ", value, suppress, silent),
+                ListFragment::new(vec![sudo_prefix, fragments!("cd"), value, suppress, silent])
+                    .with_spaces()
+                    .to_frag(),
                 handler,
             ],
             false,

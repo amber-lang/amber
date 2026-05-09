@@ -183,7 +183,7 @@ impl TranslateMetadata {
 
     pub fn gen_suppress(&self) -> FragmentKind {
         if self.suppress {
-            raw_fragment!(" 2>/dev/null")
+            raw_fragment!("2>/dev/null")
         } else {
             FragmentKind::Empty
         }

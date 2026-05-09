@@ -86,7 +86,9 @@ impl TranslateModule for Await {
         });
         BlockFragment::new(
             vec![
-                fragments!(sudo_prefix, "wait ", pids, suppress, silent),
+                ListFragment::new(vec![sudo_prefix, fragments!("wait"), pids, suppress, silent])
+                    .with_spaces()
+                    .to_frag(),
                 handler,
             ],
             false,

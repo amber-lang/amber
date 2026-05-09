@@ -1,5 +1,5 @@
 /// Tests for Amber scripts that check snapshot of generated bash code.
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{escape_shell_arg, AmberCompiler, CompilerOptions};
 use crate::modules::prelude::TranslateModule;
 use crate::modules::types::Type;
 use crate::translate::fragments::fragment::FragmentRenderable;
@@ -41,6 +41,13 @@ pub fn translate_compiler_output_with_target<T: Into<String>>(
 
 pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<String> {
     translate_amber_code_with_target(code, None)
+}
+
+#[test]
+fn test_translate_crlf_line_endings() {
+    let code = "main {\r\n    echo(\"ok\")\r\n}\r\n";
+    let output = translate_amber_code(code).expect("Couldn't translate Amber code with CRLF");
+    assert!(output.contains("echo"));
 }
 
 /// Autoload the Amber test files in compiling
@@ -199,24 +206,19 @@ fn test_bash_32_declared_ref_array_assignment_defers_array_expansion_to_inner_ev
     assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
 }
 
+
 #[test]
-fn test_translate_sudo_preamble() {
+fn test_lock_default_path_uses_tmpdir_with_tmp_fallback() {
     let code = r#"
 main {
-    echo("test")
+    lock() ?
 }
 "#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-    let tokens = compiler.tokenize().expect("tokenize failed");
-    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
-    let (ast, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
-    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
-    let ast = ast.translate(&mut translate_meta);
-    let result = ast.to_string(&mut translate_meta);
+    let result = translate_amber_code(code).expect("Couldn't translate Amber code");
+
     assert!(
-        result.contains("echo \"test\""),
-        "Output should contain bash code"
+        result.contains("${TMPDIR:-/tmp}/${0##*/}.lock"),
+        "Output should contain TMPDIR-based lock path with /tmp fallback"
     );
 }
 
@@ -273,18 +275,52 @@ main {
 fn test_translate_with_sudo() {
     let code = r#"
 main {
-    sudo $ echo "test" $?
+    sudo $echo "test"$?
 }
 "#;
-    let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
-    let tokens = compiler.tokenize().expect("tokenize failed");
-    let (ast, meta) = compiler.parse(tokens).expect("parse failed");
-    let (ast, meta) = compiler.typecheck(ast, meta).expect("typecheck failed");
-    let mut translate_meta = TranslateMetadata::new(meta, &compiler.options);
-    let ast = ast.translate(&mut translate_meta);
-    let result = ast.to_string(&mut translate_meta);
-    assert!(result.contains("sudo"), "Output should contain sudo");
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"[ "$EUID" -ne 0 ] && { { command -v sudo >/dev/null 2>&1 && __sudo=sudo; } || { command -v doas >/dev/null 2>&1 && __sudo=doas; }; }"#),
+        "Output should contain the correct sudo preamble"
+    );
+    assert!(
+        result.contains(r#"${__sudo} echo"#),
+        "Output should contain sudo echo command with spaces"
+    );
+}
+
+#[test]
+fn test_translate_with_silent() {
+    let code = r#"
+main {
+    silent $echo 1$?
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"echo 1 >/dev/null"#),
+        "Output should contain echo command with separated >/dev/null redirect"
+    );
+}
+
+#[test]
+fn test_translate_with_suppress() {
+    let code = r#"
+main {
+    suppress $echo 2$?
+}
+"#;
+    let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
+        .expect("Couldn't translate Amber code");
+
+    assert!(
+        result.contains(r#"echo 2 2>/dev/null"#),
+        "Output should contain echo command with separated 2>/dev/null redirect"
+    );
 }
 
 #[test]
@@ -531,5 +567,141 @@ fn test_gen_footer_with_env() {
     assert!(
         translated.contains("# Custom footer"),
         "Should contain custom footer"
+    );
+}
+
+#[test]
+fn test_escape_shell_arg() {
+    use crate::compiler::escape_shell_arg;
+
+    // Test basic escaping
+    assert_eq!(escape_shell_arg("hello"), "hello");
+    assert_eq!(escape_shell_arg("hello\"world"), "hello\\\"world");
+    assert_eq!(escape_shell_arg("$HOME"), "\\$HOME");
+    assert_eq!(escape_shell_arg("`pwd`"), "\\`pwd\\`");
+    assert_eq!(escape_shell_arg("back\\slash"), "back\\\\slash");
+    assert_eq!(escape_shell_arg("history!"), "history\\!");
+
+    // Test shell injection attempts
+    assert_eq!(escape_shell_arg("$(whoami)"), "\\$(whoami)");
+    assert_eq!(escape_shell_arg("; rm -rf /"), "; rm -rf /"); // semicolon not escaped, but wrapped in quotes
+    assert_eq!(escape_shell_arg(r#"test"$`\!"#), r#"test\"\$\`\\\!"#);
+}
+
+#[test]
+fn test_shell_injection_command_substitution_blocked() {
+    let amber_code = r#"main(args) { echo(args[3]) }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+
+    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
+
+    let args = [
+        "program-name".to_string(),
+        "safe-arg".to_string(),
+        "$(echo INJECTED)".to_string(),
+    ];
+
+    let target = AmberCompiler::resolve_target_shell(None);
+    let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
+
+    let args_with_escapes = args
+        .iter()
+        .map(|arg| format!("\"{}\"", escape_shell_arg(arg)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let bash_code_with_args = format!("set -- {}\n{}", args_with_escapes, bash_code);
+
+    let output = shell
+        .arg("-c")
+        .arg(&bash_code_with_args)
+        .output()
+        .expect("Failed to execute");
+
+    let status = output.status;
+    assert!(messages.len() <= 1);
+    assert!(status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("$(echo INJECTED)"),
+        "Expected stdout to contain literal '$(echo INJECTED)', got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_shell_injection_variable_expansion_blocked() {
+    let amber_code = r#"main(args) { echo(args[2]) }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+
+    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
+
+    let args = ["program-name".to_string(), "$HOME".to_string()];
+
+    let target = AmberCompiler::resolve_target_shell(None);
+    let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
+
+    let args_with_escapes = args
+        .iter()
+        .map(|arg| format!("\"{}\"", escape_shell_arg(arg)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let bash_code_with_args = format!("set -- {}\n{}", args_with_escapes, bash_code);
+
+    let output = shell
+        .arg("-c")
+        .arg(&bash_code_with_args)
+        .output()
+        .expect("Failed to execute");
+
+    let status = output.status;
+    assert!(messages.len() <= 1);
+    assert!(status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("$HOME"),
+        "Expected stdout to contain literal '$HOME', got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_shell_injection_backslash_handled() {
+    let amber_code = r#"main(args) { echo(args[2]) }"#;
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+
+    let (messages, bash_code) = compiler.compile().expect("Failed to compile");
+
+    let args = ["program-name".to_string(), "\\".to_string()];
+
+    let target = AmberCompiler::resolve_target_shell(None);
+    let mut shell = AmberCompiler::find_shell(Some(target)).expect("Failed to find shell");
+
+    let args_with_escapes = args
+        .iter()
+        .map(|arg| format!("\"{}\"", escape_shell_arg(arg)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let bash_code_with_args = format!("set -- {}\n{}", args_with_escapes, bash_code);
+
+    let output = shell
+        .arg("-c")
+        .arg(&bash_code_with_args)
+        .output()
+        .expect("Failed to execute");
+
+    let status = output.status;
+    assert!(messages.len() <= 1);
+    assert!(status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("\\"),
+        "Expected stdout to contain literal '\\\\', got: {}",
+        stdout
     );
 }

@@ -260,6 +260,7 @@ fn execute_output(
     if messages {
         render_dash();
     }
+
     let exit_status = AmberCompiler::execute_with_target(code, args, target)?;
     Ok(exit_status.code().unwrap_or(1))
 }

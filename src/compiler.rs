@@ -25,6 +25,17 @@ use wildmatch::WildMatchPattern;
 pub mod postprocessor;
 pub mod shell_resolve;
 
+/// Escapes a string for safe use as a shell argument in double quotes.
+/// Handles shell-special characters: $ ` " \ !
+/// This prevents shell command injection attacks.
+pub fn escape_shell_arg(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            '"' | '$' | '`' | '\\' | '!' => format!("\\{}", c),
+            _ => c.to_string(),
+        })
+        .join("")
+}
 const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 
 pub struct CompilerOptions {
@@ -115,6 +126,7 @@ pub struct AmberCompiler {
 
 impl AmberCompiler {
     pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
+        let code = code.replace("\r\n", "\n").replace('\r', "\n");
         let cc = Compiler::new("Amber", rules::get_rules());
         let compiler = AmberCompiler { cc, path, options };
         compiler.load_code(AmberCompiler::comment_shebang(code))
@@ -461,11 +473,11 @@ impl AmberCompiler {
             if !args.is_empty() {
                 let args = args
                     .into_iter()
-                    .map(|arg| arg.replace("\"", "\\\""))
-                    .map(|arg| format!("\"{arg}\""))
+                    .map(|arg| format!("\"{}\"", escape_shell_arg(&arg)))
                     .collect::<Vec<String>>();
                 code = format!("set -- {}\n{}", args.join(" "), code);
             }
+
             command.arg("-c").arg(code).spawn()?.wait()
         } else {
             let error = std::io::Error::new(ErrorKind::NotFound, "Failed to find shell");
