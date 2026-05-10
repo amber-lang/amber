@@ -353,23 +353,27 @@ fn handle_build(
 
     let is_stdin = command.input.as_os_str() == "-";
 
-    if !is_stdin {
-        validate_input_existence(&command.input);
+    if is_stdin {
+        let output = create_output(&command);
+        build_file(&command, &target, command.input.clone(), output);
+        return Ok(())
     }
 
-    if !is_stdin && command.input.is_dir() {
+    validate_input_existence(&command.input);
+
+    if command.input.is_dir() {
         validate_output_dir(&command.output);
 
-        let mut files = vec![];
+        let mut files = Vec::new();
         find_amber_files(&command.input, &mut files)?;
 
-        for input in files {
-            let output = create_output_dir(&command, &input);
+        for file in files {
+            let output = create_output_dir(&command, &file);
             let parent_dir = output.parent().unwrap();
             if !parent_dir.exists() {
                 create_dir_all(parent_dir)?;
             }
-            build_file(&command, &target, input, output);
+            build_file(&command, &target, file, output);
         }
     } else {
         let output = create_output(&command);
