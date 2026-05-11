@@ -2,14 +2,14 @@ import { env_file_load, env_var_load } from "std/env"
 import { file_write, temp_dir_create } from "std/fs"
 
 // Output
-// yes
+// test
+// a long line of text
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust cd(tmpdir)
-    trust file_write(".env", "TEST=1")
+    trust file_write(".env", "TEST=test\nTEST2='a long line of text'")
     env_file_load()
-    if env_var_load("TEST") == "1" {
-        echo("yes")
-    }
+    trust $ echo "\$TEST" $
+    trust $ echo "\$TEST2" $
 } 
