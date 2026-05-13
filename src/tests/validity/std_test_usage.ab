@@ -1,8 +1,9 @@
-import { assert, assert_eq } from "std/test"
+import { assert, assert_eq, refute } from "std/test"
 
 main {
     trust {
         assert(true)
+        refute(false)
         assert_eq(1, 1)
         assert_eq("foo", "foo")
     }
