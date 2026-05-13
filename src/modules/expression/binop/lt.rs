@@ -79,9 +79,13 @@ impl TranslateModule for Lt {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         match self.left.get_type() {
             Type::Int => {
-                let left = self.left.translate(meta).with_quotes(false);
-                let right = self.right.translate(meta).with_quotes(false);
-                ArithmeticFragment::new(left, ArithOp::Lt, right).to_frag()
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                if self.right.get_type() == Type::Num {
+                    translate_float_computation(meta, ArithOp::Lt, Some(left), Some(right))
+                } else {
+                    ArithmeticFragment::new(left, ArithOp::Lt, right).to_frag()
+                }
             }
             Type::Num => {
                 let left = self.left.translate(meta);
