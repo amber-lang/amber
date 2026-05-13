@@ -59,7 +59,7 @@ mod compare_tests {
 mod compute_tests {
     use crate::modules::prelude::*;
     use crate::translate::compute::{
-        translate_bc_sed_computation, translate_float_computation, ArithOp,
+        translate_awk_computation, translate_float_computation, ArithOp,
     };
 
     fn create_test_metadata() -> TranslateMetadata {
@@ -80,19 +80,17 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_add() {
-        let result = translate_bc_sed_computation(ArithOp::Add, raw_frag("5"), raw_frag("3"), true);
+    fn test_translate_awk_computation_add() {
+        let result = translate_awk_computation(ArithOp::Add, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
-        // new code generates herestring instead of creating extra echo pipe:
-        // `echo ... | bc` => `bc <<< ...`
-        assert!(code.contains("<<<"), "should contain herestring");
+        assert!(code.contains("awk"), "should contain awk command");
         assert!(code.contains("+"), "should contain + operator");
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_sub() {
-        let result = translate_bc_sed_computation(ArithOp::Sub, raw_frag("5"), raw_frag("3"), true);
+    fn test_translate_awk_computation_sub() {
+        let result = translate_awk_computation(ArithOp::Sub, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -100,8 +98,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_mul() {
-        let result = translate_bc_sed_computation(ArithOp::Mul, raw_frag("5"), raw_frag("3"), true);
+    fn test_translate_awk_computation_mul() {
+        let result = translate_awk_computation(ArithOp::Mul, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -109,8 +107,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_div() {
-        let result = translate_bc_sed_computation(ArithOp::Div, raw_frag("6"), raw_frag("3"), true);
+    fn test_translate_awk_computation_div() {
+        let result = translate_awk_computation(ArithOp::Div, raw_frag("6"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -118,9 +116,9 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_modulo() {
+    fn test_translate_awk_computation_modulo() {
         let result =
-            translate_bc_sed_computation(ArithOp::Modulo, raw_frag("5"), raw_frag("3"), true);
+            translate_awk_computation(ArithOp::Modulo, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -128,8 +126,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_gt() {
-        let result = translate_bc_sed_computation(ArithOp::Gt, raw_frag("5"), raw_frag("3"), true);
+    fn test_translate_awk_computation_gt() {
+        let result = translate_awk_computation(ArithOp::Gt, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -137,8 +135,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_ge() {
-        let result = translate_bc_sed_computation(ArithOp::Ge, raw_frag("5"), raw_frag("3"), true);
+    fn test_translate_awk_computation_ge() {
+        let result = translate_awk_computation(ArithOp::Ge, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -146,8 +144,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_lt() {
-        let result = translate_bc_sed_computation(ArithOp::Lt, raw_frag("3"), raw_frag("5"), true);
+    fn test_translate_awk_computation_lt() {
+        let result = translate_awk_computation(ArithOp::Lt, raw_frag("3"), raw_frag("5"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -155,8 +153,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_le() {
-        let result = translate_bc_sed_computation(ArithOp::Le, raw_frag("3"), raw_frag("5"), true);
+    fn test_translate_awk_computation_le() {
+        let result = translate_awk_computation(ArithOp::Le, raw_frag("3"), raw_frag("5"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -164,8 +162,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_eq() {
-        let result = translate_bc_sed_computation(ArithOp::Eq, raw_frag("5"), raw_frag("5"), true);
+    fn test_translate_awk_computation_eq() {
+        let result = translate_awk_computation(ArithOp::Eq, raw_frag("5"), raw_frag("5"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -173,8 +171,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_neq() {
-        let result = translate_bc_sed_computation(ArithOp::Neq, raw_frag("5"), raw_frag("3"), true);
+    fn test_translate_awk_computation_neq() {
+        let result = translate_awk_computation(ArithOp::Neq, raw_frag("5"), raw_frag("3"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -182,8 +180,8 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_neg() {
-        let result = translate_bc_sed_computation(ArithOp::Neg, raw_frag("5"), raw_frag(""), true);
+    fn test_translate_awk_computation_neg() {
+        let result = translate_awk_computation(ArithOp::Neg, raw_frag("5"), raw_frag(""), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -191,9 +189,9 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_not() {
+    fn test_translate_awk_computation_not() {
         let result =
-            translate_bc_sed_computation(ArithOp::Not, raw_frag("true"), raw_frag(""), true);
+            translate_awk_computation(ArithOp::Not, raw_frag("true"), raw_frag(""), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -201,9 +199,9 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_and() {
+    fn test_translate_awk_computation_and() {
         let result =
-            translate_bc_sed_computation(ArithOp::And, raw_frag("true"), raw_frag("true"), true);
+            translate_awk_computation(ArithOp::And, raw_frag("true"), raw_frag("true"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -211,9 +209,9 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_bc_sed_computation_or() {
+    fn test_translate_awk_computation_or() {
         let result =
-            translate_bc_sed_computation(ArithOp::Or, raw_frag("true"), raw_frag("false"), true);
+            translate_awk_computation(ArithOp::Or, raw_frag("true"), raw_frag("false"), true);
         let mut meta = create_test_metadata();
         let code = result.to_string(&mut meta);
 
@@ -221,7 +219,7 @@ mod compute_tests {
     }
 
     #[test]
-    fn test_translate_float_computation_bc_sed() {
+    fn test_translate_float_computation_awk() {
         let meta = create_test_metadata();
 
         let result = translate_float_computation(
@@ -243,8 +241,6 @@ mod compute_tests {
         let result = translate_float_computation(&meta, ArithOp::Add, None, None);
         let mut meta2 = create_test_metadata();
         let code = result.to_string(&mut meta2);
-        // new code generates herestring instead of creating extra echo pipe:
-        // `echo ... | bc` => `bc <<< ...`
-        assert!(code.contains("<<<"), "should contain herestring");
+        assert!(code.contains("awk"), "should contain awk command");
     }
 }
