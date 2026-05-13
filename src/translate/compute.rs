@@ -49,7 +49,7 @@ pub fn translate_awk_computation(
         ArithOp::And => "&&",
         ArithOp::Or => "||",
     };
-    let operator = RawFragment::from(format!("{op_str}")).to_frag();
+    let operator = RawFragment::from(op_str.to_string()).to_frag();
 
     let value = match op {
         ArithOp::Gt | ArithOp::Ge | ArithOp::Lt | ArithOp::Le | ArithOp::Eq | ArithOp::Neq => {
@@ -61,6 +61,22 @@ pub fn translate_awk_computation(
                 left,
                 " ",
                 right
+            )
+        },
+        ArithOp::Neg => {
+            fragments!(
+                "awk \'BEGIN {ARGV[1] = -ARGV[1]; sub(/^-0\\./, ARGV[2], ARGV[1]); print ARGV[1] }\'",
+                " ",
+                left,
+                " ",
+                "\'-.\'"
+            )
+        },
+        ArithOp::Not => {
+            fragments!(
+                "awk \'BEGIN {print (!ARGV[1]) ? 1 : 0}\'",
+                " ",
+                left
             )
         },
         _ => {
