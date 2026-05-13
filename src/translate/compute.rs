@@ -67,11 +67,15 @@ pub fn translate_awk_computation(
             fragments!(
                 "awk \'BEGIN {result = ARGV[1]", 
                 operator, 
-                "ARGV[2]; sub(/^0\\./, \".\", result); print result }\'", // remove leading zero
+                "ARGV[2];", 
+                 "sub(/^0\\./, ARGV[3], result); print result }\'", // remove leading zero; causes quoting issues for 3.2 target
+                //"print result }\'",
                 " ",
                 left,
                 " ",
-                right
+                right,
+                " ",
+                "."
             )
         }
     };
