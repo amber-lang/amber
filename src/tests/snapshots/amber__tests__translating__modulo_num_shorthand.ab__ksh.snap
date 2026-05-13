@@ -49,17 +49,27 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "bc ",
+                                                value: "awk 'BEGIN {result = ARGV[1]",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "",
+                                                value: "%",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " <<< ",
+                                                value: "ARGV[2];",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " ",
                                             },
                                         ),
                                         VarExpr(
@@ -71,7 +81,6 @@ Block(
                                                 kind: Num,
                                                 is_ref: false,
                                                 is_length: false,
-                                                default_value: None,
                                                 is_quoted: true,
                                                 is_array_to_string: false,
                                                 is_array_ref: false,
@@ -79,11 +88,12 @@ Block(
                                                 is_math_var: false,
                                                 render_type: BashValue,
                                                 index: None,
+                                                index_pos: None,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "'%'",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
@@ -93,17 +103,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " | sed '",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "'",
+                                                value: ".",
                                             },
                                         ),
                                     ],
@@ -159,17 +164,27 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "bc ",
+                                                value: "awk 'BEGIN {result = ARGV[1]",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "",
+                                                value: "%",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " <<< ",
+                                                value: "ARGV[2];",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " ",
                                             },
                                         ),
                                         VarExpr(
@@ -181,7 +196,6 @@ Block(
                                                 kind: Num,
                                                 is_ref: false,
                                                 is_length: false,
-                                                default_value: None,
                                                 is_quoted: true,
                                                 is_array_to_string: false,
                                                 is_array_ref: false,
@@ -189,11 +203,12 @@ Block(
                                                 is_math_var: false,
                                                 render_type: BashValue,
                                                 index: None,
+                                                index_pos: None,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "'%'",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
@@ -203,17 +218,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " | sed '",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "'",
+                                                value: ".",
                                             },
                                         ),
                                     ],

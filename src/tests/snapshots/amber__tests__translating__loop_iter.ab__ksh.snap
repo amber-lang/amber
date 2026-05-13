@@ -9,7 +9,7 @@ Block(
                 VarStmtFragment {
                     name: "array",
                     global_id: Some(
-                        0,
+                        2,
                     ),
                     index: None,
                     kind: Array(
@@ -71,14 +71,13 @@ Block(
                                         VarExprFragment {
                                             name: "array",
                                             global_id: Some(
-                                                0,
+                                                2,
                                             ),
                                             kind: Array(
                                                 Int,
                                             ),
                                             is_ref: false,
                                             is_length: false,
-                                            default_value: None,
                                             is_quoted: true,
                                             is_array_to_string: false,
                                             is_array_ref: false,
@@ -86,6 +85,7 @@ Block(
                                             is_math_var: false,
                                             render_type: BashValue,
                                             index: None,
+                                            index_pos: None,
                                         },
                                     ),
                                     Raw(
@@ -118,7 +118,6 @@ Block(
                                                                     kind: Int,
                                                                     is_ref: false,
                                                                     is_length: false,
-                                                                    default_value: None,
                                                                     is_quoted: false,
                                                                     is_array_to_string: false,
                                                                     is_array_ref: false,
@@ -126,6 +125,7 @@ Block(
                                                                     is_math_var: false,
                                                                     render_type: BashValue,
                                                                     index: None,
+                                                                    index_pos: None,
                                                                 },
                                                             ),
                                                         ),
@@ -167,7 +167,7 @@ Block(
                 VarStmtFragment {
                     name: "array",
                     global_id: Some(
-                        1,
+                        3,
                     ),
                     index: None,
                     kind: Array(
@@ -243,14 +243,13 @@ Block(
                         VarExprFragment {
                             name: "array",
                             global_id: Some(
-                                1,
+                                3,
                             ),
                             kind: Array(
                                 Text,
                             ),
                             is_ref: false,
                             is_length: false,
-                            default_value: None,
                             is_quoted: true,
                             is_array_to_string: false,
                             is_array_ref: false,
@@ -258,6 +257,7 @@ Block(
                             is_math_var: false,
                             render_type: BashValue,
                             index: None,
+                            index_pos: None,
                         },
                     ),
                 },
@@ -266,7 +266,7 @@ Block(
                 VarStmtFragment {
                     name: "array",
                     global_id: Some(
-                        2,
+                        6,
                     ),
                     index: None,
                     kind: Array(
@@ -333,14 +333,13 @@ Block(
                                         VarExprFragment {
                                             name: "array",
                                             global_id: Some(
-                                                2,
+                                                6,
                                             ),
                                             kind: Array(
                                                 Int,
                                             ),
                                             is_ref: false,
                                             is_length: false,
-                                            default_value: None,
                                             is_quoted: true,
                                             is_array_to_string: false,
                                             is_array_ref: false,
@@ -348,6 +347,7 @@ Block(
                                             is_math_var: false,
                                             render_type: BashValue,
                                             index: None,
+                                            index_pos: None,
                                         },
                                     ),
                                     Raw(
@@ -380,7 +380,6 @@ Block(
                                                                     kind: Int,
                                                                     is_ref: false,
                                                                     is_length: false,
-                                                                    default_value: None,
                                                                     is_quoted: false,
                                                                     is_array_to_string: false,
                                                                     is_array_ref: false,
@@ -388,6 +387,7 @@ Block(
                                                                     is_math_var: false,
                                                                     render_type: BashValue,
                                                                     index: None,
+                                                                    index_pos: None,
                                                                 },
                                                             ),
                                                         ),
@@ -404,7 +404,6 @@ Block(
                                                                     kind: Int,
                                                                     is_ref: false,
                                                                     is_length: false,
-                                                                    default_value: None,
                                                                     is_quoted: false,
                                                                     is_array_to_string: false,
                                                                     is_array_ref: false,
@@ -412,6 +411,7 @@ Block(
                                                                     is_math_var: false,
                                                                     render_type: BashValue,
                                                                     index: None,
+                                                                    index_pos: None,
                                                                 },
                                                             ),
                                                         ),
@@ -443,7 +443,6 @@ Block(
                                                                     kind: Text,
                                                                     is_ref: false,
                                                                     is_length: false,
-                                                                    default_value: None,
                                                                     is_quoted: false,
                                                                     is_array_to_string: false,
                                                                     is_array_ref: false,
@@ -461,7 +460,6 @@ Block(
                                                                                     kind: Int,
                                                                                     is_ref: false,
                                                                                     is_length: false,
-                                                                                    default_value: None,
                                                                                     is_quoted: true,
                                                                                     is_array_to_string: false,
                                                                                     is_array_ref: false,
@@ -469,9 +467,13 @@ Block(
                                                                                     is_math_var: false,
                                                                                     render_type: BashValue,
                                                                                     index: None,
+                                                                                    index_pos: None,
                                                                                 },
                                                                             ),
                                                                         ),
+                                                                    ),
+                                                                    index_pos: Some(
+                                                                        "unknown:9:34",
                                                                     ),
                                                                 },
                                                             ),

@@ -2,11 +2,13 @@
 source: src/tests/compiling.rs
 expression: ast
 ---
+# foo(arg: Int)
 function foo__0_v0 {
     typeset arg_7="${1}"
     echo "Value: ${arg_7}"
 }
 
+# bar(a: Int, b: Int)
 function bar__1_v0 {
     typeset a_5="${1}"
     typeset b_6="${2}"

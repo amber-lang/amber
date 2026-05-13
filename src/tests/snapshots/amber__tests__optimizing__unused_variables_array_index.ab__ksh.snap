@@ -4,4 +4,5 @@ expression: output
 ---
 array_0=(1 2 3 4)
 i_1=2
+(( ${i_1} >= 0 && ${i_1} < ${#array_0[@]} )) || { echo "Index out of bounds (at unknown:3:12)" >&2; exit 1; }
 echo "${array_0[${i_1}]}"

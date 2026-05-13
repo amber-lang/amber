@@ -4,7 +4,7 @@ use crate::modules::prelude::*;
 use crate::utils::ShellType;
 
 pub enum ArithType {
-    BcSed,
+    Awk,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -107,7 +107,7 @@ pub fn translate_float_computation(
     right: Option<FragmentKind>,
 ) -> FragmentKind {
     match meta.arith_module {
-        ArithType::BcSed => {
+        ArithType::Awk => {
             let (left, right) = (
                 left.unwrap_or(FragmentKind::Empty),
                 right.unwrap_or(FragmentKind::Empty),

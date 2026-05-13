@@ -49,17 +49,27 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "bc ",
+                                                value: "awk 'BEGIN {result = ARGV[1]",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "-l",
+                                                value: "/",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " <<< ",
+                                                value: "ARGV[2];",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " ",
                                             },
                                         ),
                                         VarExpr(
@@ -83,7 +93,7 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "'/'",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
@@ -93,17 +103,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " | sed '",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "'",
+                                                value: ".",
                                             },
                                         ),
                                     ],
@@ -159,17 +164,27 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "bc ",
+                                                value: "awk 'BEGIN {result = ARGV[1]",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "-l",
+                                                value: "/",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " <<< ",
+                                                value: "ARGV[2];",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " ",
                                             },
                                         ),
                                         VarExpr(
@@ -193,7 +208,7 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "'/'",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
@@ -203,17 +218,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " | sed '",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "'",
+                                                value: ".",
                                             },
                                         ),
                                     ],
