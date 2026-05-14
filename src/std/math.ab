@@ -22,10 +22,10 @@ pub fun math_sum(list) {
 #[allow_absurd_cast]
 pub fun math_round(number: Num): Int {
     if number > 0 {
-        return trust $ bc <<< "({number}+0.5)/1" $ as Int
+        return trust $ awk 'BEGIN \{ printf "%d", (ARGV[1]+0.5)/1 }' "{number}" $ as Int
     }
 
-    return trust $ bc <<< "({number}-0.5)/1" $ as Int
+    return trust $ awk 'BEGIN \{ printf "%d", (ARGV[1]-0.5)/1 }' "{number}" $ as Int
 }
 
 /// Returns the largest integer less than or equal to a number
