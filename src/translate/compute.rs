@@ -54,9 +54,7 @@ pub fn translate_awk_computation(
     let value = match op {
         ArithOp::Gt | ArithOp::Ge | ArithOp::Lt | ArithOp::Le | ArithOp::Eq | ArithOp::Neq => {
             fragments!(
-                "awk \'BEGIN {print (ARGV[1]",
-                operator,
-                "ARGV[2]) ? 1 : 0}\'",
+                "awk \'BEGIN {print (ARGV[1]", operator, "ARGV[2]) ? 1 : 0}\'",
                 " ",
                 left,
                 " ",
@@ -65,11 +63,9 @@ pub fn translate_awk_computation(
         },
         ArithOp::Neg => {
             fragments!(
-                "awk \'BEGIN {ARGV[1] = -ARGV[1]; sub(/^-0\\./, ARGV[2], ARGV[1]); print ARGV[1] }\'",
+                "awk \'BEGIN { print -ARGV[1]; }\'",
                 " ",
-                left,
-                " ",
-                "\'-.\'"
+                left
             )
         },
         ArithOp::Not => {
@@ -81,17 +77,11 @@ pub fn translate_awk_computation(
         },
         _ => {
             fragments!(
-                "awk \'BEGIN {result = ARGV[1]", 
-                operator, 
-                "ARGV[2];", 
-                 "sub(/^0\\./, ARGV[3], result); print result }\'", // remove leading zero; causes quoting issues for 3.2 target
-                //"print result }\'",
+                "awk \'BEGIN { print ARGV[1]", operator, "ARGV[2] }\'",
                 " ",
                 left,
                 " ",
-                right,
-                " ",
-                "."
+                right
             )
         }
     };

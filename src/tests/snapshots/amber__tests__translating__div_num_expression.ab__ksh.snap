@@ -14,7 +14,7 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "awk 'BEGIN {result = ARGV[1]",
+                                                value: "awk 'BEGIN { print ARGV[1]",
                                             },
                                         ),
                                         Raw(
@@ -24,12 +24,7 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "ARGV[2];",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                                value: "ARGV[2] }'",
                                             },
                                         ),
                                         Raw(
@@ -52,16 +47,6 @@ Block(
                                                 value: "2.1",
                                             },
                                         ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: ".",
-                                            },
-                                        ),
                                     ],
                                     separator: Empty,
                                 },
@@ -80,7 +65,7 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "awk 'BEGIN {result = ARGV[1]",
+                                                value: "awk 'BEGIN { print ARGV[1]",
                                             },
                                         ),
                                         Raw(
@@ -90,12 +75,7 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "ARGV[2];",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                                value: "ARGV[2] }'",
                                             },
                                         ),
                                         Raw(
@@ -110,7 +90,7 @@ Block(
                                                         values: [
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "awk 'BEGIN {result = ARGV[1]",
+                                                                    value: "awk 'BEGIN { print ARGV[1]",
                                                                 },
                                                             ),
                                                             Raw(
@@ -120,12 +100,7 @@ Block(
                                                             ),
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "ARGV[2];",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                                                    value: "ARGV[2] }'",
                                                                 },
                                                             ),
                                                             Raw(
@@ -148,16 +123,6 @@ Block(
                                                                     value: "4.0",
                                                                 },
                                                             ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: " ",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: ".",
-                                                                },
-                                                            ),
                                                         ],
                                                         separator: Empty,
                                                     },
@@ -173,16 +138,6 @@ Block(
                                         Raw(
                                             RawFragment {
                                                 value: "2.0",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: ".",
                                             },
                                         ),
                                     ],
@@ -203,7 +158,7 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "awk 'BEGIN {result = ARGV[1]",
+                                                value: "awk 'BEGIN { print ARGV[1]",
                                             },
                                         ),
                                         Raw(
@@ -213,12 +168,7 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "ARGV[2];",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                                value: "ARGV[2] }'",
                                             },
                                         ),
                                         Raw(
@@ -233,7 +183,7 @@ Block(
                                                         values: [
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "awk 'BEGIN {result = ARGV[1]",
+                                                                    value: "awk 'BEGIN { print ARGV[1]",
                                                                 },
                                                             ),
                                                             Raw(
@@ -243,12 +193,7 @@ Block(
                                                             ),
                                                             Raw(
                                                                 RawFragment {
-                                                                    value: "ARGV[2];",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                                                    value: "ARGV[2] }'",
                                                                 },
                                                             ),
                                                             Raw(
@@ -263,7 +208,7 @@ Block(
                                                                             values: [
                                                                                 Raw(
                                                                                     RawFragment {
-                                                                                        value: "awk 'BEGIN {result = ARGV[1]",
+                                                                                        value: "awk 'BEGIN { print ARGV[1]",
                                                                                     },
                                                                                 ),
                                                                                 Raw(
@@ -273,12 +218,7 @@ Block(
                                                                                 ),
                                                                                 Raw(
                                                                                     RawFragment {
-                                                                                        value: "ARGV[2];",
-                                                                                    },
-                                                                                ),
-                                                                                Raw(
-                                                                                    RawFragment {
-                                                                                        value: "sub(/^0\\./, ARGV[3], result); print result }'",
+                                                                                        value: "ARGV[2] }'",
                                                                                     },
                                                                                 ),
                                                                                 Raw(
@@ -301,16 +241,6 @@ Block(
                                                                                         value: "5.0",
                                                                                     },
                                                                                 ),
-                                                                                Raw(
-                                                                                    RawFragment {
-                                                                                        value: " ",
-                                                                                    },
-                                                                                ),
-                                                                                Raw(
-                                                                                    RawFragment {
-                                                                                        value: ".",
-                                                                                    },
-                                                                                ),
                                                                             ],
                                                                             separator: Empty,
                                                                         },
@@ -328,16 +258,6 @@ Block(
                                                                     value: "2.5",
                                                                 },
                                                             ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: " ",
-                                                                },
-                                                            ),
-                                                            Raw(
-                                                                RawFragment {
-                                                                    value: ".",
-                                                                },
-                                                            ),
                                                         ],
                                                         separator: Empty,
                                                     },
@@ -353,16 +273,6 @@ Block(
                                         Raw(
                                             RawFragment {
                                                 value: "2.0",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " ",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: ".",
                                             },
                                         ),
                                     ],
