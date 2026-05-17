@@ -99,7 +99,7 @@ impl TranslateModule for Gt {
                 translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
             }
             _ => unreachable!(
-                "Unsupported type {} in less than comparison",
+                "Unsupported type {} in greater than comparison",
                 self.left.get_type()
             ),
         }
