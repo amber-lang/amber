@@ -77,33 +77,29 @@ impl TypeCheckModule for Gt {
 
 impl TranslateModule for Gt {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match self.left.get_type() {
-            Type::Int => {
-                let left = self.left.translate(meta);
-                let right = self.right.translate(meta);
-                if self.right.get_type() == Type::Num {
-                    translate_float_computation(meta, ArithOp::Gt, Some(left), Some(right))
-                } else {
-                    ArithmeticFragment::new(left, ArithOp::Gt, right).to_frag()
-                }
-            }
-            Type::Num => {
+        match (self.left.get_type(), self.right.get_type()) {
+            (Type::Num, _) | (_, Type::Num) => {
                 let left = self.left.translate(meta);
                 let right = self.right.translate(meta);
                 translate_float_computation(meta, ArithOp::Gt, Some(left), Some(right))
             }
-            Type::Array(inner_type) => translate_array_lexical_comparison(
+            (Type::Int, _) => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                ArithmeticFragment::new(left, ArithOp::Gt, right).to_frag()
+            }
+            (Type::Array(inner_type), _) => translate_array_lexical_comparison(
                 meta,
                 ComparisonOperator::Gt,
                 &self.left,
                 &self.right,
                 *inner_type,
             ),
-            Type::Text => {
+            (Type::Text, _) => {
                 translate_lexical_comparison(meta, ComparisonOperator::Gt, &self.left, &self.right)
             }
             _ => unreachable!(
-                "Unsupported type {} in greater than comparison",
+                "Unsupported type {} in less than comparison",
                 self.left.get_type()
             ),
         }
