@@ -18,10 +18,7 @@ pub fun assert(condition: Bool) {
 /// refute(user_age >= 18)
 /// ```
 pub fun refute(condition: Bool) {
-    if condition {
-        echo("Assertion failed")
-        fail 1
-    }
+    assert(not condition)?
 }
 
 /// Asserts that two values are equal. Fails the test with exit code `1` if they are not equal.
