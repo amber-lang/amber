@@ -9,7 +9,7 @@ mod keyword_kind_tests {
     #[test]
     fn test_keyword_kind_clone() {
         let kind = KeywordKind::Stmt;
-        let cloned = kind.clone();
+        let cloned = kind;
         assert_eq!(kind, cloned);
     }
 
