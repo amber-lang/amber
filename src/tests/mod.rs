@@ -9,9 +9,12 @@ use std::process::{ExitStatus, Stdio};
 
 pub mod cli;
 pub mod compiling;
+pub mod documentation;
 mod erroring;
 pub mod extra;
 mod functional;
+pub mod main_helpers;
+pub mod modules;
 pub mod optimizing;
 pub mod postprocessor;
 mod runtime;
@@ -21,6 +24,8 @@ mod testing;
 pub mod translating;
 mod validity;
 mod warning;
+
+pub mod utils;
 
 #[macro_export]
 macro_rules! unwrap_fragment {
