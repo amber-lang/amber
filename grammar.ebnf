@@ -236,11 +236,11 @@ variable_init_destruct = { attribute }, [ VISIBILITY ], ( KEYWORD_LET | KEYWORD_
 variable_set_destruct = '[', identifier, { ',', identifier }, ']', '=', expression ;
 
 (* Shorthand arithmetic *)
-shorthand_add = identifier, '+=', expression ;
-shorthand_sub = identifier, '-=', expression ;
-shorthand_mul = identifier, '*=', expression ;
-shorthand_div = identifier, '/=', expression ;
-shorthand_modulo = identifier, '%=', expression ;
+shorthand_add = identifier, variable_index?, '+=', expression ;
+shorthand_sub = identifier, variable_index?, '-=', expression ;
+shorthand_mul = identifier, variable_index?, '*=', expression ;
+shorthand_div = identifier, variable_index?, '/=', expression ;
+shorthand_modulo = identifier, variable_index?, '%=', expression ;
 
 (* Loop control *)
 break = KEYWORD_BREAK ;
