@@ -12,6 +12,7 @@ pub mod compiling;
 mod erroring;
 pub mod extra;
 mod functional;
+pub mod grammar_ebnf;
 pub mod optimizing;
 pub mod postprocessor;
 mod runtime;

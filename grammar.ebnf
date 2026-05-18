@@ -32,7 +32,7 @@ statement_local =
     comment_doc |
     command_modifier_block ;
 statement_global =
-    function_def | function_def_typed |
+    function_def |
     import_all |
     import_ids |
     main |
@@ -203,9 +203,9 @@ variable_set = identifier, variable_index?, '=', expression ;
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
-function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
-function_def_typed = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
-    [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
+function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
+    [ [ KEYWORD_REF ], identifier, [ ':', TYPE ], { ',', [ KEYWORD_REF ], identifier, [ ':', TYPE ] } ],
+    ')', [ ':', TYPE ], [ '?' ], block ;
 
 (* Loop *)
 loop = KEYWORD_LOOP, block ;
@@ -223,7 +223,7 @@ if_chain = KEYWORD_IF, '{', { expression, block }, [ KEYWORD_ELSE, block ],  '}'
 ternary = expression, KEYWORD_THEN, expression, KEYWORD_ELSE, expression ;
 
 (* Main *)
-main = KEYWORD_MAIN, [ '(', identifier, ')' ], block ;
+main = KEYWORD_MAIN, [ '(', identifier, ')' ], [ '?' ], block ;
 
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
