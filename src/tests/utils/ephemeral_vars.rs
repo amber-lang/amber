@@ -27,9 +27,11 @@ mod ephemeral_vars_tests {
         
         remove_ephemeral_variables(&mut block);
         
-        // After optimization, should have only one statement
-        if let FragmentKind::Block(block) = &block {
-            assert_eq!(block.statements.len(), 1, "Ephemeral variable should be removed");
+        match &block {
+            FragmentKind::Block(block) => {
+                assert_eq!(block.statements.len(), 1, "Ephemeral variable should be removed");
+            }
+            other => panic!("Expected FragmentKind::Block after optimization, got {:?}", other),
         }
     }
 
@@ -49,8 +51,11 @@ mod ephemeral_vars_tests {
         
         remove_ephemeral_variables(&mut block);
         
-        if let FragmentKind::Block(block) = &block {
-            assert_eq!(block.statements.len(), 1, "All ephemeral variables should be removed");
+        match &block {
+            FragmentKind::Block(block) => {
+                assert_eq!(block.statements.len(), 1, "All ephemeral variables should be removed");
+            }
+            other => panic!("Expected FragmentKind::Block after optimization, got {:?}", other),
         }
     }
 
@@ -67,11 +72,17 @@ mod ephemeral_vars_tests {
             is_conditional: false,
         });
         
-        let original_len = if let FragmentKind::Block(b) = &block { b.statements.len() } else { 0 };
+        let original_len = match &block {
+            FragmentKind::Block(b) => b.statements.len(),
+            other => panic!("Expected FragmentKind::Block before optimization, got {:?}", other),
+        };
         remove_ephemeral_variables(&mut block);
         
-        if let FragmentKind::Block(block) = &block {
-            assert_eq!(block.statements.len(), original_len, "Regular variables should not be removed");
+        match &block {
+            FragmentKind::Block(block) => {
+                assert_eq!(block.statements.len(), original_len, "Regular variables should not be removed");
+            }
+            other => panic!("Expected FragmentKind::Block after optimization, got {:?}", other),
         }
     }
 
@@ -87,11 +98,17 @@ mod ephemeral_vars_tests {
             is_conditional: false,
         });
         
-        let original_len = if let FragmentKind::Block(b) = &block { b.statements.len() } else { 0 };
+        let original_len = match &block {
+            FragmentKind::Block(b) => b.statements.len(),
+            other => panic!("Expected FragmentKind::Block before optimization, got {:?}", other),
+        };
         remove_ephemeral_variables(&mut block);
         
-        if let FragmentKind::Block(block) = &block {
-            assert_eq!(block.statements.len(), original_len, "Single statement should not be modified");
+        match &block {
+            FragmentKind::Block(block) => {
+                assert_eq!(block.statements.len(), original_len, "Single statement should not be modified");
+            }
+            other => panic!("Expected FragmentKind::Block after optimization, got {:?}", other),
         }
     }
 
@@ -107,8 +124,11 @@ mod ephemeral_vars_tests {
         
         remove_ephemeral_variables(&mut block);
         
-        if let FragmentKind::Block(block) = &block {
-            assert_eq!(block.statements.len(), 0, "Empty block should remain empty");
+        match &block {
+            FragmentKind::Block(block) => {
+                assert_eq!(block.statements.len(), 0, "Empty block should remain empty");
+            }
+            other => panic!("Expected FragmentKind::Block after optimization, got {:?}", other),
         }
     }
 }
