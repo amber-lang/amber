@@ -96,8 +96,9 @@ mod iter_keywords_tests {
             }
         }
         
-        // At least some of these should be present
-        assert!(has_stmt || has_builtin || has_binary_op);
+        // Should have variety of keyword kinds
+        let variety_count = (has_stmt as u8) + (has_builtin as u8) + (has_binary_op as u8);
+        assert!(variety_count >= 2, "Expected at least 2 different keyword kinds, found {}", variety_count);
     }
 
 }
