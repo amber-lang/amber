@@ -251,7 +251,7 @@ return_stmt = KEYWORD_RETURN, expression ;
 fail = KEYWORD_FAIL, [ expression ] ;
 
 (* Documentation comment *)
-comment_doc = '///', { ANY_CHAR } ;
+comment_doc = '///', { ANY_CHAR - '\n' }, '\n' ;
 
 (* Type operations *)
 cast = expression, KEYWORD_AS, TYPE ;
