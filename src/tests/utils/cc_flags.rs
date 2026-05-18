@@ -31,7 +31,7 @@ mod cc_flags_tests {
     #[test]
     fn test_ccflags_clone() {
         let flag = CCFlags::AllowDeadCode;
-        let cloned = flag.clone();
+        let cloned = flag;
         assert_eq!(flag, cloned);
     }
 }

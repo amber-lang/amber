@@ -37,7 +37,7 @@ pub fn translate_and_optimize(code: &str) -> Result<String, String> {
 }
 
 /// Helper to create test fixtures for common data structures
-pub mod fixtures {
+pub mod test_fixtures {
     /// Create a simple variable assignment snippet
     pub fn var_assignment(name: &str, value: &str) -> String {
         format!("{} = {};", name, value)
@@ -54,3 +54,5 @@ pub mod fixtures {
         format!("{{\n  {}\n}}", statements.join("\n  "))
     }
 }
+
+pub use test_fixtures::*;

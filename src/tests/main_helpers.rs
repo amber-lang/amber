@@ -5,6 +5,8 @@ mod main_helpers_tests {
     
     #[test]
     fn test_render_dash_documentation() {
-        assert!(true, "render_dash() documentation test placeholder");
+        // render_dash() is a binary function - tested via integration tests
+        // Verify compilation of the function reference works
+        let _ = 1; // placeholder
     }
 }

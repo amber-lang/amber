@@ -17,16 +17,14 @@ mod documentation_tests {
         let _test = TestType;
         // Test that the trait method compiles and returns empty string
         // We cannot easily create ParserMetadata without full setup,
-        // so we verify the macro-generated impl exists
-        assert!(true); // Placeholder - macro expansion verified at compile time
+        // so we verify the macro-generated impl exists via compilation
+        let _doc_fn: fn(&TestType, &ParserMetadata) -> String = TestType::document;
     }
 
     #[test]
     fn test_document_module_trait_exists() {
         let _test = TestType;
         // Verify the trait is implemented by checking it compiles
-        // This test verifies the macro-generated implementation works
         let _doc_fn: fn(&TestType, &ParserMetadata) -> String = TestType::document;
-        assert!(true);
     }
 }
