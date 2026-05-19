@@ -99,7 +99,7 @@ impl TranslateModule for Le {
                 translate_lexical_comparison(meta, ComparisonOperator::Le, &self.left, &self.right)
             }
             _ => unreachable!(
-                "Unsupported type {} in less than comparison",
+                "Unsupported type {} in less or equal comparison",
                 self.left.get_type()
             ),
         }
