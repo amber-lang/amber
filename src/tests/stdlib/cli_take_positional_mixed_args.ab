@@ -1,0 +1,15 @@
+import { take_positional } from "std/cli"
+
+// Output
+// first=file1
+// second=file2
+// rest=(1) [--verbose]
+
+main {
+    let args = ["file1", "--verbose", "file2"]
+    const first = take_positional(args)?
+    const second = take_positional(args)?
+    echo("first={first}")
+    echo("second={second}")
+    echo("rest=({len(args)}) [{args}]")
+}

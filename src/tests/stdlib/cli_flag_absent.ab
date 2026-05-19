@@ -1,0 +1,12 @@
+import { take_flag } from "std/cli"
+
+// Output
+// verbose=0
+// rest=(1) [build]
+
+main {
+    let args = ["build"]
+    const verbose = take_flag(args, "--verbose", "-v")
+    echo("verbose={verbose}")
+    echo("rest=({len(args)}) [{args}]")
+}

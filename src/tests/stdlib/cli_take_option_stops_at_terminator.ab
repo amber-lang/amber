@@ -1,0 +1,13 @@
+import { take_option } from "std/cli"
+
+// Output
+// option absent
+// rest=(3) [build -- --output=dist/app.sh]
+
+main {
+    let args = ["build", "--", "--output=dist/app.sh"]
+    take_option(args, "--output", "-o") failed {
+        echo("option absent")
+    }
+    echo("rest=({len(args)}) [{args}]")
+}

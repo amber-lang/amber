@@ -1,0 +1,29 @@
+import { cli_assert_empty, take_flag } from "std/cli"
+
+// Output
+// empty ok
+// terminator ok
+// consumed options ok
+// leftover args
+// rest=(1) [build]
+
+main {
+    let args = [Text]
+    cli_assert_empty(args)?
+    echo("empty ok")
+
+    args = ["--"]
+    cli_assert_empty(args)?
+    echo("terminator ok")
+
+    args = ["--verbose", "--"]
+    take_flag(args, "--verbose")
+    cli_assert_empty(args)?
+    echo("consumed options ok")
+
+    args = ["build"]
+    cli_assert_empty(args) failed {
+        echo("leftover args")
+    }
+    echo("rest=({len(args)}) [{args}]")
+}

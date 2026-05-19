@@ -1,0 +1,12 @@
+import { take_command } from "std/cli"
+
+// Output
+// command=build
+// rest=(2) [--verbose target.txt]
+
+main {
+    let args = ["build", "--verbose", "target.txt"]
+    const command = take_command(args, ["build", "serve"])?
+    echo("command={command}")
+    echo("rest=({len(args)}) [{args}]")
+}
