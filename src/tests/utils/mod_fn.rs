@@ -20,9 +20,9 @@ mod tests {
     }
 
     #[test]
-    fn test_pluralize_plural() {
-        // Test with amount != 1 (plural)
-        // Note: amount = 0 is treated as plural (> 1 check fails, so plural)
+    fn test_pluralize_non_singular_amounts() {
+        // Test the implementation's threshold behavior:
+        // values greater than 1 use the plural form, while 0 remains singular.
         assert_eq!(pluralize(0, "error", "errors"), "error");  // 0 is not > 1
         assert_eq!(pluralize(2, "error", "errors"), "errors");
         assert_eq!(pluralize(10, "file", "files"), "files");
