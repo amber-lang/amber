@@ -1,6 +1,5 @@
 use crate::utils::context::Context;
 use crate::modules::block::Block;
-use heraclitus_compiler::prelude::SyntaxModule;
 use crate::modules::types::Type;
 use crate::utils::function_cache::{FunctionCache, FunctionInstance};
 
