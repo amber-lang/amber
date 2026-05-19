@@ -26,7 +26,8 @@ pub fn compile_snippet(code: &str) -> Result<String, String> {
 
 /// Parse and compile Amber code, returning the optimized output
 /// 
-/// This follows the pattern from src/tests/optimizing.rs:11-21
+/// This helper mirrors the standard test flow of compiling Amber code
+/// and returning the generated output.
 pub fn translate_and_optimize(code: &str) -> Result<String, String> {
     let options = CompilerOptions::default();
     let compiler = AmberCompiler::new(code.to_string(), None, options);
