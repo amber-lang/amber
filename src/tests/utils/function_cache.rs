@@ -1,7 +1,8 @@
-use crate::utils::context::Context;
 use crate::modules::block::Block;
 use crate::modules::types::Type;
+use crate::utils::context::Context;
 use crate::utils::function_cache::{FunctionCache, FunctionInstance};
+use heraclitus_compiler::compiling::SyntaxModule;
 
 #[cfg(test)]
 mod function_cache_tests {
