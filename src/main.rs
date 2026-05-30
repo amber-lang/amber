@@ -359,10 +359,10 @@ fn handle_build(
         return Ok(())
     }
 
-    validate_input_existence(&command.input);
+    validate_input_existence(&command.input)?;
 
     if command.input.is_dir() {
-        validate_output_dir(&command.output);
+        validate_output_dir(&command.output)?;
 
         let mut files = Vec::new();
         find_amber_files(&command.input, &mut files)?;
@@ -384,21 +384,23 @@ fn handle_build(
 }
 
 /// Validates the existence of the provided input file.
-fn validate_input_existence(input: &PathBuf) {
+fn validate_input_existence(input: &PathBuf) -> Result<(), Box<dyn Error>> {
     if !input.exists() {
-        Message::new_err_msg("Input does not exist").show();
-        std::process::exit(1);
+        return Err("Input does not exist".into());
     }
+
+    Ok(())
 }
 
 /// Validates the provided output actually points to a directory.
-fn validate_output_dir(output: &Option<PathBuf>) {
+fn validate_output_dir(output: &Option<PathBuf>) -> Result<(), Box<dyn Error>> {
     if let Some(ref output) = output {
         if !output.is_dir() {
-            Message::new_err_msg("Output is not a directory").show();
-            std::process::exit(1);
+            return Err("Output is not a directory".into());
         }
     }
+
+    Ok(())
 }
 
 /// Determines the output path that should be used in directory mode for the given input.
