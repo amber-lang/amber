@@ -615,3 +615,20 @@ pub fun uniq_lines(text: Text, remove_all: Bool = false): Text {
     else:
         return trust $ awk '!seen[\$0]++' <<< "{text}" $
 }
+
+/// Returns index of the first value found in the specified text.
+///
+/// If the value is not found, the function returns -1.
+///
+/// ### Usage
+/// ```ab
+/// text_find("abba", "b") // Outputs 1
+/// ```
+pub fun text_find(text: Text, value: Text): Int {
+    for index, element in split_chars(text) {
+        if value == element {
+            return index
+        }
+    }
+    return -1
+}
