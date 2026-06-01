@@ -15,6 +15,7 @@ pub mod extra;
 mod functional;
 pub mod main_helpers;
 pub mod modules;
+pub mod grammar_ebnf;
 pub mod optimizing;
 pub mod postprocessor;
 mod runtime;

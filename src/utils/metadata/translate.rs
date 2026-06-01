@@ -124,7 +124,7 @@ impl TranslateMetadata {
             target: TargetShell {
                 shell: target_shell,
             },
-            arith_module: ArithType::BcSed,
+            arith_module: ArithType::Awk,
             fun_cache: meta.fun_cache,
             fun_meta: None,
             stmt_queue: VecDeque::new(),

@@ -65,10 +65,10 @@ impl TranslateModule for Neq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta).with_quotes(false);
         let right = self.right.translate(meta).with_quotes(false);
-        match self.left.get_type() {
-            Type::Int => ArithmeticFragment::new(left, ArithOp::Neq, right).to_frag(),
-            Type::Num => translate_float_computation(meta, ArithOp::Neq, Some(left), Some(right)),
-            Type::Array(_) => {
+        match (self.left.get_type(), self.right.get_type()) {
+            (Type::Num, _) | (_, Type::Num) => translate_float_computation(meta, ArithOp::Neq, Some(left), Some(right)),
+            (Type::Int, _) =>  ArithmeticFragment::new(left, ArithOp::Neq, right).to_frag(),  
+            (Type::Array(_), _) => {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, true)
                 } else {

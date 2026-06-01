@@ -49,17 +49,22 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "bc ",
+                                                value: "awk 'BEGIN { print ARGV[1]",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "",
+                                                value: "%",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " <<< ",
+                                                value: "ARGV[2] }'",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " ",
                                             },
                                         ),
                                         VarExpr(
@@ -83,27 +88,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "'%'",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "7.2",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " | sed '",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "'",
                                             },
                                         ),
                                     ],
@@ -159,17 +149,22 @@ Block(
                                     values: [
                                         Raw(
                                             RawFragment {
-                                                value: "bc ",
+                                                value: "awk 'BEGIN { print ARGV[1]",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "",
+                                                value: "%",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: " <<< ",
+                                                value: "ARGV[2] }'",
+                                            },
+                                        ),
+                                        Raw(
+                                            RawFragment {
+                                                value: " ",
                                             },
                                         ),
                                         VarExpr(
@@ -193,27 +188,12 @@ Block(
                                         ),
                                         Raw(
                                             RawFragment {
-                                                value: "'%'",
+                                                value: " ",
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "6.3",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: " | sed '",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//",
-                                            },
-                                        ),
-                                        Raw(
-                                            RawFragment {
-                                                value: "'",
                                             },
                                         ),
                                     ],

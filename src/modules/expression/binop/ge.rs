@@ -77,29 +77,29 @@ impl TypeCheckModule for Ge {
 
 impl TranslateModule for Ge {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match self.left.get_type() {
-            Type::Int => {
-                let left = self.left.translate(meta).with_quotes(false);
-                let right = self.right.translate(meta).with_quotes(false);
-                ArithmeticFragment::new(left, ArithOp::Ge, right).to_frag()
-            }
-            Type::Num => {
+        match (self.left.get_type(), self.right.get_type()) {
+            (Type::Num, _) | (_, Type::Num) => {
                 let left = self.left.translate(meta);
                 let right = self.right.translate(meta);
                 translate_float_computation(meta, ArithOp::Ge, Some(left), Some(right))
             }
-            Type::Array(inner_type) => translate_array_lexical_comparison(
+            (Type::Int, _) => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                ArithmeticFragment::new(left, ArithOp::Ge, right).to_frag()
+            }
+            (Type::Array(inner_type), _) => translate_array_lexical_comparison(
                 meta,
                 ComparisonOperator::Ge,
                 &self.left,
                 &self.right,
                 *inner_type,
             ),
-            Type::Text => {
+            (Type::Text, _) => {
                 translate_lexical_comparison(meta, ComparisonOperator::Ge, &self.left, &self.right)
             }
             _ => unreachable!(
-                "Unsupported type {} in greater equal comparison",
+                "Unsupported type {} in greater or equal comparison",
                 self.left.get_type()
             ),
         }
