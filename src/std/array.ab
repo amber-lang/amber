@@ -231,11 +231,15 @@ pub fun sort(ref array: [], desc: Bool = false, version_sort: Bool = false): Nul
 /// ```
 pub fun array_reversed(array: []): [] {
     if len(array) < 2: return array
+
     let i = 1
     let new_arr = []
-    while i <= len(array) {
-        new_arr += [array[len(array) - i]]
+    const array_len = len(array)
+
+    while i <= array_len {
+        new_arr += [array[array_len - i]]
         i += 1
     }
+
     return new_arr
 }
