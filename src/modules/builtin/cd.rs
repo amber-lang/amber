@@ -106,8 +106,4 @@ impl TranslateModule for Cd {
     }
 }
 
-impl DocumentationModule for Cd {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Cd);

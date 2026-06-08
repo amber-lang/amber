@@ -95,8 +95,4 @@ impl TranslateModule for Disown {
     }
 }
 
-impl DocumentationModule for Disown {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Disown);

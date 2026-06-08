@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::interpolated_region::{
     parse_interpolated_region, InterpolatedRegionType,
@@ -85,8 +84,4 @@ impl TranslateModule for Text {
     }
 }
 
-impl DocumentationModule for Text {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Text);

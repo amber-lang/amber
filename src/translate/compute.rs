@@ -4,7 +4,7 @@ use crate::modules::prelude::*;
 use crate::utils::ShellType;
 
 pub enum ArithType {
-    BcSed,
+    Awk,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,24 +26,18 @@ pub enum ArithOp {
     Or,
 }
 
-pub fn translate_bc_sed_computation(
+pub fn translate_awk_computation(
     op: ArithOp,
     left: FragmentKind,
     right: FragmentKind,
     with_quotes: bool,
 ) -> FragmentKind {
-    let mut math_lib_flag = true;
-    // Removes trailing zeros from the expression
-    let sed_regex = RawFragment::new("/\\./ s/\\.\\{0,1\\}0\\{1,\\}$//").to_frag();
     let op_str = match op {
         ArithOp::Add => "+",
         ArithOp::Sub => "-",
         ArithOp::Mul => "*",
         ArithOp::Div => "/",
-        ArithOp::Modulo => {
-            math_lib_flag = false;
-            "%"
-        }
+        ArithOp::Modulo => "%",
         ArithOp::Neg => "-",
         ArithOp::Gt => ">",
         ArithOp::Ge => ">=",
@@ -55,19 +49,42 @@ pub fn translate_bc_sed_computation(
         ArithOp::And => "&&",
         ArithOp::Or => "||",
     };
-    let math_lib_flag = RawFragment::new(if math_lib_flag { "-l" } else { "" }).to_frag();
-    let operator = RawFragment::from(format!("'{op_str}'")).to_frag();
-    let value = fragments!(
-        "bc ",
-        math_lib_flag,
-        " <<< ",
-        left,
-        operator,
-        right,
-        " | sed '",
-        sed_regex,
-        "'"
-    );
+    let operator = RawFragment::from(op_str.to_string()).to_frag();
+
+    let value = match op {
+        ArithOp::Gt | ArithOp::Ge | ArithOp::Lt | ArithOp::Le | ArithOp::Eq | ArithOp::Neq => {
+            fragments!(
+                "awk \'BEGIN {print (ARGV[1]", operator, "ARGV[2]) ? 1 : 0}\'",
+                " ",
+                left,
+                " ",
+                right
+            )
+        },
+        ArithOp::Neg => {
+            fragments!(
+                "awk \'BEGIN { print -ARGV[1]; }\'",
+                " ",
+                left
+            )
+        },
+        ArithOp::Not => {
+            fragments!(
+                "awk \'BEGIN {print (!ARGV[1]) ? 1 : 0}\'",
+                " ",
+                left
+            )
+        },
+        _ => {
+            fragments!(
+                "awk \'BEGIN { print ARGV[1]", operator, "ARGV[2] }\'",
+                " ",
+                left,
+                " ",
+                right
+            )
+        }
+    };
     SubprocessFragment::new(value)
         .with_quotes(with_quotes)
         .to_frag()
@@ -80,17 +97,17 @@ pub fn translate_float_computation(
     right: Option<FragmentKind>,
 ) -> FragmentKind {
     match meta.arith_module {
-        ArithType::BcSed => {
+        ArithType::Awk => {
             let (left, right) = (
                 left.unwrap_or(FragmentKind::Empty),
                 right.unwrap_or(FragmentKind::Empty),
             );
             match meta.target.shell {
                 ShellType::BashModern | ShellType::BashLegacy | ShellType::Zsh => {
-                    translate_bc_sed_computation(operator, left, right, true)
+                    translate_awk_computation(operator, left, right, true)
                 }
                 // ksh doesn't support quoting inside arithmetic blocks
-                ShellType::Ksh => translate_bc_sed_computation(operator, left, right, false),
+                ShellType::Ksh => translate_awk_computation(operator, left, right, false),
             }
         }
     }

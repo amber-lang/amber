@@ -114,8 +114,4 @@ impl TranslateModule for Test {
     }
 }
 
-impl DocumentationModule for Test {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Test);

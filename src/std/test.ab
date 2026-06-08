@@ -11,6 +11,16 @@ pub fun assert(condition: Bool) {
     }
 }
 
+/// Asserts that a boolean condition is false. Fails the test with exit code `1` if true.
+/// ### Usage
+/// ```ab
+/// let user_age = 17
+/// refute(user_age >= 18)
+/// ```
+pub fun refute(condition: Bool) {
+    assert(not condition)?
+}
+
 /// Asserts that two values are equal. Fails the test with exit code `1` if they are not equal.
 /// ### Usage
 /// ```ab

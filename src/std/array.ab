@@ -222,3 +222,24 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
 pub fun sort(ref array: [], desc: Bool = false, version_sort: Bool = false): Null {
     array = sorted(array, desc, version_sort)
 }
+
+/// Return the reversed array
+///
+/// ### Usage
+/// ```ab
+/// echo(array_reversed(["15", "-3", "foo", "bar"])) // Outputs ["bar", "foo", "-3", "15"]
+/// ```
+pub fun array_reversed(array: []): [] {
+    if len(array) < 2: return array
+
+    let i = 1
+    let new_arr = []
+    const array_len = len(array)
+
+    while i <= array_len {
+        new_arr += [array[array_len - i]]
+        i += 1
+    }
+
+    return new_arr
+}

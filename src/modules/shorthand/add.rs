@@ -125,8 +125,4 @@ impl TranslateModule for ShorthandAdd {
     }
 }
 
-impl DocumentationModule for ShorthandAdd {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(ShorthandAdd);

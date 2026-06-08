@@ -52,8 +52,4 @@ impl TranslateModule for InfiniteLoop {
     }
 }
 
-impl DocumentationModule for InfiniteLoop {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(InfiniteLoop);

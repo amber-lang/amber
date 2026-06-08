@@ -163,8 +163,4 @@ impl TranslateModule for Cp {
     }
 }
 
-impl DocumentationModule for Cp {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Cp);

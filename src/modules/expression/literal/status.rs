@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::FragmentKind;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
@@ -52,8 +51,4 @@ impl TranslateModule for Status {
     }
 }
 
-impl DocumentationModule for Status {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Status);

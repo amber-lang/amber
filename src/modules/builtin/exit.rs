@@ -72,8 +72,4 @@ impl TranslateModule for Exit {
     }
 }
 
-impl DocumentationModule for Exit {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Exit);

@@ -2,7 +2,6 @@ use super::{
     handle_index_accessor, handle_variable_reference, prevent_constant_mutation,
     validate_index_accessor, variable_name_extensions,
 };
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
@@ -144,8 +143,4 @@ impl TranslateModule for VariableSet {
     }
 }
 
-impl DocumentationModule for VariableSet {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(VariableSet);

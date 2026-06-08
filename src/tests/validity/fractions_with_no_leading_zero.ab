@@ -1,5 +1,5 @@
 // Output
-// .3
+// 0.3
 
 const a = .2
 const b = .1

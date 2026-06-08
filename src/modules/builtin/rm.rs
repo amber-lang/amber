@@ -178,8 +178,4 @@ impl TranslateModule for Rm {
     }
 }
 
-impl DocumentationModule for Rm {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Rm);
