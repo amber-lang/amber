@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](http://www.gnu.org/licenses/lgpl-3.0)    [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/amber-lang/amber) 
+[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)    [![Ask DeepWiki](https://deepwiki.com/badge-maker?url=https%3A%2F%2Fdeepwiki.com%2Famber-lang%2Famber)](https://deepwiki.com/amber-lang/amber)
 
 <div align="center">
     <img src="assets/amber.png" alt="amber logo" width="250" />
