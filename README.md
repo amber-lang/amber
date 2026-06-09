@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](http://www.gnu.org/licenses/lgpl-3.0)    [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/amber-lang/amber) 
+
 <div align="center">
     <img src="assets/amber.png" alt="amber logo" width="250" />
 </div>
