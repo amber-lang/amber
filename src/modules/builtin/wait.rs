@@ -97,8 +97,4 @@ impl TranslateModule for Await {
     }
 }
 
-impl DocumentationModule for Await {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Await);

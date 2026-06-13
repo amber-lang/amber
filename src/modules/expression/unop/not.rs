@@ -1,6 +1,5 @@
 use super::super::expr::Expr;
 use super::UnOp;
-use crate::docs::module::DocumentationModule;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
@@ -72,8 +71,4 @@ impl TranslateModule for Not {
     }
 }
 
-impl DocumentationModule for Not {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Not);

@@ -115,8 +115,4 @@ impl TranslateModule for VariableInit {
     }
 }
 
-impl DocumentationModule for VariableInit {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(VariableInit);

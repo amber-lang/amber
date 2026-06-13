@@ -76,8 +76,4 @@ impl TranslateModule for Len {
     }
 }
 
-impl DocumentationModule for Len {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Len);

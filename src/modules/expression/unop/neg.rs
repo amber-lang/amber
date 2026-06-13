@@ -1,4 +1,3 @@
-use crate::docs::module::DocumentationModule;
 use crate::modules::expression::expr::Expr;
 use crate::modules::expression::unop::UnOp;
 use crate::modules::prelude::{ArithmeticFragment, FragmentKind, FragmentRenderable, RawFragment};
@@ -94,8 +93,4 @@ impl Neg {
     }
 }
 
-impl DocumentationModule for Neg {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Neg);

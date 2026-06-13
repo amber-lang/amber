@@ -78,8 +78,4 @@ impl TranslateModule for Return {
     }
 }
 
-impl DocumentationModule for Return {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Return);

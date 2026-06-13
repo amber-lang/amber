@@ -153,8 +153,4 @@ impl TranslateModule for Access {
     }
 }
 
-impl DocumentationModule for Access {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Access);

@@ -69,8 +69,4 @@ impl TranslateModule for WhileLoop {
     }
 }
 
-impl DocumentationModule for WhileLoop {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(WhileLoop);

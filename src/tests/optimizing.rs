@@ -1,12 +1,55 @@
-/// Tests for Amber scripts that check snapshot of generated AST.
+/// Tests for the Amber optimizer (unit + integration/snapshot tests).
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::prelude::{FragmentRenderable, TranslateModule};
 use crate::optimizer::optimize_fragments;
+use crate::translate::fragments::fragment::FragmentKind;
+use crate::translate::fragments::raw::RawFragment;
 use crate::utils::TranslateMetadata;
 use insta::assert_snapshot;
 use std::fs;
 use std::path::Path;
 use test_generator::test_resources;
+
+// ---------------------------------------------------------------------------
+// Unit tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_optimize_fragments_empty() {
+    let mut frag = FragmentKind::Empty;
+    optimize_fragments(&mut frag);
+}
+
+#[test]
+fn test_optimize_fragments_raw_fragment() {
+    let raw = RawFragment::new("test code");
+    let mut frag = FragmentKind::Raw(raw);
+    optimize_fragments(&mut frag);
+}
+
+#[test]
+fn test_optimize_fragments_multiple_passes() {
+    let mut frag = FragmentKind::Empty;
+    optimize_fragments(&mut frag);
+    optimize_fragments(&mut frag);
+    optimize_fragments(&mut frag);
+}
+
+#[test]
+fn test_optimize_fragments_block_fragment() {
+    let frag = FragmentKind::Block(crate::translate::fragments::block::BlockFragment {
+        statements: vec![],
+        increase_indent: false,
+        needs_noop: false,
+        is_conditional: false,
+    });
+    let mut frag = frag;
+    optimize_fragments(&mut frag);
+}
+
+// ---------------------------------------------------------------------------
+// Integration / snapshot tests
+// ---------------------------------------------------------------------------
 
 pub fn translate_and_optimize_amber_code<T: Into<String>>(code: T) -> Option<String> {
     let options = CompilerOptions::default();
@@ -20,7 +63,7 @@ pub fn translate_and_optimize_amber_code<T: Into<String>>(code: T) -> Option<Str
     Some(translation.to_string(&mut translate_meta))
 }
 
-/// Autoload the Amber test files in translation
+/// Autoload the Amber test files in optimizing
 #[test_resources("src/tests/optimizing/*.ab")]
 fn test_translation(input: &str) {
     let code =

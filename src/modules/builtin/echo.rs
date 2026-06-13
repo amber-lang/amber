@@ -58,8 +58,4 @@ impl TranslateModule for Echo {
     }
 }
 
-impl DocumentationModule for Echo {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Echo);

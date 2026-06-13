@@ -16,10 +16,24 @@ statement_local =
     if_statement |
     loop |
     loop_array |
+    loop_array_iterator |
     while_loop |
     variable_init_const |
     variable_init_mut |
-    variable_set ;
+    variable_init_destruct |
+    variable_set |
+    variable_set_destruct |
+    shorthand_add |
+    shorthand_sub |
+    shorthand_mul |
+    shorthand_div |
+    shorthand_modulo |
+    break |
+    continue |
+    return_stmt |
+    fail |
+    comment_doc |
+    command_modifier_block ;
 statement_global =
     function_def |
     import_all |
@@ -38,16 +52,19 @@ expression =
     binary_operation |
     boolean |
     builtins_expression |
+    cast |
     command |
     function_call |
     function_call_failed |
     identifier |
+    is |
     array |
     null |
     number |
     parentheses |
     range |
     range_inclusive |
+    status |
     ternary |
     text |
     unary_operation |
@@ -135,9 +152,9 @@ variable_set = identifier, variable_index?, '=', expression ;
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
-function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(', [ identifier, { ',', identifier } ], ')', block ;
-function_def_typed = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
-    [ identifier, ':', TYPE, { ',', identifier, ':', TYPE } ], ')', ':', TYPE, block ;
+function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
+    [ [ KEYWORD_REF ], identifier, [ ':', TYPE ], { ',', [ KEYWORD_REF ], identifier, [ ':', TYPE ] } ],
+    ')', [ ':', TYPE ], [ '?' ], block ;
 
 (* Loop *)
 loop = KEYWORD_LOOP, block ;
@@ -155,12 +172,42 @@ if_chain = KEYWORD_IF, '{', { expression, block }, [ KEYWORD_ELSE, block ],  '}'
 ternary = expression, KEYWORD_THEN, expression, KEYWORD_ELSE, expression ;
 
 (* Main *)
-main = KEYWORD_MAIN, [ '(', identifier, ')' ], block ;
+main = KEYWORD_MAIN, [ '(', identifier, ')' ], [ '?' ], block ;
 
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
 import_all = [ VISIBILITY ], KEYWORD_IMPORT, '*', KEYWORD_FROM, import_path ;
 import_ids = [ VISIBILITY ], KEYWORD_IMPORT, '{', { identifier, [ KEYWORD_AS, identifier ], [ ',' ] }, '}', KEYWORD_FROM, import_path ;
+
+
+(* Variable destructuring *)
+variable_init_destruct = { attribute }, [ VISIBILITY ], ( KEYWORD_LET | KEYWORD_CONST ), '[', identifier, { ',', identifier }, ']', '=', expression ;
+variable_set_destruct = '[', identifier, { ',', identifier }, ']', '=', expression ;
+
+(* Shorthand arithmetic *)
+shorthand_add = identifier, '+=', expression ;
+shorthand_sub = identifier, '-=', expression ;
+shorthand_mul = identifier, '*=', expression ;
+shorthand_div = identifier, '/=', expression ;
+shorthand_modulo = identifier, '%=', expression ;
+
+(* Loop control *)
+break = KEYWORD_BREAK ;
+continue = KEYWORD_CONTINUE ;
+
+(* Return & Fail *)
+return_stmt = KEYWORD_RETURN, expression ;
+fail = KEYWORD_FAIL, [ expression ] ;
+
+(* Documentation comment *)
+comment_doc = '///', { ANY_CHAR } ;
+
+(* Type operations *)
+cast = expression, KEYWORD_AS, TYPE ;
+is = expression, KEYWORD_IS, TYPE ;
+
+(* Status *)
+status = KEYWORD_STATUS, [ '(', ')' ] ;
 
 (* Comment *)
 comment = '//', { ANY_CHAR }, '\n' ;

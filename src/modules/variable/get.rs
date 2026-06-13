@@ -64,8 +64,4 @@ impl TranslateModule for VariableGet {
     }
 }
 
-impl DocumentationModule for VariableGet {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(VariableGet);

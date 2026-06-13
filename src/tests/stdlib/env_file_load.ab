@@ -1,15 +1,17 @@
-import { env_file_load, env_var_load } from "std/env"
+import { env_file_load, env_var_get } from "std/env"
 import { file_write, temp_dir_create } from "std/fs"
 
 // Output
-// yes
+// test
+// a long line of text
+// 
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
     trust cd(tmpdir)
-    trust file_write(".env", "TEST=1")
-    env_file_load()
-    if env_var_load("TEST") == "1" {
-        echo("yes")
-    }
+    trust file_write(".env", "TEST=test\nTEST2='a long line of text'\nTEST3=''")
+    env_file_load()?
+    echo(trust env_var_get("TEST"))
+    echo(trust env_var_get("TEST2"))
+    echo(trust env_var_get("TEST3"))
 } 

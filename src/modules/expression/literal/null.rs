@@ -1,10 +1,7 @@
 use crate::fragments;
 use crate::modules::prelude::*;
 use crate::translate::module::TranslateModule;
-use crate::{
-    docs::module::DocumentationModule,
-    modules::types::{Type, Typed},
-};
+use crate::modules::types::{Type, Typed};
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -41,8 +38,4 @@ impl TranslateModule for Null {
     }
 }
 
-impl DocumentationModule for Null {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Null);

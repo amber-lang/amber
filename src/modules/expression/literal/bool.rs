@@ -46,8 +46,4 @@ impl TranslateModule for Bool {
     }
 }
 
-impl DocumentationModule for Bool {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Bool);

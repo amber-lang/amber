@@ -214,8 +214,4 @@ impl TranslateModule for CommandModifier {
     }
 }
 
-impl DocumentationModule for CommandModifier {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(CommandModifier);

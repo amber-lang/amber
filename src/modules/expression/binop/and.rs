@@ -107,8 +107,4 @@ impl TranslateModule for And {
     }
 }
 
-impl DocumentationModule for And {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(And);

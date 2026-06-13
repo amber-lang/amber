@@ -1,0 +1,15 @@
+import { array_reversed } from "std/array"
+
+// Output
+// 5 4 3 2 1
+// baz bar foo
+// bar foo -3 15
+// foo
+// 
+main {
+    echo(array_reversed([1,2,3,4,5]))
+    echo(array_reversed(["foo", "bar", "baz"]))
+    echo(array_reversed(["15", "-3", "foo", "bar"]))
+    echo(array_reversed(["foo"]))
+    echo(array_reversed([]))
+}

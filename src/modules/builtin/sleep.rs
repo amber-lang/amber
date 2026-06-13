@@ -146,8 +146,4 @@ impl TranslateModule for Sleep {
     }
 }
 
-impl DocumentationModule for Sleep {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(Sleep);

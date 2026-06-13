@@ -1,6 +1,5 @@
 use heraclitus_compiler::prelude::*;
 
-use crate::docs::module::DocumentationModule;
 use crate::modules::block::Block;
 use crate::modules::builtin::lines::LinesInvocation;
 use crate::modules::expression::expr::{Expr, ExprType};
@@ -231,8 +230,4 @@ impl IterLoop {
     }
 }
 
-impl DocumentationModule for IterLoop {
-    fn document(&self, _meta: &ParserMetadata) -> String {
-        "".to_string()
-    }
-}
+crate::impl_documentation_noop!(IterLoop);
