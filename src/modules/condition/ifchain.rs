@@ -1,6 +1,6 @@
 use crate::fragments;
 use crate::modules::block::Block;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::statement::comment::Comment;
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
@@ -206,12 +206,18 @@ impl TranslateModule for IfChain {
             for comment in comments {
                 result.push(comment.translate(meta));
             }
+            let condition = cond.translate(meta)
+                .with_quotes(
+                    matches!(cond.value, Some(ExprType::Text(_)))
+                )
+                .with_condition(true);
+                
             if is_first {
-                result.push(fragments!("if [ ", cond.translate(meta), " != 0 ]; then"));
+                result.push(fragments!("if ", condition, "; then"));
                 result.push(block.translate(meta));
                 is_first = false;
             } else {
-                result.push(fragments!("elif [ ", cond.translate(meta), " != 0 ]; then"));
+                result.push(fragments!("elif ", condition, "; then"));
                 result.push(block.translate(meta));
             }
         }

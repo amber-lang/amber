@@ -22,5 +22,5 @@ main {
         echo("Process still alive")
     }
 
-    trust silent $ killall yes $ // Cleanup after test
+    trust silent $ kill {$ pidof yes $} $ // Cleanup after test
 }

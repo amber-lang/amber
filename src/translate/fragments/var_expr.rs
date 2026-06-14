@@ -5,6 +5,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::RawFragment;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
+use crate::translate::compare::create_bool_comparison;
 use crate::utils::{ShellType, TranslateMetadata};
 use heraclitus_compiler::prelude::Position;
 use heraclitus_compiler::prelude::PositionInfo;
@@ -59,6 +60,8 @@ pub struct VarExprFragment {
     pub index: Option<Box<VarIndexValue>>,
     // Source location for index access (formatted as "file:line")
     pub index_pos: Option<String>,
+    // Only used for boolean type variables, whether return it as complete condition or just the value
+    pub with_condition: bool
 }
 
 // Represents variable that resolves to a value. Prefixed with `$`.
@@ -79,6 +82,7 @@ impl Default for VarExprFragment {
             render_type: VarRenderType::BashValue,
             index: None,
             index_pos: None,
+            with_condition: false
         }
     }
 }
@@ -183,6 +187,11 @@ impl VarExprFragment {
         self
     }
 
+    pub fn with_condition(mut self, condition: bool) -> Self {
+        self.with_condition = condition;
+        self
+    }
+
     pub fn get_name(&self) -> String {
         get_variable_name(&self.name, self.global_id)
     }
@@ -226,6 +235,8 @@ impl VarExprFragment {
     pub fn render_variable_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
         let index = self.index.take();
+        let with_condition = self.with_condition;
+        let kind = self.kind.clone();
         let index_is_none = index.is_none();
         let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index.clone());
@@ -233,7 +244,7 @@ impl VarExprFragment {
         let dollar = meta.gen_dollar();
         // only if the variable contains reference, but isn't a nameref itself and is not declared yet
         // any extra logic is handled by VarStmt, we just need to add `!` when referencing array
-        match meta.target.shell {
+        let result = match meta.target.shell {
             ShellType::BashModern => {
                 if self.is_ref && !self.is_declared {
                     format!("{quote}{dollar}{{!{name}}}{quote}")
@@ -278,6 +289,12 @@ impl VarExprFragment {
                     format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
                 }
             }
+        };
+
+        if with_condition && matches!(kind, Type::Bool) { 
+            create_bool_comparison(meta,result)
+        } else { 
+            result 
         }
     }
 

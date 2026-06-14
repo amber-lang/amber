@@ -2,16 +2,21 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compute::translate_float_computation;
+use crate::translate::fragments::condition::ConditionFragment;
 use crate::{fragments, raw_fragment};
 
 use super::fragments::var_expr::VarIndexValue;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ComparisonOperator {
     Gt,
     Ge,
     Lt,
     Le,
     Eq,
+    Neq,
+    And,
+    Or,
 }
 
 impl ComparisonOperator {
@@ -21,7 +26,10 @@ impl ComparisonOperator {
             ComparisonOperator::Ge => (ComparisonOperator::Gt, Some(ComparisonOperator::Eq)),
             ComparisonOperator::Lt => (ComparisonOperator::Lt, None),
             ComparisonOperator::Le => (ComparisonOperator::Lt, Some(ComparisonOperator::Eq)),
-            ComparisonOperator::Eq => (ComparisonOperator::Eq, None),
+            ComparisonOperator::Eq => (ComparisonOperator::Eq, Some(ComparisonOperator::Neq)),
+            ComparisonOperator::Neq => (ComparisonOperator::Neq, Some(ComparisonOperator::Eq)),
+            ComparisonOperator::Or => (ComparisonOperator::Or, None),
+            ComparisonOperator::And => (ComparisonOperator::And, None),
         }
     }
 
@@ -31,7 +39,10 @@ impl ComparisonOperator {
             ComparisonOperator::Ge => ComparisonOperator::Lt,
             ComparisonOperator::Lt => ComparisonOperator::Ge,
             ComparisonOperator::Le => ComparisonOperator::Gt,
-            ComparisonOperator::Eq => ComparisonOperator::Eq,
+            ComparisonOperator::Eq => ComparisonOperator::Neq,
+            ComparisonOperator::Neq => ComparisonOperator::Eq,
+            ComparisonOperator::Or => ComparisonOperator::And,
+            ComparisonOperator::And => ComparisonOperator::Or,
         }
     }
 
@@ -42,6 +53,9 @@ impl ComparisonOperator {
             ComparisonOperator::Lt => ArithOp::Lt,
             ComparisonOperator::Le => ArithOp::Le,
             ComparisonOperator::Eq => ArithOp::Eq,
+            ComparisonOperator::Neq => ArithOp::Neq,
+            ComparisonOperator::And => ArithOp::And,
+            ComparisonOperator::Or => ArithOp::Or,
         }
     }
 
@@ -52,6 +66,9 @@ impl ComparisonOperator {
             ComparisonOperator::Lt => "<",
             ComparisonOperator::Le => "<=",
             ComparisonOperator::Eq => "==",
+            ComparisonOperator::Neq => "!=",
+            ComparisonOperator::And => "&&",
+            ComparisonOperator::Or => "||",
         }
     }
 
@@ -182,6 +199,16 @@ fn create_indexed_variable(
     (var_stmt, var_expr)
 }
 
+pub fn create_bool_comparison(meta: &mut TranslateMetadata, left: String) -> String {
+    ConditionFragment::new(
+        raw_fragment!("{left}"),
+        ComparisonOperator::Neq,
+        raw_fragment!("0")
+    )
+    .with_subprocesss(false)
+    .to_string(meta)
+}
+
 pub fn translate_array_lexical_comparison(
     meta: &mut TranslateMetadata,
     operator: ComparisonOperator,
@@ -222,20 +249,20 @@ pub fn translate_array_lexical_comparison(
             ),
             " != 0 ))"
         ),
-        Type::Int => fragments!(
-            "(( ",
-            left_helper_expr.clone().to_frag(),
-            op.to_frag(),
-            right_helper_expr.clone().to_frag(),
-            " ))"
-        ),
-        Type::Text => fragments!(
-            "[[ ",
-            left_helper_expr.clone().to_frag(),
-            op.to_frag(),
-            right_helper_expr.clone().to_frag(),
-            " ]]"
-        ),
+        Type::Int => ArithmeticFragment::new(
+                left_helper_expr.clone().to_frag(),
+                op.to_arith_op(),
+                right_helper_expr.clone().to_frag(),
+            )
+            .to_frag()
+            .with_condition(true),
+        Type::Text => ConditionFragment::new(
+                left_helper_expr.clone().to_frag(),
+                op,
+                right_helper_expr.clone().to_frag(),
+            )
+            .to_frag()
+            .with_condition(true),
         _ => unreachable!("Unsupported type {kind} in array lexical comparison"),
     };
     let elif_cond = match kind {
@@ -249,20 +276,20 @@ pub fn translate_array_lexical_comparison(
             ),
             " != 0 ))"
         ),
-        Type::Int => fragments!(
-            "(( ",
+        Type::Int => ArithmeticFragment::new(
+                left_helper_expr.to_frag(),
+                inv_op.to_arith_op(),
+                right_helper_expr.to_frag(),
+            )
+            .to_frag()
+            .with_condition(true),
+        Type::Text => ConditionFragment::new(
             left_helper_expr.to_frag(),
-            inv_op.to_frag(),
+            inv_op,
             right_helper_expr.to_frag(),
-            " ))"
-        ),
-        Type::Text => fragments!(
-            "[[ ",
-            left_helper_expr.to_frag(),
-            inv_op.to_frag(),
-            right_helper_expr.to_frag(),
-            " ]]"
-        ),
+        )
+        .to_frag()
+        .with_condition(true),
         _ => unreachable!("Unsupported type {kind} in array lexical comparison"),
     };
     // If statement that compares two values of the arrays
@@ -324,9 +351,11 @@ pub fn translate_array_equality(
         vec![
             fragments!(
                 "(( ",
-                left_len.clone(),
-                " != ",
-                right_len,
+                ArithmeticFragment::new(
+                    left_len.clone(), 
+                    ArithOp::Neq, 
+                    right_len
+                ).to_frag(),
                 " )) && echo ",
                 false_val.clone(),
                 " && exit"
@@ -334,11 +363,15 @@ pub fn translate_array_equality(
             fragments!(
                 "for (( i=0; i<",
                 left_len.clone(),
-                "; i++ )); do [[ \"",
-                left_index,
-                "\" != \"",
-                right_index,
-                "\" ]] && echo ",
+                "; i++ )); do ",
+                ConditionFragment::new(
+                    left_index.with_quotes(true), 
+                    ComparisonOperator::Neq, 
+                    right_index.with_quotes(true)
+                )
+                .with_subprocesss(false)
+                .to_frag(),
+                " && echo ",
                 false_val,
                 " && exit; done"
             ),

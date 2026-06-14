@@ -1,5 +1,6 @@
 ---
 source: src/tests/compiling.rs
+assertion_line: 79
 expression: ast
 ---
 # Output
@@ -35,7 +36,7 @@ comp="$(
     done
     (( "${#left_comp[@]}" < "${#right_comp[@]}" )) && echo 1 || echo 0
 )"
-if [[ "${EXEC_SHELL}" == "bash" ]] && [[ "${comp}" != 0 ]]; then
+if  [[ "${EXEC_SHELL}" == "bash" ]] &&  [[ "${comp}" != 0 ]]; then
     echo "Succeeded"
     exit 0
 fi
