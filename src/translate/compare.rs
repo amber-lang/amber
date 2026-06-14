@@ -26,8 +26,8 @@ impl ComparisonOperator {
             ComparisonOperator::Ge => (ComparisonOperator::Gt, Some(ComparisonOperator::Eq)),
             ComparisonOperator::Lt => (ComparisonOperator::Lt, None),
             ComparisonOperator::Le => (ComparisonOperator::Lt, Some(ComparisonOperator::Eq)),
-            ComparisonOperator::Eq => (ComparisonOperator::Eq, Some(ComparisonOperator::Neq)),
-            ComparisonOperator::Neq => (ComparisonOperator::Neq, Some(ComparisonOperator::Eq)),
+            ComparisonOperator::Eq => (ComparisonOperator::Eq, None),
+            ComparisonOperator::Neq => (ComparisonOperator::Neq, None),
             ComparisonOperator::Or => (ComparisonOperator::Or, None),
             ComparisonOperator::And => (ComparisonOperator::And, None),
         }

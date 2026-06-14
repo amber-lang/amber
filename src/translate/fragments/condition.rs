@@ -10,7 +10,7 @@ pub struct ConditionFragment {
     pub right: Box<Option<FragmentKind>>,
     pub op: ComparisonOperator,
     pub quoted: bool,
-    pub with_subprocesss: bool
+    pub with_subprocess: bool
 }
 
 impl ConditionFragment {
@@ -23,13 +23,13 @@ impl ConditionFragment {
             left: Box::new(left.into()),
             right: Box::new(right.into()),
             quoted: true,
-            with_subprocesss: true,
+            with_subprocess: true,
             op,
         }
     }
 
     pub fn with_subprocesss(mut self, subprocess: bool) -> Self {
-        self.with_subprocesss = subprocess;
+        self.with_subprocess = subprocess;
         self
     }
 
@@ -71,7 +71,7 @@ impl FragmentRenderable for ConditionFragment {
             format!("[[ {expr} ]]")
         };
 
-        if self.with_subprocesss {
+        if self.with_subprocess {
             format!("$({expr} && echo 1 || echo 0)")
         } else {
             expr
