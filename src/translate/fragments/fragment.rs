@@ -58,7 +58,7 @@ impl FragmentKind {
             FragmentKind::VarExpr(var) => FragmentKind::VarExpr(var.with_condition(cond)),
             FragmentKind::Subprocess(var) => FragmentKind::Subprocess(var.with_condition(cond)),
             FragmentKind::Raw(var) => FragmentKind::Raw(var.with_condition(cond)),
-            FragmentKind::Condition(var) => FragmentKind::Condition(var.with_subprocesss(!cond)),
+            FragmentKind::Condition(var) => FragmentKind::Condition(var.with_subprocess(!cond)),
             _ => self
         }
     }

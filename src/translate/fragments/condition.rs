@@ -28,7 +28,7 @@ impl ConditionFragment {
         }
     }
 
-    pub fn with_subprocesss(mut self, subprocess: bool) -> Self {
+    pub fn with_subprocess(mut self, subprocess: bool) -> Self {
         self.with_subprocess = subprocess;
         self
     }

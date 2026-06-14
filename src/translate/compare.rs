@@ -101,28 +101,31 @@ pub fn translate_lexical_comparison(
         right_expr
     };
     let (primary_operator, secondary_operator) = operator.get_bash_lexical_operators();
-    let expr = if let Some(secondary_operator) = secondary_operator {
-        fragments!(
-            "[[ ",
-            left.clone(),
-            primary_operator.to_frag(),
-            right.clone(),
-            " || ",
-            left,
-            secondary_operator.to_frag(),
-            right,
-            " ]] && echo 1 || echo 0"
+    if let Some(secondary_operator) = secondary_operator {
+        ConditionFragment::new(
+            ConditionFragment::new(
+                left.clone(),
+                primary_operator,
+                right.clone(),
+            ).to_frag(),
+            ComparisonOperator::Or,
+            ConditionFragment::new(
+                left,
+                secondary_operator,
+                right
+            ).to_frag()
         )
+        .with_subprocess(true)
+        .to_frag()
     } else {
-        fragments!(
-            "[[ ",
-            left,
-            primary_operator.to_frag(),
-            right,
-            " ]] && echo 1 || echo 0"
-        )
-    };
-    SubprocessFragment::new(expr).to_frag()
+            ConditionFragment::new(
+                left,
+                primary_operator,
+                right
+            )
+            .with_subprocess(true)
+            .to_frag()
+    }
 }
 
 fn create_variable_length_getter(
@@ -205,7 +208,7 @@ pub fn create_bool_comparison(meta: &mut TranslateMetadata, left: String) -> Str
         ComparisonOperator::Neq,
         raw_fragment!("0")
     )
-    .with_subprocesss(false)
+    .with_subprocess(false)
     .to_string(meta)
 }
 
@@ -369,7 +372,7 @@ pub fn translate_array_equality(
                     ComparisonOperator::Neq, 
                     right_index.with_quotes(true)
                 )
-                .with_subprocesss(false)
+                .with_subprocess(false)
                 .to_frag(),
                 " && echo ",
                 false_val,
