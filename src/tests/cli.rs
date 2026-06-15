@@ -527,8 +527,8 @@ fn test_cli_build_dir_no_output() {
         .assert()
         .success();
 
-    assert_eq!(variable_path.with_extension("sh").is_file(), true);
-    assert_eq!(while_loop_path.with_extension("sh").is_file(), true);
+    assert!(variable_path.with_extension("sh").is_file());
+    assert!(while_loop_path.with_extension("sh").is_file());
 
     let _ = tmp_dir.close();
 }
@@ -547,10 +547,10 @@ fn test_cli_build_dir_with_output_dir() {
         .assert()
         .success();
 
-    assert_eq!(tmp_dir.path().join(Path::new("str/trim.sh")).is_file(), true);
-    assert_eq!(tmp_dir.path().join(Path::new("import_mutable_attribute_source.sh")).is_file(), true);
-    assert_eq!(tmp_dir.path().join(Path::new("import_public_variable_source.sh")).is_file(), true);
-    assert_eq!(tmp_dir.path().join(Path::new("is_even.sh")).is_file(), true);
+    assert!(tmp_dir.path().join(Path::new("str/trim.sh")).is_file());
+    assert!(tmp_dir.path().join(Path::new("import_mutable_attribute_source.sh")).is_file());
+    assert!(tmp_dir.path().join(Path::new("import_public_variable_source.sh")).is_file());
+    assert!(tmp_dir.path().join(Path::new("is_even.sh")).is_file());
 
     let _ = tmp_dir.close();
 }
@@ -598,6 +598,7 @@ fn test_cli_build_stdin() {
         .stdout(predicate::str::contains("Hello from stdin"));
 }
 
+#[test]
 fn test_cli_eval() {
     let mut cmd = Command::new(amber_bin());
     cmd.args([
