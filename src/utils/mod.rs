@@ -6,6 +6,7 @@ pub mod function_metadata;
 pub mod grammar_ebnf;
 pub mod import_cache;
 pub mod metadata;
+pub mod io;
 
 use itertools::Itertools;
 use std::fmt::Display;
