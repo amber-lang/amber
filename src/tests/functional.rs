@@ -331,3 +331,39 @@ fn test_set_file_permission() {
     // Check that execute bits are set (0o755 = rwxr-xr-x)
     assert_eq!(mode & 0o777, 0o755);
 }
+
+#[test]
+fn test_build_file() {
+    use crate::build_file;
+    use crate::BuildCommand;
+    use crate::ShellType;
+    use std::fs;
+    
+    let temp_dir = tempdir().unwrap();
+    let input_file = temp_dir.path().join("test.ab");
+    let output_file = temp_dir.path().join("test.sh");
+    
+    // Create a simple Amber input file
+    fs::write(&input_file, "echo(\"Hello World\")").unwrap();
+    
+    let command = BuildCommand {
+        input: temp_dir.path().to_path_buf(),
+        output: None,
+        no_proc: vec![],
+        minify: false,
+        target: None,
+    };
+    
+    let target: Option<ShellType> = None;
+    
+    // Build the file
+    build_file(&command, &target, input_file, output_file.clone());
+    
+    // Verify output file was created
+    assert!(output_file.exists());
+    
+    // Verify output contains expected shell code
+    let content = fs::read_to_string(&output_file).unwrap();
+    assert!(content.contains("echo"));
+    assert!(content.contains("Hello World"));
+}
