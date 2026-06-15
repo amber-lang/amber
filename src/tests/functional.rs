@@ -157,6 +157,14 @@ fn test_execute_output_with_messages() {
 }
 
 #[test]
+fn test_execute_output_without_messages() {
+    let code = "exit 0".to_string();
+    let result = execute_output(code, vec![], false, None);
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), 0);
+}
+
+#[test]
 fn test_handle_completion_does_not_panic() {
     let mut output = Vec::new();
     handle_completion_with_output(&mut output);
@@ -294,4 +302,32 @@ fn test_resolve_command_target_both_some() {
     assert!(result.is_some());
     // Command target takes precedence
     assert_eq!(result.unwrap(), ShellType::BashModern);
+}
+
+#[test]
+#[cfg(not(windows))]
+fn test_set_file_permission() {
+    use crate::set_file_permission;
+    use std::fs;
+    use std::os::unix::prelude::PermissionsExt;
+    
+    let temp_dir = tempdir().unwrap();
+    let test_file_path = temp_dir.path().join("test_script.sh");
+    
+    // Create a test file
+    fs::write(&test_file_path, "#!/bin/bash\necho test").unwrap();
+    
+    // Open the file as set_file_permission expects
+    let file = fs::File::open(&test_file_path).unwrap();
+    let path = test_file_path.to_string_lossy().to_string();
+    
+    // Set permissions
+    set_file_permission(&file, path);
+    
+    // Verify permissions are set to 0o755
+    let metadata = fs::metadata(&test_file_path).unwrap();
+    let mode = metadata.permissions().mode();
+    
+    // Check that execute bits are set (0o755 = rwxr-xr-x)
+    assert_eq!(mode & 0o777, 0o755);
 }
