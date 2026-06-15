@@ -265,7 +265,7 @@ fn execute_output(
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn resolve_command_target(
+pub(crate) fn resolve_command_target(
     command_target: Option<ShellType>,
     cli_target: Option<ShellType>,
 ) -> Option<ShellType> {

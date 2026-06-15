@@ -176,3 +176,122 @@ fn test_handle_completion_main() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("_amber"));
 }
+
+#[test]
+fn test_validate_input_existence_existing_file() {
+    use crate::validate_input_existence;
+    let input = PathBuf::from("src/tests/functional/test.ab");
+    let result = validate_input_existence(&input);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_validate_input_existence_missing_file() {
+    use crate::validate_input_existence;
+    let input = PathBuf::from("nonexistent_file.ab");
+    let result = validate_input_existence(&input);
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().to_string(), "Input does not exist");
+}
+
+#[test]
+fn test_validate_output_dir_none() {
+    use crate::validate_output_dir;
+    let output: Option<PathBuf> = None;
+    let result = validate_output_dir(&output);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_validate_output_dir_existing_dir() {
+    use crate::validate_output_dir;
+    let temp_dir = tempdir().unwrap();
+    let output = Some(temp_dir.path().to_path_buf());
+    let result = validate_output_dir(&output);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_validate_output_dir_not_a_dir() {
+    use crate::validate_output_dir;
+    let temp_dir = tempdir().unwrap();
+    let output = Some(temp_dir.path().join("file.txt"));
+    let result = validate_output_dir(&output);
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().to_string(), "Output is not a directory");
+}
+
+#[test]
+fn test_create_output_dir_with_output_flag() {
+    use crate::BuildCommand;
+    use crate::create_output_dir;
+    
+    let cmd = BuildCommand {
+        input: PathBuf::from("src/"),
+        output: Some(PathBuf::from("out")),
+        no_proc: vec![],
+        minify: false,
+        target: None,
+    };
+    
+    let input_file = PathBuf::from("src/test.ab");
+    let result = create_output_dir(&cmd, &input_file);
+    assert_eq!(result, PathBuf::from("out/test.sh"));
+}
+
+#[test]
+fn test_create_output_dir_without_output_flag() {
+    use crate::BuildCommand;
+    use crate::create_output_dir;
+    
+    let cmd = BuildCommand {
+        input: PathBuf::from("src/"),
+        output: None,
+        no_proc: vec![],
+        minify: false,
+        target: None,
+    };
+    
+    let input_file = PathBuf::from("src/test.ab");
+    let result = create_output_dir(&cmd, &input_file);
+    assert_eq!(result, PathBuf::from("src/test.sh"));
+}
+
+#[test]
+fn test_resolve_command_target_both_none() {
+    use crate::resolve_command_target;
+    let result = resolve_command_target(None, None);
+    assert!(result.is_none());
+}
+
+#[test]
+fn test_resolve_command_target_command_some() {
+    use crate::resolve_command_target;
+    use crate::ShellType;
+    let cmd_target = Some(ShellType::BashModern);
+    let result = resolve_command_target(cmd_target, None);
+    assert!(result.is_some());
+    assert_eq!(result.unwrap(), ShellType::BashModern);
+}
+
+#[test]
+fn test_resolve_command_target_cli_some() {
+    use crate::resolve_command_target;
+    use crate::ShellType;
+    let cli_target = Some(ShellType::Zsh);
+    let result = resolve_command_target(None, cli_target);
+    assert!(result.is_some());
+    assert_eq!(result.unwrap(), ShellType::Zsh);
+}
+
+#[test]
+fn test_resolve_command_target_both_some() {
+    use crate::resolve_command_target;
+    use crate::ShellType;
+    let cmd_target = Some(ShellType::BashModern);
+    let cli_target = Some(ShellType::Zsh);
+    let result = resolve_command_target(cmd_target, cli_target);
+    assert!(result.is_some());
+    // Command target takes precedence
+    assert_eq!(result.unwrap(), ShellType::BashModern);
+}
