@@ -265,7 +265,7 @@ fn execute_output(
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn resolve_command_target(
+pub(crate) fn resolve_command_target(
     command_target: Option<ShellType>,
     cli_target: Option<ShellType>,
 ) -> Option<ShellType> {
@@ -384,7 +384,7 @@ fn handle_build(
 }
 
 /// Validates the existence of the provided input file.
-fn validate_input_existence(input: &PathBuf) -> Result<(), Box<dyn Error>> {
+fn validate_input_existence(input: &Path) -> Result<(), Box<dyn Error>> {
     if !input.exists() {
         return Err("Input does not exist".into());
     }
@@ -404,7 +404,7 @@ fn validate_output_dir(output: &Option<PathBuf>) -> Result<(), Box<dyn Error>> {
 }
 
 /// Determines the output path that should be used in directory mode for the given input.
-fn create_output_dir(command: &BuildCommand, file: &PathBuf) -> PathBuf {
+fn create_output_dir(command: &BuildCommand, file: &Path) -> PathBuf {
     if let Some(output) = &command.output {
         let relative = file.strip_prefix(&command.input).ok().unwrap();
         output.join(relative).with_extension("sh")
@@ -416,7 +416,7 @@ fn create_output_dir(command: &BuildCommand, file: &PathBuf) -> PathBuf {
 /// Compiles the input file and writes the result to the output path.
 fn build_file(command: &BuildCommand, target: &Option<ShellType>, input: PathBuf, output: PathBuf) {
     let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
-        .with_target(target.clone())
+        .with_target(*target)
         .with_env_vars();
 
     let (code, _) = compile_input(input, options);
