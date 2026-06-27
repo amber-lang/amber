@@ -5,8 +5,7 @@ pub fn resolve<T: Into<String>>(path: T) -> Option<String> {
     let path = path.into();
 
     if let Some(module) = STDLIB.get_file(path + ".ab") {
-        let module = module.contents_utf8().unwrap().to_string();
-        Some(module)
+        module.contents_utf8().ok().map(|s| s.to_string())
     } else {
         None
     }
