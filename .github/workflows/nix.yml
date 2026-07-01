@@ -14,10 +14,10 @@ jobs:
     name: Nix build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: awalsh128/cache-apt-pkgs-action@681749ae568c81c2037cb9185e38b709b261bd2f # v1.6.1
+      - uses: awalsh128/cache-apt-pkgs-action@5513791f75b039e2a79653b1a92238d3fb8d99b4 # v1.6.2
         with:
           packages: bc
           version: 1.0
