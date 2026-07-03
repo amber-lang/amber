@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: awalsh128/cache-apt-pkgs-action@5513791f75b039e2a79653b1a92238d3fb8d99b4 # v1.6.2
+      - uses: awalsh128/cache-apt-pkgs-action@v1.6.3
         with:
           packages: bc
           version: 1.0
@@ -191,7 +191,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: awalsh128/cache-apt-pkgs-action@5513791f75b039e2a79653b1a92238d3fb8d99b4 # v1.6.2
+      - uses: awalsh128/cache-apt-pkgs-action@v1.6.3
         with:
           packages: parallel shellcheck
           version: 1.0
