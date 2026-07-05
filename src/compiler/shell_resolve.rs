@@ -7,15 +7,28 @@ impl AmberCompiler {
     // On Windows, look for `bash.exe` on PATH.
     #[cfg(windows)]
     pub fn find_shell(_target: Option<ShellType>) -> Option<Command> {
+        if let Ok(shell) = env::var("AMBER_SHELL") {
+            return Some(Command::new(shell));
+        }
+
+        let mut fallback = None;
         if let Some(paths) = env::var_os("PATH") {
             for path in env::split_paths(&paths) {
-                let path = path.join("bash.exe");
-                if path.exists() {
-                    return Some(Command::new(path));
+                let candidate = path.join("bash.exe");
+                if candidate.exists() {
+                    if fallback.is_none() {
+                        fallback = Some(candidate.clone());
+                    }
+                    let candidate_lower = candidate.to_string_lossy().to_ascii_lowercase();
+                    if !candidate_lower.contains("\\windows\\system32\\")
+                        && !candidate_lower.contains("\\windowsapps\\")
+                    {
+                        return Some(Command::new(candidate));
+                    }
                 }
             }
         }
-        None
+        fallback.map(Command::new)
     }
 
     /// Return bash command. In some situations, mainly for testing purposes, this can return a command, for example, containerized execution which is not bash but behaves like bash.
@@ -95,7 +108,7 @@ impl AmberCompiler {
             .map(String::from)
     }
 
-    #[cfg(not(windows))]
+    #[cfg_attr(windows, allow(dead_code))]
     pub(crate) fn runtime_shell_command(
         shell: Option<String>,
         target: Option<ShellType>,
@@ -105,7 +118,15 @@ impl AmberCompiler {
         } else if let Some(target) = target {
             Some(target.family_name().to_string())
         } else {
-            Self::find_runtime_shell_name()
+            #[cfg(not(windows))]
+            {
+                Self::find_runtime_shell_name()
+            }
+
+            #[cfg(windows)]
+            {
+                Some("bash.exe".to_string())
+            }
         }
     }
 }

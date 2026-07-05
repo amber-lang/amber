@@ -1,4 +1,4 @@
-import { match_regex, trim } from "std/text"
+import { match_regex, split_lines, trim } from "std/text"
 
 /// Checks if a directory exists.
 ///
@@ -188,9 +188,9 @@ pub fun file_chown(path: Text, user: Text): Null? {
 pub fun file_glob_all(paths: [Text]): [Text] {
     let files = []
     for path in paths {
-        files += suppress ls(path,true) failed {
-            //this can fail when no file could be found
-            continue
+        const matches = trust $ __glob_path="{path}"; __glob_ifs="\$IFS"; IFS=\$'\\n'; for __glob_file in \$__glob_path; do if [ -e "\$__glob_file" ] || [ -L "\$__glob_file" ]; then printf '%s\n' "\$__glob_file"; fi; done; IFS="\$__glob_ifs" $
+        if matches != "" {
+            files += split_lines(matches)
         }
     }
     return files

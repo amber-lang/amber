@@ -1,0 +1,36 @@
+import * from "std/array"
+import * from "std/fs"
+import * from "std/text"
+
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    for file in expected {
+        if not array_contains(actual, file) {
+            return false
+        }
+    }
+    return true
+}
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    trust {
+        dir_create("{tmpdir}/test1")?
+        trust touch("{tmpdir}/test1/file2")
+        trust touch("{tmpdir}/file1")
+    }
+
+    const expected = [
+        "{tmpdir}/file1",
+        "{tmpdir}/test1",
+    ]
+    const actual = file_glob("{tmpdir}/*")
+    if compare(actual, expected) {
+        echo("Succeeded")
+    } else {
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
+    }
+}
