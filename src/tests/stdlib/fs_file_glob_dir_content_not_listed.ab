@@ -1,0 +1,40 @@
+import * from "std/array"
+import * from "std/fs"
+import * from "std/text"
+
+fun compare(actual: [Text], expected: [Text]): Bool {
+    if len(actual) != len(expected) {
+        return false
+    }
+    for file in expected {
+        if not array_contains(actual, file) {
+            return false
+        }
+    }
+    return true
+}
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    trust {
+        trust dir_create("{tmpdir}/test")
+        trust dir_create("{tmpdir}/test/test1")
+        trust touch("{tmpdir}/test/test1/file2")
+        trust touch("{tmpdir}/test/file1")
+    }
+    trust cd(tmpdir)
+
+    // When globbing test/*, we should get the direct children of test/,
+    // not the contents of subdirectories
+    const expected = [
+        "test/file1",
+        "test/test1",
+    ]
+    const actual = file_glob("test/*")
+    if compare(actual, expected) {
+        echo("Succeeded")
+    } else {
+        echo("Expected: {expected}")
+        echo("Actual: {actual}")
+    }
+}

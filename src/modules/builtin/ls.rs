@@ -16,6 +16,7 @@ pub struct Ls {
     value: Box<Option<Expr>>,
     all: Box<Option<Expr>>,
     recursive: Box<Option<Expr>>,
+    glob: Box<Option<Expr>>,
     modifier: CommandModifier,
     failure_handler: FailureHandler,
 }
@@ -34,6 +35,7 @@ impl SyntaxModule<ParserMetadata> for Ls {
             value: Box::new(None),
             all: Box::new(None),
             recursive: Box::new(None),
+            glob: Box::new(None),
             modifier: CommandModifier::new_expr(),
             failure_handler: FailureHandler::new(),
         }
@@ -55,6 +57,11 @@ impl SyntaxModule<ParserMetadata> for Ls {
                         let mut recursive_expr = Expr::new();
                         syntax(meta, &mut recursive_expr)?;
                         *self.recursive = Some(recursive_expr);
+                        if token(meta, ",").is_ok() {
+                            let mut glob_expr = Expr::new();
+                            syntax(meta, &mut glob_expr)?;
+                            *self.glob = Some(glob_expr);
+                        }
                     }
                 }
             }
@@ -123,6 +130,18 @@ impl TypeCheckModule for Ls {
         }
       }
 
+      if let Some(glob) = &mut *self.glob {
+        glob.typecheck(meta)?;
+        let glob_type = glob.get_type();
+        if glob_type != Type::Bool {
+          let position = glob.get_position();
+          return error_pos!(meta, position => {
+              message: "Builtin function `ls` can only be used with 4th argument of type Bool",
+              comment: format!("Given type: {}, expected type: {}", glob_type, Type::Bool)
+          });
+        }
+      }
+
       self.failure_handler.typecheck(meta)?;
       Ok(())
     })
@@ -182,6 +201,20 @@ impl TranslateModule for Ls {
             FragmentKind::Empty
         };
 
+        let glob_frag = if let Some(glob_expr) = &*self.glob {
+            let glob_translate = glob_expr.translate(meta);
+            let glob_var_name = format!("__ls_glob_{}", id);
+            meta.stmt_queue.push_back(fragments!(
+                "(( ",
+                glob_translate,
+                " )) && ",
+                raw_fragment!("{}=\"-d\" || {}=\"\"", glob_var_name, glob_var_name)
+            ));
+            raw_fragment!("${{{}}}", glob_var_name)
+        } else {
+            FragmentKind::Empty
+        };
+
         let suppress = meta.with_suppress(self.modifier.is_suppress || meta.suppress, |meta| {
             meta.gen_suppress().to_frag()
         });
@@ -217,6 +250,7 @@ impl TranslateModule for Ls {
                     fragments!("LC_ALL=C ls -1"),
                     all_frag,
                     recursive_frag,
+                    glob_frag,
                     path_expr.to_frag().with_quotes(false),
                     suppress
                 ]
