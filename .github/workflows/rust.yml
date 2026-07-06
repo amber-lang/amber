@@ -44,7 +44,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ./target/deps
@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: awalsh128/cache-apt-pkgs-action@5513791f75b039e2a79653b1a92238d3fb8d99b4 # v1.6.2
+      - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
         with:
           packages: bc
           version: 1.0
@@ -101,7 +101,7 @@ jobs:
           sudo chmod +x /usr/bin/bshchk
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ./target/deps
@@ -114,7 +114,7 @@ jobs:
           path: artifact
       - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
       - name: Cache test docker image
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: ~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}
           key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
@@ -150,7 +150,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.cargo
@@ -174,7 +174,7 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@7e46a19e8d2f3a44f97b551aee14a7b3cc18fcd0 # v1.5.1
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ./target/deps
@@ -191,13 +191,13 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: awalsh128/cache-apt-pkgs-action@5513791f75b039e2a79653b1a92238d3fb8d99b4 # v1.6.2
+      - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
         with:
           packages: parallel shellcheck
           version: 1.0
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ./target/deps
@@ -229,7 +229,7 @@ jobs:
         with:
           components: llvm-tools-preview
       - name: Cache llvm-cov
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         id: cache-llvm-cov
         with:
           path: ~/.cargo/bin/cargo-llvm-cov
@@ -254,7 +254,7 @@ jobs:
         with:
           components: llvm-tools-preview
       - name: Cache llvm-cov
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         id: cache-llvm-cov
         with:
           path: ~/.cargo/bin/cargo-llvm-cov
