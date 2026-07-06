@@ -21,7 +21,7 @@ impl AmberCompiler {
                     }
                     let candidate_lower = candidate
                         .to_string_lossy()
-                        .to_ascii_lowercase()
+                        .to_lowercase()
                         .replace('/', "\\");
                     if !candidate_lower.contains("\\windows\\system32\\")
                         && !candidate_lower.contains("\\windowsapps\\")
