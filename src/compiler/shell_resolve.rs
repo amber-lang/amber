@@ -19,7 +19,10 @@ impl AmberCompiler {
                     if fallback.is_none() {
                         fallback = Some(candidate.clone());
                     }
-                    let candidate_lower = candidate.to_string_lossy().to_ascii_lowercase();
+                    let candidate_lower = candidate
+                        .to_string_lossy()
+                        .to_ascii_lowercase()
+                        .replace('/', "\\");
                     if !candidate_lower.contains("\\windows\\system32\\")
                         && !candidate_lower.contains("\\windowsapps\\")
                     {
