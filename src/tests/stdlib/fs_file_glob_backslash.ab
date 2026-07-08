@@ -14,24 +14,29 @@ fun compare(actual: [Text], expected: [Text]): Bool {
 }
 
 main {
-    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust {
-        // Create files with backslash in name (Unix allows this)
-        $ touch "{tmpdir}/file\\with\\backslash.txt" $
-        $ touch "{tmpdir}/normal.txt" $
-    }
-    trust cd(tmpdir)
-
-    // Test that glob * finds files with backslashes in their names
-    const expected = [
-        "file\\with\\backslash.txt",
-        "normal.txt",
-    ]
-    const actual = file_glob("*")
-    if compare(actual, expected) {
+    trust silent $ case "\$(uname -s)" in MINGW*|MSYS*) true;; *) false;; esac $
+    if status() == 0 {
         echo("Succeeded")
     } else {
-        echo("Expected: {expected}")
-        echo("Actual: {actual}")
+        const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+        trust {
+            // Create files with backslash in name (Unix allows this)
+            $ touch "{tmpdir}/file\\with\\backslash.txt" $
+            $ touch "{tmpdir}/normal.txt" $
+        }
+        trust cd(tmpdir)
+
+        // Test that glob * finds files with backslashes in their names
+        const expected = [
+            "file\\with\\backslash.txt",
+            "normal.txt",
+        ]
+        const actual = file_glob("*")
+        if compare(actual, expected) {
+            echo("Succeeded")
+        } else {
+            echo("Expected: {expected}")
+            echo("Actual: {actual}")
+        }
     }
 }
