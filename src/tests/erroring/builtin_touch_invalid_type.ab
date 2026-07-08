@@ -1,0 +1,6 @@
+// Output
+// Builtin function `touch` can only be used with values of type Text
+
+main {
+    touch(1) ?
+}

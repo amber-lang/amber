@@ -1,0 +1,6 @@
+// Output
+// Builtin function `cd` can only be used with values of type Text
+
+main {
+    cd(1) ?
+}

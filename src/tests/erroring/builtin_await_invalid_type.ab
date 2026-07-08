@@ -1,0 +1,6 @@
+// Output
+// Builtin function `await` can only be used with values of type Int or [Int]
+
+main {
+    await("pid") ?
+}

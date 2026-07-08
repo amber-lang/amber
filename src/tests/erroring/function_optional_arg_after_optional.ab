@@ -1,0 +1,6 @@
+// Output
+// All arguments following an optional argument must also be optional
+
+fun foo(a = 1, b) {
+    echo(a)
+}

@@ -1,0 +1,4 @@
+// Output
+// Expected ',' or ']' after array value
+
+let a = [1 2]
