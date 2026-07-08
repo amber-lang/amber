@@ -1,0 +1,6 @@
+// Output
+// Builtin function `ls` can only be used with 3rd argument of type Bool
+
+main {
+    echo(ls(".", true, 1) ?)
+}

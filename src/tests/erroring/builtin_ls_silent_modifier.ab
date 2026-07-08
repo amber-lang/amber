@@ -1,0 +1,6 @@
+// Output
+// Builtin `ls` can't be used with the silent modifier.
+
+main {
+    silent ls() ?
+}

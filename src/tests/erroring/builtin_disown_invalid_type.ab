@@ -1,0 +1,6 @@
+// Output
+// Builtin function `disown` can only be used with values of type Int or [Int]
+
+main {
+    disown("pid")
+}

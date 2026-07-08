@@ -1,0 +1,6 @@
+// Output
+// The `cp` command can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.
+
+main {
+    cp("source", "destination")
+}

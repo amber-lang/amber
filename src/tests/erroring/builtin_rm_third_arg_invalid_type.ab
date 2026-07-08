@@ -1,0 +1,6 @@
+// Output
+// Builtin function `rm` can only be used with 3rd argument of type Bool
+
+main {
+    rm("path", true, 1) ?
+}

@@ -1,0 +1,6 @@
+// Output
+// Builtin function `sleep` can only be used with values of type Int or Num
+
+main {
+    sleep("duration") ?
+}

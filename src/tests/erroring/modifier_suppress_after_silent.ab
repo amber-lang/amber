@@ -1,0 +1,6 @@
+// Output
+// You already declared `silent` modifier before. You can't use them in conjunction.
+
+main {
+    silent suppress $ echo "test" $?
+}

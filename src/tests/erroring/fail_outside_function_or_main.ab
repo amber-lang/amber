@@ -1,0 +1,4 @@
+// Output
+// Fail statement outside of function or main
+
+fail 1
