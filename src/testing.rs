@@ -6,23 +6,7 @@ use rayon::prelude::*;
 use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
-
-pub fn find_amber_files(dir: &PathBuf, files: &mut Vec<PathBuf>) -> std::io::Result<()> {
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                find_amber_files(&path, files)?;
-            } else if let Some(ext) = path.extension() {
-                if ext == "ab" {
-                    files.push(path);
-                }
-            }
-        }
-    }
-    Ok(())
-}
+use crate::utils::io::find_amber_files;
 
 pub fn get_tests_to_run(
     command: &TestCommand,

@@ -1,0 +1,6 @@
+// Output
+// Cannot destructure array because its concrete type is unknown
+
+let a = []
+let x = 1
+[x] = a

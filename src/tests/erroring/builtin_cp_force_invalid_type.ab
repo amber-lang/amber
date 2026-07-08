@@ -1,0 +1,6 @@
+// Output
+// Builtin function `cp` can only be used with 3rd argument of type Bool
+
+main {
+    cp("source", "destination", "force") ?
+}

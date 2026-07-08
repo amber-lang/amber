@@ -1,0 +1,6 @@
+// Output
+// Builtin function `ls` can only be used with 1st argument of type Text
+
+main {
+    echo(ls(1) ?)
+}

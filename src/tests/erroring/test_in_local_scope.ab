@@ -1,0 +1,6 @@
+// Output
+// Test must be in the global scope
+
+if true {
+    test "local" {}
+}

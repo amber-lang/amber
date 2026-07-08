@@ -1,0 +1,6 @@
+// Output
+// Builtin function `lock` can only be used with values of type Text
+
+main {
+    lock(1) ?
+}

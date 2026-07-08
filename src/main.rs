@@ -18,6 +18,7 @@ pub mod built_info {
 pub mod tests;
 
 use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::utils::io::find_amber_files;
 use crate::utils::ShellType;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
@@ -25,6 +26,7 @@ use colored::Colorize;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
 use std::error::Error;
+use std::fs::create_dir_all;
 use std::io::{prelude::*, stdin};
 use std::path::{Path, PathBuf};
 use std::{fs, io};
@@ -128,10 +130,10 @@ struct CheckCommand {
 
 #[derive(Args, Clone, Debug)]
 struct BuildCommand {
-    /// Input filename ('-' to read from stdin)
+    /// Input file or directory name ('-' to read from stdin)
     input: PathBuf,
 
-    /// Output filename ('-' to output to stdout)
+    /// Output file or directory ('-' to output to stdout)
     output: Option<PathBuf>,
 
     /// Disable a postprocessor
@@ -263,7 +265,7 @@ fn execute_output(
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn resolve_command_target(
+pub(crate) fn resolve_command_target(
     command_target: Option<ShellType>,
     cli_target: Option<ShellType>,
 ) -> Option<ShellType> {
@@ -338,6 +340,87 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     }
+}
+
+/// Responsible for executing the build command.
+///
+/// * `cli_target` Target shell.
+fn handle_build(
+    command: BuildCommand,
+    cli_target: Option<ShellType>,
+) -> Result<(), Box<dyn Error>> {
+    let target = resolve_command_target(command.target, cli_target);
+
+    let is_stdin = command.input.as_os_str() == "-";
+
+    if is_stdin {
+        let output = create_output(&command);
+        build_file(&command, &target, command.input.clone(), output);
+        return Ok(())
+    }
+
+    validate_input_existence(&command.input)?;
+
+    if command.input.is_dir() {
+        validate_output_dir(&command.output)?;
+
+        let mut files = Vec::new();
+        find_amber_files(&command.input, &mut files)?;
+
+        for file in files {
+            let output = create_output_dir(&command, &file);
+            let parent_dir = output.parent().unwrap();
+            if !parent_dir.exists() {
+                create_dir_all(parent_dir)?;
+            }
+            build_file(&command, &target, file, output);
+        }
+    } else {
+        let output = create_output(&command);
+        build_file(&command, &target, command.input.clone(), output);
+    }
+
+    Ok(())
+}
+
+/// Validates the existence of the provided input file.
+fn validate_input_existence(input: &Path) -> Result<(), Box<dyn Error>> {
+    if !input.exists() {
+        return Err("Input does not exist".into());
+    }
+
+    Ok(())
+}
+
+/// Validates the provided output actually points to a directory.
+fn validate_output_dir(output: &Option<PathBuf>) -> Result<(), Box<dyn Error>> {
+    if let Some(ref output) = output {
+        if !output.is_dir() {
+            return Err("Output is not a directory".into());
+        }
+    }
+
+    Ok(())
+}
+
+/// Determines the output path that should be used in directory mode for the given input.
+fn create_output_dir(command: &BuildCommand, file: &Path) -> PathBuf {
+    if let Some(output) = &command.output {
+        let relative = file.strip_prefix(&command.input).ok().unwrap();
+        output.join(relative).with_extension("sh")
+    } else {
+        file.with_extension("sh")
+    }
+}
+
+/// Compiles the input file and writes the result to the output path.
+fn build_file(command: &BuildCommand, target: &Option<ShellType>, input: PathBuf, output: PathBuf) {
+    let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
+        .with_target(*target)
+        .with_env_vars();
+
+    let (code, _) = compile_input(input, options);
+    write_output(output, code);
 }
 
 pub(crate) fn handle_completion() {
@@ -432,13 +515,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             0
         }
         CommandKind::Build(command) => {
-            let target = resolve_command_target(command.target, cli.target);
-            let output = create_output(&command);
-            let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
-                .with_target(target)
-                .with_env_vars();
-            let (code, _) = compile_input(command.input, options);
-            write_output(output, code);
+            handle_build(command, cli.target)?;
             0
         }
         CommandKind::Docs(command) => {
