@@ -147,19 +147,20 @@ variable_index = '[', expression, ']' ;
 variable_init_mut = { attribute }, [ VISIBILITY ], KEYWORD_LET, identifier, '=', expression ;
 variable_init_const = { attribute }, [ VISIBILITY ], KEYWORD_CONST, identifier, '=', expression ;
 variable_get = identifier ;
-variable_set = identifier, variable_index?, '=', expression ;
+variable_set = identifier, [ variable_index ], '=', expression ;
 
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
 function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
-    [ [ KEYWORD_REF ], identifier, [ ':', TYPE ], { ',', [ KEYWORD_REF ], identifier, [ ':', TYPE ] } ],
-    ')', [ ':', TYPE ], [ '?' ], block ;
+    [ function_arg, { ',', function_arg } ],
+    ')', [ ':', TYPE, [ '?' ] ], block ;
+function_arg = [ KEYWORD_REF ], identifier, [ ':', TYPE ], [ '=', expression ] ;
 
 (* Loop *)
 loop = KEYWORD_LOOP, block ;
-loop_array = KEYWORD_FOR | KEYWORD_LOOP, identifier, KEYWORD_IN, expression, block ;
-loop_array_iterator = KEYWORD_FOR | KEYWORD_LOOP, identifier, ',', identifier, KEYWORD_IN, expression, block ;
+loop_array = KEYWORD_FOR, identifier, KEYWORD_IN, expression, block ;
+loop_array_iterator = KEYWORD_FOR, identifier, ',', identifier, KEYWORD_IN, expression, block ;
 while_loop = KEYWORD_WHILE, expression, block ;
 
 (* Ranges *)
@@ -172,7 +173,7 @@ if_chain = KEYWORD_IF, '{', { expression, block }, [ KEYWORD_ELSE, block ],  '}'
 ternary = expression, KEYWORD_THEN, expression, KEYWORD_ELSE, expression ;
 
 (* Main *)
-main = KEYWORD_MAIN, [ '(', identifier, ')' ], [ '?' ], block ;
+main = KEYWORD_MAIN, [ '(', identifier, ')' ], block ;
 
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
@@ -200,7 +201,7 @@ return_stmt = KEYWORD_RETURN, expression ;
 fail = KEYWORD_FAIL, [ expression ] ;
 
 (* Documentation comment *)
-comment_doc = '///', { ANY_CHAR } ;
+comment_doc = '///', { ANY_CHAR - '\n' }, '\n' ;
 
 (* Type operations *)
 cast = expression, KEYWORD_AS, TYPE ;
@@ -252,11 +253,12 @@ pub fn generate_grammar_ebnf() -> String {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
         match *kw {
-            "clear" => {
-                builtin_stmt_rules.push_str(&format!("{} = KEYWORD_{} ;\n", builtin_name, kw_upper))
-            }
+            "clear" => builtin_stmt_rules.push_str(&format!(
+                "{} = KEYWORD_{}, '(', ')' ;\n",
+                builtin_name, kw_upper
+            )),
             _ => builtin_stmt_rules.push_str(&format!(
-                "{} = KEYWORD_{}, expression ;\n",
+                "{} = KEYWORD_{}, '(', [ expression, {{ ',', expression }} ], ')' ;\n",
                 builtin_name, kw_upper
             )),
         }
@@ -269,11 +271,12 @@ pub fn generate_grammar_ebnf() -> String {
         let kw_upper = kw.to_uppercase();
         let builtin_name = format!("builtin_{}", kw);
         match *kw {
-            "pid" | "shellname" | "shellversion" => {
-                builtin_expr_rules.push_str(&format!("{} = KEYWORD_{} ;\n", builtin_name, kw_upper))
-            }
+            "pid" | "pwd" | "shellname" | "shellversion" => builtin_expr_rules.push_str(&format!(
+                "{} = KEYWORD_{}, '(', ')' ;\n",
+                builtin_name, kw_upper
+            )),
             _ => builtin_expr_rules.push_str(&format!(
-                "{} = KEYWORD_{}, expression ;\n",
+                "{} = KEYWORD_{}, '(', [ expression, {{ ',', expression }} ], ')' ;\n",
                 builtin_name, kw_upper
             )),
         }

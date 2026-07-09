@@ -141,11 +141,11 @@ fn grammar_contains_function_def_with_ref_and_failable() {
 }
 
 #[test]
-fn grammar_contains_main_with_failable() {
+fn grammar_contains_main() {
     let g = generate_grammar_ebnf();
     assert!(
-        g.contains("main = KEYWORD_MAIN, [ '(', identifier, ')' ], [ '?' ], block ;"),
-        "main should support optional failable marker"
+        g.contains("main = KEYWORD_MAIN, [ '(', identifier, ')' ], block ;"),
+        "main should support optional args identifier"
     );
 }
 
@@ -158,7 +158,7 @@ fn grammar_contains_status_expression() {
 #[test]
 fn grammar_contains_documentation_comment() {
     let g = generate_grammar_ebnf();
-    assert!(g.contains("comment_doc = '///', { ANY_CHAR } ;"));
+    assert!(g.contains(r"comment_doc = '///', { ANY_CHAR - '\n' }, '\n' ;"));
 }
 
 #[test]
