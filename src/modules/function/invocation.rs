@@ -189,7 +189,7 @@ impl TypeCheckModule for FunctionInvocation {
                 self.failure_handler.typecheck(meta)?;
             } else if self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
                 let message = Message::new_warn_at_token(meta, self.name_tok.clone())
-                    .message(format!("Function '{}' cannot fail", &self.name))
+                    .message(format!("Function '{}' cannot fail", self.name))
                     .comment("You can remove the failure handler block or '?' at the end");
                 meta.add_message(message);
             }

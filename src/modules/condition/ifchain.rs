@@ -94,11 +94,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 syntax(meta, &mut *false_block)?;
                 self.false_block = Some((comments, false_block));
                 if token(meta, "}").is_err() {
-                    return error!(
-                        meta,
-                        meta.get_current_token(),
-                        "Expected `else` condition to be the last in the if chain"
-                    )?;
+                    error!(meta, meta.get_current_token(), "Expected `else` condition to be the last in the if chain")?;
                 }
                 return Ok(());
             }

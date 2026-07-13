@@ -237,9 +237,12 @@ main {
         "Output should contain the zsh shellversion preamble"
     );
     assert!(
-        result
-            .contains(r#"IFS='.' read -r -a EXEC_SHELL_VERSION <<< "${__exec_shell_version%% *}""#),
+        result.contains("__exec_shell_version=\"${KSH_VERSION#Version }\""),
         "Output should contain the ksh shellversion preamble"
+    );
+    assert!(
+        result.contains(r"EXEC_SHELL_VERSION=(${__exec_v1:-0} ${__exec_v2:-0} ${__exec_v3:-0})"),
+        "Output should contain the ksh EXEC_SHELL_VERSION assignment"
     );
     assert!(
         result.contains(
@@ -254,7 +257,7 @@ main {
 }
 
 #[test]
-fn test_translate_shellname_and_shellversion_share_single_preamble() {
+fn test_translate_shellname_and_shellversion_use_separate_preambles() {
     let code = r#"
 main {
     echo(shellname())
@@ -264,9 +267,11 @@ main {
     let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
         .expect("Couldn't translate Amber code");
 
+    // With separate preamble files, both shellname and shellversion blocks should appear
     assert_eq!(
         result.matches(r#"if [ -n "$ZSH_VERSION" ]; then"#).count(),
-        1
+        2,
+        "Both shellname.sh and shellversion.sh should generate preamble blocks"
     );
     assert!(result.contains("EXEC_SHELL"));
     assert!(result.contains("EXEC_SHELL_VERSION"));
