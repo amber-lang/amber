@@ -151,7 +151,21 @@ impl VarStmtFragment {
                     assignment
                 }
             }
-            ShellType::BashLegacy | ShellType::Zsh => {
+            ShellType::Zsh => {
+                if self.is_local {
+                    if is_running_command {
+                        format!("local {var_name}\n{}{assignment}", meta.gen_indent())
+                    } else if self.is_ref {
+                        // zsh uses 'typeset -n' for namerefs, not 'local -n'
+                        format!("typeset -n {assignment}")
+                    } else {
+                        format!("local {assignment}")
+                    }
+                } else {
+                    assignment
+                }
+            }
+            ShellType::BashLegacy | ShellType::Ksh => {
                 if self.is_local {
                     if is_running_command {
                         format!("local {var_name}\n{}{assignment}", meta.gen_indent())
