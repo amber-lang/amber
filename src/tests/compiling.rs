@@ -233,8 +233,8 @@ main {
         .expect("Couldn't translate Amber code");
 
     assert!(
-        result.contains(r#"IFS='.' read -r -A EXEC_SHELL_VERSION <<< "$ZSH_VERSION""#),
-        "Output should contain the zsh shellversion preamble"
+        result.contains("set -A EXEC_SHELL_VERSION"),
+        "Output should contain the zsh shellversion preamble (set -A)"
     );
     assert!(
         result.contains("__exec_shell_version=\"${KSH_VERSION#Version }\""),
