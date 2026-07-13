@@ -1,6 +1,6 @@
 import { input_confirm } from "std/env"
 import { array_contains } from "std/array"
-import { get_place, get_bins_folder } from "./shared.ab"
+import { get_place, get_bins_folder, get_sudo_cmd } from "./shared.ab"
 
 main(args) {
     const user_only_install = array_contains(args, "--user")
@@ -18,7 +18,7 @@ main(args) {
             }
         }
 
-        const sudo_cmd = user_only_install then "" else "sudo"
+        const sudo_cmd = user_only_install then "" else get_sudo_cmd()
         $ {sudo_cmd} rm -rf "{place}" $ failed {
             echo("Failed to remove Amber from {place}")
             echo("Make sure root has the correct permissions to access this directory")
