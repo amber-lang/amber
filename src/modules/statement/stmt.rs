@@ -181,3 +181,18 @@ impl DocumentationModule for Statement {
         self.value.as_ref().unwrap().document(meta)
     }
 }
+
+impl Statement {
+    pub fn terminates_control_flow(&self) -> bool {
+        match &self.value {
+            Some(StmtType::Return(_)) => true,
+            Some(StmtType::Exit(_)) => true,
+            Some(StmtType::Fail(_)) => true,
+            Some(StmtType::Break(_)) => true,
+            Some(StmtType::Continue(_)) => true,
+            Some(StmtType::IfCondition(if_cond)) => if_cond.terminates_control_flow(),
+            Some(StmtType::IfChain(if_chain)) => if_chain.terminates_control_flow(),
+            _ => false,
+        }
+    }
+}
