@@ -90,7 +90,7 @@ impl FunctionDeclaration {
                             )
                             .with_local(true)
                             .with_ref(true)
-                            .with_optimization_when_unused(true);
+                            .with_optimization_when_unused(false);
 
                             let var = VarStmtFragment::new(
                                 &name,
@@ -123,24 +123,24 @@ impl FunctionDeclaration {
                         let var = if matches!(meta.target.shell, ShellType::Zsh) {
                             VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_optimization_when_unused(true)
+                                .with_optimization_when_unused(false)
                                 .with_ref(false)
                                 .with_array_ref(true)
                                 .with_declared(false)
                         } else if meta.target.shell.is_bash_legacy() {
                             VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_optimization_when_unused(true)
+                                .with_optimization_when_unused(false)
                                 .with_ref(true)
                                 .with_array_ref(true)
                                 .with_declared(false)
                         } else {
                             VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_optimization_when_unused(true)
+                                .with_optimization_when_unused(false)
                                 .with_ref(true)
                                 .with_array_ref(true)
-                        };
+                            };
 
                         result.push(var.to_frag())
                     }
@@ -151,7 +151,7 @@ impl FunctionDeclaration {
 
                         let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                             .with_local(true)
-                            .with_optimization_when_unused(true)
+                            .with_optimization_when_unused(!arg.is_ref)
                             .with_declared(!arg.is_ref)
                             .with_ref(arg.is_ref);
 

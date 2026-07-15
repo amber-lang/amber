@@ -151,21 +151,7 @@ impl VarStmtFragment {
                     assignment
                 }
             }
-            ShellType::Zsh => {
-                if self.is_local {
-                    if is_running_command {
-                        format!("local {var_name}\n{}{assignment}", meta.gen_indent())
-                    } else if self.is_ref {
-                        // zsh uses 'typeset -n' for namerefs, not 'local -n'
-                        format!("typeset -n {assignment}")
-                    } else {
-                        format!("local {assignment}")
-                    }
-                } else {
-                    assignment
-                }
-            }
-            ShellType::BashLegacy => {
+            ShellType::BashLegacy | ShellType::Zsh => {
                 if self.is_local {
                     if is_running_command {
                         format!("local {var_name}\n{}{assignment}", meta.gen_indent())
@@ -186,8 +172,7 @@ impl VarStmtFragment {
                     if self.kind.is_array() && value.is_empty() {
                         format!("typeset -a {assignment}")
                     } else if self.is_ref {
-                        // ksh93 supports 'nameref' as a builtin for name references
-                        format!("nameref {assignment}")
+                        format!("typeset -n {assignment}")
                     } else if self.kind.is_array() {
                         // ksh function-local arrays are required for recursive array operations to keep
                         // each frame isolated once the argument has been rebound through a nameref.
