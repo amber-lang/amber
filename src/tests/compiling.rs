@@ -254,6 +254,18 @@ main {
         result.contains("EXEC_SHELL_VERSION[0]"),
         "Output should reference the shellversion builtin variable"
     );
+    assert!(
+        result.contains("IFS='.' read -r __exec_v1 __exec_v2 __exec_v3"),
+        "Output should use IFS-based parsing for zsh version (handles 2-component versions)"
+    );
+    assert!(
+        result.contains("${__exec_shell_version#* }"),
+        "Output should skip the ksh build ID word before extracting the version"
+    );
+    assert!(
+        result.contains("[!0-9]*"),
+        "Output should extract leading digits from ksh version string"
+    );
 }
 
 #[test]

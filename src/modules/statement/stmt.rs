@@ -188,10 +188,12 @@ impl Statement {
             Some(StmtType::Return(_)) => true,
             Some(StmtType::Exit(_)) => true,
             Some(StmtType::Fail(_)) => true,
-            Some(StmtType::Break(_)) => true,
-            Some(StmtType::Continue(_)) => true,
             Some(StmtType::IfCondition(if_cond)) => if_cond.terminates_control_flow(),
             Some(StmtType::IfChain(if_chain)) => if_chain.terminates_control_flow(),
+            Some(StmtType::CommandModifier(cmd_mod)) => cmd_mod
+                .block
+                .as_ref()
+                .map_or(false, |b| b.terminates_control_flow()),
             _ => false,
         }
     }

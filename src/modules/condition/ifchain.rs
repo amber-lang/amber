@@ -21,15 +21,17 @@ crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
     pub fn terminates_control_flow(&self) -> bool {
-        if let Some((_, first_cond, first_block)) = self.cond_blocks.first() {
-            if first_cond.analyze_control_flow() == Some(true) {
-                return first_block.terminates_control_flow();
+        for (_, cond, block) in &self.cond_blocks {
+            if cond.analyze_control_flow() == Some(true) {
+                return block.terminates_control_flow();
             }
         }
-        let all_terminate = self.cond_blocks.iter().all(|(_, _, block)| block.terminates_control_flow());
+        let all_terminate = self
+            .cond_blocks
+            .iter()
+            .all(|(_, _, block)| block.terminates_control_flow());
         match (&self.false_block, all_terminate) {
             (Some((_, false_block)), true) => false_block.terminates_control_flow(),
-            (None, true) => false,
             _ => false,
         }
     }
@@ -94,7 +96,11 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 syntax(meta, &mut *false_block)?;
                 self.false_block = Some((comments, false_block));
                 if token(meta, "}").is_err() {
-                    error!(meta, meta.get_current_token(), "Expected `else` condition to be the last in the if chain")?;
+                    error!(
+                        meta,
+                        meta.get_current_token(),
+                        "Expected `else` condition to be the last in the if chain"
+                    )?;
                 }
                 return Ok(());
             }
