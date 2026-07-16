@@ -140,7 +140,7 @@ impl FunctionDeclaration {
                                 .with_optimization_when_unused(false)
                                 .with_ref(true)
                                 .with_array_ref(true)
-                            };
+                        };
 
                         result.push(var.to_frag())
                     }
