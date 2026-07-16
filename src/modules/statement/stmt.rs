@@ -193,7 +193,7 @@ impl Statement {
             Some(StmtType::CommandModifier(cmd_mod)) => cmd_mod
                 .block
                 .as_ref()
-                .map_or(false, |b| b.terminates_control_flow()),
+                .is_some_and(|b| b.terminates_control_flow()),
             _ => false,
         }
     }
