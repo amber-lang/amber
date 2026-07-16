@@ -90,7 +90,7 @@ impl FunctionDeclaration {
                             )
                             .with_local(true)
                             .with_ref(true)
-                            .with_optimization_when_unused(false);
+                            .with_optimization_when_unused(true);
 
                             let var = VarStmtFragment::new(
                                 &name,
