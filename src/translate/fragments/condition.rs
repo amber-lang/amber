@@ -10,6 +10,7 @@ pub struct ConditionFragment {
     pub right: Box<Option<FragmentKind>>,
     pub op: ComparisonOperator,
     pub quoted: bool,
+    // Defines whether the fragment generates a raw test condition or a boolean value as integer
     pub with_subprocess: bool
 }
 
