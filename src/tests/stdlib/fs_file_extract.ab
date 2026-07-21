@@ -1,3 +1,7 @@
+// Output
+// Succeeded
+// Succeeded
+
 import * from "std/fs"
 import { array_contains } from "std/array"
 
