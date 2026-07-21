@@ -231,7 +231,7 @@ pub fun file_extract(path: Text, target: Text): Null? {
             match_regex(path, "\.tar$"): $ tar xf "{path}" -C "{target}" $?
             match_regex(path, "\.xz$"): $ xz --decompress "{path}" $?
             match_regex(path, "\.7z$"): $ 7z -y "{path}" -o "{target}" $?
-            match_regex(path, "\.\(zip\|war\|jar\)$"): $ unzip "{path}" -d "{target}" $?
+            match_regex(path, "\.(zip|war|jar)$", true): $ unzip -q "{path}" -d "{target}" $?
             else {
                 echo("Error: Unsupported file type")
                 fail 3

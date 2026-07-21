@@ -53,7 +53,10 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
 
             const output = trust $ curl -L "{url}" --silent -S -X {method} {full_headers} {post_data} 2>&1 $ 
 
-            if status() > 0: echo_error("curl request failed with error: {output}", status())
+            if status() > 0 {
+                printf("\x1b[1;3;97;41m%s\x1b[0m\n", ["curl request failed with error: {output}"])
+                exit(status())
+            }
             return output
         }
         is_command("wget") {
@@ -63,7 +66,8 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                     full_headers += " --header='{header}'"
             }
             return $ wget "{url}" -qO- --method="{method}" {full_headers} {post_data} $ failed {
-                echo_error("wget request failed with exit code {status()}", status())
+                printf("\x1b[1;3;97;41m%s\x1b[0m\n", ["wget request failed with exit code {status()}"])
+                exit(status())
             }
         }
         else {
@@ -114,9 +118,11 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                     return trust $ cat <&3 && exec 3>&- $
                 }
               }
-              echo_error("Request failed with exit code {status()}", status())
+              printf("\x1b[1;3;97;41m%s\x1b[0m\n", ["Request failed with exit code {status()}"])
+              exit(status())
             } else {
-              echo_error("No connection method is available, aborting", 1)
+              printf("\x1b[1;3;97;41m%s\x1b[0m\n", ["No connection method is available, aborting"])
+              exit(1)
             }
         }
     }
