@@ -31,11 +31,15 @@ main {
     const dist_dir2 = temp_dir_create("amber-test-zip-dist-XXXX")?
     file_extract(archive_path, dist_dir2)?
 
-    if file_exists("{dist_dir2}/test.txt") {
+    const extracted = file_exists("{dist_dir2}/test.txt")
+    if extracted {
         echo("Succeeded")
     } else {
         echo("Extraction fails: {dist_dir2}/test.txt does not exist")
     }
 
     $ rm -rf {src_dir2} {dist_dir2} $?
+    if not extracted {
+        fail 1
+    }
 }
