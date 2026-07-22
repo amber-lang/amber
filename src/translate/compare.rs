@@ -17,6 +17,7 @@ pub enum ComparisonOperator {
     Neq,
     And,
     Or,
+    Not
 }
 
 impl ComparisonOperator {
@@ -30,6 +31,7 @@ impl ComparisonOperator {
             ComparisonOperator::Neq => (ComparisonOperator::Neq, None),
             ComparisonOperator::Or => (ComparisonOperator::Or, None),
             ComparisonOperator::And => (ComparisonOperator::And, None),
+            ComparisonOperator::Not => (ComparisonOperator::Not, None)
         }
     }
 
@@ -43,6 +45,7 @@ impl ComparisonOperator {
             ComparisonOperator::Neq => ComparisonOperator::Eq,
             ComparisonOperator::Or => ComparisonOperator::And,
             ComparisonOperator::And => ComparisonOperator::Or,
+            ComparisonOperator::Not => ComparisonOperator::Eq
         }
     }
 
@@ -56,6 +59,7 @@ impl ComparisonOperator {
             ComparisonOperator::Neq => ArithOp::Neq,
             ComparisonOperator::And => ArithOp::And,
             ComparisonOperator::Or => ArithOp::Or,
+            ComparisonOperator::Not => ArithOp::Not
         }
     }
 
@@ -69,6 +73,7 @@ impl ComparisonOperator {
             ComparisonOperator::Neq => "!=",
             ComparisonOperator::And => "&&",
             ComparisonOperator::Or => "||",
+            ComparisonOperator::Not => "!"
         }
     }
 
@@ -207,6 +212,16 @@ pub fn create_bool_comparison(meta: &mut TranslateMetadata, left: String) -> Str
         raw_fragment!("{left}"),
         ComparisonOperator::Neq,
         raw_fragment!("0")
+    )
+    .with_subprocess(false)
+    .to_string(meta)
+}
+
+pub fn empty_text_comparison(meta: &mut TranslateMetadata, left: String) -> String {
+    ConditionFragment::new(
+        raw_fragment!("{left}"),
+        ComparisonOperator::Neq,
+        raw_fragment!("''")
     )
     .with_subprocess(false)
     .to_string(meta)

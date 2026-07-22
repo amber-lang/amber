@@ -95,7 +95,11 @@ impl TypeCheckModule for And {
             "logical AND",
             &mut self.left,
             &mut self.right,
-            &[Type::Bool],
+            &[
+                Type::Bool, 
+                Type::Text, 
+                Type::Array(Box::new(Type::Generic))
+            ],
         )?;
         Ok(())
     }

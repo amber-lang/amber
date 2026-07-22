@@ -2,6 +2,8 @@ use super::super::expr::Expr;
 use super::UnOp;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::translate::compare::ComparisonOperator;
+use crate::translate::fragments::condition::ConditionFragment;
 use crate::utils::{metadata::ParserMetadata, TranslateMetadata};
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
@@ -59,15 +61,29 @@ impl SyntaxModule<ParserMetadata> for Not {
 impl TypeCheckModule for Not {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
-        Self::typecheck_allowed_types(meta, "logical negation", &self.expr, &[Type::Bool])?;
+        Self::typecheck_allowed_types(
+            meta, 
+            "logical negation", 
+            &self.expr, 
+            &[
+                Type::Bool, 
+                Type::Text, 
+                Type::Array(Box::new(Type::Generic))
+            ]
+        )?;
         Ok(())
     }
 }
 
 impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let expr = self.expr.translate(meta);
-        ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
+        let is_text = matches!(self.expr.kind, Type::Text | Type::Array(_));
+        let expr = self.expr.translate(meta).with_condition(is_text);
+        if is_text {
+            ConditionFragment::new(None, ComparisonOperator::Not, expr).to_frag()
+        } else {
+            ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
+        }
     }
 }
 

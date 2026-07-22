@@ -5,7 +5,7 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::RawFragment;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
-use crate::translate::compare::create_bool_comparison;
+use crate::translate::compare::{create_bool_comparison, empty_text_comparison};
 use crate::utils::{ShellType, TranslateMetadata};
 use heraclitus_compiler::prelude::Position;
 use heraclitus_compiler::prelude::PositionInfo;
@@ -234,9 +234,10 @@ impl VarExprFragment {
     // Returns the variable value in the bash/zsh/ksh context Ex. "$varname" or "${varname[@]}"
     pub fn render_variable_value(mut self, meta: &mut TranslateMetadata) -> String {
         let name = self.get_name();
-        let index = self.index.take();
         let with_condition = self.with_condition;
+        let index = self.index.take();
         let kind = self.kind.clone();
+        self.is_length = matches!(kind.clone(), Type::Array(_)) && with_condition;
         let index_is_none = index.is_none();
         let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index.clone());
@@ -291,8 +292,12 @@ impl VarExprFragment {
             }
         };
 
-        if with_condition && matches!(kind, Type::Bool) { 
-            create_bool_comparison(meta,result)
+        if with_condition {
+            if matches!(kind, Type::Bool | Type::Array(_)) { 
+                create_bool_comparison(meta,result)
+            } else {
+                empty_text_comparison(meta, result)
+            }
         } else { 
             result 
         }

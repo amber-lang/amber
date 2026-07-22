@@ -97,7 +97,11 @@ impl TypeCheckModule for Or {
             "logical OR",
             &mut self.left,
             &mut self.right,
-            &[Type::Bool],
+            &[
+                Type::Bool, 
+                Type::Text, 
+                Type::Array(Box::new(Type::Generic))
+            ],
         )?;
         Ok(())
     }

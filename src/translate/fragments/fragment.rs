@@ -59,6 +59,7 @@ impl FragmentKind {
             FragmentKind::Subprocess(var) => FragmentKind::Subprocess(var.with_condition(cond)),
             FragmentKind::Raw(var) => FragmentKind::Raw(var.with_condition(cond)),
             FragmentKind::Condition(var) => FragmentKind::Condition(var.with_subprocess(!cond)),
+            FragmentKind::Interpolable(var) => FragmentKind::Interpolable(var.with_condition(cond)),
             _ => self
         }
     }
