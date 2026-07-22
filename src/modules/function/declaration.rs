@@ -90,7 +90,7 @@ impl FunctionDeclaration {
                             )
                             .with_local(true)
                             .with_ref(true)
-                            .with_optimization_when_unused(false);
+                            .with_optimization_when_unused(true);
 
                             let var = VarStmtFragment::new(
                                 &name,
@@ -98,7 +98,7 @@ impl FunctionDeclaration {
                                 VarExprFragment::new(&source_name, kind.clone()).to_frag(),
                             )
                             .with_local(true)
-                            .with_optimization_when_unused(false);
+                            .with_optimization_when_unused(true);
 
                             result.push(source_ref.to_frag());
                             result.push(var.to_frag());
@@ -110,7 +110,7 @@ impl FunctionDeclaration {
 
                             let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                                 .with_local(true)
-                                .with_optimization_when_unused(false);
+                                .with_optimization_when_unused(true);
 
                             result.push(var.to_frag())
                         }
@@ -151,7 +151,7 @@ impl FunctionDeclaration {
 
                         let var = VarStmtFragment::new(&name, kind.clone(), val.to_frag())
                             .with_local(true)
-                            .with_optimization_when_unused(false)
+                            .with_optimization_when_unused(!arg.is_ref)
                             .with_declared(!arg.is_ref)
                             .with_ref(arg.is_ref);
 
