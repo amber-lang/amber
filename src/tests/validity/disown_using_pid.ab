@@ -16,11 +16,12 @@ main {
         if len($ jobs -l $?) == 0 {
             echo("Succeeded")
         } else {
-            echo("Process still alive")
+            echo("Process still owned")
         }
+        trust silent $ kill {second_pid} {third_pid} $
     } else {
-        echo("Process still alive")
+        echo("Process still owned")
     }
 
-    trust silent $ kill {$ pidof yes $} $ // Cleanup after test
+    trust silent $ kill {first_pid} $ // Cleanup after test
 }

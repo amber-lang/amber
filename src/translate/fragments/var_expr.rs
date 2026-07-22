@@ -237,7 +237,11 @@ impl VarExprFragment {
         let with_condition = self.with_condition;
         let index = self.index.take();
         let kind = self.kind.clone();
-        self.is_length = matches!(kind.clone(), Type::Array(_)) && with_condition;
+        self.is_length = if matches!(kind.clone(), Type::Array(_)) && with_condition {
+            true
+        } else {
+            self.is_length
+        };
         let index_is_none = index.is_none();
         let prefix = self.get_variable_prefix();
         let suffix = self.get_variable_suffix(meta, index.clone());

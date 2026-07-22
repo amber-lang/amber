@@ -28,16 +28,19 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "1",
+                                        with_condition: false,
                                     },
                                 ),
                                 Raw(
                                     RawFragment {
                                         value: "2",
+                                        with_condition: false,
                                     },
                                 ),
                                 Raw(
                                     RawFragment {
                                         value: "3",
+                                        with_condition: false,
                                     },
                                 ),
                             ],
@@ -55,16 +58,19 @@ Block(
                                     Raw(
                                         RawFragment {
                                             value: "for ",
+                                            with_condition: false,
                                         },
                                     ),
                                     Raw(
                                         RawFragment {
                                             value: "item_0",
+                                            with_condition: false,
                                         },
                                     ),
                                     Raw(
                                         RawFragment {
                                             value: " in ",
+                                            with_condition: false,
                                         },
                                     ),
                                     VarExpr(
@@ -86,11 +92,13 @@ Block(
                                             render_type: BashValue,
                                             index: None,
                                             index_pos: None,
+                                            with_condition: false,
                                         },
                                     ),
                                     Raw(
                                         RawFragment {
                                             value: "; do",
+                                            with_condition: false,
                                         },
                                     ),
                                 ],
@@ -126,6 +134,7 @@ Block(
                                                                     render_type: BashValue,
                                                                     index: None,
                                                                     index_pos: None,
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                         ),
@@ -135,6 +144,7 @@ Block(
                                                     ],
                                                     render_type: StringLiteral,
                                                     quoted: true,
+                                                    with_condition: false,
                                                 },
                                             ),
                                         },
@@ -151,6 +161,7 @@ Block(
                                     Raw(
                                         RawFragment {
                                             value: "done",
+                                            with_condition: false,
                                         },
                                     ),
                                 ],
@@ -192,6 +203,7 @@ Block(
                                         ],
                                         render_type: StringLiteral,
                                         quoted: true,
+                                        with_condition: false,
                                     },
                                 ),
                                 Interpolable(
@@ -203,6 +215,7 @@ Block(
                                         ],
                                         render_type: StringLiteral,
                                         quoted: true,
+                                        with_condition: false,
                                     },
                                 ),
                                 Interpolable(
@@ -214,6 +227,7 @@ Block(
                                         ],
                                         render_type: StringLiteral,
                                         quoted: true,
+                                        with_condition: false,
                                     },
                                 ),
                             ],
@@ -258,6 +272,7 @@ Block(
                             render_type: BashValue,
                             index: None,
                             index_pos: None,
+                            with_condition: false,
                         },
                     ),
                 },
@@ -285,16 +300,19 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "1",
+                                        with_condition: false,
                                     },
                                 ),
                                 Raw(
                                     RawFragment {
                                         value: "2",
+                                        with_condition: false,
                                     },
                                 ),
                                 Raw(
                                     RawFragment {
                                         value: "3",
+                                        with_condition: false,
                                     },
                                 ),
                             ],
@@ -309,6 +327,7 @@ Block(
                         Raw(
                             RawFragment {
                                 value: "index_3=0;",
+                                with_condition: false,
                             },
                         ),
                         List(
@@ -317,16 +336,19 @@ Block(
                                     Raw(
                                         RawFragment {
                                             value: "for ",
+                                            with_condition: false,
                                         },
                                     ),
                                     Raw(
                                         RawFragment {
                                             value: "item_2",
+                                            with_condition: false,
                                         },
                                     ),
                                     Raw(
                                         RawFragment {
                                             value: " in ",
+                                            with_condition: false,
                                         },
                                     ),
                                     VarExpr(
@@ -348,11 +370,13 @@ Block(
                                             render_type: BashValue,
                                             index: None,
                                             index_pos: None,
+                                            with_condition: false,
                                         },
                                     ),
                                     Raw(
                                         RawFragment {
                                             value: "; do",
+                                            with_condition: false,
                                         },
                                     ),
                                 ],
@@ -388,6 +412,7 @@ Block(
                                                                     render_type: BashValue,
                                                                     index: None,
                                                                     index_pos: None,
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                         ),
@@ -412,6 +437,7 @@ Block(
                                                                     render_type: BashValue,
                                                                     index: None,
                                                                     index_pos: None,
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                         ),
@@ -421,6 +447,7 @@ Block(
                                                     ],
                                                     render_type: StringLiteral,
                                                     quoted: true,
+                                                    with_condition: false,
                                                 },
                                             ),
                                         },
@@ -468,6 +495,7 @@ Block(
                                                                                     render_type: BashValue,
                                                                                     index: None,
                                                                                     index_pos: None,
+                                                                                    with_condition: false,
                                                                                 },
                                                                             ),
                                                                         ),
@@ -475,6 +503,7 @@ Block(
                                                                     index_pos: Some(
                                                                         "unknown:9:34",
                                                                     ),
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                         ),
@@ -484,6 +513,7 @@ Block(
                                                     ],
                                                     render_type: StringLiteral,
                                                     quoted: true,
+                                                    with_condition: false,
                                                 },
                                             ),
                                         },
@@ -497,6 +527,7 @@ Block(
                         Raw(
                             RawFragment {
                                 value: "    (( index_3++ )) || true",
+                                with_condition: false,
                             },
                         ),
                         List(
@@ -505,6 +536,7 @@ Block(
                                     Raw(
                                         RawFragment {
                                             value: "done",
+                                            with_condition: false,
                                         },
                                     ),
                                 ],
