@@ -64,7 +64,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 impl TypeCheckModule for Ternary {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.cond.typecheck(meta)?;
-        if self.cond.get_type() != Type::Bool {
+        if ! matches!(self.cond.get_type(), Type::Bool | Type::Text | Type::Array(_)) {
             let msg = self
                 .cond
                 .get_error_message(meta)
