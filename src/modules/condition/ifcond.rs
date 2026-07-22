@@ -55,6 +55,17 @@ impl IfCondition {
             ));
         meta.add_message(message);
     }
+
+    pub fn terminates_control_flow(&self) -> bool {
+        match self.expr.analyze_control_flow() {
+            Some(true) => self.true_block.as_ref().map(|b| b.terminates_control_flow()).unwrap_or(false),
+            Some(false) => self.false_block.as_ref().map(|b| b.terminates_control_flow()).unwrap_or(false),
+            None => match (&self.true_block, &self.false_block) {
+                (Some(true_block), Some(false_block)) => true_block.terminates_control_flow() && false_block.terminates_control_flow(),
+                _ => false,
+            },
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for IfCondition {
@@ -176,3 +187,4 @@ impl TranslateModule for IfCondition {
 }
 
 crate::impl_documentation_noop!(IfCondition);
+

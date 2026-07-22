@@ -16,9 +16,12 @@ pub struct Block {
 }
 
 impl Block {
-    // Get whether this block is empty
     pub fn is_empty(&self) -> bool {
         self.statements.is_empty()
+    }
+
+    pub fn terminates_control_flow(&self) -> bool {
+        self.statements.iter().any(|stmt| stmt.terminates_control_flow())
     }
 
     pub fn with_condition(mut self) -> Self {
@@ -106,12 +109,17 @@ impl TypeCheckModule for Block {
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Save the current statement queue and create a new one
         let mut new_queue = VecDeque::new();
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         let result = {
             let mut statements = vec![];
             for statement in &self.statements {
+                if statement.terminates_control_flow() {
+                    let statement = statement.translate(meta);
+                    statements.extend(meta.stmt_queue.drain(..));
+                    statements.push(statement);
+                    break;
+                }
                 let statement = statement.translate(meta);
                 statements.extend(meta.stmt_queue.drain(..));
                 statements.push(statement);
@@ -121,7 +129,6 @@ impl TranslateModule for Block {
                 .with_condition(self.is_conditional)
                 .to_frag()
         };
-        // Restore the old statement queue
         std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
         result
     }

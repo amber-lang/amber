@@ -233,13 +233,16 @@ main {
         .expect("Couldn't translate Amber code");
 
     assert!(
-        result.contains(r#"IFS='.' read -r -A EXEC_SHELL_VERSION <<< "$ZSH_VERSION""#),
-        "Output should contain the zsh shellversion preamble"
+        result.contains("set -A EXEC_SHELL_VERSION"),
+        "Output should contain the zsh shellversion preamble (set -A)"
     );
     assert!(
-        result
-            .contains(r#"IFS='.' read -r -a EXEC_SHELL_VERSION <<< "${__exec_shell_version%% *}""#),
+        result.contains("__exec_shell_version=\"${KSH_VERSION#Version }\""),
         "Output should contain the ksh shellversion preamble"
+    );
+    assert!(
+        result.contains(r"EXEC_SHELL_VERSION=(${__exec_v1:-0} ${__exec_v2:-0} ${__exec_v3:-0})"),
+        "Output should contain the ksh EXEC_SHELL_VERSION assignment"
     );
     assert!(
         result.contains(
@@ -251,10 +254,22 @@ main {
         result.contains("EXEC_SHELL_VERSION[0]"),
         "Output should reference the shellversion builtin variable"
     );
+    assert!(
+        result.contains("IFS='.' read -r __exec_v1 __exec_v2 __exec_v3"),
+        "Output should use IFS-based parsing for zsh version (handles 2-component versions)"
+    );
+    assert!(
+        result.contains("${__exec_shell_version#* }"),
+        "Output should skip the ksh build ID word before extracting the version"
+    );
+    assert!(
+        result.contains("[!0-9]*"),
+        "Output should extract leading digits from ksh version string"
+    );
 }
 
 #[test]
-fn test_translate_shellname_and_shellversion_share_single_preamble() {
+fn test_translate_shellname_and_shellversion_use_separate_preambles() {
     let code = r#"
 main {
     echo(shellname())
@@ -264,9 +279,11 @@ main {
     let result = translate_compiler_output_with_target(code, Some(ShellType::BashModern))
         .expect("Couldn't translate Amber code");
 
+    // With separate preamble files, both shellname and shellversion blocks should appear
     assert_eq!(
         result.matches(r#"if [ -n "$ZSH_VERSION" ]; then"#).count(),
-        1
+        2,
+        "Both shellname.sh and shellversion.sh should generate preamble blocks"
     );
     assert!(result.contains("EXEC_SHELL"));
     assert!(result.contains("EXEC_SHELL_VERSION"));
