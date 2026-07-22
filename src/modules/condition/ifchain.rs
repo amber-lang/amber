@@ -20,6 +20,22 @@ pub struct IfChain {
 crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
+    pub fn terminates_control_flow(&self) -> bool {
+        for (_, cond, block) in &self.cond_blocks {
+            if cond.analyze_control_flow() == Some(true) {
+                return block.terminates_control_flow();
+            }
+        }
+        let all_terminate = self
+            .cond_blocks
+            .iter()
+            .all(|(_, _, block)| block.terminates_control_flow());
+        match (&self.false_block, all_terminate) {
+            (Some((_, false_block)), true) => false_block.terminates_control_flow(),
+            _ => false,
+        }
+    }
+
     fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, reason: &str) {
         if meta.context.cc_flags.contains(&CCFlags::AllowDeadCode) {
             return;
@@ -80,7 +96,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 syntax(meta, &mut *false_block)?;
                 self.false_block = Some((comments, false_block));
                 if token(meta, "}").is_err() {
-                    return error!(
+                    error!(
                         meta,
                         meta.get_current_token(),
                         "Expected `else` condition to be the last in the if chain"
