@@ -1,4 +1,4 @@
 // Output
 // Expected expression that evaluates to 'Bool' in ternary condition
 
-echo "hello" then "world" else "everyone"
+echo(1 then "world" else "everyone")
