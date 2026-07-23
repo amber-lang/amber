@@ -61,7 +61,7 @@ impl TypeCheckModule for WhileLoop {
 impl TranslateModule for WhileLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let result = vec![
-            fragments!("while [ ", self.condition.translate(meta), " != 0 ]; do"),
+            fragments!("while ", self.condition.translate(meta).with_condition(true), "; do"),
             self.block.translate(meta),
             fragments!("done"),
         ];
