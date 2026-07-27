@@ -53,7 +53,7 @@ impl FragmentRenderable for ConditionFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let op = self.operator_to_string().to_string();
         let is_parent_condition = matches!(self.op, ComparisonOperator::And | ComparisonOperator::Or);
-        let is_negated = ! is_parent_condition && matches!(self.op, ComparisonOperator::Not);
+        let is_negated = matches!(self.op, ComparisonOperator::Not);
         let left = self.left.clone().unwrap_or_default()
             .with_quotes(self.quoted)
             .with_condition(is_parent_condition || is_negated)
