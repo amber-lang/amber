@@ -79,7 +79,7 @@ impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
         let expr = self.expr.translate(meta).with_condition(is_text);
-        if is_text {
+        if is_iterable {
             ConditionFragment::new(None, ComparisonOperator::Not, expr).to_frag()
         } else {
             ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
