@@ -77,7 +77,7 @@ impl TypeCheckModule for Not {
 
 impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let is_text = matches!(self.expr.kind, Type::Text | Type::Array(_));
+        let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
         let expr = self.expr.translate(meta).with_condition(is_text);
         if is_text {
             ConditionFragment::new(None, ComparisonOperator::Not, expr).to_frag()
