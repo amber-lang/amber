@@ -67,7 +67,7 @@ impl TranslateModule for Neq {
         let right = self.right.translate(meta).with_quotes(false);
         match (self.left.get_type(), self.right.get_type()) {
             (Type::Num, _) | (_, Type::Num) => translate_float_computation(meta, ArithOp::Neq, Some(left), Some(right)),
-            (Type::Int, _) =>  ArithmeticFragment::new(left, ArithOp::Neq, right).to_frag(),  
+            (Type::Int, _) | (Type::Bool, _) => ArithmeticFragment::new(left, ArithOp::Neq, right).to_frag(),
             (Type::Array(_), _) => {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, true)
