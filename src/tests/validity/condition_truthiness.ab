@@ -1,0 +1,62 @@
+// Output
+// empty text is false
+// non-empty text is true
+// empty array is false
+// non-empty array is true
+// not empty text is true
+// not non-empty text is false
+// not empty array is true
+// not non-empty array is false
+
+let empty_text = ""
+let non_empty_text = "hello"
+let empty_array = [Int]
+let non_empty_array = [1]
+
+if empty_text {
+    echo("empty text is true")
+} else {
+    echo("empty text is false")
+}
+
+if non_empty_text {
+    echo("non-empty text is true")
+} else {
+    echo("non-empty text is false")
+}
+
+if empty_array {
+    echo("empty array is true")
+} else {
+    echo("empty array is false")
+}
+
+if non_empty_array {
+    echo("non-empty array is true")
+} else {
+    echo("non-empty array is false")
+}
+
+if not empty_text {
+    echo("not empty text is true")
+} else {
+    echo("not empty text is false")
+}
+
+if not non_empty_text {
+    echo("not non-empty text is true")
+} else {
+    echo("not non-empty text is false")
+}
+
+if not empty_array {
+    echo("not empty array is true")
+} else {
+    echo("not empty array is false")
+}
+
+if not non_empty_array {
+    echo("not non-empty array is true")
+} else {
+    echo("not non-empty array is false")
+}
