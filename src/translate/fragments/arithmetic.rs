@@ -10,6 +10,7 @@ pub struct ArithmeticFragment {
     pub right: Box<Option<FragmentKind>>,
     pub op: ArithOp,
     pub quoted: bool,
+    pub with_condition: bool
 }
 
 impl ArithmeticFragment {
@@ -22,12 +23,18 @@ impl ArithmeticFragment {
             left: Box::new(left.into()),
             right: Box::new(right.into()),
             quoted: true,
+            with_condition: false,
             op,
         }
     }
 
     pub fn with_quotes(mut self, quoted: bool) -> Self {
         self.quoted = quoted;
+        self
+    }
+
+    pub fn with_condition(mut self, condition: bool) -> Self {
+        self.with_condition = condition;
         self
     }
 
@@ -54,7 +61,7 @@ impl ArithmeticFragment {
 
 impl FragmentRenderable for ArithmeticFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
-        let dollar = meta.gen_dollar();
+        let dollar = if ! self.with_condition { meta.gen_dollar() } else { "" };
         let op = self.operator_to_string().to_string();
         let left = self.left.unwrap_or_default().with_quotes(false);
         let right = self.right.unwrap_or_default().with_quotes(false);
@@ -72,9 +79,10 @@ impl FragmentRenderable for ArithmeticFragment {
             right.to_string(meta)
         };
 
-        let quote = if self.quoted { meta.gen_quote() } else { "" };
+        let quote = if self.quoted && ! self.with_condition { meta.gen_quote() } else { "" };
         let expr = [left, op, right].iter().filter(|x| !x.is_empty()).join(" ");
         format!("{quote}{dollar}(( {expr} )){quote}")
+
     }
 
     fn to_frag(self) -> FragmentKind {

@@ -179,6 +179,14 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                 find_unused_variables(right, meta);
             }
         }
+        FragmentKind::Condition(cond) => {
+            if let Some(left) = &*cond.left {
+                find_unused_variables(left, meta);
+            }
+            if let Some(right) = &*cond.right {
+                find_unused_variables(right, meta);
+            }
+        }
         FragmentKind::VarStmt(var_stmt) => {
             if should_optimize_var_stmt(var_stmt) {
                 meta.with_is_var_rhs_ctx(true, |meta| -> Result<(), ()> {

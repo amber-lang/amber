@@ -1,11 +1,12 @@
 use super::fragment::{FragmentKind, FragmentRenderable};
-use crate::utils::TranslateMetadata;
+use crate::{translate::compare::create_bool_comparison, utils::TranslateMetadata};
 
 // Creates a subprocess fragment that is correctly escaped.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SubprocessFragment {
     pub fragment: Box<FragmentKind>,
     pub quoted: bool,
+    pub with_condition: bool
 }
 
 impl SubprocessFragment {
@@ -13,7 +14,13 @@ impl SubprocessFragment {
         SubprocessFragment {
             fragment: Box::new(fragment),
             quoted: true,
+            with_condition: false
         }
+    }
+
+    pub fn with_condition(mut self, condition: bool) -> Self {
+        self.with_condition = condition;
+        self
     }
 
     pub fn with_quotes(mut self, quoted: bool) -> Self {
@@ -25,11 +32,19 @@ impl SubprocessFragment {
 impl FragmentRenderable for SubprocessFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let result = self.fragment.to_string(meta);
+        let dollar = meta.gen_dollar();
         let quote = if self.quoted { meta.gen_quote() } else { "" };
-        if meta.eval_ctx {
-            format!("{quote}$(eval \"{result}\"){quote}")
+
+        let result = if meta.eval_ctx {
+            format!("{quote}{dollar}(eval \"{result}\"){quote}")
         } else {
-            format!("{quote}$({result}){quote}")
+            format!("{quote}{dollar}({result}){quote}")
+        };
+
+        if self.with_condition {
+            create_bool_comparison(meta, result)
+        } else {
+            result
         }
     }
 

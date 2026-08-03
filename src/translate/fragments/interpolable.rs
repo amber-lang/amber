@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use super::fragment::{FragmentKind, FragmentRenderable};
+use crate::translate::compare::empty_text_comparison;
 use crate::utils::TranslateMetadata;
 
 /// Represents a region that can be interpolated. Similarly to what Heraclitus returns when parsing a region.
@@ -39,6 +40,7 @@ pub struct InterpolableFragment {
     pub parts: VecDeque<InterpolablePart>,
     pub render_type: InterpolableRenderType,
     pub quoted: bool,
+    pub with_condition: bool
 }
 
 impl InterpolableFragment {
@@ -47,11 +49,17 @@ impl InterpolableFragment {
             parts: VecDeque::from(parts),
             render_type,
             quoted: true,
+            with_condition: false
         }
     }
 
     pub fn with_quotes(mut self, quoted: bool) -> Self {
         self.quoted = quoted;
+        self
+    }
+
+    pub fn with_condition(mut self, condition: bool) -> Self {
+        self.with_condition = condition;
         self
     }
 
@@ -158,10 +166,17 @@ fn scan_quote_state(s: &str, in_single_quotes: &mut bool, in_double_quotes: &mut
 impl FragmentRenderable for InterpolableFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         let render_type = self.render_type;
+        let with_condition = self.with_condition;
         let quote = if self.quoted { meta.gen_quote() } else { "" };
         let result = self.render_interpolated_region(meta);
         match render_type {
-            InterpolableRenderType::StringLiteral => format!("{quote}{result}{quote}"),
+            InterpolableRenderType::StringLiteral => {
+                if with_condition { 
+                   empty_text_comparison(meta, result)
+                } else {
+                    format!("{quote}{result}{quote}")
+                }
+            }
             InterpolableRenderType::GlobalContext => result.trim().to_string(),
         }
     }

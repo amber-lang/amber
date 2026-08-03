@@ -1,10 +1,10 @@
 use super::BinOp;
-use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::compare::translate_array_equality;
+use crate::translate::compare::{translate_array_equality, ComparisonOperator};
 use crate::translate::compute::{translate_float_computation, ArithOp};
+use crate::translate::fragments::condition::ConditionFragment;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
@@ -77,14 +77,8 @@ impl TranslateModule for Neq {
                     )
                 }
             }
-            _ => SubprocessFragment::new(fragments!(
-                "[ \"_",
-                left,
-                "\" == \"_",
-                right,
-                "\" ]; echo $?"
-            ))
-            .to_frag(),
+            _ => ConditionFragment::new(left, ComparisonOperator::Neq, right)
+                .to_frag()
         }
     }
 }
