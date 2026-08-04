@@ -42,6 +42,9 @@ mod compare_tests {
         assert_eq!(ComparisonOperator::Lt.to_string(), "<");
         assert_eq!(ComparisonOperator::Le.to_string(), "<=");
         assert_eq!(ComparisonOperator::Eq.to_string(), "==");
+        assert_eq!(ComparisonOperator::Neq.to_string(), "!=");
+        assert_eq!(ComparisonOperator::Or.to_string(), "||");
+        assert_eq!(ComparisonOperator::And.to_string(), "&&");
     }
 
     #[test]
@@ -53,6 +56,9 @@ mod compare_tests {
         assert_eq!(ComparisonOperator::Lt.to_arith_op(), ArithOp::Lt);
         assert_eq!(ComparisonOperator::Le.to_arith_op(), ArithOp::Le);
         assert_eq!(ComparisonOperator::Eq.to_arith_op(), ArithOp::Eq);
+        assert_eq!(ComparisonOperator::Neq.to_arith_op(), ArithOp::Neq);
+        assert_eq!(ComparisonOperator::Or.to_arith_op(), ArithOp::Or);
+        assert_eq!(ComparisonOperator::And.to_arith_op(), ArithOp::And);
     }
 }
 

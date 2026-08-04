@@ -1,10 +1,10 @@
 use super::BinOp;
-use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::compare::translate_array_equality;
+use crate::translate::compare::{translate_array_equality, ComparisonOperator};
 use crate::translate::compute::{translate_float_computation, ArithOp};
+use crate::translate::fragments::condition::ConditionFragment;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
@@ -67,7 +67,7 @@ impl TranslateModule for Neq {
         let right = self.right.translate(meta).with_quotes(false);
         match (self.left.get_type(), self.right.get_type()) {
             (Type::Num, _) | (_, Type::Num) => translate_float_computation(meta, ArithOp::Neq, Some(left), Some(right)),
-            (Type::Int, _) =>  ArithmeticFragment::new(left, ArithOp::Neq, right).to_frag(),  
+            (Type::Int, _) | (Type::Bool, _) => ArithmeticFragment::new(left, ArithOp::Neq, right).to_frag(),
             (Type::Array(_), _) => {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, true)
@@ -77,14 +77,8 @@ impl TranslateModule for Neq {
                     )
                 }
             }
-            _ => SubprocessFragment::new(fragments!(
-                "[ \"_",
-                left,
-                "\" == \"_",
-                right,
-                "\" ]; echo $?"
-            ))
-            .to_frag(),
+            _ => ConditionFragment::new(left, ComparisonOperator::Neq, right)
+                .to_frag()
         }
     }
 }

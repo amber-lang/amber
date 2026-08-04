@@ -64,7 +64,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 impl TypeCheckModule for Ternary {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.cond.typecheck(meta)?;
-        if self.cond.get_type() != Type::Bool {
+        if ! matches!(self.cond.get_type(), Type::Bool | Type::Text | Type::Array(_)) {
             let msg = self
                 .cond
                 .get_error_message(meta)
@@ -156,7 +156,10 @@ impl TranslateModule for Ternary {
                     .map(|e| e.get_type())
                     .unwrap_or(Type::Null);
                 let is_array = true_type.is_array();
-                let cond = self.cond.translate(meta);
+                let cond = self
+                    .cond
+                    .translate(meta)
+                    .with_condition(true);
                 let true_expr = self
                     .true_expr
                     .as_ref()
@@ -168,14 +171,14 @@ impl TranslateModule for Ternary {
                     .map(|e| e.translate(meta))
                     .unwrap_or(FragmentKind::Empty);
                 let expr = fragments!(
-                    "if [ ",
-                    cond,
-                    " != 0 ]; then echo ",
-                    true_expr,
-                    "; else echo ",
-                    false_expr,
-                    "; fi"
-                );
+                        "if ",
+                        cond,
+                        "; then echo ",
+                        true_expr,
+                        "; else echo ",
+                        false_expr,
+                        "; fi"
+                    );
                 if is_array {
                     let id = meta.gen_value_id();
                     let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();

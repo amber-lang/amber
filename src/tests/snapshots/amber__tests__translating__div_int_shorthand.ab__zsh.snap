@@ -23,6 +23,7 @@ Block(
                     value: Raw(
                         RawFragment {
                             value: "20",
+                            with_condition: false,
                         },
                     ),
                 },
@@ -62,6 +63,7 @@ Block(
                                         render_type: BashValue,
                                         index: None,
                                         index_pos: None,
+                                        with_condition: false,
                                     },
                                 ),
                             ),
@@ -69,11 +71,13 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "4",
+                                        with_condition: false,
                                     },
                                 ),
                             ),
                             op: Div,
                             quoted: true,
+                            with_condition: false,
                         },
                     ),
                 },
@@ -96,6 +100,7 @@ Block(
                     value: Raw(
                         RawFragment {
                             value: "35",
+                            with_condition: false,
                         },
                     ),
                 },
@@ -135,6 +140,7 @@ Block(
                                         render_type: BashValue,
                                         index: None,
                                         index_pos: None,
+                                        with_condition: false,
                                     },
                                 ),
                             ),
@@ -142,11 +148,13 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "5",
+                                        with_condition: false,
                                     },
                                 ),
                             ),
                             op: Div,
                             quoted: true,
+                            with_condition: false,
                         },
                     ),
                 },

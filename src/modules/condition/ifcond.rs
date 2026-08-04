@@ -1,6 +1,6 @@
 use crate::fragments;
 use crate::modules::block::Block;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::statement::stmt::{Statement, StmtType};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
@@ -163,11 +163,15 @@ impl TranslateModule for IfCondition {
                 .unwrap_or(FragmentKind::Empty),
             None => {
                 let mut result = vec![];
-                result.push(fragments!(
-                    "if [ ",
-                    self.expr.translate(meta),
-                    " != 0 ]; then"
-                ));
+
+                let expression = self.expr.translate(meta)
+                    .with_quotes(
+                        matches!(self.expr.value, Some(ExprType::Text(_)))
+                    )
+                    .with_condition(true);
+
+                result.push(fragments!("if ", expression, "; then"));
+
                 if let Some(true_block) = &self.true_block {
                     result.push(true_block.translate(meta));
                 }
