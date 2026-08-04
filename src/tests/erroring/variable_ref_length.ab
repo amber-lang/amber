@@ -6,4 +6,4 @@ fun foo(ref value) {
 }
 
 let array = [1, 2, 3]
-foo(len array)
+foo(len(array))

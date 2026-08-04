@@ -1,0 +1,8 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+mv "source" "destination" 2>/dev/null
+__status=$?
+mv "source" "destination" 2>/dev/null
+__status=$?

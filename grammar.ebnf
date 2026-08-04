@@ -198,19 +198,20 @@ variable_index = '[', expression, ']' ;
 variable_init_mut = { attribute }, [ VISIBILITY ], KEYWORD_LET, identifier, '=', expression ;
 variable_init_const = { attribute }, [ VISIBILITY ], KEYWORD_CONST, identifier, '=', expression ;
 variable_get = identifier ;
-variable_set = identifier, variable_index?, '=', expression ;
+variable_set = identifier, [ variable_index ], '=', expression ;
 
 (* Function *)
 function_call = command_modifier, identifier, '(', [ expression, { ',', expression } ], ')' ;
 function_call_failed = function_call, [ handler ] ;
 function_def = { attribute }, [ VISIBILITY ], KEYWORD_FUN, identifier, '(',
-    [ [ KEYWORD_REF ], identifier, [ ':', TYPE ], { ',', [ KEYWORD_REF ], identifier, [ ':', TYPE ] } ],
-    ')', [ ':', TYPE ], [ '?' ], block ;
+    [ function_arg, { ',', function_arg } ],
+    ')', [ ':', TYPE, [ '?' ] ], block ;
+function_arg = [ KEYWORD_REF ], identifier, [ ':', TYPE ], [ '=', expression ] ;
 
 (* Loop *)
 loop = KEYWORD_LOOP, block ;
-loop_array = KEYWORD_FOR | KEYWORD_LOOP, identifier, KEYWORD_IN, expression, block ;
-loop_array_iterator = KEYWORD_FOR | KEYWORD_LOOP, identifier, ',', identifier, KEYWORD_IN, expression, block ;
+loop_array = KEYWORD_FOR, identifier, KEYWORD_IN, expression, block ;
+loop_array_iterator = KEYWORD_FOR, identifier, ',', identifier, KEYWORD_IN, expression, block ;
 while_loop = KEYWORD_WHILE, expression, block ;
 
 (* Ranges *)
@@ -223,7 +224,7 @@ if_chain = KEYWORD_IF, '{', { expression, block }, [ KEYWORD_ELSE, block ],  '}'
 ternary = expression, KEYWORD_THEN, expression, KEYWORD_ELSE, expression ;
 
 (* Main *)
-main = KEYWORD_MAIN, [ '(', identifier, ')' ], [ '?' ], block ;
+main = KEYWORD_MAIN, [ '(', identifier, ')' ], block ;
 
 (* Imports *)
 import_path = '"', { ANY_CHAR }, '"' ;
@@ -268,29 +269,29 @@ comment = '//', { ANY_CHAR }, '\n' ;
 builtins_statement = builtin_await | builtin_cd | builtin_clear | builtin_cp | builtin_disown | builtin_echo | builtin_exit | builtin_lock | builtin_mv | builtin_rm | builtin_sleep | builtin_touch ;
 
 (* Builtins *)
-builtin_await = KEYWORD_AWAIT, expression ;
-builtin_cd = KEYWORD_CD, expression ;
-builtin_clear = KEYWORD_CLEAR ;
-builtin_cp = KEYWORD_CP, expression ;
-builtin_disown = KEYWORD_DISOWN, expression ;
-builtin_echo = KEYWORD_ECHO, expression ;
-builtin_exit = KEYWORD_EXIT, expression ;
-builtin_lock = KEYWORD_LOCK, expression ;
-builtin_mv = KEYWORD_MV, expression ;
-builtin_rm = KEYWORD_RM, expression ;
-builtin_sleep = KEYWORD_SLEEP, expression ;
-builtin_touch = KEYWORD_TOUCH, expression ;
+builtin_await = KEYWORD_AWAIT, '(', [ expression, { ',', expression } ], ')' ;
+builtin_cd = KEYWORD_CD, '(', [ expression, { ',', expression } ], ')' ;
+builtin_clear = KEYWORD_CLEAR, '(', ')' ;
+builtin_cp = KEYWORD_CP, '(', [ expression, { ',', expression } ], ')' ;
+builtin_disown = KEYWORD_DISOWN, '(', [ expression, { ',', expression } ], ')' ;
+builtin_echo = KEYWORD_ECHO, '(', [ expression, { ',', expression } ], ')' ;
+builtin_exit = KEYWORD_EXIT, '(', [ expression, { ',', expression } ], ')' ;
+builtin_lock = KEYWORD_LOCK, '(', [ expression, { ',', expression } ], ')' ;
+builtin_mv = KEYWORD_MV, '(', [ expression, { ',', expression } ], ')' ;
+builtin_rm = KEYWORD_RM, '(', [ expression, { ',', expression } ], ')' ;
+builtin_sleep = KEYWORD_SLEEP, '(', [ expression, { ',', expression } ], ')' ;
+builtin_touch = KEYWORD_TOUCH, '(', [ expression, { ',', expression } ], ')' ;
 
 builtins_expression = builtin_len | builtin_lines | builtin_ls | builtin_nameof | builtin_pid | builtin_pwd | builtin_shellname | builtin_shellversion ;
 
-builtin_len = KEYWORD_LEN, expression ;
-builtin_lines = KEYWORD_LINES, expression ;
-builtin_ls = KEYWORD_LS, expression ;
-builtin_nameof = KEYWORD_NAMEOF, expression ;
-builtin_pid = KEYWORD_PID ;
-builtin_pwd = KEYWORD_PWD, expression ;
-builtin_shellname = KEYWORD_SHELLNAME ;
-builtin_shellversion = KEYWORD_SHELLVERSION ;
+builtin_len = KEYWORD_LEN, '(', [ expression, { ',', expression } ], ')' ;
+builtin_lines = KEYWORD_LINES, '(', [ expression, { ',', expression } ], ')' ;
+builtin_ls = KEYWORD_LS, '(', [ expression, { ',', expression } ], ')' ;
+builtin_nameof = KEYWORD_NAMEOF, '(', [ expression, { ',', expression } ], ')' ;
+builtin_pid = KEYWORD_PID, '(', ')' ;
+builtin_pwd = KEYWORD_PWD, '(', ')' ;
+builtin_shellname = KEYWORD_SHELLNAME, '(', ')' ;
+builtin_shellversion = KEYWORD_SHELLVERSION, '(', ')' ;
 
 
 (* Test *)

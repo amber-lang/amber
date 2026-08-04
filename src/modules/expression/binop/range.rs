@@ -105,7 +105,7 @@ impl Range {
         let from_var = meta.push_ephemeral_variable(from_var_stmt).to_frag();
 
         let to = self.to.translate(meta);
-        let to_var_stmt = VarStmtFragment::new("to", self.from.kind.clone(), to);
+        let to_var_stmt = VarStmtFragment::new("to", self.to.kind.clone(), to);
         let to_var = meta.push_ephemeral_variable(to_var_stmt).to_frag();
 
         let forward_to = self.adjust_end_for_forward_range(to_var.clone());

@@ -28,7 +28,15 @@ impl UnOp for Len {
     }
 
     fn parse_operator(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let position = meta.get_index();
         token(meta, "len")?;
+        let has_parens = meta.get_current_token().is_some_and(|tok| tok.word == "(");
+        if !has_parens {
+            let tok = meta.get_token_at(position);
+            let warning = Message::new_warn_at_token(meta, tok)
+                .message("Calling a builtin without parentheses is deprecated");
+            meta.add_message(warning);
+        }
         Ok(())
     }
 }
