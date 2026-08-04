@@ -1,6 +1,6 @@
 use crate::fragments;
 use crate::modules::block::Block;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::statement::comment::Comment;
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
@@ -20,6 +20,22 @@ pub struct IfChain {
 crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
+    pub fn terminates_control_flow(&self) -> bool {
+        for (_, cond, block) in &self.cond_blocks {
+            if cond.analyze_control_flow() == Some(true) {
+                return block.terminates_control_flow();
+            }
+        }
+        let all_terminate = self
+            .cond_blocks
+            .iter()
+            .all(|(_, _, block)| block.terminates_control_flow());
+        match (&self.false_block, all_terminate) {
+            (Some((_, false_block)), true) => false_block.terminates_control_flow(),
+            _ => false,
+        }
+    }
+
     fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, reason: &str) {
         if meta.context.cc_flags.contains(&CCFlags::AllowDeadCode) {
             return;
@@ -80,7 +96,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
                 syntax(meta, &mut *false_block)?;
                 self.false_block = Some((comments, false_block));
                 if token(meta, "}").is_err() {
-                    return error!(
+                    error!(
                         meta,
                         meta.get_current_token(),
                         "Expected `else` condition to be the last in the if chain"
@@ -206,12 +222,18 @@ impl TranslateModule for IfChain {
             for comment in comments {
                 result.push(comment.translate(meta));
             }
+            let condition = cond.translate(meta)
+                .with_quotes(
+                    matches!(cond.value, Some(ExprType::Text(_)))
+                )
+                .with_condition(true);
+                
             if is_first {
-                result.push(fragments!("if [ ", cond.translate(meta), " != 0 ]; then"));
+                result.push(fragments!("if ", condition, "; then"));
                 result.push(block.translate(meta));
                 is_first = false;
             } else {
-                result.push(fragments!("elif [ ", cond.translate(meta), " != 0 ]; then"));
+                result.push(fragments!("elif ", condition, "; then"));
                 result.push(block.translate(meta));
             }
         }

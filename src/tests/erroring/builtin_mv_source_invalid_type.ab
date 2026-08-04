@@ -1,0 +1,6 @@
+// Output
+// Builtin function `mv` can only be used with values of type Text
+
+main {
+    mv(1, "destination") ?
+}

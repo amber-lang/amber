@@ -1,4 +1,4 @@
-use crate::fragments;
+use crate::raw_fragment;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
@@ -95,9 +95,9 @@ impl TypeCheckModule for Is {
 impl TranslateModule for Is {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         if self.expr.get_type() == self.kind {
-            fragments!("1")
+            raw_fragment!("1")
         } else {
-            fragments!("0")
+            raw_fragment!("0")
         }
     }
 }

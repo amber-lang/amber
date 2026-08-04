@@ -13,6 +13,7 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "15",
+                                        with_condition: false,
                                     },
                                 ),
                             ),
@@ -20,11 +21,13 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "45",
+                                        with_condition: false,
                                     },
                                 ),
                             ),
                             op: Add,
                             quoted: true,
+                            with_condition: false,
                         },
                     ),
                 },
@@ -40,6 +43,7 @@ Block(
                                             Raw(
                                                 RawFragment {
                                                     value: "39",
+                                                    with_condition: false,
                                                 },
                                             ),
                                         ),
@@ -47,11 +51,13 @@ Block(
                                             Raw(
                                                 RawFragment {
                                                     value: "21",
+                                                    with_condition: false,
                                                 },
                                             ),
                                         ),
                                         op: Add,
                                         quoted: true,
+                                        with_condition: false,
                                     },
                                 ),
                             ),
@@ -59,11 +65,13 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "80",
+                                        with_condition: false,
                                     },
                                 ),
                             ),
                             op: Add,
                             quoted: true,
+                            with_condition: false,
                         },
                     ),
                 },
@@ -82,6 +90,7 @@ Block(
                                                         Raw(
                                                             RawFragment {
                                                                 value: "3",
+                                                                with_condition: false,
                                                             },
                                                         ),
                                                     ),
@@ -89,11 +98,13 @@ Block(
                                                         Raw(
                                                             RawFragment {
                                                                 value: "9",
+                                                                with_condition: false,
                                                             },
                                                         ),
                                                     ),
                                                     op: Add,
                                                     quoted: true,
+                                                    with_condition: false,
                                                 },
                                             ),
                                         ),
@@ -101,11 +112,13 @@ Block(
                                             Raw(
                                                 RawFragment {
                                                     value: "648",
+                                                    with_condition: false,
                                                 },
                                             ),
                                         ),
                                         op: Add,
                                         quoted: true,
+                                        with_condition: false,
                                     },
                                 ),
                             ),
@@ -113,11 +126,13 @@ Block(
                                 Raw(
                                     RawFragment {
                                         value: "1232",
+                                        with_condition: false,
                                     },
                                 ),
                             ),
                             op: Add,
                             quoted: true,
+                            with_condition: false,
                         },
                     ),
                 },

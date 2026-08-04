@@ -1,0 +1,4 @@
+// Output
+// Destructuring initialization requires an array type, but received 'Int'
+
+let [x] = 1

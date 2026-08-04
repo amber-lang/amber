@@ -1,0 +1,6 @@
+// Output
+// Optional argument does not match annotated type
+
+fun foo(a: Text = 1) {
+    echo(a)
+}

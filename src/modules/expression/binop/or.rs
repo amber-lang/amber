@@ -1,7 +1,8 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::translate::compute::ArithOp;
+use crate::translate::fragments::condition::ConditionFragment;
+use crate::translate::compare::ComparisonOperator;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
@@ -96,7 +97,11 @@ impl TypeCheckModule for Or {
             "logical OR",
             &mut self.left,
             &mut self.right,
-            &[Type::Bool],
+            &[
+                Type::Bool, 
+                Type::Text, 
+                Type::Array(Box::new(Type::Generic))
+            ],
         )?;
         Ok(())
     }
@@ -106,7 +111,7 @@ impl TranslateModule for Or {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let left = self.left.translate(meta);
         let right = self.right.translate(meta);
-        ArithmeticFragment::new(left, ArithOp::Or, right).to_frag()
+        ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
     }
 }
 

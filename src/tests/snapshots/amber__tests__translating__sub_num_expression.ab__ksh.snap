@@ -15,36 +15,43 @@ Block(
                                         Raw(
                                             RawFragment {
                                                 value: "awk 'BEGIN { print ARGV[1]",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "-",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "ARGV[2] }'",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: " ",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "21.2",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: " ",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "7.3",
+                                                with_condition: false,
                                             },
                                         ),
                                     ],
@@ -52,6 +59,7 @@ Block(
                                 },
                             ),
                             quoted: false,
+                            with_condition: false,
                         },
                     ),
                 },
@@ -66,21 +74,25 @@ Block(
                                         Raw(
                                             RawFragment {
                                                 value: "awk 'BEGIN { print ARGV[1]",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "-",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "ARGV[2] }'",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: " ",
+                                                with_condition: false,
                                             },
                                         ),
                                         Subprocess(
@@ -91,36 +103,43 @@ Block(
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "awk 'BEGIN { print ARGV[1]",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "-",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "ARGV[2] }'",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: " ",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "2.32",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: " ",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "1.12",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                         ],
@@ -128,16 +147,19 @@ Block(
                                                     },
                                                 ),
                                                 quoted: false,
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: " ",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "3.32",
+                                                with_condition: false,
                                             },
                                         ),
                                     ],
@@ -145,6 +167,7 @@ Block(
                                 },
                             ),
                             quoted: false,
+                            with_condition: false,
                         },
                     ),
                 },
@@ -159,21 +182,25 @@ Block(
                                         Raw(
                                             RawFragment {
                                                 value: "awk 'BEGIN { print ARGV[1]",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "-",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "ARGV[2] }'",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: " ",
+                                                with_condition: false,
                                             },
                                         ),
                                         Subprocess(
@@ -184,36 +211,43 @@ Block(
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "awk 'BEGIN { print ARGV[1]",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "-",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "ARGV[2] }'",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: " ",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "1.5",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: " ",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                             Raw(
                                                                 RawFragment {
                                                                     value: "3.5",
+                                                                    with_condition: false,
                                                                 },
                                                             ),
                                                         ],
@@ -221,16 +255,19 @@ Block(
                                                     },
                                                 ),
                                                 quoted: false,
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: " ",
+                                                with_condition: false,
                                             },
                                         ),
                                         Raw(
                                             RawFragment {
                                                 value: "2.5",
+                                                with_condition: false,
                                             },
                                         ),
                                     ],
@@ -238,6 +275,7 @@ Block(
                                 },
                             ),
                             quoted: false,
+                            with_condition: false,
                         },
                     ),
                 },

@@ -121,7 +121,14 @@ impl VarStmtFragment {
         let var_name = self.render_variable_name(meta);
         let is_running_command = self.value.is_running_command();
         let mut assignment_parts = vec![];
-        let value = self.value.to_string(meta);
+        let is_eval = meta.eval_ctx;
+        let value = if matches!(self.kind, Type::Num) {
+            meta.eval_ctx = false;
+            self.value.to_string(meta)
+        }  else {
+            self.value.to_string(meta)
+        };
+        meta.eval_ctx = is_eval;
         assignment_parts.push(var_name.clone());
         assignment_parts.extend(
             self.index

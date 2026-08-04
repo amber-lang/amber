@@ -1,4 +1,4 @@
-import * from "std/env"
+import { echo_colored } from "std/env"
 
 // Output
 // [33mHello Amber![0m

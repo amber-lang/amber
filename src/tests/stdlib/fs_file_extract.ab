@@ -1,3 +1,7 @@
+// Output
+// Succeeded
+// Succeeded
+
 import * from "std/fs"
 import { array_contains } from "std/array"
 
@@ -21,4 +25,25 @@ main {
     }
 
     $ rm -rf {src_dir} {dist_dir} $?
+
+    const src_dir2 = temp_dir_create("amber-test-zip-src-XXXX")?
+    trust cd(src_dir2)
+    trust touch("test.txt")
+    const archive_path = "{src_dir2}/archive.zip"
+    silent $ zip "{archive_path}" test.txt $?
+
+    const dist_dir2 = temp_dir_create("amber-test-zip-dist-XXXX")?
+    file_extract(archive_path, dist_dir2)?
+
+    const extracted = file_exists("{dist_dir2}/test.txt")
+    if extracted {
+        echo("Succeeded")
+    } else {
+        echo("Extraction fails: {dist_dir2}/test.txt does not exist")
+    }
+
+    $ rm -rf {src_dir2} {dist_dir2} $?
+    if not extracted {
+        fail(1)
+    }
 }

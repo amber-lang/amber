@@ -263,32 +263,34 @@ impl AmberCompiler {
     fn gen_preamble(
         &self,
         sudo_used: bool,
-        shell_metadata_used: bool,
+        shellname_used: bool,
+        shellversion_used: bool,
         target_shell: &ShellType,
     ) -> FragmentKind {
         let mut preamble = Vec::new();
         match target_shell {
             ShellType::BashModern | ShellType::BashLegacy => (),
             ShellType::Zsh => {
-                // if the shell is ZSH:
-                // - emulate ksh (ksh arrays, word splitting, ...) which matches more with bash
-                // enable BSD_echo; prevents backslashes from being interpreted twice (causes "\\\\" to return "\")
                 preamble.push(RawFragment::new(r#"emulate ksh"#).to_frag());
                 preamble.push(RawFragment::new(r#"setopt BSD_echo"#).to_frag());
                 preamble.push(RawFragment::new(r#"__read_args='-A'"#).to_frag());
             }
             ShellType::Ksh => {
-                // if the shell is KSH:
-                // - enable job control
                 preamble.push(RawFragment::new(r#"set -m"#).to_frag());
             }
         }
         if sudo_used {
             preamble.push(RawFragment::new(include_str!("preambles/sudo.sh").trim_end()).to_frag());
         }
-        if shell_metadata_used {
+        if shellname_used {
             preamble.push(
-                RawFragment::new(include_str!("preambles/shellname-shellversion.sh").trim_end())
+                RawFragment::new(include_str!("preambles/shellname.sh").trim_end())
+                    .to_frag(),
+            );
+        }
+        if shellversion_used {
+            preamble.push(
+                RawFragment::new(include_str!("preambles/shellversion.sh").trim_end())
                     .to_frag(),
             );
         }
@@ -306,7 +308,8 @@ impl AmberCompiler {
         // Add preamble that contains all code that should be executed before the main code
         result.append(self.gen_preamble(
             sudo_used,
-            shellname_used || shellversion_used,
+            shellname_used,
+            shellversion_used,
             &meta_translate.target.shell,
         ));
 

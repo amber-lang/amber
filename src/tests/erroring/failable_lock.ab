@@ -1,0 +1,6 @@
+// Output
+// The `lock` builtin can fail and requires explicit failure handling. Use '?', 'failed', 'succeeded', or 'exited' to manage its result.
+
+main {
+    lock("/tmp/amber-test.lock")
+}

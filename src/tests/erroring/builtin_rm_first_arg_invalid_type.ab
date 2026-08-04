@@ -1,0 +1,6 @@
+// Output
+// Builtin function `rm` can only be used with 1st argument of type Text
+
+main {
+    rm(1) ?
+}

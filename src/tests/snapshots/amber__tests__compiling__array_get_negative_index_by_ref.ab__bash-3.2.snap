@@ -25,17 +25,17 @@ comp="$(
     for (( i=0; i<len_comp; i++ )); do
         left="${left_comp[i]?"Index out of bounds (at unknown)"}"
         right="${right_comp[i]?"Index out of bounds (at unknown)"}"
-        if (( "${left}" < "${right}" )); then
+        if (( left < right )); then
             echo 1
             exit
-        elif (( "${left}" > "${right}" )); then
+        elif (( left > right )); then
             echo 0
             exit
         fi
     done
     (( "${#left_comp[@]}" < "${#right_comp[@]}" )) && echo 1 || echo 0
 )"
-if [ "$(( $([ "_${EXEC_SHELL}" != "_bash" ]; echo $?) && comp ))" != 0 ]; then
+if { [[ "${EXEC_SHELL}" == "bash" ]] && [[ "${comp}" != 0 ]]; }; then
     echo "Succeeded"
     exit 0
 fi

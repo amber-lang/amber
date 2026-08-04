@@ -1,0 +1,6 @@
+// Output
+// Builtin function `cp` can only be used with values of type Text
+
+main {
+    cp(1, "destination") ?
+}

@@ -3,7 +3,8 @@ use super::{
     list::ListFragment, log::LogFragment, raw::RawFragment, subprocess::SubprocessFragment,
     var_expr::VarExprFragment, var_stmt::VarStmtFragment,
 };
-use crate::{translate::fragments::arithmetic::ArithmeticFragment, utils::TranslateMetadata};
+use crate::translate::fragments::{arithmetic::ArithmeticFragment, condition::ConditionFragment};
+use crate::utils::TranslateMetadata;
 
 pub trait FragmentRenderable {
     fn to_string(self, meta: &mut TranslateMetadata) -> String;
@@ -21,6 +22,7 @@ pub enum FragmentKind {
     Subprocess(SubprocessFragment),
     Arithmetic(ArithmeticFragment),
     Comment(CommentFragment),
+    Condition(ConditionFragment),
     Log(LogFragment),
     #[default]
     Empty,
@@ -47,6 +49,18 @@ impl FragmentKind {
             FragmentKind::List(list) => list.is_empty_logic(),
             FragmentKind::Log(log) => log.value.is_empty_logic(),
             _ => false,
+        }
+    }
+
+    pub fn with_condition(self, cond: bool) -> Self {
+        match self {
+            FragmentKind::Arithmetic(var) => FragmentKind::Arithmetic(var.with_condition(cond)),
+            FragmentKind::VarExpr(var) => FragmentKind::VarExpr(var.with_condition(cond)),
+            FragmentKind::Subprocess(var) => FragmentKind::Subprocess(var.with_condition(cond)),
+            FragmentKind::Raw(var) => FragmentKind::Raw(var.with_condition(cond)),
+            FragmentKind::Condition(var) => FragmentKind::Condition(var.with_subprocess(!cond)),
+            FragmentKind::Interpolable(var) => FragmentKind::Interpolable(var.with_condition(cond)),
+            _ => self
         }
     }
 
@@ -119,6 +133,7 @@ impl FragmentRenderable for FragmentKind {
             FragmentKind::Subprocess(subprocess) => subprocess.to_string(meta),
             FragmentKind::Arithmetic(arithmetic) => arithmetic.to_string(meta),
             FragmentKind::Comment(comment) => comment.to_string(meta),
+            FragmentKind::Condition(condition) => condition.to_string(meta),
             FragmentKind::Log(log) => log.to_string(meta),
             FragmentKind::Empty => String::new(),
         }
