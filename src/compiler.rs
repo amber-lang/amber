@@ -49,6 +49,7 @@ pub struct CompilerOptions {
     pub no_optimize: bool,
     pub header_path: Option<String>,
     pub footer_path: Option<String>,
+    pub shebang: Option<String>,
 }
 
 impl Default for CompilerOptions {
@@ -65,6 +66,7 @@ impl Default for CompilerOptions {
             no_optimize: false,
             header_path: None,
             footer_path: None,
+            shebang: None,
         }
     }
 }
@@ -88,6 +90,7 @@ impl CompilerOptions {
             no_optimize: false,
             header_path: None,
             footer_path: None,
+            shebang: None,
         }
     }
 
@@ -108,6 +111,9 @@ impl CompilerOptions {
         }
         if let Ok(path) = std::env::var("AMBER_FOOTER") {
             self.footer_path = Some(path);
+        }
+        if let Ok(path) = std::env::var("AMBER_SHEBANG") {
+            self.shebang = Some(path);
         }
         self
     }
@@ -355,7 +361,10 @@ impl AmberCompiler {
 
         Ok(format!(
             "{}\n{}\n{}",
-            self.gen_header(meta_translate.target.shell),
+            self.options
+                .shebang
+                .clone()
+                .unwrap_or(self.gen_header(meta_translate.target.shell)),
             result,
             self.gen_footer()
         ))
