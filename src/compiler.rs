@@ -364,7 +364,7 @@ impl AmberCompiler {
             self.options
                 .shebang
                 .clone()
-                .unwrap_or(self.gen_header(meta_translate.target.shell)),
+                .unwrap_or_else(|| self.gen_header(meta_translate.target.shell)),
             result,
             self.gen_footer()
         ))
