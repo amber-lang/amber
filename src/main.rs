@@ -518,9 +518,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             0
         }
         CommandKind::Build(command) => {
-            if let Some(shebang) = command.shebang.clone() {
-                std::env::set_var("AMBER_SHEBANG", shebang);
-            };
             handle_build(command, cli.target)?;
             0
         }

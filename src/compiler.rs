@@ -112,9 +112,6 @@ impl CompilerOptions {
         if let Ok(path) = std::env::var("AMBER_FOOTER") {
             self.footer_path = Some(path);
         }
-        if let Ok(path) = std::env::var("AMBER_SHEBANG") {
-            self.shebang = Some(path);
-        }
         self
     }
 
