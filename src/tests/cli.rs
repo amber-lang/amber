@@ -633,3 +633,28 @@ fn test_cli_param_injection() {
 
     let _ = temp_file.close();
 }
+
+#[test]
+fn test_cli_shebang() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args([
+        "build",
+        "src/tests/validity/hello_world.ab",
+        "-",
+        "--shebang",
+        "#!/usr/bin/env nu",
+    ])
+    .assert()
+    .success();
+}
+
+#[test]
+fn test_cli_shebang_no_value() {
+    let mut cmd = Command::new(amber_bin());
+    cmd.args(["build", "src/tests/validity/hello_world.ab", "--shebang"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "a value is required for '--shebang <SHEBANG>",
+        ));
+}
