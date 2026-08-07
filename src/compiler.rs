@@ -119,6 +119,11 @@ impl CompilerOptions {
         self.target = target;
         self
     }
+
+    pub fn with_shebang(mut self, shebang: Option<String>) -> Self {
+        self.shebang = shebang;
+        self
+    }
 }
 
 pub struct AmberCompiler {
