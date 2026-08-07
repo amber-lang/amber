@@ -239,7 +239,7 @@ impl AmberCompiler {
     }
 
     fn gen_header(&self, target_shell: ShellType) -> String {
-        let header_template = if let Some(dynamic) = &self.options.header_path {
+        let mut header_template = if let Some(dynamic) = &self.options.header_path {
             fs::read_to_string(dynamic).unwrap_or_else(|_| {
                 let msg = format!("Couldn't read the dynamic header file from path '{dynamic}'");
                 Message::new_err_msg(msg).show();
@@ -248,6 +248,16 @@ impl AmberCompiler {
         } else {
             include_str!("header.sh").trim_end().to_string()
         };
+
+        if !self.options.header_path.is_some() {
+            let shebang = self
+                .options
+                .shebang
+                .clone()
+                .unwrap_or_else(|| String::from("#!/usr/bin/env {{ shell }}"));
+            header_template = format!("{}\n{}\n", shebang, header_template);
+        }
+
         let shell_name = target_shell.family_name();
         header_template
             .replace("{{ version }}", get_version())
@@ -363,10 +373,7 @@ impl AmberCompiler {
 
         Ok(format!(
             "{}\n{}\n{}",
-            self.options
-                .shebang
-                .clone()
-                .unwrap_or_else(|| self.gen_header(meta_translate.target.shell)),
+            self.gen_header(meta_translate.target.shell),
             result,
             self.gen_footer()
         ))
