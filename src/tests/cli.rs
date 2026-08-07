@@ -637,15 +637,31 @@ fn test_cli_param_injection() {
 #[test]
 fn test_cli_shebang() {
     let mut cmd = Command::new(amber_bin());
-    cmd.args([
-        "build",
-        "src/tests/validity/hello_world.ab",
-        "-",
-        "--shebang",
-        "#!/usr/bin/env nu",
-    ])
-    .assert()
-    .success();
+    let output = cmd
+        .args([
+            "build",
+            "src/tests/validity/hello_world.ab",
+            "-",
+            "--shebang",
+            "#!/usr/bin/env nu",
+        ])
+        .output()
+        .expect("Failed to execute command");
+
+    let stdout_str = String::from_utf8(output.stdout).expect("Stdout was not UTF-8");
+
+    let first_line = stdout_str.lines().next().expect("Output was empty");
+
+    assert_eq!(first_line, "#!/usr/bin/env nu");
+
+    let lines = stdout_str.lines();
+
+    let shebang_count = lines.filter(|line| line.starts_with("#!")).count();
+    assert_eq!(
+        shebang_count, 1,
+        "Expected only one shebang line in generated header. Got {}",
+        shebang_count
+    );
 }
 
 #[test]
