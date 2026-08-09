@@ -1,0 +1,11 @@
+main {
+    let my_condition = true
+    while my_condition {
+        const i = 1
+        if i <= 3: {
+            echo(i)
+            my_condition = false
+        }
+        else: { break }
+    }
+}
