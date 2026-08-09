@@ -26,7 +26,22 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         token(meta, "while")?;
+        // Parse the condition expression
+        let tok = meta.get_current_token();
         syntax(meta, &mut self.condition)?;
+
+        // Validate that the condition is a boolean expression
+        if ! matches!(self.condition.get_type(), Type::Bool | Type::Text | Type::Array(_)) {
+            return error!(
+                meta,
+                tok,
+                format!(
+                    "Expected boolean expression in while condition, got {}",
+                    self.condition.get_type()
+                )
+            );
+        }
+
         syntax(meta, &mut self.block)?;
         Ok(())
     }
@@ -35,18 +50,7 @@ impl SyntaxModule<ParserMetadata> for WhileLoop {
 impl TypeCheckModule for WhileLoop {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.condition.typecheck(meta)?;
-
-        if ! matches!(self.condition.get_type(), Type::Bool | Type::Text | Type::Array(_)) {
-            return error_pos!(
-                meta,
-                self.condition.get_position(),
-                format!(
-                    "Expected boolean expression in while condition, got {}",
-                    self.condition.get_type()
-                )
-            );
-        }
-
+        // Save loop context state and set it to true
         meta.with_context_fn(Context::set_is_loop_ctx, true, |meta| {
             self.block.typecheck(meta)
         })?;
