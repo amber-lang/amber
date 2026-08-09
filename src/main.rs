@@ -150,6 +150,9 @@ struct BuildCommand {
     /// Code generation target shell
     #[arg(long)]
     target: Option<ShellType>,
+
+    #[arg(long)]
+    shebang: Option<String>,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -417,7 +420,8 @@ fn create_output_dir(command: &BuildCommand, file: &Path) -> PathBuf {
 fn build_file(command: &BuildCommand, target: &Option<ShellType>, input: PathBuf, output: PathBuf) {
     let options = CompilerOptions::from_args(&command.no_proc, command.minify, false, None)
         .with_target(*target)
-        .with_env_vars();
+        .with_env_vars()
+        .with_shebang(command.shebang.clone());
 
     let (code, _) = compile_input(input, options);
     write_output(output, code);
