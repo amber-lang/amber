@@ -1,0 +1,6 @@
+// Output
+// Expected boolean expression in while condition, got Int
+
+while 5 {
+    echo 1
+}
