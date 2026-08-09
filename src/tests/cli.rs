@@ -674,3 +674,24 @@ fn test_cli_shebang_no_value() {
             "a value is required for '--shebang <SHEBANG>",
         ));
 }
+
+#[test]
+fn test_cli_shebang_empty_string() {
+    let mut cmd = Command::new(amber_bin());
+    let output = cmd
+        .args([
+            "build",
+            "src/tests/validity/hello_world.ab",
+            "-",
+            "--shebang",
+            "",
+        ])
+        .output()
+        .expect("Failed to execute command");
+
+    let stdout_str = String::from_utf8(output.stdout).expect("Stdout was not UTF-8");
+
+    let first_line = stdout_str.lines().next().expect("Output was empty");
+
+  assert!(first_line.starts_with("#!/usr/bin/env"));
+}

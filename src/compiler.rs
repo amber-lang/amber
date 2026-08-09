@@ -254,6 +254,7 @@ impl AmberCompiler {
                 .options
                 .shebang
                 .clone()
+                .filter(|s| !s.is_empty())
                 .unwrap_or_else(|| String::from("#!/usr/bin/env {{ shell }}"));
             header_template = format!("{}\n{}\n", shebang, header_template);
         }
