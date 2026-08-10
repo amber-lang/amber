@@ -52,11 +52,16 @@ fun verify_format(format: Text): Bool? {
         fail(6)
     }
 
-    const extracted = file_exists("{created_dist}/{test_file}")
+    const is_file_extracted = file_exists("{created_dist}/{test_file}")
+    if not is_file_extracted {
+        cleanup_dirs([created_src, created_dist])
+        echo("The file {test_file} was not extracted from \"{format}\" format")
+        fail(7)
+    }
 
     cleanup_dirs([created_src, created_dist])
 
-    return extracted
+    return true
 }
 
 main {
