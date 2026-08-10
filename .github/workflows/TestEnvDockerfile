@@ -6,6 +6,7 @@ RUN apk add \
   curl \
   # Includes mktemp
   coreutils \
+  unzip \
   zip \
   ;
 RUN if [ "$SED_VERSION" == "GNU_sed" ]; then apk add sed; fi
