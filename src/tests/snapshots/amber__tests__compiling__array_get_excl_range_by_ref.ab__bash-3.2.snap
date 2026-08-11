@@ -40,9 +40,9 @@ test_range__0_v0() {
         for (( end_7=0; end_7 <= 4; end_7++ )); do
             local slice_upper_0="${end_7}"
             local slice_offset_1="${begin_6}"
-            local slice_offset_1=$((slice_offset_1 > 0 ? slice_offset_1 : 0))
-            local slice_length_2="$(( slice_upper_0 - slice_offset_1 ))"
-            local slice_length_2=$((slice_length_2 > 0 ? slice_length_2 : 0))
+            local slice_offset_1=$((${slice_offset_1} > 0 ? ${slice_offset_1} : 0))
+            local slice_length_2="$(( ${slice_upper_0} - ${slice_offset_1} ))"
+            local slice_length_2=$((${slice_length_2} > 0 ? ${slice_length_2} : 0))
             eval "local byref_5_deref_6_array=(\"\${${byref_5}[@]}\")"
             local slice_8=("${byref_5_deref_6_array[@]:${slice_offset_1}:${slice_length_2}}")
             local __length_3=("${slice_8[@]}")

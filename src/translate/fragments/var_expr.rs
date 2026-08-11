@@ -266,8 +266,6 @@ impl VarExprFragment {
                     } else {
                         format!("{quote}{dollar}{{!{name}}}{quote}")
                     }
-                } else if self.is_math_var && !self.is_length && index_is_none {
-                    name.to_string()
                 } else {
                     format!("{quote}{dollar}{{{prefix}{name}{suffix}}}{quote}")
                 }

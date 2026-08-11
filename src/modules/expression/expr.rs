@@ -169,9 +169,10 @@ impl Expr {
             Some(ExprType::And(and)) => and.has_side_effects(),
             Some(ExprType::Or(or)) => or.has_side_effects(),
             Some(ExprType::Not(not)) => not.has_side_effects(),
-            // For other compound expressions, conservatively assume they might have side effects
-            // if they contain function calls or commands at the top level
-            Some(_) => false,
+            // Wrapper variants (Array, Parentheses, Ternary, Range, binary ops, etc.)
+            // may contain nested invocations or commands; conservatively assume side
+            // effects so constant folding cannot eliminate them.
+            Some(_) => true,
             None => false,
         }
     }

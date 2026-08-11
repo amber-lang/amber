@@ -115,14 +115,13 @@ impl TypeCheckModule for Or {
 impl TranslateModule for Or {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         match self.analyze_control_flow() {
-            Some(value) => {
-                if !self.has_side_effects() {
-                    RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
-                } else {
-                    let left = self.left.translate(meta);
-                    let right = self.right.translate(meta);
-                    ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
-                }
+            Some(value) if !self.has_side_effects() => {
+                RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
+            }
+            Some(_) => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
             }
             None => {
                 let left = self.left.translate(meta);
