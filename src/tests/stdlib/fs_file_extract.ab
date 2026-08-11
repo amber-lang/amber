@@ -24,7 +24,7 @@ main {
         echo("Extraction fails: {dist_dir}/test.txt does not exist")
     }
 
-    $ rm -rf {src_dir} {dist_dir} $?
+    $ rm -rf "{src_dir}" "{dist_dir}" $?
 
     const src_dir2 = temp_dir_create("amber-test-zip-src-XXXX")?
     trust cd(src_dir2)
@@ -42,7 +42,7 @@ main {
         echo("Extraction fails: {dist_dir2}/test.txt does not exist")
     }
 
-    $ rm -rf {src_dir2} {dist_dir2} $?
+    $ rm -rf "{src_dir2}" "{dist_dir2}" $?
     if not extracted {
         fail(1)
     }
