@@ -4,11 +4,11 @@ expression: ast
 ---
 x_0=1
 # Check for large values
-if (( x_0 > 10 )); then
+if (( ${x_0} > 10 )); then
     echo "large"
 # Then for the second check
 # Check for medium values
-elif (( x_0 > 5 )); then
+elif (( ${x_0} > 5 )); then
     echo "medium"
 # Otherwise it's small
 else
