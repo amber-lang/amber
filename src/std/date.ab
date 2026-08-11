@@ -50,7 +50,7 @@ pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false):
 #[allow_absurd_cast]
 pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Int? {
     if utc {
-        return $ date -u -d "\$(date -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
+        return $ date -u -d "\$(date -u -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
             return $ date -u -j -f "{format}" "{date}" +%s $? as Int
         } as Int
     }

@@ -156,6 +156,25 @@ impl Expr {
             .map(|val| val.extract_facts())
             .unwrap_or_default()
     }
+
+    /// Check if this expression has side effects (function calls, commands, etc.)
+    /// Returns true if the expression MUST be evaluated even if its value is not needed
+    pub fn has_side_effects(&self) -> bool {
+        match &self.value {
+            // Function and command invocations have side effects
+            Some(ExprType::FunctionInvocation(_)) => true,
+            Some(ExprType::Command(_)) => true,
+            Some(ExprType::LinesInvocation(_)) => true,
+            // Compound expressions: delegate to their has_side_effects methods
+            Some(ExprType::And(and)) => and.has_side_effects(),
+            Some(ExprType::Or(or)) => or.has_side_effects(),
+            Some(ExprType::Not(not)) => not.has_side_effects(),
+            // For other compound expressions, conservatively assume they might have side effects
+            // if they contain function calls or commands at the top level
+            Some(_) => false,
+            None => false,
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
