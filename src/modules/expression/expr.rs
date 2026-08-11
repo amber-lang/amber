@@ -161,17 +161,14 @@ impl Expr {
     /// Returns true if the expression MUST be evaluated even if its value is not needed
     pub fn has_side_effects(&self) -> bool {
         match &self.value {
-            // Function and command invocations have side effects
             Some(ExprType::FunctionInvocation(_)) => true,
             Some(ExprType::Command(_)) => true,
             Some(ExprType::LinesInvocation(_)) => true,
-            // Compound expressions: delegate to their has_side_effects methods
             Some(ExprType::And(and)) => and.has_side_effects(),
             Some(ExprType::Or(or)) => or.has_side_effects(),
             Some(ExprType::Not(not)) => not.has_side_effects(),
-            // Wrapper variants (Array, Parentheses, Ternary, Range, binary ops, etc.)
-            // may contain nested invocations or commands; conservatively assume side
-            // effects so constant folding cannot eliminate them.
+            Some(ExprType::Bool(_)) => false,
+            Some(ExprType::VariableGet(_)) => false,
             Some(_) => true,
             None => false,
         }

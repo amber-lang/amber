@@ -87,14 +87,8 @@ impl TranslateModule for Not {
             if !self.expr.has_side_effects() {
                 RawFragment::from((if const_value { "1" } else { "0" }).to_string()).to_frag()
             } else {
-                // Must evaluate the expression to preserve side effects
-                let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
-                let expr = self.expr.translate(meta).with_condition(is_iterable);
-                if is_iterable {
-                    ConditionFragment::new(None, ComparisonOperator::Not, expr).to_frag()
-                } else {
-                    ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
-                }
+                let expr = self.expr.translate(meta).with_condition(false);
+                ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
             }
         } else {
             let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
