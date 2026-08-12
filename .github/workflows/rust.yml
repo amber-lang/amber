@@ -117,7 +117,7 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ~/docker-images/${{ matrix.bash_docker_image }}-${{ matrix.sed }}
-          key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}
+          key: ${{ matrix.bash_docker_image }}-${{ matrix.sed }}-${{ hashFiles('.github/workflows/TestEnvDockerfile') }}
       - name: Load or build docker image
         run: |
           if [ -f ~/docker-images/"${{ matrix.bash_docker_image }}-${{ matrix.sed }}" ]; then
