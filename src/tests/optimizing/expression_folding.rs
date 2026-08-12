@@ -6,12 +6,23 @@
 //! fallback in fragment.rs.
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::FragmentKind;
-use crate::tests::compile_code;
+use crate::tests::{compile_code, eval_bash};
 use heraclitus_compiler::prelude::*;
 
 const SIDE_EFFECT_FN: &str = "fun side_effect(): Bool {\n echo(\"side\")\n return true\n}\n";
 
-const SIMPLE_FN: &str = "fun f(): Bool {\n return true\n}\n";
+const SIMPLE_FN: &str = "fun f(): Bool {\n echo(\"f_called\")\n return true\n}\n";
+
+/// Compile Amber source, execute the resulting shell, and assert that
+/// `needle` appears in stdout — proving the side-effect was not folded away.
+fn assert_side_effect_runs(code: &str, needle: &str) {
+    let shell = compile_code(code);
+    let (stdout, stderr) = eval_bash(shell);
+    assert!(
+        stdout.contains(needle),
+        "Side effect should produce \"{needle}\" in stdout\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}"
+    );
+}
 
 fn assert_folds_to_one(code: &str) {
     let out = compile_code(code);
@@ -51,10 +62,9 @@ fn and_fold_false_and_true() {
 
 #[test]
 fn and_preserve_side_effects() {
-    let code = compile_code(SIDE_EFFECT_FN.to_string() + r#"main { echo("{false and side_effect()}") }"#);
-    assert!(
-        code.contains("side_effect"),
-        "Must preserve side-effect call\n--- output ---\n{code}"
+    assert_side_effect_runs(
+        &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{false and side_effect()}") }"#),
+        "side",
     );
 }
 
@@ -97,10 +107,9 @@ fn or_fold_false_or_false() {
 
 #[test]
 fn or_preserve_side_effects() {
-    let code = compile_code(SIDE_EFFECT_FN.to_string() + r#"main { echo("{true or side_effect()}") }"#);
-    assert!(
-        code.contains("side_effect"),
-        "Must preserve side-effect call\n--- output ---\n{code}"
+    assert_side_effect_runs(
+        &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{true or side_effect()}") }"#),
+        "side",
     );
 }
 
@@ -135,14 +144,12 @@ fn not_fold_false() {
 
 #[test]
 fn not_preserve_side_effects() {
-    let code = compile_code(SIDE_EFFECT_FN.to_string() + r#"main { echo("{not (false and side_effect())}") }"#);
+    let code = SIDE_EFFECT_FN.to_string() + r#"main { echo("{not (false and side_effect())}") }"#;
+    assert_side_effect_runs(&code, "side");
+    let generated = compile_code(code);
     assert!(
-        code.contains("side_effect"),
-        "Must preserve side effect\n--- output ---\n{code}"
-    );
-    assert!(
-        code.contains('!'),
-        "Must use NOT operator to preserve evaluation\n--- output ---\n{code}"
+        generated.contains("$(( !"),
+        "Must use arithmetic NOT operator to preserve evaluation\n--- output ---\n{generated}"
     );
 }
 
@@ -208,10 +215,9 @@ fn has_side_effects_not_arm() {
 
 #[test]
 fn has_side_effects_function_invocation_arm() {
-    let code = compile_code(SIMPLE_FN.to_string() + r#"main { echo("{false and f()}") }"#);
-    assert!(
-        code.contains("f__0_v0"),
-        "Must preserve function call (side effect)\n--- output ---\n{code}"
+    assert_side_effect_runs(
+        &(SIMPLE_FN.to_string() + r#"main { echo("{false and f()}") }"#),
+        "f_called",
     );
 }
 
@@ -219,10 +225,9 @@ fn has_side_effects_function_invocation_arm() {
 fn has_side_effects_some_wildcard_arm() {
     // not (false and side_effect()): the Parentheses wrapping the And hits
     // the Some(_) => true catch-all in has_side_effects.
-    let code = compile_code(SIDE_EFFECT_FN.to_string() + r#"main { echo("{not (false and side_effect())}") }"#);
-    assert!(
-        code.contains("side_effect"),
-        "Must preserve side effect via Parentheses Some(_) arm\n--- output ---\n{code}"
+    assert_side_effect_runs(
+        &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{not (false and side_effect())}") }"#),
+        "side",
     );
 }
 
