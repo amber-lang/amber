@@ -2,48 +2,82 @@
 // Succeeded
 // Succeeded
 
-import * from "std/fs"
-import { array_contains } from "std/array"
+import { dir_exists, file_compress, file_exists, file_extract, temp_dir_create } from "std/fs"
+
+fun cleanup_dirs(dirs: [Text]): Null {
+    for dir in dirs {
+        if dir_exists(dir) {
+            trust rm(dir, true, true)
+        }
+    }
+}
+
+fun verify_format(format: Text): Bool? {
+    const created_src = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-src-XXXX", true, true) failed {
+        echo("It is not possible to create the source directory")
+        fail(1)
+    }
+    
+    cd(created_src) failed {
+        cleanup_dirs([created_src])
+        echo("It is not possible to access the source directory")
+        fail(2)
+    }
+
+    const test_file = "test.txt"
+
+    touch(test_file) failed {
+        cleanup_dirs([created_src])
+        echo("It is not possible to create the test file")
+        fail(3)
+    }
+    
+    const compress_file = "compress.{format}"
+
+    file_compress([test_file], compress_file) failed {
+        cleanup_dirs([created_src])
+        echo("It is not possible to create the compress \"{format}\" file")
+        fail(4)
+    }
+    
+    const created_dist = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-dist-XXXX", true, true) failed {
+        cleanup_dirs([created_src])
+        echo("It is not possible to create the destination directory")
+        fail(5)
+    }
+
+    file_extract(compress_file, created_dist) failed {
+        cleanup_dirs([created_src, created_dist])
+        echo("It is not possible to extract the \"{format}\" file")
+        fail(6)
+    }
+
+    const is_file_extracted = file_exists("{created_dist}/{test_file}")
+    if not is_file_extracted {
+        cleanup_dirs([created_src, created_dist])
+        echo("The file {test_file} was not extracted from \"{format}\" format")
+        fail(7)
+    }
+
+    cleanup_dirs([created_src, created_dist])
+
+    return true
+}
 
 main {
-    const src_dir = temp_dir_create("amber-test-src-XXXX")?
-    trust cd(src_dir)
-    trust touch("test.txt")
-    file_compress(["test.txt"],"filename.tar.gz")?
-    const package = "{src_dir}/filename.tar.gz"
-    if not file_exists(package) {
-        echo("Compression falis; {package} does not exists")
+    const formats = ["tar.gz", "zip"]
+    let all_extracted = true
+
+    for format in formats {
+        const extracted = verify_format(format) failed(error_code) {
+            echo("{format}: Fail with error code: {error_code}")
+        }
+
+        if not extracted: all_extracted = false
+        else: echo("Succeeded")
     }
 
-    const dist_dir = temp_dir_create("amber-test-dist-XXXX")?
-    file_extract(package, dist_dir)?
-
-    if file_exists("{dist_dir}/test.txt") {
-        echo("Succeeded")
-    } else {
-        echo("Extraction fails: {dist_dir}/test.txt does not exist")
-    }
-
-    $ rm -rf "{src_dir}" "{dist_dir}" $?
-
-    const src_dir2 = temp_dir_create("amber-test-zip-src-XXXX")?
-    trust cd(src_dir2)
-    trust touch("test.txt")
-    const archive_path = "{src_dir2}/archive.zip"
-    silent $ zip "{archive_path}" test.txt $?
-
-    const dist_dir2 = temp_dir_create("amber-test-zip-dist-XXXX")?
-    file_extract(archive_path, dist_dir2)?
-
-    const extracted = file_exists("{dist_dir2}/test.txt")
-    if extracted {
-        echo("Succeeded")
-    } else {
-        echo("Extraction fails: {dist_dir2}/test.txt does not exist")
-    }
-
-    $ rm -rf "{src_dir2}" "{dist_dir2}" $?
-    if not extracted {
+    if not all_extracted {
         fail(1)
     }
 }

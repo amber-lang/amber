@@ -22,6 +22,7 @@ fn test_create_output_with_output_flag() {
         no_proc: vec![],
         minify: false,
         target: None,
+        shebang: None,
     };
 
     let result = create_output(&cmd);
@@ -39,6 +40,7 @@ fn test_create_output_with_stdin() {
         no_proc: vec![],
         minify: false,
         target: None,
+        shebang: None,
     };
 
     let result = create_output(&cmd);
@@ -56,6 +58,7 @@ fn test_create_output_default_extension() {
         no_proc: vec![],
         minify: false,
         target: None,
+        shebang: None,
     };
 
     let result = create_output(&cmd);
@@ -240,6 +243,7 @@ fn test_create_output_dir_with_output_flag() {
         no_proc: vec![],
         minify: false,
         target: None,
+        shebang: None,
     };
     
     let input_file = PathBuf::from("src/test.ab");
@@ -258,6 +262,7 @@ fn test_create_output_dir_without_output_flag() {
         no_proc: vec![],
         minify: false,
         target: None,
+        shebang: None,
     };
     
     let input_file = PathBuf::from("src/test.ab");
@@ -352,6 +357,7 @@ fn test_build_file() {
         no_proc: vec![],
         minify: false,
         target: None,
+        shebang: None,
     };
     
     let target: Option<ShellType> = None;
