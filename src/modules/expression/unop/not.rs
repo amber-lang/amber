@@ -21,6 +21,11 @@ impl Not {
         self.expr.analyze_control_flow().map(|b| !b)
     }
 
+    /// Check if this expression has side effects (function calls, commands, etc.)
+    pub fn has_side_effects(&self) -> bool {
+        self.expr.has_side_effects()
+    }
+
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
         let (true_facts, false_facts) = self.expr.extract_facts();
         (false_facts, true_facts)
@@ -77,12 +82,22 @@ impl TypeCheckModule for Not {
 
 impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
-        let expr = self.expr.translate(meta).with_condition(is_iterable);
-        if is_iterable {
-            ConditionFragment::new(None, ComparisonOperator::Not, expr).to_frag()
+        if let Some(const_value) = self.analyze_control_flow() {
+            // Only fold if the expression is effect-free
+            if !self.expr.has_side_effects() {
+                RawFragment::from((if const_value { "1" } else { "0" }).to_string()).to_frag()
+            } else {
+                let expr = self.expr.translate(meta).with_condition(false);
+                ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
+            }
         } else {
-            ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
+            let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
+            let expr = self.expr.translate(meta).with_condition(is_iterable);
+            if is_iterable {
+                ConditionFragment::new(None, ComparisonOperator::Not, expr).to_frag()
+            } else {
+                ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
+            }
         }
     }
 }

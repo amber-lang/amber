@@ -156,6 +156,23 @@ impl Expr {
             .map(|val| val.extract_facts())
             .unwrap_or_default()
     }
+
+    /// Returns true if the expression MUST be evaluated even if its value
+    /// is not needed. Only called by boolean constant-folding (And, Or, Not),
+    /// so the reachable arms are limited to types the type checker accepts
+    /// as Bool operands.
+    pub fn has_side_effects(&self) -> bool {
+        match &self.value {
+            Some(ExprType::FunctionInvocation(_)) => true,
+            Some(ExprType::And(and)) => and.has_side_effects(),
+            Some(ExprType::Or(or)) => or.has_side_effects(),
+            Some(ExprType::Not(not)) => not.has_side_effects(),
+            Some(ExprType::Bool(_)) => false,
+            Some(ExprType::VariableGet(_)) => false,
+            Some(_) => true,
+            None => false,
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {

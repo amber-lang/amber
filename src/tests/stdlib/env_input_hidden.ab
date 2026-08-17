@@ -7,8 +7,8 @@ import { temp_dir_create } from "std/fs"
 main {
     const tmpdir = temp_dir_create("amber-input-test-XXXX", true, true)?
     const test_file = "{tmpdir}/test_input"
-    trust $ echo "Amber" >> {test_file} $
-    trust $ exec 0< {test_file} $
+    trust $ echo "Amber" >> "{test_file}" $
+    trust $ exec 0< "{test_file}" $
     const name = input_hidden("Please enter your name:")
     echo("Hello, " + name)
 }

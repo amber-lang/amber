@@ -30,6 +30,11 @@ impl Or {
         }
     }
 
+    /// Check if this expression has side effects (function calls, commands, etc.)
+    pub fn has_side_effects(&self) -> bool {
+        self.left.has_side_effects() || self.right.has_side_effects()
+    }
+
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
         let (left_true, left_false) = self.left.extract_facts();
         let (right_true, right_false) = self.right.extract_facts();
@@ -109,9 +114,16 @@ impl TypeCheckModule for Or {
 
 impl TranslateModule for Or {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
+        match self.analyze_control_flow() {
+            Some(value) if !self.has_side_effects() => {
+                RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
+            }
+            Some(_) | None => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
+            }
+        }
     }
 }
 
