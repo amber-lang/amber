@@ -3,6 +3,7 @@ extern crate test_generator;
 use super::test_amber;
 use super::TestOutcomeTarget;
 use crate::compiler::AmberCompiler;
+use crate::compiler::CompilerOptions;
 use crate::tests::compile_code;
 use std::fs;
 use std::process::Stdio;
@@ -75,4 +76,30 @@ fn download() {
 
     std::thread::sleep(Duration::from_millis(150));
     assert!(server.is_finished(), "Server has not stopped!");
+}
+
+#[test]
+fn invalid_parameter() {
+    let options = CompilerOptions::default();
+    let compiler = AmberCompiler::new(r#"param("my")"#.to_string(), None, options);
+    compiler.compile().unwrap_err();
+}
+
+#[test]
+fn parameter_use_default_value() {
+    let code = r#"echo(param("my", "parameter"))"#;
+    test_amber(&code, "parameter", TestOutcomeTarget::Success);
+}
+
+#[test]
+fn get_parameter() {
+    let code = r#"echo(param("your"))"#;
+    unsafe {
+        std::env::set_var("your", "value");
+    }
+    test_amber(&code, "value", TestOutcomeTarget::Success);
+    // Clear the variable for next tests
+    unsafe {
+        std::env::remove_var("your");
+    }
 }

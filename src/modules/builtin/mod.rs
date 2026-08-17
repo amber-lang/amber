@@ -10,6 +10,7 @@ pub mod lock;
 pub mod ls;
 pub mod mv;
 pub mod nameof;
+pub mod param;
 pub mod pid;
 pub mod pwd;
 pub mod rm;
