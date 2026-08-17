@@ -241,6 +241,42 @@ fn has_side_effects_none_arm() {
     );
 }
 
+// ===== Bool comparison rendering (compare.rs::create_bool_comparison) =====
+
+#[test]
+fn bool_variable_in_condition_uses_comparison_form() {
+    // A Bool variable used as a condition should render as [[ var != 0 ]],
+    // not as a literal "true" or "false".
+    let code = "main { let b = true\n if b: echo(\"yes\") }";
+    let out = compile_code(code);
+    assert!(
+        out.contains("[[ ") && out.contains("!= 0"),
+        "Bool variable in condition should use [[ var != 0 ]] form\n--- output ---\n{out}"
+    );
+    assert!(
+        !out.contains("[[ true ]]"),
+        "Should not contain literal 'true' in condition\n--- output ---\n{out}"
+    );
+}
+
+#[test]
+fn bool_variable_in_condition_short_circuit_defensive() {
+    // The "0"→"false" and "1"→"true" short-circuit in create_bool_comparison
+    // is a defensive measure for when a raw fragment "0" or "1" reaches a
+    // condition context. In practice, the dead-code eliminator handles constant
+    // bools before this path is reached, so this test verifies the folded
+    // value exists correctly in the output pipeline.
+    let code = &format!(
+        "{}main {{ echo(\"{{{{true and true}}}}\") }}",
+        SIDE_EFFECT_FN
+    );
+    let out = compile_code(code);
+    assert!(
+        out.contains("\"1\""),
+        "Folded 'true and true' should produce literal \"1\"\n--- output ---\n{out}"
+    );
+}
+
 // ===== FragmentKind::with_math_var() fallback (fragment.rs) =====
 
 #[test]
