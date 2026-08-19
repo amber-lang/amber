@@ -157,7 +157,7 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// ```
 pub fun trim_left(text: Text): Text {
     let result = ""
-    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}#"\$\{{nameof(text)}%%[![:space:]]*}"}" $
     return result
 }
 
@@ -170,7 +170,7 @@ pub fun trim_left(text: Text): Text {
 /// ```
 pub fun trim_right(text: Text): Text {
     let result = ""
-    trust $ {nameof(result)}="\$\{{nameof(text)}%\$\{{nameof(text)}##*[![:space:]]}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}%"\$\{{nameof(text)}##*[![:space:]]}"}" $
     return result
 }
 
@@ -183,8 +183,8 @@ pub fun trim_right(text: Text): Text {
 /// ```
 pub fun trim(text: Text): Text {
     let result = ""
-    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
-    trust $ {nameof(result)}="\$\{{nameof(result)}%\$\{{nameof(result)}##*[![:space:]]}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}#"\$\{{nameof(text)}%%[![:space:]]*}"}" $
+    trust $ {nameof(result)}="\$\{{nameof(result)}%"\$\{{nameof(result)}##*[![:space:]]}"}" $
     return result
 }
 
@@ -201,7 +201,7 @@ pub fun lowercase(text: Text): Text {
     } else {
         trust $
             typeset -l {nameof(text)}
-            {nameof(text)}="{text}"
+            {nameof(text)}="\$(printf '%s' "{text}")"
         $
     }
     return text
@@ -220,7 +220,7 @@ pub fun uppercase(text: Text): Text {
     } else {
         trust $
             typeset -u {nameof(text)}
-            {nameof(text)}="{text}"
+            {nameof(text)}="\$(printf '%s' "{text}")"
         $
     }
     return text

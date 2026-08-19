@@ -4,7 +4,7 @@ main {
     if shellname() == "bash" {
         trust env_const_set("test_shell_constant_set", "Succe")
         let str = ""
-        str += trust $ printf '%s' "\$test_shell_constant_set" $
+        str += env_var_get("test_shell_constant_set")?
         env_const_set("test_shell_constant_set", "Succe") failed {
             str += "eded"
         }

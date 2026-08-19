@@ -129,7 +129,7 @@ impl TranslateModule for Lock {
         );
 
         let cleanup_trap_setup = raw_fragment!(
-            "if [ -z \"${{__amber_cleanup_trap_installed+x}}\" ]; then __amber_cleanup_trap_installed=1; trap 'for __amber_cleanup_file in \"${{__amber_cleanup_files[@]}}\"; do rm -f -- \"$__amber_cleanup_file\"; done' EXIT; fi"
+            "if [ -z \"${{__amber_cleanup_trap_installed+x}}\" ]; then __amber_cleanup_trap_installed=1; trap 'rm -f -- \"${{__amber_cleanup_files[@]}}\"' EXIT; fi"
         );
 
         let blocker = BlockFragment::new(
