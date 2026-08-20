@@ -122,11 +122,14 @@ impl TranslateModule for Rm {
                     recursive_expr.get_name()
                 )
             )]);
-            recursive_expr.to_frag()
+            let recursive_name = recursive_expr.get_name();
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", recursive_name, recursive_name)
         } else {
             let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!(""))
                 .with_global_id(recursive_id);
-            meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
+            let var_expr = meta.push_ephemeral_variable(recursive_var_stmt);
+            let name = var_expr.get_name();
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", name, name)
         };
 
         let force_id = meta.gen_value_id();
@@ -145,11 +148,14 @@ impl TranslateModule for Rm {
                     force_expr.get_name()
                 )
             )]);
-            force_expr.to_frag()
+            let force_name = force_expr.get_name();
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", force_name, force_name)
         } else {
             let recursive_var_stmt = VarStmtFragment::new("__rm", Type::Bool, raw_fragment!(""))
                 .with_global_id(force_id);
-            meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
+            let var_expr = meta.push_ephemeral_variable(recursive_var_stmt);
+            let name = var_expr.get_name();
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", name, name)
         };
 
         let silent = meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
