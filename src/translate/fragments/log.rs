@@ -64,10 +64,15 @@ impl LogFragment {
 impl FragmentRenderable for LogFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         if self.should_use_printf(&self.value) {
+            let needs_quotes = matches!(
+                &*self.value,
+                FragmentKind::Condition(c) if c.with_subprocess
+            );
             let value = self.value.to_string(meta);
             // An empty argument must stay explicit, otherwise printf gets a
             // format with no arguments (ShellCheck SC2183).
             let value = if value.is_empty() { "''".to_string() } else { value };
+            let value = if needs_quotes { format!("\"{value}\"") } else { value };
             format!("printf '%s\\n' {value}")
         } else {
             format!("echo {}", self.value.to_string(meta))
