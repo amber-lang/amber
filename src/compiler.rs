@@ -249,7 +249,7 @@ impl AmberCompiler {
             include_str!("header.sh").trim_end().to_string()
         };
 
-        if !self.options.header_path.is_some() {
+        if self.options.header_path.is_none() {
             let shebang = self
                 .options
                 .shebang
