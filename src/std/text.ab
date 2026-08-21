@@ -201,7 +201,7 @@ pub fun lowercase(text: Text): Text {
     } else {
         trust $
             typeset -l {nameof(text)}
-            {nameof(text)}="\$(printf '%s' "{text}")"
+            {nameof(text)}="\$(printf '%s' "{text}" | cat)"
         $
     }
     return text
@@ -220,7 +220,7 @@ pub fun uppercase(text: Text): Text {
     } else {
         trust $
             typeset -u {nameof(text)}
-            {nameof(text)}="\$(printf '%s' "{text}")"
+            {nameof(text)}="\$(printf '%s' "{text}" | cat)"
         $
     }
     return text

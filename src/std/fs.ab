@@ -1,4 +1,4 @@
-import { match_regex, split_lines, trim } from "std/text"
+import { match_regex, split_lines, trim, starts_with } from "std/text"
 
 /// Checks if a directory exists.
 ///
@@ -254,6 +254,13 @@ pub fun file_extract(path: Text, target: Text): Null? {
 /// file_compress(["amber"], "amber.gz")?
 /// ```
 pub fun file_compress(files: [Text], target: Text): Null? {
+    // Reject paths starting with '-' to prevent option injection
+    for file in files {
+        if starts_with(file, "-") {
+            echo("Error: File path cannot start with '-': {file}")
+            fail(1)
+        }
+    }
     if {
         match_regex(target, "\.(tar\.bz2|tbz|tbz2)$", true): silent $ tar -cjf "{target}" "{files}" $?
         match_regex(target, "\.(tar\.gz|tgz)$", true): silent $ tar -czf "{target}" "{files}" $?
