@@ -1,0 +1,97 @@
+Report for Shellcheck
+
+--- Issues in array_sort.ab ---
+
+
+--- Issues in array_sorted.ab ---
+
+In /tmp/amber-sc-tests/array_sort.ab.sh line 41:
+        set -A result_34 -- $(printf "%s
+                            ^-- SC2046 (warning): Quote this to prevent word splitting.
+
+
+In /tmp/amber-sc-tests/array_sort.ab.sh line 74:
+        set -A result_45 -- $(printf "%s
+                            ^-- SC2046 (warning): Quote this to prevent word splitting.
+
+
+In /tmp/amber-sc-tests/array_sort.ab.sh line 107:
+        set -A result_56 -- $(printf "%s
+                            ^-- SC2046 (warning): Quote this to prevent word splitting.
+
+
+In /tmp/amber-sc-tests/array_sort.ab.sh line 140:
+        set -A result_67 -- $(printf "%s
+                            ^-- SC2046 (warning): Quote this to prevent word splitting.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2046 -- Quote this to prevent word splitt...
+
+--- Issues in env_const_get.ab ---
+
+
+--- Issues in env_const_set.ab ---
+
+In /tmp/amber-sc-tests/env_const_get.ab.sh line 42:
+" "${(P)name_8}")"
+     ^-------^ SC2296 (error): Parameter expansions can't start with (. Double check syntax.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2296 -- Parameter expansions can't start ...
+
+--- Issues in env_file_load.ab ---
+
+
+--- Issues in env_shopt_enable.ab ---
+
+
+--- Issues in env_var_get.ab ---
+
+
+--- Issues in env_var_load.ab ---
+
+In /tmp/amber-sc-tests/env_var_get.ab.sh line 30:
+" "${(P)name_4}")"
+     ^-------^ SC2296 (error): Parameter expansions can't start with (. Double check syntax.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2296 -- Parameter expansions can't start ...
+
+--- Issues in env_var_set.ab ---
+
+In /tmp/amber-sc-tests/env_var_load.ab.sh line 204:
+" "${(P)name_104}")"
+     ^---------^ SC2296 (error): Parameter expansions can't start with (. Double check syntax.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2296 -- Parameter expansions can't start ...
+
+--- Issues in env_var_test.ab ---
+
+In /tmp/amber-sc-tests/env_var_set.ab.sh line 42:
+" "${(P)name_8}")"
+     ^-------^ SC2296 (error): Parameter expansions can't start with (. Double check syntax.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2296 -- Parameter expansions can't start ...
+
+--- Issues in env_var_unset.ab ---
+
+In /tmp/amber-sc-tests/env_var_test.ab.sh line 16:
+        [[ ! -z ${(P)name_4+z} ]] && __status=0 || __status=$?
+                  ^---------^ SC2296 (error): Parameter expansions can't start with (. Double check syntax.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2296 -- Parameter expansions can't start ...
+
+--- Issues in text_replace_regex_basic.ab ---
+
+
+--- Issues in text_replace_regex_ext.ab ---
+
+In /tmp/amber-sc-tests/text_replace_regex_basic.ab.sh line 120:
+        ret_replace_regex3_v0="$(sed -e "s/${search_29}/${replace_text_30}/g" <<<"${source_28}")"
+                                 ^-- SC2001 (style): See if you can use ${variable//search/replace} instead.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2001 -- See if you can use ${variable//se...
