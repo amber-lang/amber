@@ -1,5 +1,5 @@
 // Output
-// dead
+// Condition is always false, 'if' block will never execute
 // dead
 // dead
 
@@ -8,9 +8,6 @@ let x = 1.0
 // Covers 'and' false_facts intersection
 if x is Int and x is Bool {
     // Unreachable
-    echo("test")
-} else {
-    echo("dead")
 }
 
 // Covers 'or' true_facts intersection

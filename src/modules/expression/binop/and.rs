@@ -22,7 +22,7 @@ impl And {
         let right = self.right.analyze_control_flow();
         match (left, right) {
             (Some(false), _) => Some(false),
-            (Some(true), Some(false)) => Some(false),
+            (_, Some(false)) => Some(false),
             (Some(true), Some(true)) => Some(true),
             _ => None,
         }
