@@ -266,13 +266,19 @@ impl TranslateModule for FunctionInvocation {
                                     .with_quotes(false)
                             }
                         } else {
-                            fragments!(
-                                var.with_render_type(VarRenderType::BashRef)
+                            if var.is_length {
+                                var.with_render_type(VarRenderType::BashValue)
+                                    .with_length_getter(true)
+                                    .to_frag()
+                            } else {
+                                fragments!(
+                                    var.with_render_type(VarRenderType::BashRef)
                                     .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
                                     .to_frag()
                                     .with_quotes(false),
-                                "[@]"
-                            )
+                                    "[@]"
+                                )
+                            }
                         }
                     }
                     // Non-variable expressions cannot be passed by reference.
