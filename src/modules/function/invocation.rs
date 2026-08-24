@@ -234,52 +234,51 @@ impl TranslateModule for FunctionInvocation {
                                 temp_var
                                     .with_render_type(VarRenderType::NameOf)
                                     .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
-                                    .to_frag()
-                                    .with_quotes(false),
+                                    .to_frag(),
                                 "[@]"
                             )
                         }
                     }
                     // Pass whole arrays by name so each shell can lower array copy semantics in its own way.
                     FragmentKind::VarExpr(var) if var.kind.is_array() => {
-                        if matches!(meta.target.shell, ShellType::Ksh) {
-                            if var.is_ref {
-                                // In ksh93, forwarding a ref-bound local array into a by-copy array
-                                // parameter through nested `function name {}` wrappers can lose the
-                                // caller's contents. Materialize a temp array first and pass that.
-                                let id = meta.gen_value_id();
-                                let temp_name = format!("{}_{id}", var.get_index_typename());
-                                let stmt = VarStmtFragment::new(
-                                    &temp_name,
-                                    var.kind.clone(),
-                                    FragmentKind::VarExpr(var.clone()),
-                                )
-                                .with_optimization_when_unused(false);
-                                let temp_var = meta.push_ephemeral_variable(stmt);
-                                temp_var
-                                    .with_render_type(VarRenderType::NameOf)
-                                    .to_frag()
-                                    .with_quotes(false)
-                            } else {
-                                var.with_render_type(VarRenderType::BashRef)
-                                    .to_frag()
-                                    .with_quotes(false)
-                            }
+                        if var.is_length {
+                            var.with_render_type(VarRenderType::BashValue)
+                                .with_length_getter(true)
+                                .to_frag()
                         } else {
-                            if var.is_length {
-                                var.with_render_type(VarRenderType::BashValue)
-                                    .with_length_getter(true)
-                                    .to_frag()
+                            if matches!(meta.target.shell, ShellType::Ksh) {
+                                if var.is_ref {
+                                    // In ksh93, forwarding a ref-bound local array into a by-copy array
+                                    // parameter through nested `function name {}` wrappers can lose the
+                                    // caller's contents. Materialize a temp array first and pass that.
+                                    let id = meta.gen_value_id();
+                                    let temp_name = format!("{}_{id}", var.get_index_typename());
+                                    let stmt = VarStmtFragment::new(
+                                        &temp_name,
+                                        var.kind.clone(),
+                                        FragmentKind::VarExpr(var.clone()),
+                                    )
+                                    .with_optimization_when_unused(false);
+                                    let temp_var = meta.push_ephemeral_variable(stmt);
+                                    
+                                    temp_var
+                                        .with_render_type(VarRenderType::NameOf)
+                                        .to_frag()
+                                        .with_quotes(false)
+                                } else {
+                                    var.with_render_type(VarRenderType::BashRef)
+                                        .to_frag()
+                                        .with_quotes(false)
+                                }
                             } else {
                                 fragments!(
                                     var.with_render_type(VarRenderType::BashRef)
                                     .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
-                                    .to_frag()
-                                    .with_quotes(false),
+                                    .to_frag(),
                                     "[@]"
                                 )
                             }
-                        }
+                        } 
                     }
                     // Non-variable expressions cannot be passed by reference.
                     _ if *is_ref => unreachable!("Reference value accepts only variables"),
