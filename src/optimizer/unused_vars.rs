@@ -194,7 +194,7 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                     Ok(())
                 })
                 .unwrap();
-                let dependencies = meta.dependent_variables.drain(..).collect();
+                let dependencies = std::mem::take(&mut meta.dependent_variables);
                 meta.symbols
                     .push_back(SymbolType::Statement(var_stmt.get_name(), dependencies));
             } else {
