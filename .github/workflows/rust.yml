@@ -141,7 +141,7 @@ jobs:
           docker stop test_container -t 0
           docker rm --force test_container
   macos-test:
-    name: Rust tests on a native macOS zsh
+    name: Rust tests on native macOS (zsh + bash 3.2)
     runs-on: macos-latest
     if: github.event_name != 'release'
     steps:
@@ -157,13 +157,33 @@ jobs:
             ./target/deps
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - name: Run tests
+      - name: Run zsh-target tests
         env:
             AMBER_SHELL: '/bin/zsh'
+            AMBER_TEST_TARGET: zsh
         shell: /bin/zsh {0}
         run: |
           cargo build # the binary will be used by the cargo test
-          cargo test --all-targets --all-features
+          # Per-target constant-folding tests are bash-target specific; the bash docker
+          # matrix above and the bash 3.2 step below cover them.
+          cargo test --all-targets --all-features -- \
+            --skip shellname_eq_ \
+            --skip shellname_neq_ \
+            --skip shellname_standalone \
+            --skip ifchain_constant_ \
+            --skip ifchain_multiple_conditions \
+            --skip expr_try_fold_constant \
+            --skip env_var_test
+      - name: Run bash-target folding tests
+        env:
+            AMBER_SHELL: '/bin/bash'
+            AMBER_TEST_TARGET: bash-3.2
+        shell: /bin/bash {0}
+        run: |
+          cargo test --all-targets --all-features -- \
+            shellname_eq_ shellname_neq_ shellname_standalone \
+            ifchain_constant_ ifchain_multiple_conditions \
+            expr_try_fold_constant env_var_test
   clippy:
     name: Clippy tests
     runs-on: ubuntu-latest
