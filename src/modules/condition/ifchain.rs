@@ -232,7 +232,8 @@ impl TranslateModule for IfChain {
                     if first_taken_block.is_none() {
                         first_taken_block = Some((comments, block));
                     }
-                    // If we already have a first taken block, this is dead code (shouldn't happen)
+                    // Stop processing later branches - constant true dominates
+                    break;
                 }
                 // If false, skip this branch entirely
                 continue;
@@ -264,26 +265,35 @@ impl TranslateModule for IfChain {
                 result.push(block.translate(meta));
                 // No fi needed since there's no if
             } else {
-                // We already have if/elif, so this constant-true branch is dead code
-                // (shouldn't happen in valid code, but ignore it)
+                // Constant-true after dynamic branches becomes else block
+                for comment in comments {
+                    result.push(comment.translate(meta));
+                }
+                result.push(fragments!("else"));
+                result.push(block.translate(meta));
+                result.push(fragments!("fi"));
+                return BlockFragment::new(result, false).to_frag();
             }
         }
         
         if let Some((comments, false_block)) = &self.false_block {
-            for comment in comments {
-                result.push(comment.translate(meta));
-            }
-            // Only emit else if we have an if/elif before it
-            if has_emitted_any_branch {
+            // Suppress else when we have a constant-true branch (it already handled else)
+            if first_taken_block.is_some() {
+                // Constant-true dominates, else is dead code
+            } else if has_emitted_any_branch {
+                for comment in comments {
+                    result.push(comment.translate(meta));
+                }
                 result.push(fragments!("else"));
                 result.push(false_block.translate(meta));
                 result.push(fragments!("fi"));
-            } else if first_taken_block.is_none() {
+            } else {
                 // No branches at all, just emit the else block
+                for comment in comments {
+                    result.push(comment.translate(meta));
+                }
                 result.push(false_block.translate(meta));
             }
-            // If first_taken_block is Some and has_emitted_any_branch is false,
-            // we already emitted the constant-true block without fi, so no else
         } else if has_emitted_any_branch {
             // No else block but we have if/elif
             result.push(fragments!("fi"));

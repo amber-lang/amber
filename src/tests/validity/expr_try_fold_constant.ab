@@ -1,0 +1,7 @@
+// Test expression constant folding via try_fold_bool_constant
+// Output
+// 1
+
+if (shellname() == "bash") {
+    echo("1")
+}

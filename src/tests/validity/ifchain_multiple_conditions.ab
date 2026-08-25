@@ -1,0 +1,16 @@
+// Test ifchain with multiple conditions including constant-true
+// Output
+// Condition is always false, block will never execute
+// constant
+
+if {
+    false {
+        echo("first")
+    }
+    shellname() == "bash" {
+        echo("constant")
+    }
+    else {
+        echo("also_never")
+    }
+}

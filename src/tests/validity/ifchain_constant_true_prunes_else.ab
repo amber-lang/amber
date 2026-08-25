@@ -1,0 +1,12 @@
+// Test ifchain where constant-true prunes the else block entirely
+// Output
+// first
+
+if {
+    shellname() == "bash" {
+        echo("first")
+    }
+    else {
+        echo("third")
+    }
+}

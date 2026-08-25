@@ -1,0 +1,13 @@
+// Test ifchain with literal false condition
+// Output
+// Condition is always false, block will never execute
+// else_taken
+
+if {
+    false {
+        echo("skipped")
+    }
+    else {
+        echo("else_taken")
+    }
+}

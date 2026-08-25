@@ -1,0 +1,10 @@
+// Test "zsh" != shellname() folding (reversed order)
+// For bash target, this should fold to "1" (true)
+// Output
+// 1
+
+if "zsh" != shellname() {
+    echo("1")
+} else {
+    echo("0")
+}

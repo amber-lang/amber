@@ -1,0 +1,14 @@
+// Test ifchain with dynamic condition followed by constant-true
+// Dynamic x==1 (x is let, not const) then true constant becomes else
+// Output
+// constant_true
+
+let x = 0
+if {
+    x == 1 {
+        echo("dynamic")
+    }
+    true {
+        echo("constant_true")
+    }
+}

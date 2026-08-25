@@ -1,0 +1,7 @@
+// Test standalone shellname() usage (not in comparison)
+// This exercises the translate() path that sets shellname_used flag
+// Output
+// bash
+
+const s = shellname()
+echo(s)

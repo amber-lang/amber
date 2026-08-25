@@ -1,0 +1,10 @@
+// Test shellname() == "bash" folding to constant based on target
+// For bash target, this should fold to "1" (true)
+// Output
+// 1
+
+if shellname() == "bash" {
+    echo("1")
+} else {
+    echo("0")
+}

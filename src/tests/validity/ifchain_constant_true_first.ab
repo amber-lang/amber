@@ -1,0 +1,10 @@
+// Test ifchain with constant-true first condition - else should be pruned
+// shellname() == "bash" is always true for bash target, so else block is dead
+// Output
+// A
+
+if shellname() == "bash" {
+    echo("A")
+} else {
+    echo("B")
+}
