@@ -1,7 +1,13 @@
 // Test ifchain with multiple conditions including constant-true
-// Output
+// Output [bash]
 // Condition is always false, block will never execute
 // constant
+// Output [zsh]
+// Condition is always false, block will never execute
+// also_never
+// Output [ksh]
+// Condition is always false, block will never execute
+// also_never
 
 if {
     false {

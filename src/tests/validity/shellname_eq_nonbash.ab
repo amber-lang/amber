@@ -1,6 +1,9 @@
 // Test shellname() == "zsh" folding to constant based on target
-// For bash target, this should fold to "0" (false)
-// Output
+// Output [bash]
+// 0
+// Output [zsh]
+// 1
+// Output [ksh]
 // 0
 
 if shellname() == "zsh" {

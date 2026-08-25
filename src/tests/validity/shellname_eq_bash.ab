@@ -1,7 +1,10 @@
 // Test shellname() == "bash" folding to constant based on target
-// For bash target, this should fold to "1" (true)
-// Output
+// Output [bash]
 // 1
+// Output [zsh]
+// 0
+// Output [ksh]
+// 0
 
 if shellname() == "bash" {
     echo("1")

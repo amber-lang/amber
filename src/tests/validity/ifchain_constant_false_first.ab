@@ -1,6 +1,9 @@
 // Test ifchain with constant-false first condition - should execute else
-// shellname() == "zsh" is always false for bash target, so else executes
-// Output
+// Output [bash]
+// B
+// Output [zsh]
+// A
+// Output [ksh]
 // B
 
 if shellname() == "zsh" {

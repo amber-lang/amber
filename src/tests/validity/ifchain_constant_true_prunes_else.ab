@@ -1,6 +1,10 @@
 // Test ifchain where constant-true prunes the else block entirely
-// Output
+// Output [bash]
 // first
+// Output [zsh]
+// third
+// Output [ksh]
+// third
 
 if {
     shellname() == "bash" {

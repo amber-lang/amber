@@ -1,6 +1,9 @@
 // Test "zsh" != shellname() folding (reversed order)
-// For bash target, this should fold to "1" (true)
-// Output
+// Output [bash]
+// 1
+// Output [zsh]
+// 0
+// Output [ksh]
 // 1
 
 if "zsh" != shellname() {

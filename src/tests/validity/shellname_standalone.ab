@@ -1,7 +1,10 @@
 // Test standalone shellname() usage (not in comparison)
-// This exercises the translate() path that sets shellname_used flag
-// Output
+// Output [bash]
 // bash
+// Output [zsh]
+// zsh
+// Output [ksh]
+// ksh
 
 const s = shellname()
 echo(s)

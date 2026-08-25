@@ -164,26 +164,14 @@ jobs:
         shell: /bin/zsh {0}
         run: |
           cargo build # the binary will be used by the cargo test
-          # Per-target constant-folding tests are bash-target specific; the bash docker
-          # matrix above and the bash 3.2 step below cover them.
-          cargo test --all-targets --all-features -- \
-            --skip shellname_eq_ \
-            --skip shellname_neq_ \
-            --skip shellname_standalone \
-            --skip ifchain_constant_ \
-            --skip ifchain_multiple_conditions \
-            --skip expr_try_fold_constant \
-            --skip env_var_test
-      - name: Run bash-target folding tests
+          cargo test --all-targets --all-features
+      - name: Run bash-target tests
         env:
             AMBER_SHELL: '/bin/bash'
             AMBER_TEST_TARGET: bash-3.2
         shell: /bin/bash {0}
         run: |
-          cargo test --all-targets --all-features -- \
-            shellname_eq_ shellname_neq_ shellname_standalone \
-            ifchain_constant_ ifchain_multiple_conditions \
-            expr_try_fold_constant env_var_test
+          cargo test --all-targets --all-features
   clippy:
     name: Clippy tests
     runs-on: ubuntu-latest
