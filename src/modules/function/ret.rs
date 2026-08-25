@@ -71,9 +71,31 @@ impl TranslateModule for Return {
             .map(FunctionMetadata::mangled_name)
             .expect("Function name and return type not set");
         let result = self.expr.translate(meta);
-        let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
-            .with_optimization_when_unused(false);
-        meta.stmt_queue.push_back(var_stmt.to_frag());
+        // Returning a call to the same function already writes the callee's
+        // result into this function's return binding, so the re-assignment
+        // would be a self-assignment (ShellCheck SC2269).
+        let is_self_return = match &result {
+            FragmentKind::VarExpr(var) => {
+                let name = var.get_name();
+                name == fun_name || name.starts_with(&format!("{fun_name}__"))
+            }
+            _ => false,
+        };
+        if is_self_return {
+            // Returning a call to the same function already writes the
+            // callee's result into this function's return binding: drop the
+            // ephemeral callsite binding instead of re-assigning the variable
+            // to itself (ShellCheck SC2269).
+            if let Some(FragmentKind::VarStmt(stmt)) = meta.stmt_queue.pop_back() {
+                if !(stmt.is_ephemeral && stmt.get_name().starts_with(&fun_name)) {
+                    meta.stmt_queue.push_back(FragmentKind::VarStmt(stmt));
+                }
+            }
+        } else {
+            let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
+                .with_optimization_when_unused(false);
+            meta.stmt_queue.push_back(var_stmt.to_frag());
+        }
         fragments!("return 0")
     }
 }

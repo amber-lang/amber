@@ -5,5 +5,5 @@
 // $var
 
 trust $ for i in Hello\ World; do echo \$i; done $
-trust $ for i in Hello World; do echo \$i; done $
+trust $ for i in Hello World; do echo "\$i"; done $
 trust $ echo \\\$var $

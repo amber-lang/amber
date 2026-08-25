@@ -1,5 +1,6 @@
 use super::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
+use crate::raw_fragment;
 use crate::modules::expression::interpolated_region::{
     parse_interpolated_region, InterpolatedRegionType,
 };
@@ -97,18 +98,36 @@ impl TranslateModule for Command {
             .with_spaces()
             .to_frag();
 
-        let handler = self.failure_handler.translate(meta);
         let is_statement = !meta.expr_ctx;
         let has_failure_handler = self.failure_handler.is_parsed;
 
         match (is_statement, has_failure_handler) {
             (true, true) => {
-                meta.stmt_queue.push_back(translation);
-                handler
+                // Combine the command with `&& __status=0 || __status=$?` on one
+                // line so ShellCheck does not associate `$?` with echo/printf
+                // (SC2320) and recognises exit guards like `cd` (SC2164).
+                // Background commands (`cmd &`) keep the separate capture: `&&`
+                // after `&` is a syntax error, and `$?` would only reflect the
+                // job-launch status anyway.
+                let rendered = translation.clone().to_string(meta);
+                let is_background = rendered.trim_end().ends_with('&')
+                    && !rendered.trim_end().ends_with("&&");
+                if is_background {
+                    meta.stmt_queue.push_back(translation);
+                    self.failure_handler.translate(meta)
+                } else {
+                    let status_suffix = raw_fragment!("&& __status=0 || __status=$?");
+                    let combined = ListFragment::new(vec![translation, status_suffix])
+                        .with_spaces()
+                        .to_frag();
+                    meta.stmt_queue.push_back(combined);
+                    self.failure_handler.translate_check_only(meta)
+                }
             }
             (true, false) => translation,
             (false, false) => SubprocessFragment::new(translation).to_frag(),
             (false, true) => {
+                let handler = self.failure_handler.translate(meta);
                 let id = meta.gen_value_id();
                 let value = SubprocessFragment::new(translation).to_frag();
                 let var_stmt =

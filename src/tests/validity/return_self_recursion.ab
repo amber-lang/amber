@@ -1,0 +1,14 @@
+// Output
+// Succeeded
+
+// Test self-return optimization (SC2269 prevention)
+// This test just verifies the code compiles without error
+// We don't actually call the recursive function to avoid infinite loop
+
+fun recursive_call(): Num {
+    return recursive_call()
+}
+
+main {
+    echo("Succeeded")
+}

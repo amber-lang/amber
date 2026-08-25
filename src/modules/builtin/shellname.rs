@@ -27,7 +27,6 @@ impl SyntaxModule<ParserMetadata> for Shellname {
         token(meta, "shellname")?;
         token(meta, "(")?;
         token(meta, ")")?;
-        meta.shellname_used = true;
         Ok(())
     }
 }
@@ -39,7 +38,8 @@ impl TypeCheckModule for Shellname {
 }
 
 impl TranslateModule for Shellname {
-    fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
+    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        meta.shellname_used = true;
         VarExprFragment::new("EXEC_SHELL", Type::Text).to_frag()
     }
 }
