@@ -76,16 +76,16 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option
             if sed_version == SED_VERSION_GNU {
-                return $ sed -r -e "s/{search}/{replace_text}/g" <<<"{source}" $
+                return $ command sed -r -e "s/{search}/{replace_text}/g" <<<"{source}" $
             } else {
-                return $ sed -E -e "s/{search}/{replace_text}/g" <<<"{source}" $
+                return $ command sed -E -e "s/{search}/{replace_text}/g" <<<"{source}" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            return $ sed -e "s/{search}/{replace_text}/g" <<<"{source}" $
+            return $ command sed -e "s/{search}/{replace_text}/g" <<<"{source}" $
         }
     }
 }

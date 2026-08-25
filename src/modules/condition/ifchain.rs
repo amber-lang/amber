@@ -209,42 +209,88 @@ impl TranslateModule for IfChain {
             return FragmentKind::Empty;
         }
 
-        // In case of when only the first condition is true, we can just leave the truth block without any condition
+        // Check if the first condition can be folded to a constant
         if let Some((_, first_cond, first_block)) = self.cond_blocks.first() {
-            if first_cond.analyze_control_flow() == Some(true) {
+            if first_cond.try_fold_bool_constant(meta) == Some(true) {
                 return first_block.translate(meta);
             }
         }
 
         let mut result = vec![];
-        let mut is_first = true;
+        let mut has_emitted_any_branch = false;
+        let mut first_taken_block = None;
+        
         for (comments, cond, block) in self.cond_blocks.iter() {
             for comment in comments {
                 result.push(comment.translate(meta));
             }
+            
+            // Try to fold this condition to a constant
+            if let Some(constant_value) = cond.try_fold_bool_constant(meta) {
+                if constant_value {
+                    // This branch is always taken - save it as the first taken block
+                    if first_taken_block.is_none() {
+                        first_taken_block = Some((comments, block));
+                    }
+                    // If we already have a first taken block, this is dead code (shouldn't happen)
+                }
+                // If false, skip this branch entirely
+                continue;
+            }
+            
+            // Non-constant condition - emit normally
             let condition = cond.translate(meta)
                 .with_quotes(
                     matches!(cond.value, Some(ExprType::Text(_)))
                 )
                 .with_condition(true);
                 
-            if is_first {
+            if !has_emitted_any_branch {
                 result.push(fragments!("if ", condition, "; then"));
-                result.push(block.translate(meta));
-                is_first = false;
+                has_emitted_any_branch = true;
             } else {
                 result.push(fragments!("elif ", condition, "; then"));
+            }
+            result.push(block.translate(meta));
+        }
+        
+        // Handle the first taken constant-true block
+        if let Some((comments, block)) = first_taken_block {
+            if !has_emitted_any_branch {
+                // This is the only taken branch, emit it without if/elif/fi
+                for comment in comments {
+                    result.push(comment.translate(meta));
+                }
                 result.push(block.translate(meta));
+                // No fi needed since there's no if
+            } else {
+                // We already have if/elif, so this constant-true branch is dead code
+                // (shouldn't happen in valid code, but ignore it)
             }
         }
+        
         if let Some((comments, false_block)) = &self.false_block {
             for comment in comments {
                 result.push(comment.translate(meta));
             }
-            result.push(fragments!("else"));
-            result.push(false_block.translate(meta));
+            // Only emit else if we have an if/elif before it
+            if has_emitted_any_branch {
+                result.push(fragments!("else"));
+                result.push(false_block.translate(meta));
+                result.push(fragments!("fi"));
+            } else if first_taken_block.is_none() {
+                // No branches at all, just emit the else block
+                result.push(false_block.translate(meta));
+            }
+            // If first_taken_block is Some and has_emitted_any_branch is false,
+            // we already emitted the constant-true block without fi, so no else
+        } else if has_emitted_any_branch {
+            // No else block but we have if/elif
+            result.push(fragments!("fi"));
         }
-        result.push(fragments!("fi"));
+        // If first_taken_block is Some and has_emitted_any_branch is false,
+        // we already emitted without fi, so nothing more to do
+        
         BlockFragment::new(result, false).to_frag()
     }
 }

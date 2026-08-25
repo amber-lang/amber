@@ -22,6 +22,11 @@ impl Parentheses {
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
         self.value.extract_facts()
     }
+
+    /// Get the inner expression
+    pub fn get_expr(&self) -> &Expr {
+        &self.value
+    }
 }
 
 impl Typed for Parentheses {

@@ -49,6 +49,22 @@ pub struct Text {
     parts: Vec<TextPart>,
 }
 
+impl Text {
+    /// Returns the string content if this is a simple string literal.
+    /// Returns None if the text is interpolated or empty.
+    pub fn as_simple_string(&self) -> Option<&str> {
+        if self.parts.len() == 1 {
+            if let TextPart::String(s) = &self.parts[0] {
+                Some(s)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
 impl Typed for Text {
     fn get_type(&self) -> Type {
         Type::Text

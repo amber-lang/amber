@@ -150,7 +150,8 @@ impl TypeCheckModule for IfCondition {
 
 impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match self.expr.analyze_control_flow() {
+        // Try to fold the condition to a constant during translation
+        match self.expr.try_fold_bool_constant(meta) {
             Some(true) => self
                 .true_block
                 .as_ref()

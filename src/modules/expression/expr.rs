@@ -173,6 +173,23 @@ impl Expr {
             None => false,
         }
     }
+
+    /// Check if this expression can be folded to a constant boolean value during translation.
+    /// This is similar to analyze_control_flow but has access to TranslateMetadata for
+    /// shellname() comparisons.
+    pub fn try_fold_bool_constant(&self, meta: &TranslateMetadata) -> Option<bool> {
+        match &self.value {
+            Some(ExprType::Bool(b)) => b.analyze_control_flow(),
+            Some(ExprType::And(and)) => and.analyze_control_flow(),
+            Some(ExprType::Or(or)) => or.analyze_control_flow(),
+            Some(ExprType::Not(not)) => not.analyze_control_flow(),
+            Some(ExprType::Parentheses(p)) => p.get_expr().try_fold_bool_constant(meta),
+            Some(ExprType::Eq(eq)) => eq.analyze_control_flow(meta),
+            Some(ExprType::Neq(neq)) => neq.analyze_control_flow(meta),
+            Some(ExprType::Is(is)) => is.analyze_control_flow(),
+            _ => None,
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for Expr {
