@@ -13,8 +13,8 @@ fun append_ref(ref inner: [Text], path: Text): Null {
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ echo -e 'one\ntwo three four' >{tmpdir}/numbers1.txt $
-    trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
+    trust $ echo -e 'one\ntwo three four' >"{tmpdir}/numbers1.txt" $
+    trust $ echo -e '\nfive\n  six  ' >"{tmpdir}/numbers2.txt" $
 
     // Inefficient for large files.
     let lines_contents = lines("{tmpdir}/numbers1.txt")?

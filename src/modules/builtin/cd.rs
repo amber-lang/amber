@@ -2,6 +2,7 @@ use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
+use crate::raw_fragment;
 
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
@@ -83,7 +84,6 @@ impl TypeCheckModule for Cd {
 impl TranslateModule for Cd {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let value = self.value.translate(meta);
-        let handler = self.failure_handler.translate(meta);
         let sudo_prefix = meta.with_sudoed(self.modifier.is_sudo || meta.sudoed, |meta| {
             meta.gen_sudo_prefix().to_frag()
         });
@@ -93,16 +93,22 @@ impl TranslateModule for Cd {
         let suppress = meta.with_suppress(self.modifier.is_suppress || meta.suppress, |meta| {
             meta.gen_suppress().to_frag()
         });
-        BlockFragment::new(
-            vec![
-                ListFragment::new(vec![sudo_prefix, fragments!("cd"), value, suppress, silent])
-                    .with_spaces()
-                    .to_frag(),
-                handler,
-            ],
-            false,
-        )
-        .to_frag()
+        let cd_cmd =
+            ListFragment::new(vec![sudo_prefix, fragments!("cd"), value, suppress, silent])
+                .with_spaces()
+                .to_frag();
+        if self.failure_handler.is_parsed {
+            // Combine `cd` with `&& __status=0 || __status=$?` on one line
+            // so ShellCheck recognises the exit guard (SC2164) and does not
+            // associate `$?` with a preceding echo/printf (SC2320).
+            let status_suffix = raw_fragment!("&& __status=0 || __status=$?");
+            let combined =
+                ListFragment::new(vec![cd_cmd, status_suffix]).with_spaces().to_frag();
+            let check = self.failure_handler.translate_check_only(meta);
+            BlockFragment::new(vec![combined, check], false).to_frag()
+        } else {
+            cd_cmd
+        }
     }
 }
 

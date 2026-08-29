@@ -50,6 +50,10 @@ pub fn translate_awk_computation(
         ArithOp::Or => "||",
     };
     let operator = RawFragment::from(op_str.to_string()).to_frag();
+    // Quote variable operands so numeric comparisons do not trigger
+    // ShellCheck SC2086; awk compares ARGV strings numerically anyway.
+    let left = left.with_quotes(true);
+    let right = right.with_quotes(true);
 
     let value = match op {
         ArithOp::Gt | ArithOp::Ge | ArithOp::Lt | ArithOp::Le | ArithOp::Eq | ArithOp::Neq => {

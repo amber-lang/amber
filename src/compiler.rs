@@ -249,7 +249,7 @@ impl AmberCompiler {
             include_str!("header.sh").trim_end().to_string()
         };
 
-        if !self.options.header_path.is_some() {
+        if self.options.header_path.is_none() {
             let shebang = self
                 .options
                 .shebang
@@ -317,23 +317,12 @@ impl AmberCompiler {
     }
 
     pub fn translate(&self, block: Block, meta: ParserMetadata) -> Result<String, Message> {
-        let sudo_used = meta.sudo_used;
-        let shellname_used = meta.shellname_used;
-        let shellversion_used = meta.shellversion_used;
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut meta_translate = TranslateMetadata::new(meta, &self.options);
         let time = Instant::now();
-        let mut result = BlockFragment::new(Vec::new(), false);
-        // Add preamble that contains all code that should be executed before the main code
-        result.append(self.gen_preamble(
-            sudo_used,
-            shellname_used,
-            shellversion_used,
-            &meta_translate.target.shell,
-        ));
-
+        let mut body = BlockFragment::new(Vec::new(), false);
         for (_path, block) in ast_forest {
-            result.append(block.translate(&mut meta_translate));
+            body.append(block.translate(&mut meta_translate));
         }
         if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
@@ -343,6 +332,17 @@ impl AmberCompiler {
                 time.elapsed().as_millis()
             );
         }
+
+        let mut result = BlockFragment::new(Vec::new(), false);
+        // The preamble is generated after the body so that only builtins
+        // actually present in the output pull in their preamble variables.
+        result.append(self.gen_preamble(
+            meta_translate.sudo_used,
+            meta_translate.shellname_used,
+            meta_translate.shellversion_used,
+            &meta_translate.target.shell,
+        ));
+        result.append(body.to_frag());
 
         let mut result = result.to_frag();
         if !self.options.no_optimize {

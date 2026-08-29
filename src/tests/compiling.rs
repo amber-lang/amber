@@ -241,8 +241,8 @@ main {
         "Output should contain the ksh shellversion preamble"
     );
     assert!(
-        result.contains(r"EXEC_SHELL_VERSION=(${__exec_v1:-0} ${__exec_v2:-0} ${__exec_v3:-0})"),
-        "Output should contain the ksh EXEC_SHELL_VERSION assignment"
+        result.contains("set -A EXEC_SHELL_VERSION --"),
+        "Output should contain the ksh EXEC_SHELL_VERSION assignment (set -A)"
     );
     assert!(
         result.contains(

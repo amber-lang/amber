@@ -46,7 +46,7 @@ test_range__0_v0() {
             eval "local byref_5_deref_6_array=(\"\${${byref_5}[@]}\")"
             local slice_8=("${byref_5_deref_6_array[@]:${slice_offset_1}:${slice_length_2}}")
             local __length_3=("${slice_8[@]}")
-            echo "Values at ${begin_6}..=${end_7}: (${#__length_3[@]}) [${slice_8[@]}]"
+            echo "Values at ${begin_6}..=${end_7}: (${#__length_3[*]}) [${slice_8[*]}]"
 done
 done
 }

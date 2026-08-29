@@ -159,7 +159,7 @@ impl TranslateModule for Ls {
                 " )) && ",
                 raw_fragment!("{}=\"-A\" || {}=\"\"", all_var_name, all_var_name)
             ));
-            raw_fragment!("${{{}}}", all_var_name)
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", all_var_name, all_var_name)
         } else {
             FragmentKind::Empty
         };
@@ -177,7 +177,7 @@ impl TranslateModule for Ls {
                     recursive_var_name
                 )
             ));
-            raw_fragment!("${{{}}}", recursive_var_name)
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", recursive_var_name, recursive_var_name)
         } else {
             FragmentKind::Empty
         };
