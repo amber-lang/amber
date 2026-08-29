@@ -1,0 +1,9 @@
+// Output
+// Cannot use both 'failed' and 'succeeded' blocks for the same command
+
+// This tests the error path for using both failed and succeeded blocks
+silent $ false $ failed {
+    echo("failed")
+} succeeded {
+    echo("succeeded")
+}

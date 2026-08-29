@@ -9,7 +9,7 @@ import { temp_dir_create } from "std/fs"
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ echo -e '\nfive\n  six  ' >{tmpdir}/numbers2.txt $
+    trust $ echo -e '\nfive\n  six  ' >"{tmpdir}/numbers2.txt" $
 
     // Inefficient for large files.
     const lines_contents = ["one", "two three four"] + lines("{tmpdir}/numbers2.txt")?

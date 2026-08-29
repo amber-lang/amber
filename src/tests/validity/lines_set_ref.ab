@@ -13,7 +13,7 @@ fun set_ref(ref inner: [Text], path: Text): Null {
 
 main {
     const tmpdir = temp_dir_create("amber-XXXX", true, true)?
-    trust $ echo -e 'one\ntwo three four\n\nfive\n  six  ' >{tmpdir}/numbers.txt $
+    trust $ echo -e 'one\ntwo three four\n\nfive\n  six  ' >"{tmpdir}/numbers.txt" $
 
     // Inefficient for large files.
     let lines_contents = ["a", "b", "c"]

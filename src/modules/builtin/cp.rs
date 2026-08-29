@@ -135,11 +135,14 @@ impl TranslateModule for Cp {
                     force_expr.get_name()
                 )
             )]);
-            force_expr.to_frag()
+            let force_name = force_expr.get_name();
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", force_name, force_name)
         } else {
             let recursive_var_stmt = VarStmtFragment::new("__cp", Type::Bool, raw_fragment!(""))
                 .with_global_id(force_id);
-            meta.push_ephemeral_variable(recursive_var_stmt).to_frag()
+            let var_expr = meta.push_ephemeral_variable(recursive_var_stmt);
+            let name = var_expr.get_name();
+            raw_fragment!("${{{}:+\"${{{}}}\"}}", name, name)
         };
 
         BlockFragment::new(

@@ -173,9 +173,9 @@ impl TranslateModule for Ternary {
                 let expr = fragments!(
                         "if ",
                         cond,
-                        "; then echo ",
+                        "; then printf '%s\n' ",
                         true_expr,
-                        "; else echo ",
+                        "; else printf '%s\n' ",
                         false_expr,
                         "; fi"
                     );

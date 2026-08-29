@@ -33,10 +33,17 @@ impl LogFragment {
                 if interpolable.render_type != InterpolableRenderType::StringLiteral {
                     return true;
                 }
-
+                // `echo` prints backslashes literally like printf '%s', but
+                // ShellCheck flags it (SC2028); use printf when any literal
+                // part carries one.
+                let has_backslash = interpolable.parts.iter().any(|p| {
+                    matches!(p, InterpolablePart::String(s) if s.contains('\\'))
+                });
                 let front = interpolable.parts.front();
                 match front {
-                    Some(InterpolablePart::String(s)) => s.is_empty() || s.starts_with('-'),
+                    Some(InterpolablePart::String(s)) => {
+                        s.is_empty() || s.starts_with('-') || has_backslash
+                    }
                     Some(InterpolablePart::Interp(_)) => true,
                     None => true,
                 }
@@ -57,7 +64,16 @@ impl LogFragment {
 impl FragmentRenderable for LogFragment {
     fn to_string(self, meta: &mut TranslateMetadata) -> String {
         if self.should_use_printf(&self.value) {
-            format!("printf '%s\\n' {}", self.value.to_string(meta))
+            let needs_quotes = matches!(
+                &*self.value,
+                FragmentKind::Condition(c) if c.with_subprocess
+            );
+            let value = self.value.to_string(meta);
+            // An empty argument must stay explicit, otherwise printf gets a
+            // format with no arguments (ShellCheck SC2183).
+            let value = if value.is_empty() { "''".to_string() } else { value };
+            let value = if needs_quotes { format!("\"{value}\"") } else { value };
+            format!("printf '%s\\n' {value}")
         } else {
             format!("echo {}", self.value.to_string(meta))
         }

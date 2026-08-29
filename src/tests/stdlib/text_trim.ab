@@ -2,4 +2,5 @@ import * from "std/text"
 
 main {
     echo(trim("  hello   world  "))
+    echo(trim("  *hello?  "))
 }

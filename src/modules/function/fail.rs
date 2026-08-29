@@ -110,8 +110,7 @@ impl TranslateModule for Fail {
                 &fun_meta.mangled_name(),
                 fun_meta.get_type(),
                 fun_meta.default_return(),
-            )
-            .with_optimization_when_unused(false);
+            );
             meta.stmt_queue.push_back(stmt.to_frag());
             fragments!("return ", translate)
         }

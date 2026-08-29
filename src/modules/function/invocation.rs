@@ -235,7 +235,7 @@ impl TranslateModule for FunctionInvocation {
                                     .with_render_type(VarRenderType::NameOf)
                                     .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
                                     .to_frag()
-                                    .with_quotes(false),
+                                    .with_quotes(true),
                                 "[@]"
                             )
                         }
@@ -270,7 +270,7 @@ impl TranslateModule for FunctionInvocation {
                                 var.with_render_type(VarRenderType::BashRef)
                                     .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
                                     .to_frag()
-                                    .with_quotes(false),
+                                    .with_quotes(true),
                                 "[@]"
                             )
                         }
@@ -296,18 +296,24 @@ impl TranslateModule for FunctionInvocation {
                 "{}ret_{}{}_v{}",
                 prefix, self.name, self.id, self.variant_id
             );
-            let invocation_instance = format!(
-                "{}ret_{}{}_v{}__{}_{}",
-                prefix, self.name, self.id, self.variant_id, self.line, self.col
-            );
-            let parsed_invocation_return =
-                VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
-            let var_stmt = VarStmtFragment::new(
-                &invocation_instance,
-                self.kind.clone(),
-                parsed_invocation_return,
-            );
-            meta.push_ephemeral_variable(var_stmt).to_frag()
+            // Only create the callsite binding if the return value is used (expression context)
+            if meta.expr_ctx {
+                let invocation_instance = format!(
+                    "{}ret_{}{}_v{}__{}_{}",
+                    prefix, self.name, self.id, self.variant_id, self.line, self.col
+                );
+                let parsed_invocation_return =
+                    VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();
+                let var_stmt = VarStmtFragment::new(
+                    &invocation_instance,
+                    self.kind.clone(),
+                    parsed_invocation_return,
+                );
+                meta.push_ephemeral_variable(var_stmt).to_frag()
+            } else {
+                // Statement context: discard the return value but keep the function call for side effects
+                fragments!("''")
+            }
         } else {
             fragments!("''")
         }

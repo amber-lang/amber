@@ -1,7 +1,7 @@
 import * from "std/env"
 
 main {
-    trust $ test_var_isset="test" $
+    trust $ test_var_isset="test"; : "\$test_var_isset" $
     if env_var_test("test_var_isset") {
         echo("Succeeded")
     }
