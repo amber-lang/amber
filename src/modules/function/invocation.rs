@@ -277,8 +277,9 @@ impl TranslateModule for FunctionInvocation {
                                     .with_array_ref(matches!(meta.target.shell, ShellType::Zsh))
                                     .to_frag()
                                     .with_quotes(true),
-                                "[@]"
-                            )
+                                    "[@]"
+                                )
+                            }
                         }
                     }
                     // Non-variable expressions cannot be passed by reference.
