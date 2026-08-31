@@ -1,0 +1,15 @@
+// Output
+// called chosen true
+// chosen true
+// called chosen false
+// chosen false
+
+fun selected(label: Text): Text {
+    echo("called {label}")
+    return label
+}
+
+main(args) {
+    echo(len(args) >= 1 then selected("chosen true") else selected("skipped false"))
+    echo(len(args) < 1 then selected("skipped true") else selected("chosen false"))
+}

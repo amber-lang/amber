@@ -160,25 +160,29 @@ impl TranslateModule for Ternary {
                     .cond
                     .translate(meta)
                     .with_condition(true);
-                let true_expr = self
-                    .true_expr
-                    .as_ref()
-                    .map(|e| e.translate(meta))
-                    .unwrap_or(FragmentKind::Empty);
-                let false_expr = self
-                    .false_expr
-                    .as_ref()
-                    .map(|e| e.translate(meta))
-                    .unwrap_or(FragmentKind::Empty);
-                let expr = fragments!(
-                        "if ",
-                        cond,
-                        "; then printf '%s\n' ",
-                        true_expr,
-                        "; else printf '%s\n' ",
-                        false_expr,
-                        "; fi"
-                    );
+                let translate_branch = |expr: Option<&Box<Expr>>, meta: &mut TranslateMetadata| {
+                    let outer_queue = std::mem::take(&mut meta.stmt_queue);
+                    let value = expr
+                        .map(|expr| expr.translate(meta))
+                        .unwrap_or(FragmentKind::Empty);
+                    let mut statements = meta.stmt_queue.drain(..).collect::<Vec<_>>();
+                    meta.stmt_queue = outer_queue;
+                    statements.push(fragments!("printf '%s\n' ", value));
+                    BlockFragment::new(statements, true).to_frag()
+                };
+                let true_branch = translate_branch(self.true_expr.as_ref(), meta);
+                let false_branch = translate_branch(self.false_expr.as_ref(), meta);
+                let expr = BlockFragment::new(
+                    vec![
+                        fragments!("if ", cond, "; then"),
+                        true_branch,
+                        fragments!("else"),
+                        false_branch,
+                        fragments!("fi"),
+                    ],
+                    false,
+                )
+                .to_frag();
                 if is_array {
                     let id = meta.gen_value_id();
                     let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
