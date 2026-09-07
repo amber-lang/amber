@@ -5,14 +5,14 @@
 //! variants as many they were used in the code to preserve the correct type resolution in shell script.
 
 use crate::modules::block::Block;
-use crate::modules::function::core::diagnostics;
+use crate::modules::function::core::ordinal_number;
 use crate::modules::function::core::signature::{
-    FunctionSignature, FunctionVariant, FunctionVariantId,
+    FunctionParam, FunctionSignature, FunctionVariant, FunctionVariantId,
 };
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::Type;
 use crate::utils::context::{Context, VariableDecl, VariableDeclWarn};
-use crate::utils::ParserMetadata;
+use crate::utils::{pluralize, ParserMetadata};
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
 
@@ -138,7 +138,7 @@ impl<'a> Monomorphizer<'a> {
         if self.signature.total_arity() == self.arg_types.len() {
             return Ok(());
         }
-        let message = diagnostics::arity_mismatch(&self.signature, self.arg_types.len());
+        let message = arity_mismatch(&self.signature, self.arg_types.len());
         error!(self.meta, self.fun_call_tok.clone(), message)
     }
 
@@ -151,8 +151,7 @@ impl<'a> Monomorphizer<'a> {
             izip!(self.signature.params.iter(), self.arg_types.iter()).enumerate()
         {
             if !given.is_allowed_in(&param.kind) {
-                let message =
-                    diagnostics::argument_type_mismatch(&self.signature, index, param, given);
+                let message = argument_type_mismatch(&self.signature, index, param, given);
                 return error!(self.meta, self.fun_call_tok.clone(), message);
             }
         }
@@ -295,4 +294,34 @@ fn prepend_call_site_trace(
         }
         other => other,
     }
+}
+
+pub fn arity_mismatch(fun: &FunctionSignature, given: usize) -> String {
+    let max_args = fun.total_arity();
+    let min_args = fun.required_arity();
+    let opt_argument = if max_args > min_args {
+        format!(" ({max_args} optional)")
+    } else {
+        String::new()
+    };
+    // Determine the correct grammar
+    let txt_arguments = pluralize(min_args, "argument", "arguments");
+    let txt_given = pluralize(given, "was given", "were given");
+    format!(
+        "Function '{}' expects {min_args} {txt_arguments}{opt_argument}, but {given} {txt_given}",
+        fun.name
+    )
+}
+
+pub fn argument_type_mismatch(
+    fun: &FunctionSignature,
+    index: usize,
+    param: &FunctionParam,
+    given: &Type,
+) -> String {
+    let arg_name = &param.name;
+    let arg_type = &param.kind;
+    let fun_name = &fun.name;
+    let ordinal = ordinal_number(index);
+    format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given}' was given")
 }

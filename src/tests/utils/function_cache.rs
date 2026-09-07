@@ -1,5 +1,5 @@
 use crate::modules::block::Block;
-use crate::modules::function::core::signature::{FunctionVariant, FunctionVariantId};
+use crate::modules::function::core::signature::FunctionVariantId;
 use crate::modules::types::Type;
 use crate::utils::context::Context;
 use crate::utils::function_cache::FunctionCache;
@@ -7,7 +7,7 @@ use heraclitus_compiler::compiling::SyntaxModule;
 
 #[cfg(test)]
 mod function_cache_tests {
-    use crate::modules::function::core::signature::FunctionDeclId;
+    use crate::modules::function::core::signature::{FunctionDeclId, FunctionVariant};
 
     use super::*;
 

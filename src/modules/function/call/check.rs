@@ -1,12 +1,30 @@
-use crate::modules::function::core::diagnostics::{
-    ref_argument_is_not_a_variable, similar_function_hint,
-};
 use crate::modules::function::core::monomorphize::{Monomorphizer, Persistence, ResolvedCall};
-use crate::modules::function::core::signature::FunctionSignature;
+use crate::modules::function::core::ordinal_number;
+use crate::modules::function::core::signature::{FunctionParam, FunctionSignature};
 use crate::modules::types::Type;
 use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
+use similar_string::find_best_similarity;
+
+/// Suggests the closest known function name if such exsits
+pub fn similar_function_hint(meta: &ParserMetadata, name: &str) -> Option<String> {
+    let names = Vec::from_iter(meta.get_fun_names());
+    find_best_similarity(name, &names).and_then(|(match_name, score)| {
+        (score >= 0.75).then(|| format!("Did you mean '{match_name}'?"))
+    })
+}
+
+pub fn ref_argument_is_not_a_variable(
+    fun: &FunctionSignature,
+    index: usize,
+    param: &FunctionParam,
+) -> String {
+    let arg_name = &param.name;
+    let fun_name = &fun.name;
+    let ordinal = ordinal_number(index);
+    format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable")
+}
 
 /// Looks up the function by name, suggesting a close match when it is unknown.
 pub fn resolve_function(
