@@ -1,7 +1,8 @@
 use super::{
-    block::BlockFragment, comment::CommentFragment, interpolable::InterpolableFragment,
-    list::ListFragment, log::LogFragment, raw::RawFragment, subprocess::SubprocessFragment,
-    var_expr::VarExprFragment, var_stmt::VarStmtFragment,
+    block::BlockFragment, comment::CommentFragment, function_call::FunctionCallFragment,
+    function_decl::FunctionDeclFragment, interpolable::InterpolableFragment, list::ListFragment,
+    log::LogFragment, raw::RawFragment, subprocess::SubprocessFragment, var_expr::VarExprFragment,
+    var_stmt::VarStmtFragment,
 };
 use crate::translate::fragments::{arithmetic::ArithmeticFragment, condition::ConditionFragment};
 use crate::utils::TranslateMetadata;
@@ -24,6 +25,8 @@ pub enum FragmentKind {
     Comment(CommentFragment),
     Condition(ConditionFragment),
     Log(LogFragment),
+    FunDecl(FunctionDeclFragment),
+    FunCall(FunctionCallFragment),
     #[default]
     Empty,
 }
@@ -60,7 +63,7 @@ impl FragmentKind {
             FragmentKind::Raw(var) => FragmentKind::Raw(var.with_condition(cond)),
             FragmentKind::Condition(var) => FragmentKind::Condition(var.with_subprocess(!cond)),
             FragmentKind::Interpolable(var) => FragmentKind::Interpolable(var.with_condition(cond)),
-            _ => self
+            _ => self,
         }
     }
 
@@ -135,6 +138,8 @@ impl FragmentRenderable for FragmentKind {
             FragmentKind::Comment(comment) => comment.to_string(meta),
             FragmentKind::Condition(condition) => condition.to_string(meta),
             FragmentKind::Log(log) => log.to_string(meta),
+            FragmentKind::FunDecl(fun) => fun.to_string(meta),
+            FragmentKind::FunCall(fun) => fun.to_string(meta),
             FragmentKind::Empty => String::new(),
         }
     }

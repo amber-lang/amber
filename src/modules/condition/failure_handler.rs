@@ -2,6 +2,7 @@ use crate::modules::block::Block;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::translate::fragments::return_variable_name;
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 use crate::{fragments, raw_fragment};
@@ -261,12 +262,16 @@ impl TranslateModule for FailureHandler {
             // Set default return value if failure happened in a function
             let clear_return = if !self.is_main {
                 let fun_meta = meta
-                    .fun_meta
+                    .fun_frag_sig
                     .as_ref()
                     .expect("Function name and return type not set");
                 let stmt = VarStmtFragment::new(
-                    &fun_meta.mangled_name(),
-                    fun_meta.get_type(),
+                    &return_variable_name(
+                        &fun_meta.name,
+                        fun_meta.declaration_id,
+                        fun_meta.variant_id,
+                    ),
+                    fun_meta.return_type.clone(),
                     fun_meta.default_return(),
                 )
                 .with_optimization_when_unused(false);

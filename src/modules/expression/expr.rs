@@ -22,7 +22,7 @@ use crate::modules::expression::binop::BinOp;
 use crate::modules::expression::ternop::TernOp;
 use crate::modules::expression::typeop::TypeOp;
 use crate::modules::expression::unop::UnOp;
-use crate::modules::function::invocation::FunctionInvocation;
+use crate::modules::function::call::FunctionCall;
 use crate::modules::prelude::FragmentKind;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::parse_type;
@@ -62,7 +62,7 @@ pub enum ExprType {
     Not(Not),
     Ternary(Ternary),
     LinesInvocation(LinesInvocation),
-    FunctionInvocation(FunctionInvocation),
+    FunctionCall(FunctionCall),
     Command(Command),
     Array(Array),
     Range(Range),
@@ -189,7 +189,7 @@ impl SyntaxModule<ParserMetadata> for Expr {
                 // Builtin invocation
                 LinesInvocation, Pwd, Ls, Pid, Shellname, Shellversion,
                 // Function invocation
-                FunctionInvocation, Command,
+                FunctionCall, Command,
                 // Variable access
                 VariableGet
             ]
@@ -213,7 +213,7 @@ impl TypeCheckModule for Expr {
                 Command,
                 Div,
                 Eq,
-                FunctionInvocation,
+                FunctionCall,
                 Ge,
                 Gt,
                 Integer,
@@ -265,7 +265,7 @@ impl TranslateModule for Expr {
                     Command,
                     Div,
                     Eq,
-                    FunctionInvocation,
+                    FunctionCall,
                     Ge,
                     Gt,
                     Integer,
@@ -316,7 +316,7 @@ impl DocumentationModule for Expr {
                 Command,
                 Div,
                 Eq,
-                FunctionInvocation,
+                FunctionCall,
                 Ge,
                 Gt,
                 Integer,

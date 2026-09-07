@@ -125,7 +125,7 @@ impl VarStmtFragment {
         let value = if matches!(self.kind, Type::Num) {
             meta.eval_ctx = false;
             self.value.to_string(meta)
-        }  else {
+        } else {
             self.value.to_string(meta)
         };
         meta.eval_ctx = is_eval;

@@ -1,13 +1,13 @@
+//! This optimizer removes unused variables from the AST in cases of:
+//! 1. Transitive variables not being used (eg. `a = b; b = c;`)
+//! 2. Variables being redeclared in certain scopes (non-conditional blocks)
+
 use amber_meta::ContextManager;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::modules::prelude::*;
 use crate::translate::fragments::interpolable::InterpolablePart;
 use crate::translate::fragments::var_expr::VarIndexValue;
-
-// This optimizer removes unused variables from the AST in cases of:
-// 1. Transitive variables not being used (eg. `a = b; b = c;`)
-// 2. Variables being redeclared in certain scopes (non-conditional blocks)
 
 type VarExprName = String;
 type VarStmtName = String;
@@ -113,6 +113,12 @@ pub fn remove_unused_variables(ast: &mut FragmentKind) {
 }
 
 fn remove_non_existing_variables(ast: &mut FragmentKind, meta: &mut UnusedVariablesMetadata) {
+    // A function definition has inner block that we check
+    if let FragmentKind::FunDecl(fun) = ast {
+        remove_non_existing_variables(&mut fun.prologue, meta);
+        remove_non_existing_variables(&mut fun.body, meta);
+        return;
+    }
     if let FragmentKind::Block(block) = ast {
         let mut remove_indexes = vec![];
         for (index, statement) in block.statements.iter_mut().enumerate() {
@@ -225,6 +231,16 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
             find_unused_variables(&subprocess.fragment, meta);
         }
         FragmentKind::Log(log) => find_unused_variables(&log.value, meta),
+        FragmentKind::FunDecl(fun) => {
+            find_unused_variables(&fun.prologue, meta);
+            find_unused_variables(&fun.body, meta);
+        }
+        // A variable read only as a call argument is still a variable in use
+        FragmentKind::FunCall(fun) => {
+            for arg in fun.args.iter() {
+                find_unused_variables(&arg, meta);
+            }
+        }
         FragmentKind::Raw(_) | FragmentKind::Comment(_) | FragmentKind::Empty => {}
     }
 }

@@ -5,13 +5,12 @@ use std::str::FromStr;
 
 use super::ParserMetadata;
 use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::modules::function::core::signature::FunctionFragmentSignature;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
-use crate::utils::function_metadata::FunctionMetadata;
-use crate::utils::is_all_caps;
 use amber_meta::ContextManager;
 use clap::ValueEnum;
 
@@ -89,8 +88,8 @@ pub struct TranslateMetadata {
     /// A queue of statements that are needed to be evaluated
     /// before current statement in order to be correct.
     pub stmt_queue: VecDeque<FragmentKind>,
-    /// The metadata of the function that is currently being translated.
-    pub fun_meta: Option<FunctionMetadata>,
+    /// The metadata of the function signature that is currently being translated.
+    pub fun_frag_sig: Option<FunctionFragmentSignature>,
     /// Used to determine the value or array being evaluated.
     pub value_id: usize,
     /// Determines whether the current context is a context in bash's `eval`.
@@ -126,7 +125,7 @@ impl TranslateMetadata {
             },
             arith_module: ArithType::Awk,
             fun_cache: meta.fun_cache,
-            fun_meta: None,
+            fun_frag_sig: None,
             stmt_queue: VecDeque::new(),
             value_id: 0,
             eval_ctx: false,
@@ -152,7 +151,7 @@ impl TranslateMetadata {
     #[inline]
     /// Create an intermediate variable and return it's variable expression
     pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
-        let is_local = self.fun_meta.is_some();
+        let is_local = self.fun_frag_sig.is_some();
         let stmt = statement.with_ephemeral(true).with_local(is_local);
         let expr = VarExprFragment::from_stmt(&stmt);
         self.stmt_queue.push_back(stmt.to_frag());
@@ -214,16 +213,6 @@ impl TranslateMetadata {
             "\\$"
         } else {
             "$"
-        }
-    }
-
-    /// Returns the variable prefix based on the name casing.
-    /// Returns "__" for fully uppercase names, "" for others.
-    pub fn gen_variable_prefix(&self, name: &str) -> &'static str {
-        if is_all_caps(name) {
-            "__"
-        } else {
-            ""
         }
     }
 }

@@ -1,7 +1,8 @@
 //! Tests for utils/context.rs, function_cache.rs, function_interface.rs
 
-use crate::utils::context::{Context, ScopeUnit, VariableDecl, FunctionDecl};
+use crate::modules::function::core::signature::{FunctionDeclId, FunctionSignature};
 use crate::modules::types::Type;
+use crate::utils::context::{Context, ScopeUnit, VariableDecl};
 
 #[cfg(test)]
 mod context_tests {
@@ -21,10 +22,10 @@ mod context_tests {
     fn test_scope_unit_add_var() {
         let mut scope = ScopeUnit::new();
         let var = VariableDecl::new("x".to_string(), Type::Int);
-        
+
         // First add should succeed
         assert!(scope.add_var(var));
-        
+
         // Adding same name should fail (returns false)
         let var2 = VariableDecl::new("x".to_string(), Type::Text);
         assert!(!scope.add_var(var2));
@@ -35,7 +36,7 @@ mod context_tests {
         let mut scope = ScopeUnit::new();
         let var = VariableDecl::new("x".to_string(), Type::Int);
         scope.add_var(var);
-        
+
         assert!(scope.get_var("x").is_some());
         assert!(scope.get_var("y").is_none());
     }
@@ -43,25 +44,23 @@ mod context_tests {
     #[test]
     fn test_scope_unit_add_fun() {
         let mut scope = ScopeUnit::new();
-        let fun = FunctionDecl {
+        let fun = FunctionSignature {
             name: "foo".to_string(),
-            args: vec![],
+            params: vec![],
             returns: Type::Null,
-            is_args_typed: true,
             is_public: false,
             is_failable: false,
-            id: 1,
+            id: FunctionDeclId::new(1),
         };
-        
+
         assert!(scope.add_fun(fun));
-        assert!(!scope.add_fun(FunctionDecl {
+        assert!(!scope.add_fun(FunctionSignature {
             name: "foo".to_string(),
-            args: vec![],
+            params: vec![],
             returns: Type::Null,
-            is_args_typed: true,
             is_public: false,
             is_failable: false,
-            id: 2,
+            id: FunctionDeclId::new(2),
         }));
     }
 
@@ -82,11 +81,9 @@ mod context_tests {
             .with_const(true)
             .with_ref(true)
             .with_public(true);
-        
+
         assert!(var.is_const);
         assert!(var.is_ref);
         assert!(var.is_public);
     }
 }
-
-

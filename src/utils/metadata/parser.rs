@@ -1,10 +1,12 @@
 use std::collections::{BTreeSet, HashMap};
 
 use crate::modules::block::Block;
+use crate::modules::function::core::signature::{
+    FunctionDeclId, FunctionSignature, FunctionVariant, FunctionVariantId,
+};
 use crate::modules::types::Type;
-use crate::utils::context::{Context, FunctionDecl, ScopeUnit, VariableDecl};
+use crate::utils::context::{Context, ScopeUnit, VariableDecl};
 use crate::utils::function_cache::FunctionCache;
-use crate::utils::function_interface::FunctionInterface;
 use crate::utils::import_cache::ImportCache;
 use amber_meta::ContextManager;
 use heraclitus_compiler::prelude::*;
@@ -30,8 +32,8 @@ pub struct ParserMetadata {
     pub messages: Vec<Message>,
     /// Show standard library usage in documentation
     pub doc_usage: bool,
-    /// List of functions that are currently being parsed
-    pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
+    /// List of function variants that are currently being typechecked in Monomorphiser
+    pub fun_variants_in_typecheck: HashMap<(FunctionDeclId, Vec<Type>), FunctionVariantId>,
     /// List of test names found in the file
     pub test_names: Vec<String>,
     /// Stack of narrowed types for control flow analysis
@@ -39,7 +41,7 @@ pub struct ParserMetadata {
     /// Suppress warnings during monomorphic function re-typechecking
     #[context]
     pub suppress_warnings: bool,
-    /// Skip persisting function instances during first-pass typechecking
+    /// Skip persisting function variants during first-pass typechecking
     /// First pass is used for typechecking a function with declared and not concrete types
     /// This is used to generally assess if a function is valid and emit errors if it is not
     #[context]
@@ -191,44 +193,40 @@ impl ParserMetadata {
     /* Functions */
 
     /// Generate a new global function id
-    pub fn gen_fun_id(&mut self) -> usize {
+    pub fn gen_fun_id(&mut self) -> FunctionDeclId {
         let id = self.fun_id;
         self.fun_id += 1;
-        id
+        FunctionDeclId::new(id)
     }
 
-    /// Adds a function declaration to the current scope
-    pub fn add_fun_declaration(
-        &mut self,
-        fun: FunctionInterface,
-        ctx: Context,
-        block: Block,
-    ) -> Option<usize> {
-        let global_id = self.gen_fun_id();
-        // Add the function to the public function list
-        if fun.is_public {
-            let decl = fun.clone().into_fun_declaration(global_id);
-            self.context.pub_funs.push(decl);
-        }
-        // Add the function to the current scope
-        let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun(fun.into_fun_declaration(global_id)).then(|| {
-            // Add the function to the function cache
-            self.fun_cache.add_declaration(global_id, ctx, block);
-            global_id
-        })
-    }
-
-    /// Adds a function declaration that that was already parsed - this function is probably imported
-    pub fn add_fun_declaration_existing(&mut self, fun: FunctionDecl) -> Option<usize> {
-        let global_id = self.gen_fun_id();
+    /// Registers a freshly declared function in the current scope and adds
+    /// a new cache entry with the declaration-time context and body.
+    /// Returns false if function under such name already exists in the scope
+    pub fn declare_function(&mut self, fun: FunctionSignature, ctx: Context, block: Block) -> bool {
+        let id = fun.id;
         // Add the function to the public function list
         if fun.is_public {
             self.context.pub_funs.push(fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun(fun).then_some(global_id)
+        let added = scope.add_fun(fun);
+        if added {
+            // Add the function to the function cache
+            self.fun_cache.add_declaration(id, ctx, block);
+        }
+        added
+    }
+
+    /// Adds a function declaration that was already parsed - this function is probably imported.
+    pub fn add_fun_declaration_existing(&mut self, fun: FunctionSignature) -> bool {
+        // Add the function to the public function list
+        if fun.is_public {
+            self.context.pub_funs.push(fun.clone());
+        }
+        // Add the function to the current scope
+        let scope = self.context.scopes.last_mut().unwrap();
+        scope.add_fun(fun)
     }
 
     pub fn add_var_declaration_existing(&mut self, var: VariableDecl) -> Option<usize> {
@@ -240,21 +238,17 @@ impl ParserMetadata {
         scope.add_var(var).then_some(global_id)
     }
 
-    /// Adds a function instance to the cache
-    /// This function returns the id of the function instance variant
-    pub fn add_fun_instance(
+    /// Persists a monomorphized variant in the cache and returns its id.
+    pub fn add_fun_variant(
         &mut self,
-        fun: FunctionInterface,
-        args_global_ids: Vec<Option<usize>>,
-        block: Block,
-    ) -> usize {
-        let id = fun.id.expect("Function id is not set");
-        self.fun_cache
-            .add_instance(id, fun.into_fun_instance(args_global_ids, block))
+        id: FunctionDeclId,
+        variant: FunctionVariant,
+    ) -> Option<FunctionVariantId> {
+        self.fun_cache.add_variant(id, variant)
     }
 
     /// Gets a function declaration from the current scope or any parent scope
-    pub fn get_fun_declaration(&self, name: &str) -> Option<&FunctionDecl> {
+    pub fn get_fun_declaration(&self, name: &str) -> Option<&FunctionSignature> {
         self.context
             .scopes
             .iter()
@@ -263,7 +257,7 @@ impl ParserMetadata {
     }
 
     /// Gets a function from the current scope
-    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionDecl> {
+    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionSignature> {
         self.context
             .scopes
             .last()
@@ -314,7 +308,7 @@ impl Metadata for ParserMetadata {
             context: Context::new(path, tokens),
             messages: Vec::new(),
             doc_usage: false,
-            parsing_functions: HashMap::new(),
+            fun_variants_in_typecheck: HashMap::new(),
             test_names: Vec::new(),
             narrowed_types: Vec::new(),
             suppress_warnings: false,

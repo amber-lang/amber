@@ -2,7 +2,7 @@ use crate::fragments;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
-use crate::utils::function_metadata::FunctionMetadata;
+use crate::translate::fragments::return_variable_name;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
@@ -65,14 +65,17 @@ impl TypeCheckModule for Return {
 
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let fun_name = meta
-            .fun_meta
-            .as_ref()
-            .map(FunctionMetadata::mangled_name)
-            .expect("Function name and return type not set");
         let result = self.expr.translate(meta);
-        let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
-            .with_optimization_when_unused(false);
+        let fun = meta
+            .fun_frag_sig
+            .as_ref()
+            .expect("Function name and return type not set");
+        let var_stmt = VarStmtFragment::new(
+            &return_variable_name(&fun.name, fun.declaration_id, fun.variant_id),
+            self.expr.get_type(),
+            result,
+        )
+        .with_optimization_when_unused(false);
         meta.stmt_queue.push_back(var_stmt.to_frag());
         fragments!("return 0")
     }
