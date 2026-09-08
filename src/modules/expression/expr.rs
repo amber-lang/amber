@@ -184,8 +184,8 @@ impl Expr {
             Some(ExprType::Or(or)) => or.analyze_control_flow(),
             Some(ExprType::Not(not)) => not.analyze_control_flow(),
             Some(ExprType::Parentheses(p)) => p.get_expr().try_fold_bool_constant(meta),
-            Some(ExprType::Eq(eq)) => eq.analyze_control_flow(meta),
-            Some(ExprType::Neq(neq)) => neq.analyze_control_flow(meta),
+            Some(ExprType::Eq(eq)) => eq.analyze_constant_folding(meta),
+            Some(ExprType::Neq(neq)) => neq.analyze_constant_folding(meta),
             Some(ExprType::Is(is)) => is.analyze_control_flow(),
             _ => None,
         }

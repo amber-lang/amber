@@ -17,24 +17,6 @@ pub struct Neq {
     right: Box<Expr>,
 }
 
-impl Neq {
-    /// Check if this inequality comparison can be folded to a constant.
-    pub fn analyze_control_flow(&self, meta: &TranslateMetadata) -> Option<bool> {
-        let target_family = meta.target.shell.family_name();
-
-        // Optimize away `shellname() != "<shell>"` if possible at compile time
-        match (&self.left.value, &self.right.value) {
-            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
-                text.as_simple_string().map(|str| str != target_family)
-            }
-            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
-                text.as_simple_string().map(|str| str != target_family)
-            }
-            _ => None,
-        }
-    }
-}
-
 impl Typed for Neq {
     fn get_type(&self) -> Type {
         Type::Bool
@@ -83,7 +65,7 @@ impl TypeCheckModule for Neq {
 impl TranslateModule for Neq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Check for constant folding
-        if let Some(constant_value) = self.analyze_control_flow(meta) {
+        if let Some(constant_value) = self.analyze_constant_folding(meta) {
             return RawFragment::from((if constant_value { "1" } else { "0" }).to_string()).to_frag();
         }
 
@@ -108,3 +90,21 @@ impl TranslateModule for Neq {
 }
 
 crate::impl_documentation_noop!(Neq);
+
+impl Neq {
+    /// Check if this inequality comparison can be folded to a constant.
+    pub fn analyze_constant_folding(&self, meta: &TranslateMetadata) -> Option<bool> {
+        let target_family = meta.target.shell.family_name();
+
+        // Optimize away `shellname() != "<shell>"` if possible at compile time
+        match (&self.left.value, &self.right.value) {
+            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
+                text.as_simple_string().map(|str| str != target_family)
+            }
+            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
+                text.as_simple_string().map(|str| str != target_family)
+            }
+            _ => None,
+        }
+    }
+}
