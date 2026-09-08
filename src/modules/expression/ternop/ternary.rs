@@ -11,6 +11,7 @@ pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Option<Box<Expr>>,
     false_expr: Option<Box<Expr>>,
+    control_flow_analysis: Option<bool>,
     kind: Type,
 }
 
@@ -52,6 +53,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
             cond: Box::new(Expr::new()),
             true_expr: Some(Box::new(Expr::new())),
             false_expr: Some(Box::new(Expr::new())),
+            control_flow_analysis: None,
             kind: Type::Null,
         }
     }
@@ -64,7 +66,10 @@ impl SyntaxModule<ParserMetadata> for Ternary {
 impl TypeCheckModule for Ternary {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.cond.typecheck(meta)?;
-        if ! matches!(self.cond.get_type(), Type::Bool | Type::Text | Type::Array(_)) {
+        if !matches!(
+            self.cond.get_type(),
+            Type::Bool | Type::Text | Type::Array(_)
+        ) {
             let msg = self
                 .cond
                 .get_error_message(meta)
@@ -73,7 +78,8 @@ impl TypeCheckModule for Ternary {
         }
 
         // Handle static cases
-        match self.cond.analyze_control_flow() {
+        self.control_flow_analysis = self.cond.analyze_control_flow();
+        match self.control_flow_analysis {
             Some(true) => {
                 let (facts, _) = self.cond.extract_facts();
                 let true_expr = self.true_expr.as_mut().unwrap();
@@ -138,7 +144,7 @@ impl TypeCheckModule for Ternary {
 
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match self.cond.analyze_control_flow() {
+        match self.control_flow_analysis {
             Some(true) => self
                 .true_expr
                 .as_ref()
@@ -156,10 +162,7 @@ impl TranslateModule for Ternary {
                     .map(|e| e.get_type())
                     .unwrap_or(Type::Null);
                 let is_array = true_type.is_array();
-                let cond = self
-                    .cond
-                    .translate(meta)
-                    .with_condition(true);
+                let cond = self.cond.translate(meta).with_condition(true);
                 let true_expr = self
                     .true_expr
                     .as_ref()
@@ -171,14 +174,14 @@ impl TranslateModule for Ternary {
                     .map(|e| e.translate(meta))
                     .unwrap_or(FragmentKind::Empty);
                 let expr = fragments!(
-                        "if ",
-                        cond,
-                        "; then printf '%s\n' ",
-                        true_expr,
-                        "; else printf '%s\n' ",
-                        false_expr,
-                        "; fi"
-                    );
+                    "if ",
+                    cond,
+                    "; then printf '%s\n' ",
+                    true_expr,
+                    "; else printf '%s\n' ",
+                    false_expr,
+                    "; fi"
+                );
                 if is_array {
                     let id = meta.gen_value_id();
                     let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
