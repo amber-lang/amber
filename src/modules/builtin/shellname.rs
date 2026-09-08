@@ -1,4 +1,3 @@
-use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::{Type, Typed};
@@ -35,34 +34,6 @@ impl SyntaxModule<ParserMetadata> for Shellname {
 impl TypeCheckModule for Shellname {
     fn typecheck(&mut self, _meta: &mut ParserMetadata) -> SyntaxResult {
         Ok(())
-    }
-}
-
-impl Shellname {
-    /// Check if this shellname() call is being compared to a literal string.
-    /// Returns the literal value if found, or None if it's a standalone usage.
-    pub fn try_fold_comparison(&self, meta: &TranslateMetadata, other: &Expr, operator_eq: bool) -> Option<FragmentKind> {
-        // Get the target shell's family name
-        let target_family = meta.target.shell.family_name();
-        
-        // Check if the other side is a literal string (single TextPart::String)
-        let literal = match &other.value {
-            Some(ExprType::Text(text)) => text.as_simple_string()?,
-            _ => return None,
-        };
-        
-        // Compare target family with the literal
-        let matches = target_family == literal;
-        
-        // Return constant "1" for true, "0" for false
-        // For != operator, we invert the result
-        let result = if operator_eq {
-            if matches { "1" } else { "0" }
-        } else {
-            if matches { "0" } else { "1" }
-        };
-        
-        Some(RawFragment::from(result.to_string()).to_frag())
     }
 }
 

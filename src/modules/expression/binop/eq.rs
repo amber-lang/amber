@@ -1,5 +1,4 @@
 use super::BinOp;
-use crate::modules::builtin::shellname::Shellname;
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
@@ -83,25 +82,7 @@ impl TypeCheckModule for Eq {
 
 impl TranslateModule for Eq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Check for shellname() == "literal" or "literal" == shellname() pattern
-        let shellname_result = match (&self.left.value, &self.right.value) {
-            (Some(ExprType::Shellname(_)), Some(ExprType::Text(_))) => {
-                // shellname() == "literal"
-                Shellname {}.try_fold_comparison(meta, &self.right, true)
-            }
-            (Some(ExprType::Text(_)), Some(ExprType::Shellname(_))) => {
-                // "literal" == shellname()
-                Shellname {}.try_fold_comparison(meta, &self.left, true)
-            }
-            _ => None,
-        };
-
-        if let Some(frag) = shellname_result {
-            // Don't set shellname_used since we're folding to a constant
-            return frag;
-        }
-
-        // Check for constant folding via analyze_control_flow
+        // Check for constant folding
         if let Some(constant_value) = self.analyze_control_flow(meta) {
             return RawFragment::from((if constant_value { "1" } else { "0" }).to_string()).to_frag();
         }
