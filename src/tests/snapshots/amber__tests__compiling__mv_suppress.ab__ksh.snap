@@ -1,6 +1,5 @@
 ---
 source: src/tests/compiling.rs
-assertion_line: 65
 expression: ast
 ---
 mv "source" "destination" 2>/dev/null
