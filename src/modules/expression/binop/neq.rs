@@ -20,24 +20,16 @@ pub struct Neq {
 
 impl Neq {
     /// Check if this inequality comparison can be folded to a constant.
-    /// Returns Some(true) if always true, Some(false) if always false, None otherwise.
     pub fn analyze_control_flow(&self, meta: &TranslateMetadata) -> Option<bool> {
-        // Check for shellname() != "literal" or "literal" != shellname() pattern
-        let get_literal = |expr: &Expr| -> Option<String> {
-            match &expr.value {
-                Some(ExprType::Text(text)) => text.as_simple_string().map(|s| s.to_string()),
-                _ => None,
-            }
-        };
-        
         let target_family = meta.target.shell.family_name();
-        
+
+        // Optimize away `shellname() != "<shell>"` if possible at compile time
         match (&self.left.value, &self.right.value) {
-            (Some(ExprType::Shellname(_)), _) => {
-                get_literal(&self.right).map(|lit| target_family != lit.as_str())
+            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
+                text.as_simple_string().map(|str| str != target_family)
             }
-            (_, Some(ExprType::Shellname(_))) => {
-                get_literal(&self.left).map(|lit| target_family != lit.as_str())
+            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
+                text.as_simple_string().map(|str| str != target_family)
             }
             _ => None,
         }
@@ -103,7 +95,7 @@ impl TranslateModule for Neq {
             }
             _ => None,
         };
-        
+
         if let Some(frag) = shellname_result {
             // Don't set shellname_used since we're folding to a constant
             return frag;

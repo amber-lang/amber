@@ -4,9 +4,9 @@ use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compare::translate_array_equality;
+use crate::translate::compare::ComparisonOperator;
 use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::translate::fragments::condition::ConditionFragment;
-use crate::translate::compare::ComparisonOperator;
 use crate::utils::TranslateMetadata;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
@@ -21,24 +21,15 @@ pub struct Eq {
 
 impl Eq {
     /// Check if this equality comparison can be folded to a constant.
-    /// Returns Some(true) if always true, Some(false) if always false, None otherwise.
     pub fn analyze_control_flow(&self, meta: &TranslateMetadata) -> Option<bool> {
-        // Check for shellname() == "literal" or "literal" == shellname() pattern
-        let get_literal = |expr: &Expr| -> Option<String> {
-            match &expr.value {
-                Some(ExprType::Text(text)) => text.as_simple_string().map(|s| s.to_string()),
-                _ => None,
-            }
-        };
-        
         let target_family = meta.target.shell.family_name();
-        
+        // Optimize away `shellname() == "<shell>"` if possible at compile time
         match (&self.left.value, &self.right.value) {
-            (Some(ExprType::Shellname(_)), _) => {
-                get_literal(&self.right).map(|lit| target_family == lit.as_str())
+            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
+                text.as_simple_string().map(|str| str == target_family)
             }
-            (_, Some(ExprType::Shellname(_))) => {
-                get_literal(&self.left).map(|lit| target_family == lit.as_str())
+            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
+                text.as_simple_string().map(|str| str == target_family)
             }
             _ => None,
         }
@@ -104,7 +95,7 @@ impl TranslateModule for Eq {
             }
             _ => None,
         };
-        
+
         if let Some(frag) = shellname_result {
             // Don't set shellname_used since we're folding to a constant
             return frag;
@@ -120,7 +111,7 @@ impl TranslateModule for Eq {
 
         match (self.left.get_type(), self.right.get_type()) {
             (Type::Num, _) | (_, Type::Num) => translate_float_computation(meta, ArithOp::Eq, Some(left), Some(right)),
-            (Type::Int, _) | (Type::Bool, _)=>  ArithmeticFragment::new(left, ArithOp::Eq, right).to_frag(),  
+            (Type::Int, _) | (Type::Bool, _)=>  ArithmeticFragment::new(left, ArithOp::Eq, right).to_frag(),
             (Type::Array(_), _) => {
                 if let (FragmentKind::VarExpr(left), FragmentKind::VarExpr(right)) = (left, right) {
                     translate_array_equality(left, right, false)
