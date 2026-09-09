@@ -14,17 +14,17 @@ use crate::modules::expression::BoolAnalysis;
 struct IfChainBranch {
     comments: Vec<Comment>,
     cond: Expr,
-    control_flow_analysis: BoolAnalysis,
+    cfa: BoolAnalysis,
     block: Block,
 }
 
 impl IfChainBranch {
     pub fn new(comments: Vec<Comment>, cond: Expr, block: Block) -> Self {
-        IfChainBranch { comments, cond, control_flow_analysis: BoolAnalysis::default(), block }
+        IfChainBranch { comments, cond, cfa: BoolAnalysis::default(), block }
     }
 
-    pub fn with_control_flow_analysis(mut self, cfa: BoolAnalysis) -> Self {
-        self.control_flow_analysis = cfa;
+    pub fn with_cfa(mut self, cfa: BoolAnalysis) -> Self {
+        self.cfa = cfa;
         self
     }
 }
@@ -42,7 +42,7 @@ crate::impl_documentation_noop!(IfChain);
 impl IfChain {
     pub fn terminates_control_flow(&self) -> bool {
         for branch in &self.cond_blocks {
-            if branch.control_flow_analysis.known_value == Some(true) {
+            if branch.cfa.known_value == Some(true) {
                 return branch.block.terminates_control_flow();
             }
         }
@@ -174,7 +174,7 @@ impl TypeCheckModule for IfChain {
                     block_facts.extend(facts);
 
                     meta.with_narrowed_scope(block_facts, |meta| branch.block.typecheck(meta))?;
-                    new_chain.push(branch.with_control_flow_analysis(cfa));
+                    new_chain.push(branch.with_cfa(cfa));
                     chain_deadcode = true;
                     first_true_pos = Some(pos);
                     first_true_depends_on_target = cfa.depends_on_target;
@@ -198,7 +198,7 @@ impl TypeCheckModule for IfChain {
                     // Add current negative facts to the accumulated set for next branches
                     accumulated_neg_facts.extend(neg_facts);
 
-                    new_chain.push(branch.with_control_flow_analysis(cfa));
+                    new_chain.push(branch.with_cfa(cfa));
                 }
             }
         }
@@ -238,8 +238,8 @@ impl TranslateModule for IfChain {
 
       // In case of when only the first condition is true, we can just leave the truth block without any condition
       if let Some(first_branch) = self.cond_blocks.first() {
-          let analysis = first_branch.control_flow_analysis;
-          if analysis.known_value == Some(true) && !analysis.has_side_effects {
+          let cfa = first_branch.cfa;
+          if cfa.known_value == Some(true) && !cfa.has_side_effects {
               return first_branch.block.translate(meta);
           }
       }

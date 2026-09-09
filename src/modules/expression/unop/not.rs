@@ -15,15 +15,20 @@ use crate::modules::expression::BoolAnalysis;
 #[keyword = "not"]
 pub struct Not {
     expr: Box<Expr>,
+    cfa: BoolAnalysis,
 }
 
 impl Not {
     pub fn analyze_control_flow(&self) -> BoolAnalysis {
-        let analysis = self.expr.analyze_control_flow();
+        self.cfa
+    }
+
+    fn compute_cfa(&self) -> BoolAnalysis {
+        let cfa = self.expr.analyze_control_flow();
         BoolAnalysis {
-            known_value: analysis.known_value.map(|value| !value),
-            depends_on_target: analysis.depends_on_target,
-            has_side_effects: analysis.has_side_effects,
+            known_value: cfa.known_value.map(|value| !value),
+            depends_on_target: cfa.depends_on_target,
+            has_side_effects: cfa.has_side_effects,
         }
     }
 
@@ -56,6 +61,7 @@ impl SyntaxModule<ParserMetadata> for Not {
     fn new() -> Self {
         Not {
             expr: Box::new(Expr::new()),
+            cfa: BoolAnalysis::default(),
         }
     }
 
@@ -77,14 +83,15 @@ impl TypeCheckModule for Not {
                 Type::Array(Box::new(Type::Generic))
             ]
         )?;
+        self.cfa = self.compute_cfa();
         Ok(())
     }
 }
 
 impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let analysis = self.analyze_control_flow();
-        if let (Some(const_value), false) = (analysis.known_value, analysis.has_side_effects) {
+        let cfa = self.cfa;
+        if let (Some(const_value), false) = (cfa.known_value, cfa.has_side_effects) {
             RawFragment::from((if const_value { "1" } else { "0" }).to_string()).to_frag()
         } else {
             let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));

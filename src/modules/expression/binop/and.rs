@@ -15,13 +15,18 @@ use crate::modules::expression::BoolAnalysis;
 pub struct And {
     left: Box<Expr>,
     right: Box<Expr>,
+    cfa: BoolAnalysis,
 }
 
 impl And {
     pub fn analyze_control_flow(&self) -> BoolAnalysis {
-        let left = self.left.analyze_control_flow();
-        let right = self.right.analyze_control_flow();
-        let known_value = match (left.known_value, right.known_value) {
+        self.cfa
+    }
+
+    fn compute_cfa(&self) -> BoolAnalysis {
+        let left_cfa = self.left.analyze_control_flow();
+        let right_cfa = self.right.analyze_control_flow();
+        let known_value = match (left_cfa.known_value, right_cfa.known_value) {
             (Some(false), _) => Some(false),
             (_, Some(false)) => Some(false),
             (Some(true), Some(true)) => Some(true),
@@ -30,12 +35,12 @@ impl And {
         BoolAnalysis {
             known_value,
             depends_on_target: match known_value {
-                Some(false) => (left.depends_on_target || left.known_value != Some(false))
-                    && (right.depends_on_target || right.known_value != Some(false)),
-                Some(true) => left.depends_on_target || right.depends_on_target,
+                Some(false) => (left_cfa.depends_on_target || left_cfa.known_value != Some(false))
+                    && (right_cfa.depends_on_target || right_cfa.known_value != Some(false)),
+                Some(true) => left_cfa.depends_on_target || right_cfa.depends_on_target,
                 None => false,
             },
-            has_side_effects: left.has_side_effects || right.has_side_effects,
+            has_side_effects: left_cfa.has_side_effects || right_cfa.has_side_effects,
         }
     }
 
@@ -89,6 +94,7 @@ impl SyntaxModule<ParserMetadata> for And {
         And {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
+            cfa: BoolAnalysis::default(),
         }
     }
 
@@ -112,13 +118,14 @@ impl TypeCheckModule for And {
                 Type::Array(Box::new(Type::Generic))
             ],
         )?;
+        self.cfa = self.compute_cfa();
         Ok(())
     }
 }
 
 impl TranslateModule for And {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match self.analyze_control_flow() {
+        match self.cfa {
             BoolAnalysis { known_value: Some(value), has_side_effects: false, .. } => {
                 RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
             }

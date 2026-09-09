@@ -12,7 +12,7 @@ pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Option<Box<Expr>>,
     false_expr: Option<Box<Expr>>,
-    control_flow_analysis: BoolAnalysis,
+    cfa: BoolAnalysis,
     kind: Type,
 }
 
@@ -54,7 +54,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
             cond: Box::new(Expr::new()),
             true_expr: Some(Box::new(Expr::new())),
             false_expr: Some(Box::new(Expr::new())),
-            control_flow_analysis: BoolAnalysis::default(),
+            cfa: BoolAnalysis::default(),
             kind: Type::Null,
         }
     }
@@ -79,10 +79,10 @@ impl TypeCheckModule for Ternary {
         }
 
         // Handle static cases
-        self.control_flow_analysis = self.cond.analyze_control_flow();
+        self.cfa = self.cond.analyze_control_flow();
         match (
-            self.control_flow_analysis.known_value,
-            self.control_flow_analysis.has_side_effects,
+            self.cfa.known_value,
+            self.cfa.has_side_effects,
         ) {
             (Some(true), false) => {
                 let (facts, _) = self.cond.extract_facts();
@@ -149,8 +149,8 @@ impl TypeCheckModule for Ternary {
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         match (
-            self.control_flow_analysis.known_value,
-            self.control_flow_analysis.has_side_effects,
+            self.cfa.known_value,
+            self.cfa.has_side_effects,
         ) {
             (Some(true), false) => self
                 .true_expr
