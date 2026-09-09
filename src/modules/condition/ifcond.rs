@@ -156,7 +156,7 @@ impl TypeCheckModule for IfCondition {
 
 impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Try to fold the condition to a constant during translation
+        // Reuse the stored folded value
         match (self.cfa.known_value, self.cfa.has_side_effects) {
             (Some(true), false) => self
                 .true_block

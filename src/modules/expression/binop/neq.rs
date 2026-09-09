@@ -96,7 +96,7 @@ impl TypeCheckModule for Neq {
 
 impl TranslateModule for Neq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // Check for constant folding
+        // Reuse the stored folded value
         if let Some(constant_value) = self.folded_value {
             return RawFragment::from((if constant_value { "1" } else { "0" }).to_string()).to_frag();
         }

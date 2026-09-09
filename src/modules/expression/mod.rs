@@ -12,10 +12,10 @@ pub mod unop;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct BoolAnalysis {
     pub known_value: Option<bool>,
-    /// Whether establishing the known value requires the selected target shell.
+    /// Whether the known value depends on the selected target shell
     pub depends_on_target: bool,
-    /// Conservatively includes effects from both operands, even when the
-    /// boolean result is already known. A known result alone cannot elide them.
+    /// Whether evaluating this expression may contain side effects
+    /// Function calls, commands need to be preserved as they can mutate the environment
     pub has_side_effects: bool,
 }
 

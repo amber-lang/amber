@@ -55,6 +55,7 @@ impl Eq {
     /// Check if this equality comparison can be folded to a constant.
     pub fn analyze_constant_folding(&self, meta: &ParserMetadata) -> Option<bool> {
         let target_family = meta.target.as_ref().unwrap().shell.family_name();
+
         // Optimize away `shellname() == "<shell>"` if possible at compile time
         match (&self.left.value, &self.right.value) {
             (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {

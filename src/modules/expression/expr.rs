@@ -92,7 +92,7 @@ impl ExprType {
             ExprType::Is(v) => v.analyze_control_flow(),
             ExprType::Eq(v) => v.analyze_control_flow(),
             ExprType::Neq(v) => v.analyze_control_flow(),
-            // Nodes that are ambiguous from the point of CFA
+            // Nodes that do not generate side effects from the point of CFA
             ExprType::VariableGet(_) => BoolAnalysis::default(),
             ExprType::Number(_) => BoolAnalysis::default(),
             ExprType::Integer(_) => BoolAnalysis::default(),

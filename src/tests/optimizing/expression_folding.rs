@@ -1,16 +1,12 @@
-//! Tests for constant folding in logical expressions (And, Or, Not)
-//! and side-effect-aware boolean analysis.
-//!
-//! These tests cover the translate() branches in and.rs, or.rs, not.rs,
-//! preservation of effects from both operands, and the with_math_var() fallback in
-//! fragment.rs.
+//! Tests for constant folding in logical expressions (`And`, `Or`, and `Not`)
+//! driven by side-effect-aware control-flow analysis.
 use crate::modules::prelude::FragmentKind;
 use crate::tests::{compile_code, eval_bash};
 
 const SIDE_EFFECT_FN: &str = "fun side_effect(): Bool {\n echo(\"side\")\n return true\n}\n";
 
-/// Compile Amber source, execute the resulting shell, and assert that
-/// `needle` appears in stdout — proving the side-effect was not folded away.
+/// Compile and execute Amber source, then verify that constant folding preserved
+/// the observable output produced by a side effect.
 fn assert_side_effect_runs(code: &str, needle: &str) {
     let shell = compile_code(code);
     let (stdout, stderr) = eval_bash(shell);
