@@ -9,6 +9,7 @@ use crate::translate::fragments::condition::ConditionFragment;
 use crate::utils::TranslateMetadata;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "eq"]
@@ -16,6 +17,7 @@ use heraclitus_compiler::prelude::*;
 pub struct Eq {
     left: Box<Expr>,
     right: Box<Expr>,
+    folded_value: Option<bool>
 }
 
 impl Typed for Eq {
@@ -39,6 +41,33 @@ impl BinOp for Eq {
     }
 }
 
+impl Eq {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        BoolAnalysis {
+            known_value: self.folded_value,
+            depends_on_target: self.folded_value.is_some(),
+            has_side_effects: self.folded_value.is_none()
+                && (self.left.analyze_control_flow().has_side_effects
+                    || self.right.analyze_control_flow().has_side_effects),
+        }
+    }
+
+    /// Check if this equality comparison can be folded to a constant.
+    pub fn analyze_constant_folding(&self, meta: &ParserMetadata) -> Option<bool> {
+        let target_family = meta.target.as_ref().unwrap().shell.family_name();
+        // Optimize away `shellname() == "<shell>"` if possible at compile time
+        match (&self.left.value, &self.right.value) {
+            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
+                text.as_simple_string().map(|str| str == target_family)
+            }
+            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
+                text.as_simple_string().map(|str| str == target_family)
+            }
+            _ => None,
+        }
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Eq {
     syntax_name!("Eq");
 
@@ -46,6 +75,7 @@ impl SyntaxModule<ParserMetadata> for Eq {
         Eq {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
+            folded_value: None
         }
     }
 
@@ -59,6 +89,7 @@ impl TypeCheckModule for Eq {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
         Self::typecheck_equality(meta, &mut self.left, &mut self.right)?;
+        self.folded_value = self.analyze_constant_folding(meta);
         Ok(())
     }
 }
@@ -66,7 +97,7 @@ impl TypeCheckModule for Eq {
 impl TranslateModule for Eq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Check for constant folding
-        if let Some(constant_value) = self.analyze_constant_folding(meta) {
+        if let Some(constant_value) = self.folded_value {
             return RawFragment::from((if constant_value { "1" } else { "0" }).to_string()).to_frag();
         }
 
@@ -92,20 +123,3 @@ impl TranslateModule for Eq {
 }
 
 crate::impl_documentation_noop!(Eq);
-
-impl Eq {
-    /// Check if this equality comparison can be folded to a constant.
-    pub fn analyze_constant_folding(&self, meta: &TranslateMetadata) -> Option<bool> {
-        let target_family = meta.target.shell.family_name();
-        // Optimize away `shellname() == "<shell>"` if possible at compile time
-        match (&self.left.value, &self.right.value) {
-            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
-                text.as_simple_string().map(|str| str == target_family)
-            }
-            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
-                text.as_simple_string().map(|str| str == target_family)
-            }
-            _ => None,
-        }
-    }
-}

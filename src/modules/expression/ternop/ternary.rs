@@ -2,6 +2,7 @@ use super::TernOp;
 use crate::fragments;
 use crate::modules::expression::binop::get_binop_position_info;
 use crate::modules::expression::expr::Expr;
+use crate::modules::expression::BoolAnalysis;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use heraclitus_compiler::prelude::*;
@@ -11,7 +12,7 @@ pub struct Ternary {
     cond: Box<Expr>,
     true_expr: Option<Box<Expr>>,
     false_expr: Option<Box<Expr>>,
-    control_flow_analysis: Option<bool>,
+    control_flow_analysis: BoolAnalysis,
     kind: Type,
 }
 
@@ -53,7 +54,7 @@ impl SyntaxModule<ParserMetadata> for Ternary {
             cond: Box::new(Expr::new()),
             true_expr: Some(Box::new(Expr::new())),
             false_expr: Some(Box::new(Expr::new())),
-            control_flow_analysis: None,
+            control_flow_analysis: BoolAnalysis::default(),
             kind: Type::Null,
         }
     }
@@ -79,8 +80,11 @@ impl TypeCheckModule for Ternary {
 
         // Handle static cases
         self.control_flow_analysis = self.cond.analyze_control_flow();
-        match self.control_flow_analysis {
-            Some(true) => {
+        match (
+            self.control_flow_analysis.known_value,
+            self.control_flow_analysis.has_side_effects,
+        ) {
+            (Some(true), false) => {
                 let (facts, _) = self.cond.extract_facts();
                 let true_expr = self.true_expr.as_mut().unwrap();
                 meta.with_narrowed_scope(facts, |meta| true_expr.typecheck(meta))?;
@@ -88,7 +92,7 @@ impl TypeCheckModule for Ternary {
                 self.false_expr = None;
                 return Ok(());
             }
-            Some(false) => {
+            (Some(false), false) => {
                 let (_, facts) = self.cond.extract_facts();
                 let false_expr = self.false_expr.as_mut().unwrap();
                 meta.with_narrowed_scope(facts, |meta| false_expr.typecheck(meta))?;
@@ -144,18 +148,21 @@ impl TypeCheckModule for Ternary {
 
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match self.control_flow_analysis {
-            Some(true) => self
+        match (
+            self.control_flow_analysis.known_value,
+            self.control_flow_analysis.has_side_effects,
+        ) {
+            (Some(true), false) => self
                 .true_expr
                 .as_ref()
                 .map(|e| e.translate(meta))
                 .unwrap_or(FragmentKind::Empty),
-            Some(false) => self
+            (Some(false), false) => self
                 .false_expr
                 .as_ref()
                 .map(|e| e.translate(meta))
                 .unwrap_or(FragmentKind::Empty),
-            None => {
+            _ => {
                 let true_type = self
                     .true_expr
                     .as_ref()

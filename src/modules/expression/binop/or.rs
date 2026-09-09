@@ -9,6 +9,7 @@ use heraclitus_compiler::prelude::*;
 use super::BinOp;
 
 use std::collections::HashMap;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "or"]
@@ -19,20 +20,27 @@ pub struct Or {
 }
 
 impl Or {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
         let left = self.left.analyze_control_flow();
         let right = self.right.analyze_control_flow();
-        match (left, right) {
+        let known_value = match (left.known_value, right.known_value) {
             (Some(true), _) => Some(true),
             (_, Some(true)) => Some(true),
             (Some(false), Some(false)) => Some(false),
             _ => None,
+        };
+        BoolAnalysis {
+            known_value,
+            depends_on_target: match known_value {
+                Some(true) => !(
+                    (left.known_value == Some(true) && !left.depends_on_target)
+                        || (right.known_value == Some(true) && !right.depends_on_target)
+                ),
+                Some(false) => left.depends_on_target || right.depends_on_target,
+                None => false,
+            },
+            has_side_effects: left.has_side_effects || right.has_side_effects,
         }
-    }
-
-    /// Check if this expression has side effects (function calls, commands, etc.)
-    pub fn has_side_effects(&self) -> bool {
-        self.left.has_side_effects() || self.right.has_side_effects()
     }
 
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
@@ -103,8 +111,8 @@ impl TypeCheckModule for Or {
             &mut self.left,
             &mut self.right,
             &[
-                Type::Bool, 
-                Type::Text, 
+                Type::Bool,
+                Type::Text,
                 Type::Array(Box::new(Type::Generic))
             ],
         )?;
@@ -115,10 +123,10 @@ impl TypeCheckModule for Or {
 impl TranslateModule for Or {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         match self.analyze_control_flow() {
-            Some(value) if !self.has_side_effects() => {
+            BoolAnalysis { known_value: Some(value), has_side_effects: false, .. } => {
                 RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
             }
-            Some(_) | None => {
+            _ => {
                 let left = self.left.translate(meta);
                 let right = self.right.translate(meta);
                 ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()

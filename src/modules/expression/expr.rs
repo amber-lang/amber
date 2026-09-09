@@ -36,6 +36,7 @@ use crate::{
 };
 use heraclitus_compiler::prelude::*;
 use std::collections::HashMap;
+use super::BoolAnalysis;
 
 #[derive(Debug, Clone)]
 pub enum ExprType {
@@ -81,7 +82,7 @@ pub enum ExprType {
 }
 
 impl ExprType {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
         match self {
             ExprType::Bool(v) => v.analyze_control_flow(),
             ExprType::And(v) => v.analyze_control_flow(),
@@ -89,7 +90,20 @@ impl ExprType {
             ExprType::Not(v) => v.analyze_control_flow(),
             ExprType::Parentheses(v) => v.analyze_control_flow(),
             ExprType::Is(v) => v.analyze_control_flow(),
-            _ => None,
+            ExprType::Eq(v) => v.analyze_control_flow(),
+            ExprType::Neq(v) => v.analyze_control_flow(),
+            // Nodes that are ambiguous from the point of CFA
+            ExprType::VariableGet(_) => BoolAnalysis::default(),
+            ExprType::Number(_) => BoolAnalysis::default(),
+            ExprType::Integer(_) => BoolAnalysis::default(),
+            ExprType::Text(_) => BoolAnalysis::default(),
+            ExprType::Null(_) => BoolAnalysis::default(),
+            ExprType::Status(_) => BoolAnalysis::default(),
+            ExprType::Nameof(_) => BoolAnalysis::default(),
+            ExprType::Shellname(_) => BoolAnalysis::default(),
+            ExprType::Shellversion(_) => BoolAnalysis::default(),
+            // Treat other expression types as if they could have side effects
+            _ => BoolAnalysis::with_side_effects(),
         }
     }
 
@@ -139,10 +153,11 @@ impl Expr {
         Message::new_err_at_position(meta, pos)
     }
 
-    pub fn analyze_control_flow(&self) -> Option<bool> {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
         self.value
             .as_ref()
-            .and_then(|val| val.analyze_control_flow())
+            .map(|val| val.analyze_control_flow())
+            .unwrap_or_default()
     }
 
     pub fn extract_facts(
@@ -155,40 +170,6 @@ impl Expr {
             .as_ref()
             .map(|val| val.extract_facts())
             .unwrap_or_default()
-    }
-
-    /// Returns true if the expression MUST be evaluated even if its value
-    /// is not needed. Only called by boolean constant-folding (And, Or, Not),
-    /// so the reachable arms are limited to types the type checker accepts
-    /// as Bool operands.
-    pub fn has_side_effects(&self) -> bool {
-        match &self.value {
-            Some(ExprType::FunctionInvocation(_)) => true,
-            Some(ExprType::And(and)) => and.has_side_effects(),
-            Some(ExprType::Or(or)) => or.has_side_effects(),
-            Some(ExprType::Not(not)) => not.has_side_effects(),
-            Some(ExprType::Bool(_)) => false,
-            Some(ExprType::VariableGet(_)) => false,
-            Some(_) => true,
-            None => false,
-        }
-    }
-
-    /// Check if this expression can be folded to a constant boolean value during translation.
-    /// This is similar to analyze_control_flow but has access to TranslateMetadata for
-    /// shellname() comparisons.
-    pub fn try_fold_bool_constant(&self, meta: &TranslateMetadata) -> Option<bool> {
-        match &self.value {
-            Some(ExprType::Bool(b)) => b.analyze_control_flow(),
-            Some(ExprType::And(and)) => and.analyze_control_flow(),
-            Some(ExprType::Or(or)) => or.analyze_control_flow(),
-            Some(ExprType::Not(not)) => not.analyze_control_flow(),
-            Some(ExprType::Parentheses(p)) => p.get_expr().try_fold_bool_constant(meta),
-            Some(ExprType::Eq(eq)) => eq.analyze_constant_folding(meta),
-            Some(ExprType::Neq(neq)) => neq.analyze_constant_folding(meta),
-            Some(ExprType::Is(is)) => is.analyze_control_flow(),
-            _ => None,
-        }
     }
 }
 

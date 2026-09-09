@@ -1,17 +1,13 @@
 //! Tests for constant folding in logical expressions (And, Or, Not)
-//! and the Expr::has_side_effects() method.
+//! and side-effect-aware boolean analysis.
 //!
 //! These tests cover the translate() branches in and.rs, or.rs, not.rs,
-//! the has_side_effects() match arms in expr.rs, and the with_math_var()
-//! fallback in fragment.rs.
-use crate::modules::expression::expr::Expr;
+//! preservation of effects from both operands, and the with_math_var() fallback in
+//! fragment.rs.
 use crate::modules::prelude::FragmentKind;
 use crate::tests::{compile_code, eval_bash};
-use heraclitus_compiler::prelude::*;
 
 const SIDE_EFFECT_FN: &str = "fun side_effect(): Bool {\n echo(\"side\")\n return true\n}\n";
-
-const SIMPLE_FN: &str = "fun f(): Bool {\n echo(\"f_called\")\n return true\n}\n";
 
 /// Compile Amber source, execute the resulting shell, and assert that
 /// `needle` appears in stdout — proving the side-effect was not folded away.
@@ -63,6 +59,14 @@ fn and_fold_false_and_true() {
 #[test]
 fn and_preserve_side_effects() {
     assert_side_effect_runs(
+        &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{side_effect() and false}") }"#),
+        "side",
+    );
+}
+
+#[test]
+fn and_preserves_right_side_effect() {
+    assert_side_effect_runs(
         &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{false and side_effect()}") }"#),
         "side",
     );
@@ -107,6 +111,14 @@ fn or_fold_false_or_false() {
 
 #[test]
 fn or_preserve_side_effects() {
+    assert_side_effect_runs(
+        &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{side_effect() or true}") }"#),
+        "side",
+    );
+}
+
+#[test]
+fn or_preserves_right_side_effect() {
     assert_side_effect_runs(
         &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{true or side_effect()}") }"#),
         "side",
@@ -168,76 +180,6 @@ fn not_none_branch_text_variable() {
     assert!(
         !code.contains("$(("),
         "not text should use condition-based NOT, not arithmetic\n--- output ---\n{code}"
-    );
-}
-
-// ===== Expr::has_side_effects() coverage (expr.rs) =====
-//
-// Each test below targets a specific match arm in has_side_effects().
-
-#[test]
-fn has_side_effects_bool_arm() {
-    // true and true: both operands are Bool -> has_side_effects returns false -> fold
-    assert_folds_to_one(r#"main { echo("{true and true}") }"#);
-}
-
-#[test]
-fn has_side_effects_variable_get_arm() {
-    // false and x: x is VariableGet -> has_side_effects returns false -> fold
-    assert_folds_to_zero(r#"main { let x = true echo("{false and x}") }"#);
-}
-
-#[test]
-fn has_side_effects_and_arm() {
-    // (false and true) and false: left is And -> delegates to And::has_side_effects
-    assert_folds_to_zero(r#"main { echo("{false and true and false}") }"#);
-}
-
-#[test]
-fn has_side_effects_or_arm() {
-    // (true or false) or true: left is Or -> delegates to Or::has_side_effects
-    let out = compile_code(r#"main { echo("{true or false or true}") }"#);
-    assert!(
-        out.contains("\"1\""),
-        "Should fold to 1\n--- output ---\n{out}"
-    );
-    assert!(
-        !out.contains("||"),
-        "Folded should not contain ||\n--- output ---\n{out}"
-    );
-}
-
-#[test]
-fn has_side_effects_not_arm() {
-    // false and not true: right is Not -> delegates to Not::has_side_effects
-    assert_folds_to_zero(r#"main { echo("{false and not true}") }"#);
-}
-
-#[test]
-fn has_side_effects_function_invocation_arm() {
-    assert_side_effect_runs(
-        &(SIMPLE_FN.to_string() + r#"main { echo("{false and f()}") }"#),
-        "f_called",
-    );
-}
-
-#[test]
-fn has_side_effects_some_wildcard_arm() {
-    // not (false and side_effect()): the Parentheses wrapping the And hits
-    // the Some(_) => true catch-all in has_side_effects.
-    assert_side_effect_runs(
-        &(SIDE_EFFECT_FN.to_string() + r#"main { echo("{not (false and side_effect())}") }"#),
-        "side",
-    );
-}
-
-#[test]
-fn has_side_effects_none_arm() {
-    // Expr::new() has value=None -> has_side_effects returns false
-    let expr = Expr::new();
-    assert!(
-        !expr.has_side_effects(),
-        "Default Expr (value=None) should have no side effects"
     );
 }
 

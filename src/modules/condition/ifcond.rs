@@ -1,6 +1,7 @@
 use crate::fragments;
 use crate::modules::block::Block;
 use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::expression::BoolAnalysis;
 use crate::modules::prelude::*;
 use crate::modules::statement::stmt::{Statement, StmtType};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
@@ -12,6 +13,7 @@ use heraclitus_compiler::prelude::*;
 #[kind = "stmt"]
 pub struct IfCondition {
     expr: Box<Expr>,
+    cfa: BoolAnalysis,
     true_block: Option<Box<Block>>,
     false_block: Option<Box<Block>>,
 }
@@ -57,7 +59,7 @@ impl IfCondition {
     }
 
     pub fn terminates_control_flow(&self) -> bool {
-        match self.expr.analyze_control_flow() {
+        match self.expr.analyze_control_flow().known_value {
             Some(true) => self.true_block.as_ref().map(|b| b.terminates_control_flow()).unwrap_or(false),
             Some(false) => self.false_block.as_ref().map(|b| b.terminates_control_flow()).unwrap_or(false),
             None => match (&self.true_block, &self.false_block) {
@@ -74,6 +76,7 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
     fn new() -> Self {
         IfCondition {
             expr: Box::new(Expr::new()),
+            cfa: BoolAnalysis::default(),
             true_block: None,
             false_block: None,
         }
@@ -108,10 +111,11 @@ impl SyntaxModule<ParserMetadata> for IfCondition {
 impl TypeCheckModule for IfCondition {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
-        match self.expr.analyze_control_flow() {
-            Some(true) => {
+        self.cfa = self.expr.analyze_control_flow();
+        match (self.cfa.known_value, self.cfa.has_side_effects) {
+            (Some(true), false) => {
                 // Condition always true
-                if self.false_block.is_some() {
+                if self.false_block.is_some() && !self.cfa.depends_on_target {
                     let pos = self.expr.get_position();
                     Self::warn_dead_code(meta, pos, false);
                 }
@@ -122,10 +126,12 @@ impl TypeCheckModule for IfCondition {
                     meta.with_narrowed_scope(true_facts, |meta| true_block.typecheck(meta))?;
                 }
             }
-            Some(false) => {
+            (Some(false), false) => {
                 // Condition always false
                 let pos = self.expr.get_position();
-                Self::warn_dead_code(meta, pos, true);
+                if !self.cfa.depends_on_target {
+                    Self::warn_dead_code(meta, pos, true);
+                }
                 self.true_block = None;
 
                 let (_, false_facts) = self.expr.extract_facts();
@@ -133,7 +139,7 @@ impl TypeCheckModule for IfCondition {
                     meta.with_narrowed_scope(false_facts, |meta| false_block.typecheck(meta))?;
                 }
             }
-            None => {
+            _ => {
                 let (true_facts, false_facts) = self.expr.extract_facts();
                 if let Some(true_block) = &mut self.true_block {
                     meta.with_narrowed_scope(true_facts, |meta| true_block.typecheck(meta))?;
@@ -151,18 +157,18 @@ impl TypeCheckModule for IfCondition {
 impl TranslateModule for IfCondition {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Try to fold the condition to a constant during translation
-        match self.expr.try_fold_bool_constant(meta) {
-            Some(true) => self
+        match (self.cfa.known_value, self.cfa.has_side_effects) {
+            (Some(true), false) => self
                 .true_block
                 .as_ref()
                 .map(|b| b.translate(meta))
                 .unwrap_or(FragmentKind::Empty),
-            Some(false) => self
+            (Some(false), false) => self
                 .false_block
                 .as_ref()
                 .map(|b| b.translate(meta))
                 .unwrap_or(FragmentKind::Empty),
-            None => {
+            _ => {
                 let mut result = vec![];
 
                 let expression = self.expr.translate(meta)
@@ -188,4 +194,3 @@ impl TranslateModule for IfCondition {
 }
 
 crate::impl_documentation_noop!(IfCondition);
-

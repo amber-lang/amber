@@ -9,6 +9,7 @@ use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 use std::collections::HashMap;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "not"]
@@ -17,13 +18,13 @@ pub struct Not {
 }
 
 impl Not {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
-        self.expr.analyze_control_flow().map(|b| !b)
-    }
-
-    /// Check if this expression has side effects (function calls, commands, etc.)
-    pub fn has_side_effects(&self) -> bool {
-        self.expr.has_side_effects()
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        let analysis = self.expr.analyze_control_flow();
+        BoolAnalysis {
+            known_value: analysis.known_value.map(|value| !value),
+            depends_on_target: analysis.depends_on_target,
+            has_side_effects: analysis.has_side_effects,
+        }
     }
 
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
@@ -67,12 +68,12 @@ impl TypeCheckModule for Not {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
         Self::typecheck_allowed_types(
-            meta, 
-            "logical negation", 
-            &self.expr, 
+            meta,
+            "logical negation",
+            &self.expr,
             &[
-                Type::Bool, 
-                Type::Text, 
+                Type::Bool,
+                Type::Text,
                 Type::Array(Box::new(Type::Generic))
             ]
         )?;
@@ -82,14 +83,9 @@ impl TypeCheckModule for Not {
 
 impl TranslateModule for Not {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if let Some(const_value) = self.analyze_control_flow() {
-            // Only fold if the expression is effect-free
-            if !self.expr.has_side_effects() {
-                RawFragment::from((if const_value { "1" } else { "0" }).to_string()).to_frag()
-            } else {
-                let expr = self.expr.translate(meta).with_condition(false);
-                ArithmeticFragment::new(None, ArithOp::Not, expr).to_frag()
-            }
+        let analysis = self.analyze_control_flow();
+        if let (Some(const_value), false) = (analysis.known_value, analysis.has_side_effects) {
+            RawFragment::from((if const_value { "1" } else { "0" }).to_string()).to_frag()
         } else {
             let is_iterable = matches!(self.expr.kind, Type::Text | Type::Array(_));
             let expr = self.expr.translate(meta).with_condition(is_iterable);
