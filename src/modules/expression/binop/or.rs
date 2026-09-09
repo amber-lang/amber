@@ -32,10 +32,8 @@ impl Or {
         BoolAnalysis {
             known_value,
             depends_on_target: match known_value {
-                Some(true) => !(
-                    (left.known_value == Some(true) && !left.depends_on_target)
-                        || (right.known_value == Some(true) && !right.depends_on_target)
-                ),
+                Some(true) => (left.depends_on_target || left.known_value != Some(true))
+                    && (right.depends_on_target || right.known_value != Some(true)),
                 Some(false) => left.depends_on_target || right.depends_on_target,
                 None => false,
             },
