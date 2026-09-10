@@ -1,14 +1,20 @@
-// Test ifchain with dynamic condition followed by constant-true
-// Dynamic x==1 (x is let, not const) then true constant becomes else
+// A target-known true branch only terminates the chain when every preceding
+// reachable branch also terminates.
 // Output
-// constant_true
+// dynamic
+// after-chain
 
-let x = 0
-if {
-    x == 1 {
-        echo("dynamic")
+fun run(flag: Bool): Text {
+    if {
+        flag {
+            echo("dynamic")
+        }
+        shellname() == "bash" {
+            return "bash-branch"
+        }
     }
-    true {
-        echo("constant_true")
-    }
+
+    return "after-chain"
 }
+
+echo(run(true))

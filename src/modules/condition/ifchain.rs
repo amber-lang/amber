@@ -41,16 +41,14 @@ crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
     pub fn terminates_control_flow(&self) -> bool {
+        let mut all_previously_terminated = true;
         for branch in &self.cond_blocks {
             if branch.cfa.known_value == Some(true) {
-                return branch.block.terminates_control_flow();
+                return all_previously_terminated && branch.block.terminates_control_flow();
             }
+            all_previously_terminated &= branch.block.terminates_control_flow();
         }
-        let all_terminate = self
-            .cond_blocks
-            .iter()
-            .all(|branch| branch.block.terminates_control_flow());
-        match (&self.false_block, all_terminate) {
+        match (&self.false_block, all_previously_terminated) {
             (Some(branch), true) => branch.block.terminates_control_flow(),
             _ => false,
         }
