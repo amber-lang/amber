@@ -11,7 +11,7 @@ use crate::raw_fragment;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_metadata::FunctionMetadata;
-use crate::utils::is_all_caps;
+use crate::utils::{TargetShell, is_all_caps};
 use amber_meta::ContextManager;
 use clap::ValueEnum;
 
@@ -72,10 +72,6 @@ impl ShellType {
     pub fn is_bash_legacy(self) -> bool {
         matches!(self, ShellType::BashLegacy)
     }
-}
-
-pub struct TargetShell {
-    pub shell: ShellType,
 }
 
 #[derive(ContextManager)]

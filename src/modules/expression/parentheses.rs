@@ -7,6 +7,7 @@ use crate::utils::metadata::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 
 use std::collections::HashMap;
+use super::BoolAnalysis;
 
 #[derive(Debug, Clone)]
 pub struct Parentheses {
@@ -15,13 +16,14 @@ pub struct Parentheses {
 }
 
 impl Parentheses {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
         self.value.analyze_control_flow()
     }
 
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {
         self.value.extract_facts()
     }
+
 }
 
 impl Typed for Parentheses {

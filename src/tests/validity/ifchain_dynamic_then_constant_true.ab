@@ -1,0 +1,20 @@
+// A target-known true branch only terminates the chain when every preceding
+// reachable branch also terminates.
+// Output
+// dynamic
+// after-chain
+
+fun run(flag: Bool): Text {
+    if {
+        flag {
+            echo("dynamic")
+        }
+        shellname() == "bash" {
+            return "bash-branch"
+        }
+    }
+
+    return "after-chain"
+}
+
+echo(run(true))

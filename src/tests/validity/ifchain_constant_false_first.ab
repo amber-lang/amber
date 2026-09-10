@@ -1,0 +1,13 @@
+// Test ifchain with constant-false first condition - should execute else
+// Output [bash]
+// B
+// Output [zsh]
+// A
+// Output [ksh]
+// B
+
+if shellname() == "zsh" {
+    echo("A")
+} else {
+    echo("B")
+}

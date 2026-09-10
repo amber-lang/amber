@@ -2,6 +2,7 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::raw_fragment;
 use heraclitus_compiler::prelude::*;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone)]
 pub struct Bool {
@@ -9,8 +10,12 @@ pub struct Bool {
 }
 
 impl Bool {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
-        Some(self.value)
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        BoolAnalysis {
+            known_value: Some(self.value),
+            depends_on_target: false,
+            has_side_effects: false,
+        }
     }
 }
 
