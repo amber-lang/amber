@@ -28,7 +28,7 @@ impl And {
         let right_cfa = self.right.analyze_control_flow();
         let known_value = match (left_cfa.known_value, right_cfa.known_value) {
             (Some(false), _) => Some(false),
-            (_, Some(false)) => Some(false),
+            (Some(true), Some(false)) => Some(false),
             (Some(true), Some(true)) => Some(true),
             _ => None,
         };
