@@ -100,6 +100,9 @@ fun is_mac_os_mktemp(): Bool {
     return false
 }
 
+let temp_dirs_delete = [Text]
+let temp_dirs_force_delete = [Text]
+
 /// Create a temporary directory and return the path.
 /// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
 ///
@@ -131,13 +134,12 @@ pub fun temp_dir_create(
     }
     if auto_delete and shellname() != "ksh"  {
         if force_delete {
-            $ trap 'rm -rf {filename}' EXIT $ failed {
-                echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
-            }
+            temp_dirs_force_delete += [filename]
         } else {
-            $ trap 'rmdir {filename}' EXIT $ failed {
-                echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
-            }
+            temp_dirs_delete += [filename]
+        }
+        $ trap 'rm -rf "\$\{{nameof(temp_dirs_force_delete)}[@]}"; if [ "\$\{#{nameof(temp_dirs_delete)}[@]}" -gt 0 ]; then rmdir "\$\{{nameof(temp_dirs_delete)}[@]}"; fi' EXIT $ failed {
+            echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
         }
     }
     return filename
