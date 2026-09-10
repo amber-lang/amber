@@ -103,6 +103,17 @@ fun is_mac_os_mktemp(): Bool {
 let temp_dirs_delete = [Text]
 let temp_dirs_force_delete = [Text]
 
+/// Remove every directory registered by `temp_dir_create` for auto deletion.
+/// Runs from the EXIT trap, so each directory is removed independently.
+fun temp_dirs_cleanup(): Null {
+    for dir in temp_dirs_force_delete {
+        trust $ rm -rf "{dir}" $
+    }
+    for dir in temp_dirs_delete {
+        trust $ rmdir "{dir}" $
+    }
+}
+
 /// Create a temporary directory and return the path.
 /// Please note this does not respect _CS_DARWIN_USER_TEMP_DIR environment variable.
 ///
@@ -138,7 +149,7 @@ pub fun temp_dir_create(
         } else {
             temp_dirs_delete += [filename]
         }
-        $ trap 'rm -rf "\$\{{nameof(temp_dirs_force_delete)}[@]}"; if [ "\$\{#{nameof(temp_dirs_delete)}[@]}" -gt 0 ]; then rmdir "\$\{{nameof(temp_dirs_delete)}[@]}"; fi' EXIT $ failed {
+        $ trap '{nameof(temp_dirs_cleanup)}' EXIT $ failed {
             echo("Setting auto deletion fails. You must delete temporary dir {filename}.")
         }
     }

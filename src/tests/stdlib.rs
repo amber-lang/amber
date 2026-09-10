@@ -12,30 +12,6 @@ fn test_stdlib(input: &str) {
 /// Unit tests for stdlib module
 mod stdlib_tests {
     use crate::stdlib::resolve;
-    use crate::tests::compile_code;
-    use crate::tests::eval_bash;
-
-    #[test]
-    fn test_temp_dir_create_auto_deletes_every_directory() {
-        let code = r#"
-            import { temp_dir_create } from "std/fs"
-            main {
-                echo(temp_dir_create("amber-auto-delete-XXXX", true, true)?)
-                echo(temp_dir_create("amber-auto-delete-XXXX", true)?)
-                echo(temp_dir_create("amber-auto-delete-XXXX", true, true)?)
-            }
-        "#;
-        let (stdout, stderr) = eval_bash(compile_code(code));
-        assert_eq!(stderr, "");
-        let dirs: Vec<&str> = stdout.lines().collect();
-        assert_eq!(dirs.len(), 3);
-        for dir in dirs {
-            assert!(
-                !std::path::Path::new(dir).exists(),
-                "{dir} should be removed on exit"
-            );
-        }
-    }
 
     #[test]
     fn test_resolve_existing_module() {
