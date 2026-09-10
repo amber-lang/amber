@@ -245,13 +245,21 @@ impl TranslateModule for IfChain {
       let mut result = vec![];
       let mut is_first = true;
       for branch in self.cond_blocks.iter() {
+          // If a non-first branch is always true then it's an `else` clause
+          if !is_first && branch.cfa.known_value == Some(true) && !branch.cfa.has_side_effects {
+              result.push(fragments!("else"));
+              result.push(branch.block.translate(meta));
+              result.push(fragments!("fi"));
+              return BlockFragment::new(result, false).to_frag()
+          }
+
           for comment in &branch.comments {
               result.push(comment.translate(meta));
           }
+
+          let is_text = matches!(branch.cond.value, Some(ExprType::Text(_)));
           let condition = branch.cond.translate(meta)
-              .with_quotes(
-                  matches!(branch.cond.value, Some(ExprType::Text(_)))
-              )
+              .with_quotes(is_text)
               .with_condition(true);
 
           if is_first {

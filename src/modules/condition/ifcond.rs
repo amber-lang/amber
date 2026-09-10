@@ -123,6 +123,7 @@ impl TypeCheckModule for IfCondition {
 
                 let (true_facts, _) = self.expr.extract_facts();
                 if let Some(true_block) = &mut self.true_block {
+                    true_block.set_no_indent();
                     meta.with_narrowed_scope(true_facts, |meta| true_block.typecheck(meta))?;
                 }
             }
@@ -136,6 +137,7 @@ impl TypeCheckModule for IfCondition {
 
                 let (_, false_facts) = self.expr.extract_facts();
                 if let Some(false_block) = &mut self.false_block {
+                    false_block.set_no_indent();
                     meta.with_narrowed_scope(false_facts, |meta| false_block.typecheck(meta))?;
                 }
             }
