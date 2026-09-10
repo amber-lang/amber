@@ -36,7 +36,7 @@ main {
     const exclude_files = file_globstar(exclude_path)?
     for amber_file in file_globstar(include_path != "" then include_path else "**/*.ab")? {
         if array_contains(exclude_files, amber_file): continue
-        const dirname = $ dirname {amber_file} $?
+        const dirname = $ dirname "{amber_file}" $?
         const bash_file = replace_regex(amber_file, ".ab$", ".sh")
         parallel_mkdir += "mkdir -p \"{path}/{dirname}\"\n"
         parallel_build += "./target/release/amber build \"{amber_file}\" \"{path}/{bash_file}\"\n"

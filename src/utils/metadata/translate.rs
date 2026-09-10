@@ -11,6 +11,7 @@ use crate::modules::types::Type;
 use crate::raw_fragment;
 use crate::translate::compute::ArithType;
 use crate::utils::function_cache::FunctionCache;
+use crate::utils::TargetShell;
 use amber_meta::ContextManager;
 use clap::ValueEnum;
 
@@ -73,10 +74,6 @@ impl ShellType {
     }
 }
 
-pub struct TargetShell {
-    pub shell: ShellType,
-}
-
 #[derive(ContextManager)]
 pub struct TranslateMetadata {
     /// Contains information about specified target output.
@@ -114,6 +111,13 @@ pub struct TranslateMetadata {
     pub test_mode: bool,
     /// The name of the test to run.
     pub test_name: Option<String>,
+    /// Whether the sudo preamble is required. Set during translation so
+    /// only builtins that actually reach the output pull in their preamble.
+    pub sudo_used: bool,
+    /// Whether the shellname preamble is required (see `sudo_used`).
+    pub shellname_used: bool,
+    /// Whether the shellversion preamble is required (see `sudo_used`).
+    pub shellversion_used: bool,
 }
 
 impl TranslateMetadata {
@@ -137,6 +141,9 @@ impl TranslateMetadata {
             expr_ctx: false,
             test_mode: options.test_mode,
             test_name: options.test_name.clone(),
+            sudo_used: false,
+            shellname_used: false,
+            shellversion_used: false,
         }
     }
 
@@ -190,6 +197,7 @@ impl TranslateMetadata {
 
     pub fn gen_sudo_prefix(&mut self) -> FragmentKind {
         if self.sudoed {
+            self.sudo_used = true;
             let var_name = "__sudo";
             let var_expr = VarExprFragment::new(var_name, Type::Text).with_quotes(false);
             var_expr.to_frag()

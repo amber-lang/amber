@@ -1,6 +1,8 @@
 ---
 source: src/tests/optimizing.rs
+assertion_line: 80
 expression: output
 ---
 command_0="$(touch file.txt)"
+: "${command_0}"
 echo "The \`file.txt\` must be created even if \`a\` is not used"

@@ -208,13 +208,17 @@ fn create_indexed_variable(
 }
 
 pub fn create_bool_comparison(meta: &mut TranslateMetadata, left: String) -> String {
-    ConditionFragment::new(
-        raw_fragment!("{left}"),
-        ComparisonOperator::Neq,
-        raw_fragment!("0")
-    )
-    .with_subprocess(false)
-    .to_string(meta)
+    match left.as_str() {
+        "0" => "false".to_string(),
+        "1" => "true".to_string(),
+        _ => ConditionFragment::new(
+            raw_fragment!("{left}"),
+            ComparisonOperator::Neq,
+            raw_fragment!("0")
+        )
+        .with_subprocess(false)
+        .to_string(meta),
+    }
 }
 
 pub fn empty_text_comparison(meta: &mut TranslateMetadata, left: String) -> String {

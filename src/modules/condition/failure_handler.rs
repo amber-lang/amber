@@ -246,6 +246,19 @@ impl TypeCheckModule for FailureHandler {
 
 impl TranslateModule for FailureHandler {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        self.translate_with_status(meta, true)
+    }
+}
+
+impl FailureHandler {
+    /// Returns only the `if` check without the `__status=$?` capture.
+    /// Callers that combine the command with `&& __status=0 || __status=$?`
+    /// on the same line should use this instead of [`translate`](TranslateModule::translate).
+    pub fn translate_check_only(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        self.translate_with_status(meta, false)
+    }
+
+    fn translate_with_status(&self, meta: &mut TranslateMetadata, include_status: bool) -> FragmentKind {
         if !self.is_parsed {
             return FragmentKind::Empty;
         }
@@ -257,6 +270,11 @@ impl TranslateModule for FailureHandler {
         // the condition of '$?' clears the status code thus we need to store it in a variable
         let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
         let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
+        let status_capture = if include_status {
+            status_variable_stmt.to_frag()
+        } else {
+            FragmentKind::Empty
+        };
 
         if self.is_question_mark {
             // Set default return value if failure happened in a function
@@ -273,8 +291,7 @@ impl TranslateModule for FailureHandler {
                     ),
                     fun_meta.return_type.clone(),
                     fun_meta.default_return(),
-                )
-                .with_optimization_when_unused(false);
+                );
                 stmt.to_frag()
             } else {
                 FragmentKind::Empty
@@ -286,7 +303,7 @@ impl TranslateModule for FailureHandler {
             );
             return BlockFragment::new(
                 vec![
-                    status_variable_stmt.to_frag(),
+                    status_capture,
                     fragments!("if [ ", status_variable_expr.to_frag(), " != 0 ]; then"),
                     BlockFragment::new(vec![clear_return, ret], true).to_frag(),
                     fragments!("fi"),
@@ -297,9 +314,9 @@ impl TranslateModule for FailureHandler {
         }
 
         match &block {
-            FragmentKind::Empty => status_variable_stmt.to_frag(),
+            FragmentKind::Empty => status_capture,
             FragmentKind::Block(block) if block.statements.is_empty() => {
-                status_variable_stmt.to_frag()
+                status_capture
             }
             _ => {
                 match self.failure_type {
@@ -315,7 +332,7 @@ impl TranslateModule for FailureHandler {
 
                             BlockFragment::new(
                                 vec![
-                                    status_variable_stmt.to_frag(),
+                                    status_capture,
                                     fragments!(
                                         "if [ ",
                                         status_variable_expr.to_frag(),
@@ -331,7 +348,7 @@ impl TranslateModule for FailureHandler {
                         } else {
                             BlockFragment::new(
                                 vec![
-                                    status_variable_stmt.to_frag(),
+                                    status_capture,
                                     fragments!(
                                         "if [ ",
                                         status_variable_expr.to_frag(),
@@ -347,7 +364,7 @@ impl TranslateModule for FailureHandler {
                     }
                     FailureType::Succeeded => BlockFragment::new(
                         vec![
-                            status_variable_stmt.to_frag(),
+                            status_capture,
                             fragments!("if [ ", status_variable_expr.to_frag(), " = 0 ]; then"),
                             block,
                             fragments!("fi"),
@@ -368,7 +385,7 @@ impl TranslateModule for FailureHandler {
 
                             BlockFragment::new(
                                 vec![
-                                    status_variable_stmt.to_frag(),
+                                    status_capture,
                                     param_assignment.to_frag(),
                                     block,
                                 ],
@@ -376,7 +393,7 @@ impl TranslateModule for FailureHandler {
                             )
                             .to_frag()
                         } else {
-                            BlockFragment::new(vec![status_variable_stmt.to_frag(), block], false)
+                            BlockFragment::new(vec![status_capture, block], false)
                                 .to_frag()
                         }
                     }

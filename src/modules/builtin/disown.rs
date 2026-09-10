@@ -79,19 +79,25 @@ impl TranslateModule for Disown {
 
         let pid_var = format!("__AMBER_PID_{}", meta.gen_value_id());
 
-        BlockFragment::new(
-            vec![
-                raw_fragment!("for {pid_var} in {iter_value}; do"),
-                BlockFragment::new(
-                    vec![raw_fragment!("disown ${pid_var} 2>/dev/null || true")],
-                    true,
-                )
-                .to_frag(),
-                raw_fragment!("done"),
-            ],
-            false,
-        )
-        .to_frag()
+        if pids_type.is_array() {
+            BlockFragment::new(
+                vec![
+                    raw_fragment!("for {pid_var} in {iter_value}; do"),
+                    BlockFragment::new(
+                        vec![raw_fragment!("disown \"${pid_var}\" 2>/dev/null || true")],
+                        true,
+                    )
+                    .to_frag(),
+                    raw_fragment!("done"),
+                ],
+                false,
+            )
+            .to_frag()
+        } else {
+            // A scalar pid needs no loop: iterating one quoted value trips
+            // ShellCheck SC2066.
+            raw_fragment!("disown {iter_value} 2>/dev/null || true").to_frag()
+        }
     }
 }
 

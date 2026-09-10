@@ -1,4 +1,4 @@
 // Output
 // Hello World
 
-trust $ echo { trust $ echo { trust $ echo { trust $ echo Hello World $ } $ } $ } $
+trust $ printf '%s' "{ trust $ printf '%s' "{ trust $ printf '%s' "{ trust $ printf '%s' "Hello World" $ }" $ }" $ }" $

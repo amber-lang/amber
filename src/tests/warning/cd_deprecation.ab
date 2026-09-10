@@ -1,0 +1,7 @@
+// Output
+// Calling a builtin without parentheses is deprecated
+
+// Test cd without parentheses deprecation warning
+main {
+    trust cd "/tmp"
+}

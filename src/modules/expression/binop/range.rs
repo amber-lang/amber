@@ -270,9 +270,9 @@ impl Range {
             let offset_var_expr = meta.push_ephemeral_variable(offset_var_stmt).to_frag();
             let offset_cap = fragments!(
                 "$((",
-                offset_var_expr.clone().with_quotes(false),
+                offset_var_expr.clone().with_quotes(false).with_math_var(true),
                 " > 0 ? ",
-                offset_var_expr.with_quotes(false),
+                offset_var_expr.with_quotes(false).with_math_var(true),
                 " : 0))"
             );
             let offset_var_stmt = VarStmtFragment::new("slice_offset", Type::Int, offset_cap)
@@ -290,9 +290,9 @@ impl Range {
             let length_var_expr = meta.push_ephemeral_variable(length_var_stmt).to_frag();
             let length_cap = fragments!(
                 "$((",
-                length_var_expr.clone().with_quotes(false),
+                length_var_expr.clone().with_quotes(false).with_math_var(true),
                 " > 0 ? ",
-                length_var_expr.with_quotes(false),
+                length_var_expr.with_quotes(false).with_math_var(true),
                 " : 0))"
             );
             let length_var_stmt = VarStmtFragment::new("slice_length", Type::Int, length_cap)

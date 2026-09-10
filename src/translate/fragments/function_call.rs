@@ -91,7 +91,7 @@ impl FunctionCallFragment {
                             .with_render_type(VarRenderType::NameOf)
                             .with_array_ref(matches!(shell, ShellType::Zsh))
                             .to_frag()
-                            .with_quotes(false),
+                            .with_quotes(true),
                         "[@]"
                     )
                 }
@@ -120,7 +120,7 @@ impl FunctionCallFragment {
                         var.with_render_type(VarRenderType::BashRef)
                             .with_array_ref(matches!(shell, ShellType::Zsh))
                             .to_frag()
-                            .with_quotes(false),
+                            .with_quotes(true),
                         "[@]"
                     )
                 }

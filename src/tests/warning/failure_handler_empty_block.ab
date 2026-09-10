@@ -1,0 +1,11 @@
+// Output
+// Empty failed block
+// Succeeded
+
+// Test empty failure block warning
+main {
+    silent $ false $ failed {
+        // Empty block should trigger warning
+    }
+    echo("Succeeded")
+}

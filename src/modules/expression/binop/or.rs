@@ -9,6 +9,7 @@ use heraclitus_compiler::prelude::*;
 use super::BinOp;
 
 use std::collections::HashMap;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "or"]
@@ -16,17 +17,32 @@ use std::collections::HashMap;
 pub struct Or {
     left: Box<Expr>,
     right: Box<Expr>,
+    cfa: BoolAnalysis,
 }
 
 impl Or {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
-        let left = self.left.analyze_control_flow();
-        let right = self.right.analyze_control_flow();
-        match (left, right) {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        self.cfa
+    }
+
+    fn compute_cfa(&self) -> BoolAnalysis {
+        let left_cfa = self.left.analyze_control_flow();
+        let right_cfa = self.right.analyze_control_flow();
+        let known_value = match (left_cfa.known_value, right_cfa.known_value) {
             (Some(true), _) => Some(true),
             (_, Some(true)) => Some(true),
             (Some(false), Some(false)) => Some(false),
             _ => None,
+        };
+        BoolAnalysis {
+            known_value,
+            depends_on_target: match known_value {
+                Some(true) => (left_cfa.depends_on_target || left_cfa.known_value != Some(true))
+                    && (right_cfa.depends_on_target || right_cfa.known_value != Some(true)),
+                Some(false) => left_cfa.depends_on_target || right_cfa.depends_on_target,
+                None => false,
+            },
+            has_side_effects: left_cfa.has_side_effects || right_cfa.has_side_effects,
         }
     }
 
@@ -80,6 +96,7 @@ impl SyntaxModule<ParserMetadata> for Or {
         Or {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
+            cfa: BoolAnalysis::default(),
         }
     }
 
@@ -98,20 +115,28 @@ impl TypeCheckModule for Or {
             &mut self.left,
             &mut self.right,
             &[
-                Type::Bool, 
-                Type::Text, 
+                Type::Bool,
+                Type::Text,
                 Type::Array(Box::new(Type::Generic))
             ],
         )?;
+        self.cfa = self.compute_cfa();
         Ok(())
     }
 }
 
 impl TranslateModule for Or {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
+        match self.cfa {
+            BoolAnalysis { known_value: Some(value), has_side_effects: false, .. } => {
+                RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
+            }
+            _ => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                ConditionFragment::new(left, ComparisonOperator::Or, right).to_frag()
+            }
+        }
     }
 }
 

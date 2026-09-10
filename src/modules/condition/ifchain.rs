@@ -8,30 +8,48 @@ use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
 use std::collections::HashMap;
+use crate::modules::expression::BoolAnalysis;
+
+#[derive(Debug, Clone)]
+struct IfChainBranch {
+    comments: Vec<Comment>,
+    cond: Expr,
+    cfa: BoolAnalysis,
+    block: Block,
+}
+
+impl IfChainBranch {
+    pub fn new(comments: Vec<Comment>, cond: Expr, block: Block) -> Self {
+        IfChainBranch { comments, cond, cfa: BoolAnalysis::default(), block }
+    }
+
+    pub fn with_cfa(mut self, cfa: BoolAnalysis) -> Self {
+        self.cfa = cfa;
+        self
+    }
+}
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "if"]
 #[kind = "stmt"]
 pub struct IfChain {
-    cond_blocks: Vec<(Vec<Comment>, Expr, Block)>,
-    pub false_block: Option<(Vec<Comment>, Box<Block>)>,
+    cond_blocks: Vec<IfChainBranch>,
+    false_block: Option<IfChainBranch>,
 }
 
 crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
     pub fn terminates_control_flow(&self) -> bool {
-        for (_, cond, block) in &self.cond_blocks {
-            if cond.analyze_control_flow() == Some(true) {
-                return block.terminates_control_flow();
+        let mut all_previously_terminated = true;
+        for branch in &self.cond_blocks {
+            if branch.cfa.known_value == Some(true) {
+                return all_previously_terminated && branch.block.terminates_control_flow();
             }
+            all_previously_terminated &= branch.block.terminates_control_flow();
         }
-        let all_terminate = self
-            .cond_blocks
-            .iter()
-            .all(|(_, _, block)| block.terminates_control_flow());
-        match (&self.false_block, all_terminate) {
-            (Some((_, false_block)), true) => false_block.terminates_control_flow(),
+        match (&self.false_block, all_previously_terminated) {
+            (Some(branch), true) => branch.block.terminates_control_flow(),
             _ => false,
         }
     }
@@ -92,9 +110,9 @@ impl SyntaxModule<ParserMetadata> for IfChain {
 
             // Handle else keyword
             if token(meta, "else").is_ok() {
-                let mut false_block = Box::new(Block::new().with_needs_noop().with_condition());
-                syntax(meta, &mut *false_block)?;
-                self.false_block = Some((comments, false_block));
+                let mut else_block = Block::new().with_needs_noop().with_condition();
+                syntax(meta, &mut else_block)?;
+                self.false_block = Some(IfChainBranch::new(comments, cond, else_block));
                 if token(meta, "}").is_err() {
                     error!(
                         meta,
@@ -111,7 +129,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             syntax(meta, &mut cond)?;
             syntax(meta, &mut block)?;
 
-            self.cond_blocks.push((comments, cond, block));
+            self.cond_blocks.push(IfChainBranch::new(comments, cond, block));
         }
     }
 }
@@ -123,55 +141,62 @@ impl TypeCheckModule for IfChain {
         let mut chain_deadcode = false;
         // Used for warning about unreachable conditions
         let mut first_true_pos: Option<PositionInfo> = None;
+        let mut first_true_depends_on_target = false;
         let mut accumulated_neg_facts = HashMap::new();
 
-        for (mut comments, mut cond, mut block) in old_chain {
-            for comment in comments.iter_mut() {
+        for mut branch in old_chain {
+            for comment in branch.comments.iter_mut() {
                 comment.typecheck(meta)?;
             }
             // Typecheck condition with accumulated negative facts
-            meta.with_narrowed_scope(accumulated_neg_facts.clone(), |meta| cond.typecheck(meta))?;
-            let pos = cond.get_position();
+            meta.with_narrowed_scope(accumulated_neg_facts.clone(), |meta| branch.cond.typecheck(meta))?;
+            let pos = branch.cond.get_position();
 
             if chain_deadcode {
-                Self::warn_dead_code(
-                    meta,
-                    pos,
-                    "Condition is unreachable, previous condition is always true",
-                );
-                continue;
-            }
-
-            match cond.analyze_control_flow() {
-                Some(true) => {
-                    let (facts, _) = cond.extract_facts();
-                    // Merge accumulated negative facts with current positive facts for the block
-                    let mut block_facts = accumulated_neg_facts.clone();
-                    block_facts.extend(facts);
-
-                    meta.with_narrowed_scope(block_facts, |meta| block.typecheck(meta))?;
-                    new_chain.push((comments, cond, block));
-                    chain_deadcode = true;
-                    first_true_pos = Some(pos);
-                }
-                Some(false) => {
+                if !first_true_depends_on_target {
                     Self::warn_dead_code(
                         meta,
                         pos,
-                        "Condition is always false, block will never execute",
+                        "Condition is unreachable, previous condition is always true",
                     );
                 }
-                None => {
-                    let (facts, neg_facts) = cond.extract_facts();
+                continue;
+            }
+
+            let cfa = branch.cond.analyze_control_flow();
+            match (cfa.known_value, cfa.has_side_effects) {
+                (Some(true), false) => {
+                    let (facts, _) = branch.cond.extract_facts();
                     // Merge accumulated negative facts with current positive facts for the block
                     let mut block_facts = accumulated_neg_facts.clone();
                     block_facts.extend(facts);
 
-                    meta.with_narrowed_scope(block_facts, |meta| block.typecheck(meta))?;
+                    meta.with_narrowed_scope(block_facts, |meta| branch.block.typecheck(meta))?;
+                    new_chain.push(branch.with_cfa(cfa));
+                    chain_deadcode = true;
+                    first_true_pos = Some(pos);
+                    first_true_depends_on_target = cfa.depends_on_target;
+                }
+                (Some(false), false) => {
+                    if !cfa.depends_on_target {
+                        Self::warn_dead_code(
+                            meta,
+                            pos,
+                            "Condition is always false, block will never execute",
+                        );
+                    }
+                }
+                _ => {
+                    let (facts, neg_facts) = branch.cond.extract_facts();
+                    // Merge accumulated negative facts with current positive facts for the block
+                    let mut block_facts = accumulated_neg_facts.clone();
+                    block_facts.extend(facts);
+
+                    meta.with_narrowed_scope(block_facts, |meta| branch.block.typecheck(meta))?;
                     // Add current negative facts to the accumulated set for next branches
                     accumulated_neg_facts.extend(neg_facts);
 
-                    new_chain.push((comments, cond, block));
+                    new_chain.push(branch.with_cfa(cfa));
                 }
             }
         }
@@ -179,7 +204,7 @@ impl TypeCheckModule for IfChain {
         self.cond_blocks = new_chain;
 
         if chain_deadcode {
-            if self.false_block.is_some() {
+            if self.false_block.is_some() && !first_true_depends_on_target {
                 if let Some(pos) = first_true_pos {
                     Self::warn_dead_code(
                         meta,
@@ -189,11 +214,11 @@ impl TypeCheckModule for IfChain {
                 }
             }
             self.false_block = None;
-        } else if let Some((comments, false_block)) = &mut self.false_block {
-            for comment in comments {
+        } else if let Some(branch) = &mut self.false_block {
+            for comment in &mut branch.comments {
                 comment.typecheck(meta)?;
             }
-            meta.with_narrowed_scope(accumulated_neg_facts, |meta| false_block.typecheck(meta))?;
+            meta.with_narrowed_scope(accumulated_neg_facts, |meta| branch.block.typecheck(meta))?;
         }
 
         Ok(())
@@ -201,50 +226,59 @@ impl TypeCheckModule for IfChain {
 }
 
 impl TranslateModule for IfChain {
-    fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if self.cond_blocks.is_empty() {
-            if let Some((_, false_block)) = &self.false_block {
-                return false_block.translate(meta);
-            }
-            return FragmentKind::Empty;
-        }
+  fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+      if self.cond_blocks.is_empty() {
+          if let Some(false_branch) = &self.false_block {
+              return false_branch.block.translate(meta);
+          }
+          return FragmentKind::Empty;
+      }
 
-        // In case of when only the first condition is true, we can just leave the truth block without any condition
-        if let Some((_, first_cond, first_block)) = self.cond_blocks.first() {
-            if first_cond.analyze_control_flow() == Some(true) {
-                return first_block.translate(meta);
-            }
-        }
+      // In case of when only the first condition is true, we can just leave the truth block without any condition
+      if let Some(first_branch) = self.cond_blocks.first() {
+          let cfa = first_branch.cfa;
+          if cfa.known_value == Some(true) && !cfa.has_side_effects {
+              return first_branch.block.translate(meta);
+          }
+      }
 
-        let mut result = vec![];
-        let mut is_first = true;
-        for (comments, cond, block) in self.cond_blocks.iter() {
-            for comment in comments {
-                result.push(comment.translate(meta));
-            }
-            let condition = cond.translate(meta)
-                .with_quotes(
-                    matches!(cond.value, Some(ExprType::Text(_)))
-                )
-                .with_condition(true);
-                
-            if is_first {
-                result.push(fragments!("if ", condition, "; then"));
-                result.push(block.translate(meta));
-                is_first = false;
-            } else {
-                result.push(fragments!("elif ", condition, "; then"));
-                result.push(block.translate(meta));
-            }
-        }
-        if let Some((comments, false_block)) = &self.false_block {
-            for comment in comments {
-                result.push(comment.translate(meta));
-            }
-            result.push(fragments!("else"));
-            result.push(false_block.translate(meta));
-        }
-        result.push(fragments!("fi"));
-        BlockFragment::new(result, false).to_frag()
-    }
+      let mut result = vec![];
+      let mut is_first = true;
+      for branch in self.cond_blocks.iter() {
+          // If a non-first branch is always true then it's an `else` clause
+          if !is_first && branch.cfa.known_value == Some(true) && !branch.cfa.has_side_effects {
+              result.push(fragments!("else"));
+              result.push(branch.block.translate(meta));
+              result.push(fragments!("fi"));
+              return BlockFragment::new(result, false).to_frag()
+          }
+
+          for comment in &branch.comments {
+              result.push(comment.translate(meta));
+          }
+
+          let is_text = matches!(branch.cond.value, Some(ExprType::Text(_)));
+          let condition = branch.cond.translate(meta)
+              .with_quotes(is_text)
+              .with_condition(true);
+
+          if is_first {
+              result.push(fragments!("if ", condition, "; then"));
+              result.push(branch.block.translate(meta));
+              is_first = false;
+          } else {
+              result.push(fragments!("elif ", condition, "; then"));
+              result.push(branch.block.translate(meta));
+          }
+      }
+      if let Some(false_branch) = &self.false_block {
+          for comment in &false_branch.comments {
+              result.push(comment.translate(meta));
+          }
+          result.push(fragments!("else"));
+          result.push(false_branch.block.translate(meta));
+      }
+      result.push(fragments!("fi"));
+      BlockFragment::new(result, false).to_frag()
+  }
 }

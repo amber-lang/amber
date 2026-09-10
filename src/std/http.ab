@@ -41,17 +41,19 @@ pub fun file_download(url: Text, path: Text): Null? {
 /// ])
 /// ```
 pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] = [""]): Text? {
-    let full_headers = "";  
     if {
         is_command("curl") {
-            const post_data = len(data) > 0 then "-d {data}" else ""
+            let header_args = [Text]
+            let post_data = [Text]
+            if len(data) > 0:
+                post_data += ["-d", data]
 
             for header in headers {
                 if len(header) > 0:
-                    full_headers = full_headers + " -H \"{header}\""
+                    header_args += ["-H", header]
             }
 
-            const output = trust $ curl -L "{url}" --silent -S -X {method} {full_headers} {post_data} 2>&1 $ 
+            const output = trust $ curl -L "{url}" --silent -S -X "{method}" "{header_args}" "{post_data}" 2>&1 $
 
             const curl_status = status()
             if curl_status > 0 {
@@ -61,18 +63,22 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
             return output
         }
         is_command("wget") {
-            const post_data = len(data) > 0 then "--body-data {data}" else ""
+            let header_args = [Text]
+            let post_data = [Text]
+            if len(data) > 0:
+                post_data += ["--body-data", data]
             for header in headers {
                 if len(header) > 0:
-                    full_headers += " --header='{header}'"
+                    header_args += ["--header", header]
             }
-            return $ wget "{url}" -qO- --method="{method}" {full_headers} {post_data} $ failed {
+            return $ wget "{url}" -qO- --method="{method}" "{header_args}" "{post_data}" $ failed {
                 printf("\x1b[1;3;97;41m%s\x1b[0m\n", ["wget request failed with exit code {status()}"])
                 exit(status())
             }
         }
         else {
             if shellname() == "bash" and match_regex(url, "http://") {
+                let full_headers = ""
                 let port = 80
                 let path = ""
                 url = replace(url, "http://", "")
@@ -102,13 +108,13 @@ pub fun fetch(url: Text, method: Text = "GET", data: Text = "", headers: [Text] 
                     full_headers += "\r\n{data}\r\n"
                 }
                 
-              $ exec 3<>/dev/tcp/{url}/{port} $ succeeded {
+              $ exec 3<>/dev/tcp/"{url}"/"{port}" $ succeeded {
                 let http_code = 0
                 url = port != 80 then "{url}:{port}" else url
                 const vers = shellversion()
                 trust $ printf "%s\r\n" "{method} /{path} HTTP/1.1\r\nhost: {url}\r\nconnection: close\r\nuser-agent: Amber/bash-{vers[0]}.{vers[1]}.{vers[2]}\r\naccept: */*\r\n{full_headers}" >&3 $
                 trust $
-                  read _ {nameof(http_code)} _ <&3
+                  read -r _ {nameof(http_code)} _ <&3
                   while IFS= read -r line; do 
                     [[ "\$line" == \$'\r' || -z "\$line" ]] && break 
                   done <&3 

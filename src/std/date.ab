@@ -28,11 +28,13 @@
 /// echo(date_format_posix(date)) // Outputs: 2023-03-15 14:30:00
 /// ```
 pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false): Text? {
-    const utc_flag = utc then "-u" else ""
-    // Case if this is a GNU date command
-    return $ date {utc_flag} -d "@{date}" +"{format}" 2>/dev/null $ failed {
-        // Case if this is a BSD date command
-        return $ date {utc_flag} -j -r "{date}" +"{format}" $?
+    if utc {
+        return $ date -u -d "@{date}" +"{format}" 2>/dev/null $ failed {
+            return $ date -u -j -r "{date}" +"{format}" $?
+        }
+    }
+    return $ date -d "@{date}" +"{format}" 2>/dev/null $ failed {
+        return $ date -j -r "{date}" +"{format}" $?
     }
 }
 
@@ -47,11 +49,13 @@ pub fun date_format_posix(date: Int, format: Text = "%F %T", utc: Bool = false):
 /// ```
 #[allow_absurd_cast]
 pub fun date_from_posix(date: Text, format: Text = "%F %T", utc: Bool = false): Int? {
-    const utc_flag = utc then "-u" else ""
-    // Case if this is a GNU date command
-    return $ date {utc_flag} -d "\$(date -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
-        // Case if this is a BSD date command
-        return $ date {utc_flag} -j -f "{format}" "{date}" +%s $? as Int
+    if utc {
+        return $ date -u -d "\$(date -u -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
+            return $ date -u -j -f "{format}" "{date}" +%s $? as Int
+        } as Int
+    }
+    return $ date -d "\$(date -d "{date}" +"{format}" 2>/dev/null)" +%s 2>/dev/null $ failed {
+        return $ date -j -f "{format}" "{date}" +%s $? as Int
     } as Int
 }
 

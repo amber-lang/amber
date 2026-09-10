@@ -217,6 +217,11 @@ impl TranslateModule for FunctionCall {
         }
         // Expose return value as variable
         if self.return_type != Type::Null {
+            if !meta.expr_ctx {
+                // Statement context: keep the call for its side effects without
+                // creating an unread callsite return binding.
+                return fragments!("''");
+            }
             // Store the return value in a separate variable so that
             // the value persists when this function is called
             // twice or more in this expression,

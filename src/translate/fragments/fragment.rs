@@ -55,6 +55,13 @@ impl FragmentKind {
         }
     }
 
+    pub fn with_math_var(self, is_math_var: bool) -> Self {
+        match self {
+            FragmentKind::VarExpr(var) => FragmentKind::VarExpr(var.with_math_var(is_math_var)),
+            _ => self,
+        }
+    }
+
     pub fn with_condition(self, cond: bool) -> Self {
         match self {
             FragmentKind::Arithmetic(var) => FragmentKind::Arithmetic(var.with_condition(cond)),

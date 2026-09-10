@@ -9,7 +9,7 @@ elif [ -n "$KSH_VERSION" ]; then
     __exec_v1="${__exec_shell_version%%[!0-9]*}"
     __exec_v2=0
     __exec_v3=0
-    __EXEC_SHELL_VERSION=(${__exec_v1:-0} ${__exec_v2:-0} ${__exec_v3:-0})
+    set -A __EXEC_SHELL_VERSION -- "${__exec_v1:-0}" "${__exec_v2:-0}" "${__exec_v3:-0}"
 else
     __EXEC_SHELL_VERSION=("${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}" "${BASH_VERSINFO[2]}")
 fi

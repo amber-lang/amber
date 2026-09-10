@@ -52,6 +52,7 @@ impl IterLoopRange for IterLoop {
                 VarStmtFragment::new("__range_start", Type::Int, from).with_global_id(id),
             )
             .with_quotes(false)
+            .with_math_var(true)
             .to_frag();
 
         let to = range.to.translate(meta);
@@ -60,6 +61,7 @@ impl IterLoopRange for IterLoop {
                 VarStmtFragment::new("__range_end", Type::Int, to).with_global_id(id),
             )
             .with_quotes(false)
+            .with_math_var(true)
             .to_frag();
 
         self.translate_dynamic_range_loop(range, meta, from_var, to_var)
@@ -106,6 +108,7 @@ impl IterLoopRange for IterLoop {
         let dir_var = meta
             .push_ephemeral_variable(dir_stmt)
             .with_quotes(false)
+            .with_math_var(true)
             .to_frag();
 
         // Operator

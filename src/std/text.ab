@@ -41,12 +41,12 @@ const SED_VERSION_BUSYBOX = 2
 fun sed_version(): Int {
     // We can't match against a word "GNU" because
     // alpine's busybox sed returns "This is not GNU sed version"
-    trust $ re='Copyright.+Free Software Foundation'; [[ \$(sed --version 2>/dev/null) =~ \$re ]] $
+    trust $ re='Copyright.+Free Software Foundation'; [[ \$(command sed --version 2>/dev/null) =~ \$re ]] $
     if status() == 0 {
         return SED_VERSION_GNU
     }
     // On BSD single `sed` waits for stdin. We must use `sed --help` to avoid this.
-    trust $ re='BusyBox'; [[ \$(sed --help 2>&1) =~ \$re ]] $
+    trust $ re='BusyBox'; [[ \$(command sed --help 2>&1) =~ \$re ]] $
     if status() == 0 {
         return SED_VERSION_BUSYBOX
     }
@@ -76,16 +76,16 @@ pub fun replace_regex(source: Text, search: Text, replace_text: Text, extended: 
             // GNU sed versions 4.0 through 4.2 support extended regex syntax,
             // but only via the "-r" option
             if sed_version == SED_VERSION_GNU {
-                return $ sed -r -e "s/{search}/{replace_text}/g" <<<"{source}" $
+                return $ command sed -r -e "s/{search}/{replace_text}/g" <<<"{source}" $
             } else {
-                return $ sed -E -e "s/{search}/{replace_text}/g" <<<"{source}" $
+                return $ command sed -E -e "s/{search}/{replace_text}/g" <<<"{source}" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            return $ sed -e "s/{search}/{replace_text}/g" <<<"{source}" $
+            return $ command sed -e "s/{search}/{replace_text}/g" <<<"{source}" $
         }
     }
 }
@@ -157,7 +157,7 @@ pub fun join(list: [Text], delimiter: Text): Text {
 /// ```
 pub fun trim_left(text: Text): Text {
     let result = ""
-    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}#"\$\{{nameof(text)}%%[![:space:]]*}"}" $
     return result
 }
 
@@ -170,7 +170,7 @@ pub fun trim_left(text: Text): Text {
 /// ```
 pub fun trim_right(text: Text): Text {
     let result = ""
-    trust $ {nameof(result)}="\$\{{nameof(text)}%\$\{{nameof(text)}##*[![:space:]]}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}%"\$\{{nameof(text)}##*[![:space:]]}"}" $
     return result
 }
 
@@ -183,8 +183,8 @@ pub fun trim_right(text: Text): Text {
 /// ```
 pub fun trim(text: Text): Text {
     let result = ""
-    trust $ {nameof(result)}="\$\{{nameof(text)}#\$\{{nameof(text)}%%[![:space:]]*}}" $
-    trust $ {nameof(result)}="\$\{{nameof(result)}%\$\{{nameof(result)}##*[![:space:]]}}" $
+    trust $ {nameof(result)}="\$\{{nameof(text)}#"\$\{{nameof(text)}%%[![:space:]]*}"}" $
+    trust $ {nameof(result)}="\$\{{nameof(result)}%"\$\{{nameof(result)}##*[![:space:]]}"}" $
     return result
 }
 
@@ -343,16 +343,16 @@ pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool {
             if sed_version == SED_VERSION_GNU {
                 // '\b' is not in POSIX standards. Disable it
                 search = replace(search, "\b", "\\b")
-                output = $ sed -r -ne "/{search}/p" <<<"{source}" $
+                output = $ command sed -r -ne "/{search}/p" <<<"{source}" $
             } else {
-                output = $ sed -E -ne "/{search}/p" <<<"{source}" $
+                output = $ command sed -E -ne "/{search}/p" <<<"{source}" $
             }
         } else {
             if sed_version == SED_VERSION_GNU or sed_version == SED_VERSION_BUSYBOX {
                 // GNU Sed BRE handle \| as a metacharacter, but it is not POSIX standands. Disable it
                 search = replace(search, "\|", "|")
             }
-            output = $ sed -ne "/{search}/p" <<<"{source}" $
+            output = $ command sed -ne "/{search}/p" <<<"{source}" $
         }
         if output != "" {
             return true
@@ -465,7 +465,7 @@ pub fun capitalized(text: Text): Text {
         }
         if sed_version() == SED_VERSION_GNU {
             // GNU sed supports \U
-            return $ printf '%s\n' "{text}" | sed 's/^\(.\)/\U\1/' $
+            return $ printf '%s\n' "{text}" | command sed 's/^\(.\)/\U\1/' $
         }
         const first_letter = uppercase(char_at(text, 0))
         return first_letter + slice(text, 1)

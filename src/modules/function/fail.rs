@@ -111,8 +111,7 @@ impl TranslateModule for Fail {
                 &return_variable_name(&fun.name, fun.declaration_id, fun.variant_id),
                 fun.return_type.clone(),
                 fun.default_return(),
-            )
-            .with_optimization_when_unused(false);
+            );
             meta.stmt_queue.push_back(stmt.to_frag());
             fragments!("return ", translate)
         }

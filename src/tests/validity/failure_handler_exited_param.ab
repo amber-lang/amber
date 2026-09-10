@@ -1,0 +1,7 @@
+// Output
+// Exit code: 1
+
+// Test exited failure handler with parameter
+silent $ false $ exited(code) {
+    echo("Exit code: {code}")
+}

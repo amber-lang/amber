@@ -177,31 +177,32 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
     if array is [Null] or len(array) <= 1:
         return array
 
-    const desc_flag = desc then "-r" else ""
-    let sort_flag = ""
+    let flags = []
     if {
         array is [Text] and version_sort:
-            sort_flag = "-V"
+            flags = ["-V"]
         array is [Num] or array is [Int] or array is [Bool]:
-            sort_flag = "-n"
+            flags = ["-n"]
     }
+    if desc:
+        flags += ["-r"]
 
     let result = []
     if {
         shellname() == "bash" {
             trust $
-                LC_ALL=C IFS="\n" read -rd '' -a {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                LC_ALL=C IFS="\n" read -rd '' -a {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort "\$\{{nameof(flags)}[@]}")
             $
         }
         shellname() == "zsh" {
             trust $
-                LC_ALL=C IFS="\n" read -rd '' -A {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                LC_ALL=C IFS="\n" read -rd '' -A {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort "\$\{{nameof(flags)}[@]}")
                 {nameof(result)}[-1]=()
             $
         }
         shellname() == "ksh" {
             trust $
-                set -A {nameof(result)} -- \$(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort {sort_flag} {desc_flag})
+                LC_ALL=C IFS="\n" read -rd '' -A {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort "\$\{{nameof(flags)}[@]}")
             $
         }
     }

@@ -110,6 +110,133 @@ pub fn remove_unused_variables(ast: &mut FragmentKind) {
     let mut meta = UnusedVariablesMetadata::default();
     find_unused_variables(ast, &mut meta);
     remove_non_existing_variables(ast, &mut meta);
+    mark_unread_declarations(ast);
+}
+
+// ShellCheck counts only literal `${name}` expansions as variable uses.
+// References lowered to bare words (by-reference call arguments, `nameof`)
+// or declarations kept for side effects (subprocess values, namerefs,
+// return bindings) stay in the output unread; append a no-op expansion
+// after such declarations so ShellCheck sees them used (SC2034).
+fn mark_unread_declarations(ast: &mut FragmentKind) {
+    let mut reads = HashSet::new();
+    collect_real_reads(ast, &mut reads);
+    let mut touched: HashSet<String> = HashSet::new();
+    insert_unread_touches(ast, &reads, &mut touched);
+}
+
+fn collect_real_reads(ast: &FragmentKind, reads: &mut HashSet<String>) {
+    match ast {
+        FragmentKind::Block(block) => {
+            for statement in block.statements.iter() {
+                collect_real_reads(statement, reads);
+            }
+        }
+        FragmentKind::List(list) => {
+            for item in list.values.iter() {
+                collect_real_reads(item, reads);
+            }
+        }
+        FragmentKind::Interpolable(interpolable) => {
+            for item in interpolable.parts.iter() {
+                if let InterpolablePart::Interp(frag) = item {
+                    collect_real_reads(frag, reads);
+                }
+            }
+        }
+        FragmentKind::Arithmetic(arith) => {
+            if let Some(left) = &*arith.left {
+                collect_real_reads(left, reads);
+            }
+            if let Some(right) = &*arith.right {
+                collect_real_reads(right, reads);
+            }
+        }
+        FragmentKind::Condition(cond) => {
+            if let Some(left) = &*cond.left {
+                collect_real_reads(left, reads);
+            }
+            if let Some(right) = &*cond.right {
+                collect_real_reads(right, reads);
+            }
+        }
+        FragmentKind::VarStmt(var_stmt) => {
+            collect_real_reads(&var_stmt.value, reads);
+            if let Some(index) = &var_stmt.index {
+                collect_real_reads(index, reads);
+            }
+        }
+        FragmentKind::VarExpr(var_expr) => {
+            if !matches!(
+                var_expr.render_type,
+                VarRenderType::BashRef | VarRenderType::NameOf
+            ) {
+                reads.insert(var_expr.get_name());
+            }
+            if let Some(index) = &var_expr.index {
+                match index.as_ref() {
+                    VarIndexValue::Index(index) => collect_real_reads(index, reads),
+                    VarIndexValue::Range(start, end) => {
+                        collect_real_reads(start, reads);
+                        collect_real_reads(end, reads);
+                    }
+                }
+            }
+        }
+        FragmentKind::Subprocess(subprocess) => collect_real_reads(&subprocess.fragment, reads),
+        FragmentKind::Log(log) => collect_real_reads(&log.value, reads),
+        FragmentKind::FunDecl(fun) => {
+            collect_real_reads(&fun.prologue, reads);
+            collect_real_reads(&fun.body, reads);
+        }
+        FragmentKind::FunCall(fun) => {
+            for arg in &fun.args {
+                collect_real_reads(arg, reads);
+            }
+        }
+        FragmentKind::Raw(_) | FragmentKind::Comment(_) | FragmentKind::Empty => {}
+    }
+}
+
+fn insert_unread_touches(
+    ast: &mut FragmentKind,
+    reads: &HashSet<String>,
+    touched: &mut HashSet<String>,
+) {
+    if let FragmentKind::FunDecl(fun) = ast {
+        insert_unread_touches(&mut fun.prologue, reads, touched);
+        insert_unread_touches(&mut fun.body, reads, touched);
+        return;
+    }
+    if let FragmentKind::Block(block) = ast {
+        let mut insertions = vec![];
+        for statement in block.statements.iter_mut() {
+            insert_unread_touches(statement, reads, touched);
+        }
+        for (index, statement) in block.statements.iter().enumerate() {
+            if let FragmentKind::VarStmt(var_stmt) = statement {
+                let name = var_stmt.get_name();
+                if var_stmt.operator == "="
+                    && var_stmt.index.is_none()
+                    && !reads.contains(&name)
+                    && touched.insert(name.clone())
+                {
+                    let expansion = if var_stmt.kind.is_array() {
+                        format!("{name}[@]")
+                    } else {
+                        name
+                    };
+                    insertions.push((
+                        index + 1,
+                        RawFragment::from(format!(": \"${{{expansion}}}\"")).to_frag(),
+                    ));
+                }
+            }
+        }
+        for (index, touch) in insertions.into_iter().rev() {
+            block.statements.insert(index, touch);
+        }
+    }
 }
 
 fn remove_non_existing_variables(ast: &mut FragmentKind, meta: &mut UnusedVariablesMetadata) {
@@ -123,12 +250,12 @@ fn remove_non_existing_variables(ast: &mut FragmentKind, meta: &mut UnusedVariab
         let mut remove_indexes = vec![];
         for (index, statement) in block.statements.iter_mut().enumerate() {
             if let FragmentKind::VarStmt(var_stmt) = statement {
-                if !should_optimize_var_stmt(var_stmt) {
-                    continue;
-                }
-                meta.move_to_var_stmt_init(&var_stmt.get_name());
-                if !meta.is_var_used(var_stmt.get_name()) {
-                    remove_indexes.push(index);
+                if should_optimize_var_stmt(var_stmt) {
+                    let name = var_stmt.get_name();
+                    meta.move_to_var_stmt_init(&name);
+                    if !meta.is_var_used(name) {
+                        remove_indexes.push(index);
+                    }
                 }
             } else {
                 remove_non_existing_variables(statement, meta);
@@ -200,7 +327,7 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
                     Ok(())
                 })
                 .unwrap();
-                let dependencies = meta.dependent_variables.drain(..).collect();
+                let dependencies = std::mem::take(&mut meta.dependent_variables);
                 meta.symbols
                     .push_back(SymbolType::Statement(var_stmt.get_name(), dependencies));
             } else {

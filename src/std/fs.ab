@@ -1,4 +1,4 @@
-import { match_regex, split_lines, trim } from "std/text"
+import { match_regex, split_lines, trim, starts_with } from "std/text"
 
 /// Checks if a directory exists.
 ///
@@ -44,7 +44,8 @@ pub fun file_read(path: Text): Text? {
 /// file_write("output.txt", "Hello, World!")
 /// ```
 pub fun file_write(path: Text, content: Text): Text? {
-    return $ printf '%s\n' "{content}" > "{path}" $?
+    $ printf '%s\n' "{content}" > "{path}" $?
+    return content
 }
 
 /// Appends content to a file.
@@ -56,7 +57,8 @@ pub fun file_write(path: Text, content: Text): Text? {
 /// file_append("log.txt", "New log entry")
 /// ```
 pub fun file_append(path: Text, content: Text): Text? {
-    return $ printf '%s\n' "{content}" >> "{path}" $?
+    $ printf '%s\n' "{content}" >> "{path}" $?
+    return content
 }
 
 /// Creates a symbolic link, if destination exists it will be replaced.
@@ -74,7 +76,7 @@ pub fun symlink_create(origin: Text, destination: Text): Null? {
     }
 
     echo("The file {origin} doesn't exist!")
-    fail 1
+    fail(1)
 }
 
 /// Creates a directory with all parent directories as required.
@@ -112,7 +114,7 @@ pub fun temp_dir_create(
 ): Text? {
     if trim(template) == "" {
         echo("The template cannot be an empty string!")
-        fail 1
+        fail(1)
     }
 
     let filename = ""
@@ -125,7 +127,7 @@ pub fun temp_dir_create(
     }
     if filename == "" {
         echo("Failed to make a temporary directory")
-        fail 1
+        fail(1)
     }
     if auto_delete and shellname() != "ksh"  {
         if force_delete {
@@ -156,7 +158,7 @@ pub fun file_chmod(path: Text, mode: Text): Null? {
     }
 
     echo("The file {path} doesn't exist!")
-    fail 1
+    fail(1)
 }
 
 /// Changes the owner of a file.
@@ -174,7 +176,7 @@ pub fun file_chown(path: Text, user: Text): Null? {
     }
 
     echo("The file {path} doesn't exist!")
-    fail 1
+    fail(1)
 }
 
 /// Finds all files or directories matching multiple file globs. When
@@ -234,12 +236,12 @@ pub fun file_extract(path: Text, target: Text): Null? {
             match_regex(path, "\.(zip|war|jar)$", true): $ unzip -q "{path}" -d "{target}" $?
             else {
                 echo("Error: Unsupported file type")
-                fail 3
+                fail(3)
             }
         }
     } else {
         echo("Error: File not found")
-        fail 2
+        fail(2)
     }
 }
 
@@ -252,22 +254,29 @@ pub fun file_extract(path: Text, target: Text): Null? {
 /// file_compress(["amber"], "amber.gz")?
 /// ```
 pub fun file_compress(files: [Text], target: Text): Null? {
+    // Reject paths starting with '-' to prevent option injection
+    for file in files {
+        if starts_with(file, "-") {
+            echo("Error: File path cannot start with '-': {file}")
+            fail(1)
+        }
+    }
     if {
-        match_regex(target, "\.(tar\.bz2|tbz|tbz2)$", true): silent $ tar -cjf "{target}" {files} $?
-        match_regex(target, "\.(tar\.gz|tgz)$", true): silent $ tar -czf "{target}" {files} $?
-        match_regex(target, "\.(tar\.xz|txz)$", true): silent $ tar -cJf "{target}" {files} $?
-        match_regex(target, "\.tar$", true): $ tar -cf "{target}" {files} $?
-        match_regex(target, "\.bz2$"): $ bzip2 -k -c {files} > "{target}" $?
-        match_regex(target, "\.gz$"): $ gzip -k -c {files} > "{target}" $?
-        match_regex(target, "\.xz$"): $ xz -k -c {files} > "{target}" $?
-        match_regex(target, "\.7z$"): silent $ 7z a -y "{target}" {files} $?
-        match_regex(target, "\.(zip|war|jar)$", true): silent $ zip -r "{target}" {files} $?
-        match_regex(target, "\.rar$"): silent $ rar a -y "{target}" {files} $?
-        match_regex(target, "\.deb$"): $ dpkg-deb --build {files} "{target}" $?
-        match_regex(target, "\.rpm$"): $ rpmbuild -bb --buildroot="{files}" -D "_rpmdir=\$(dirname "{target}")" specfile.spec $?
-    else {
+        match_regex(target, "\.(tar\.bz2|tbz|tbz2)$", true): silent $ tar -cjf "{target}" "{files}" $?
+        match_regex(target, "\.(tar\.gz|tgz)$", true): silent $ tar -czf "{target}" "{files}" $?
+        match_regex(target, "\.(tar\.xz|txz)$", true): silent $ tar -cJf "{target}" "{files}" $?
+        match_regex(target, "\.bz2$"): $ bzip2 -k -c "{files}" > "{target}" $?
+        match_regex(target, "\.deb$"): $ dpkg-deb --build "{files}" "{target}" $?
+        match_regex(target, "\.gz$"): $ gzip -k -c "{files}" > "{target}" $?
+        match_regex(target, "\.rar$"): silent $ rar a -y "{target}" "{files}" $?
+        match_regex(target, "\.rpm$"): $ rpmbuild -bb --buildroot "{files}" -D "_rpmdir=\$(dirname "{target}")" specfile.spec $?
+        match_regex(target, "\.tar$", true): $ tar -cf "{target}" "{files}" $?
+        match_regex(target, "\.xz$"): $ xz -k -c "{files}" > "{target}" $?
+        match_regex(target, "\.7z$"): silent $ 7z a -y "{target}" "{files}" $?
+        match_regex(target, "\.(zip|war|jar)$", true): silent $ zip -r "{target}" "{files}" $?
+        else {
             echo("Error: Unsupported file type")
-            fail 3
+            fail(3)
         }
     }
 }

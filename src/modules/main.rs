@@ -99,9 +99,11 @@ impl TranslateModule for Main {
                 || FragmentKind::Empty,
                 |name| {
                     let id = self.args_global_id.unwrap_or(global_id);
+                    // The trailing read keeps ShellCheck from flagging the
+                    // binding when the body never uses the arguments.
                     raw_fragment!(
                         // typeset is supported by all 3 shells, no need for extra logic
-                        "typeset -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})"
+                        "typeset -r {name}_{id}=({quote}{dollar}0{quote} {quote}{dollar}@{quote})\n: \"${{{name}_{id}[@]}}\""
                     )
                 },
             );

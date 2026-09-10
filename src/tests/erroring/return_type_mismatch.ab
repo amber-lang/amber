@@ -1,0 +1,8 @@
+// Output
+// Return type does not match function return type
+
+fun test_return(): Text {
+    return 42
+}
+
+test_return()

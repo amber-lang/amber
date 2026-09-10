@@ -65,18 +65,37 @@ impl TypeCheckModule for Return {
 
 impl TranslateModule for Return {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let result = self.expr.translate(meta);
         let fun = meta
             .fun_frag_sig
             .as_ref()
             .expect("Function name and return type not set");
-        let var_stmt = VarStmtFragment::new(
-            &return_variable_name(&fun.name, fun.declaration_id, fun.variant_id),
-            self.expr.get_type(),
-            result,
-        )
-        .with_optimization_when_unused(false);
-        meta.stmt_queue.push_back(var_stmt.to_frag());
+        let fun_name = return_variable_name(&fun.name, fun.declaration_id, fun.variant_id);
+        let result = self.expr.translate(meta);
+        // Returning a call to the same function already writes the callee's
+        // result into this function's return binding, so the re-assignment
+        // would be a self-assignment (ShellCheck SC2269).
+        let is_self_return = match &result {
+            FragmentKind::VarExpr(var) => {
+                let name = var.get_name();
+                name == fun_name || name.starts_with(&format!("{fun_name}__"))
+            }
+            _ => false,
+        };
+        if is_self_return {
+            // Returning a call to the same function already writes the
+            // callee's result into this function's return binding: drop the
+            // ephemeral callsite binding instead of re-assigning the variable
+            // to itself (ShellCheck SC2269).
+            if let Some(FragmentKind::VarStmt(stmt)) = meta.stmt_queue.pop_back() {
+                if !(stmt.is_ephemeral && stmt.get_name().starts_with(&fun_name)) {
+                    meta.stmt_queue.push_back(FragmentKind::VarStmt(stmt));
+                }
+            }
+        } else {
+            let var_stmt = VarStmtFragment::new(&fun_name, self.expr.get_type(), result)
+                .with_optimization_when_unused(false);
+            meta.stmt_queue.push_back(var_stmt.to_frag());
+        }
         fragments!("return 0")
     }
 }

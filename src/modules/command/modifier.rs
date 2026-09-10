@@ -140,7 +140,6 @@ impl CommandModifier {
                             );
                         }
                         self.is_sudo = true;
-                        meta.sudo_used = true;
                         self.sudo_position =
                             Some(PositionInfo::from_token(meta, Some(tok.clone())));
                         meta.increment_index();

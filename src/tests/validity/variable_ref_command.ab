@@ -1,5 +1,5 @@
 fun foo(ref a) {
-    a = $ echo Succeeded $?
+    a = $ printf '%s' "Succeeded" $?
 }
 
 let a = ""

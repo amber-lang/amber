@@ -7,6 +7,7 @@ use crate::translate::compare::ComparisonOperator;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use std::collections::HashMap;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "and"]
@@ -14,17 +15,32 @@ use std::collections::HashMap;
 pub struct And {
     left: Box<Expr>,
     right: Box<Expr>,
+    cfa: BoolAnalysis,
 }
 
 impl And {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
-        let left = self.left.analyze_control_flow();
-        let right = self.right.analyze_control_flow();
-        match (left, right) {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        self.cfa
+    }
+
+    fn compute_cfa(&self) -> BoolAnalysis {
+        let left_cfa = self.left.analyze_control_flow();
+        let right_cfa = self.right.analyze_control_flow();
+        let known_value = match (left_cfa.known_value, right_cfa.known_value) {
             (Some(false), _) => Some(false),
-            (_, Some(false)) => Some(false),
+            (Some(true), Some(false)) => Some(false),
             (Some(true), Some(true)) => Some(true),
             _ => None,
+        };
+        BoolAnalysis {
+            known_value,
+            depends_on_target: match known_value {
+                Some(false) => (left_cfa.depends_on_target || left_cfa.known_value != Some(false))
+                    && (right_cfa.depends_on_target || right_cfa.known_value != Some(false)),
+                Some(true) => left_cfa.depends_on_target || right_cfa.depends_on_target,
+                None => false,
+            },
+            has_side_effects: left_cfa.has_side_effects || right_cfa.has_side_effects,
         }
     }
 
@@ -78,6 +94,7 @@ impl SyntaxModule<ParserMetadata> for And {
         And {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
+            cfa: BoolAnalysis::default(),
         }
     }
 
@@ -96,20 +113,28 @@ impl TypeCheckModule for And {
             &mut self.left,
             &mut self.right,
             &[
-                Type::Bool, 
-                Type::Text, 
+                Type::Bool,
+                Type::Text,
                 Type::Array(Box::new(Type::Generic))
             ],
         )?;
+        self.cfa = self.compute_cfa();
         Ok(())
     }
 }
 
 impl TranslateModule for And {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let left = self.left.translate(meta);
-        let right = self.right.translate(meta);
-        ConditionFragment::new(left, ComparisonOperator::And, right).to_frag()
+        match self.cfa {
+            BoolAnalysis { known_value: Some(value), has_side_effects: false, .. } => {
+                RawFragment::from((if value { "1" } else { "0" }).to_string()).to_frag()
+            }
+            _ => {
+                let left = self.left.translate(meta);
+                let right = self.right.translate(meta);
+                ConditionFragment::new(left, ComparisonOperator::And, right).to_frag()
+            }
+        }
     }
 }
 

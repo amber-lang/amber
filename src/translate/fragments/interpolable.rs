@@ -68,7 +68,31 @@ impl InterpolableFragment {
         if self.render_type == InterpolableRenderType::GlobalContext {
             self.balance_single_quotes();
         }
-        for part in std::mem::take(&mut self.parts) {
+        let parts = std::mem::take(&mut self.parts);
+        // `[@]` and `[*]` only need swapping in string-literal context: raw
+        // command regions render unquoted, where `[@]` is already clean.
+        let is_string_literal = self.render_type == InterpolableRenderType::StringLiteral;
+        let is_text = |p: &InterpolablePart| {
+            matches!(p, InterpolablePart::String(s) if !s.is_empty())
+        };
+        let is_array_interp = |p: &InterpolablePart| {
+            matches!(p, InterpolablePart::Interp(FragmentKind::VarExpr(var)) if var.kind.is_array())
+        };
+        // An array embedded next to literal text ends up in a single
+        // quoted argument ("Array ${arr[@]}"); `[@]` and `[*]` produce the
+        // same output there, but `[*]` avoids ShellCheck SC2145. A bare
+        // array interpolation keeps `[@]` so `printf '%s\n' "${arr[@]}"`
+        // still passes one argument per element.
+        let is_mixed: Vec<bool> = parts
+            .iter()
+            .enumerate()
+            .map(|(idx, part)| {
+                is_array_interp(part)
+                    && ((idx > 0 && is_text(&parts[idx - 1]))
+                        || (idx + 1 < parts.len() && is_text(&parts[idx + 1])))
+            })
+            .collect();
+        for (idx, part) in parts.into_iter().enumerate() {
             match part {
                 InterpolablePart::String(s) => result.push(self.translate_escaped_string(&s)),
                 InterpolablePart::Interp(frag) => {
@@ -78,6 +102,10 @@ impl InterpolableFragment {
                             interpolable.quoted = false;
                             interpolable.to_string(meta)
                         }
+                        FragmentKind::VarExpr(var) if is_mixed[idx] && is_string_literal => var
+                            .with_array_to_string(true)
+                            .to_frag()
+                            .to_string(meta),
                         _ => frag.to_string(meta),
                     };
                     result.push(rendered);

@@ -1,5 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::block::Block;
 use crate::modules::function::core::signature::{
     FunctionDeclId, FunctionSignature, FunctionVariant, FunctionVariantId,
@@ -8,6 +9,7 @@ use crate::modules::types::Type;
 use crate::utils::context::{Context, ScopeUnit, VariableDecl};
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::import_cache::ImportCache;
+use crate::utils::TargetShell;
 use amber_meta::ContextManager;
 use heraclitus_compiler::prelude::*;
 
@@ -46,12 +48,9 @@ pub struct ParserMetadata {
     /// This is used to generally assess if a function is valid and emit errors if it is not
     #[context]
     pub first_pass_ctx: bool,
-    /// Whether sudo modifier is used anywhere in the code
-    pub sudo_used: bool,
-    /// Whether shellname() builtin is used anywhere in the code
-    pub shellname_used: bool,
-    /// Whether shellversion() builtin is used anywhere in the code
-    pub shellversion_used: bool,
+    /// Contains information about specified target output
+    /// Only used at the `typecheck` layer
+    pub target: Option<TargetShell>,
 }
 
 impl ParserMetadata {
@@ -66,6 +65,13 @@ impl ParserMetadata {
 
 // Implement context methods
 impl ParserMetadata {
+    pub fn with_target_shell(&mut self, options: &CompilerOptions) {
+        let target_shell = AmberCompiler::resolve_target_shell(options.target);
+        self.target = Some(TargetShell {
+            shell: target_shell,
+        });
+    }
+
     /* Scopes */
 
     /// Determines if the parser is in the global scope
@@ -312,10 +318,8 @@ impl Metadata for ParserMetadata {
             test_names: Vec::new(),
             narrowed_types: Vec::new(),
             suppress_warnings: false,
-            sudo_used: false,
-            shellname_used: false,
-            shellversion_used: false,
             first_pass_ctx: false,
+            target: None,
         }
     }
 
