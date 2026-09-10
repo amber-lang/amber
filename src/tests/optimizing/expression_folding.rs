@@ -69,6 +69,22 @@ fn and_preserves_right_side_effect() {
 }
 
 #[test]
+fn and_preserves_side_effect_in_interpolated_text() {
+    let code = r#"
+fun effectful_text_fn(): Text {
+    echo("side")
+    return "text"
+}
+
+main {
+    let result = false and ("{effectful_text_fn()}" == "text")
+    echo(result)
+}
+"#;
+    assert_side_effect_runs(code, "side");
+}
+
+#[test]
 fn and_none_branch_variable() {
     let code = compile_code(r#"main { let x = true echo("{x and true}") }"#);
     assert!(
