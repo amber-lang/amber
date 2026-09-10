@@ -341,14 +341,18 @@ impl VarExprFragment {
                 match meta.target.shell {
                     ShellType::Ksh => {
                         // In ksh, ${array[idx]?"msg"} doesn't error for out-of-bounds access.
-                        // Emit an explicit bounds check before the access instead.
-                        let var_name = self.get_name();
-                        meta.stmt_queue.push_back(
-                            RawFragment::from(format!(
-                                "(( {index} >= 0 && {index} < ${{#{var_name}[@]}} )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
-                            ))
-                            .to_frag(),
-                        );
+                        // Emit an explicit bounds check for source-level accesses instead.
+                        // Compiler-generated indices are guaranteed to be in bounds and their
+                        // checks cannot be queued outside the generated loop that defines them.
+                        if self.index_pos.is_some() {
+                            let var_name = self.get_name();
+                            meta.stmt_queue.push_back(
+                                RawFragment::from(format!(
+                                    "(( {index} >= -${{#{var_name}[@]}} && {index} < ${{#{var_name}[@]}} )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
+                                ))
+                                .to_frag(),
+                            );
+                        }
                         format!("[{index}]")
                     }
                     _ => format!("[{index}]?\"Index out of bounds (at {location})\""),
