@@ -365,7 +365,7 @@ fn find_unused_variables(ast: &FragmentKind, meta: &mut UnusedVariablesMetadata)
         // A variable read only as a call argument is still a variable in use
         FragmentKind::FunCall(fun) => {
             for arg in fun.args.iter() {
-                find_unused_variables(&arg, meta);
+                find_unused_variables(arg, meta);
             }
         }
         FragmentKind::Raw(_) | FragmentKind::Comment(_) | FragmentKind::Empty => {}

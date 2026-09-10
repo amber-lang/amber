@@ -51,8 +51,8 @@ impl FunctionCallFragment {
     ) -> Self {
         FunctionCallFragment {
             name: name.into(),
-            declaration_id: declaration_id,
-            variant_id: variant_id,
+            declaration_id,
+            variant_id,
             args: izip!(args, refs)
                 .map(|(frag, is_ref)| Self::prepare_arguments(meta, frag, is_ref, shell_type))
                 .collect(),

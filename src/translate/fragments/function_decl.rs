@@ -35,8 +35,8 @@ impl FunctionDeclFragment {
     ) -> Self {
         FunctionDeclFragment {
             name: name.into(),
-            declaration_id: declaration_id,
-            variant_id: variant_id,
+            declaration_id,
+            variant_id,
             prologue: Box::new(Self::params_to_variables(params, shell_type)),
             body: Box::new(body),
         }

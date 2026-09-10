@@ -38,10 +38,7 @@ impl Typed for FunctionCall {
 }
 
 fn is_var(expr: &Expr) -> bool {
-    match &expr.value {
-        Some(ExprType::VariableGet(_)) => true,
-        _ => false,
-    }
+    matches!(&expr.value, Some(ExprType::VariableGet(_)))
 }
 
 impl SyntaxModule<ParserMetadata> for FunctionCall {

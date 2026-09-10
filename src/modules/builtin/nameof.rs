@@ -124,7 +124,7 @@ impl TypeCheckModule for Nameof {
                 Ok(())
             }
             None => {
-                return error!(
+                error!(
                     meta,
                     self.token.clone(),
                     format!("Variable or function '{}' not found", self.name)
