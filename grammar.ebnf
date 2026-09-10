@@ -102,6 +102,7 @@ KEYWORD_MV = 'mv' ;
 KEYWORD_NAMEOF = 'nameof' ;
 KEYWORD_NOT = 'not' ;
 KEYWORD_OR = 'or' ;
+KEYWORD_PARAM = 'param' ;
 KEYWORD_PID = 'pid' ;
 KEYWORD_PUB = 'pub' ;
 KEYWORD_PWD = 'pwd' ;
@@ -282,12 +283,13 @@ builtin_rm = KEYWORD_RM, '(', [ expression, { ',', expression } ], ')' ;
 builtin_sleep = KEYWORD_SLEEP, '(', [ expression, { ',', expression } ], ')' ;
 builtin_touch = KEYWORD_TOUCH, '(', [ expression, { ',', expression } ], ')' ;
 
-builtins_expression = builtin_len | builtin_lines | builtin_ls | builtin_nameof | builtin_pid | builtin_pwd | builtin_shellname | builtin_shellversion ;
+builtins_expression = builtin_len | builtin_lines | builtin_ls | builtin_nameof | builtin_param | builtin_pid | builtin_pwd | builtin_shellname | builtin_shellversion ;
 
 builtin_len = KEYWORD_LEN, '(', [ expression, { ',', expression } ], ')' ;
 builtin_lines = KEYWORD_LINES, '(', [ expression, { ',', expression } ], ')' ;
 builtin_ls = KEYWORD_LS, '(', [ expression, { ',', expression } ], ')' ;
 builtin_nameof = KEYWORD_NAMEOF, '(', [ expression, { ',', expression } ], ')' ;
+builtin_param = KEYWORD_PARAM, '(', [ expression, { ',', expression } ], ')' ;
 builtin_pid = KEYWORD_PID, '(', ')' ;
 builtin_pwd = KEYWORD_PWD, '(', ')' ;
 builtin_shellname = KEYWORD_SHELLNAME, '(', ')' ;
