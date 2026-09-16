@@ -1,5 +1,9 @@
-// Output
+// Output [bash]
 // "0 "\)
+// Output [zsh]
+// division by zero
+// Output [ksh]
+// divide by zero
 
 main {
     trust $ set -e; result=\$(( 10 / 0 )); echo "\$result" $

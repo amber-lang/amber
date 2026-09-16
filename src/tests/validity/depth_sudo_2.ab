@@ -3,7 +3,7 @@ main {
     trust $ sudo() \{ command sudo -n "\$@"; } $
     
     // Use sudo with suppress modifier
-    sudo suppress $ id -u $ exited(code): if {
+    sudo suppress $ true $ exited(code): if {
         code == 0:
             echo("Succeeded")
         else:

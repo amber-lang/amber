@@ -1,4 +1,12 @@
 #!/bin/sh
 # Sudo shim for testing - bypasses password requirement
-# Extract the actual command (skip -S -p etc.) and run it
+# Strip sudo flags (-n, -S, -p, etc.) and run the actual command
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -n|-S|-k|-K|-v|-l) shift ;;
+        -p|-u|-g|-C|-r|-E) shift; shift ;;
+        --) shift; break ;;
+        *) break ;;
+    esac
+done
 exec "$@"
