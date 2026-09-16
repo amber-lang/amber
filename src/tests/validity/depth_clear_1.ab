@@ -1,5 +1,5 @@
 // Output
-// [H[2J[3Jclear_test
+// clear_test
 
 main {
     clear()

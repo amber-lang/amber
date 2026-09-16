@@ -116,6 +116,10 @@ const SYNTAX_PATTERNS: &[(&str, &str)] = &[
     ("isdir", r"\bisdir\s*\("),
     ("isfile", r"\bisfile\s*\("),
     // Punctuation / grammar rules
+    ("lt", r"<[^=]"),
+    ("gt", r">[^=]"),
+    ("le", r"<="),
+    ("ge", r">="),
     ("shorthand_add", r"\+="),
     ("shorthand_sub", r"-="),
     ("shorthand_mul", r"\*="),
@@ -271,8 +275,14 @@ fn collect_fixtures() -> Vec<(String, String)> {
 
 /// Check if a construct is covered by fixture filename or content
 fn is_construct_covered(construct: &str, fixture_path: &str, fixture_content: &str) -> bool {
-    // Check filename contains construct name
-    if fixture_path.contains(construct) {
+    // Filename signals coverage only on an explicit stem token (e.g. "if" in
+    // depth_if_1.ab); whole-path substring matching let unrelated paths like
+    // "diff" or "erroring" cover constructs they never exercise.
+    let stem = std::path::Path::new(fixture_path)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("");
+    if stem.split(['_', '-']).any(|token| token == construct) {
         return true;
     }
 
@@ -324,7 +334,7 @@ fn generate_markdown_report(coverage: &[ConstructCoverage]) -> String {
 
     // Sort by fixture count ascending
     let mut sorted = coverage.to_vec();
-    sorted.sort_by(|a, b| a.fixture_count.cmp(&b.fixture_count));
+    sorted.sort_by_key(|a| a.fixture_count);
 
     // Split into sections
     let zero_fixtures: Vec<_> = sorted.iter().filter(|c| c.fixture_count == 0).collect();
@@ -612,7 +622,7 @@ fn construct_coverage_report() {
 
     // Sort by fixture count ascending
     let mut sorted = coverage;
-    sorted.sort_by(|a, b| a.fixture_count.cmp(&b.fixture_count));
+    sorted.sort_by_key(|a| a.fixture_count);
 
     println!("\n=== Construct Coverage Report ===");
     println!("Total constructs: {}", sorted.len());

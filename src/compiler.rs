@@ -530,6 +530,17 @@ impl AmberCompiler {
         self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(warnings, code)| {
             if let Some(mut command) = Self::find_shell(self.options.target) {
+                // Test hermeticity: shims must resolve by absolute path, and TZ/TERM/locale
+                // must not depend on the host so generated-script output is deterministic.
+                let shims_path = format!(
+                    "{}/src/tests/utils/shims:{}",
+                    env!("CARGO_MANIFEST_DIR"),
+                    std::env::var("PATH").unwrap_or_default()
+                );
+                command.env("PATH", shims_path);
+                command.env("TZ", "UTC");
+                command.env("TERM", "dumb");
+                command.env("LC_ALL", "C");
                 let child = command
                     .arg("-c")
                     .arg::<&str>(code.as_ref())

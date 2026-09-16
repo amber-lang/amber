@@ -1,7 +1,10 @@
-
 import { file_read } from "std/fs"
-// Output
-// File o directory non esistente
+// Output [bash]
+// bash: line 9: /nonexistent/path/file.txt: No such file or directory
+// Output [zsh]
+// /nonexistent/path/file.txt
+// Output [ksh]
+// \[No such file or directory\]
 
 main {
     const content = file_read("/nonexistent/path/file.txt")?
