@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "pkill called with args: $@"
+exit 0

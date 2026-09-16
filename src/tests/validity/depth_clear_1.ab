@@ -1,0 +1,7 @@
+// Output
+// [H[2J[3Jclear_test
+
+main {
+    clear()
+    echo("clear_test")
+}

@@ -1,0 +1,13 @@
+
+import { parse_int } from "std/text"
+// Output
+// Invalid integer
+
+main {
+    const num = parse_int("not_a_number")
+    failed {
+        trust $ echo "Invalid integer" >&2 $
+        fail(1)
+    }
+    echo(num)
+}

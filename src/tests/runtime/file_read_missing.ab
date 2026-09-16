@@ -1,0 +1,9 @@
+
+import { file_read } from "std/fs"
+// Output
+// File o directory non esistente
+
+main {
+    const content = file_read("/nonexistent/path/file.txt")?
+    echo(content)
+}

@@ -1,0 +1,7 @@
+// Output
+// Identifier 'for' is a reserved keyword
+
+main {
+for i 
+echo "missing iterable"
+}

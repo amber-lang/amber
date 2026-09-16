@@ -1,0 +1,6 @@
+// Output
+// Explicit failure
+
+main {
+    trust $ echo "Explicit failure" >&2; exit 1 $
+}

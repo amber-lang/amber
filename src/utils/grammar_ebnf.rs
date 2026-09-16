@@ -243,6 +243,11 @@ pub fn generate_grammar_ebnf() -> String {
     // Sort for deterministic output
     keyword_list.sort();
     for kw in keyword_list {
+        // Operator keywords (e.g. '+=', '//') cannot form valid KEYWORD_ identifiers;
+        // their syntax is already documented as literals in the grammar rules
+        if !kw.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+            continue;
+        }
         keyword_defs.push_str(&format!("KEYWORD_{} = '{}' ;\n", kw.to_uppercase(), kw));
     }
     keyword_defs.push('\n');
@@ -340,4 +345,28 @@ test = KEYWORD_TEST, [ test_name ], block ;
         builtin_expr_rules,
         test_section
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keyword_defs_are_valid_identifiers() {
+        for line in generate_grammar_ebnf().lines() {
+            if line.starts_with("KEYWORD_") {
+                assert!(
+                    line.starts_with("KEYWORD_") && {
+                        let def = line.trim_start_matches("KEYWORD_");
+                        def.starts_with(|c: char| c.is_ascii_uppercase() || c == '_')
+                            && def
+                                .chars()
+                                .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                                .all(|c| c.is_ascii_alphanumeric() || c == '_')
+                    },
+                    "malformed KEYWORD definition: {line}"
+                );
+            }
+        }
+    }
 }

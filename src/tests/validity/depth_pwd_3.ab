@@ -1,0 +1,6 @@
+// Output
+// /tmp
+
+trust cd("/tmp/")
+const path = pwd()
+echo(path)

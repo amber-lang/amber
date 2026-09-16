@@ -1,0 +1,6 @@
+// Output
+// Command failed
+
+main {
+    trust $ echo "Command failed" >&2; exit 1 $
+}

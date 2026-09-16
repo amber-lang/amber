@@ -1,0 +1,9 @@
+import * from "std/env"
+
+main {
+    // Test that uname_kernel_version returns non-empty text
+    const version = uname_kernel_version()
+    if len(version) > 0 {
+        echo("Succeeded")
+    }
+}

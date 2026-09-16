@@ -1,0 +1,13 @@
+import * from "std/fs"
+
+main {
+    const tmpdir = temp_dir_create("amber-XXXX", true, true)?
+    const filepath = "{tmpdir}/test_file.txt"
+    touch(filepath)?
+    
+    if file_exists(filepath) {
+        echo("Succeeded")
+    } else {
+        echo("Failed")
+    }
+}

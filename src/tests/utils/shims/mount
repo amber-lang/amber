@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "mount called with args: $@"
+exit 0

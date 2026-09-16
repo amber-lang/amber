@@ -1,0 +1,7 @@
+// Output
+// Identifier 'if' is a reserved keyword
+
+main {
+if true
+echo "missing then"
+}

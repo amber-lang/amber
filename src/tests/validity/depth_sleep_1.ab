@@ -1,0 +1,4 @@
+main {
+    sleep(1)?
+    echo("Succeeded")
+}

@@ -140,6 +140,35 @@ jobs:
           cargo test --all-targets --all-features
           docker stop test_container -t 0
           docker rm --force test_container
+  ksh-test:
+    name: Rust tests on ksh
+    runs-on: ubuntu-latest
+    if: github.event_name != 'release'
+    needs: build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
+      - name: Cache dependencies installed with cargo
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ./target/deps
+            ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - uses: actions/download-artifact@v8
+        with:
+          name: target
+          path: artifact
+      - run: tar -xvzf artifact/target.tgz && rm artifact/target.tgz
+      - name: Run cargo tests on ksh (native)
+        env:
+          AMBER_TEST_TARGET: ksh
+        run: |
+          sudo apt-get update && sudo apt-get install -y ksh
+          cargo test --all-targets --all-features
   macos-test:
     name: Rust tests on native macOS (zsh + bash 3.2)
     runs-on: macos-latest
@@ -244,13 +273,42 @@ jobs:
           key: ${{ runner.os }}-cargo-llvm-cov-${{ env.LLVM_COV_VERSION }}
       - run: cargo install cargo-llvm-cov --version ${{ env.LLVM_COV_VERSION }} --locked
         if: steps.cache-llvm-cov.outputs.cache-hit != 'true'
-      - name: Test coverage
-        run: cargo build && cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
-      - name: Upload to codecov.io
+      - name: Test coverage (bash target)
+        run: |
+          cargo build
+          cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura-bash.xml
+      - name: Test coverage (zsh target)
+        env:
+          AMBER_TEST_TARGET: zsh
+        run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura-zsh.xml
+      - name: Install ksh for ksh target coverage
+        run: sudo apt-get update && sudo apt-get install -y ksh
+      - name: Test coverage (ksh target)
+        env:
+          AMBER_TEST_TARGET: ksh
+        run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura-ksh.xml
+      - name: Upload bash coverage to codecov.io
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          flags: rust,${{ github.sha }}
+          flags: rust,bash,${{ github.sha }}
+          files: cobertura-bash.xml
+          fail_ci_if_error: true
+          verbose: true
+      - name: Upload zsh coverage to codecov.io
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          flags: rust,zsh,${{ github.sha }}
+          files: cobertura-zsh.xml
+          fail_ci_if_error: true
+          verbose: true
+      - name: Upload ksh coverage to codecov.io
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          flags: rust,ksh,${{ github.sha }}
+          files: cobertura-ksh.xml
           fail_ci_if_error: true
           verbose: true
   release-coverage:

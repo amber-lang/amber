@@ -12,7 +12,7 @@ coverage:
         target: 80%
 
 ignore:
-  - "**/test_*.rs"
+  - "src/tests/**"
   - "**/build.rs"
 
 comment:

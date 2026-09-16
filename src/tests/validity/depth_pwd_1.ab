@@ -1,0 +1,7 @@
+// Output
+// /tmp
+
+const original = pwd()
+trust cd("/tmp/")
+echo(pwd())
+trust cd(original)

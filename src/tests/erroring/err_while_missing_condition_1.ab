@@ -1,0 +1,7 @@
+// Output
+// Identifier 'while' is a reserved keyword
+
+main {
+while 
+echo "missing condition"
+}

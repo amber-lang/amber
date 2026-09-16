@@ -7,8 +7,11 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
 use heraclitus_compiler::prelude::*;
+use amber_meta::AutoKeyword;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "set"]
+#[kind = "stmt"]
 pub struct VariableSet {
     name: String,
     expr: Box<Expr>,

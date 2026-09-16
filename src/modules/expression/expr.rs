@@ -126,6 +126,12 @@ pub struct Expr {
     pub position: Option<PositionInfo>,
 }
 
+impl crate::modules::keywords::KeywordStmt for Expr {
+    fn keyword_stmt() -> &'static str {
+        "expr"
+    }
+}
+
 impl Typed for Expr {
     fn get_type(&self) -> Type {
         self.kind.clone()

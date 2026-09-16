@@ -1,0 +1,29 @@
+import * from "std/text"
+// Output
+// apple
+// cherry
+// hello
+// world
+// test
+// case
+// with
+// multiple
+// spaces
+
+
+main {
+    const words = split_words("apple banana cherry")
+    echo(words[0])
+    echo(words[2])
+
+    const sentence = split_words("hello world")
+    echo(sentence[0])
+    echo(sentence[1])
+
+    const multiple = split_words("test  case   with    multiple     spaces")
+    echo(multiple[0])
+    echo(multiple[1])
+    echo(multiple[2])
+    echo(multiple[3])
+    echo(multiple[4])
+}

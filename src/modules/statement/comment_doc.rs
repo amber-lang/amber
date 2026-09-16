@@ -1,8 +1,11 @@
 use crate::modules::prelude::*;
 use crate::utils::*;
 use heraclitus_compiler::prelude::*;
+use amber_meta::AutoKeyword;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "///"]
+#[kind = "stmt"]
 pub struct CommentDoc {
     pub value: String,
 }

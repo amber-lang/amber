@@ -11,7 +11,9 @@ use crate::utils::cc_flags::{get_ccflag_by_name, get_ccflag_name, CCFlags};
 use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "let"]
+#[kind = "stmt"]
 pub struct VariableInitDestruct {
     names: Vec<String>,
     expr: Box<Expr>,

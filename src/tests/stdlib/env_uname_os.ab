@@ -1,0 +1,9 @@
+import * from "std/env"
+
+main {
+    // Test that uname_os returns non-empty text
+    const os = uname_os()
+    if len(os) > 0 {
+        echo("Succeeded")
+    }
+}

@@ -1,4 +1,5 @@
 pub mod cc_flags;
+pub mod construct_trace;
 pub mod context;
 pub mod function_cache;
 pub mod function_interface;

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Sudo shim for testing - bypasses password requirement
+# Extract the actual command (skip -S -p etc.) and run it
+exec "$@"

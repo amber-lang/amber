@@ -1,0 +1,9 @@
+
+main {
+    trust $ sudo() \{ command sudo -n "\$@"; } $
+    
+    // Test sudo keyword is recognized - suppress stderr
+    suppress sudo $ true $ exited(_): {
+        echo("Succeeded")
+    }
+}

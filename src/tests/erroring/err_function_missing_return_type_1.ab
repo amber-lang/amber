@@ -1,0 +1,5 @@
+// Output
+// Expected a data type
+
+fun test():
+echo "test"

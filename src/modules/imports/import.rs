@@ -30,7 +30,9 @@ impl ImportWant {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "import"]
+#[kind = "stmt"]
 pub struct Import {
     path: ImportString,
     token_import: Option<Token>,

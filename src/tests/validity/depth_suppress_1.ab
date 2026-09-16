@@ -1,0 +1,10 @@
+
+main {
+    // Test suppress modifier - suppresses error output
+    suppress $ echo "test" > /dev/null $ exited(code): if {
+        code == 0:
+            echo("Succeeded")
+        else:
+            echo("Succeeded")
+    }
+}

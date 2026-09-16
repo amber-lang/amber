@@ -10,7 +10,9 @@ use crate::utils::context::{VariableDecl, VariableDeclWarn};
 use crate::utils::metadata::ParserMetadata;
 use amber_meta::AutoKeyword;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "let"]
+#[kind = "stmt"]
 pub struct VariableInit {
     name: String,
     expr: Box<Expr>,

@@ -1,0 +1,6 @@
+// Output
+// "0 "\)
+
+main {
+    trust $ set -e; result=\$(( 10 / 0 )); echo "\$result" $
+}

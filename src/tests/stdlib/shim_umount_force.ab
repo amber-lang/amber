@@ -1,0 +1,10 @@
+import * from "std/env"
+// Output
+// umount called with args: -f /mnt/test
+
+
+main {
+    // Setup: prepend shims directory to PATH
+    env_var_set("PATH", "src/tests/utils/shims:" + env_var_get("PATH")?)?
+    umount_force("/mnt/test")?
+}

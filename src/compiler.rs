@@ -190,6 +190,11 @@ impl AmberCompiler {
             return Err(err);
         }
         let mut block = Block::new().with_no_syntax();
+        {
+            let fixture_path = self.path.as_deref().unwrap_or("unknown");
+            let fixture_name = fixture_path.split('/').next_back().unwrap_or("unknown");
+            crate::utils::construct_trace::begin(fixture_name);
+        }
         let time = Instant::now();
         // Parse with debug or not
         let result = if self.options.debug_parser {
@@ -197,6 +202,9 @@ impl AmberCompiler {
         } else {
             block.parse(&mut meta)
         };
+        {
+            let _trace = crate::utils::construct_trace::end();
+        }
         if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
