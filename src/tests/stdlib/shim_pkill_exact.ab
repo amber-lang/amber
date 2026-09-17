@@ -4,7 +4,5 @@ import * from "std/env"
 
 
 main {
-    // Setup: prepend shims directory to PATH
-    env_var_set("PATH", "src/tests/utils/shims:" + env_var_get("PATH")?)?
     pkill_exact("nginx")?
 }

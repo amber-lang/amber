@@ -137,6 +137,7 @@ jobs:
           AMBER_TEST_TARGET: ${{ contains(fromJSON('["bash:4.2","bash:4.1","bash:4.0","bash:3.2"]'), matrix.bash_docker_image) && 'bash-3.2' || 'bash-4.3' }}
         run: |
           docker run --network host --detach --name test_container testenv
+          docker cp src/tests/utils/shims/. test_container:/opt/shims/
           cargo test --all-targets --all-features
           docker stop test_container -t 0
           docker rm --force test_container

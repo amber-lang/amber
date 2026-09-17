@@ -532,18 +532,35 @@ impl AmberCompiler {
             if let Some(mut command) = Self::find_shell(self.options.target) {
                 // Test hermeticity: shims must resolve by absolute path, and TZ/TERM/locale
                 // must not depend on the host so generated-script output is deterministic.
-                let shims_path = format!(
-                    "{}/src/tests/utils/shims:{}",
-                    env!("CARGO_MANIFEST_DIR"),
+                // Docker exec does not forward caller env vars into the container, so for
+                // docker strategy we inline export statements into the shell code instead.
+                let is_docker = std::env::var("AMBER_TEST_STRATEGY")
+                    .is_ok_and(|v| v == "docker");
+                let shims_dir = if is_docker {
+                    "/opt/shims".to_string()
+                } else {
+                    format!("{}/src/tests/utils/shims", env!("CARGO_MANIFEST_DIR"))
+                };
+                let full_path = format!(
+                    "{}:{}",
+                    shims_dir,
                     std::env::var("PATH").unwrap_or_default()
                 );
-                command.env("PATH", shims_path);
-                command.env("TZ", "UTC");
-                command.env("TERM", "dumb");
-                command.env("LC_ALL", "C");
+                let effective_code = if is_docker {
+                    format!(
+                        "export PATH='{}'; export TZ=UTC; export TERM=dumb; export LC_ALL=C; {}",
+                        full_path, code
+                    )
+                } else {
+                    command.env("PATH", &full_path);
+                    command.env("TZ", "UTC");
+                    command.env("TERM", "dumb");
+                    command.env("LC_ALL", "C");
+                    code
+                };
                 let child = command
                     .arg("-c")
-                    .arg::<&str>(code.as_ref())
+                    .arg::<&str>(effective_code.as_ref())
                     .output()
                     .unwrap();
                 let output = String::from_utf8_lossy(&child.stdout).to_string();
