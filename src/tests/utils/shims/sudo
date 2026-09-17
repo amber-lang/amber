@@ -3,8 +3,8 @@
 # Strip sudo flags (-n, -S, -p, etc.) and run the actual command
 while [ $# -gt 0 ]; do
     case "$1" in
-        -n|-S|-k|-K|-v|-l) shift ;;
-        -p|-u|-g|-C|-r|-E) shift; shift ;;
+        -n|-S|-k|-K|-v|-l|-E) shift ;;
+        -p|-u|-g|-C|-r) shift; shift ;;
         --) shift; break ;;
         *) break ;;
     esac
