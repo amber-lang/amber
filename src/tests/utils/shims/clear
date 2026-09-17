@@ -1,0 +1,3 @@
+#!/bin/sh
+# Shim: clear(1) — emit nothing so test output is deterministic across terminfo databases.
+exit 0
