@@ -541,17 +541,23 @@ impl AmberCompiler {
                 } else {
                     format!("{}/src/tests/utils/shims", env!("CARGO_MANIFEST_DIR"))
                 };
-                let full_path = format!(
-                    "{}:{}",
-                    shims_dir,
-                    std::env::var("PATH").unwrap_or_default()
-                );
                 let effective_code = if is_docker {
+                    // Container PATH must not inherit host runner paths; the Alpine
+                    // image provides binaries under /usr/local/bin, /usr/bin, /bin.
+                    let container_path = format!(
+                        "{}:/usr/local/bin:/usr/bin:/bin",
+                        shims_dir
+                    );
                     format!(
                         "export PATH='{}'; export TZ=UTC; export TERM=dumb; export LC_ALL=C; {}",
-                        full_path, code
+                        container_path, code
                     )
                 } else {
+                    let full_path = format!(
+                        "{}:{}",
+                        shims_dir,
+                        std::env::var("PATH").unwrap_or_default()
+                    );
                     command.env("PATH", &full_path);
                     command.env("TZ", "UTC");
                     command.env("TERM", "dumb");
