@@ -206,7 +206,6 @@ fn test_bash_32_declared_ref_array_assignment_defers_array_expansion_to_inner_ev
     assert_eq!(rendered, r#"eval "${target}=(\"\${source[@]}\")""#);
 }
 
-
 #[test]
 fn test_lock_default_path_uses_tmpdir_with_tmp_fallback() {
     let code = r#"
@@ -233,7 +232,7 @@ main {
         .expect("Couldn't translate Amber code");
 
     assert!(
-        result.contains("set -A EXEC_SHELL_VERSION"),
+        result.contains("set -A __EXEC_SHELL_VERSION"),
         "Output should contain the zsh shellversion preamble (set -A)"
     );
     assert!(
@@ -241,17 +240,17 @@ main {
         "Output should contain the ksh shellversion preamble"
     );
     assert!(
-        result.contains("set -A EXEC_SHELL_VERSION --"),
+        result.contains("set -A __EXEC_SHELL_VERSION --"),
         "Output should contain the ksh EXEC_SHELL_VERSION assignment (set -A)"
     );
     assert!(
         result.contains(
-            r#"EXEC_SHELL_VERSION=("${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}" "${BASH_VERSINFO[2]}")"#,
+            r#"__EXEC_SHELL_VERSION=("${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}" "${BASH_VERSINFO[2]}")"#,
         ),
         "Output should contain the bash shellversion preamble"
     );
     assert!(
-        result.contains("EXEC_SHELL_VERSION[0]"),
+        result.contains("__EXEC_SHELL_VERSION[0]"),
         "Output should reference the shellversion builtin variable"
     );
     assert!(

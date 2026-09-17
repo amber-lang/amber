@@ -1,12 +1,10 @@
 pub mod cc_flags;
 pub mod context;
 pub mod function_cache;
-pub mod function_interface;
-pub mod function_metadata;
 pub mod grammar_ebnf;
 pub mod import_cache;
-pub mod metadata;
 pub mod io;
+pub mod metadata;
 
 use itertools::Itertools;
 use std::fmt::Display;
@@ -38,7 +36,13 @@ pub fn pretty_join<T: Display>(items: &[T], op: &str) -> String {
 
 /// Check if a name consists only of uppercase alphabetic characters (and optionally underscores/numbers)
 pub fn is_all_caps(name: &str) -> bool {
-    name.chars()
-        .filter(|c| c.is_alphabetic())
-        .all(|c| c.is_uppercase())
+    let mut alphabetic = name.chars().filter(|c| c.is_alphabetic());
+
+    // Case where name contains no alpha chars `$1`
+    let Some(first) = alphabetic.next() else {
+        return false;
+    };
+
+    // Verify the rest of the letters
+    first.is_uppercase() && alphabetic.all(|c| c.is_uppercase())
 }

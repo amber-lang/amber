@@ -1,54 +1,10 @@
-use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
-use crate::modules::function::declaration::FunctionDeclarationArgument;
+use super::cc_flags::CCFlags;
+use crate::modules::function::core::signature::FunctionSignature;
 use crate::modules::types::Type;
-use crate::{modules::expression::expr::Expr, utils::ParserMetadata};
+use crate::utils::ParserMetadata;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
 use std::collections::{HashMap, HashSet};
-
-#[derive(Clone, Debug)]
-pub struct FunctionDeclArg {
-    pub name: String,
-    pub kind: Type,
-    pub optional: Option<Expr>,
-    pub is_ref: bool,
-}
-
-#[derive(Clone, Debug)]
-pub struct FunctionDecl {
-    pub name: String,
-    pub args: Vec<FunctionDeclArg>,
-    pub returns: Type,
-    pub is_args_typed: bool,
-    pub is_public: bool,
-    pub is_failable: bool,
-    pub id: usize,
-}
-
-impl FunctionDecl {
-    pub fn into_interface(self) -> FunctionInterface {
-        let args = self
-            .args
-            .into_iter()
-            .map(|arg| FunctionDeclarationArgument {
-                name: arg.name,
-                kind: arg.kind,
-                optional: arg.optional,
-                is_ref: arg.is_ref,
-                tok: None,
-            })
-            .collect();
-
-        FunctionInterface {
-            id: Some(self.id),
-            name: self.name,
-            args,
-            returns: self.returns,
-            is_public: self.is_public,
-            is_failable: self.is_failable,
-        }
-    }
-}
 
 // Rule set for variable warnings
 // Unused variable warning is enabled by default
@@ -135,7 +91,7 @@ impl VariableDecl {
 #[derive(Clone, Debug, Default)]
 pub struct ScopeUnit {
     pub vars: HashMap<String, VariableDecl>,
-    pub funs: HashMap<String, FunctionDecl>,
+    pub funs: HashMap<String, FunctionSignature>,
 }
 
 /// Perform methods just on the scope
@@ -165,13 +121,13 @@ impl ScopeUnit {
     /* Functions */
 
     /// Persists a function declaration in the scope
-    pub fn add_fun(&mut self, fun: FunctionDecl) -> bool {
+    pub fn add_fun(&mut self, fun: FunctionSignature) -> bool {
         let name = fun.name.clone();
         self.funs.insert(name, fun).is_none()
     }
 
     /// Fetches a function declaration from the scope
-    pub fn get_fun(&self, name: &str) -> Option<&FunctionDecl> {
+    pub fn get_fun(&self, name: &str) -> Option<&FunctionSignature> {
         self.funs.get(name)
     }
 
@@ -206,7 +162,7 @@ pub struct Context {
     /// Determines if the context is in a test block
     pub is_test_ctx: bool,
     /// This is a list of ids of all the public functions in the file
-    pub pub_funs: Vec<FunctionDecl>,
+    pub pub_funs: Vec<FunctionSignature>,
     /// This is a list of all the public variables in the file
     pub pub_vars: Vec<VariableDecl>,
     /// The return type of the currently parsed function

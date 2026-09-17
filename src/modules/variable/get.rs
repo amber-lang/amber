@@ -19,12 +19,6 @@ impl Typed for VariableGet {
     }
 }
 
-impl VariableGet {
-    pub fn is_variable_modified(&self) -> bool {
-        false
-    }
-}
-
 impl SyntaxModule<ParserMetadata> for VariableGet {
     syntax_name!("Variable Access");
 
