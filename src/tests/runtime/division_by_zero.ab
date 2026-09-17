@@ -1,5 +1,5 @@
 // Output [bash]
-// "0 "\)
+// division by 0
 // Output [zsh]
 // division by zero
 // Output [ksh]

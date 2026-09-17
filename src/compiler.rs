@@ -303,7 +303,8 @@ impl AmberCompiler {
                 preamble.push(RawFragment::new(r#"__read_args='-A'"#).to_frag());
             }
             ShellType::Ksh => {
-                preamble.push(RawFragment::new(r#"set -m"#).to_frag());
+                // ksh93 doesn't need monitor mode; omitting it avoids
+                // [1]+ Done job-control noise in test output.
             }
         }
         if sudo_used {

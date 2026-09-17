@@ -167,8 +167,10 @@ jobs:
       - name: Run cargo tests on ksh (native)
         env:
           AMBER_TEST_TARGET: ksh
+          AMBER_SHELL: /usr/bin/ksh
         run: |
           sudo apt-get update && sudo apt-get install -y ksh
+          command -v ksh || { echo "ksh binary not found after install"; exit 1; }
           cargo test --all-targets --all-features
   macos-test:
     name: Rust tests on native macOS (zsh + bash 3.2)
@@ -287,6 +289,7 @@ jobs:
       - name: Test coverage (ksh target)
         env:
           AMBER_TEST_TARGET: ksh
+          AMBER_SHELL: /usr/bin/ksh
         run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura-ksh.xml
       - name: Upload bash coverage to codecov.io
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f

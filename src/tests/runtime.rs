@@ -22,9 +22,14 @@ fn test_runtime_errors(file: &str) {
     let target = AmberCompiler::resolve_target_shell(None);
     let expected_error = extract_targeted_error(&code, target.family_name());
 
-    // Match the error suffix (file path + message) while allowing variable prefix
-    // like "bash: line N:" (bash 5.3+) or "environment: line N:" (bash 5.2)
-    let re = Regex::new(&format!(r#"(?m).*"?{expected_error}"?$"#)).unwrap();
+    // Match the error suffix (file path + message) while allowing a variable
+    // shell prefix (argv[0]-dependent: "bash:", "/bin/bash:", "environment:")
+    // and a version-dependent bash arithmetic suffix `(error token is "...")`
+    // whose token text varies across bash versions (e.g. "0 " vs " ").
+    let re = Regex::new(&format!(
+        r#"(?m).*"?{expected_error}"?( \(error token is "[^"]*"\))?$"#
+    ))
+    .unwrap();
 
     let options = CompilerOptions::default().with_target(Some(target));
     let mut compiler = AmberCompiler::new(code.to_string(), Some(file.to_string()), options);
