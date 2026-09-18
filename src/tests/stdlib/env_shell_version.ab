@@ -5,10 +5,10 @@ main {
         echo("Failed")
     }
     
-    // Verify the version looks reasonable (major version 1-9)
-    // ksh93 (what i'm using) starts with 1
+    // Verify the version looks reasonable (positive major version;
+    // ksh93 reports 93 while bash/zsh report 1-9)
     const version = shellversion()
-    if version[0] >= 1 and version[0] <= 9 {
+    if version[0] >= 1 and (version[0] <= 9 or name == "ksh") {
         echo("Succeeded")
     } else {
         echo("Version check failed")

@@ -202,7 +202,7 @@ pub fun sorted(array: [], desc: Bool = false, version_sort: Bool = false): [] {
         }
         shellname() == "ksh" {
             trust $
-                LC_ALL=C IFS="\n" read -rd '' -A {nameof(result)} < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort "\$\{{nameof(flags)}[@]}")
+                {nameof(result)}=(); while IFS= read -r line; do {nameof(result)}+=("\$line"); done < <(printf "%s\n" "\$\{{nameof(array)}[@]}" | LC_ALL=C sort "\$\{{nameof(flags)}[@]}")
             $
         }
     }
