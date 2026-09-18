@@ -283,6 +283,7 @@ jobs:
       - name: Test coverage (zsh target)
         env:
           AMBER_TEST_TARGET: zsh
+          AMBER_SHELL: /bin/zsh
         run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura-zsh.xml
       - name: Install ksh for ksh target coverage
         run: sudo apt-get update && sudo apt-get install -y ksh
