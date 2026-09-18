@@ -1,0 +1,25 @@
+import * from "std/text"
+// Output
+// 0
+// 6
+// -1
+// -1
+// -1
+
+
+main {
+    // Find at start
+    echo(text_find("hello world", "h"))
+
+    // Find in middle (index 6 after "hello ")
+    echo(text_find("hello world", "w"))
+
+    // Not found
+    echo(text_find("hello world", "z"))
+
+    // Empty string not found (compares against individual chars)
+    echo(text_find("hello", ""))
+
+    // Multi-char string not found (compares against individual chars)
+    echo(text_find("hello world", "world"))
+}

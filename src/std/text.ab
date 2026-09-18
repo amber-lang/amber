@@ -235,7 +235,8 @@ pub fun uppercase(text: Text): Text {
 /// ```
 #[allow_absurd_cast]
 pub fun parse_int(text: Text): Int? {
-    $ [ -n "{text}" ] && [ "{text}" -eq "{text}" ] 2>/dev/null $?
+    const re_int = "^-?[0-9]+$"
+    $ [[ {text} =~ {re_int} ]] 2>/dev/null $?
     return text as Int
 }
 

@@ -344,7 +344,7 @@ impl VarExprFragment {
                         let var_name = self.get_name();
                         meta.stmt_queue.push_back(
                             RawFragment::from(format!(
-                                "(( {index} >= 0 && {index} < ${{#{var_name}[@]}} )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
+                                "(( ( {index} >= 0 && {index} < ${{#{var_name}[@]}} ) || ( {index} < 0 && {index} >= -${{#{var_name}[@]}} ) )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
                             ))
                             .to_frag(),
                         );

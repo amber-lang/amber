@@ -1,6 +1,8 @@
- import * from "std/text"
+import * from "std/text"
+// Output
+// <hello   world  >
 
- main {
-    echo(trim_left("  hello   world  "))
-} 
- 
+main {
+    echo("<" + trim_left("  hello   world  ") + ">")
+}
+

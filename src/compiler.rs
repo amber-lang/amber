@@ -190,6 +190,11 @@ impl AmberCompiler {
             return Err(err);
         }
         let mut block = Block::new().with_no_syntax();
+        {
+            let fixture_path = self.path.as_deref().unwrap_or("unknown");
+            let fixture_name = fixture_path.split('/').next_back().unwrap_or("unknown");
+            crate::utils::construct_trace::begin(fixture_name);
+        }
         let time = Instant::now();
         // Parse with debug or not
         let result = if self.options.debug_parser {
@@ -197,6 +202,9 @@ impl AmberCompiler {
         } else {
             block.parse(&mut meta)
         };
+        {
+            let _trace = crate::utils::construct_trace::end();
+        }
         if self.options.debug_time {
             let pathname = self.path.clone().unwrap_or(String::from("unknown"));
             println!(
@@ -295,7 +303,8 @@ impl AmberCompiler {
                 preamble.push(RawFragment::new(r#"__read_args='-A'"#).to_frag());
             }
             ShellType::Ksh => {
-                preamble.push(RawFragment::new(r#"set -m"#).to_frag());
+                // ksh93 doesn't need monitor mode; omitting it avoids
+                // [1]+ Done job-control noise in test output.
             }
         }
         if sudo_used {
@@ -522,9 +531,43 @@ impl AmberCompiler {
         self.options.no_proc = vec!["*".into()];
         self.compile().map_or_else(Err, |(warnings, code)| {
             if let Some(mut command) = Self::find_shell(self.options.target) {
+                // Test hermeticity: shims must resolve by absolute path, and TZ/TERM/locale
+                // must not depend on the host so generated-script output is deterministic.
+                // Docker exec does not forward caller env vars into the container, so for
+                // docker strategy we inline export statements into the shell code instead.
+                let is_docker = std::env::var("AMBER_TEST_STRATEGY")
+                    .is_ok_and(|v| v == "docker");
+                let shims_dir = if is_docker {
+                    "/opt/shims".to_string()
+                } else {
+                    format!("{}/src/tests/utils/shims", env!("CARGO_MANIFEST_DIR"))
+                };
+                let effective_code = if is_docker {
+                    // Container PATH must not inherit host runner paths; the Alpine
+                    // image provides binaries under /usr/local/bin, /usr/bin, /bin.
+                    let container_path = format!(
+                        "{}:/usr/local/bin:/usr/bin:/bin",
+                        shims_dir
+                    );
+                    format!(
+                        "export PATH='{}'; export TZ=UTC; export TERM=dumb; export LC_ALL=C; {}",
+                        container_path, code
+                    )
+                } else {
+                    let full_path = format!(
+                        "{}:{}",
+                        shims_dir,
+                        std::env::var("PATH").unwrap_or_default()
+                    );
+                    command.env("PATH", &full_path);
+                    command.env("TZ", "UTC");
+                    command.env("TERM", "dumb");
+                    command.env("LC_ALL", "C");
+                    code
+                };
                 let child = command
                     .arg("-c")
-                    .arg::<&str>(code.as_ref())
+                    .arg::<&str>(effective_code.as_ref())
                     .output()
                     .unwrap();
                 let output = String::from_utf8_lossy(&child.stdout).to_string();

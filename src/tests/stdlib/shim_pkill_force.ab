@@ -1,0 +1,8 @@
+import * from "std/env"
+// Output
+// pkill called with args: -9 nginx
+
+
+main {
+    pkill_force("nginx")?
+}

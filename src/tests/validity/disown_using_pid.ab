@@ -1,16 +1,26 @@
+import { parse_int } from "std/text"
+
+// Launches a background `yes` process detached from the shell job table
+// and returns its pid. ksh93 disown is a silent no-op in non-interactive
+// scripts, so there the process is orphaned via a subshell instead: the
+// subshell exits at once and its child never enters this job table.
+fun launch_yes(): Int? {
+    if shellname() == "ksh" {
+        return parse_int(trust $ :; ( yes > /dev/null 2>&1 & echo \$! ) $)?
+    }
+    trust $ yes > /dev/null 2>&1 & $
+    return pid()
+}
+
 main {
     trust silent $ killall yes $ // Cleanup before test
 
-    trust $ yes > /dev/null 2>&1 & $
-    const first_pid = pid()
+    const first_pid = launch_yes()?
     disown(first_pid)
 
     if len($ jobs -l $?) == 0 {
-        trust $ yes > /dev/null 2>&1 & $
-        const second_pid = pid()
-
-        trust $ yes > /dev/null 2>&1 & $
-        const third_pid = pid()
+        const second_pid = launch_yes()?
+        const third_pid = launch_yes()?
         disown([second_pid, third_pid])
 
         if len($ jobs -l $?) == 0 {

@@ -1,0 +1,12 @@
+// Output
+// 0
+// 1
+
+main {
+    for i in 0..10 {
+        if i > 1 {
+            break
+        }
+        echo(i)
+    }
+}

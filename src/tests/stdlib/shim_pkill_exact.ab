@@ -1,0 +1,8 @@
+import * from "std/env"
+// Output
+// pkill called with args: -x nginx
+
+
+main {
+    pkill_exact("nginx")?
+}

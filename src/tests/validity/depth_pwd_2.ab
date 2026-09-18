@@ -1,0 +1,9 @@
+
+main {
+    const current = pwd()
+    if len(current) > 0 {
+        echo("Succeeded")
+    } else {
+        echo("Failed")
+    }
+}

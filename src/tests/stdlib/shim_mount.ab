@@ -1,0 +1,8 @@
+import * from "std/env"
+// Output
+// mount called with args: /dev/sda1 /mnt/test
+
+
+main {
+    mount("/dev/sda1", "/mnt/test")?
+}

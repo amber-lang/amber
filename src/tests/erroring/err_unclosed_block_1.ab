@@ -1,0 +1,5 @@
+// Output
+// Unclosed interpolation
+
+main {
+echo "missing closing brace"

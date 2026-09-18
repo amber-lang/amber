@@ -10,7 +10,10 @@ macro_rules! parse_statement {
             let mut $module = $stmt::new();
             let $cons = |module: $stmt| StmtType::$stmt(module.into());
             match $body {
-                Ok(()) => return Ok(()),
+                Ok(()) => {
+                    $crate::utils::construct_trace::hit(<$stmt as $crate::modules::keywords::KeywordStmt>::keyword_stmt());
+                    return Ok(())
+                }
                 Err(failure) => {
                     match failure {
                         Failure::Loud(err) => return Err(Failure::Loud(err)),

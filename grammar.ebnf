@@ -108,6 +108,7 @@ KEYWORD_PWD = 'pwd' ;
 KEYWORD_REF = 'ref' ;
 KEYWORD_RETURN = 'return' ;
 KEYWORD_RM = 'rm' ;
+KEYWORD_SET = 'set' ;
 KEYWORD_SHELLNAME = 'shellname' ;
 KEYWORD_SHELLVERSION = 'shellversion' ;
 KEYWORD_SILENT = 'silent' ;

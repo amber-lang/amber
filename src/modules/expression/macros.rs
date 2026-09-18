@@ -9,6 +9,7 @@ macro_rules! parse_expression_group {
                 let mut module = $cur_modules::new();
                 match module.parse_operator($meta) {
                     Ok(()) => {
+                        $crate::utils::construct_trace::hit(stringify!($cur_modules));
                         module.set_right($prev($meta)?);
                         module.set_left(node);
                         syntax($meta, &mut module)?;
@@ -42,6 +43,7 @@ macro_rules! parse_expression_group {
                 let mut module = $cur_modules::new();
                 match module.parse_operator($meta) {
                     Ok(()) => {
+                        $crate::utils::construct_trace::hit(stringify!($cur_modules));
                         module.set_left(node);
                         module.set_right(parse_type($meta)?);
                         syntax($meta, &mut module)?;
@@ -75,6 +77,7 @@ macro_rules! parse_expression_group {
                 let mut module = $cur_modules::new();
                 match module.parse_operator_left($meta) {
                     Ok(()) => {
+                        $crate::utils::construct_trace::hit(stringify!($cur_modules));
                         module.set_left(node);
                         let middle = $cur($meta)?;
                         module.parse_operator_right($meta)?;
@@ -108,6 +111,7 @@ macro_rules! parse_expression_group {
             let mut module = $cur_modules::new();
             match module.parse_operator($meta) {
                 Ok(()) => {
+                    $crate::utils::construct_trace::hit(stringify!($cur_modules));
                     module.set_expr($cur($meta)?);
                     syntax($meta, &mut module)?;
                     return Ok(Expr {
@@ -136,6 +140,7 @@ macro_rules! parse_expression_group {
                 let mut module = $cur_modules::new();
                 match module.parse_operator($meta) {
                     Ok(()) => {
+                        $crate::utils::construct_trace::hit(stringify!($cur_modules));
                         module.set_left(node);
                         syntax($meta, &mut module)?;
                         let end_index = $meta.get_index();
@@ -165,15 +170,18 @@ macro_rules! parse_expression_group {
         $({
             let mut module = $cur_modules::new();
             match syntax($meta, &mut module) {
-                Ok(()) => return Ok(Expr {
-                    kind: module.get_type(),
-                    value: Some(ExprType::$cur_modules(module)),
-                    position: {
-                        let begin = $meta.get_token_at(start_index);
-                        let end = $meta.get_token_at($meta.get_index());
-                        Some(PositionInfo::from_between_tokens($meta, begin, end))
-                    },
-                }),
+                Ok(()) => {
+                    $crate::utils::construct_trace::hit(stringify!($cur_modules));
+                    return Ok(Expr {
+                        kind: module.get_type(),
+                        value: Some(ExprType::$cur_modules(module)),
+                        position: {
+                            let begin = $meta.get_token_at(start_index);
+                            let end = $meta.get_token_at($meta.get_index());
+                            Some(PositionInfo::from_between_tokens($meta, begin, end))
+                        },
+                    })
+                },
                 Err(Failure::Quiet(_)) => {},
                 Err(Failure::Loud(err)) => return Err(Failure::Loud(err))
             }

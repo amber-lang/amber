@@ -1,10 +1,11 @@
 import { parse_int } from "std/text"
 
 main {
-    trust $ SECONDS="0" $
+    const start = trust $ date +%s $
     sleep(2)?
-    const seconds = trust $ printf '%s' "\$SECONDS" $
-    if parse_int(seconds)? >= 2 {
+    const end = trust $ date +%s $
+    const elapsed = parse_int(end)? - parse_int(start)?
+    if elapsed >= 2 {
         echo("Succeeded")
     } else {
         echo("No Sleep")

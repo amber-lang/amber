@@ -1,0 +1,20 @@
+import * from "std/date"
+// Output
+// 1262217600
+// 1262304000
+// 1262304000
+
+
+main {
+    // Test subtracting days from 2010-01-01 00:00:00 UTC
+    const base = date_from_posix("2010-01-01 00:00:00", "%F %T", true)?
+    echo(date_sub(base, 1, "days")?)
+
+    // Test subtracting hours: add 21 hours, then subtract 21 hours
+    const with_hours = date_add(base, 21, "hours")?
+    echo(date_sub(with_hours, 21, "hours")?)
+
+    // Test subtracting minutes: add 1440 minutes, then subtract 1440 minutes
+    const with_minutes = date_add(base, 1440, "minutes")?
+    echo(date_sub(with_minutes, 1440, "minutes")?)
+}

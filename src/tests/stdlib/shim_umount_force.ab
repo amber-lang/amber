@@ -1,0 +1,8 @@
+import * from "std/env"
+// Output
+// umount called with args: -f /mnt/test
+
+
+main {
+    umount_force("/mnt/test")?
+}

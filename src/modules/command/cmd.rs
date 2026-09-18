@@ -9,6 +9,12 @@ use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use heraclitus_compiler::prelude::*;
 
+impl crate::modules::keywords::KeywordStmt for Command {
+    fn keyword_stmt() -> &'static str {
+        "command"
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Command {
     parts: Vec<TextPart>,

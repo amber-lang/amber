@@ -1,0 +1,12 @@
+// Output
+// 1
+// 3
+
+main {
+    for i in 0..5 {
+        if i % 2 == 0 {
+            continue
+        }
+        echo(i)
+    }
+}

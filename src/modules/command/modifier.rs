@@ -4,7 +4,9 @@ use amber_meta::AutoKeyword;
 use amber_meta::ContextManager;
 use heraclitus_compiler::prelude::*;
 
-#[derive(Debug, Clone, ContextManager)]
+#[derive(Debug, Clone, ContextManager, AutoKeyword)]
+#[keyword = "trust"]
+#[kind = "stmt"]
 pub struct CommandModifier {
     pub block: Option<Box<Block>>,
     pub trust_position: Option<PositionInfo>,

@@ -1,0 +1,14 @@
+// Output
+// 1
+// 3
+
+let i = 0
+main {
+    while i < 3 {
+        i += 1
+        if i == 2 {
+            continue
+        }
+        echo(i)
+    }
+}

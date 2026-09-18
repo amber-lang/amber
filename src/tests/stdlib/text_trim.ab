@@ -1,6 +1,10 @@
 import * from "std/text"
+// Output
+// hello   world
+// *hello?
 
 main {
     echo(trim("  hello   world  "))
     echo(trim("  *hello?  "))
 }
+

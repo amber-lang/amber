@@ -1,0 +1,24 @@
+
+main {
+    // Start two background processes
+    trust $ sleep 10 & $
+    const pid1 = pid()
+    trust $ sleep 10 & $
+    const pid2 = pid()
+    
+    // Disown both at once
+    disown([pid1, pid2])
+    
+    // Verify both are still running
+    trust silent $ kill -0 {pid1} $
+    const status1 = status()
+    trust silent $ kill -0 {pid2} $
+    const status2 = status()
+    
+    if status1 == 0 and status2 == 0 {
+        echo("Succeeded")
+        trust silent $ kill {pid1} {pid2} $
+    } else {
+        echo("Failed")
+    }
+}

@@ -361,12 +361,8 @@ pub fn translate_array_equality(
 ) -> FragmentKind {
     let left_len = left.clone().with_length_getter(true).to_frag();
     let right_len = right.clone().with_length_getter(true).to_frag();
-    let left_index = left
-        .with_index_by_value(VarIndexValue::Index(raw_fragment!("i")))
-        .to_frag();
-    let right_index = right
-        .with_index_by_value(VarIndexValue::Index(raw_fragment!("i")))
-        .to_frag();
+    let left_index = left.with_index_by_value(VarIndexValue::Index(raw_fragment!("i")));
+    let right_index = right.with_index_by_value(VarIndexValue::Index(raw_fragment!("i")));
     let false_val = raw_fragment!("{}", if negative { "1" } else { "0" });
     let true_val = raw_fragment!("{}", if negative { "0" } else { "1" });
     let block = BlockFragment::new(
@@ -382,21 +378,23 @@ pub fn translate_array_equality(
                 false_val.clone(),
                 " && exit"
             ),
-            fragments!(
-                "for (( i=0; i<",
-                left_len.clone(),
-                "; i++ )); do ",
-                ConditionFragment::new(
-                    left_index.with_quotes(true), 
-                    ComparisonOperator::Neq, 
-                    right_index.with_quotes(true)
-                )
-                .with_subprocess(false)
-                .to_frag(),
-                " && echo ",
-                false_val,
-                " && exit; done"
-            ),
+            fragments!("for (( i=0; i<", left_len.clone(), "; i++ )); do"),
+            BlockFragment::new(
+                vec![
+                    fragments!(
+                        "[[ ",
+                        left_index.clone().with_quotes(true).to_frag(),
+                        " != ",
+                        right_index.clone().with_quotes(true).to_frag(),
+                        " ]] && echo ",
+                        false_val,
+                        " && exit"
+                    ),
+                ],
+                true,
+            )
+            .to_frag(),
+            fragments!("done"),
             fragments!("echo ", true_val, "\n"),
         ],
         true,

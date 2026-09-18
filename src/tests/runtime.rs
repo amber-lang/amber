@@ -5,19 +5,32 @@ use test_generator::test_resources;
 
 use crate::{
     compiler::{AmberCompiler, CompilerOptions},
-    tests::extract_output,
+    tests::{extract_output, extract_targeted_output},
 };
+
+/// Shell error wording differs per target, so fixtures may declare
+/// `// Output [bash|zsh|ksh]` blocks; fall back to the agnostic `// Output`.
+fn extract_targeted_error(code: &str, target_family: &str) -> String {
+    extract_targeted_output(code, target_family).unwrap_or_else(|| extract_output(code))
+}
 
 #[test_resources("src/tests/runtime/*.ab")]
 fn test_runtime_errors(file: &str) {
     let code =
         fs::read_to_string(file).unwrap_or_else(|_| panic!("Failed to open {file} test file"));
 
-    let output = extract_output(&code);
-
-    let re = Regex::new(&format!(r#"(?m)"?{output}"?$"#)).unwrap();
-
     let target = AmberCompiler::resolve_target_shell(None);
+    let expected_error = extract_targeted_error(&code, target.family_name());
+
+    // Match the error suffix (file path + message) while allowing a variable
+    // shell prefix (argv[0]-dependent: "bash:", "/bin/bash:", "environment:")
+    // and a version-dependent bash arithmetic suffix `(error token is "...")`
+    // whose token text varies across bash versions (e.g. "0 " vs " ").
+    let re = Regex::new(&format!(
+        r#"(?m).*"?{expected_error}"?( \(error token is "[^"]*"\))?$"#
+    ))
+    .unwrap();
+
     let options = CompilerOptions::default().with_target(Some(target));
     let mut compiler = AmberCompiler::new(code.to_string(), Some(file.to_string()), options);
 

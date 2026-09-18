@@ -1,0 +1,6 @@
+main {
+    trust $ sleep 1 & $
+    const bg_pid = pid()
+    await(bg_pid)?
+    echo("Succeeded")
+}

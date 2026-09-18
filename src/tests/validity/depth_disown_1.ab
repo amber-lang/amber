@@ -1,0 +1,15 @@
+
+main {
+    trust $ yes > /dev/null 2>&1 & $
+    const background_pid = pid()
+    disown(background_pid)
+    
+    // Verify process is disowned by checking it's still running
+    trust silent $ kill -0 {background_pid} $
+    if status() == 0 {
+        echo("Succeeded")
+        trust silent $ kill {background_pid} $
+    } else {
+        echo("Failed")
+    }
+}

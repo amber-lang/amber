@@ -6,6 +6,7 @@
 /test*.sh
 /src/tests/*/*.sh
 /test*.md
+/src/tests/construct_coverage_baseline.json
 /docs/
 src/std/docs/
 

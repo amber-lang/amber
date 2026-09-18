@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "umount called with args: $@"
+exit 0

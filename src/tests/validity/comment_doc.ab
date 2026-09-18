@@ -1,0 +1,2 @@
+/// This is a documentation comment
+echo("Succeeded")

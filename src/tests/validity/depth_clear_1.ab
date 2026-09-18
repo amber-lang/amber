@@ -1,0 +1,7 @@
+// Output
+// clear_test
+
+main {
+    clear()
+    echo("clear_test")
+}

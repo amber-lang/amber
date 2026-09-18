@@ -9,8 +9,11 @@ use crate::translate::compute::ArithOp;
 use heraclitus_compiler::prelude::*;
 
 use super::shorthand_typecheck_allowed_types;
+use amber_meta::AutoKeyword;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AutoKeyword)]
+#[keyword = "/="]
+#[kind = "stmt"]
 pub struct ShorthandDiv {
     var: String,
     expr: Box<Expr>,
