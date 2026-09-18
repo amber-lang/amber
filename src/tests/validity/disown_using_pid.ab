@@ -1,4 +1,9 @@
 main {
+    // ksh93 needs monitor mode on when background jobs start, otherwise
+    // disown cannot touch them later. Scoped to this test only.
+    if shellname() == "ksh" {
+        trust $ set -m 2>/dev/null $
+    }
     trust silent $ killall yes $ // Cleanup before test
 
     trust $ yes > /dev/null 2>&1 & $
@@ -24,4 +29,5 @@ main {
     }
 
     trust silent $ kill {first_pid} $ // Cleanup after test
+    trust $ set +m 2>/dev/null $
 }
