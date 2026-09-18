@@ -2,7 +2,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::fragments::var_stmt::VarStmtFragment;
-use crate::utils::{ParserMetadata, ShellType};
+use crate::utils::ParserMetadata;
 use crate::{fragments, raw_fragment};
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
@@ -59,16 +59,8 @@ impl TypeCheckModule for Disown {
 
 impl TranslateModule for Disown {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        // ksh93 only lets disown touch background jobs with monitor mode on.
-        // Scope it tightly around the call: global monitor mode would bring
-        // back the `[N]+ Done` job-control noise in test output.
-        let monitor = matches!(meta.target.shell, ShellType::Ksh);
         let Some(pids) = &self.pids else {
-            return if monitor {
-                fragments!("set -m 2>/dev/null; disown 2>/dev/null || true; set +m 2>/dev/null")
-            } else {
-                fragments!("disown 2>/dev/null || true")
-            };
+            return fragments!("disown 2>/dev/null || true");
         };
 
         let pids_type = pids.get_type();
@@ -88,31 +80,23 @@ impl TranslateModule for Disown {
         let pid_var = format!("__AMBER_PID_{}", meta.gen_value_id());
 
         if pids_type.is_array() {
-            let mut parts = vec![];
-            if monitor {
-                parts.push(raw_fragment!("set -m 2>/dev/null").to_frag());
-            }
-            parts.push(raw_fragment!("for {pid_var} in {iter_value}; do").to_frag());
-            parts.push(
-                BlockFragment::new(
-                    vec![raw_fragment!("disown \"${pid_var}\" 2>/dev/null || true")],
-                    true,
-                )
-                .to_frag(),
-            );
-            parts.push(raw_fragment!("done").to_frag());
-            if monitor {
-                parts.push(raw_fragment!("set +m 2>/dev/null").to_frag());
-            }
-            BlockFragment::new(parts, false).to_frag()
+            BlockFragment::new(
+                vec![
+                    raw_fragment!("for {pid_var} in {iter_value}; do"),
+                    BlockFragment::new(
+                        vec![raw_fragment!("disown \"${pid_var}\" 2>/dev/null || true")],
+                        true,
+                    )
+                    .to_frag(),
+                    raw_fragment!("done"),
+                ],
+                false,
+            )
+            .to_frag()
         } else {
             // A scalar pid needs no loop: iterating one quoted value trips
             // ShellCheck SC2066.
-            if monitor {
-                raw_fragment!("set -m 2>/dev/null; disown {iter_value} 2>/dev/null || true; set +m 2>/dev/null").to_frag()
-            } else {
-                raw_fragment!("disown {iter_value} 2>/dev/null || true").to_frag()
-            }
+            raw_fragment!("disown {iter_value} 2>/dev/null || true").to_frag()
         }
     }
 }
