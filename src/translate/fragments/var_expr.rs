@@ -61,7 +61,7 @@ pub struct VarExprFragment {
     // Source location for index access (formatted as "file:line")
     pub index_pos: Option<String>,
     // Only used for boolean type variables, whether return it as complete condition or just the value
-    pub with_condition: bool
+    pub with_condition: bool,
 }
 
 // Represents variable that resolves to a value. Prefixed with `$`.
@@ -82,7 +82,7 @@ impl Default for VarExprFragment {
             render_type: VarRenderType::BashValue,
             index: None,
             index_pos: None,
-            with_condition: false
+            with_condition: false,
         }
     }
 }
@@ -213,6 +213,7 @@ impl VarExprFragment {
             name = match meta.target.shell {
                 ShellType::Ksh | ShellType::BashModern => format!("{dollar}{{!{name}}}"),
                 ShellType::BashLegacy => format!("{dollar}{{{name}}}"),
+                // Zsh's `${(P)name}` only dereferences scalar namerefs
                 ShellType::Zsh => {
                     if self.is_array_ref {
                         format!("{dollar}{{{name}}}")
@@ -297,13 +298,13 @@ impl VarExprFragment {
         };
 
         if with_condition {
-            if matches!(kind, Type::Bool | Type::Array(_)) { 
-                create_bool_comparison(meta,result)
+            if matches!(kind, Type::Bool | Type::Array(_)) {
+                create_bool_comparison(meta, result)
             } else {
                 empty_text_comparison(meta, result)
             }
-        } else { 
-            result 
+        } else {
+            result
         }
     }
 
@@ -340,14 +341,18 @@ impl VarExprFragment {
                 match meta.target.shell {
                     ShellType::Ksh => {
                         // In ksh, ${array[idx]?"msg"} doesn't error for out-of-bounds access.
-                        // Emit an explicit bounds check before the access instead.
-                        let var_name = self.get_name();
-                        meta.stmt_queue.push_back(
-                            RawFragment::from(format!(
-                                "(( {index} >= 0 && {index} < ${{#{var_name}[@]}} )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
-                            ))
-                            .to_frag(),
-                        );
+                        // Emit an explicit bounds check for source-level accesses instead.
+                        // Compiler-generated indices are guaranteed to be in bounds and their
+                        // checks cannot be queued outside the generated loop that defines them.
+                        if self.index_pos.is_some() {
+                            let var_name = self.get_name();
+                            meta.stmt_queue.push_back(
+                                RawFragment::from(format!(
+                                    "(( {index} >= -${{#{var_name}[@]}} && {index} < ${{#{var_name}[@]}} )) || {{ echo \"Index out of bounds (at {location})\" >&2; exit 1; }}"
+                                ))
+                                .to_frag(),
+                            );
+                        }
                         format!("[{index}]")
                     }
                     _ => format!("[{index}]?\"Index out of bounds (at {location})\""),

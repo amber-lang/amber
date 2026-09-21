@@ -1,10 +1,12 @@
 use super::import_string::ImportString;
 use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::block::Block;
+use crate::modules::function::core::signature::FunctionSignature;
 use crate::modules::prelude::*;
+use crate::modules::skip_comments_and_newlines;
 use crate::modules::variable::variable_name_extensions;
 use crate::stdlib;
-use crate::utils::context::{Context, FunctionDecl, VariableDecl};
+use crate::utils::context::{Context, VariableDecl};
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use std::fs;
@@ -44,7 +46,7 @@ impl Import {
     fn add_imported_deps(
         &mut self,
         meta: &mut ParserMetadata,
-        mut pub_funs: Vec<FunctionDecl>,
+        mut pub_funs: Vec<FunctionSignature>,
         mut pub_vars: Vec<VariableDecl>,
     ) -> SyntaxResult {
         if !self.is_all {
@@ -85,7 +87,7 @@ impl Import {
                         }
 
                         let name = fun.name.clone();
-                        if meta.add_fun_declaration_existing(fun.clone()).is_none() {
+                        if !meta.add_fun_declaration_existing(fun.clone()) {
                             return error!(meta, self.token_import.clone() => {
                                 message: format!("Function '{}' is already defined", name)
                             });
@@ -109,7 +111,7 @@ impl Import {
                 // Determine if imported functions should be exported further
                 fun.is_public = self.is_pub;
                 let name = fun.name.clone();
-                if meta.add_fun_declaration_existing(fun).is_none() {
+                if !meta.add_fun_declaration_existing(fun) {
                     return error!(meta, self.token_import.clone() => {
                         message: format!("Function '{}' is already defined", name)
                     });
@@ -223,11 +225,7 @@ impl SyntaxModule<ParserMetadata> for Import {
                 if token(meta, "}").is_err() {
                     loop {
                         // Skip comments and newlines
-                        if token_by(meta, |token| {
-                            token.starts_with("//") || token.starts_with('\n')
-                        })
-                        .is_ok()
-                        {
+                        if skip_comments_and_newlines(meta) {
                             continue;
                         }
                         let tok = meta.get_current_token();
@@ -248,10 +246,9 @@ impl SyntaxModule<ParserMetadata> for Import {
                             break;
                         }
                         match token(meta, ",") {
-                            #[rustfmt::skip]
                             Ok(_) => {
                                 // Skip comments and newlines after comma
-                                while token_by(meta, |token| token.starts_with("//") || token.starts_with('\n')).is_ok() {
+                                while skip_comments_and_newlines(meta) {
                                     // Keep consuming
                                 }
                                 if token(meta, "}").is_ok() {

@@ -1,16 +1,22 @@
+//! This optimizer reduces ephemeral variables to the variables that use them.
+//! Ephemeral variable is a variable that is created internally by a compiler
+//! just to hold a value for a single expression. Variable statements are
+//! marked as ephemeral by the compiler in a case when we create an additional
+//! variable just to hold a temporary value.
+//!
+//! We handle two cases:
+//! 1. (eph = 5; var = eph) -> (var = 5)
+//! 2. (eph1 = 5; eph2 = eph1; var = eph2) -> (var = 5)
+
 use crate::modules::prelude::*;
 
-// This optimizer reduces ephemeral variables to the variables that use them.
-// Ephemeral variable is a variable that is created internally by a compiler
-// just to hold a value for a single expression. Variable statements are
-// marked as ephemeral by the compiler in a case when we create an additional
-// variable just to hold a temporary value.
-//
-// We handle two cases:
-// 1. (eph = 5; var = eph) -> (var = 5)
-// 2. (eph1 = 5; eph2 = eph1; var = eph2) -> (var = 5)
-
 pub fn remove_ephemeral_variables(ast: &mut FragmentKind) {
+    // Function bodies hold ephemeral variables too
+    if let FragmentKind::FunDecl(fun) = ast {
+        remove_ephemeral_variables(&mut fun.prologue);
+        remove_ephemeral_variables(&mut fun.body);
+        return;
+    }
     if let FragmentKind::Block(block) = ast {
         let mut i = 0;
         while i < block.statements.len() {

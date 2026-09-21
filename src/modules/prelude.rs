@@ -6,6 +6,7 @@ pub use crate::translate::fragments::arithmetic::ArithmeticFragment;
 pub use crate::translate::fragments::block::BlockFragment;
 pub use crate::translate::fragments::comment::CommentFragment;
 pub use crate::translate::fragments::fragment::{FragmentKind, FragmentRenderable};
+pub use crate::translate::fragments::function_decl::FunctionDeclFragment;
 pub use crate::translate::fragments::interpolable::{InterpolableFragment, InterpolableRenderType};
 pub use crate::translate::fragments::list::ListFragment;
 pub use crate::translate::fragments::log::LogFragment;

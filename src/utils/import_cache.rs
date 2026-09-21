@@ -1,10 +1,10 @@
-use super::context::FunctionDecl;
+use crate::modules::function::core::signature::FunctionSignature;
 use crate::{modules::block::Block, utils::context::VariableDecl};
 
 #[derive(Debug, Clone)]
 pub struct FileMetadata {
     pub block: Block,
-    pub pub_funs: Vec<FunctionDecl>,
+    pub pub_funs: Vec<FunctionSignature>,
     pub pub_vars: Vec<VariableDecl>,
 }
 
@@ -101,7 +101,7 @@ impl ImportCache {
         &mut self,
         path: Option<String>,
         block: Block,
-        pub_funs: Vec<FunctionDecl>,
+        pub_funs: Vec<FunctionSignature>,
         pub_vars: Vec<VariableDecl>,
     ) {
         let path_id = self.get_path_id(&Self::get_path(path)).unwrap();
@@ -115,7 +115,7 @@ impl ImportCache {
     pub fn get_imports(
         &mut self,
         path: Option<String>,
-    ) -> Option<(Vec<FunctionDecl>, Vec<VariableDecl>)> {
+    ) -> Option<(Vec<FunctionSignature>, Vec<VariableDecl>)> {
         self.get_path_id(&Self::get_path(path)).and_then(|path_id| {
             self.files[path_id]
                 .metadata
