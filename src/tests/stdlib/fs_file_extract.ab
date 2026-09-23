@@ -2,75 +2,73 @@
 // Succeeded
 // Succeeded
 
-import { dir_exists, file_compress, file_exists, file_extract, temp_dir_create } from "std/fs"
+import { dir_create, dir_exists, file_compress, file_exists, file_extract, temp_dir_create } from "std/fs"
 
-fun cleanup_dirs(dirs: [Text]): Null {
-    for dir in dirs {
-        if dir_exists(dir) {
-            trust rm(dir, true, true)
-        }
+fun create_and_change_to_temp_dir(): Text? {
+    const temp_dir = temp_dir_create("amber-test-stdlib-fs_file_extract_ab-XXXXX", true, true) failed {
+        echo("It is not possible to create the temp directory")
+        exit(1)
+    }
+
+    cd(temp_dir) failed {
+        echo("It is not possible to access the {temp_dir} directory")
+        fail(1)
+    }
+
+    return temp_dir
+}
+
+fun create_dir(path: Text): Null? {
+    dir_create(path) failed {
+        echo("It is not possible to create the {path} directory")
+        fail(2)
     }
 }
 
-fun verify_format(format: Text): Bool? {
-    const created_src = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-src-XXXX", true, true) failed {
-        echo("It is not possible to create the source directory")
-        fail(1)
-    }
-    
-    cd(created_src) failed {
-        cleanup_dirs([created_src])
-        echo("It is not possible to access the source directory")
-        fail(2)
-    }
-
+fun verify_format(format: Text, dir_base: Text): Bool? {
     const test_file = "test.txt"
 
     touch(test_file) failed {
-        cleanup_dirs([created_src])
-        echo("It is not possible to create the test file")
+        echo("It is not possible to create the {test_file} file")
         fail(3)
     }
-    
+
     const compress_file = "compress.{format}"
 
     file_compress([test_file], compress_file) failed {
-        cleanup_dirs([created_src])
-        echo("It is not possible to create the compress \"{format}\" file")
+        echo("It is not possible to create the \"{compress_file}\" file")
         fail(4)
     }
     
-    const created_dist = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-dist-XXXX", true, true) failed {
-        cleanup_dirs([created_src])
-        echo("It is not possible to create the destination directory")
+    const dir_dst = "{dir_base}/dir_dst_{format}"
+
+    create_dir(dir_dst)?
+
+    file_extract(compress_file, dir_dst) failed {
+        echo("It is not possible to extract the \"{compress_file}\" file")
         fail(5)
     }
 
-    file_extract(compress_file, created_dist) failed {
-        cleanup_dirs([created_src, created_dist])
-        echo("It is not possible to extract the \"{format}\" file")
+    const dir_dst_test_file = "{dir_dst}/{test_file}"
+    const is_file_extracted = file_exists(dir_dst_test_file)
+
+    if not is_file_extracted {
+        echo("The file {test_file} was not extracted from \"{format}\" format")
         fail(6)
     }
-
-    const is_file_extracted = file_exists("{created_dist}/{test_file}")
-    if not is_file_extracted {
-        cleanup_dirs([created_src, created_dist])
-        echo("The file {test_file} was not extracted from \"{format}\" format")
-        fail(7)
-    }
-
-    cleanup_dirs([created_src, created_dist])
 
     return true
 }
 
 main {
+    const dir_base = create_and_change_to_temp_dir()?
     const formats = ["tar.gz", "zip"]
+
     let all_extracted = true
 
     for format in formats {
-        const extracted = verify_format(format) failed(error_code) {
-            echo("{format}: Fail with error code: {error_code}")
+        const extracted = verify_format(format, dir_base) failed(verify_format_error_code) {
+            echo("{format}: Fail with error code: {verify_format_error_code}")
         }
 
         if not extracted: all_extracted = false
@@ -78,6 +76,6 @@ main {
     }
 
     if not all_extracted {
-        fail(1)
+        fail(7)
     }
 }

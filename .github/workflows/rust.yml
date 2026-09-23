@@ -295,7 +295,7 @@ jobs:
           AMBER_SHELL: /usr/bin/ksh
         run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura-ksh.xml
       - name: Upload bash coverage to codecov.io
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,bash,${{ github.sha }}
@@ -303,7 +303,7 @@ jobs:
           fail_ci_if_error: true
           verbose: true
       - name: Upload zsh coverage to codecov.io
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,zsh,${{ github.sha }}
@@ -311,7 +311,7 @@ jobs:
           fail_ci_if_error: true
           verbose: true
       - name: Upload ksh coverage to codecov.io
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,ksh,${{ github.sha }}
@@ -337,7 +337,7 @@ jobs:
       - name: Test coverage
         run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,release,${{ github.event.release.tag_name }},${{ github.sha }}
