@@ -2,7 +2,7 @@
 // Succeeded
 // Succeeded
 
-import { dir_create, dir_exists, file_compress, file_exists, file_extract, temp_dir_create } from "std/fs"
+import { file_compress, file_exists, file_extract, temp_dir_create } from "std/fs"
 
 fun create_and_change_to_temp_dir(): Text? {
     const temp_dir = temp_dir_create("amber-test-stdlib-fs_file_extract_ab-XXXXX", true, true) failed {
@@ -18,56 +18,61 @@ fun create_and_change_to_temp_dir(): Text? {
     return temp_dir
 }
 
-fun create_dir(path: Text): Null? {
-    dir_create(path) failed {
-        echo("It is not possible to create the {path} directory")
+fun verify_format(format: Text): Bool? {
+    const dir_src = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-src-XXXXX", true, true) failed {
+        echo("It is not possible to create the source directory")
         fail(2)
     }
-}
 
-fun verify_format(format: Text, dir_base: Text): Bool? {
-    const test_file = "test.txt"
-
-    touch(test_file) failed {
-        echo("It is not possible to create the {test_file} file")
+    cd(dir_src) failed {
+        echo("It is not possible to access the source directory")
         fail(3)
     }
 
-    const compress_file = "compress.{format}"
+    const test_filename = "test_{format}.txt"
+    const test_file = test_filename
+
+    touch(test_file) failed {
+        echo("It is not possible to create the {test_file} file")
+        fail(4)
+    }
+
+    const compress_file = "compress_{format}.{format}"
 
     file_compress([test_file], compress_file) failed {
         echo("It is not possible to create the \"{compress_file}\" file")
-        fail(4)
+        fail(5)
     }
     
-    const dir_dst = "{dir_base}/dir_dst_{format}"
-
-    create_dir(dir_dst)?
+    const dir_dst = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-dst-XXXXX", true, true) failed {
+        echo("It is not possible to create the destination directory")
+        fail(6)
+    }
 
     file_extract(compress_file, dir_dst) failed {
         echo("It is not possible to extract the \"{compress_file}\" file")
-        fail(5)
+        fail(7)
     }
 
-    const dir_dst_test_file = "{dir_dst}/{test_file}"
+    const dir_dst_test_file = "{dir_dst}/{test_filename}"
     const is_file_extracted = file_exists(dir_dst_test_file)
 
     if not is_file_extracted {
         echo("The file {test_file} was not extracted from \"{format}\" format")
-        fail(6)
+        fail(8)
     }
 
     return true
 }
 
 main {
-    const dir_base = create_and_change_to_temp_dir()?
+    create_and_change_to_temp_dir()?
     const formats = ["tar.gz", "zip"]
 
     let all_extracted = true
 
     for format in formats {
-        const extracted = verify_format(format, dir_base) failed(verify_format_error_code) {
+        const extracted = verify_format(format) failed(verify_format_error_code) {
             echo("{format}: Fail with error code: {verify_format_error_code}")
         }
 
@@ -76,6 +81,6 @@ main {
     }
 
     if not all_extracted {
-        fail(7)
+        fail(9)
     }
 }
