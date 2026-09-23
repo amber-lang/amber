@@ -19,7 +19,9 @@ fun create_and_change_to_temp_dir(): Text? {
 }
 
 fun verify_format(format: Text): Bool? {
-    const dir_src = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-src-XXXXX", true, true) failed {
+    // auto_delete would set an EXIT trap that replaces the parent one on each
+    // call, so the directories are removed explicitly before returning.
+    const dir_src = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-src-XXXXX") failed {
         echo("It is not possible to create the source directory")
         fail(2)
     }
@@ -44,7 +46,7 @@ fun verify_format(format: Text): Bool? {
         fail(5)
     }
     
-    const dir_dst = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-dst-XXXXX", true, true) failed {
+    const dir_dst = temp_dir_create("amber-test-stdlib-fs_file_extract-{format}-dst-XXXXX") failed {
         echo("It is not possible to create the destination directory")
         fail(6)
     }
@@ -62,6 +64,7 @@ fun verify_format(format: Text): Bool? {
         fail(8)
     }
 
+    trust silent $ rm -rf "{dir_src}" "{dir_dst}" $
     return true
 }
 
