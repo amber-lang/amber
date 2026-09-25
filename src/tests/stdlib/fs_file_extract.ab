@@ -6,12 +6,12 @@ import { dir_create, dir_exists, file_compress, file_exists, file_extract, temp_
 
 fun create_and_change_to_temp_dir(): Text? {
     const temp_dir = temp_dir_create("amber-test-stdlib-fs_file_extract_ab-XXXXX", true, true) failed {
-        echo("It is not possible to create the temp directory")
+        echo("It is not possible to create the \"temp\" directory")
         exit(1)
     }
 
     cd(temp_dir) failed {
-        echo("It is not possible to access the {temp_dir} directory")
+        echo("It is not possible to access the \"{temp_dir}\" directory")
         fail(1)
     }
 
@@ -20,7 +20,7 @@ fun create_and_change_to_temp_dir(): Text? {
 
 fun create_dir(path: Text): Null? {
     dir_create(path) failed {
-        echo("It is not possible to create the {path} directory")
+        echo("It is not possible to create the \"{path}\" directory")
         fail(2)
     }
 }
@@ -29,7 +29,7 @@ fun verify_format(format: Text, dir_base: Text): Bool? {
     const test_file = "test.txt"
 
     touch(test_file) failed {
-        echo("It is not possible to create the {test_file} file")
+        echo("It is not possible to create the \"{test_file}\" file")
         fail(3)
     }
 
