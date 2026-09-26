@@ -5,8 +5,9 @@
 import { dir_create, dir_exists, file_compress, file_exists, file_extract, temp_dir_create } from "std/fs"
 
 fun create_and_change_to_temp_dir(): Text? {
-    const temp_dir = temp_dir_create("amber-test-stdlib-fs_file_extract_ab-XXXXX", true, true) failed {
-        echo("It is not possible to create the \"temp\" directory")
+    const temp_dir_name = "amber-test-stdlib-fs_file_extract_ab-XXXXX"
+    const temp_dir = temp_dir_create(temp_dir_name, true, true) failed {
+        echo("It is not possible to create the \"{temp_dir_name}\" temporary directory")
         exit(1)
     }
 
