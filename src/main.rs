@@ -205,14 +205,16 @@ fn create_output(command: &BuildCommand) -> PathBuf {
 }
 
 #[cfg(windows)]
-fn set_file_permission(_file: &fs::File, _output: String) {}
+fn set_file_permission(_file: &fs::File, _output: String) -> io::Result<()> {
+    Ok(())
+}
 
 #[cfg(not(windows))]
-pub(crate) fn set_file_permission(file: &fs::File, path: String) {
+pub(crate) fn set_file_permission(file: &fs::File, path: String) -> io::Result<()> {
     use std::os::unix::prelude::PermissionsExt;
-    let mut perm = fs::metadata(path).unwrap().permissions();
+    let mut perm = fs::metadata(path)?.permissions();
     perm.set_mode(0o755);
-    file.set_permissions(perm).unwrap();
+    file.set_permissions(perm)
 }
 
 fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
@@ -284,7 +286,9 @@ pub(crate) fn write_output(output: PathBuf, code: String) {
         match fs::File::create(&output) {
             Ok(mut file) => {
                 write!(file, "{code}").unwrap();
-                set_file_permission(&file, output);
+                if let Err(err) = set_file_permission(&file, output) {
+                    handle_err(err);
+                }
             }
             Err(err) => {
                 Message::new_err_msg(err.to_string()).show();
