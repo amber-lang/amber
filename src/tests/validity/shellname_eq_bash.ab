@@ -1,0 +1,13 @@
+// Test shellname() == "bash" folding to constant based on target
+// Output [bash]
+// 1
+// Output [zsh]
+// 0
+// Output [ksh]
+// 0
+
+if shellname() == "bash" {
+    echo("1")
+} else {
+    echo("0")
+}

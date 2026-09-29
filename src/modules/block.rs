@@ -24,6 +24,10 @@ impl Block {
         self.statements.iter().any(|stmt| stmt.terminates_control_flow())
     }
 
+    pub fn set_no_indent(&mut self) {
+        self.should_indent = false;
+    }
+
     pub fn with_condition(mut self) -> Self {
         self.is_conditional = true;
         self

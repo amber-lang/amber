@@ -1,0 +1,5 @@
+// Test parentheses wrapping expressions
+// Output
+// 42
+
+echo((21 + 21))

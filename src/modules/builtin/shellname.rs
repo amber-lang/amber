@@ -39,6 +39,8 @@ impl TypeCheckModule for Shellname {
 
 impl TranslateModule for Shellname {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        // Only set shellname_used flag for standalone usage
+        // (not when it's being folded via try_fold_comparison)
         meta.shellname_used = true;
         VarExprFragment::new("EXEC_SHELL", Type::Text).to_frag()
     }

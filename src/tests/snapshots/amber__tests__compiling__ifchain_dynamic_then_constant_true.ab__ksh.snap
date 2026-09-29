@@ -1,0 +1,9 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+# Output
+# Succeeded
+typeset -r args_0=("$0" "$@")
+: "${args_0[@]}"
+echo "Succeeded"

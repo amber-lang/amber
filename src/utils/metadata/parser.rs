@@ -1,7 +1,9 @@
 use std::collections::{BTreeSet, HashMap};
 
+use crate::compiler::{AmberCompiler, CompilerOptions};
 use crate::modules::block::Block;
 use crate::modules::types::Type;
+use crate::utils::TargetShell;
 use crate::utils::context::{Context, FunctionDecl, ScopeUnit, VariableDecl};
 use crate::utils::function_cache::FunctionCache;
 use crate::utils::function_interface::FunctionInterface;
@@ -44,6 +46,9 @@ pub struct ParserMetadata {
     /// This is used to generally assess if a function is valid and emit errors if it is not
     #[context]
     pub first_pass_ctx: bool,
+    /// Contains information about specified target output
+    /// Only used at the `typecheck` layer
+    pub target: Option<TargetShell>,
 }
 
 impl ParserMetadata {
@@ -58,6 +63,11 @@ impl ParserMetadata {
 
 // Implement context methods
 impl ParserMetadata {
+    pub fn with_target_shell(&mut self, options: &CompilerOptions) {
+        let target_shell = AmberCompiler::resolve_target_shell(options.target);
+        self.target = Some(TargetShell { shell: target_shell });
+    }
+
     /* Scopes */
 
     /// Determines if the parser is in the global scope
@@ -313,6 +323,7 @@ impl Metadata for ParserMetadata {
             narrowed_types: Vec::new(),
             suppress_warnings: false,
             first_pass_ctx: false,
+            target: None
         }
     }
 

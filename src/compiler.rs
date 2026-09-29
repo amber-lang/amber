@@ -455,6 +455,7 @@ impl AmberCompiler {
         mut meta: ParserMetadata,
     ) -> Result<(Block, ParserMetadata), Message> {
         let time = Instant::now();
+        meta.with_target_shell(&self.options);
 
         // Perform type checking on the block
         if let Err(failure) = block.typecheck(&mut meta) {

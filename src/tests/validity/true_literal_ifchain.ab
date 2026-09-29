@@ -1,0 +1,9 @@
+// Test ifchain with literal true condition
+// Output
+// taken
+
+if {
+    true {
+        echo("taken")
+    }
+}

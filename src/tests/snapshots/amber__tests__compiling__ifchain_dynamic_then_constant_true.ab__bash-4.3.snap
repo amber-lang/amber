@@ -1,0 +1,15 @@
+---
+source: src/tests/compiling.rs
+expression: ast
+---
+# Output
+# Succeeded
+typeset -r args_0=("$0" "$@")
+: "${args_0[@]}"
+enable -n true; true() { return 1; } && __status=0 || __status=$?
+__length_1=("${args_0[@]}")
+if (( ${#__length_1[@]} > 1 )); then
+    echo "dynamic"
+else
+    echo "Succeeded"
+fi

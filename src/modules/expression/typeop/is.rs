@@ -9,6 +9,7 @@ use super::TypeOp;
 use std::collections::HashMap;
 
 use crate::modules::expression::expr::ExprType;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone)]
 pub struct Is {
@@ -17,20 +18,20 @@ pub struct Is {
 }
 
 impl Is {
-    pub fn analyze_control_flow(&self) -> Option<bool> {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
         let expr_type = self.expr.get_type();
 
         // If types are identical, it's always true
         if expr_type == self.kind {
-            return Some(true);
+            return BoolAnalysis { known_value: Some(true), ..BoolAnalysis::default() };
         }
 
         // If types cannot possibly intersect, it's always false
         if !expr_type.can_intersect(&self.kind) {
-            return Some(false);
+            return BoolAnalysis { known_value: Some(false), ..BoolAnalysis::default() };
         }
 
-        None
+        BoolAnalysis::default()
     }
 
     pub fn extract_facts(&self) -> (HashMap<String, Type>, HashMap<String, Type>) {

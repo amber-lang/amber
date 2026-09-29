@@ -1,0 +1,5 @@
+// Test empty string literal
+// Output
+// Succeeded
+
+echo("Succeeded")

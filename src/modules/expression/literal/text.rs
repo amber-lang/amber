@@ -2,6 +2,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::expression::interpolated_region::{
     parse_interpolated_region, InterpolatedRegionType,
 };
+use crate::modules::expression::BoolAnalysis;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::fragments::interpolable::InterpolablePart;
@@ -47,6 +48,32 @@ impl TextPart {
 #[derive(Debug, Clone)]
 pub struct Text {
     parts: Vec<TextPart>,
+}
+
+impl Text {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        BoolAnalysis {
+            has_side_effects: self.parts.iter().any(|part| match part {
+                TextPart::String(_) => false,
+                TextPart::Expr(expr) => expr.analyze_control_flow().has_side_effects,
+            }),
+            ..BoolAnalysis::default()
+        }
+    }
+
+    /// Returns the string content if this is a simple string literal.
+    /// Returns None if the text is interpolated or empty.
+    pub fn as_simple_string(&self) -> Option<&str> {
+        if self.parts.len() == 1 {
+            if let TextPart::String(s) = &self.parts[0] {
+                Some(s)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
 }
 
 impl Typed for Text {
