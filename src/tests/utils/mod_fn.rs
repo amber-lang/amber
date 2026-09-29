@@ -3,13 +3,11 @@
 //! Tests for: pluralize, pretty_join, is_all_caps
 //! Note: These are integration tests that complement the inline tests in src/utils/mod.rs
 
-use crate::utils::{pluralize, pretty_join, is_all_caps};
+use crate::utils::{is_all_caps, pluralize, pretty_join};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // ==================== pluralize tests ====================
 
     #[test]
     fn test_pluralize_singular() {
@@ -23,13 +21,11 @@ mod tests {
     fn test_pluralize_non_singular_amounts() {
         // Test the implementation's threshold behavior:
         // values greater than 1 use the plural form, while 0 remains singular.
-        assert_eq!(pluralize(0, "error", "errors"), "error");  // 0 is not > 1
+        assert_eq!(pluralize(0, "error", "errors"), "error");
         assert_eq!(pluralize(2, "error", "errors"), "errors");
         assert_eq!(pluralize(10, "file", "files"), "files");
         assert_eq!(pluralize(100, "warning", "warnings"), "warnings");
     }
-
-    // ==================== pretty_join tests ====================
 
     #[test]
     fn test_pretty_join_single_item() {
@@ -60,8 +56,6 @@ mod tests {
         assert_eq!(pretty_join(empty, "and"), "");
     }
 
-    // ==================== is_all_caps tests ====================
-
     #[test]
     fn test_is_all_caps_valid() {
         // Test with valid all-caps names
@@ -91,10 +85,14 @@ mod tests {
     }
 
     #[test]
+    fn test_is_all_caps_positional_params() {
+        assert!(!is_all_caps("1"));
+        assert!(!is_all_caps("$2"));
+    }
+
+    #[test]
     fn test_is_all_caps_empty() {
-        // Test with empty string - filter returns empty, all() on empty is true
-        // This is a quirk of the implementation
-        assert!(is_all_caps(""));
+        assert!(!is_all_caps(""));
     }
 
     #[test]

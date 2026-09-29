@@ -16,7 +16,7 @@ test_index__0_v0() {
 done
 }
 
-left_comp=("${EXEC_SHELL_VERSION[@]}")
+left_comp=("${__EXEC_SHELL_VERSION[@]}")
 array_1=(4 3)
 right_comp=("${array_1[@]}")
 comp="$(

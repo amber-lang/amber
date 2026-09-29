@@ -1,3 +1,4 @@
+use crate::modules::skip_comments_and_newlines;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::{try_parse_type, Type, Typed};
@@ -52,11 +53,7 @@ impl SyntaxModule<ParserMetadata> for Array {
             Err(Failure::Quiet(_)) => {
                 loop {
                     // Skip comments and newlines
-                    if token_by(meta, |token| {
-                        token.starts_with("//") || token.starts_with('\n')
-                    })
-                    .is_ok()
-                    {
+                    if skip_comments_and_newlines(meta) {
                         continue;
                     }
                     if token(meta, "]").is_ok() {
