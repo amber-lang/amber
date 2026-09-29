@@ -5,7 +5,8 @@
 // Array variable: 4
 // Text reference: 6
 // Array reference: 4
-
+// Length as argument: 6
+// Length as argument: 4
 let name = "Andrew"
 let fruits = ["apple", "banana", "cherry", "date"]
 
@@ -14,9 +15,15 @@ fun foo(ref text, ref arr) {
   echo("Array reference: {len(arr)}")
 }
 
+fun bar(length) {
+  echo("Length as argument: {length}")
+}
+
 echo("Text literal: {len("Hello")}")
 echo("Array literal: {len([1, 2, 3])}")
 echo("Text variable: {len(name)}")
 echo("Array variable: {len(fruits)}")
 
 foo(name, fruits)
+bar(len(name))
+bar(len(fruits))
