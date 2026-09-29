@@ -348,7 +348,7 @@ fn test_set_file_permission_missing_path() {
     std::fs::remove_file(&test_file_path).unwrap();
 
     let path = test_file_path.to_string_lossy().to_string();
-    assert!(std::panic::catch_unwind(|| set_file_permission(&file, path)).is_ok());
+    assert!(set_file_permission(&file, path).is_err());
 }
 
 #[test]
