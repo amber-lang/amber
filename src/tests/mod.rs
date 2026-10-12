@@ -113,22 +113,78 @@ pub fn extract_output(code: impl Into<String>) -> String {
         .join("\n")
 }
 
+/// Extracts the expected output for `family` from `// Output [family]` blocks.
+/// Returns None when the file declares no tagged blocks (plain `// Output` format).
+/// Panics when tagged blocks are declared but none matches the current target.
+pub fn extract_targeted_output(code: &str, family: &str) -> Option<String> {
+    let lines: Vec<&str> = code.lines().collect();
+    let mut tags: Vec<String> = Vec::new();
+    let mut blocks: Vec<(String, String)> = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        match output_tag(lines[i]) {
+            Some(tag) => {
+                let mut content: Vec<&str> = Vec::new();
+                i += 1;
+                while i < lines.len()
+                    && lines[i].starts_with("//")
+                    && output_tag(lines[i]).is_none()
+                {
+                    content.push(lines[i].trim_start_matches("//").trim());
+                    i += 1;
+                }
+                tags.push(tag.clone());
+                blocks.push((tag, content.join("\n")));
+            }
+            None => i += 1,
+        }
+    }
+    if blocks.is_empty() {
+        return None;
+    }
+    match blocks.into_iter().find(|(tag, _)| tag == family) {
+        Some((_, content)) => Some(content),
+        None => panic!(
+            "per-target output declared for [{}] but no block for target '{family}'",
+            tags.join(", ")
+        ),
+    }
+}
+
+fn output_tag(line: &str) -> Option<String> {
+    let tag = line
+        .strip_prefix("// Output [")?
+        .strip_suffix("]")?
+        .to_string();
+    if tag.is_empty() {
+        return None;
+    }
+    Some(tag)
+}
+
 /// Inner test logic for testing script output in case of success or failure
 pub fn script_test(input: &str, target: TestOutcomeTarget) {
     let code =
         fs::read_to_string(input).unwrap_or_else(|_| panic!("Failed to open {input} test file"));
-    // Extract output from script comment
-    let mut output = extract_output(&code);
-    // If output is not in comment, try to read from .output.txt file
-    if output.is_empty() {
-        let path = PathBuf::from(input.replace(".ab", ".output.txt"));
-        output = if path.exists() {
-            fs::read_to_string(&path)
-                .unwrap_or_else(|_| panic!("Failed to open {} test file", path.display()))
-        } else {
-            SUCCEEDED.to_string()
-        };
-    }
+    // Per-target `// Output [target]` blocks take precedence over the plain
+    // `// Output` block and the .output.txt fallback.
+    let family = AmberCompiler::resolve_target_shell(None).family_name();
+    let output = match extract_targeted_output(&code, family) {
+        Some(targeted) => targeted,
+        None => {
+            let mut output = extract_output(&code);
+            if output.is_empty() {
+                let path = PathBuf::from(input.replace(".ab", ".output.txt"));
+                output = if path.exists() {
+                    fs::read_to_string(&path)
+                        .unwrap_or_else(|_| panic!("Failed to open {} test file", path.display()))
+                } else {
+                    SUCCEEDED.to_string()
+                };
+            }
+            output
+        }
+    };
     test_amber(&code, &output, target);
 }
 
@@ -158,5 +214,33 @@ not output
             ),
             "expected\noutput"
         );
+    }
+
+    #[test]
+    fn test_extract_targeted_output() {
+        let code = "\nsome code\n// Output [bash]\n// 1\n// Output [zsh]\n// 0\n// Output [ksh]\n// 0\n\nmore code\n";
+        assert_eq!(extract_targeted_output(code, "bash").as_deref(), Some("1"));
+        assert_eq!(extract_targeted_output(code, "zsh").as_deref(), Some("0"));
+        assert_eq!(extract_targeted_output(code, "ksh").as_deref(), Some("0"));
+    }
+
+    #[test]
+    fn test_extract_targeted_output_empty_block() {
+        let code = "// Output [bash]\n// 1\n// Output [zsh]\n// Output [ksh]\n";
+        assert_eq!(extract_targeted_output(code, "bash").as_deref(), Some("1"));
+        assert_eq!(extract_targeted_output(code, "zsh").as_deref(), Some(""));
+        assert_eq!(extract_targeted_output(code, "ksh").as_deref(), Some(""));
+    }
+
+    #[test]
+    fn test_extract_targeted_output_plain_format_returns_none() {
+        let code = "// Output\n// plain output\n";
+        assert_eq!(extract_targeted_output(code, "bash"), None);
+    }
+
+    #[test]
+    #[should_panic(expected = "no block for target 'ksh'")]
+    fn test_extract_targeted_output_missing_family_panics() {
+        extract_targeted_output("// Output [bash]\n// 1\n", "ksh");
     }
 }

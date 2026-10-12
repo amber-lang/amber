@@ -1,0 +1,19 @@
+// Output
+// Succeeded
+
+main(args) {
+    if shellname() == "bash" {
+        trust $ enable -n true; true() \{ return 1; } $
+
+        if {
+            len(args) > 1 {
+                echo("dynamic")
+            }
+            shellname() == "bash" {
+                echo("Succeeded")
+            }
+        }
+    } else {
+        echo("Succeeded")
+    }
+}

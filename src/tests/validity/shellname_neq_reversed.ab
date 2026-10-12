@@ -1,0 +1,13 @@
+// Test "zsh" != shellname() folding (reversed order)
+// Output [bash]
+// 1
+// Output [zsh]
+// 0
+// Output [ksh]
+// 1
+
+if "zsh" != shellname() {
+    echo("1")
+} else {
+    echo("0")
+}

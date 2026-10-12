@@ -1,0 +1,7 @@
+// Test parentheses with boolean expressions
+// Output
+// 1
+
+if (true) {
+    echo("1")
+}

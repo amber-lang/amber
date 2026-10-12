@@ -1,12 +1,14 @@
 use super::BinOp;
-use crate::modules::expression::expr::Expr;
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::translate::compare::{translate_array_equality, ComparisonOperator};
 use crate::translate::compute::{translate_float_computation, ArithOp};
 use crate::translate::fragments::condition::ConditionFragment;
+use crate::utils::TranslateMetadata;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
+use crate::modules::expression::BoolAnalysis;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "neq"]
@@ -14,6 +16,7 @@ use heraclitus_compiler::prelude::*;
 pub struct Neq {
     left: Box<Expr>,
     right: Box<Expr>,
+    folded_value: Option<bool>
 }
 
 impl Typed for Neq {
@@ -37,6 +40,34 @@ impl BinOp for Neq {
     }
 }
 
+impl Neq {
+    pub fn analyze_control_flow(&self) -> BoolAnalysis {
+        BoolAnalysis {
+            known_value: self.folded_value,
+            depends_on_target: self.folded_value.is_some(),
+            has_side_effects: self.folded_value.is_none()
+                && (self.left.analyze_control_flow().has_side_effects
+                    || self.right.analyze_control_flow().has_side_effects),
+        }
+    }
+
+    /// Check if this inequality comparison can be folded to a constant.
+    pub fn analyze_constant_folding(&self, meta: &ParserMetadata) -> Option<bool> {
+        let target_family = meta.target.as_ref().unwrap().shell.family_name();
+
+        // Optimize away `shellname() != "<shell>"` if possible at compile time
+        match (&self.left.value, &self.right.value) {
+            (Some(ExprType::Shellname(_)), Some(ExprType::Text(text))) => {
+                text.as_simple_string().map(|str| str != target_family)
+            }
+            (Some(ExprType::Text(text)), Some(ExprType::Shellname(_))) => {
+                text.as_simple_string().map(|str| str != target_family)
+            }
+            _ => None,
+        }
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Neq {
     syntax_name!("Neq");
 
@@ -44,6 +75,7 @@ impl SyntaxModule<ParserMetadata> for Neq {
         Neq {
             left: Box::new(Expr::new()),
             right: Box::new(Expr::new()),
+            folded_value: None
         }
     }
 
@@ -57,12 +89,18 @@ impl TypeCheckModule for Neq {
         self.left.typecheck(meta)?;
         self.right.typecheck(meta)?;
         Self::typecheck_equality(meta, &mut self.left, &mut self.right)?;
+        self.folded_value = self.analyze_constant_folding(meta);
         Ok(())
     }
 }
 
 impl TranslateModule for Neq {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        // Reuse the stored folded value
+        if let Some(constant_value) = self.folded_value {
+            return RawFragment::from((if constant_value { "1" } else { "0" }).to_string()).to_frag();
+        }
+
         let left = self.left.translate(meta).with_quotes(false);
         let right = self.right.translate(meta).with_quotes(false);
         match (self.left.get_type(), self.right.get_type()) {

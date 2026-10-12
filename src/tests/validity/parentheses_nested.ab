@@ -1,0 +1,5 @@
+// Test nested parentheses
+// Output
+// 100
+
+echo(((10 * 10)))

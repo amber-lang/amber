@@ -1,0 +1,9 @@
+// Test expression constant folding via try_fold_bool_constant
+// Output [bash]
+// 1
+// Output [zsh]
+// Output [ksh]
+
+if (shellname() == "bash") {
+    echo("1")
+}

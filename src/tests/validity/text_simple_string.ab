@@ -1,0 +1,5 @@
+// Test simple string literal (for as_simple_string coverage)
+// Output
+// hello world
+
+echo("hello world")

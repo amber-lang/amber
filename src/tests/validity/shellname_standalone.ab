@@ -1,0 +1,10 @@
+// Test standalone shellname() usage (not in comparison)
+// Output [bash]
+// bash
+// Output [zsh]
+// zsh
+// Output [ksh]
+// ksh
+
+const s = shellname()
+echo(s)
