@@ -238,8 +238,9 @@ jobs:
       - name: Create Debian package (x86_64)
         run: cargo deb --no-build --output="./dist/amber-linux-debian-x86_64.deb"
 
-      - name: Create RPM package (x86_64)
-        run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
+      # 'invalid version "0.6.0-alpha": contains invalid character (allowed: alphanumeric, '.', '_', '+', '%', '{', '}', '~', '^')'
+      #- name: Create RPM package (x86_64)
+      #  run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
 
       - name: Upload artifacts (scripts & deb)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
