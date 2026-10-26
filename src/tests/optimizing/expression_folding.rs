@@ -217,7 +217,7 @@ fn bool_variable_in_condition_uses_comparison_form() {
 fn bool_constant_condition_survives_shadowed_builtin() {
     let code = "main {\n\
         let dynamic = true\n\
-        trust $ enable -n true; true() \\{ return 1; } $\n\
+        trust $ true() \\{ return 1; } $\n\
         if dynamic and true {\n\
             echo(\"Expected\")\n\
         } else {\n\
