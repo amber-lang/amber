@@ -209,8 +209,8 @@ fn create_indexed_variable(
 
 pub fn create_bool_comparison(meta: &mut TranslateMetadata, left: String) -> String {
     match left.as_str() {
-        "0" => "false".to_string(),
-        "1" => "true".to_string(),
+        "0" => "(( 0 ))".to_string(),
+        "1" => "(( 1 ))".to_string(),
         _ => ConditionFragment::new(
             raw_fragment!("{left}"),
             ComparisonOperator::Neq,
