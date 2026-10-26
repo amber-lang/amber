@@ -214,6 +214,29 @@ fn bool_variable_in_condition_uses_comparison_form() {
 }
 
 #[test]
+fn bool_constant_condition_survives_shadowed_builtin() {
+    let code = "main {\n\
+        let dynamic = true\n\
+        trust $ enable -n true; true() \\{ return 1; } $\n\
+        if dynamic and true {\n\
+            echo(\"Expected\")\n\
+        } else {\n\
+            echo(\"Unexpected\")\n\
+        }\n\
+    }";
+    let shell = compile_code(code);
+    assert!(
+        !shell.contains("&& true;") && !shell.contains("&& false;"),
+        "Constant condition should not render the shell commands true/false\n--- output ---\n{shell}"
+    );
+    let (stdout, stderr) = eval_bash(shell);
+    assert!(
+        stdout.contains("Expected") && !stdout.contains("Unexpected"),
+        "Boolean constant must keep its meaning when true/false are shadowed\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}"
+    );
+}
+
+#[test]
 fn bool_variable_in_condition_short_circuit_defensive() {
     // The "0"→"false" and "1"→"true" short-circuit in create_bool_comparison
     // is a defensive measure for when a raw fragment "0" or "1" reaches a
