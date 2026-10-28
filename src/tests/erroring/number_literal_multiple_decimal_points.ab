@@ -1,0 +1,7 @@
+// Output
+// Invalid number literal
+
+main {
+    const x = 123.45.67
+    echo(x)
+}
