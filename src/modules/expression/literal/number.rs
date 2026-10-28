@@ -56,7 +56,8 @@ impl TranslateModule for Number {
 
 impl Number {
     /// Returns the token of a second decimal point that directly follows
-    /// the fractional digits (`.67` in `123.45.67`)
+    /// the fractional digits (`.67` in `123.45.67`). Digits are matched like
+    /// the integer parser does, so non-ASCII numerals count too.
     fn extra_decimal_point(meta: &ParserMetadata, fraction: Option<Token>) -> Option<Token> {
         let adjacent = |prev: &Token, index: usize| {
             meta.get_token_at(index)
@@ -65,11 +66,7 @@ impl Number {
         let index = meta.get_index();
         let dot = adjacent(&fraction?, index).filter(|token| token.word == ".")?;
         let digits = adjacent(&dot, index + 1)?;
-        digits
-            .word
-            .chars()
-            .all(|ch| ch.is_ascii_digit())
-            .then_some(dot)
+        digits.word.chars().all(char::is_numeric).then_some(dot)
     }
 
     pub fn get_integer_value(&self) -> Option<isize> {
