@@ -128,7 +128,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
                 result?;
                 self.function_body = Some(block);
 
-                self.doc_signature = Some(self.render_function_signature(meta, doc_index)?);
+                self.doc_signature = Some(self.render_function_signature(meta, doc_index));
                 Ok(())
             },
             |pos| {

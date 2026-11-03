@@ -2,7 +2,6 @@
 
 use super::FunctionDeclaration;
 use crate::utils::ParserMetadata;
-use heraclitus_compiler::prelude::*;
 use std::ffi::OsStr;
 use std::path::Path;
 
@@ -29,35 +28,25 @@ impl FunctionDeclaration {
         &self,
         meta: &ParserMetadata,
         doc_index: usize,
-    ) -> Result<String, Failure> {
+    ) -> String {
         let mut result = String::new();
-        let mut index = doc_index;
         let mut parentheses = 0;
-        let mut before = String::new();
-        loop {
-            let cur_token = meta.context.expr.get(index);
-            let cur_word = cur_token.map_or_else(String::new, |v| v.word.clone());
+        let mut before = "";
+        for token in meta.context.expr.iter().skip(doc_index) {
+            let cur_word = token.word.as_str();
             if !result.is_empty() {
-                result.push_str(&self.get_space(parentheses, &before, &cur_word))
+                result.push_str(&self.get_space(parentheses, before, cur_word))
             }
-            before.clone_from(&cur_word);
-            match cur_word.as_str() {
+            before = cur_word;
+            match cur_word {
                 "(" => parentheses += 1,
                 ")" => parentheses -= 1,
                 "{" if parentheses == 0 => break,
-                "" => {
-                    return error!(
-                        meta,
-                        cur_token.cloned(),
-                        "Error when parsing function signature. Please report this issue."
-                    );
-                }
                 _ => {}
             }
-            result.push_str(&cur_word);
-            index += 1;
+            result.push_str(cur_word);
         }
-        Ok(result)
+        result
     }
 
     /// Adds the `import` usage line if `--usage` flag is present
