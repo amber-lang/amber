@@ -13,6 +13,7 @@ use itertools::izip;
 #[derive(Debug, Clone)]
 pub struct FunctionInvocation {
     name: String,
+    declared_name: String,
     name_tok: Option<Token>,
     args: Vec<Expr>,
     refs: Vec<bool>,
@@ -45,6 +46,7 @@ impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     fn new() -> Self {
         FunctionInvocation {
             name: String::new(),
+            declared_name: String::new(),
             name_tok: None,
             args: vec![],
             refs: vec![],
@@ -124,6 +126,7 @@ impl TypeCheckModule for FunctionInvocation {
             self.id = handle_function_reference(meta, self.name_tok.clone(), &self.name)?;
 
             let function_unit = meta.get_fun_declaration(&self.name).unwrap().clone();
+            self.declared_name = function_unit.declared_name.clone();
             let expected_arg_count = function_unit.args.len();
             let actual_arg_count = self.args.len();
             let optional_count = function_unit.args.iter().filter(|arg| arg.optional.is_some()).count();
@@ -202,8 +205,14 @@ impl TypeCheckModule for FunctionInvocation {
 impl TranslateModule for FunctionInvocation {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         // Get the variable prefix based on function name casing
-        let prefix = meta.gen_variable_prefix(&self.name);
-        let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
+        let prefix = meta.gen_variable_prefix(&self.declared_name);
+        let name = raw_fragment!(
+            "{}{}__{}_v{}",
+            prefix,
+            self.declared_name,
+            self.id,
+            self.variant_id
+        );
         meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             let silent = meta.gen_silent().to_frag();
             let suppress = meta.gen_suppress().to_frag();
@@ -298,16 +307,16 @@ impl TranslateModule for FunctionInvocation {
         }
         if self.kind != Type::Null {
             // Get the variable prefix for return values
-            let prefix = meta.gen_variable_prefix(&self.name);
+            let prefix = meta.gen_variable_prefix(&self.declared_name);
             let invocation_return = format!(
                 "{}ret_{}{}_v{}",
-                prefix, self.name, self.id, self.variant_id
+                prefix, self.declared_name, self.id, self.variant_id
             );
             // Only create the callsite binding if the return value is used (expression context)
             if meta.expr_ctx {
                 let invocation_instance = format!(
                     "{}ret_{}{}_v{}__{}_{}",
-                    prefix, self.name, self.id, self.variant_id, self.line, self.col
+                    prefix, self.declared_name, self.id, self.variant_id, self.line, self.col
                 );
                 let parsed_invocation_return =
                     VarExprFragment::new(&invocation_return, self.kind.clone()).to_frag();

@@ -1,0 +1,3 @@
+pub fun say_hello() {
+    echo("hello")
+}

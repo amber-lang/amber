@@ -45,6 +45,7 @@ mod context_tests {
         let mut scope = ScopeUnit::new();
         let fun = FunctionDecl {
             name: "foo".to_string(),
+            declared_name: "foo".to_string(),
             args: vec![],
             returns: Type::Null,
             is_args_typed: true,
@@ -56,6 +57,7 @@ mod context_tests {
         assert!(scope.add_fun(fun));
         assert!(!scope.add_fun(FunctionDecl {
             name: "foo".to_string(),
+            declared_name: "foo".to_string(),
             args: vec![],
             returns: Type::Null,
             is_args_typed: true,

@@ -17,6 +17,9 @@ pub struct FunctionDeclArg {
 #[derive(Clone, Debug)]
 pub struct FunctionDecl {
     pub name: String,
+    /// The name in the function's declaration, which the generated Bash uses.
+    /// It stays the same when an import aliases `name`.
+    pub declared_name: String,
     pub args: Vec<FunctionDeclArg>,
     pub returns: Type,
     pub is_args_typed: bool,
