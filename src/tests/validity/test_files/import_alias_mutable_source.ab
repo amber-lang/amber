@@ -1,0 +1,6 @@
+#[allow_public_mutable]
+pub let counter = 0
+#[allow_public_mutable]
+pub let other = 0
+#[allow_public_mutable]
+pub let label = "a"

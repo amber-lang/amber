@@ -1,0 +1,7 @@
+// Output
+// same
+
+import { greeting as g } from "src/tests/validity/test_files/import_alias_source.ab"
+import { greeting } from "src/tests/validity/test_files/import_alias_source.ab"
+
+echo(nameof(g) == nameof(greeting) then "same" else "different")
