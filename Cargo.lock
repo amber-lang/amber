@@ -454,7 +454,6 @@ dependencies = [
  "capitalize",
  "colored",
  "pad",
- "serde",
 ]
 
 [[package]]

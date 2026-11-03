@@ -64,6 +64,7 @@ opt-level = 3
 
 [workspace]
 members = ["meta"]
+exclude = ["heraclitus"]
 
 [build-dependencies]
 build-helper = "0.1.1"
