@@ -1,5 +1,8 @@
 {
   inputs = {
+    # Include git submodules (e.g. heraclitus) in the flake source
+    self.submodules = true;
+
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixpkgs-unstable";
 
     naersk = {
