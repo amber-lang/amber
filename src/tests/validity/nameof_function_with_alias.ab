@@ -1,0 +1,6 @@
+// Output
+// hello
+
+import { say_hello as greet } from "src/tests/validity/test_files/say_hello.ab"
+
+trust $ {nameof(greet)} $

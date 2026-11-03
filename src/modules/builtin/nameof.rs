@@ -15,7 +15,7 @@ pub struct Nameof {
     name: String,
     token: Option<Token>,
     global_id: Option<usize>,
-    function_variant: Option<(usize, usize)>,
+    function_variant: Option<(String, usize, usize)>,
 }
 
 impl Typed for Nameof {
@@ -106,7 +106,8 @@ impl TypeCheckModule for Nameof {
                             }
                         };
 
-                        self.function_variant = Some((fun_decl.id, variant_id));
+                        self.function_variant =
+                            Some((fun_decl.declared_name.clone(), fun_decl.id, variant_id));
                     }
                     None => {
                         return error!(
@@ -124,9 +125,9 @@ impl TypeCheckModule for Nameof {
 
 impl TranslateModule for Nameof {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        if let Some((id, variant)) = self.function_variant {
-            let prefix = meta.gen_variable_prefix(&self.name);
-            let name = format!("{prefix}{}__{id}_v{variant}", self.name);
+        if let Some((declared_name, id, variant)) = &self.function_variant {
+            let prefix = meta.gen_variable_prefix(declared_name);
+            let name = format!("{prefix}{declared_name}__{id}_v{variant}");
             raw_fragment!("{name}")
         } else {
             VarExprFragment::new(&self.name, Type::Text)

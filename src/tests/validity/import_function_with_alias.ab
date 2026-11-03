@@ -1,0 +1,3 @@
+import { trim as strip } from "src/tests/validity/test_files/str/trim.ab"
+
+echo(strip("    Succeeded    "))

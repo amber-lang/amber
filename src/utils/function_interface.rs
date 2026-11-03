@@ -30,6 +30,7 @@ impl FunctionInterface {
             .collect();
 
         FunctionDecl {
+            declared_name: self.name.clone(),
             name: self.name,
             args,
             returns: self.returns,
