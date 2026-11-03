@@ -1,3 +1,4 @@
+use crate::compiler::SourcePath;
 use crate::modules::block::Block;
 use crate::modules::function::core::signature::FunctionVariantId;
 use crate::modules::types::Type;
@@ -30,7 +31,7 @@ mod function_cache_tests {
     #[test]
     fn test_function_cache_add_declaration() {
         let mut cache = FunctionCache::new();
-        let ctx = Context::new(None, vec![]);
+        let ctx = Context::new(SourcePath::Stdin, vec![]);
         let block = Block::new();
 
         cache.add_declaration(FunctionDeclId::new(42), ctx, block);
@@ -42,7 +43,7 @@ mod function_cache_tests {
     #[test]
     fn test_function_cache_add_variant() {
         let mut cache = FunctionCache::new();
-        let ctx = Context::new(None, vec![]);
+        let ctx = Context::new(SourcePath::Stdin, vec![]);
         let block = Block::new();
 
         cache.add_declaration(FunctionDeclId::new(1), ctx, block);
@@ -65,7 +66,7 @@ mod function_cache_tests {
         let mut cache = FunctionCache::new();
         cache.add_declaration(
             FunctionDeclId::new(1),
-            Context::new(None, vec![]),
+            Context::new(SourcePath::Stdin, vec![]),
             Block::new(),
         );
 
@@ -82,7 +83,7 @@ mod function_cache_tests {
     #[test]
     fn test_function_cache_first_pass() {
         let mut cache = FunctionCache::new();
-        let ctx = Context::new(None, vec![]);
+        let ctx = Context::new(SourcePath::Stdin, vec![]);
         let block = Block::new();
 
         cache.add_declaration(FunctionDeclId::new(1), ctx, block);

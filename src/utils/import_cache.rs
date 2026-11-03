@@ -1,16 +1,20 @@
+use crate::compiler::SourcePath;
+use crate::modules::block::Block;
 use crate::modules::function::core::signature::FunctionSignature;
-use crate::{modules::block::Block, utils::context::VariableDecl};
+use crate::utils::context::VariableDecl;
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
 pub struct FileMetadata {
     pub block: Block,
-    pub pub_funs: Vec<FunctionSignature>,
-    pub pub_vars: Vec<VariableDecl>,
+    pub pub_vars: BTreeMap<String, VariableDecl>,
+    pub pub_funs: BTreeMap<String, FunctionSignature>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FileCache {
-    pub path: String,
+    pub path: SourcePath,
+    pub code: Option<String>,
     pub metadata: Option<FileMetadata>,
 }
 
@@ -23,18 +27,15 @@ pub struct ImportCache {
 }
 
 impl ImportCache {
-    pub fn get_path(optional_path: Option<String>) -> String {
-        optional_path.unwrap_or_else(|| String::from("."))
+    pub fn get_path_id(&self, path: &SourcePath) -> Option<usize> {
+        self.files.iter().position(|candidate| candidate.path == *path)
     }
 
-    pub fn get_path_id(&self, path: &str) -> Option<usize> {
-        self.files.iter().position(|import| import.path == path)
-    }
-
-    pub fn new(initial_path: Option<String>) -> Self {
+    pub fn new(initial_path: SourcePath, initial_code: String) -> Self {
         ImportCache {
             files: vec![FileCache {
-                path: Self::get_path(initial_path),
+                path: initial_path,
+                code: Some(initial_code),
                 metadata: None,
             }],
             import_graph: vec![vec![]],
@@ -62,66 +63,83 @@ impl ImportCache {
         false
     }
 
-    // Check if graph contains a cycle starting from id
+    /// Check if graph contains a cycle starting from id
     pub fn contains_cycle(&self, id: usize) -> bool {
         let mut visited = vec![false; self.files.len()];
         let mut stack = vec![false; self.files.len()];
         self.contains_cycle_util(id, &mut visited, &mut stack)
     }
 
-    pub fn add_import_entry(
-        &mut self,
-        src_path: Option<String>,
-        dst_path: String,
-    ) -> Option<usize> {
-        // Get id of source path
-        let src_path_id = self.get_path_id(&Self::get_path(src_path)).unwrap();
-        // Check if destination path is already in the graph
-        match self.get_path_id(&dst_path) {
-            // If so add it to the graph
-            Some(dst_path_id) => {
-                self.import_graph[src_path_id].push(dst_path_id);
-                (!self.contains_cycle(src_path_id)).then_some(dst_path_id)
-            }
-            // If not add it to the graph and create a new import entry
+    /// Registers that `src_path` imports `dst_path`
+    /// Returns the id of `dst_path` or `None` if the import creates a cycle
+    pub fn add_import_entry(&mut self, src_path: &SourcePath, dst_path: &SourcePath) -> Option<usize> {
+        let src_path_id = self
+            .get_path_id(src_path)
+            .expect("Importing file must already be in the import cache");
+        let dst_path_id = match self.get_path_id(dst_path) {
+            Some(dst_path_id) => dst_path_id,
             None => {
-                let dst_path_id = self.files.len();
                 self.files.push(FileCache {
-                    path: dst_path,
+                    path: dst_path.clone(),
+                    code: None,
                     metadata: None,
                 });
                 self.import_graph.push(vec![]);
-                self.import_graph[src_path_id].push(dst_path_id);
-                Some(dst_path_id)
+                self.files.len() - 1
             }
+        };
+        if !self.import_graph[src_path_id].contains(&dst_path_id) {
+            self.import_graph[src_path_id].push(dst_path_id);
         }
+        // Do not leave the cyclic edge in the graph
+        if self.contains_cycle(src_path_id) {
+            self.import_graph[src_path_id].retain(|&id| id != dst_path_id);
+            return None;
+        }
+        Some(dst_path_id)
     }
 
     pub fn add_import_metadata(
         &mut self,
-        path: Option<String>,
+        path: &SourcePath,
         block: Block,
-        pub_funs: Vec<FunctionSignature>,
-        pub_vars: Vec<VariableDecl>,
+        pub_vars: BTreeMap<String, VariableDecl>,
+        pub_funs: BTreeMap<String, FunctionSignature>,
     ) {
-        let path_id = self.get_path_id(&Self::get_path(path)).unwrap();
+        let path_id = self
+            .get_path_id(path)
+            .expect("Imported file must already be in the import cache");
         self.files[path_id].metadata = Some(FileMetadata {
             block,
-            pub_funs,
             pub_vars,
+            pub_funs,
         });
     }
 
+    pub fn add_code(&mut self, path: &SourcePath, code: String) {
+        let path_id = self
+            .get_path_id(path)
+            .expect("Imported file must already be in the import cache");
+        self.files[path_id].code = Some(code);
+    }
+
     pub fn get_imports(
-        &mut self,
-        path: Option<String>,
-    ) -> Option<(Vec<FunctionSignature>, Vec<VariableDecl>)> {
-        self.get_path_id(&Self::get_path(path)).and_then(|path_id| {
-            self.files[path_id]
-                .metadata
-                .as_ref()
-                .map(|meta| (meta.pub_funs.clone(), meta.pub_vars.clone()))
-        })
+        &self,
+        path: &SourcePath,
+    ) -> Option<(
+        BTreeMap<String, VariableDecl>,
+        BTreeMap<String, FunctionSignature>
+    )> {
+        let path_id = self.get_path_id(path)?;
+        self.files[path_id]
+            .metadata
+            .as_ref()
+            .map(|meta| (meta.pub_vars.clone(), meta.pub_funs.clone()))
+    }
+
+    pub fn get_code(&self, path: &SourcePath) -> Option<&str> {
+        let id = self.get_path_id(path)?;
+        self.files[id].code.as_deref()
     }
 
     fn topological_sort_util(&self, v: usize, visited: &mut Vec<bool>, stack: &mut Vec<usize>) {

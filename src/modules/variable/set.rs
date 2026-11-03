@@ -2,7 +2,7 @@ use super::{
     handle_index_accessor, handle_variable_reference, prevent_constant_mutation,
     validate_index_accessor, variable_name_extensions,
 };
-use crate::modules::prelude::*;
+use crate::modules::{SymbolName, prelude::*};
 use crate::modules::types::{Type, Typed};
 use crate::utils::{ParserMetadata, TranslateMetadata};
 use crate::{modules::expression::expr::Expr, translate::module::TranslateModule};
@@ -10,7 +10,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VariableSet {
-    name: String,
+    name: SymbolName,
     expr: Box<Expr>,
     global_id: Option<usize>,
     index: Option<Expr>,
@@ -24,7 +24,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 
     fn new() -> Self {
         VariableSet {
-            name: String::new(),
+            name: SymbolName::default(),
             expr: Box::new(Expr::new()),
             global_id: None,
             index: None,
@@ -36,7 +36,7 @@ impl SyntaxModule<ParserMetadata> for VariableSet {
 
     fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.tok = meta.get_current_token();
-        self.name = variable(meta, variable_name_extensions())?;
+        self.name.used = variable(meta, variable_name_extensions())?;
         self.index = handle_index_accessor(meta, false)?;
 
         token(meta, "=")?;
@@ -52,12 +52,13 @@ impl TypeCheckModule for VariableSet {
             index.typecheck(meta)?;
         }
 
-        let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
+        let variable = handle_variable_reference(meta, &self.tok, &self.name.used)?;
         self.global_id = variable.global_id;
+        self.name.declared.clone_from(&variable.name);
         self.is_ref = variable.is_ref;
         self.var_type = variable.kind.clone();
-        prevent_constant_mutation(meta, &self.tok, &self.name, variable.is_const)?;
-        meta.mark_var_modified(&self.name);
+        prevent_constant_mutation(meta, &self.tok, &self.name.used, variable.is_const)?;
+        meta.mark_var_modified(&self.name.used);
 
         if let Some(ref index_expr) = self.index {
             if !matches!(variable.kind, Type::Array(_)) {
@@ -65,9 +66,7 @@ impl TypeCheckModule for VariableSet {
                 return error!(
                     meta,
                     self.tok.clone(),
-                    format!(
-            "Cannot assign a value to an index of a non-array variable of type '{left_type}'"
-          )
+                    format!("Cannot assign a value to an index of a non-array variable of type '{left_type}'")
                 );
             }
 
@@ -87,7 +86,7 @@ impl TypeCheckModule for VariableSet {
                 // Handle type inference
                 if **kind == Type::Generic {
                     let new_type = Type::array_of(expr_type.clone());
-                    meta.update_var_type(&self.name, new_type.clone());
+                    meta.update_var_type(&self.name.used, new_type.clone());
                     self.var_type = new_type;
                     return Ok(());
                 }
@@ -108,7 +107,7 @@ impl TypeCheckModule for VariableSet {
             if let (Type::Array(inner_var), Type::Array(inner_right)) = (&self.var_type, &expr_type)
             {
                 if **inner_var == Type::Generic && **inner_right != Type::Generic {
-                    meta.update_var_type(&self.name, expr_type.clone());
+                    meta.update_var_type(&self.name.used, expr_type.clone());
                     self.var_type = expr_type;
                     return Ok(());
                 }
@@ -135,7 +134,7 @@ impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let index = self.index.as_ref().map(|v| v.translate(meta));
         let expr = self.expr.translate(meta);
-        VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
+        VarStmtFragment::new(&self.name.declared, self.expr.get_type(), expr)
             .with_global_id(self.global_id)
             .with_ref(self.is_ref)
             .with_index(index)

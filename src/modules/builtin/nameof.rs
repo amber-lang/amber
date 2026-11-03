@@ -3,7 +3,7 @@ use crate::modules::function::core::signature::{
     FunctionDeclId, FunctionSignature, FunctionVariantId,
 };
 
-use crate::modules::prelude::*;
+use crate::modules::{SymbolName, prelude::*};
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
 use crate::raw_fragment;
@@ -16,7 +16,7 @@ use heraclitus_compiler::prelude::*;
 #[keyword = "nameof"]
 #[kind = "builtin_expr"]
 pub struct Nameof {
-    name: String,
+    name: SymbolName,
     token: Option<Token>,
     global_id: Option<usize>,
     function_variant: Option<(FunctionDeclId, FunctionVariantId)>,
@@ -39,7 +39,7 @@ impl Nameof {
                 self.token.clone(),
                 format!(
                     "Function '{}' must be strictly typed to be used with 'nameof'.",
-                    self.name
+                    self.name.used
                 ),
                 "All function parameters have to be of concrete type"
             );
@@ -59,7 +59,7 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 
     fn new() -> Self {
         Nameof {
-            name: String::new(),
+            name: SymbolName::default(),
             token: None,
             global_id: None,
             function_variant: None,
@@ -72,14 +72,14 @@ impl SyntaxModule<ParserMetadata> for Nameof {
         self.token = meta.get_current_token();
 
         if token(meta, "(").is_ok() {
-            self.name = variable(meta, variable_name_extensions())?;
+            self.name.used = variable(meta, variable_name_extensions())?;
             token(meta, ")")?;
         } else {
             let tok = meta.get_token_at(position);
             let warning = Message::new_warn_at_token(meta, tok)
                 .message("Calling a builtin without parentheses is deprecated");
             meta.add_message(warning);
-            self.name = variable(meta, variable_name_extensions())?;
+            self.name.used = variable(meta, variable_name_extensions())?;
         }
         Ok(())
     }
@@ -88,14 +88,14 @@ impl SyntaxModule<ParserMetadata> for Nameof {
 impl TypeCheckModule for Nameof {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Case for variable `nameof`
-        if let Some(var_decl) = meta.get_var_used(&self.name) {
-            self.name.clone_from(&var_decl.name);
+        if let Some(var_decl) = meta.get_var_used(&self.name.used) {
+            self.name.declared.clone_from(&var_decl.name);
             self.global_id = var_decl.global_id;
-            meta.mark_var_modified(&self.name);
+            meta.mark_var_modified(&self.name.used);
             return Ok(());
         }
         // Case for function `nameof`
-        match meta.get_fun_declaration(&self.name).cloned() {
+        match meta.get_fun_declaration(&self.name.used).cloned() {
             Some(fun_decl) => {
                 // Check if the function is strictly typed
                 self.validate_strict_typing(meta, &fun_decl)?;
@@ -121,13 +121,14 @@ impl TypeCheckModule for Nameof {
                 };
 
                 self.function_variant = Some((fun_decl.id, variant_id));
+                self.name.declared.clone_from(&fun_decl.name);
                 Ok(())
             }
             None => {
                 error!(
                     meta,
                     self.token.clone(),
-                    format!("Variable or function '{}' not found", self.name)
+                    format!("Variable or function '{}' not found", self.name.used)
                 )
             }
         }
@@ -137,10 +138,10 @@ impl TypeCheckModule for Nameof {
 impl TranslateModule for Nameof {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
         if let Some((id, variant)) = self.function_variant {
-            let fun_name = get_function_name(&self.name, id, variant);
+            let fun_name = get_function_name(&self.name.declared, id, variant);
             raw_fragment!("{fun_name}")
         } else {
-            VarExprFragment::new(&self.name, Type::Text)
+            VarExprFragment::new(&self.name.declared, Type::Text)
                 .with_global_id(self.global_id)
                 .with_render_type(VarRenderType::NameOf)
                 .to_frag()

@@ -4,7 +4,7 @@ use regex::Regex;
 use test_generator::test_resources;
 
 use crate::{
-    compiler::{AmberCompiler, CompilerOptions},
+    compiler::{AmberCompiler, CompilerOptions, SourcePath},
     tests::extract_output,
 };
 
@@ -19,7 +19,7 @@ fn test_runtime_errors(file: &str) {
 
     let target = AmberCompiler::resolve_target_shell(None);
     let options = CompilerOptions::default().with_target(Some(target));
-    let mut compiler = AmberCompiler::new(code.to_string(), Some(file.to_string()), options);
+    let mut compiler = AmberCompiler::new(code.to_string(), SourcePath::file(file).unwrap(), options);
 
     match compiler.test_eval() {
         Ok((output, status)) => {

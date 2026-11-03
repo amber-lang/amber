@@ -13,6 +13,7 @@ fn test_warning(input: &str) {
 fn target_dependent_dead_code_warnings() {
     use crate::compiler::{AmberCompiler, CompilerOptions};
     use crate::utils::ShellType;
+    use crate::SourcePath;
 
     for target in [ShellType::BashModern, ShellType::BashLegacy, ShellType::Zsh, ShellType::Ksh] {
         for (condition, expected_warnings) in [
@@ -30,7 +31,7 @@ fn target_dependent_dead_code_warnings() {
                 "if {condition} {{ echo(\"yes\") }} else {{ echo(\"no\") }}"
             );
             let options = CompilerOptions::default().with_target(Some(target));
-            let (warnings, _) = AmberCompiler::new(code, None, options).compile().unwrap();
+            let (warnings, _) = AmberCompiler::new(code, SourcePath::Stdin, options).compile().unwrap();
             assert_eq!(warnings.len(), expected_warnings, "{condition} on {target:?}");
         }
 
@@ -41,7 +42,7 @@ fn target_dependent_dead_code_warnings() {
             else { echo("other") }
         }"#;
         let options = CompilerOptions::default().with_target(Some(target));
-        let (warnings, _) = AmberCompiler::new(code.into(), None, options).compile().unwrap();
+        let (warnings, _) = AmberCompiler::new(code.into(), SourcePath::Stdin, options).compile().unwrap();
         assert!(warnings.is_empty(), "{warnings:?}");
     }
 }

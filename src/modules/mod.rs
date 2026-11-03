@@ -23,6 +23,21 @@ pub mod typecheck;
 pub mod types;
 pub mod variable;
 
+/// Variable or function name that is used or called
+#[derive(Debug, Clone, Default)]
+pub struct SymbolName {
+    /// Name by which this symbol is called in code (can be an alias from import)
+    pub used: String,
+    /// Name this symbol was declared with, used in translation
+    pub declared: String,
+}
+
+impl SymbolName {
+    pub fn new(used_name: String) -> Self {
+        SymbolName { used: used_name, ..Default::default() }
+    }
+}
+
 /// Consumes a comment or line break at the cursor, if there is one.
 pub fn skip_comments_and_newlines(meta: &mut ParserMetadata) -> bool {
     token_by(meta, |token| {

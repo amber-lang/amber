@@ -1,5 +1,5 @@
 use super::{handle_variable_reference, prevent_constant_mutation, variable_name_extensions};
-use crate::modules::prelude::*;
+use crate::modules::{SymbolName, prelude::*};
 use crate::modules::types::{Type, Typed};
 use crate::raw_fragment;
 use crate::translate::fragments::var_expr::{format_position, VarIndexValue};
@@ -9,7 +9,7 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VariableSetDestruct {
-    names: Vec<String>,
+    names: Vec<SymbolName>,
     expr: Box<Expr>,
     global_ids: Vec<Option<usize>>,
     is_refs: Vec<bool>,
@@ -36,7 +36,7 @@ impl SyntaxModule<ParserMetadata> for VariableSetDestruct {
         loop {
             let tok = meta.get_current_token();
             let name = variable(meta, variable_name_extensions())?;
-            self.names.push(name);
+            self.names.push(SymbolName::new(name));
             self.toks.push(tok);
 
             if token(meta, ",").is_err() {
@@ -77,20 +77,21 @@ impl TypeCheckModule for VariableSetDestruct {
             }
         };
 
-        for (name, tok) in self.names.iter().zip(self.toks.iter()) {
-            let variable = handle_variable_reference(meta, tok, name)?;
+        for (name, tok) in self.names.iter_mut().zip(self.toks.iter()) {
+            let variable = handle_variable_reference(meta, tok, &name.used)?;
+            name.declared.clone_from(&variable.name);
             self.global_ids.push(variable.global_id);
             self.is_refs.push(variable.is_ref);
             self.var_types.push(variable.kind.clone());
 
-            prevent_constant_mutation(meta, tok, name, variable.is_const)?;
-            meta.mark_var_modified(name);
+            prevent_constant_mutation(meta, tok, &name.used, variable.is_const)?;
+            meta.mark_var_modified(&name.used);
 
             if let Type::Array(kind) = &variable.kind {
                 // Handle type inference for generic arrays or incompatible types
                 if **kind == Type::Generic {
                     let new_type = Type::array_of(inner_expr_type.clone());
-                    meta.update_var_type(name, new_type);
+                    meta.update_var_type(&name.used, new_type);
                     // We need to update our stored type as well to reflect the change
                     if let Some(last) = self.var_types.last_mut() {
                         *last = Type::array_of(inner_expr_type.clone());
@@ -138,7 +139,7 @@ impl TranslateModule for VariableSetDestruct {
         for (i, name) in self.names.iter().enumerate() {
             let token = self.toks[i].clone().unwrap();
             let var_position = PositionInfo::at_pos(
-                self.expr.get_position().path,
+                self.expr.get_position().path.as_deref(),
                 token.pos,
                 token.start,
                 token.word.chars().count(),
@@ -150,7 +151,7 @@ impl TranslateModule for VariableSetDestruct {
                 .with_index_pos(position)
                 .to_frag();
 
-            let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)
+            let assign_var = VarStmtFragment::new(&name.declared, inner_type.clone(), assign_expr)
                 .with_global_id(self.global_ids[i])
                 .with_ref(self.is_refs[i])
                 .to_frag();

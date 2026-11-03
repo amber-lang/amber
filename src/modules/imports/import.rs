@@ -1,5 +1,5 @@
 use super::import_string::ImportString;
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::modules::block::Block;
 use crate::modules::function::core::signature::FunctionSignature;
 use crate::modules::prelude::*;
@@ -9,6 +9,7 @@ use crate::stdlib;
 use crate::utils::context::{Context, VariableDecl};
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
+use std::collections::BTreeMap;
 use std::fs;
 
 #[derive(Debug, Clone, AutoKeyword)]
@@ -46,17 +47,14 @@ impl Import {
     fn add_imported_deps(
         &mut self,
         meta: &mut ParserMetadata,
-        mut pub_funs: Vec<FunctionSignature>,
-        mut pub_vars: Vec<VariableDecl>,
+        mut pub_vars: BTreeMap<String, VariableDecl>,
+        mut pub_funs: BTreeMap<String, FunctionSignature>,
     ) -> SyntaxResult {
         if !self.is_all {
             for def in self.wants.iter() {
                 let ImportWant { name, alias, token } = def;
 
-                let found_fn = pub_funs.iter_mut().find(|fun| &fun.name == name);
-                let found_var = pub_vars.iter_mut().find(|var| &var.name == name);
-
-                match (found_fn, found_var) {
+                match (pub_funs.get_mut(name), pub_vars.get_mut(name)) {
                     (None, None) => {
                         return error!(meta, token.clone() => {
                             message: format!("Function or variable '{}' is not defined", name)
@@ -68,12 +66,9 @@ impl Import {
                         });
                     }
                     (None, Some(var)) => {
-                        if let Some(alias) = alias {
-                            var.name = alias.clone();
-                        }
-
                         var.is_public = self.is_pub;
-                        if meta.add_var_declaration_existing(var.clone()).is_none() {
+                        let name = alias.clone().unwrap_or_else(|| name.clone());
+                        if meta.add_var_declaration_existing(name.clone(), var.clone()).is_none() {
                             return error!(meta, token.clone() => {
                                 message: format!("Variable '{}' is already defined", name)
                             });
@@ -81,13 +76,8 @@ impl Import {
                     }
                     (Some(fun), None) => {
                         fun.is_public = self.is_pub;
-
-                        if let Some(alias) = alias {
-                            fun.name = alias.clone();
-                        }
-
-                        let name = fun.name.clone();
-                        if !meta.add_fun_declaration_existing(fun.clone()) {
+                        let name = alias.clone().unwrap_or_else(|| name.clone());
+                        if !meta.add_fun_declaration_existing(name.clone(), fun.clone()) {
                             return error!(meta, self.token_import.clone() => {
                                 message: format!("Function '{}' is already defined", name)
                             });
@@ -96,22 +86,20 @@ impl Import {
                 }
             }
         } else {
-            for mut var in pub_vars {
+            for (name, mut var) in pub_vars {
                 // Determine if imported variables should be exported further
                 var.is_public = self.is_pub;
-                let name = var.name.clone();
-                if meta.add_var_declaration_existing(var).is_none() {
+                if meta.add_var_declaration_existing(name.clone(), var).is_none() {
                     return error!(meta, self.token_import.clone() => {
                         message: format!("Variable '{}' is already defined", name)
                     });
                 }
             }
 
-            for mut fun in pub_funs {
+            for (name, mut fun) in pub_funs {
                 // Determine if imported functions should be exported further
                 fun.is_public = self.is_pub;
-                let name = fun.name.clone();
-                if !meta.add_fun_declaration_existing(fun) {
+                if !meta.add_fun_declaration_existing(name.clone(), fun) {
                     return error!(meta, self.token_import.clone() => {
                         message: format!("Function '{}' is already defined", name)
                     });
@@ -121,10 +109,10 @@ impl Import {
         Ok(())
     }
 
-    fn add_import_path_to_cache(&mut self, meta: &mut ParserMetadata, path: &str) -> SyntaxResult {
+    fn add_import_path_to_cache(&self, meta: &mut ParserMetadata, path: &SourcePath) -> SyntaxResult {
         if meta
             .import_cache
-            .add_import_entry(meta.get_path(), path.to_string())
+            .add_import_entry(&meta.context.path, path)
             .is_none()
         {
             return error!(meta, self.token_path.clone() => {
@@ -136,32 +124,29 @@ impl Import {
     }
 
     fn read_import_source(&mut self, meta: &ParserMetadata) -> Result<String, Failure> {
-        if self.path.value.starts_with("std/") {
-            match stdlib::resolve(self.path.value.replace("std/", "")) {
+        match &self.path.source_path {
+            SourcePath::StdLib(name) => match stdlib::resolve(name.replace("std/", "")) {
                 Some(v) => Ok(v),
                 None => error!(
                     meta,
                     self.token_path.clone(),
-                    format!(
-                        "Standard library module '{}' does not exist",
-                        self.path.value
-                    )
+                    format!("Standard library module '{}' does not exist", name)
                 ),
-            }
-        } else {
-            match fs::read_to_string(self.path.value.clone()) {
+            },
+            SourcePath::File { display, canonical } => match fs::read_to_string(canonical) {
                 Ok(content) => Ok(content),
                 Err(err) => error!(meta, self.token_path.clone() => {
-                    message: format!("Could not read file '{}'", self.path.value),
+                    message: format!("Could not read file '{}'", display),
                     comment: err.to_string()
                 }),
-            }
+            },
+            SourcePath::Stdin => unreachable!("Import path cannot point to the standard input"),
         }
     }
 
     fn load_or_compile(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // If the import was already cached, we don't need to recompile it
-        match meta.import_cache.get_imports(Some(self.path.value.clone())) {
+        match meta.import_cache.get_imports(&self.path.source_path) {
             Some(pubs) => self.add_imported_deps(meta, pubs.0, pubs.1),
             None => self.compile_import(meta),
         }
@@ -170,13 +155,15 @@ impl Import {
     fn compile_import(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let code = self.read_import_source(meta)?;
         let options = CompilerOptions::default();
-        let compiler = AmberCompiler::new(code, Some(self.path.value.clone()), options);
+        let compiler = AmberCompiler::new(code, self.path.source_path.clone(), options);
         match compiler.tokenize() {
             Ok(tokens) => {
+                // Store the code so that messages can render snippets of this file
+                meta.import_cache.add_code(&self.path.source_path, compiler.cc.code);
                 let mut block = Block::new().with_no_syntax();
                 // Save snapshot of current file
                 let position = PositionInfo::from_token(meta, self.token_import.clone());
-                let mut context = Context::new(Some(self.path.value.clone()), tokens)
+                let mut context = Context::new(self.path.source_path.clone(), tokens)
                     .file_import(&meta.context.trace, position);
                 meta.with_context_ref(&mut context, |meta| {
                     // Parse imported code
@@ -185,13 +172,13 @@ impl Import {
                 })?;
                 // Persist compiled file to cache
                 meta.import_cache.add_import_metadata(
-                    Some(self.path.value.clone()),
+                    &self.path.source_path,
                     block,
-                    context.pub_funs.clone(),
                     context.pub_vars.clone(),
+                    context.pub_funs.clone(),
                 );
                 // Handle exports (add to current file)
-                self.add_imported_deps(meta, context.pub_funs, context.pub_vars)?;
+                self.add_imported_deps(meta, context.pub_vars, context.pub_funs)?;
                 Ok(())
             }
             Err(err) => Err(Failure::Loud(err)),
@@ -288,7 +275,8 @@ impl TypeCheckModule for Import {
                 "Imports must be in the global scope"
             );
         }
-        self.add_import_path_to_cache(meta, &self.path.value.clone())?;
+        self.path.resolve_path(meta, self.token_path.clone())?;
+        self.add_import_path_to_cache(meta, &self.path.source_path)?;
         self.load_or_compile(meta)?;
         Ok(())
     }

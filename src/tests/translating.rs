@@ -1,5 +1,5 @@
 /// Tests for Amber scripts that check snapshot of generated AST.
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::modules::prelude::{FragmentKind, TranslateModule};
 use crate::utils::TranslateMetadata;
 use insta::assert_debug_snapshot;
@@ -9,7 +9,7 @@ use test_generator::test_resources;
 
 pub fn translate_amber_code<T: Into<String>>(code: T) -> Option<FragmentKind> {
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.into(), None, options);
+    let compiler = AmberCompiler::new(code.into(), SourcePath::Stdin, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
     let (ast, meta) = compiler.typecheck(ast, meta).ok()?;
@@ -72,7 +72,7 @@ mod compute_tests {
         let options = crate::compiler::CompilerOptions::default();
         let compiler = crate::compiler::AmberCompiler::new(
             "main { echo(\"test\") }".to_string(),
-            None,
+            crate::compiler::SourcePath::Stdin,
             options,
         );
         let tokens = compiler.tokenize().unwrap();

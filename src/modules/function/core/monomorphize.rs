@@ -4,6 +4,7 @@
 //! can be generic (or accept a set of types), Amber generates as many function declaration
 //! variants as many they were used in the code to preserve the correct type resolution in shell script.
 
+use crate::compiler::SourcePath;
 use crate::modules::block::Block;
 use crate::modules::function::core::ordinal_number;
 use crate::modules::function::core::signature::{
@@ -275,8 +276,8 @@ impl<'a> Monomorphizer<'a> {
 fn prepend_call_site_trace(
     failure: Failure,
     caller_trace: &[PositionInfo],
-    caller_path: &Option<String>,
-    callee_path: &Option<String>,
+    caller_path: &SourcePath,
+    callee_path: &SourcePath,
     call_site: Option<&PositionInfo>,
 ) -> Failure {
     match failure {

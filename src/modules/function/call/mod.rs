@@ -6,7 +6,7 @@ use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::{Expr, ExprType};
-use crate::modules::parse_comma_separated;
+use crate::modules::{SymbolName, parse_comma_separated};
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
 use crate::modules::variable::variable_name_extensions;
@@ -17,7 +17,7 @@ use itertools::izip;
 
 #[derive(Debug, Clone)]
 pub struct FunctionCall {
-    name: String,
+    name: SymbolName,
     name_tok: Option<Token>,
     args: Vec<Expr>,
     refs: Vec<bool>,
@@ -46,7 +46,7 @@ impl SyntaxModule<ParserMetadata> for FunctionCall {
 
     fn new() -> Self {
         FunctionCall {
-            name: String::new(),
+            name: SymbolName::default(),
             name_tok: None,
             args: vec![],
             refs: vec![],
@@ -69,9 +69,9 @@ impl SyntaxModule<ParserMetadata> for FunctionCall {
             if let Some(ref tok) = tok {
                 (self.line, self.col) = tok.pos;
             }
-            self.name = variable(meta, variable_name_extensions())?;
+            self.name.used = variable(meta, variable_name_extensions())?;
             self.name_tok = tok.clone();
-            self.failure_handler.set_function_name(self.name.clone());
+            self.failure_handler.set_function_name(self.name.used.clone());
 
             // Parse arguments syntax
             token(meta, "(")?;
@@ -108,8 +108,9 @@ impl TypeCheckModule for FunctionCall {
             }
 
             // Look up the function declaration (this requires typecheck phase context)
-            let signature = resolve_function(meta, self.name_tok.clone(), &self.name)?;
+            let signature = resolve_function(meta, self.name_tok.clone(), &self.name.used)?;
             self.decl_id = signature.id;
+            self.name.declared.clone_from(&signature.name);
 
             let expected_arg_count = signature.total_arity();
             let actual_arg_count = self.args.len();
@@ -134,7 +135,7 @@ impl TypeCheckModule for FunctionCall {
                     if let (Type::Array(inner), Type::Array(expected_inner)) = (arg.get_type(), &param.kind) {
                         if *inner == Type::Generic && **expected_inner != Type::Generic {
                             if let Some(ExprType::VariableGet(var)) = &arg.value {
-                                meta.update_var_type(&var.name, Type::array_of(*expected_inner.clone()));
+                                meta.update_var_type(&var.name.used, Type::array_of(*expected_inner.clone()));
                                 arg.kind = Type::array_of(*expected_inner.clone());
                             }
                         }
@@ -155,7 +156,7 @@ impl TypeCheckModule for FunctionCall {
             for (arg, is_ref) in izip!(self.args.iter(), self.refs.iter()) {
                 if *is_ref {
                     if let Some(ExprType::VariableGet(var)) = &arg.value {
-                        meta.mark_var_modified(&var.name);
+                        meta.mark_var_modified(&var.name.used);
                     }
                 }
             }
@@ -172,14 +173,14 @@ impl TypeCheckModule for FunctionCall {
             if self.is_failable {
                 if !self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
                     return error!(meta, self.name_tok.clone() => {
-                        message: format!("Function '{}' can potentially fail but is left unhandled.", self.name),
+                        message: format!("Function '{}' can potentially fail but is left unhandled.", self.name.used),
                         comment: "You can use '?' to propagate failure, 'failed' block to handle failure, 'succeeded' block to handle success, 'exited' block to handle both"
                     });
                 }
                 self.failure_handler.typecheck(meta)?;
             } else if self.failure_handler.is_parsed && !meta.context.is_trust_ctx {
                 let message = Message::new_warn_at_token(meta, self.name_tok.clone())
-                    .message(format!("Function '{}' cannot fail", self.name))
+                    .message(format!("Function '{}' cannot fail", self.name.used))
                     .comment("You can remove the failure handler block or '?' at the end");
                 meta.add_message(message);
             }
@@ -197,7 +198,7 @@ impl TranslateModule for FunctionCall {
             let args = self.args.iter().map(|arg| arg.translate(meta)).collect();
             let call = FunctionCallFragment::new(
                 meta,
-                &self.name,
+                &self.name.declared,
                 self.decl_id,
                 self.variant_id,
                 args,
@@ -222,12 +223,12 @@ impl TranslateModule for FunctionCall {
             // Store the return value in a separate variable so that
             // the value persists when this function is called
             // twice or more in this expression,
-            let return_var_name = return_variable_name(&self.name, self.decl_id, self.variant_id);
+            let return_var_name = return_variable_name(&self.name.declared, self.decl_id, self.variant_id);
             let return_var_expr =
                 VarExprFragment::new(&return_var_name, self.return_type.clone()).to_frag();
             // Name of the callsite variable
             let callsite_var_name = returned_value_variable_name(
-                &self.name,
+                &self.name.declared,
                 self.decl_id,
                 self.variant_id,
                 self.line,

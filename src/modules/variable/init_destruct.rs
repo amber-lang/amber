@@ -163,7 +163,7 @@ impl TranslateModule for VariableInitDestruct {
         for (i, name) in self.names.iter().enumerate() {
             let token = self.toks[i].clone().unwrap();
             let var_position = PositionInfo::at_pos(
-                self.expr.get_position().path,
+                self.expr.get_position().path.as_deref(),
                 token.pos,
                 token.start,
                 token.word.chars().count(),

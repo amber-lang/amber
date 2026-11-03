@@ -3,12 +3,12 @@
 //! This module provides reusable fixtures and helper functions for
 //! creating test data and performing common test operations.
 
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 
 /// Create a new AmberCompiler instance with default test settings
 pub fn create_compiler() -> AmberCompiler {
     let options = CompilerOptions::default();
-    AmberCompiler::new(String::new(), None, options)
+    AmberCompiler::new(String::new(), SourcePath::Stdin, options)
 }
 
 /// Compile a snippet of Amber code and return the result
@@ -17,7 +17,7 @@ pub fn create_compiler() -> AmberCompiler {
 /// needing to create actual files.
 pub fn compile_snippet(code: &str) -> Result<String, String> {
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let compiler = AmberCompiler::new(code.to_string(), SourcePath::Stdin, options);
     compiler
         .compile()
         .map(|(_, code)| code)
@@ -30,7 +30,7 @@ pub fn compile_snippet(code: &str) -> Result<String, String> {
 /// and returning the generated output.
 pub fn translate_and_optimize(code: &str) -> Result<String, String> {
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.to_string(), None, options);
+    let compiler = AmberCompiler::new(code.to_string(), SourcePath::Stdin, options);
     compiler
         .compile()
         .map(|(_, code)| code)

@@ -67,15 +67,9 @@ impl FunctionDeclaration {
         mut comment_text: String,
     ) -> String {
         if meta.doc_usage {
-            let lib_name = meta
-                .context
-                .path
-                .as_ref()
-                .map(Path::new)
-                .and_then(Path::file_name)
+            let lib_name = Path::new(meta.context.path.to_string())
+                .file_stem()
                 .and_then(OsStr::to_str)
-                .map(|s| s.trim_end_matches(".ab"))
-                .map(String::from)
                 .unwrap_or_default();
             let import_stmt = format!("import {{ {} }} from \"std/{}\"\n", self.name, lib_name);
 

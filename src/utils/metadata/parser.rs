@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::modules::block::Block;
 use crate::modules::function::core::signature::{
     FunctionDeclId, FunctionSignature, FunctionVariant, FunctionVariantId,
@@ -15,8 +15,6 @@ use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, ContextManager)]
 pub struct ParserMetadata {
-    /// Code if the parser is in eval mode
-    pub eval_code: Option<String>,
     /// Used for debugging by Heraclitus
     pub debug: Option<usize>,
     /// Cache of already imported modules
@@ -65,6 +63,25 @@ impl ParserMetadata {
 
 // Implement context methods
 impl ParserMetadata {
+    pub fn new(tokens: Vec<Token>, path: SourcePath, code: impl Into<String>) -> Self {
+        ParserMetadata {
+            debug: None,
+            import_cache: ImportCache::new(path.clone(), code.into()),
+            fun_cache: FunctionCache::new(),
+            fun_id: 0,
+            var_id: 0,
+            context: Context::new(path, tokens),
+            messages: Vec::new(),
+            doc_usage: false,
+            fun_variants_in_typecheck: HashMap::new(),
+            test_names: Vec::new(),
+            narrowed_types: Vec::new(),
+            suppress_warnings: false,
+            first_pass_ctx: false,
+            target: None,
+        }
+    }
+
     pub fn with_target_shell(&mut self, options: &CompilerOptions) {
         let target_shell = AmberCompiler::resolve_target_shell(options.target);
         self.target = Some(TargetShell {
@@ -121,12 +138,11 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    /// Adds a variable to the current scope
     pub fn add_var(&mut self, mut var: VariableDecl) -> Option<usize> {
         let global_id = self.gen_var_id();
         var.global_id = Some(global_id);
         if var.is_public {
-            self.context.pub_vars.push(var.clone());
+            self.context.pub_vars.insert(var.name.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(var);
@@ -212,7 +228,7 @@ impl ParserMetadata {
         let id = fun.id;
         // Add the function to the public function list
         if fun.is_public {
-            self.context.pub_funs.push(fun.clone());
+            self.context.pub_funs.insert(fun.name.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
@@ -225,23 +241,24 @@ impl ParserMetadata {
     }
 
     /// Adds a function declaration that was already parsed - this function is probably imported.
-    pub fn add_fun_declaration_existing(&mut self, fun: FunctionSignature) -> bool {
+    pub fn add_fun_declaration_existing(&mut self, visible_name: String, fun: FunctionSignature) -> bool {
         // Add the function to the public function list
         if fun.is_public {
-            self.context.pub_funs.push(fun.clone());
+            self.context.pub_funs.insert(visible_name.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun(fun)
+        scope.add_fun_as(visible_name, fun)
     }
 
-    pub fn add_var_declaration_existing(&mut self, var: VariableDecl) -> Option<usize> {
+    /// Adds a variable declaration that was already parsed (this variable is probably imported)
+    pub fn add_var_declaration_existing(&mut self, visible_name: String, var: VariableDecl) -> Option<usize> {
         let global_id = self.gen_var_id();
         if var.is_public {
-            self.context.pub_vars.push(var.clone());
+            self.context.pub_vars.insert(visible_name.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(var).then_some(global_id)
+        scope.add_var_as(visible_name, var).then_some(global_id)
     }
 
     /// Persists a monomorphized variant in the cache and returns its id.
@@ -303,26 +320,6 @@ impl ParserMetadata {
 }
 
 impl Metadata for ParserMetadata {
-    fn new(tokens: Vec<Token>, path: Option<String>, code: Option<String>) -> Self {
-        ParserMetadata {
-            eval_code: code,
-            debug: None,
-            import_cache: ImportCache::new(path.clone()),
-            fun_cache: FunctionCache::new(),
-            fun_id: 0,
-            var_id: 0,
-            context: Context::new(path, tokens),
-            messages: Vec::new(),
-            doc_usage: false,
-            fun_variants_in_typecheck: HashMap::new(),
-            test_names: Vec::new(),
-            narrowed_types: Vec::new(),
-            suppress_warnings: false,
-            first_pass_ctx: false,
-            target: None,
-        }
-    }
-
     fn get_token_at(&self, index: usize) -> Option<Token> {
         self.context.expr.get(index).cloned()
     }
@@ -343,12 +340,16 @@ impl Metadata for ParserMetadata {
         self.debug = Some(indent)
     }
 
-    fn get_path(&self) -> Option<String> {
-        self.context.path.clone()
+    fn get_path(&self) -> Option<&str> {
+        match &self.context.path {
+            SourcePath::Stdin => None,
+            path => Some(path.to_string()),
+        }
     }
 
-    fn get_code(&self) -> Option<&String> {
-        self.eval_code.as_ref()
+    fn get_code(&self) -> &str {
+        self.import_cache.get_code(&self.context.path)
+            .expect("Invalid file path has been provided to parser metadata")
     }
 
     fn get_trace(&self) -> Vec<PositionInfo> {
