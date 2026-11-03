@@ -97,6 +97,12 @@ impl FunctionCallFragment {
                 }
             }
 
+            // The length of an array (`len(array)`) is a plain value, not an array
+            (false, FragmentKind::VarExpr(var)) if var.kind.is_array() && var.is_length => var
+                .with_render_type(VarRenderType::BashValue)
+                .with_length_getter(true)
+                .to_frag(),
+
             // A whole array is passed by name. Each shell copies it its own way.
             (false, FragmentKind::VarExpr(var)) if var.kind.is_array() => {
                 if matches!(shell, ShellType::Ksh) {

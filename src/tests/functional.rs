@@ -327,7 +327,7 @@ fn test_set_file_permission() {
     let path = test_file_path.to_string_lossy().to_string();
     
     // Set permissions
-    set_file_permission(&file, path);
+    set_file_permission(&file, path).unwrap();
     
     // Verify permissions are set to 0o755
     let metadata = fs::metadata(&test_file_path).unwrap();
@@ -335,6 +335,20 @@ fn test_set_file_permission() {
     
     // Check that execute bits are set (0o755 = rwxr-xr-x)
     assert_eq!(mode & 0o777, 0o755);
+}
+
+#[test]
+#[cfg(not(windows))]
+fn test_set_file_permission_missing_path() {
+    use crate::set_file_permission;
+
+    let temp_dir = tempdir().unwrap();
+    let test_file_path = temp_dir.path().join("test_script.sh");
+    let file = std::fs::File::create(&test_file_path).unwrap();
+    std::fs::remove_file(&test_file_path).unwrap();
+
+    let path = test_file_path.to_string_lossy().to_string();
+    assert!(set_file_permission(&file, path).is_err());
 }
 
 #[test]

@@ -1,0 +1,31 @@
+import { temp_dir_create, dir_exists } from "std/fs"
+import { split_lines } from "std/text"
+
+fun make_dirs(): Null {
+    echo(trust temp_dir_create("amber-auto-delete-XXXX", true, true))
+    echo(trust temp_dir_create("amber-auto-delete-XXXX", true))
+    echo(trust temp_dir_create("amber-auto-delete-XXXX", true, true))
+}
+
+main {
+    // Create the directories in a subshell: its EXIT trap has already run
+    // by the time the outer script checks whether they still exist.
+    const created = split_lines(trust $ : && ( {nameof(make_dirs)} ) $)
+    let leftover = 0
+    for dir in created {
+        if dir_exists(dir) {
+            leftover += 1
+        }
+    }
+    if {
+        len(created) != 3 {
+            echo("Expected 3 directories, got {len(created)}")
+        }
+        leftover == 0 {
+            echo("Succeeded")
+        }
+        else {
+            echo("{leftover} of 3 directories were not removed")
+        }
+    }
+}

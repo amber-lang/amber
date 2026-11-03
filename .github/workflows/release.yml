@@ -127,7 +127,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (Linux ${{ matrix.libc }} ${{ matrix.arch }})
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: linux-${{ matrix.libc }}-${{ matrix.arch }}
           path: dist/*
@@ -178,7 +178,7 @@ jobs:
           TRIPLE: ${{ steps.triple.outputs.triple }}
 
       - name: Upload artifacts (macOS ${{ matrix.arch }})
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos-${{ matrix.arch }}
           path: dist/*
@@ -208,7 +208,7 @@ jobs:
           tar -C target/release -cJf dist/amber-windows-x86_64.tar.xz ${BIN_NAME}.exe
 
       - name: Upload artifacts (Windows x86_64)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows-x86_64
           path: dist/*
@@ -242,11 +242,12 @@ jobs:
       - name: Create Debian package (x86_64)
         run: cargo deb --no-build --output="./dist/amber-linux-debian-x86_64.deb"
 
-      - name: Create RPM package (x86_64)
-        run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
+      # 'invalid version "0.6.0-alpha": contains invalid character (allowed: alphanumeric, '.', '_', '+', '%', '{', '}', '~', '^')'
+      #- name: Create RPM package (x86_64)
+      #  run: cargo generate-rpm -o "./dist/amber-linux-rpm-x86_64.rpm"
 
       - name: Upload artifacts (scripts & deb)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: scripts-deb
           path: dist/*

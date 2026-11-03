@@ -58,7 +58,7 @@ jobs:
           cargo test --no-run --all-targets --all-features
       - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
         run: tar -cvzf target.tgz target/
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           include-hidden-files: true
           name: target
@@ -254,7 +254,7 @@ jobs:
       - name: Test coverage
         run: cargo build && cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,${{ github.sha }}
@@ -281,7 +281,7 @@ jobs:
       - name: Test coverage
         run: cargo llvm-cov --all-features --workspace --cobertura --output-path cobertura.xml
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           flags: rust,release,${{ github.event.release.tag_name }},${{ github.sha }}
