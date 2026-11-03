@@ -1,54 +1,11 @@
-use super::{cc_flags::CCFlags, function_interface::FunctionInterface};
-use crate::modules::function::declaration::FunctionDeclarationArgument;
+use super::cc_flags::CCFlags;
+use crate::compiler::SourcePath;
+use crate::modules::function::core::signature::FunctionSignature;
 use crate::modules::types::Type;
-use crate::{modules::expression::expr::Expr, utils::ParserMetadata};
+use crate::utils::ParserMetadata;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
-use std::collections::{HashMap, HashSet};
-
-#[derive(Clone, Debug)]
-pub struct FunctionDeclArg {
-    pub name: String,
-    pub kind: Type,
-    pub optional: Option<Expr>,
-    pub is_ref: bool,
-}
-
-#[derive(Clone, Debug)]
-pub struct FunctionDecl {
-    pub name: String,
-    pub args: Vec<FunctionDeclArg>,
-    pub returns: Type,
-    pub is_args_typed: bool,
-    pub is_public: bool,
-    pub is_failable: bool,
-    pub id: usize,
-}
-
-impl FunctionDecl {
-    pub fn into_interface(self) -> FunctionInterface {
-        let args = self
-            .args
-            .into_iter()
-            .map(|arg| FunctionDeclarationArgument {
-                name: arg.name,
-                kind: arg.kind,
-                optional: arg.optional,
-                is_ref: arg.is_ref,
-                tok: None,
-            })
-            .collect();
-
-        FunctionInterface {
-            id: Some(self.id),
-            name: self.name,
-            args,
-            returns: self.returns,
-            is_public: self.is_public,
-            is_failable: self.is_failable,
-        }
-    }
-}
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 // Rule set for variable warnings
 // Unused variable warning is enabled by default
@@ -135,7 +92,7 @@ impl VariableDecl {
 #[derive(Clone, Debug, Default)]
 pub struct ScopeUnit {
     pub vars: HashMap<String, VariableDecl>,
-    pub funs: HashMap<String, FunctionDecl>,
+    pub funs: HashMap<String, FunctionSignature>,
 }
 
 /// Perform methods just on the scope
@@ -148,7 +105,11 @@ impl ScopeUnit {
 
     /// Persists a variable declaration in the scope
     pub fn add_var(&mut self, var: VariableDecl) -> bool {
-        let name = var.name.clone();
+        self.add_var_as(var.name.clone(), var)
+    }
+
+    /// Persists a variable declaration in the scope under a different name (used in import alias)
+    pub fn add_var_as(&mut self, name: String, var: VariableDecl) -> bool {
         self.vars.insert(name, var).is_none()
     }
 
@@ -165,13 +126,17 @@ impl ScopeUnit {
     /* Functions */
 
     /// Persists a function declaration in the scope
-    pub fn add_fun(&mut self, fun: FunctionDecl) -> bool {
-        let name = fun.name.clone();
+    pub fn add_fun(&mut self, fun: FunctionSignature) -> bool {
+        self.add_fun_as(fun.name.clone(), fun)
+    }
+
+    /// Persists a function declaration in the scope under a different name (used in import alias)
+    pub fn add_fun_as(&mut self, name: String, fun: FunctionSignature) -> bool {
         self.funs.insert(name, fun).is_none()
     }
 
     /// Fetches a function declaration from the scope
-    pub fn get_fun(&self, name: &str) -> Option<&FunctionDecl> {
+    pub fn get_fun(&self, name: &str) -> Option<&FunctionSignature> {
         self.funs.get(name)
     }
 
@@ -188,7 +153,7 @@ pub struct Context {
     /// The expression to be parsed
     pub expr: Vec<Token>,
     /// The path of the file
-    pub path: Option<String>,
+    pub path: SourcePath,
     /// Scopes saved in the context
     pub scopes: Vec<ScopeUnit>,
     /// A trace of the current position in the file
@@ -205,10 +170,10 @@ pub struct Context {
     pub is_trust_ctx: bool,
     /// Determines if the context is in a test block
     pub is_test_ctx: bool,
-    /// This is a list of ids of all the public functions in the file
-    pub pub_funs: Vec<FunctionDecl>,
-    /// This is a list of all the public variables in the file
-    pub pub_vars: Vec<VariableDecl>,
+    /// This is an ordered map of all the public variables in the file
+    pub pub_vars: BTreeMap<String, VariableDecl>,
+    /// This is an ordered map of all the public functions in the file
+    pub pub_funs: BTreeMap<String, FunctionSignature>,
     /// The return type of the currently parsed function
     pub fun_ret_type: Option<Type>,
     /// List of compiler flags
@@ -218,7 +183,7 @@ pub struct Context {
 
 // FIXME: Move the scope related structures to the separate file
 impl Context {
-    pub fn new(path: Option<String>, expr: Vec<Token>) -> Self {
+    pub fn new(path: SourcePath, expr: Vec<Token>) -> Self {
         Self {
             index: 0,
             expr,
@@ -230,8 +195,8 @@ impl Context {
             is_main_ctx: false,
             is_trust_ctx: false,
             is_test_ctx: false,
-            pub_funs: vec![],
-            pub_vars: vec![],
+            pub_funs: BTreeMap::new(),
+            pub_vars: BTreeMap::new(),
             fun_ret_type: None,
             cc_flags: HashSet::new(),
         }

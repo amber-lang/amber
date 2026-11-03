@@ -67,13 +67,13 @@ pub trait BinOp: SyntaxModule<ParserMetadata> + TypeCheckModule {
             {
                 if *left_inner == Type::Generic && *right_inner != Type::Generic {
                     if let Some(ExprType::VariableGet(var)) = &left.value {
-                        meta.update_var_type(&var.name, Type::Array(right_inner.clone()));
+                        meta.update_var_type(&var.name.used, Type::Array(right_inner.clone()));
                     }
                     left.kind = Type::Array(right_inner.clone());
                     Ok(Type::Array(right_inner))
                 } else if *left_inner != Type::Generic && *right_inner == Type::Generic {
                     if let Some(ExprType::VariableGet(var)) = &right.value {
-                        meta.update_var_type(&var.name, Type::Array(left_inner.clone()));
+                        meta.update_var_type(&var.name.used, Type::Array(left_inner.clone()));
                     }
                     right.kind = Type::Array(left_inner.clone());
                     Ok(Type::Array(left_inner))

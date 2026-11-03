@@ -1,0 +1,13 @@
+pub fun greet(): Text {
+    return "hi"
+}
+
+pub fun add_one(x: Int): Int {
+    return x + 1
+}
+
+pub fun always_fail(): Null? {
+    fail 3
+}
+
+pub const greeting = "hey"

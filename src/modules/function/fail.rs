@@ -2,6 +2,7 @@ use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::FragmentKind;
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
+use crate::translate::fragments::return_variable_name;
 use crate::translate::module::TranslateModule;
 use crate::utils::metadata::{ParserMetadata, TranslateMetadata};
 use crate::{fragments, raw_fragment};
@@ -102,14 +103,14 @@ impl TranslateModule for Fail {
             fragments!("exit ", translate)
         } else {
             // Clean the return value if the function fails
-            let fun_meta = meta
-                .fun_meta
+            let fun = meta
+                .fun_frag_sig
                 .as_ref()
                 .expect("Function name and return type not set");
             let stmt = VarStmtFragment::new(
-                &fun_meta.mangled_name(),
-                fun_meta.get_type(),
-                fun_meta.default_return(),
+                &return_variable_name(&fun.name, fun.declaration_id, fun.variant_id),
+                fun.return_type.clone(),
+                fun.default_return(),
             );
             meta.stmt_queue.push_back(stmt.to_frag());
             fragments!("return ", translate)

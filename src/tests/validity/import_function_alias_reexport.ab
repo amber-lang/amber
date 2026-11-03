@@ -1,0 +1,6 @@
+// Output
+// hi
+
+import { welcome as hello } from "src/tests/validity/test_files/import_alias_reexport.ab"
+
+echo(hello())

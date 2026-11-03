@@ -1,4 +1,4 @@
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::TestCommand;
 use colored::Colorize;
 use heraclitus_compiler::prelude::Message;
@@ -26,14 +26,20 @@ pub fn get_tests_to_run(
     let mut errors = vec![];
     let test_case = &command.test_case;
     for file in &files {
+        let read_error = |err: std::io::Error| {
+            Message::new_err_msg(format!("Failed to read file {}: {}", file.display(), err))
+        };
         let code = match fs::read_to_string(file) {
-            Ok(c) => c,
-            Err(e) => {
-                errors.push(Message::new_err_msg(format!(
-                    "Failed to read file {}: {}",
-                    file.display(),
-                    e
-                )));
+            Ok(code) => code,
+            Err(err) => {
+                errors.push(read_error(err));
+                continue;
+            }
+        };
+        let source_path = match SourcePath::file(file.to_string_lossy()) {
+            Ok(path) => path,
+            Err(err) => {
+                errors.push(read_error(err));
                 continue;
             }
         };
@@ -42,7 +48,7 @@ pub fn get_tests_to_run(
             .with_target(command.target);
         let compiler = AmberCompiler::new(
             code.clone(),
-            Some(file.to_string_lossy().to_string()),
+            source_path,
             options,
         );
 
@@ -107,44 +113,49 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
                 format!("{} ({})", file.display(), name)
             };
 
-            let options =
-                CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()))
-                    .with_target(command.target);
-            let compiler = AmberCompiler::new(
-                code.clone(),
-                Some(file.to_string_lossy().to_string()),
-                options,
-            );
+            let compiler = SourcePath::file(file.to_string_lossy()).map(|source_path| {
+                let options =
+                    CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()))
+                        .with_target(command.target);
+                AmberCompiler::new(code.clone(), source_path, options)
+            });
 
-            let result = match compiler.compile() {
-                Ok((_, bash_code)) => match AmberCompiler::find_shell(command.target) {
-                    Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
-                        Ok(output) => {
-                            if output.status.success() {
-                                Ok(())
-                            } else {
-                                let err_msg = format!(
-                                    "{}\n{}",
-                                    String::from_utf8_lossy(&output.stdout),
-                                    String::from_utf8_lossy(&output.stderr)
-                                )
-                                .trim()
-                                .to_string();
-                                if err_msg.is_empty() {
-                                    Err(Message::new_err_msg("(No output)".dimmed().to_string()))
+            let result = match compiler {
+                Err(err) => Err(Message::new_err_msg(format!(
+                    "Failed to read file {}: {}",
+                    file.display(),
+                    err
+                ))),
+                Ok(compiler) => match compiler.compile() {
+                    Ok((_, bash_code)) => match AmberCompiler::find_shell(command.target) {
+                        Some(mut command) => match command.arg("-c").arg(&bash_code).output() {
+                            Ok(output) => {
+                                if output.status.success() {
+                                    Ok(())
                                 } else {
-                                    Err(Message::new_err_msg(err_msg))
+                                    let err_msg = format!(
+                                        "{}\n{}",
+                                        String::from_utf8_lossy(&output.stdout),
+                                        String::from_utf8_lossy(&output.stderr)
+                                    )
+                                    .trim()
+                                    .to_string();
+                                    if err_msg.is_empty() {
+                                        Err(Message::new_err_msg("(No output)".dimmed().to_string()))
+                                    } else {
+                                        Err(Message::new_err_msg(err_msg))
+                                    }
                                 }
                             }
-                        }
-                        Err(e) => Err(Message::new_err_msg(format!(
-                            "Error executing shell: {}",
-                            e
-                        ))),
+                            Err(e) => Err(Message::new_err_msg(format!(
+                                "Error executing shell: {}",
+                                e
+                            ))),
+                        },
+                        None => Err(Message::new_err_msg("Failed to find shell command")),
                     },
-                    None => Err(Message::new_err_msg("Failed to find shell command")),
+                    Err(e) => Err(e),
                 },
-                Err(e) => Err(e),
             };
 
             match result {

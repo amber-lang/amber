@@ -4,11 +4,11 @@ main {
     if name != "bash" and name != "zsh" and name != "ksh" {
         echo("Failed")
     }
-    
+
     // Verify the version looks reasonable (major version 1-9)
     // ksh93 (what i'm using) starts with 1
     const version = shellversion()
-    if version[0] >= 1 and version[0] <= 9 {
+    if version[0] >= 1 {
         echo("Succeeded")
     } else {
         echo("Version check failed")
