@@ -19,6 +19,16 @@ Programming language that compiles to Bash. It's a high level programming langua
 
 You can find an installation guide on the [documentation website](https://docs.amber-lang.com/getting_started/installation).
 
+## Shell Compatibility
+
+| Shell | Supported |
+| ----- | --------- |
+| bash  | Yes       |
+| sh    | Yes       |
+| ash   | Yes       |
+| zsh   | Yes       |
+| fish  | No        |
+
 ## Contributing
 
 Contributing guide can be found on the [documentation website](https://docs.amber-lang.com/contribute/contribute).
