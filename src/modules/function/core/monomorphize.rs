@@ -95,7 +95,7 @@ impl<'a> Monomorphizer<'a> {
 
         // Reserve this variant so that it doesn't get typechecked
         // again if this function is recursive
-        let variant = self.reserve_variant();
+        let variant = self.reserve_variant(persistence);
         self.add_forward_function_declarations(&mut context);
 
         let (result, block, global_ids) = self.typecheck_body(&mut context, block);
@@ -117,7 +117,7 @@ impl<'a> Monomorphizer<'a> {
             // Saves the typechecked AST with its metadata such as inferenced types etc.
             Persistence::Cache => {
                 let monomorph = FunctionVariant {
-                    // The cache assigns the definitive id on insert
+                    // Recursive calls in the body already point at this reserved id
                     id: variant,
                     param_types: self.arg_types.clone(),
                     param_global_ids: global_ids,
@@ -167,14 +167,17 @@ impl<'a> Monomorphizer<'a> {
             .copied()
     }
 
-    /// Claim the next variant id before typechecking, so recursive calls can see it.
-    fn reserve_variant(&mut self) -> FunctionVariantId {
-        let variant = FunctionVariantId::new(
-            self.meta
+    /// Claim the variant id before typechecking, so recursive calls can see it
+    fn reserve_variant(&mut self, persistence: Persistence) -> FunctionVariantId {
+        let variant = match persistence {
+            Persistence::Cache => self
+                .meta
                 .fun_cache
-                .get_variants(self.signature.id)
-                .map_or(0, Vec::len),
-        );
+                .reserve_variant_id(self.signature.id)
+                .expect("Function was never declared"),
+            // A discarded variant is never stored, so its id is never used
+            Persistence::Discard => FunctionVariantId::new(0),
+        };
         self.meta
             .fun_variants_in_typecheck
             .insert((self.signature.id, self.arg_types.clone()), variant);

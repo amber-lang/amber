@@ -32,6 +32,10 @@ impl FunctionVariantId {
     pub fn new(id: usize) -> Self {
         FunctionVariantId(id)
     }
+
+    pub fn as_usize(self) -> usize {
+        self.0
+    }
 }
 
 impl fmt::Display for FunctionVariantId {

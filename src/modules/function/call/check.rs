@@ -77,7 +77,7 @@ pub fn resolve_variant(
     let cached = meta
         .fun_cache
         .get_variants(id)
-        .and_then(|variants| variants.iter().find(|variant| variant.param_types == args))
+        .and_then(|mut variants| variants.find(|variant| variant.param_types == args))
         .map(|variant| ResolvedCall {
             return_type: variant.returns.clone(),
             variant_id: variant.id,

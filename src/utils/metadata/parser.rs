@@ -267,7 +267,7 @@ impl ParserMetadata {
         id: FunctionDeclId,
         variant: FunctionVariant,
     ) -> Option<FunctionVariantId> {
-        self.fun_cache.add_variant(id, variant)
+        self.fun_cache.insert_reserved_variant(id, variant)
     }
 
     /// Gets a function declaration from the current scope or any parent scope

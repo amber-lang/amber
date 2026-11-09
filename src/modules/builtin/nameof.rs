@@ -105,7 +105,6 @@ impl TypeCheckModule for Nameof {
                     .fun_cache
                     .get_variants(fun_decl.id)
                     .unwrap()
-                    .iter()
                     .find(|fun| fun.param_types == args_types);
 
                 // Check if the function variant is already compiled
