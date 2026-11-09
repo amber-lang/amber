@@ -298,18 +298,22 @@ fn prepend_call_site_trace(
 }
 
 pub fn arity_mismatch(fun: &FunctionSignature, given: usize) -> String {
-    let max_args = fun.total_arity();
     let min_args = fun.required_arity();
-    let opt_argument = if max_args > min_args {
-        format!(" ({max_args} optional)")
+    let max_args = fun.total_arity();
+
+    let (bound, expected) = if min_args == max_args {
+        ("", min_args)
+    } else if given < min_args {
+        ("at least ", min_args)
     } else {
-        String::new()
+        ("at most ", max_args)
     };
+
     // Determine the correct grammar
-    let txt_arguments = pluralize(min_args, "argument", "arguments");
+    let txt_arguments = pluralize(expected, "argument", "arguments");
     let txt_given = pluralize(given, "was given", "were given");
     format!(
-        "Function '{}' expects {min_args} {txt_arguments}{opt_argument}, but {given} {txt_given}",
+        "Function '{}' expects {bound}{expected} {txt_arguments}, but {given} {txt_given}",
         fun.name
     )
 }

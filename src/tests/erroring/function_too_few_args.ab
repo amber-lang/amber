@@ -1,0 +1,8 @@
+// Output
+// Function 'foo' expects at least 2 arguments, but 1 was given
+
+fun foo(a, b, c = 1) {
+    echo(a)
+}
+
+foo(1)
