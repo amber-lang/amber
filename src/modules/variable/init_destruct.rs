@@ -16,7 +16,6 @@ pub struct VariableInitDestruct {
     names: Vec<String>,
     expr: Box<Expr>,
     global_ids: Vec<Option<usize>>,
-    is_fun_ctx: bool,
     is_const: bool,
     is_public: bool,
     toks: Vec<Option<Token>>,
@@ -31,7 +30,6 @@ impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
             names: vec![],
             expr: Box::new(Expr::new()),
             global_ids: vec![],
-            is_fun_ctx: false,
             is_const: false,
             is_public: false,
             toks: vec![],
@@ -92,7 +90,6 @@ impl SyntaxModule<ParserMetadata> for VariableInitDestruct {
             );
         }
         syntax(meta, &mut *self.expr)?;
-        self.is_fun_ctx = meta.context.is_fun_ctx;
         Ok(())
     }
 }
@@ -151,7 +148,7 @@ impl TranslateModule for VariableInitDestruct {
         // Assign expression to temp array
         let temp_array_name = format!("array_destruct_{}", meta.gen_value_id());
         let assign_temp = VarStmtFragment::new(&temp_array_name, self.expr.get_type(), expr)
-            .with_local(self.is_fun_ctx)
+            .with_local(meta.is_fun_ctx())
             .with_optimization_when_unused(false);
         fragments.push(assign_temp.clone().to_frag());
 
@@ -177,7 +174,7 @@ impl TranslateModule for VariableInitDestruct {
 
             let assign_var = VarStmtFragment::new(name, inner_type.clone(), assign_expr)
                 .with_global_id(self.global_ids[i])
-                .with_local(self.is_fun_ctx)
+                .with_local(meta.is_fun_ctx())
                 .to_frag();
             fragments.push(assign_var);
         }

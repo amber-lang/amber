@@ -15,7 +15,6 @@ pub struct VariableInit {
     name: String,
     expr: Box<Expr>,
     global_id: Option<usize>,
-    is_fun_ctx: bool,
     is_const: bool,
     is_public: bool,
     tok: Option<Token>,
@@ -42,7 +41,6 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             name: String::new(),
             expr: Box::new(Expr::new()),
             global_id: None,
-            is_fun_ctx: false,
             is_const: false,
             is_public: false,
             tok: None,
@@ -80,7 +78,6 @@ impl SyntaxModule<ParserMetadata> for VariableInit {
             );
         }
         syntax(meta, &mut *self.expr)?;
-        self.is_fun_ctx = meta.context.is_fun_ctx;
         Ok(())
     }
 }
@@ -110,7 +107,7 @@ impl TranslateModule for VariableInit {
         let expr = self.expr.translate(meta);
         VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
             .with_global_id(self.global_id)
-            .with_local(self.is_fun_ctx)
+            .with_local(meta.is_fun_ctx())
             .to_frag()
     }
 }

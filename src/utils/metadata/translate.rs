@@ -155,11 +155,14 @@ impl TranslateMetadata {
         INDENT_SPACES.repeat(cmp::max(self.indent, 0) as usize)
     }
 
+    pub fn is_fun_ctx(&self) -> bool {
+        self.fun_frag_sig.is_some()
+    }
+
     #[inline]
-    /// Create an intermediate variable and return it's variable expression
+    /// Push an intermediate variable to the render stack and return it's variable expression
     pub fn push_ephemeral_variable(&mut self, statement: VarStmtFragment) -> VarExprFragment {
-        let is_local = self.fun_frag_sig.is_some();
-        let stmt = statement.with_ephemeral(true).with_local(is_local);
+        let stmt = statement.with_ephemeral(true).with_local(self.is_fun_ctx());
         let expr = VarExprFragment::from_stmt(&stmt);
         self.stmt_queue.push_back(stmt.to_frag());
         expr

@@ -1,6 +1,5 @@
 use super::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
-use crate::raw_fragment;
 use crate::modules::expression::interpolated_region::{
     parse_interpolated_region, InterpolatedRegionType,
 };
@@ -119,15 +118,11 @@ impl Command {
             meta.stmt_queue.push_back(command);
             return self.failure_handler.translate(meta);
         }
-        // Combine the command with `&& __status=0 || __status=$?` on one
-        // line so ShellCheck does not associate `$?` with echo/printf
-        // (SC2320) and recognises exit guards like `cd` (SC2164)
-        let status_suffix = raw_fragment!("&& __status=0 || __status=$?");
-        let combined = ListFragment::new(vec![command, status_suffix])
-            .with_spaces()
-            .to_frag();
+        // Capture the status on the same line as the command so ShellCheck
+        // does not flag it when the command is `echo` or `printf` (SC2320)
+        let combined = self.failure_handler.translate_inline_capture(command);
         meta.stmt_queue.push_back(combined);
-        self.failure_handler.translate_check_only(meta)
+        self.failure_handler.translate_check(meta)
     }
 
     fn translate_as_expr(&self, command: FragmentKind, meta: &mut TranslateMetadata) -> FragmentKind {
