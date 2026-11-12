@@ -77,6 +77,18 @@ impl TypeCheckModule for Command {
 
 impl TranslateModule for Command {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let command = self.translate_command(meta);
+        // Rearrange the translated command to be an expression or statement
+        if meta.expr_ctx {
+            self.translate_as_expr(command, meta)
+        } else {
+            self.translate_as_stmt(command, meta)
+        }
+    }
+}
+
+impl Command {
+    fn translate_command(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let is_silenced = self.modifier.is_silent || meta.silenced;
         let is_suppress = self.modifier.is_suppress || meta.suppress;
         let is_sudoed = self.modifier.is_sudo || meta.sudoed;
@@ -94,49 +106,45 @@ impl TranslateModule for Command {
         let silent = meta.with_silenced(is_silenced, |meta| meta.gen_silent().to_frag());
         let suppress = meta.with_suppress(is_suppress, |meta| meta.gen_suppress().to_frag());
         let sudo_prefix = meta.with_sudoed(is_sudoed, |meta| meta.gen_sudo_prefix().to_frag());
-        let translation = ListFragment::new(vec![sudo_prefix, translation, suppress, silent])
+        ListFragment::new(vec![sudo_prefix, translation, suppress, silent])
+            .with_spaces()
+            .to_frag()
+    }
+
+    fn translate_as_stmt(&self, command: FragmentKind, meta: &mut TranslateMetadata) -> FragmentKind {
+        // Background commands (`cmd &`) capture the status separately.
+        // `&&` after `&` is a syntax error, and `$?` would only reflect the
+        // job-launch status anyway
+        if Self::is_background(&command, meta) {
+            meta.stmt_queue.push_back(command);
+            return self.failure_handler.translate(meta);
+        }
+        // Combine the command with `&& __status=0 || __status=$?` on one
+        // line so ShellCheck does not associate `$?` with echo/printf
+        // (SC2320) and recognises exit guards like `cd` (SC2164)
+        let status_suffix = raw_fragment!("&& __status=0 || __status=$?");
+        let combined = ListFragment::new(vec![command, status_suffix])
             .with_spaces()
             .to_frag();
+        meta.stmt_queue.push_back(combined);
+        self.failure_handler.translate_check_only(meta)
+    }
 
-        let is_statement = !meta.expr_ctx;
-        let has_failure_handler = self.failure_handler.is_parsed;
+    fn translate_as_expr(&self, command: FragmentKind, meta: &mut TranslateMetadata) -> FragmentKind {
+        let handler = self.failure_handler.translate(meta);
+        let id = meta.gen_value_id();
+        let value = SubprocessFragment::new(command).to_frag();
+        let var_stmt = VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
+        let var_expr = meta.push_ephemeral_variable(var_stmt);
+        meta.stmt_queue.push_back(handler);
+        var_expr.to_frag()
+    }
 
-        match (is_statement, has_failure_handler) {
-            (true, true) => {
-                // Combine the command with `&& __status=0 || __status=$?` on one
-                // line so ShellCheck does not associate `$?` with echo/printf
-                // (SC2320) and recognises exit guards like `cd` (SC2164).
-                // Background commands (`cmd &`) keep the separate capture: `&&`
-                // after `&` is a syntax error, and `$?` would only reflect the
-                // job-launch status anyway.
-                let rendered = translation.clone().to_string(meta);
-                let is_background = rendered.trim_end().ends_with('&')
-                    && !rendered.trim_end().ends_with("&&");
-                if is_background {
-                    meta.stmt_queue.push_back(translation);
-                    self.failure_handler.translate(meta)
-                } else {
-                    let status_suffix = raw_fragment!("&& __status=0 || __status=$?");
-                    let combined = ListFragment::new(vec![translation, status_suffix])
-                        .with_spaces()
-                        .to_frag();
-                    meta.stmt_queue.push_back(combined);
-                    self.failure_handler.translate_check_only(meta)
-                }
-            }
-            (true, false) => translation,
-            (false, false) => SubprocessFragment::new(translation).to_frag(),
-            (false, true) => {
-                let handler = self.failure_handler.translate(meta);
-                let id = meta.gen_value_id();
-                let value = SubprocessFragment::new(translation).to_frag();
-                let var_stmt =
-                    VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
-                let var_expr = meta.push_ephemeral_variable(var_stmt);
-                meta.stmt_queue.push_back(handler);
-                var_expr.to_frag()
-            }
-        }
+    /// Whether the rendered command ends with a lone `&` (and not `&&`)
+    fn is_background(command: &FragmentKind, meta: &mut TranslateMetadata) -> bool {
+        let rendered = command.clone().to_string(meta);
+        let rendered = rendered.trim_end();
+        rendered.ends_with('&') && !rendered.ends_with("&&")
     }
 }
 
