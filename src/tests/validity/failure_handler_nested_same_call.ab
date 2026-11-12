@@ -1,0 +1,28 @@
+// Output
+// 5
+// empty
+// empty
+
+// A failure handler that calls the same function again must not
+// overwrite the return value of the outer call
+fun get(x: Int): Int? {
+    if x == 0 {
+        fail 1
+    }
+    return x
+}
+
+let a = get(5) succeeded {
+    trust get(99)
+}
+echo(a)
+
+let b = get(0) exited(_code) {
+    trust get(42)
+}
+echo("{b}" == "" then "empty" else "{b}")
+
+let c = get(0) failed {
+    trust get(13)
+}
+echo("{c}" == "" then "empty" else "{c}")

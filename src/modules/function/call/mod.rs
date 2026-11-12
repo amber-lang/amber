@@ -208,41 +208,55 @@ impl TranslateModule for FunctionCall {
             let call_stmt = fragments!(call.to_frag(), silent, suppress);
             meta.stmt_queue.push_back(call_stmt);
         });
-        // If there is a failure handler parsed
-        if self.is_failable && self.failure_handler.is_parsed {
-            let handler = self.failure_handler.translate(meta);
-            meta.stmt_queue.push_back(handler);
+        let has_handler = self.is_failable && self.failure_handler.is_parsed;
+        // Capture the status right after the call, before anything else resets `$?`
+        if has_handler {
+            let capture = FailureHandler::status_variable_stmt().to_frag();
+            meta.stmt_queue.push_back(capture);
         }
-        // Expose return value as variable
-        if self.return_type != Type::Null {
-            if !meta.expr_ctx {
-                // Statement context: keep the call for its side effects without
-                // creating an unread callsite return binding.
-                return fragments!("''");
-            }
-            // Store the return value in a separate variable so that
-            // the value persists when this function is called
-            // twice or more in this expression,
-            let return_var_name = return_variable_name(&self.name.declared, self.decl_id, self.variant_id);
-            let return_var_expr =
-                VarExprFragment::new(&return_var_name, self.return_type.clone()).to_frag();
-            // Name of the callsite variable
-            let callsite_var_name = returned_value_variable_name(
-                &self.name.declared,
-                self.decl_id,
-                self.variant_id,
-                self.line,
-                self.col,
-            );
-            let callsite_var_stmt = VarStmtFragment::new(
-                &callsite_var_name,
-                self.return_type.clone(),
-                return_var_expr,
-            );
-            meta.push_ephemeral_variable(callsite_var_stmt).to_frag()
-        } else {
-            fragments!("''")
+        let result = self.translate_return_value(meta);
+        // The handler goes after the return value is copied to the callsite variable,
+        // because a nested in handler call of the same function would overwrite the return variable
+        if has_handler {
+            let check = self.failure_handler.translate_check(meta);
+            meta.stmt_queue.push_back(check);
         }
+        result
+    }
+}
+
+impl FunctionCall {
+    /// Copies the return value to a callsite variable and returns the expression reading it
+    fn translate_return_value(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        if self.return_type == Type::Null {
+            return fragments!("''");
+        }
+
+        // If it's a statement, the value is not used anyways
+        if !meta.expr_ctx {
+            return fragments!("''");
+        }
+
+        // Store the return value in a separate variable so that
+        // the value persists when this function is called
+        // twice or more in this expression
+        let return_var_name = return_variable_name(&self.name.declared, self.decl_id, self.variant_id);
+        let return_var_expr = VarExprFragment::new(&return_var_name, self.return_type.clone()).to_frag();
+
+        // Name of the callsite variable
+        let callsite_var_name = returned_value_variable_name(
+            &self.name.declared,
+            self.decl_id,
+            self.variant_id,
+            self.line,
+            self.col,
+        );
+        let callsite_var_stmt = VarStmtFragment::new(
+            &callsite_var_name,
+            self.return_type.clone(),
+            return_var_expr,
+        );
+        meta.push_ephemeral_variable(callsite_var_stmt).to_frag()
     }
 }
 
