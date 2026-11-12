@@ -330,6 +330,6 @@ pub fn argument_type_mismatch(
     let arg_name = &param.name;
     let arg_type = &param.kind;
     let fun_name = &fun.name;
-    let ordinal = index.to_ordinal_string();
+    let ordinal = (index + 1).to_ordinal_string();
     format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given}' was given")
 }
