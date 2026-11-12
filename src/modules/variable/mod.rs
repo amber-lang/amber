@@ -71,6 +71,7 @@ pub fn variable_name_keywords() -> Vec<&'static str> {
         "while",
     ]
 }
+
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "as"]
 #[kind = "stmt"]

@@ -29,6 +29,7 @@ dependencies = [
  "insta",
  "inventory",
  "itertools",
+ "ordinal",
  "predicates",
  "pretty_assertions",
  "rayon",
@@ -753,6 +754,12 @@ name = "once_cell_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
+
+[[package]]
+name = "ordinal"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ccdf383374cdcb741d97663d98155028638ce24e1f4b2ae544d91460a3a0670"
 
 [[package]]
 name = "pad"

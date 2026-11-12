@@ -1,7 +1,7 @@
 use crate::modules::function::core::monomorphize::{Monomorphizer, Persistence, ResolvedCall};
-use crate::modules::function::core::ordinal_number;
 use crate::modules::function::core::signature::{FunctionParam, FunctionSignature};
 use crate::modules::types::Type;
+use ordinal::ToOrdinal as _;
 use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use itertools::izip;
@@ -22,7 +22,7 @@ pub fn ref_argument_is_not_a_variable(
 ) -> String {
     let arg_name = &param.name;
     let fun_name = &fun.name;
-    let ordinal = ordinal_number(index);
+    let ordinal = index.to_ordinal_string();
     format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable")
 }
 

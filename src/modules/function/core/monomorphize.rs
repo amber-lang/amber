@@ -6,7 +6,7 @@
 
 use crate::compiler::SourcePath;
 use crate::modules::block::Block;
-use crate::modules::function::core::ordinal_number;
+use ordinal::ToOrdinal as _;
 use crate::modules::function::core::signature::{
     FunctionParam, FunctionSignature, FunctionVariant, FunctionVariantId,
 };
@@ -330,6 +330,6 @@ pub fn argument_type_mismatch(
     let arg_name = &param.name;
     let arg_type = &param.kind;
     let fun_name = &fun.name;
-    let ordinal = ordinal_number(index);
+    let ordinal = index.to_ordinal_string();
     format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given}' was given")
 }

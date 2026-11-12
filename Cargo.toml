@@ -42,6 +42,7 @@ similar-string = "1.4.2"
 test-generator = "0.3.1"
 wildmatch = "2.4.0"
 walkdir = "2.5.0"
+ordinal = "0.4.1"
 
 # test dependencies
 [dev-dependencies]
