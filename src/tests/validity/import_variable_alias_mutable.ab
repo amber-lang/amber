@@ -1,0 +1,21 @@
+// Output
+// 1 1
+// ab
+// 8 9
+
+import { counter as c, other as o, label as l } from "src/tests/validity/test_files/import_alias_mutable_source.ab"
+import { counter, other, label } from "src/tests/validity/test_files/import_alias_mutable_source.ab"
+
+main {
+    c = 5
+    c += 2
+    c -= 1
+    c *= 2
+    c /= 3
+    c %= 3
+    echo("{c} {counter}")
+    l += "b"
+    echo(label)
+    [c, o] = [8, 9]
+    echo("{counter} {other}")
+}

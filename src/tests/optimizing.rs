@@ -1,5 +1,5 @@
 /// Tests for the Amber optimizer (unit + integration/snapshot tests).
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::modules::prelude::{FragmentRenderable, TranslateModule};
 use crate::optimizer::optimize_fragments;
 use crate::translate::fragments::fragment::FragmentKind;
@@ -55,7 +55,7 @@ fn test_optimize_fragments_block_fragment() {
 
 pub fn translate_and_optimize_amber_code<T: Into<String>>(code: T) -> Option<String> {
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.into(), None, options);
+    let compiler = AmberCompiler::new(code.into(), SourcePath::Stdin, options);
     let tokens = compiler.tokenize().ok()?;
     let (ast, meta) = compiler.parse(tokens).ok()?;
     let (ast, meta) = compiler.typecheck(ast, meta).ok()?;

@@ -1,20 +1,20 @@
 use std::collections::{BTreeSet, HashMap};
 
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::modules::block::Block;
+use crate::modules::function::core::signature::{
+    FunctionDeclId, FunctionSignature, FunctionVariant, FunctionVariantId,
+};
 use crate::modules::types::Type;
-use crate::utils::TargetShell;
-use crate::utils::context::{Context, FunctionDecl, ScopeUnit, VariableDecl};
+use crate::utils::context::{Context, ScopeUnit, VariableDecl};
 use crate::utils::function_cache::FunctionCache;
-use crate::utils::function_interface::FunctionInterface;
 use crate::utils::import_cache::ImportCache;
+use crate::utils::TargetShell;
 use amber_meta::ContextManager;
 use heraclitus_compiler::prelude::*;
 
 #[derive(Debug, ContextManager)]
 pub struct ParserMetadata {
-    /// Code if the parser is in eval mode
-    pub eval_code: Option<String>,
     /// Used for debugging by Heraclitus
     pub debug: Option<usize>,
     /// Cache of already imported modules
@@ -32,8 +32,8 @@ pub struct ParserMetadata {
     pub messages: Vec<Message>,
     /// Show standard library usage in documentation
     pub doc_usage: bool,
-    /// List of functions that are currently being parsed
-    pub parsing_functions: HashMap<(usize, Vec<Type>), usize>,
+    /// List of function variants that are currently being typechecked in Monomorphiser
+    pub fun_variants_in_typecheck: HashMap<(FunctionDeclId, Vec<Type>), FunctionVariantId>,
     /// List of test names found in the file
     pub test_names: Vec<String>,
     /// Stack of narrowed types for control flow analysis
@@ -41,7 +41,7 @@ pub struct ParserMetadata {
     /// Suppress warnings during monomorphic function re-typechecking
     #[context]
     pub suppress_warnings: bool,
-    /// Skip persisting function instances during first-pass typechecking
+    /// Skip persisting function variants during first-pass typechecking
     /// First pass is used for typechecking a function with declared and not concrete types
     /// This is used to generally assess if a function is valid and emit errors if it is not
     #[context]
@@ -63,9 +63,30 @@ impl ParserMetadata {
 
 // Implement context methods
 impl ParserMetadata {
+    pub fn new(tokens: Vec<Token>, path: SourcePath, code: impl Into<String>) -> Self {
+        ParserMetadata {
+            debug: None,
+            import_cache: ImportCache::new(path.clone(), code.into()),
+            fun_cache: FunctionCache::new(),
+            fun_id: 0,
+            var_id: 0,
+            context: Context::new(path, tokens),
+            messages: Vec::new(),
+            doc_usage: false,
+            fun_variants_in_typecheck: HashMap::new(),
+            test_names: Vec::new(),
+            narrowed_types: Vec::new(),
+            suppress_warnings: false,
+            first_pass_ctx: false,
+            target: None,
+        }
+    }
+
     pub fn with_target_shell(&mut self, options: &CompilerOptions) {
         let target_shell = AmberCompiler::resolve_target_shell(options.target);
-        self.target = Some(TargetShell { shell: target_shell });
+        self.target = Some(TargetShell {
+            shell: target_shell,
+        });
     }
 
     /* Scopes */
@@ -117,12 +138,11 @@ impl ParserMetadata {
     }
 
     /// Adds a variable to the current scope
-    /// Adds a variable to the current scope
     pub fn add_var(&mut self, mut var: VariableDecl) -> Option<usize> {
         let global_id = self.gen_var_id();
         var.global_id = Some(global_id);
         if var.is_public {
-            self.context.pub_vars.push(var.clone());
+            self.context.pub_vars.insert(var.name.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(var);
@@ -195,70 +215,63 @@ impl ParserMetadata {
     /* Functions */
 
     /// Generate a new global function id
-    pub fn gen_fun_id(&mut self) -> usize {
+    pub fn gen_fun_id(&mut self) -> FunctionDeclId {
         let id = self.fun_id;
         self.fun_id += 1;
-        id
+        FunctionDeclId::new(id)
     }
 
-    /// Adds a function declaration to the current scope
-    pub fn add_fun_declaration(
-        &mut self,
-        fun: FunctionInterface,
-        ctx: Context,
-        block: Block,
-    ) -> Option<usize> {
-        let global_id = self.gen_fun_id();
+    /// Registers a freshly declared function in the current scope and adds
+    /// a new cache entry with the declaration-time context and body.
+    /// Returns false if function under such name already exists in the scope
+    pub fn declare_function(&mut self, fun: FunctionSignature, ctx: Context, block: Block) -> bool {
+        let id = fun.id;
         // Add the function to the public function list
         if fun.is_public {
-            let decl = fun.clone().into_fun_declaration(global_id);
-            self.context.pub_funs.push(decl);
+            self.context.pub_funs.insert(fun.name.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun(fun.into_fun_declaration(global_id)).then(|| {
+        let added = scope.add_fun(fun);
+        if added {
             // Add the function to the function cache
-            self.fun_cache.add_declaration(global_id, ctx, block);
-            global_id
-        })
+            self.fun_cache.add_declaration(id, ctx, block);
+        }
+        added
     }
 
-    /// Adds a function declaration that that was already parsed - this function is probably imported
-    pub fn add_fun_declaration_existing(&mut self, fun: FunctionDecl) -> Option<usize> {
-        let global_id = self.gen_fun_id();
+    /// Adds a function declaration that was already parsed - this function is probably imported.
+    pub fn add_fun_declaration_existing(&mut self, visible_name: String, fun: FunctionSignature) -> bool {
         // Add the function to the public function list
         if fun.is_public {
-            self.context.pub_funs.push(fun.clone());
+            self.context.pub_funs.insert(visible_name.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun(fun).then_some(global_id)
+        scope.add_fun_as(visible_name, fun)
     }
 
-    pub fn add_var_declaration_existing(&mut self, var: VariableDecl) -> Option<usize> {
+    /// Adds a variable declaration that was already parsed (this variable is probably imported)
+    pub fn add_var_declaration_existing(&mut self, visible_name: String, var: VariableDecl) -> Option<usize> {
         let global_id = self.gen_var_id();
         if var.is_public {
-            self.context.pub_vars.push(var.clone());
+            self.context.pub_vars.insert(visible_name.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var(var).then_some(global_id)
+        scope.add_var_as(visible_name, var).then_some(global_id)
     }
 
-    /// Adds a function instance to the cache
-    /// This function returns the id of the function instance variant
-    pub fn add_fun_instance(
+    /// Persists a monomorphized variant in the cache and returns its id.
+    pub fn add_fun_variant(
         &mut self,
-        fun: FunctionInterface,
-        args_global_ids: Vec<Option<usize>>,
-        block: Block,
-    ) -> usize {
-        let id = fun.id.expect("Function id is not set");
-        self.fun_cache
-            .add_instance(id, fun.into_fun_instance(args_global_ids, block))
+        id: FunctionDeclId,
+        variant: FunctionVariant,
+    ) -> Option<FunctionVariantId> {
+        self.fun_cache.insert_reserved_variant(id, variant)
     }
 
     /// Gets a function declaration from the current scope or any parent scope
-    pub fn get_fun_declaration(&self, name: &str) -> Option<&FunctionDecl> {
+    pub fn get_fun_declaration(&self, name: &str) -> Option<&FunctionSignature> {
         self.context
             .scopes
             .iter()
@@ -267,7 +280,7 @@ impl ParserMetadata {
     }
 
     /// Gets a function from the current scope
-    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionDecl> {
+    pub fn get_function_in_current_scope(&self, name: &str) -> Option<&FunctionSignature> {
         self.context
             .scopes
             .last()
@@ -307,26 +320,6 @@ impl ParserMetadata {
 }
 
 impl Metadata for ParserMetadata {
-    fn new(tokens: Vec<Token>, path: Option<String>, code: Option<String>) -> Self {
-        ParserMetadata {
-            eval_code: code,
-            debug: None,
-            import_cache: ImportCache::new(path.clone()),
-            fun_cache: FunctionCache::new(),
-            fun_id: 0,
-            var_id: 0,
-            context: Context::new(path, tokens),
-            messages: Vec::new(),
-            doc_usage: false,
-            parsing_functions: HashMap::new(),
-            test_names: Vec::new(),
-            narrowed_types: Vec::new(),
-            suppress_warnings: false,
-            first_pass_ctx: false,
-            target: None
-        }
-    }
-
     fn get_token_at(&self, index: usize) -> Option<Token> {
         self.context.expr.get(index).cloned()
     }
@@ -347,12 +340,16 @@ impl Metadata for ParserMetadata {
         self.debug = Some(indent)
     }
 
-    fn get_path(&self) -> Option<String> {
-        self.context.path.clone()
+    fn get_path(&self) -> Option<&str> {
+        match &self.context.path {
+            SourcePath::Stdin => None,
+            path => Some(path.to_string()),
+        }
     }
 
-    fn get_code(&self) -> Option<&String> {
-        self.eval_code.as_ref()
+    fn get_code(&self) -> &str {
+        self.import_cache.get_code(&self.context.path)
+            .expect("Invalid file path has been provided to parser metadata")
     }
 
     fn get_trace(&self) -> Vec<PositionInfo> {

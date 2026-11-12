@@ -1,0 +1,3 @@
+[submodule "heraclitus"]
+	path = heraclitus
+	url = https://github.com/amber-lang/heraclitus

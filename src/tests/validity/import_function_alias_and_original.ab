@@ -1,0 +1,9 @@
+// Output
+// hi
+// hi
+
+import { greet as hello } from "src/tests/validity/test_files/import_alias_source.ab"
+import { greet } from "src/tests/validity/test_files/import_alias_source.ab"
+
+echo(hello())
+echo(greet())

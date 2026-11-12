@@ -31,7 +31,7 @@ clap = { version = "4.5.20", features = ["derive"] }
 clap_complete = "4.5.36"
 colored = "2.0.0"
 glob = "0.3"
-heraclitus-compiler = "1.9.0"
+heraclitus-compiler = { path = "heraclitus" }
 include_dir = "0.7.4"
 insta = "1.43.1"
 itertools = "0.13.0"
@@ -42,6 +42,7 @@ similar-string = "1.4.2"
 test-generator = "0.3.1"
 wildmatch = "2.4.0"
 walkdir = "2.5.0"
+ordinal = "0.4.1"
 
 # test dependencies
 [dev-dependencies]
@@ -64,6 +65,7 @@ opt-level = 3
 
 [workspace]
 members = ["meta"]
+exclude = ["heraclitus"]
 
 [build-dependencies]
 build-helper = "0.1.1"

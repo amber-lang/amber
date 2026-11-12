@@ -138,7 +138,8 @@ fn test_handle_eval_with_error() {
 
 #[test]
 fn test_handle_docs_with_usage_flag() {
-    let input_path = PathBuf::from("src/tests/stdlib/math_sum.ab");
+    // `--usage` is only accepted for standard library sources
+    let input_path = PathBuf::from("src/std/math.ab");
     let temp_dir = tempdir().unwrap();
     let output_path = temp_dir.path().join("index.html");
 

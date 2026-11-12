@@ -6,6 +6,7 @@ use crate::modules::prelude::{BlockFragment, FragmentKind, FragmentRenderable, R
 use crate::modules::typecheck::TypeCheckModule;
 use crate::optimizer::optimize_fragments;
 use crate::rules;
+use crate::stdlib;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{pluralize, ParserMetadata, ShellType, TranslateMetadata};
@@ -14,7 +15,6 @@ use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 use postprocessor::PostProcessor;
 use std::fs;
-use std::fs::File;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
 use std::path::PathBuf;
@@ -24,6 +24,75 @@ use wildmatch::WildMatchPattern;
 
 pub mod postprocessor;
 pub mod shell_resolve;
+
+#[derive(Clone, Debug)]
+pub enum SourcePath {
+    File { display: String, canonical: PathBuf },
+    StdLib(String),
+    Stdin,
+}
+
+impl PartialEq for SourcePath {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                Self::File { canonical: candidate_path, .. },
+                Self::File { canonical: target_path, .. },
+            ) => candidate_path == target_path,
+            (Self::StdLib(candidate_name), Self::StdLib(target_name)) => {
+                candidate_name == target_name
+            }
+            (Self::Stdin, Self::Stdin) => true,
+            _ => false,
+        }
+    }
+}
+
+impl SourcePath {
+    pub fn file(display: impl Into<String>) -> std::io::Result<Self> {
+        let path = display.into();
+        let file_path = fs::canonicalize(&path)?;
+        Ok(SourcePath::File { display: path, canonical: file_path })
+    }
+
+    pub fn join_relative(&self, relative: &str) -> Option<PathBuf> {
+        let base = self.to_path_string()?;
+        let mut path = PathBuf::from(base);
+        path.pop();
+        path.push(relative);
+        Some(path)
+    }
+
+    pub fn to_path_string(&self) -> Option<&str> {
+        match &self {
+            Self::File { display, .. } => Some(display.as_str()),
+            Self::Stdin => Some("."),
+            Self::StdLib(_) => None
+        }
+    }
+
+    /// Returns the standard library module name or `None` if this is a regular file / stdin
+    pub fn stdlib_module_name(&self) -> Option<&str> {
+        match self {
+            Self::StdLib(name) => Some(name.strip_prefix("std/").unwrap_or(name)),
+            Self::File { canonical, .. } => {
+                let parent = canonical.parent()?.file_name()?.to_str()?;
+                let stem = canonical.file_stem()?.to_str()?;
+                (parent == "std" && stdlib::exists(stem)).then_some(stem)
+            }
+            Self::Stdin => None,
+        }
+    }
+
+    pub fn to_string(&self) -> &str {
+        match &self {
+            Self::File { display, .. } => display.as_ref(),
+            Self::StdLib(name) => name.as_ref(),
+            Self::Stdin => "STDIN",
+        }
+    }
+}
+
 
 /// Escapes a string for safe use as a shell argument in double quotes.
 /// Handles shell-special characters: $ ` " \ !
@@ -36,7 +105,6 @@ pub fn escape_shell_arg(s: &str) -> String {
         })
         .join("")
 }
-const NO_CODE_PROVIDED: &str = "No code has been provided to the compiler";
 
 pub struct CompilerOptions {
     pub no_proc: Vec<String>,
@@ -128,16 +196,15 @@ impl CompilerOptions {
 
 pub struct AmberCompiler {
     pub cc: Compiler,
-    pub path: Option<String>,
+    pub path: SourcePath,
     pub options: CompilerOptions,
 }
 
 impl AmberCompiler {
-    pub fn new(code: String, path: Option<String>, options: CompilerOptions) -> AmberCompiler {
+    pub fn new(code: String, path: SourcePath, options: CompilerOptions) -> AmberCompiler {
         let code = code.replace("\r\n", "\n").replace('\r', "\n");
-        let cc = Compiler::new("Amber", rules::get_rules());
-        let compiler = AmberCompiler { cc, path, options };
-        compiler.load_code(AmberCompiler::comment_shebang(code))
+        let cc = Compiler::new("Amber", rules::get_rules(), AmberCompiler::comment_shebang(code));
+        AmberCompiler { cc, path, options }
     }
 
     fn comment_shebang(code: String) -> String {
@@ -148,17 +215,12 @@ impl AmberCompiler {
         }
     }
 
-    pub fn load_code(mut self, code: String) -> Self {
-        self.cc.load(code);
-        self
-    }
-
     pub fn tokenize(&self) -> Result<Vec<Token>, Message> {
         let time = Instant::now();
         match self.cc.tokenize() {
             Ok(tokens) => {
                 if self.options.debug_time {
-                    let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+                    let pathname = self.path.to_string();
                     println!(
                         "[{}]\tin\t{}ms\t{pathname}",
                         "Tokenize".cyan(),
@@ -176,16 +238,14 @@ impl AmberCompiler {
                         format!("Unclosed {}", pos.data.as_ref().unwrap())
                     }
                 };
-                let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
-                let meta = ParserMetadata::new(vec![], self.path.clone(), Some(code));
+                let meta = ParserMetadata::new(vec![], self.path.clone(), &self.cc.code);
                 Err(Message::new_err_at_position(&meta, pos).message(error_message))
             }
         }
     }
 
     pub fn parse(&self, tokens: Vec<Token>) -> Result<(Block, ParserMetadata), Message> {
-        let code = self.cc.code.as_ref().expect(NO_CODE_PROVIDED).clone();
-        let mut meta = ParserMetadata::new(tokens, self.path.clone(), Some(code));
+        let mut meta = ParserMetadata::new(tokens, self.path.clone(), &self.cc.code);
         if let Err(Failure::Loud(err)) = check_all_blocks(&meta) {
             return Err(err);
         }
@@ -198,7 +258,7 @@ impl AmberCompiler {
             block.parse(&mut meta)
         };
         if self.options.debug_time {
-            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            let pathname = self.path.to_string();
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
                 "Parsed".blue(),
@@ -216,26 +276,19 @@ impl AmberCompiler {
         &self,
         block: Block,
         meta: &ParserMetadata,
-    ) -> Vec<(String, Block)> {
-        let imports_sorted = meta.import_cache.topological_sort();
-        let imports_blocks = meta
-            .import_cache
-            .files
-            .iter()
-            .map(|file| {
+    ) -> Vec<(SourcePath, Block)> {
+        let files = &meta.import_cache.files;
+        meta.import_cache
+            .topological_sort()
+            .into_iter()
+            .filter_map(|id| {
+                let file = &files[id];
                 file.metadata
                     .as_ref()
-                    .map(|meta| (file.path.clone(), meta.block.clone()))
+                    .map(|file_meta| (file.path.clone(), file_meta.block.clone()))
             })
-            .collect::<Vec<Option<(String, Block)>>>();
-        let mut result = vec![];
-        for index in imports_sorted.iter() {
-            if let Some((path, block)) = imports_blocks[*index].clone() {
-                result.push((path, block));
-            }
-        }
-        result.push((self.path.clone().unwrap_or(String::from("unknown")), block));
-        result
+            .chain(once((self.path.clone(), block)))
+            .collect()
     }
 
     fn gen_header(&self, target_shell: ShellType) -> String {
@@ -325,7 +378,7 @@ impl AmberCompiler {
             body.append(block.translate(&mut meta_translate));
         }
         if self.options.debug_time {
-            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            let pathname = self.path.to_string();
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
                 "Translate".magenta(),
@@ -400,16 +453,12 @@ impl AmberCompiler {
         let ast_forest = self.get_sorted_ast_forest(block, &meta);
         let mut paths = vec![];
         for (path, block) in ast_forest {
-            let dep_path = {
-                let dep_path = match fs::canonicalize(PathBuf::from(path)) {
-                    Ok(path) => path,
-                    Err(_) => continue,
-                };
-                if !dep_path.starts_with(&base_dir) {
-                    continue;
-                }
-                dep_path
+            let SourcePath::File { canonical: dep_path, .. } = &path else {
+                continue;
             };
+            if !dep_path.starts_with(&base_dir) {
+                continue;
+            }
             let document = block.document(&meta);
             // Check if an output directory was specified.
             if let Some(output) = &output {
@@ -432,7 +481,7 @@ impl AmberCompiler {
                 }
                 let filename = dep_path.file_stem().unwrap().to_string_lossy();
                 let path = dir_path.join(format!("{filename}.md"));
-                let mut file = File::create(path.clone()).unwrap();
+                let mut file = fs::File::create(path.clone()).unwrap();
                 file.write_all(document.as_bytes()).unwrap();
                 paths.push(String::from(path.to_string_lossy()));
             } else {
@@ -463,7 +512,7 @@ impl AmberCompiler {
         }
 
         if self.options.debug_time {
-            let pathname = self.path.clone().unwrap_or(String::from("unknown"));
+            let pathname = self.path.to_string();
             println!(
                 "[{}]\tin\t{}ms\t{pathname}",
                 "Typecheck".green(),
@@ -509,6 +558,12 @@ impl AmberCompiler {
     }
 
     pub fn generate_docs(&self, output: Option<String>, usage: bool) -> Result<(), Message> {
+        if usage && self.path.stdlib_module_name().is_none() {
+            return Err(Message::new_err_msg(format!(
+                "The '--usage' flag is only supported for standard library files, but '{}' isn't one",
+                self.path.to_string()
+            )));
+        }
         let tokens = self.tokenize()?;
         let (block, meta) = self.parse(tokens)?;
         let (block, mut meta) = self.typecheck(block, meta)?;
