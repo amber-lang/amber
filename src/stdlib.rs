@@ -1,6 +1,10 @@
 use include_dir::{include_dir, Dir};
 pub const STDLIB: Dir = include_dir!("src/std");
 
+pub fn exists(path: &str) -> bool {
+    STDLIB.get_file(format!("{path}.ab")).is_some()
+}
+
 pub fn resolve<T: Into<String>>(path: T) -> Option<String> {
     let path = path.into();
 

@@ -38,10 +38,12 @@ pub fun undocumented(items: [Int]): Null? {
 }
 "#;
 
-    /// Generates documentation of `LIBRARY` saved as `mylib.ab`.
+    /// Generates documentation of a mock `LIBRARY` saved as `std/text.ab`,
     fn document_library(usage: bool) -> String {
         let temp_dir = tempdir().unwrap();
-        let path = temp_dir.path().join("mylib.ab");
+        let std_dir = temp_dir.path().join("std");
+        fs::create_dir(&std_dir).unwrap();
+        let path = std_dir.join("text.ab");
         fs::write(&path, LIBRARY).unwrap();
         let source = SourcePath::file(path.to_string_lossy()).unwrap();
         let compiler = AmberCompiler::new(LIBRARY.to_string(), source, CompilerOptions::default());
@@ -84,7 +86,7 @@ pub fun undocumented(items: [Int]): Null? {
     fn test_usage_import_after_usage_section() {
         let docs = document_library(true);
         // The import statement is inserted at the top of the existing usage example
-        let expected = "### Usage\n```ab\nimport { add } from \"std/mylib\"\n\necho(add(1, 2))";
+        let expected = "### Usage\n```ab\nimport { add } from \"std/text\"\n\necho(add(1, 2))";
         assert!(docs.contains(expected), "Unexpected documentation:\n{docs}");
     }
 
@@ -92,7 +94,7 @@ pub fun undocumented(items: [Int]): Null? {
     fn test_usage_import_appended_without_usage_section() {
         let docs = document_library(true);
         // Without a usage section, a code block with the import statement is appended
-        let expected = "Greets someone.\n```ab\nimport { greet } from \"std/mylib\"\n```";
+        let expected = "Greets someone.\n```ab\nimport { greet } from \"std/text\"\n```";
         assert!(docs.contains(expected), "Unexpected documentation:\n{docs}");
     }
 
@@ -103,5 +105,18 @@ pub fun undocumented(items: [Int]): Null? {
             !docs.contains("import {"),
             "Unexpected documentation:\n{docs}"
         );
+    }
+
+    #[test]
+    fn test_usage_flag_rejected_for_non_stdlib_file() {
+        let temp_dir = tempdir().unwrap();
+        // Same file stem as a stdlib module, but not inside a `std` directory
+        let path = temp_dir.path().join("text.ab");
+        fs::write(&path, LIBRARY).unwrap();
+        let source = SourcePath::file(path.to_string_lossy()).unwrap();
+        let compiler = AmberCompiler::new(LIBRARY.to_string(), source, CompilerOptions::default());
+        let err = compiler.generate_docs(Some("-".into()), true).unwrap_err();
+        let message = err.message.unwrap_or_default();
+        assert!(message.contains("'--usage' flag is only supported"), "Unexpected error: {message}");
     }
 }

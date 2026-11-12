@@ -2,8 +2,6 @@
 
 use super::FunctionDeclaration;
 use crate::utils::ParserMetadata;
-use std::ffi::OsStr;
-use std::path::Path;
 
 impl FunctionDeclaration {
     /// Whether a space belongs between `before` and `word` in the rendered signature.
@@ -55,11 +53,9 @@ impl FunctionDeclaration {
         meta: &ParserMetadata,
         mut comment_text: String,
     ) -> String {
-        if meta.doc_usage {
-            let lib_name = Path::new(meta.context.path.to_string())
-                .file_stem()
-                .and_then(OsStr::to_str)
-                .unwrap_or_default();
+        // Only stdlib sources have a known `std/<module>` import path
+        let lib_name = meta.context.path.stdlib_module_name();
+        if let (true, Some(lib_name)) = (meta.doc_usage, lib_name) {
             let import_stmt = format!("import {{ {} }} from \"std/{}\"\n", self.name, lib_name);
 
             let usage_pattern = regex::Regex::new(r"#\s*Usage\s+```ab").unwrap();

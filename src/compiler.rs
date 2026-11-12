@@ -6,6 +6,7 @@ use crate::modules::prelude::{BlockFragment, FragmentKind, FragmentRenderable, R
 use crate::modules::typecheck::TypeCheckModule;
 use crate::optimizer::optimize_fragments;
 use crate::rules;
+use crate::stdlib;
 use crate::translate::check_all_blocks;
 use crate::translate::module::TranslateModule;
 use crate::utils::{pluralize, ParserMetadata, ShellType, TranslateMetadata};
@@ -67,6 +68,19 @@ impl SourcePath {
             Self::File { display, .. } => Some(display.as_str()),
             Self::Stdin => Some("."),
             Self::StdLib(_) => None
+        }
+    }
+
+    /// Returns the standard library module name or `None` if this is a regular file / stdin
+    pub fn stdlib_module_name(&self) -> Option<&str> {
+        match self {
+            Self::StdLib(name) => Some(name.strip_prefix("std/").unwrap_or(name)),
+            Self::File { canonical, .. } => {
+                let parent = canonical.parent()?.file_name()?.to_str()?;
+                let stem = canonical.file_stem()?.to_str()?;
+                (parent == "std" && stdlib::exists(stem)).then_some(stem)
+            }
+            Self::Stdin => None,
         }
     }
 
@@ -544,6 +558,12 @@ impl AmberCompiler {
     }
 
     pub fn generate_docs(&self, output: Option<String>, usage: bool) -> Result<(), Message> {
+        if usage && self.path.stdlib_module_name().is_none() {
+            return Err(Message::new_err_msg(format!(
+                "The '--usage' flag is only supported for standard library files, but '{}' isn't one",
+                self.path.to_string()
+            )));
+        }
         let tokens = self.tokenize()?;
         let (block, meta) = self.parse(tokens)?;
         let (block, mut meta) = self.typecheck(block, meta)?;
