@@ -1,0 +1,6 @@
+// Output
+// Identifier 'pwd' is a reserved keyword
+
+fun pwd() {}
+
+main {}

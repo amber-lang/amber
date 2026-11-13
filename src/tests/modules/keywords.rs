@@ -102,3 +102,23 @@ mod iter_keywords_tests {
     }
 
 }
+
+#[cfg(test)]
+mod reserved_identifier_tests {
+    use super::*;
+    use crate::modules::variable::variable_name_keywords;
+
+    #[test]
+    fn test_registered_keywords_are_reserved_identifiers() {
+        let reserved = variable_name_keywords();
+        let missing: Vec<_> = iter_keywords()
+            .filter(|kw| kw.kind != KeywordKind::BinaryOp)
+            .map(|kw| kw.keyword)
+            .filter(|kw| !reserved.contains(kw))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "Keywords missing from variable_name_keywords(): {missing:?}"
+        );
+    }
+}

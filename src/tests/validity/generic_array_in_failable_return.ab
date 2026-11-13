@@ -2,9 +2,9 @@
 // 1 2 3
 
 #[allow_dead_code]
-fun test(arr: [Int]): []? {
+fun foo(arr: [Int]): []? {
     if false { fail 1 }
     return arr
 }
 
-echo(trust test([1, 2, 3]))
+echo(trust foo([1, 2, 3]))

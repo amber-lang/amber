@@ -1,7 +1,7 @@
 // Output
 // 53
 
-fun test(a: Num, b: Num) {
+fun foo(a: Num, b: Num) {
     return a + b
 }
-echo(test(11, 42))
+echo(foo(11, 42))
