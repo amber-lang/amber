@@ -1,0 +1,6 @@
+// Output
+// Identifier 'test' is a reserved keyword
+
+main {
+    let test = 1
+}

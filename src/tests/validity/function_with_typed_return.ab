@@ -1,5 +1,5 @@
-pub fun test(): Text {
+pub fun foo(): Text {
     return "Succeeded"
 }
 
-echo(test())
+echo(foo())

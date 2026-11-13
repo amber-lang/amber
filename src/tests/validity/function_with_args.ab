@@ -1,7 +1,7 @@
 // Output
 // Hello World
 
-fun test(a, b) {
+fun foo(a, b) {
     return "{a} {b}"
 }
-echo(test("Hello", "World"))
+echo(foo("Hello", "World"))

@@ -2,9 +2,9 @@
 // 1 2 3
 // Hello Hi
 
-fun test(arr: []): [] {
+fun foo(arr: []): [] {
         return arr
 }
 
-echo(test([1, 2, 3]))
-echo(test(["Hello", "Hi"]))
+echo(foo([1, 2, 3]))
+echo(foo(["Hello", "Hi"]))
