@@ -36,7 +36,7 @@ pub fn get_tests_to_run(
                 continue;
             }
         };
-        let source_path = match SourcePath::file(file.to_string_lossy()) {
+        let source_path = match SourcePath::file(file) {
             Ok(path) => path,
             Err(err) => {
                 errors.push(read_error(err));
@@ -113,7 +113,7 @@ pub fn handle_test(command: TestCommand) -> Result<i32, Box<dyn Error>> {
                 format!("{} ({})", file.display(), name)
             };
 
-            let compiler = SourcePath::file(file.to_string_lossy()).map(|source_path| {
+            let compiler = SourcePath::file(file).map(|source_path| {
                 let options =
                     CompilerOptions::from_args(&command.no_proc, false, true, Some(name.clone()))
                         .with_target(command.target);

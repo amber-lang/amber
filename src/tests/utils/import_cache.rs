@@ -14,7 +14,7 @@ mod import_cache_tests {
     fn source_file(dir: &Path, name: &str) -> SourcePath {
         let path = dir.join(name);
         fs::write(&path, "").unwrap();
-        SourcePath::file(path.to_string_lossy()).unwrap()
+        SourcePath::file(path).unwrap()
     }
 
     #[test]
@@ -54,11 +54,31 @@ mod import_cache_tests {
         let imported = source_file(dir.path(), "lib/a.ab");
         // The same file path written differently
         let same_file = dir.path().join("lib/../lib/a.ab");
-        let same_file = SourcePath::file(same_file.to_string_lossy()).unwrap();
+        let same_file = SourcePath::file(same_file).unwrap();
         let mut cache = ImportCache::new(SourcePath::Stdin, String::new());
         cache.add_import_entry(&SourcePath::Stdin, &imported);
 
         assert_eq!(cache.get_path_id(&same_file), Some(1));
+    }
+
+    /// Linux filesystems allow non-UTF-8 file names
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_source_path_file_non_utf8_dir() {
+        use std::ffi::OsStr;
+        use std::os::unix::ffi::OsStrExt;
+
+        let dir = tempdir().unwrap();
+        let non_utf8_dir = dir.path().join(OsStr::from_bytes(b"lib\xff"));
+        fs::create_dir(&non_utf8_dir).unwrap();
+        let path = non_utf8_dir.join("a.ab");
+        fs::write(&path, "").unwrap();
+
+        let source = SourcePath::file(&path).unwrap();
+        let SourcePath::File { canonical, .. } = source else {
+            panic!("Expected a file source path");
+        };
+        assert_eq!(canonical, fs::canonicalize(&path).unwrap());
     }
 
     #[test]

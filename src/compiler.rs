@@ -17,7 +17,7 @@ use postprocessor::PostProcessor;
 use std::fs;
 use std::io::{ErrorKind, Write};
 use std::iter::once;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{exit, ExitStatus};
 use std::time::Instant;
 use wildmatch::WildMatchPattern;
@@ -49,10 +49,11 @@ impl PartialEq for SourcePath {
 }
 
 impl SourcePath {
-    pub fn file(display: impl Into<String>) -> std::io::Result<Self> {
-        let path = display.into();
-        let file_path = fs::canonicalize(&path)?;
-        Ok(SourcePath::File { display: path, canonical: file_path })
+    pub fn file(path: impl AsRef<Path>) -> std::io::Result<Self> {
+        let path = path.as_ref();
+        let canonical = fs::canonicalize(path)?;
+        let display = path.to_string_lossy().into_owned();
+        Ok(SourcePath::File { display, canonical })
     }
 
     pub fn join_relative(&self, relative: &str) -> Option<PathBuf> {

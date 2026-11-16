@@ -45,7 +45,7 @@ pub fun undocumented(items: [Int]): Null? {
         fs::create_dir(&std_dir).unwrap();
         let path = std_dir.join("text.ab");
         fs::write(&path, LIBRARY).unwrap();
-        let source = SourcePath::file(path.to_string_lossy()).unwrap();
+        let source = SourcePath::file(path).unwrap();
         let compiler = AmberCompiler::new(LIBRARY.to_string(), source, CompilerOptions::default());
         let tokens = compiler.tokenize().unwrap();
         let (block, meta) = compiler.parse(tokens).unwrap();
@@ -113,7 +113,7 @@ pub fun undocumented(items: [Int]): Null? {
         // Same file stem as a stdlib module, but not inside a `std` directory
         let path = temp_dir.path().join("text.ab");
         fs::write(&path, LIBRARY).unwrap();
-        let source = SourcePath::file(path.to_string_lossy()).unwrap();
+        let source = SourcePath::file(path).unwrap();
         let compiler = AmberCompiler::new(LIBRARY.to_string(), source, CompilerOptions::default());
         let err = compiler.generate_docs(Some("-".into()), true).unwrap_err();
         let message = err.message.unwrap_or_default();
