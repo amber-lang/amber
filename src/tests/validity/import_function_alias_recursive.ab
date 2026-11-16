@@ -1,0 +1,10 @@
+// Output
+// 2
+// 1
+// 0
+
+import { countdown as down } from "src/tests/validity/test_files/import_alias_recursive_source.ab"
+
+main {
+    down(2)
+}

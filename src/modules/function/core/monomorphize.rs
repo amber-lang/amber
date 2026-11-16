@@ -75,7 +75,7 @@ impl<'a> Monomorphizer<'a> {
             .get_context(self.signature.id)
             .expect("Function was never declared")
             .clone();
-        let block = self
+        let mut block = self
             .meta
             .fun_cache
             .get_block(self.signature.id)
@@ -93,14 +93,12 @@ impl<'a> Monomorphizer<'a> {
             });
         }
 
-        // Reserve this variant so that it doesn't get typechecked
-        // again if this function is recursive
-        let variant = self.reserve_variant(persistence);
-        self.add_forward_function_declarations(&mut context);
-
-        let (result, block, global_ids) = self.typecheck_body(&mut context, block);
-        self.release_variant();
-        result?;
+        // Reserve this variant so that it doesn't get typechecked again if this function is recursive
+        let (variant, global_ids) = self.with_reserved_variant(persistence, |this, variant| {
+            this.add_forward_function_declarations(&mut context);
+            let global_ids = this.typecheck_body(&mut context, &mut block)?;
+            Ok((variant, global_ids))
+        })?;
 
         // Adopt the inferred return type when the declaration left it generic
         let mut returns = self.signature.returns.clone();
@@ -167,6 +165,18 @@ impl<'a> Monomorphizer<'a> {
             .copied()
     }
 
+    /// Marks this function variant as being typechecked while callback is called
+    fn with_reserved_variant<T>(
+        &mut self,
+        persistence: Persistence,
+        f: impl FnOnce(&mut Self, FunctionVariantId) -> Result<T, Failure>,
+    ) -> Result<T, Failure> {
+        let variant = self.reserve_variant(persistence);
+        let result = f(self, variant);
+        self.release_variant();
+        result
+    }
+
     /// Claim the variant id before typechecking, so recursive calls can see it
     fn reserve_variant(&mut self, persistence: Persistence) -> FunctionVariantId {
         let variant = match persistence {
@@ -213,8 +223,8 @@ impl<'a> Monomorphizer<'a> {
     fn typecheck_body(
         &mut self,
         context: &mut Context,
-        mut block: Block,
-    ) -> (Result<(), Failure>, Block, Vec<Option<usize>>) {
+        block: &mut Block,
+    ) -> Result<Vec<Option<usize>>, Failure> {
         // Capture trace, path and the error position
         let caller_trace = self.meta.context.trace.clone();
         let caller_path = self.meta.context.path.clone();
@@ -230,17 +240,20 @@ impl<'a> Monomorphizer<'a> {
         let arg_types = self.arg_types.clone();
         let mut global_ids = Vec::with_capacity(signature.params.len());
 
-        let result = self.meta.with_suppress_warnings(should_suppress, |meta| {
+        self.meta.with_suppress_warnings(should_suppress, |meta| {
             // Swap the contexts to use the function context
             meta.with_context_ref(context, |meta| {
                 // Create a sub context for new variables in function
                 meta.with_push_scope(true, |meta| {
+                    // Inside its own body, the function is called by its declared name, not the caller's alias
+                    let mut own_signature = signature.clone();
+                    own_signature.name.used.clone_from(&own_signature.name.declared);
                     // Add the function itself to the scope to allow recursion
                     meta.context
                         .scopes
                         .last_mut()
                         .unwrap()
-                        .add_fun(signature.clone());
+                        .add_fun(own_signature);
 
                     for (kind, param) in izip!(&arg_types, &signature.params) {
                         let var = VariableDecl::new(param.name.clone(), kind.clone())
@@ -268,9 +281,9 @@ impl<'a> Monomorphizer<'a> {
                     Ok(())
                 })
             })
-        });
+        })?;
 
-        (result, block, global_ids)
+        Ok(global_ids)
     }
 }
 
