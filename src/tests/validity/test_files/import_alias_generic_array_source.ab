@@ -1,0 +1,2 @@
+#[allow_public_mutable]
+pub let arr = []

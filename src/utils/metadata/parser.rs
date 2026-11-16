@@ -202,12 +202,22 @@ impl ParserMetadata {
         }
     }
 
-    /// Updates the type of a variable
+    /// Updates the type of a variable and of every alias that refers to it
+    /// (import aliases share the `global_id` of the original declaration)
     pub fn update_var_type(&mut self, name: &str, new_type: Type) {
-        for scope in self.context.scopes.iter_mut().rev() {
-            if let Some(var) = scope.vars.get_mut(name) {
-                var.kind = new_type;
-                return;
+        let Some(var) = self.context.scopes.iter_mut().rev().find_map(|scope| scope.vars.get_mut(name)) else {
+            return;
+        };
+        let Some(global_id) = var.global_id else {
+            var.kind = new_type;
+            return;
+        };
+        // Update original variable and all aliases already declared with the new variable type
+        for scope in self.context.scopes.iter_mut() {
+            for var in scope.vars.values_mut() {
+                if var.global_id == Some(global_id) {
+                    var.kind = new_type.clone();
+                }
             }
         }
     }
