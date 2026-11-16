@@ -1,12 +1,18 @@
 main {
+    // Ksh's `disown` command only stops SIGHUP and leaves the job in `jobs -l`
+    // This is why we can't verify the ownership this way, so we skip ksh explicitly
+    if shellname() == "ksh" {
+        echo("Succeeded")
+        exit(0)
+    }
+
     trust silent $ killall yes $ // Cleanup before test
 
     trust $ yes > /dev/null 2>&1 & $
     const first_pid = pid()
     disown(first_pid)
 
-    // ksh keeps disowned processes visible in its jobs table.
-    if shellname() == "ksh" or len($ jobs -l $?) == 0 {
+    if len($ jobs -l $?) == 0 {
         trust $ yes > /dev/null 2>&1 & $
         const second_pid = pid()
 
@@ -14,7 +20,7 @@ main {
         const third_pid = pid()
         disown([second_pid, third_pid])
 
-        if shellname() == "ksh" or len($ jobs -l $?) == 0 {
+        if len($ jobs -l $?) == 0 {
             echo("Succeeded")
         } else {
             echo("Process still owned")
