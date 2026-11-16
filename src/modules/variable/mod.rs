@@ -204,10 +204,7 @@ fn is_camel_case(name: &str) -> bool {
             _ => (),
         }
     }
-    if is_lowercase && is_uppercase {
-        return true;
-    }
-    false
+    is_lowercase && is_uppercase
 }
 
 pub fn handle_index_accessor(
