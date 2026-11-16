@@ -89,7 +89,7 @@ impl TypeCheckModule for Nameof {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         // Case for variable `nameof`
         if let Some(var_decl) = meta.get_var_used(&self.name.used) {
-            self.name.declared.clone_from(&var_decl.name);
+            self.name.clone_from(&var_decl.name);
             self.global_id = var_decl.global_id;
             meta.mark_var_modified(&self.name.used);
             return Ok(());
@@ -120,7 +120,7 @@ impl TypeCheckModule for Nameof {
                 };
 
                 self.function_variant = Some((fun_decl.id, variant_id));
-                self.name.declared.clone_from(&fun_decl.name);
+                self.name.clone_from(&fun_decl.name);
                 Ok(())
             }
             None => {

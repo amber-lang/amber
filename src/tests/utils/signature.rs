@@ -1,6 +1,7 @@
 use crate::modules::expression::expr::Expr;
 use crate::modules::function::core::signature::{FunctionDeclId, FunctionParam, FunctionSignature};
 use crate::modules::types::Type;
+use crate::modules::SymbolName;
 use heraclitus_compiler::prelude::SyntaxModule;
 
 #[cfg(test)]
@@ -10,7 +11,7 @@ mod signature_tests {
     fn signature(params: Vec<FunctionParam>) -> FunctionSignature {
         FunctionSignature {
             id: FunctionDeclId::new(1),
-            name: "test_func".to_string(),
+            name: SymbolName::from_declaration("test_func".to_string()),
             params,
             returns: Type::Null,
             is_public: true,

@@ -2,6 +2,7 @@ use super::cc_flags::CCFlags;
 use crate::compiler::SourcePath;
 use crate::modules::function::core::signature::FunctionSignature;
 use crate::modules::types::Type;
+use crate::modules::SymbolName;
 use crate::utils::ParserMetadata;
 use amber_meta::ContextHelper;
 use heraclitus_compiler::prelude::*;
@@ -42,7 +43,7 @@ impl VariableDeclWarn {
 
 #[derive(Clone, Debug)]
 pub struct VariableDecl {
-    pub name: String,
+    pub name: SymbolName,
     pub kind: Type,
     pub global_id: Option<usize>,
     pub is_ref: bool,
@@ -56,7 +57,7 @@ pub struct VariableDecl {
 impl VariableDecl {
     pub fn new(name: String, kind: Type) -> Self {
         Self {
-            name,
+            name: SymbolName::from_declaration(name),
             kind,
             global_id: None,
             is_ref: false,
@@ -103,14 +104,9 @@ impl ScopeUnit {
 
     /* Variables */
 
-    /// Persists a variable declaration in the scope
+    /// Persists a variable declaration in the scope under its reachable name (`name.used`)
     pub fn add_var(&mut self, var: VariableDecl) -> bool {
-        self.add_var_as(var.name.clone(), var)
-    }
-
-    /// Persists a variable declaration in the scope under a different name (used in import alias)
-    pub fn add_var_as(&mut self, name: String, var: VariableDecl) -> bool {
-        self.vars.insert(name, var).is_none()
+        self.vars.insert(var.name.used.clone(), var).is_none()
     }
 
     /// Fetches a variable declaration from the scope
@@ -125,14 +121,9 @@ impl ScopeUnit {
 
     /* Functions */
 
-    /// Persists a function declaration in the scope
+    /// Persists a function declaration in the scope under its reachable name (`name.used`)
     pub fn add_fun(&mut self, fun: FunctionSignature) -> bool {
-        self.add_fun_as(fun.name.clone(), fun)
-    }
-
-    /// Persists a function declaration in the scope under a different name (used in import alias)
-    pub fn add_fun_as(&mut self, name: String, fun: FunctionSignature) -> bool {
-        self.funs.insert(name, fun).is_none()
+        self.funs.insert(fun.name.used.clone(), fun).is_none()
     }
 
     /// Fetches a function declaration from the scope

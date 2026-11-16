@@ -4,6 +4,7 @@ use crate::modules::block::Block;
 use crate::modules::expression::expr::Expr;
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
+use crate::modules::SymbolName;
 use crate::raw_fragment;
 use heraclitus_compiler::prelude::*;
 use std::fmt;
@@ -90,7 +91,7 @@ impl FunctionParam {
 #[derive(Clone, Debug)]
 pub struct FunctionSignature {
     pub id: FunctionDeclId,
-    pub name: String,
+    pub name: SymbolName,
     pub params: Vec<FunctionParam>,
     pub returns: Type,
     pub is_public: bool,

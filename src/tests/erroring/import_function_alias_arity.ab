@@ -1,0 +1,8 @@
+// Output
+// Function 'inc' expects 1 argument, but 2 were given
+
+import { add_one as inc } from "src/tests/validity/test_files/import_alias_source.ab"
+
+main {
+    inc(1, 2)
+}

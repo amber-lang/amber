@@ -110,15 +110,15 @@ impl ParserMetadata {
             // Check for unused variables and const correctness
             for (_, mut var) in scope.vars {
                 if let Some(warn) = var.warn.as_mut() {
-                    if warn.on_unused && !var.is_used && !var.name.starts_with('_') {
+                    if warn.on_unused && !var.is_used && !var.name.used.starts_with('_') {
                         let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
-                            .message(format!("Unused variable '{}'", var.name));
+                            .message(format!("Unused variable '{}'", var.name.used));
                         self.add_message(message);
                     } else if !var.is_const && !var.is_modified && warn.on_unmodified {
                         let message = Message::new_warn_at_position(self, warn.pos.take().unwrap())
                             .message(format!(
                                 "Variable '{}' is never modified, consider using 'const'",
-                                var.name
+                                var.name.used
                             ));
                         self.add_message(message);
                     }
@@ -142,7 +142,7 @@ impl ParserMetadata {
         let global_id = self.gen_var_id();
         var.global_id = Some(global_id);
         if var.is_public {
-            self.context.pub_vars.insert(var.name.clone(), var.clone());
+            self.context.pub_vars.insert(var.name.used.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(var);
@@ -238,7 +238,7 @@ impl ParserMetadata {
         let id = fun.id;
         // Add the function to the public function list
         if fun.is_public {
-            self.context.pub_funs.insert(fun.name.clone(), fun.clone());
+            self.context.pub_funs.insert(fun.name.used.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
@@ -251,24 +251,26 @@ impl ParserMetadata {
     }
 
     /// Adds a function declaration that was already parsed - this function is probably imported.
-    pub fn add_fun_declaration_existing(&mut self, visible_name: String, fun: FunctionSignature) -> bool {
+    pub fn add_fun_declaration_existing(&mut self, visible_name: String, mut fun: FunctionSignature) -> bool {
+        fun.name.used.clone_from(&visible_name);
         // Add the function to the public function list
         if fun.is_public {
             self.context.pub_funs.insert(visible_name.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_fun_as(visible_name, fun)
+        scope.add_fun(fun)
     }
 
     /// Adds a variable declaration that was already parsed (this variable is probably imported)
-    pub fn add_var_declaration_existing(&mut self, visible_name: String, var: VariableDecl) -> Option<usize> {
+    pub fn add_var_declaration_existing(&mut self, visible_name: String, mut var: VariableDecl) -> Option<usize> {
+        var.name.used.clone_from(&visible_name);
         let global_id = self.gen_var_id();
         if var.is_public {
             self.context.pub_vars.insert(visible_name.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
-        scope.add_var_as(visible_name, var).then_some(global_id)
+        scope.add_var(var).then_some(global_id)
     }
 
     /// Persists a monomorphized variant in the cache and returns its id.

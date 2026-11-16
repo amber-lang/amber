@@ -21,7 +21,7 @@ pub fn ref_argument_is_not_a_variable(
     param: &FunctionParam,
 ) -> String {
     let arg_name = &param.name;
-    let fun_name = &fun.name;
+    let fun_name = &fun.name.used;
     let ordinal = (index + 1).to_ordinal_string();
     format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable")
 }

@@ -110,7 +110,7 @@ impl TypeCheckModule for FunctionCall {
             // Look up the function declaration (this requires typecheck phase context)
             let signature = resolve_function(meta, self.name_tok.clone(), &self.name.used)?;
             self.decl_id = signature.id;
-            self.name.declared.clone_from(&signature.name);
+            self.name.clone_from(&signature.name);
 
             let expected_arg_count = signature.total_arity();
             let actual_arg_count = self.args.len();

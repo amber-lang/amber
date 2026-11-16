@@ -112,7 +112,7 @@ pub fn register_function(
     ctx: Context,
     block: Block,
 ) -> Result<(), Failure> {
-    let name = fun.name.clone();
+    let name = fun.name.declared.clone();
     handle_identifier_name(meta, &name, tok.clone())?;
     // Either all arguments are generic or typed
     if fun.has_mixed_typing() {

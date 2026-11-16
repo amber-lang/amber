@@ -54,7 +54,7 @@ impl TypeCheckModule for VariableSet {
 
         let variable = handle_variable_reference(meta, &self.tok, &self.name.used)?;
         self.global_id = variable.global_id;
-        self.name.declared.clone_from(&variable.name);
+        self.name.clone_from(&variable.name);
         self.is_ref = variable.is_ref;
         self.var_type = variable.kind.clone();
         prevent_constant_mutation(meta, &self.tok, &self.name.used, variable.is_const)?;

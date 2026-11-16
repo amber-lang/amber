@@ -50,7 +50,7 @@ impl TypeCheckModule for ShorthandSub {
         let variable = handle_variable_reference(meta, &self.tok, &self.name.used)?;
         prevent_constant_mutation(meta, &self.tok, &self.name.used, variable.is_const)?;
         meta.mark_var_modified(&self.name.used);
-        self.name.declared.clone_from(&variable.name);
+        self.name.clone_from(&variable.name);
         self.kind = variable.kind;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;

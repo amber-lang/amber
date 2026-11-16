@@ -79,7 +79,7 @@ impl TypeCheckModule for VariableSetDestruct {
 
         for (name, tok) in self.names.iter_mut().zip(self.toks.iter()) {
             let variable = handle_variable_reference(meta, tok, &name.used)?;
-            name.declared.clone_from(&variable.name);
+            name.clone_from(&variable.name);
             self.global_ids.push(variable.global_id);
             self.is_refs.push(variable.is_ref);
             self.var_types.push(variable.kind.clone());

@@ -36,6 +36,10 @@ impl SymbolName {
     pub fn new(used_name: String) -> Self {
         SymbolName { used: used_name, ..Default::default() }
     }
+
+    pub fn from_declaration(name: String) -> Self {
+        SymbolName { used: name.clone(), declared: name }
+    }
 }
 
 /// Consumes a comment or line break at the cursor, if there is one.

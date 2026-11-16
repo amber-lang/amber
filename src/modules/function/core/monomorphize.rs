@@ -317,7 +317,7 @@ pub fn arity_mismatch(fun: &FunctionSignature, given: usize) -> String {
     let txt_given = pluralize(given, "was given", "were given");
     format!(
         "Function '{}' expects {bound}{expected} {txt_arguments}, but {given} {txt_given}",
-        fun.name
+        fun.name.used
     )
 }
 
@@ -329,7 +329,7 @@ pub fn argument_type_mismatch(
 ) -> String {
     let arg_name = &param.name;
     let arg_type = &param.kind;
-    let fun_name = &fun.name;
+    let fun_name = &fun.name.used;
     let ordinal = (index + 1).to_ordinal_string();
     format!("{ordinal} argument '{arg_name}' of function '{fun_name}' expects type '{arg_type}', but '{given}' was given")
 }

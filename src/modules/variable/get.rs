@@ -43,7 +43,7 @@ impl TypeCheckModule for VariableGet {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         let variable = handle_variable_reference(meta, &self.tok, &self.name.used)?;
         self.global_id = variable.global_id;
-        self.name.declared.clone_from(&variable.name);
+        self.name.clone_from(&variable.name);
         self.is_ref = variable.is_ref;
         self.kind = variable.kind.clone();
         Ok(())

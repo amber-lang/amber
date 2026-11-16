@@ -18,6 +18,7 @@ use crate::modules::statement::comment_doc::CommentDoc;
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::Type;
 use crate::modules::variable::variable_name_extensions;
+use crate::modules::SymbolName;
 use crate::raw_fragment;
 use crate::utils::cc_flags::{get_ccflag_by_name, CCFlags};
 use crate::utils::context::Context;
@@ -168,7 +169,7 @@ impl TypeCheckModule for FunctionDeclaration {
 
             let signature = FunctionSignature {
                 id: meta.gen_fun_id(),
-                name: self.name.clone(),
+                name: SymbolName::from_declaration(self.name.clone()),
                 params: self.params.clone(),
                 returns: self.returns.clone(),
                 is_public: self.is_public,
