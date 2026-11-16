@@ -1,4 +1,5 @@
 use crate::modules::expression::expr::{Expr, ExprType};
+use crate::modules::keywords::{iter_keywords, KeywordKind};
 use crate::modules::types::{Type, Typed};
 use crate::utils::cc_flags::{get_ccflag_name, CCFlags};
 use crate::utils::context::VariableDecl;
@@ -7,6 +8,7 @@ use crate::utils::metadata::ParserMetadata;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 use similar_string::find_best_similarity;
+use std::sync::OnceLock;
 pub mod get;
 pub mod init;
 pub mod init_destruct;
@@ -17,60 +19,29 @@ pub fn variable_name_extensions() -> Vec<char> {
     vec!['_']
 }
 
-pub fn variable_name_keywords() -> Vec<&'static str> {
-    vec![
-        "Bool",
-        "Null",
-        "Number",
-        "Text",
-        "and",
-        "as",
-        "break",
-        "cd",
-        "const",
-        "continue",
-        "echo",
-        "else",
-        "exit",
-        "exited",
-        "fail",
-        "failed",
-        "false",
-        "for",
-        "from",
-        "fun",
-        "if",
-        "import",
-        "in",
-        "is",
-        "len",
-        "let",
-        "lines",
-        "lock",
-        "loop",
-        "main",
-        "mv",
-        "nameof",
-        "touch",
-        "not",
-        "null",
-        "or",
-        "pub",
-        "ref",
-        "return",
-        "silent",
-        "sleep",
-        "status",
-        "sudo",
-        "succeeded",
-        "suppress",
-        "then",
-        "trust",
-        "true",
-        "unsafe",
-        "while",
-    ]
+/// Reserved identifiers that are not registered through `AutoKeyword`:
+/// type names, literals and the `and` / `or` operators. The other binary
+/// operator names (`add`, `eq`, ...) stay usable as identifiers.
+const EXTRA_RESERVED_KEYWORDS: &[&str] = &[
+    "Bool", "Null", "Number", "Text", "and", "false", "null", "or", "true",
+];
+
+/// Every keyword registered through `AutoKeyword` (except binary operators)
+/// plus `EXTRA_RESERVED_KEYWORDS`, collected once.
+pub fn variable_name_keywords() -> &'static [&'static str] {
+    static KEYWORDS: OnceLock<Vec<&'static str>> = OnceLock::new();
+    KEYWORDS.get_or_init(|| {
+        let mut keywords: Vec<&'static str> = iter_keywords()
+            .filter(|kw| kw.kind != KeywordKind::BinaryOp)
+            .map(|kw| kw.keyword)
+            .chain(EXTRA_RESERVED_KEYWORDS.iter().copied())
+            .collect();
+        keywords.sort_unstable();
+        keywords.dedup();
+        keywords
+    })
 }
+
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "as"]
 #[kind = "stmt"]

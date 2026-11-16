@@ -1,4 +1,4 @@
-pub fun test(): Num? {
+pub fun foo(): Num? {
     if 0 < 5 {
         fail 1
     }
@@ -6,4 +6,4 @@ pub fun test(): Num? {
     return 42
 }
 
-echo(test() failed: echo("Succeeded"))
+echo(foo() failed: echo("Succeeded"))

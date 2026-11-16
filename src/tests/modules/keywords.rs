@@ -102,3 +102,50 @@ mod iter_keywords_tests {
     }
 
 }
+#[cfg(test)]
+mod reserved_identifier_tests {
+    use super::*;
+    use crate::modules::variable::variable_name_keywords;
+
+    #[test]
+    fn test_registered_keywords_are_reserved_identifiers() {
+        let reserved = variable_name_keywords();
+        for kw in iter_keywords().filter(|kw| kw.kind != KeywordKind::BinaryOp) {
+            assert!(
+                reserved.contains(&kw.keyword),
+                "'{}' is not reserved",
+                kw.keyword
+            );
+        }
+        for name in [
+            "await",
+            "clear",
+            "cp",
+            "disown",
+            "ls",
+            "pid",
+            "pwd",
+            "rm",
+            "shellname",
+            "shellversion",
+            "test",
+        ] {
+            assert!(reserved.contains(&name), "'{name}' is not reserved");
+        }
+        for name in [
+            "Bool", "Null", "Number", "Text", "and", "or", "true", "false", "null",
+        ] {
+            assert!(reserved.contains(&name), "'{name}' is not reserved");
+        }
+    }
+
+    #[test]
+    fn test_binary_operator_names_are_not_reserved() {
+        let reserved = variable_name_keywords();
+        for name in [
+            "add", "sub", "mul", "div", "modulo", "eq", "neq", "lt", "gt", "le", "ge", "range",
+        ] {
+            assert!(!reserved.contains(&name), "'{name}' should not be reserved");
+        }
+    }
+}

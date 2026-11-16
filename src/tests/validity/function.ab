@@ -1,4 +1,4 @@
-fun test() {
+fun foo() {
     return "Succeeded"
 }
-echo(test())
+echo(foo())
