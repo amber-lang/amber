@@ -23,7 +23,6 @@ dependencies = [
  "clap",
  "clap_complete",
  "colored",
- "glob",
  "heraclitus-compiler",
  "include_dir",
  "insta",
