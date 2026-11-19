@@ -1,0 +1,9 @@
+// Output
+// 2
+
+// The re-exporting module inferred `[Int]`, so this module must receive `[Int]` too
+import { values } from "src/tests/validity/test_files/import_reexport_generic_array_middle.ab"
+
+main {
+    echo(values[0] + 1)
+}
