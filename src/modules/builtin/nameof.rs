@@ -29,11 +29,7 @@ impl Nameof {
         meta: &ParserMetadata,
         fun_signature: &FunctionSignature,
     ) -> SyntaxResult {
-        if !fun_signature
-            .params
-            .iter()
-            .all(|param| param.kind.is_strictly_typed())
-        {
+        if !fun_signature.is_strictly_typed() {
             return error!(
                 meta,
                 self.token.clone(),

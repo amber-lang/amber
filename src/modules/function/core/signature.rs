@@ -125,6 +125,12 @@ impl FunctionSignature {
         self.params.iter().all(|param| param.kind != Type::Generic)
     }
 
+    /// Whether every parameter has a single concrete type (no generics),
+    /// no unions and no arrays of non-concrete types
+    pub fn is_strictly_typed(&self) -> bool {
+        self.params.iter().all(|param| param.kind.is_strictly_typed())
+    }
+
     /// Whether the parameter list mixes annotated and generic parameters
     pub fn has_mixed_typing(&self) -> bool {
         let any_generic = self.params.iter().any(|param| param.kind == Type::Generic);

@@ -44,7 +44,7 @@ impl Persistence {
 pub struct Monomorphizer<'a> {
     meta: &'a mut ParserMetadata,
     signature: FunctionSignature,
-    arg_types: Vec<Type>,
+    arg_types: &'a [Type],
     fun_call_tok: Option<Token>,
 }
 
@@ -52,13 +52,13 @@ impl<'a> Monomorphizer<'a> {
     pub fn new(
         meta: &'a mut ParserMetadata,
         signature: FunctionSignature,
-        arg_types: &[Type],
+        arg_types: &'a [Type],
         fun_call_tok: Option<Token>,
     ) -> Self {
         Monomorphizer {
             meta,
             signature,
-            arg_types: arg_types.to_vec(),
+            arg_types,
             fun_call_tok,
         }
     }
@@ -101,10 +101,11 @@ impl<'a> Monomorphizer<'a> {
         })?;
 
         // Adopt the inferred return type when the declaration left it generic
-        let mut returns = self.signature.returns.clone();
-        if let Type::Generic = returns {
-            returns = context.fun_ret_type.clone().unwrap_or(Type::Null);
-        }
+        let returns = if let Type::Generic = self.signature.returns {
+            context.fun_ret_type.clone().unwrap_or(Type::Null)
+        } else {
+            self.signature.returns.clone()
+        };
 
         match persistence {
             // Used for a warm-up typecheck mainly checking for general issues such as unused variables.
@@ -117,7 +118,7 @@ impl<'a> Monomorphizer<'a> {
                 let monomorph = FunctionVariant {
                     // Recursive calls in the body already point at this reserved id
                     id: variant,
-                    param_types: self.arg_types.clone(),
+                    param_types: self.arg_types.to_vec(),
                     param_global_ids: global_ids,
                     returns: returns.clone(),
                     body: block,
@@ -161,7 +162,7 @@ impl<'a> Monomorphizer<'a> {
     fn get_variant_reserved(&self) -> Option<FunctionVariantId> {
         self.meta
             .fun_variants_in_typecheck
-            .get(&(self.signature.id, self.arg_types.clone()))
+            .get(&(self.signature.id, self.arg_types.to_vec()))
             .copied()
     }
 
@@ -190,7 +191,7 @@ impl<'a> Monomorphizer<'a> {
         };
         self.meta
             .fun_variants_in_typecheck
-            .insert((self.signature.id, self.arg_types.clone()), variant);
+            .insert((self.signature.id, self.arg_types.to_vec()), variant);
         variant
     }
 
@@ -198,19 +199,23 @@ impl<'a> Monomorphizer<'a> {
     fn release_variant(&mut self) {
         self.meta
             .fun_variants_in_typecheck
-            .remove(&(self.signature.id, self.arg_types.clone()));
+            .remove(&(self.signature.id, self.arg_types.to_vec()));
     }
 
     /// Add all declared functions after the original function was declared,
     /// to bring them into the function context. This allows to call functions
     /// that were defined AFTER the declaration of the called function.
     fn add_forward_function_declarations(&mut self, context: &mut Context) {
-        let Some(funcall_global_scope) = self.meta.context.scopes.first() else {
-            return;
-        };
-        let Some(fundecl_global_scope) = context.scopes.first_mut() else {
-            return;
-        };
+        let funcall_global_scope = self
+            .meta
+            .context
+            .scopes
+            .first()
+            .expect("Call site context must have a global scope");
+        let fundecl_global_scope = context
+            .scopes
+            .first_mut()
+            .expect("Function declaration context must have a global scope");
         for (name, decl) in &funcall_global_scope.funs {
             if !fundecl_global_scope.funs.contains_key(name) {
                 fundecl_global_scope.funs.insert(name.clone(), decl.clone());
@@ -237,7 +242,7 @@ impl<'a> Monomorphizer<'a> {
         // It's is to avoid duplicate warning messages
         let should_suppress = self.meta.fun_cache.is_first_pass_done(self.signature.id);
         let signature = self.signature.clone();
-        let arg_types = self.arg_types.clone();
+        let arg_types = self.arg_types;
         let mut global_ids = Vec::with_capacity(signature.params.len());
 
         self.meta.with_suppress_warnings(should_suppress, |meta| {
@@ -255,7 +260,7 @@ impl<'a> Monomorphizer<'a> {
                         .unwrap()
                         .add_fun(own_signature);
 
-                    for (kind, param) in izip!(&arg_types, &signature.params) {
+                    for (kind, param) in izip!(arg_types, &signature.params) {
                         let var = VariableDecl::new(param.name.clone(), kind.clone())
                             .with_warn(VariableDeclWarn::from_token(
                                 meta,
