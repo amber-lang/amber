@@ -252,10 +252,12 @@ impl ParserMetadata {
 
     /// Adds a function declaration that was already parsed - this function is probably imported.
     pub fn add_fun_declaration_existing(&mut self, visible_name: String, mut fun: FunctionSignature) -> bool {
-        fun.name.used.clone_from(&visible_name);
+        // TODO (performance): The name is copied again for each map key below and `fun` is cloned
+        // for `pub_funs`. Free once names are interned (see `SymbolName`).
+        fun.name.used = visible_name;
         // Add the function to the public function list
         if fun.is_public {
-            self.context.pub_funs.insert(visible_name.clone(), fun.clone());
+            self.context.pub_funs.insert(fun.name.used.clone(), fun.clone());
         }
         // Add the function to the current scope
         let scope = self.context.scopes.last_mut().unwrap();
@@ -264,10 +266,12 @@ impl ParserMetadata {
 
     /// Adds a variable declaration that was already parsed (this variable is probably imported)
     pub fn add_var_declaration_existing(&mut self, visible_name: String, mut var: VariableDecl) -> Option<usize> {
-        var.name.used.clone_from(&visible_name);
+        // TODO (performance): The name is copied again for each map key below and `var` is cloned
+        // for `pub_vars`. Free once names are interned (see `SymbolName`).
+        var.name.used = visible_name;
         let global_id = self.gen_var_id();
         if var.is_public {
-            self.context.pub_vars.insert(visible_name.clone(), var.clone());
+            self.context.pub_vars.insert(var.name.used.clone(), var.clone());
         }
         let scope = self.context.scopes.last_mut().unwrap();
         scope.add_var(var).then_some(global_id)

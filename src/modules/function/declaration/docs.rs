@@ -5,19 +5,15 @@ use crate::utils::ParserMetadata;
 
 impl FunctionDeclaration {
     /// Whether a space belongs between `before` and `word` in the rendered signature.
-    fn get_space(&self, parentheses: usize, before: &str, word: &str) -> String {
-        if parentheses == 0 && word == "("
+    fn needs_space(parentheses: usize, before: &str, word: &str) -> bool {
+        !(parentheses == 0 && word == "("
             || word == ":"
             || word == ")"
             || word == "]"
             || word == ","
             || word == "?"
             || before == "["
-            || before == "("
-        {
-            return String::new();
-        }
-        " ".to_string()
+            || before == "(")
     }
 
     /// Renders function signature by replaying the tokens
@@ -32,8 +28,8 @@ impl FunctionDeclaration {
         let mut before = "";
         for token in meta.context.expr.iter().skip(doc_index) {
             let cur_word = token.word.as_str();
-            if !result.is_empty() {
-                result.push_str(&self.get_space(parentheses, before, cur_word))
+            if !result.is_empty() && Self::needs_space(parentheses, before, cur_word) {
+                result.push(' ');
             }
             before = cur_word;
             match cur_word {

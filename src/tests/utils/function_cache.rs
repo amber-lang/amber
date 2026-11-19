@@ -98,7 +98,25 @@ mod function_cache_tests {
         cache.insert_reserved_variant(id, variant(finished));
 
         assert_eq!(get_variant_ids(&cache, id), vec![finished]);
-        assert_eq!(cache.get_variants_cloned(id).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_function_cache_take_and_restore_variants() {
+        let (mut cache, id) = cache_with_declaration();
+        let unfinished = cache.reserve_variant_id(id).unwrap();
+        let finished = cache.reserve_variant_id(id).unwrap();
+        cache.insert_reserved_variant(id, variant(finished));
+
+        // Taking moves every slot out, keeping the ids in place
+        let variants = cache.take_variants(id);
+        assert_eq!(variants.len(), 2);
+        assert!(variants[unfinished.as_usize()].is_none());
+        assert_eq!(variants[finished.as_usize()].as_ref().map(|v| v.id), Some(finished));
+        assert!(get_variant_ids(&cache, id).is_empty());
+
+        // Restoring puts them back unchanged
+        cache.restore_variants(id, variants);
+        assert_eq!(get_variant_ids(&cache, id), vec![finished]);
     }
 
     #[test]

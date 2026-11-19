@@ -33,6 +33,11 @@ pub fn resolve_function(
     name: &str,
 ) -> Result<FunctionSignature, Failure> {
     match meta.get_fun_declaration(name) {
+        // TODO (performance): The `fun_decl` signature is cloned because the caller keeps using it
+        // across `&mut meta` calls (`resolve_variant` needs both at once), so a reference into
+        // `meta` can't be returned. A clone costs ~7 allocations (~1.8 KB, more with default
+        // values) but happens once per call site. Storing signatures as `Rc<FunctionSignature>`
+        // would make this clone a reference-count increment, if profiling shows it matters.
         Some(fun_decl) => Ok(fun_decl.clone()),
         None => {
             let message = format!("Function '{name}' does not exist");
@@ -65,12 +70,12 @@ pub fn validate_ref_arguments(
 /// combination has not been seen before.
 pub fn resolve_variant(
     meta: &mut ParserMetadata,
-    fun: FunctionSignature,
+    fun: &FunctionSignature,
     args: &[Type],
     tok: Option<Token>,
 ) -> Result<ResolvedCall, Failure> {
     let id = fun.id;
-    warmup_declared_types_pass(meta, &fun, tok.clone());
+    warmup_declared_types_pass(meta, fun, tok.clone());
 
     // If the function was previously called with the same arguments, reuse the
     // variant that was already compiled for them.
@@ -83,6 +88,11 @@ pub fn resolve_variant(
             variant_id: variant.id,
         });
 
+    // TODO (performance): Variants from the warm-up pass (`Persistence::Discard`) are
+    // never cached, so during warm-up every call site re-runs the callee's full
+    // monomorphization (clone context and body, typecheck), and the callee's calls do
+    // the same. The cost grows exponentially with call depth: in a chain of 6 functions
+    // where each calls the next one 3 times, the last function is typechecked 364 times.
     match cached {
         Some(resolved) => Ok(resolved),
         None => {
@@ -104,7 +114,7 @@ fn warmup_declared_types_pass(
     }
     let declared_types = fun.param_types();
     let _ = meta.with_first_pass_ctx(true, |meta| {
-        Monomorphizer::new(meta, fun.clone(), &declared_types, tok.clone())
+        Monomorphizer::new(meta, fun, &declared_types, tok.clone())
             .run(Persistence::Discard)
             .map(|_| ())
     });

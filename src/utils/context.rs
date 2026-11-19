@@ -200,4 +200,13 @@ impl Context {
         self.trace.push(position);
         self
     }
+
+    /// Clones the context as a snapshot, leaving out what a snapshot doesn't need
+    /// such as token stream (self.expr)
+    pub fn clone_snapshot(&mut self) -> Self {
+        let expr = std::mem::take(&mut self.expr);
+        let context = self.clone();
+        self.expr = expr;
+        context
+    }
 }

@@ -33,6 +33,7 @@ pub struct FunctionCall {
 
 impl Typed for FunctionCall {
     fn get_type(&self) -> Type {
+        // TODO (performance): Copies the type on every call. Free once types are interned (see `Type`)
         self.return_type.clone()
     }
 }
@@ -110,6 +111,7 @@ impl TypeCheckModule for FunctionCall {
             // Look up the function declaration (this requires typecheck phase context)
             let signature = resolve_function(meta, self.name_tok.clone(), &self.name.used)?;
             self.decl_id = signature.id;
+            // TODO (performance): Copies the function name. Free once names are interned (see `SymbolName`)
             self.name.clone_from(&signature.name);
 
             let expected_arg_count = signature.total_arity();
@@ -144,11 +146,11 @@ impl TypeCheckModule for FunctionCall {
             }
 
             // Validate arguments and get function variant
-            let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
             let arg_is_variable = self.args.iter().map(is_var).collect::<Vec<bool>>();
             self.refs = signature.params.iter().map(|param| param.is_ref).collect();
             validate_ref_arguments(meta, &signature, &arg_is_variable, self.name_tok.clone())?;
-            let resolved = resolve_variant(meta, signature.clone(), &types, self.name_tok.clone())?;
+            let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
+            let resolved = resolve_variant(meta, &signature, &types, self.name_tok.clone())?;
             self.return_type = resolved.return_type;
             self.variant_id = resolved.variant_id;
 

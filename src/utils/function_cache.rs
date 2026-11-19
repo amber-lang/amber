@@ -74,9 +74,19 @@ impl FunctionCache {
         self.funs.get(&id).map(|f| f.variants.iter().flatten())
     }
 
-    /// Gets owned copies of the typechecked variants of a function declaration, in id order
-    pub fn get_variants_cloned(&self, id: FunctionDeclId) -> Option<Vec<FunctionVariant>> {
-        self.get_variants(id).map(|variants| variants.cloned().collect())
+    /// Moves the variants of a function declaration out of the cache, in id order
+    pub fn take_variants(&mut self, id: FunctionDeclId) -> Vec<Option<FunctionVariant>> {
+        self.funs
+            .get_mut(&id)
+            .map(|entry| std::mem::take(&mut entry.variants))
+            .unwrap_or_default()
+    }
+
+    /// Puts back the variants previously moved out
+    pub fn restore_variants(&mut self, id: FunctionDeclId, variants: Vec<Option<FunctionVariant>>) {
+        if let Some(entry) = self.funs.get_mut(&id) {
+            entry.variants = variants;
+        }
     }
 
     /// Gets function declaration's context

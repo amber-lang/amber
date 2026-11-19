@@ -13,10 +13,10 @@ use std::collections::HashSet;
 /// Rejects a function name that is already taken by a variable or function in the current scope.
 pub fn handle_existing_function(
     meta: &mut ParserMetadata,
-    tok: Option<Token>,
+    tok: &Option<Token>,
 ) -> Result<(), Failure> {
-    let name = tok.as_ref().unwrap().word.clone();
-    handle_symbol_scope_declaration(meta, &name, tok)
+    let name = &tok.as_ref().unwrap().word;
+    handle_symbol_scope_declaration(meta, name, tok)
 }
 
 /// Checks that the body's failability agrees with the `?` marker on the return type
@@ -107,16 +107,16 @@ pub fn validate_optional_params(
 /// Registers the signature in the current scope and seeds its cache entry.
 pub fn register_function(
     meta: &mut ParserMetadata,
-    tok: Option<Token>,
+    tok: &Option<Token>,
     fun: FunctionSignature,
     ctx: Context,
     block: Block,
 ) -> Result<(), Failure> {
     let name = fun.name.declared.clone();
-    handle_identifier_name(meta, &name, tok.clone())?;
+    handle_identifier_name(meta, &name, tok)?;
     // Either all arguments are generic or typed
     if fun.has_mixed_typing() {
-        return error!(meta, tok => {
+        return error!(meta, tok.clone() => {
             message: format!("Function '{}' has a mix of generic and typed arguments", name),
             comment: "Please decide whether to use generics or types for all arguments"
         });
@@ -126,6 +126,6 @@ pub fn register_function(
         Ok(())
     } else {
         // If the function already exists, show an error
-        error!(meta, tok, format!("Function '{}' already exists", name))
+        error!(meta, tok.clone(), format!("Function '{}' already exists", name))
     }
 }

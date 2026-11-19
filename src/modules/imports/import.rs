@@ -67,7 +67,7 @@ impl Import {
                     }
                     (None, Some(var)) => {
                         var.is_public = self.is_pub;
-                        let name = alias.clone().unwrap_or_else(|| name.clone());
+                        let name = alias.as_ref().unwrap_or(name);
                         if meta.add_var_declaration_existing(name.clone(), var.clone()).is_none() {
                             return error!(meta, token.clone() => {
                                 message: format!("Variable '{}' is already defined", name)
@@ -76,7 +76,7 @@ impl Import {
                     }
                     (Some(fun), None) => {
                         fun.is_public = self.is_pub;
-                        let name = alias.clone().unwrap_or_else(|| name.clone());
+                        let name = alias.as_ref().unwrap_or(name);
                         if !meta.add_fun_declaration_existing(name.clone(), fun.clone()) {
                             return error!(meta, self.token_import.clone() => {
                                 message: format!("Function '{}' is already defined", name)
@@ -163,13 +163,19 @@ impl Import {
                 let mut block = Block::new().with_no_syntax();
                 // Save snapshot of current file
                 let position = PositionInfo::from_token(meta, self.token_import.clone());
-                let mut context = Context::new(self.path.source_path.clone(), tokens)
+                let mut context = Context::new(compiler.path, tokens)
                     .file_import(&meta.context.trace, position);
                 meta.with_context_ref(&mut context, |meta| {
                     // Parse imported code
                     syntax(meta, &mut block)?;
                     block.typecheck(meta)
                 })?;
+                // TODO (performance): Every exported variable and function signature of the
+                // module (including default-value expressions) is cloned into the import cache
+                // here, and `get_imports` clones the whole maps again for every later import of
+                // the same module, even when only a few items are imported by name.
+                // Reading the exports from the cache without cloning them all would need
+                // `add_imported_deps` to work while the maps stay in `meta.import_cache`.
                 // Persist compiled file to cache
                 meta.import_cache.add_import_metadata(
                     &self.path.source_path,

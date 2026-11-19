@@ -113,7 +113,7 @@ pub fn handle_variable_reference(
     tok: &Option<Token>,
     name: &str,
 ) -> Result<VariableDecl, Failure> {
-    handle_identifier_name(meta, name, tok.clone())?;
+    handle_identifier_name(meta, name, tok)?;
     match meta.get_var_used(name) {
         Some(variable_unit) => {
             let mut var = variable_unit.clone();
@@ -161,12 +161,12 @@ fn handle_similar_variable(meta: &ParserMetadata, name: &str) -> Option<String> 
 pub fn handle_identifier_name(
     meta: &mut ParserMetadata,
     name: &str,
-    tok: Option<Token>,
+    tok: &Option<Token>,
 ) -> Result<(), Failure> {
     // Validate if the variable name uses the reserved prefix with fully uppercase names
     if name.chars().take(2).all(|chr| chr == '_') && name.len() > 2 && is_all_caps(name) {
         let new_name = name.get(2..).unwrap();
-        return error!(meta, tok => {
+        return error!(meta, tok.clone() => {
             message: format!("Identifier '{name}' is not allowed"),
             comment: format!("Identifiers with double underscores cannot be fully uppercase.\nConsider using '{new_name}' instead.")
         });
@@ -185,7 +185,7 @@ pub fn handle_identifier_name(
     if variable_name_keywords().contains(&name) {
         return error!(
             meta,
-            tok,
+            tok.clone(),
             format!("Identifier '{name}' is a reserved keyword")
         );
     }

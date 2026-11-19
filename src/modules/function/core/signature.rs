@@ -133,9 +133,13 @@ impl FunctionSignature {
 
     /// Whether the parameter list mixes annotated and generic parameters
     pub fn has_mixed_typing(&self) -> bool {
-        let any_generic = self.params.iter().any(|param| param.kind == Type::Generic);
-        let any_typed = self.params.iter().any(|param| param.kind != Type::Generic);
-        any_generic && any_typed
+        let mut found_generic = false;
+        let mut found_typed = false;
+        for param in &self.params {
+            found_generic |= param.kind == Type::Generic;
+            found_typed |= param.kind != Type::Generic;
+        }
+        found_generic && found_typed
     }
 
     pub fn param_types(&self) -> Vec<Type> {

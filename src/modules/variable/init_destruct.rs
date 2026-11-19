@@ -122,8 +122,8 @@ impl TypeCheckModule for VariableInitDestruct {
         };
 
         for (name, tok) in self.names.iter().zip(self.toks.iter()) {
-            handle_identifier_name(meta, name, tok.clone())?;
-            handle_symbol_scope_declaration(meta, name, tok.clone())?;
+            handle_identifier_name(meta, name, tok)?;
+            handle_symbol_scope_declaration(meta, name, tok)?;
             let var = VariableDecl::new(name.clone(), inner_type.clone())
                 .with_warn(
                     VariableDeclWarn::from_token(meta, tok.clone())

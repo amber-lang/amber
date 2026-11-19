@@ -86,8 +86,8 @@ impl TypeCheckModule for VariableInit {
     fn typecheck(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
         self.expr.typecheck(meta)?;
 
-        handle_identifier_name(meta, &self.name, self.tok.clone())?;
-        handle_symbol_scope_declaration(meta, &self.name, self.tok.clone())?;
+        handle_identifier_name(meta, &self.name, &self.tok)?;
+        handle_symbol_scope_declaration(meta, &self.name, &self.tok)?;
 
         let var = VariableDecl::new(self.name.clone(), self.expr.get_type())
             .with_warn(

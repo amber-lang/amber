@@ -32,7 +32,7 @@ pub enum Persistence {
 }
 
 impl Persistence {
-    pub fn from_meta(meta: &mut ParserMetadata) -> Self {
+    pub fn from_meta(meta: &ParserMetadata) -> Self {
         if !meta.first_pass_ctx {
             Persistence::Cache
         } else {
@@ -43,7 +43,7 @@ impl Persistence {
 
 pub struct Monomorphizer<'a> {
     meta: &'a mut ParserMetadata,
-    signature: FunctionSignature,
+    signature: &'a FunctionSignature,
     arg_types: &'a [Type],
     fun_call_tok: Option<Token>,
 }
@@ -51,7 +51,7 @@ pub struct Monomorphizer<'a> {
 impl<'a> Monomorphizer<'a> {
     pub fn new(
         meta: &'a mut ParserMetadata,
-        signature: FunctionSignature,
+        signature: &'a FunctionSignature,
         arg_types: &'a [Type],
         fun_call_tok: Option<Token>,
     ) -> Self {
@@ -69,6 +69,12 @@ impl<'a> Monomorphizer<'a> {
         self.check_arity()?;
         self.check_arg_types()?;
 
+        // TODO (performance): Every run deep-copies the function's declaration context
+        // and its whole body (AST), because typechecking mutates both. The body copy
+        // grows with the function size (~55 KB for a 23-statement body) and is paid on
+        // every run, including the warm-up `Persistence::Discard` runs whose result is
+        // thrown away. Both copies are also made before the recursive-call check below,
+        // so recursive calls clone everything just to return early.
         let mut context = self
             .meta
             .fun_cache
@@ -138,7 +144,7 @@ impl<'a> Monomorphizer<'a> {
         if self.signature.total_arity() == self.arg_types.len() {
             return Ok(());
         }
-        let message = arity_mismatch(&self.signature, self.arg_types.len());
+        let message = arity_mismatch(self.signature, self.arg_types.len());
         error!(self.meta, self.fun_call_tok.clone(), message)
     }
 
@@ -151,7 +157,7 @@ impl<'a> Monomorphizer<'a> {
             izip!(self.signature.params.iter(), self.arg_types.iter()).enumerate()
         {
             if !given.is_allowed_in(&param.kind) {
-                let message = argument_type_mismatch(&self.signature, index, param, given);
+                let message = argument_type_mismatch(self.signature, index, param, given);
                 return error!(self.meta, self.fun_call_tok.clone(), message);
             }
         }
@@ -241,7 +247,7 @@ impl<'a> Monomorphizer<'a> {
         // Warnings should be displayed only if this is a first pass typecheck
         // It's is to avoid duplicate warning messages
         let should_suppress = self.meta.fun_cache.is_first_pass_done(self.signature.id);
-        let signature = self.signature.clone();
+        let signature = self.signature;
         let arg_types = self.arg_types;
         let mut global_ids = Vec::with_capacity(signature.params.len());
 

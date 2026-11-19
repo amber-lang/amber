@@ -109,13 +109,14 @@ impl TypeCheckModule for Nameof {
                     None => {
                         // Compile the function on demand to get the variant ID
                         let persistence = Persistence::from_meta(meta);
-                        Monomorphizer::new(meta, fun_decl.clone(), &args_types, self.token.clone())
+                        Monomorphizer::new(meta, &fun_decl, &args_types, self.token.clone())
                             .run(persistence)?
                             .variant_id
                     }
                 };
 
                 self.function_variant = Some((fun_decl.id, variant_id));
+                // TODO (performance): Copies the function name. Free once names are interned (see `SymbolName`)
                 self.name.clone_from(&fun_decl.name);
                 Ok(())
             }

@@ -50,6 +50,37 @@ fn test_translate_crlf_line_endings() {
     assert!(output.contains("echo"));
 }
 
+/// Multi-line comma-separated lists skip line breaks and comments between items,
+/// which must work the same for CRLF (Windows) and CR (legacy macOS) line endings.
+#[test]
+fn test_translate_multiline_lists_with_any_line_endings() {
+    let code = [
+        "fun add(",
+        "    a: Int, // first",
+        "    b: Int,",
+        ") {",
+        "    return a + b",
+        "}",
+        "",
+        "let items = [",
+        "    1, // one",
+        "    // two below",
+        "    2,",
+        "]",
+        "echo(add(",
+        "    items[0], // comment",
+        "    items[1],",
+        "))",
+        "",
+    ];
+    let expected = translate_amber_code(code.join("\n")).expect("Couldn't translate LF code");
+    for line_ending in ["\r\n", "\r"] {
+        let output = translate_amber_code(code.join(line_ending))
+            .unwrap_or_else(|| panic!("Couldn't translate code with {line_ending:?} line endings"));
+        assert_eq!(output, expected, "Output differs for {line_ending:?} line endings");
+    }
+}
+
 /// Autoload the Amber test files in compiling
 #[test_resources("src/tests/compiling/*.ab")]
 fn test_translation(input: &str) {

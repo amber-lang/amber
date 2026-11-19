@@ -38,6 +38,8 @@ pub struct Ref;
 #[keyword = "fun"]
 #[kind = "stmt"]
 pub struct FunctionDeclaration {
+    // TODO (performance): Duplicates `name_token.word`. With interned names (see `SymbolName`)
+    // this and `name_token` could become one identifier: an interned symbol plus a position.
     pub name: String,
     pub params: Vec<FunctionParam>,
     pub returns: Type,
@@ -95,6 +97,7 @@ impl SyntaxModule<ParserMetadata> for FunctionDeclaration {
         token(meta, "fun")?;
         // Get the function name
         self.name_token = meta.get_current_token();
+        // TODO (performance): Copies the name the token already holds (see `FunctionDeclaration::name`)
         self.name = variable(meta, variable_name_extensions())?;
         context!(
             {
@@ -155,20 +158,26 @@ impl TypeCheckModule for FunctionDeclaration {
         }
 
         // Check if function already exists
-        handle_existing_function(meta, self.name_token.clone())?;
+        handle_existing_function(meta, &self.name_token)?;
 
         meta.with_context_fn(Context::set_cc_flags, self.flags.clone(), |meta| {
             validate_unique_param_names(meta, &self.params)?;
             validate_optional_params(meta, &mut self.params)?;
 
             // Create function context and add to memory
-            let block = self.function_body.clone().unwrap_or_else(Block::new);
-            let mut ctx = meta.context.clone();
+            let block = self.function_body.take().unwrap_or_else(Block::new);
+            // TODO (performance): Every function declaration snapshots the whole context: on
+            // average ~74 KB per declaration across the test programs, of which ~46 KB are the
+            // scopes (every visible variable and function signature) and ~28 KB the
+            // `pub_funs`/`pub_vars` maps. The snapshot is then cloned again on every
+            // monomorphization run.
+            let mut ctx = meta.context.clone_snapshot();
             ctx.is_fun_ctx = true;
-            ctx.expr.clear();
 
             let signature = FunctionSignature {
                 id: meta.gen_fun_id(),
+                // TODO (performance): `name` and `params` stay on the declaration for `translate`
+                // and docs, so they are copied here. Free once names are interned (see `SymbolName`).
                 name: SymbolName::from_declaration(self.name.clone()),
                 params: self.params.clone(),
                 returns: self.returns.clone(),
@@ -176,7 +185,7 @@ impl TypeCheckModule for FunctionDeclaration {
                 is_failable: self.is_failable,
             };
             self.id = signature.id;
-            register_function(meta, self.name_token.clone(), signature, ctx, block)
+            register_function(meta, &self.name_token, signature, ctx, block)
         })
     }
 }
@@ -184,45 +193,46 @@ impl TypeCheckModule for FunctionDeclaration {
 impl TranslateModule for FunctionDeclaration {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let mut result = vec![];
-        let variants = meta.fun_cache.get_variants_cloned(self.id).unwrap();
         let prev_fun_meta = meta.fun_frag_sig.clone();
-        // Translate each one of them
-        for variant in variants.iter() {
-            meta.fun_frag_sig = Some(FunctionFragmentSignature {
-                name: self.name.clone(),
-                declaration_id: self.id,
-                variant_id: variant.id,
-                return_type: variant.returns.clone(),
-            });
+        meta.with_fun_variants(self.id, |meta, variants| {
+            // Translate each one of them
+            for variant in variants.iter().flatten() {
+                meta.fun_frag_sig = Some(FunctionFragmentSignature {
+                    name: self.name.clone(),
+                    declaration_id: self.id,
+                    variant_id: variant.id,
+                    return_type: variant.returns.clone(),
+                });
 
-            // Document in code function variant's signature
-            let argument_types = izip!(self.params.iter(), variant.param_types.iter())
-                .map(|(param, ty)| format!("{}: {}", param.name, ty))
-                .join(", ");
-            result.push(raw_fragment!("# {}({argument_types})", self.name));
+                // Document in code function variant's signature
+                let argument_types = izip!(self.params.iter(), variant.param_types.iter())
+                    .map(|(param, ty)| format!("{}: {}", param.name, ty))
+                    .join(", ");
+                result.push(raw_fragment!("# {}({argument_types})", self.name));
 
-            // Prepare arguments
-            let params = izip!(
-                &self.params,
-                &variant.param_global_ids,
-                &variant.param_types
-            )
-            .map(FunctionVariantParam::from_tuple)
-            .collect::<Vec<_>>();
-
-            let body = variant.body.translate(meta);
-            result.push(
-                FunctionDeclFragment::new(
-                    &self.name,
-                    self.id,
-                    variant.id,
-                    body,
-                    &params,
-                    meta.target.shell,
+                // Prepare arguments
+                let params = izip!(
+                    &self.params,
+                    &variant.param_global_ids,
+                    &variant.param_types
                 )
-                .to_frag(),
-            );
-        }
+                .map(FunctionVariantParam::from_tuple)
+                .collect::<Vec<_>>();
+
+                let body = variant.body.translate(meta);
+                result.push(
+                    FunctionDeclFragment::new(
+                        &self.name,
+                        self.id,
+                        variant.id,
+                        body,
+                        &params,
+                        meta.target.shell,
+                    )
+                    .to_frag(),
+                );
+            }
+        });
         // Restore the function name
         meta.fun_frag_sig = prev_fun_meta;
         // Return the translation

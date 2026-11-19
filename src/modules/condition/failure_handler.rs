@@ -347,6 +347,7 @@ impl FailureHandler {
                     fun_meta.declaration_id,
                     fun_meta.variant_id,
                 ),
+                // TODO (performance): Copies the return type. Free once types are interned (see `Type`)
                 fun_meta.return_type.clone(),
                 fun_meta.default_return(),
             );

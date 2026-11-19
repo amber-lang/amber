@@ -5,7 +5,9 @@ use std::str::FromStr;
 
 use super::ParserMetadata;
 use crate::compiler::{AmberCompiler, CompilerOptions};
-use crate::modules::function::core::signature::FunctionFragmentSignature;
+use crate::modules::function::core::signature::{
+    FunctionDeclId, FunctionFragmentSignature, FunctionVariant,
+};
 use crate::modules::prelude::*;
 use crate::modules::types::Type;
 use crate::raw_fragment;
@@ -157,6 +159,19 @@ impl TranslateMetadata {
 
     pub fn is_fun_ctx(&self) -> bool {
         self.fun_frag_sig.is_some()
+    }
+
+    /// Runs callback with the typechecked variants of a function declaration
+    /// temporarily moved out of the function cache
+    pub fn with_fun_variants<T>(
+        &mut self,
+        id: FunctionDeclId,
+        f: impl FnOnce(&mut Self, &[Option<FunctionVariant>]) -> T,
+    ) -> T {
+        let variants = self.fun_cache.take_variants(id);
+        let result = f(self, &variants);
+        self.fun_cache.restore_variants(id, variants);
+        result
     }
 
     #[inline]
