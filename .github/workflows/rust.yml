@@ -12,6 +12,8 @@ on:
       - .cargo/**
       - Cargo.toml
       - Cargo.lock
+      - heraclitus
+      - meta/**
       - rust-toolchain.toml
       - flake.nix
       - flake.lock
@@ -23,6 +25,8 @@ on:
       - .cargo/**
       - Cargo.toml
       - Cargo.lock
+      - heraclitus
+      - meta/**
       - rust-toolchain.toml
       - flake.nix
       - flake.lock
