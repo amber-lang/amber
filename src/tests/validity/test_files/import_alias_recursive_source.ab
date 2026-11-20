@@ -1,0 +1,6 @@
+pub fun countdown(n: Int): Null {
+    echo(n)
+    if n > 0 {
+        countdown(n - 1)
+    }
+}

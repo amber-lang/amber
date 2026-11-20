@@ -1,0 +1,8 @@
+// Output
+// failed 3
+
+import { always_fail as risky } from "src/tests/validity/test_files/import_alias_source.ab"
+
+risky() failed(code) {
+    echo("failed {code}")
+}

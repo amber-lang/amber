@@ -12,6 +12,8 @@ on:
       - .cargo/**
       - Cargo.toml
       - Cargo.lock
+      - heraclitus
+      - meta/**
       - rust-toolchain.toml
       - flake.nix
       - flake.lock
@@ -23,6 +25,8 @@ on:
       - .cargo/**
       - Cargo.toml
       - Cargo.lock
+      - heraclitus
+      - meta/**
       - rust-toolchain.toml
       - flake.nix
       - flake.lock
@@ -31,7 +35,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LLVM_COV_VERSION: 0.6.16
+  LLVM_COV_VERSION: 0.9.1
 
 jobs:
   build:
@@ -42,6 +46,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v6.1.0
@@ -91,6 +96,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          submodules: recursive
       - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
         with:
           packages: bc
@@ -148,6 +154,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
         uses: actions/cache@v6.1.0
@@ -179,6 +186,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          submodules: recursive
       - uses: r7kamura/rust-problem-matchers@7e46a19e8d2f3a44f97b551aee14a7b3cc18fcd0 # v1.5.1
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
       - name: Cache dependencies installed with cargo
@@ -199,6 +207,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          submodules: recursive
       - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
         with:
           packages: parallel shellcheck
@@ -233,6 +242,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
         with:
           components: llvm-tools-preview
@@ -258,6 +269,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@815a69c9b29cf7fc23c559d0a34954c268c4b0d9 # 1.88.0
         with:
           components: llvm-tools-preview

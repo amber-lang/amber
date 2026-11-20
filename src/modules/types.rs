@@ -4,6 +4,11 @@ use crate::utils::ParserMetadata;
 use heraclitus_compiler::prelude::*;
 use itertools::Itertools;
 
+// TODO (performance): Types are cloned very often (~80k clones while compiling a single
+// stdlib test script). `Type` is 24 bytes and ~91% of clones are unit variants that don't
+// allocate, but every `Array` and `Union` clone heap-allocates. Consider interning types
+// (a small `Copy` handle into a type table) if profiling shows a measurable benefit.
+// Fix the excessive re-typechecking in the warm-up pass first, as it causes most of the clones.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum Type {
     #[default]

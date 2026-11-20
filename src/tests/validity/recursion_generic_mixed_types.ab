@@ -1,0 +1,18 @@
+// Output
+// 10
+// 10
+
+// The Int variant compiles a Text variant of itself before its own recursive call
+fun show(_x, n) {
+    if n == 99 {
+        show("{_x}", 0)
+    }
+    if n == 0 {
+        echo(_x + _x)
+    } else {
+        show(_x, n - 1)
+    }
+}
+
+show(5, 0)
+show(5, 1)

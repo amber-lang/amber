@@ -1,0 +1,2 @@
+pub import { greet as welcome } from "import_alias_source.ab"
+pub import { greeting as salute } from "import_alias_source.ab"

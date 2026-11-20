@@ -3,7 +3,7 @@
 // relying on the external binary, making them more reliable and faster.
 
 use std::fs::copy;
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::testing::get_tests_to_run;
 use crate::TestCommand;
 use std::path::{Path, PathBuf};
@@ -20,7 +20,7 @@ fn bash_error_exit_code() {
 
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let compiler = AmberCompiler::new(amber_code.to_string(), SourcePath::Stdin, options);
     let (messages, bash_code) = compiler.compile().unwrap();
 
     // Assert no warnings
@@ -45,7 +45,7 @@ fn main_args_passed_correctly() {
 
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let compiler = AmberCompiler::new(amber_code.to_string(), SourcePath::Stdin, options);
     let (messages, bash_code) = compiler.compile().unwrap();
 
     // Assert no warnings
@@ -123,7 +123,7 @@ fn test_input_prompt_stdin() {
 
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let compiler = AmberCompiler::new(amber_code.to_string(), SourcePath::Stdin, options);
     let (messages, bash_code) = compiler.compile().unwrap();
 
     // Assert no warnings
@@ -175,7 +175,7 @@ fn test_input_hidden_stdin() {
 
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let compiler = AmberCompiler::new(amber_code.to_string(), SourcePath::Stdin, options);
     let (messages, bash_code) = compiler.compile().unwrap();
 
     // Assert no warnings
@@ -230,7 +230,7 @@ fn test_input_confirm_stdin() {
 
     // Amber compiler setup and parse
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(amber_code.to_string(), None, options);
+    let compiler = AmberCompiler::new(amber_code.to_string(), SourcePath::Stdin, options);
     let (messages, bash_code) = compiler.compile().unwrap();
 
     // Assert no warnings
