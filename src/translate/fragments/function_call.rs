@@ -1,5 +1,4 @@
-use itertools::{izip, Itertools};
-
+use itertools::Itertools;
 use crate::{
     fragments,
     modules::{
@@ -40,31 +39,28 @@ pub struct FunctionCallFragment {
 }
 
 impl FunctionCallFragment {
+    /// Creates a function call from arguments already prepared with [`Self::prepare_argument`]
     pub fn new(
-        meta: &mut TranslateMetadata,
         name: impl Into<String>,
         declaration_id: FunctionDeclId,
         variant_id: FunctionVariantId,
         args: Vec<FragmentKind>,
-        refs: &[bool],
-        shell_type: ShellType,
     ) -> Self {
         FunctionCallFragment {
             name: name.into(),
             declaration_id,
             variant_id,
-            args: izip!(args, refs)
-                .map(|(frag, is_ref)| Self::prepare_arguments(meta, frag, is_ref, shell_type))
-                .collect(),
+            args,
         }
     }
 
     /// Creates temporary variables if needed
-    /// and adjusts the way this argument should render
-    pub fn prepare_arguments(
+    /// and adjusts the way this argument should render.
+    /// Should be called immediately after translating argument
+    pub fn prepare_argument(
         meta: &mut TranslateMetadata,
         fragment: FragmentKind,
-        is_ref: &bool,
+        is_ref: bool,
         shell: ShellType,
     ) -> FragmentKind {
         match (is_ref, fragment) {
@@ -97,7 +93,7 @@ impl FunctionCallFragment {
                 }
             }
 
-            // The length of an array (`len(array)`) is a plain value, not an array
+            // The length of an array `len(array)` is a plain value, not an array
             (false, FragmentKind::VarExpr(var)) if var.kind.is_array() && var.is_length => var
                 .with_render_type(VarRenderType::BashValue)
                 .with_length_getter(true)

@@ -197,15 +197,21 @@ impl TranslateModule for FunctionCall {
         meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             let silent = meta.gen_silent().to_frag();
             let suppress = meta.gen_suppress().to_frag();
-            let args = self.args.iter().map(|arg| arg.translate(meta)).collect();
+            let args = izip!(&self.args, &self.refs)
+                .map(|(arg, is_ref)| {
+                    let fragment = arg.translate(meta);
+                    FunctionCallFragment::prepare_argument(
+                        meta,
+                        fragment,
+                        *is_ref,
+                        meta.target.shell
+                    )
+                }).collect();
             let call = FunctionCallFragment::new(
-                meta,
                 &self.name.declared,
                 self.decl_id,
                 self.variant_id,
                 args,
-                &self.refs,
-                meta.target.shell,
             );
             let call_stmt = fragments!(call.to_frag(), silent, suppress);
             meta.stmt_queue.push_back(call_stmt);
