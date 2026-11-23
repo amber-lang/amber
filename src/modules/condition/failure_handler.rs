@@ -257,6 +257,24 @@ impl FailureHandler {
         self.translate_with_status(meta, false)
     }
 
+    /// Split the handler into the `__status=$?` capture and the check.
+    ///
+    /// A handler whose command result is being assigned must run its block after
+    /// the assignment: the block may write the variable being assigned, and running
+    /// it earlier makes that write get overwritten by the command output (#1191).
+    /// The status capture still has to happen right after the command, so callers
+    /// queue it before the assignment and the check after it.
+    pub fn translate_split(&self, meta: &mut TranslateMetadata) -> (FragmentKind, FragmentKind) {
+        let check = self.translate_with_status(meta, false);
+        if !self.is_parsed {
+            return (FragmentKind::Empty, check);
+        }
+        // `translate_with_status` only sets `__status`; re-emit the capture here
+        // because it must run before the assignment, not with the check.
+        let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
+        (status_variable_stmt.to_frag(), check)
+    }
+
     fn translate_with_status(&self, meta: &mut TranslateMetadata, include_status: bool) -> FragmentKind {
         if !self.is_parsed {
             return FragmentKind::Empty;

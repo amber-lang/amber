@@ -127,13 +127,27 @@ impl TranslateModule for Command {
             (true, false) => translation,
             (false, false) => SubprocessFragment::new(translation).to_frag(),
             (false, true) => {
-                let handler = self.failure_handler.translate(meta);
+                // A command in expression position captures its output into a
+                // temporary that the surrounding statement assigns. Its `failed`
+                // block then has to run after that assignment: a block that writes
+                // the assigned variable must not be overwritten by the captured
+                // output (#1191). Capture the status right after the subprocess and
+                // defer the check to the enclosing block.
+                let is_assigned = meta.assign_ctx;
+                let (status_capture, check) = self.failure_handler.translate_split(meta);
                 let id = meta.gen_value_id();
                 let value = SubprocessFragment::new(translation).to_frag();
                 let var_stmt =
                     VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
                 let var_expr = meta.push_ephemeral_variable(var_stmt);
-                meta.stmt_queue.push_back(handler);
+                meta.stmt_queue.push_back(status_capture);
+                if is_assigned {
+                    meta.deferred_queue.push_back(check);
+                } else {
+                    // Anywhere else the block keeps its established place, before
+                    // the statement that consumes the captured output.
+                    meta.stmt_queue.push_back(check);
+                }
                 var_expr.to_frag()
             }
         }

@@ -85,6 +85,8 @@ pub struct TranslateMetadata {
     /// A queue of statements that are needed to be evaluated
     /// before current statement in order to be correct.
     pub stmt_queue: VecDeque<FragmentKind>,
+    /// Statements that must run after the current statement instead of before it.
+    pub deferred_queue: VecDeque<FragmentKind>,
     /// The metadata of the function that is currently being translated.
     pub fun_meta: Option<FunctionMetadata>,
     /// Used to determine the value or array being evaluated.
@@ -107,6 +109,12 @@ pub struct TranslateMetadata {
     /// Determines whether the current context is an expression context.
     #[context]
     pub expr_ctx: bool,
+    /// Determines whether the expression being translated is the whole right-hand
+    /// side of a variable assignment. Its `failed` / `succeeded` / `exited` block
+    /// then runs after the assignment, so a block that writes the assigned
+    /// variable is not overwritten by the assigned value (#1191).
+    #[context]
+    pub assign_ctx: bool,
         /// Determines whether the compiler is in test mode.
         pub test_mode: bool,
         /// The name of the test to run.
@@ -131,6 +139,7 @@ impl TranslateMetadata {
             fun_cache: meta.fun_cache,
             fun_meta: None,
             stmt_queue: VecDeque::new(),
+            deferred_queue: VecDeque::new(),
             value_id: 0,
             eval_ctx: false,
             silenced: false,
@@ -139,6 +148,7 @@ impl TranslateMetadata {
             indent: -1,
             minify: options.minify,
             expr_ctx: false,
+            assign_ctx: false,
             test_mode: options.test_mode,
             test_name: options.test_name.clone(),
             sudo_used: false,

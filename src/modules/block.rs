@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::ops::Index;
 
 use super::statement::stmt::Statement;
@@ -112,15 +113,24 @@ impl TypeCheckModule for Block {
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
+        let mut outer_deferred = VecDeque::new();
+        std::mem::swap(&mut meta.deferred_queue, &mut outer_deferred);
         let mut statements = vec![];
         for statement in &self.statements {
             let (stmts, translated) = meta.capture_stmt_queue(|meta| statement.translate(meta));
-            statements.extend(stmts);
-            statements.push(translated);
             if statement.terminates_control_flow() {
+                statements.extend(stmts);
+                // A deferred handler still belongs to the statement that is ending the block.
+                statements.extend(meta.deferred_queue.drain(..));
+                statements.push(translated);
                 break;
             }
+            statements.extend(stmts);
+            statements.push(translated);
+            // A `failed` block on an assignment runs after the assignment it belongs to.
+            statements.extend(meta.deferred_queue.drain(..));
         }
+        std::mem::swap(&mut meta.deferred_queue, &mut outer_deferred);
         BlockFragment::new(statements, self.should_indent)
             .with_needs_noop(self.needs_noop)
             .with_condition(self.is_conditional)

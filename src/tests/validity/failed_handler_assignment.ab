@@ -1,0 +1,10 @@
+// Output
+// fail scope: test3
+// outer scope: test3
+
+let myvar = "test1"
+myvar = $ false $ failed {
+    myvar = "test3"
+    echo("fail scope: {myvar}")
+}
+echo("outer scope: {myvar}")

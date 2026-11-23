@@ -1,0 +1,13 @@
+// Output
+// handled
+
+fun failing(): Text? {
+    fail 1
+    return "unreachable"
+}
+
+let value = "init"
+value = failing() failed {
+    value = "handled"
+}
+echo(value)

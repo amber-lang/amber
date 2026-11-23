@@ -293,8 +293,19 @@ impl TranslateModule for FunctionInvocation {
                 .push_back(fragments!(name.clone(), " ", args, suppress, silent));
         });
         if self.is_failable && self.failure_handler.is_parsed {
-            let handler = self.failure_handler.translate(meta);
-            meta.stmt_queue.push_back(handler);
+            // A `failed` block that writes the variable being assigned must not be
+            // overwritten by the call's return value, so when this call is the whole
+            // right-hand side of an assignment the check runs after the assignment
+            // instead of before it (#1191). Anywhere else it keeps the established
+            // order, which `status()` inside the block relies on.
+            if meta.assign_ctx {
+                let (status_capture, check) = self.failure_handler.translate_split(meta);
+                meta.stmt_queue.push_back(status_capture);
+                meta.deferred_queue.push_back(check);
+            } else {
+                let handler = self.failure_handler.translate(meta);
+                meta.stmt_queue.push_back(handler);
+            }
         }
         if self.kind != Type::Null {
             // Get the variable prefix for return values
