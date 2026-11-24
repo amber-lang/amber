@@ -165,6 +165,15 @@ impl TranslateMetadata {
         expr
     }
 
+    #[inline]
+    /// Run callback and capture the statements that were queued during its run
+    pub fn capture_stmt_queue<T>(&mut self, f: impl FnOnce(&mut Self) -> T) -> (Vec<FragmentKind>, T) {
+        let saved = std::mem::take(&mut self.stmt_queue);
+        let out = f(self);
+        let stmts = std::mem::replace(&mut self.stmt_queue, saved).into();
+        (stmts, out)
+    }
+
     pub fn increase_indent(&mut self) {
         self.indent += 1;
     }

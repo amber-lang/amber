@@ -148,41 +148,30 @@ impl TypeCheckModule for Ternary {
 
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        match (
-            self.cfa.known_value,
-            self.cfa.has_side_effects,
-        ) {
-            (Some(true), false) => self
-                .true_expr
-                .as_ref()
-                .map(|e| e.translate(meta))
-                .unwrap_or(FragmentKind::Empty),
-            (Some(false), false) => self
-                .false_expr
-                .as_ref()
-                .map(|e| e.translate(meta))
-                .unwrap_or(FragmentKind::Empty),
+        let true_expr = self.true_expr.as_ref().expect("Ternary true branch missing");
+        let false_expr = self.false_expr.as_ref().expect("Ternary false branch missing");
+
+        match (self.cfa.known_value, self.cfa.has_side_effects) {
+            (Some(true), false) => true_expr.translate(meta),
+            (Some(false), false) => false_expr.translate(meta),
             _ => {
-                let true_type = self
-                    .true_expr
-                    .as_ref()
-                    .map(|e| e.get_type())
-                    .unwrap_or(Type::Null);
-                let is_array = true_type.is_array();
+                let true_type = true_expr.get_type();
                 let cond = self.cond.translate(meta).with_condition(true);
-                let translate_branch = |expr: Option<&Box<Expr>>, meta: &mut TranslateMetadata| {
-                    let outer_queue = std::mem::take(&mut meta.stmt_queue);
-                    let value = expr
-                        .map(|expr| expr.translate(meta))
-                        .unwrap_or(FragmentKind::Empty);
-                    let mut statements: Vec<_> =
-                        std::mem::replace(&mut meta.stmt_queue, outer_queue).into();
-                    statements.push(fragments!("printf '%s\n' ", value));
-                    BlockFragment::new(statements, true).to_frag()
+                let id = meta.gen_value_id();
+                let is_local = meta.fun_meta.is_some();
+
+                let mut translate_branch = |expr: &Expr| {
+                    let (mut stmts, value) = meta.capture_stmt_queue(|meta| expr.translate(meta));
+                    let var_stmt = VarStmtFragment::new("ternary", true_type.clone(), value)
+                        .with_global_id(id)
+                        .with_local(is_local)
+                        .with_optimization_when_unused(false);
+                    stmts.push(var_stmt.to_frag());
+                    BlockFragment::new(stmts, true).with_needs_noop(true).to_frag()
                 };
-                let true_branch = translate_branch(self.true_expr.as_ref(), meta);
-                let false_branch = translate_branch(self.false_expr.as_ref(), meta);
-                let expr = BlockFragment::new(
+                let true_branch = translate_branch(true_expr);
+                let false_branch = translate_branch(false_expr);
+                let if_stmt = BlockFragment::new(
                     vec![
                         fragments!("if ", cond, "; then"),
                         true_branch,
@@ -191,17 +180,11 @@ impl TranslateModule for Ternary {
                         fragments!("fi"),
                     ],
                     false,
-                )
-                .to_frag();
-                if is_array {
-                    let id = meta.gen_value_id();
-                    let value = SubprocessFragment::new(expr).with_quotes(false).to_frag();
-                    let var_stmt =
-                        VarStmtFragment::new("ternary", true_type, value).with_global_id(id);
-                    meta.push_ephemeral_variable(var_stmt).to_frag()
-                } else {
-                    SubprocessFragment::new(expr).to_frag()
-                }
+                );
+                meta.stmt_queue.push_back(if_stmt.to_frag());
+                let var_stmt = VarStmtFragment::new("ternary", true_type, FragmentKind::Empty)
+                    .with_global_id(id);
+                VarExprFragment::from_stmt(&var_stmt).to_frag()
             }
         }
     }

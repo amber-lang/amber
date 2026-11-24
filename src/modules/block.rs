@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::ops::Index;
 
 use super::statement::stmt::Statement;
@@ -113,28 +112,19 @@ impl TypeCheckModule for Block {
 
 impl TranslateModule for Block {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let mut new_queue = VecDeque::new();
-        std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
-        let result = {
-            let mut statements = vec![];
-            for statement in &self.statements {
-                if statement.terminates_control_flow() {
-                    let statement = statement.translate(meta);
-                    statements.extend(meta.stmt_queue.drain(..));
-                    statements.push(statement);
-                    break;
-                }
-                let statement = statement.translate(meta);
-                statements.extend(meta.stmt_queue.drain(..));
-                statements.push(statement);
+        let mut statements = vec![];
+        for statement in &self.statements {
+            let (stmts, translated) = meta.capture_stmt_queue(|meta| statement.translate(meta));
+            statements.extend(stmts);
+            statements.push(translated);
+            if statement.terminates_control_flow() {
+                break;
             }
-            BlockFragment::new(statements, self.should_indent)
-                .with_needs_noop(self.needs_noop)
-                .with_condition(self.is_conditional)
-                .to_frag()
-        };
-        std::mem::swap(&mut meta.stmt_queue, &mut new_queue);
-        result
+        }
+        BlockFragment::new(statements, self.should_indent)
+            .with_needs_noop(self.needs_noop)
+            .with_condition(self.is_conditional)
+            .to_frag()
     }
 }
 
