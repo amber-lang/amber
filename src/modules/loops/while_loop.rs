@@ -6,7 +6,6 @@ use crate::modules::types::{Type, Typed};
 use crate::utils::context::Context;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
-use std::collections::VecDeque;
 
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "while"]
@@ -57,20 +56,16 @@ impl TypeCheckModule for WhileLoop {
 
 impl TranslateModule for WhileLoop {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let mut condition_queue = VecDeque::new();
-        std::mem::swap(&mut meta.stmt_queue, &mut condition_queue);
-        let condition = self.condition.translate(meta).with_condition(true);
-        std::mem::swap(&mut meta.stmt_queue, &mut condition_queue);
+        let (mut cond_stmts, cond) = meta.capture_stmt_queue(|meta| self.condition.translate(meta).with_condition(true));
 
-        let header = if condition_queue.is_empty() {
-            fragments!("while ", condition, "; do")
+        let header = if cond_stmts.is_empty() {
+            fragments!("while ", cond, "; do")
         } else {
-            let mut condition_stmts: Vec<FragmentKind> = condition_queue.into_iter().collect();
-            condition_stmts.push(condition);
+            cond_stmts.push(cond);
             BlockFragment::new(
                 vec![
                     fragments!("while"),
-                    BlockFragment::new(condition_stmts, true).to_frag(),
+                    BlockFragment::new(cond_stmts, true).to_frag(),
                     fragments!("do"),
                 ],
                 false,
