@@ -57,7 +57,7 @@ jobs:
           cargo test --no-run --all-targets --all-features
       - name: Compress before uploading artifact to preserve permissions # https://github.com/actions/upload-artifact/tree/v4.4.3#permission-loss
         run: tar -cvzf target.tgz target/
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           include-hidden-files: true
           name: target

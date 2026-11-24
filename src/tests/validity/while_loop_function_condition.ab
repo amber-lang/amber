@@ -1,0 +1,15 @@
+// Output
+// 1
+// 2
+
+fun id(x) {
+    return x
+}
+
+let i = 0
+main {
+    while id(i) < 2 {
+        i += 1
+        echo(i)
+    }
+}
