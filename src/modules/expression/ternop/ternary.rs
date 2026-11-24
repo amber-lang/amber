@@ -148,13 +148,14 @@ impl TypeCheckModule for Ternary {
 
 impl TranslateModule for Ternary {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let true_expr = self.true_expr.as_ref().expect("Ternary true branch missing");
-        let false_expr = self.false_expr.as_ref().expect("Ternary false branch missing");
+        let true_expr = || self.true_expr.as_ref().expect("Ternary true branch missing");
+        let false_expr = || self.false_expr.as_ref().expect("Ternary false branch missing");
 
         match (self.cfa.known_value, self.cfa.has_side_effects) {
-            (Some(true), false) => true_expr.translate(meta),
-            (Some(false), false) => false_expr.translate(meta),
+            (Some(true), false) => true_expr().translate(meta),
+            (Some(false), false) => false_expr().translate(meta),
             _ => {
+                let (true_expr, false_expr) = (true_expr(), false_expr());
                 let true_type = true_expr.get_type();
                 let cond = self.cond.translate(meta).with_condition(true);
                 let id = meta.gen_value_id();
