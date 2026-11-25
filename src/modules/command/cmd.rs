@@ -134,13 +134,19 @@ impl TranslateModule for Command {
                 // output (#1191). Capture the status right after the subprocess and
                 // defer the check to the enclosing block.
                 let is_assigned = meta.assign_ctx;
-                let (status_capture, check) = self.failure_handler.translate_split(meta);
+                let (status_name, check) = self.failure_handler.translate_split(meta);
                 let id = meta.gen_value_id();
                 let value = SubprocessFragment::new(translation).to_frag();
-                let var_stmt =
-                    VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
-                let var_expr = meta.push_ephemeral_variable(var_stmt);
-                meta.stmt_queue.push_back(status_capture);
+                let var_stmt = VarStmtFragment::new("command", Type::Text, value)
+                    .with_global_id(id)
+                    .with_ephemeral(true)
+                    .with_local(meta.fun_meta.is_some());
+                let var_expr = VarExprFragment::from_stmt(&var_stmt);
+                let status_suffix = raw_fragment!("&& {status_name}=0 || {status_name}=$?");
+                let capture = ListFragment::new(vec![var_stmt.to_frag(), status_suffix])
+                    .with_spaces()
+                    .to_frag();
+                meta.stmt_queue.push_back(capture);
                 if is_assigned {
                     meta.deferred_queue.push_back(check);
                 } else {

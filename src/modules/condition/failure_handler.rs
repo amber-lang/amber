@@ -264,18 +264,39 @@ impl FailureHandler {
     /// it earlier makes that write get overwritten by the command output (#1191).
     /// The status capture still has to happen right after the command, so callers
     /// queue it before the assignment and the check after it.
-    pub fn translate_split(&self, meta: &mut TranslateMetadata) -> (FragmentKind, FragmentKind) {
-        let check = self.translate_with_status(meta, false);
+    pub fn translate_split(&self, meta: &mut TranslateMetadata) -> (String, FragmentKind) {
+        let status_id = meta.gen_value_id();
+        let status_name = format!("__status_{status_id}");
+        let check = self.translate_with_status_named(meta, false, &status_name);
         if !self.is_parsed {
-            return (FragmentKind::Empty, check);
+            return (status_name, check);
         }
-        // `translate_with_status` only sets `__status`; re-emit the capture here
-        // because it must run before the assignment, not with the check.
-        let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
-        (status_variable_stmt.to_frag(), check)
+        let status_expr = VarExprFragment::new(&status_name, Type::Int).to_frag();
+        // `status()` still reads `__status`, so restore the status for this
+        // particular command immediately before running its deferred check.
+        let restore_status = VarStmtFragment::new("__status", Type::Int, status_expr).to_frag();
+        let deferred_check = BlockFragment::new(vec![restore_status, check], false).to_frag();
+        (status_name, deferred_check)
     }
 
-    fn translate_with_status(&self, meta: &mut TranslateMetadata, include_status: bool) -> FragmentKind {
+    pub fn status_capture(&self, status_name: &str) -> FragmentKind {
+        VarStmtFragment::new(status_name, Type::Int, fragments!("$?")).to_frag()
+    }
+
+    fn translate_with_status(
+        &self,
+        meta: &mut TranslateMetadata,
+        include_status: bool,
+    ) -> FragmentKind {
+        self.translate_with_status_named(meta, include_status, "__status")
+    }
+
+    fn translate_with_status_named(
+        &self,
+        meta: &mut TranslateMetadata,
+        include_status: bool,
+        status_name: &str,
+    ) -> FragmentKind {
         if !self.is_parsed {
             return FragmentKind::Empty;
         }
@@ -285,7 +306,7 @@ impl FailureHandler {
         let block = self.block.translate(meta);
         meta.expr_ctx = is_expr_ctx;
         // the condition of '$?' clears the status code thus we need to store it in a variable
-        let status_variable_stmt = VarStmtFragment::new("__status", Type::Int, fragments!("$?"));
+        let status_variable_stmt = VarStmtFragment::new(status_name, Type::Int, fragments!("$?"));
         let status_variable_expr = VarExprFragment::from_stmt(&status_variable_stmt);
         let status_capture = if include_status {
             status_variable_stmt.to_frag()

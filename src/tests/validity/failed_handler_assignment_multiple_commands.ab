@@ -1,0 +1,8 @@
+// Output
+// left: 1
+
+let value = $ false $ failed {
+    echo("left: {status()}")
+} + $ true $ failed {
+    echo("right: {status()}")
+}
