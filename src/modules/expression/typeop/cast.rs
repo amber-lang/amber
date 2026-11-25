@@ -90,3 +90,5 @@ impl TranslateModule for Cast {
 }
 
 crate::impl_documentation_noop!(Cast);
+
+crate::impl_flow!(Cast, expr);

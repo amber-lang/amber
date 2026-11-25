@@ -40,3 +40,80 @@ pub fn handle_symbol_scope_declaration(
 
     Ok(())
 }
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FlowSummary {
+    pub terminates: bool,
+    pub reachable_break: bool,
+}
+
+impl FlowSummary {
+    pub fn then(self, next: impl FnOnce() -> Self) -> Self {
+        if self.terminates {
+            self
+        } else {
+            let rhs = next();
+            Self {
+                terminates: rhs.terminates,
+                reachable_break: self.reachable_break || rhs.reachable_break,
+            }
+        }
+    }
+
+    pub fn join(self, other: Self) -> Self {
+        Self {
+            terminates: self.terminates && other.terminates,
+            reachable_break: self.reachable_break || other.reachable_break,
+        }
+    }
+}
+
+pub trait ControlFlow {
+    fn flow(&self) -> FlowSummary;
+}
+
+impl<T: ControlFlow> ControlFlow for Box<T> {
+    fn flow(&self) -> FlowSummary {
+        (**self).flow()
+    }
+}
+
+impl<T: ControlFlow> ControlFlow for Option<T> {
+    fn flow(&self) -> FlowSummary {
+        self.as_ref().map_or_else(FlowSummary::default, ControlFlow::flow)
+    }
+}
+
+impl<T: ControlFlow> ControlFlow for Vec<T> {
+    fn flow(&self) -> FlowSummary {
+        self.as_slice().flow()
+    }
+}
+
+impl<T: ControlFlow> ControlFlow for [T] {
+    fn flow(&self) -> FlowSummary {
+        let mut acc = FlowSummary::default();
+        for item in self {
+            acc = acc.then(|| item.flow());
+            if acc.terminates {
+                return acc;
+            }
+        }
+        acc
+    }
+}
+
+#[macro_export]
+macro_rules! impl_flow {
+    ($ty:ty $(, $field:ident)*) => {
+        impl $crate::modules::ControlFlow for $ty {
+            fn flow(&self) -> $crate::modules::FlowSummary {
+                let acc = $crate::modules::FlowSummary::default();
+                $(
+                    let acc = acc.then(|| $crate::modules::ControlFlow::flow(&self.$field));
+                )*
+                acc
+            }
+        }
+    };
+}

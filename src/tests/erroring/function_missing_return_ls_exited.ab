@@ -1,0 +1,10 @@
+// Output
+// Function 'value' with return type 'Int' must return a value on all execution paths
+
+fun value(): Int {
+    const items = ls(".") exited {
+        return 42
+    }
+}
+
+echo(value())

@@ -99,3 +99,5 @@ impl TranslateModule for ShorthandSub {
 }
 
 crate::impl_documentation_noop!(ShorthandSub);
+
+crate::impl_flow!(ShorthandSub, expr);

@@ -122,3 +122,5 @@ impl TranslateModule for Neq {
 }
 
 crate::impl_documentation_noop!(Neq);
+
+crate::impl_flow!(Neq, left, right);

@@ -1,0 +1,11 @@
+// Output
+// 42
+
+fun value(): Int {
+    const output = $true$ exited {
+        return 42
+    }
+    echo(output)
+}
+
+echo(value())

@@ -117,6 +117,40 @@ impl ExprType {
             _ => (HashMap::new(), HashMap::new()),
         }
     }
+
+    pub fn flow(&self) -> crate::modules::FlowSummary {
+        use crate::modules::{ControlFlow, FlowSummary};
+        match self {
+            ExprType::Add(v) => v.flow(),
+            ExprType::Sub(v) => v.flow(),
+            ExprType::Mul(v) => v.flow(),
+            ExprType::Div(v) => v.flow(),
+            ExprType::Modulo(v) => v.flow(),
+            ExprType::And(v) => v.flow(),
+            ExprType::Or(v) => v.flow(),
+            ExprType::Gt(v) => v.flow(),
+            ExprType::Ge(v) => v.flow(),
+            ExprType::Lt(v) => v.flow(),
+            ExprType::Le(v) => v.flow(),
+            ExprType::Eq(v) => v.flow(),
+            ExprType::Neq(v) => v.flow(),
+            ExprType::Range(v) => v.flow(),
+            ExprType::Neg(v) => v.flow(),
+            ExprType::Not(v) => v.flow(),
+            ExprType::Cast(v) => v.flow(),
+            ExprType::Parentheses(v) => v.flow(),
+            ExprType::Len(v) => v.flow(),
+            ExprType::Ternary(v) => v.flow(),
+            ExprType::Access(v) => v.flow(),
+            ExprType::Array(v) => v.flow(),
+            ExprType::Text(v) => v.flow(),
+            ExprType::Command(v) => v.flow(),
+            ExprType::FunctionInvocation(v) => v.flow(),
+            ExprType::LinesInvocation(v) => v.flow(),
+            ExprType::Ls(v) => v.flow(),
+            _ => FlowSummary::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -170,6 +204,14 @@ impl Expr {
             .as_ref()
             .map(|val| val.extract_facts())
             .unwrap_or_default()
+    }
+}
+
+impl crate::modules::ControlFlow for Expr {
+    fn flow(&self) -> crate::modules::FlowSummary {
+        self.value
+            .as_ref()
+            .map_or_else(crate::modules::FlowSummary::default, ExprType::flow)
     }
 }
 

@@ -238,3 +238,5 @@ impl TranslateModule for Ls {
 }
 
 crate::impl_documentation_noop!(Ls);
+
+crate::impl_flow!(Ls, value, all, recursive);

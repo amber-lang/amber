@@ -1,0 +1,15 @@
+// Output
+// 99
+
+fun value(): Int {
+    loop {
+        const checked = false and (($true$ exited {
+            break
+        }) == "")
+        if checked: echo("yes")
+        return 42
+    }
+    return 99
+}
+
+echo(value())

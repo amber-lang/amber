@@ -305,3 +305,5 @@ impl Range {
 }
 
 crate::impl_documentation_noop!(Range);
+
+crate::impl_flow!(Range, from, to);

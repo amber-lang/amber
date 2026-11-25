@@ -65,3 +65,5 @@ impl TranslateModule for Parentheses {
 }
 
 crate::impl_documentation_noop!(Parentheses);
+
+crate::impl_flow!(Parentheses, value);

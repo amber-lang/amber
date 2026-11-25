@@ -99,3 +99,5 @@ impl TranslateModule for ShorthandModulo {
 }
 
 crate::impl_documentation_noop!(ShorthandModulo);
+
+crate::impl_flow!(ShorthandModulo, expr);

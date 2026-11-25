@@ -1,0 +1,14 @@
+// Output
+// Function 'value' with return type 'Int' must return a value on all execution paths
+
+fun value(): Int {
+    loop {
+        const part = [1, 2][len($true$ exited {
+            return 42
+        })..len($true$ exited {
+            break
+        })]
+    }
+}
+
+echo(value())

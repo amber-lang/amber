@@ -147,3 +147,5 @@ impl TranslateModule for Sleep {
 }
 
 crate::impl_documentation_noop!(Sleep);
+
+crate::impl_flow!(Sleep, value, failure_handler);

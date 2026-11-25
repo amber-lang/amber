@@ -163,3 +163,5 @@ impl TranslateModule for Array {
 }
 
 crate::impl_documentation_noop!(Array);
+
+crate::impl_flow!(Array, exprs);

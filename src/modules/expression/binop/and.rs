@@ -139,3 +139,16 @@ impl TranslateModule for And {
 }
 
 crate::impl_documentation_noop!(And);
+
+impl crate::modules::ControlFlow for And {
+    fn flow(&self) -> crate::modules::FlowSummary {
+        match self.cfa {
+            BoolAnalysis {
+                known_value: Some(_),
+                has_side_effects: false,
+                ..
+            } => crate::modules::FlowSummary::default(),
+            _ => self.left.flow().then(|| self.right.flow()),
+        }
+    }
+}

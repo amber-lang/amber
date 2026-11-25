@@ -11,6 +11,16 @@ pub struct InfiniteLoop {
     block: Block,
 }
 
+impl ControlFlow for InfiniteLoop {
+    fn flow(&self) -> FlowSummary {
+        let inner = self.block.flow();
+        FlowSummary {
+            terminates: !inner.reachable_break,
+            reachable_break: false,
+        }
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for InfiniteLoop {
     syntax_name!("Infinite Loop");
 

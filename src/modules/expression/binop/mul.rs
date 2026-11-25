@@ -83,3 +83,5 @@ impl TranslateModule for Mul {
 }
 
 crate::impl_documentation_noop!(Mul);
+
+crate::impl_flow!(Mul, left, right);

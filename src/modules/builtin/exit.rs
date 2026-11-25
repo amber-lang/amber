@@ -73,3 +73,5 @@ impl TranslateModule for Exit {
 }
 
 crate::impl_documentation_noop!(Exit);
+
+crate::impl_flow!(Exit, code);

@@ -94,3 +94,5 @@ impl Neg {
 }
 
 crate::impl_documentation_noop!(Neg);
+
+crate::impl_flow!(Neg, expr);

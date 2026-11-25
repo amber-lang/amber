@@ -20,7 +20,18 @@ impl Block {
     }
 
     pub fn terminates_control_flow(&self) -> bool {
-        self.statements.iter().any(|stmt| stmt.terminates_control_flow())
+        self.flow().terminates
+    }
+
+    pub fn flow(&self) -> FlowSummary {
+        let mut acc = FlowSummary::default();
+        for stmt in &self.statements {
+            acc = acc.then(|| stmt.flow());
+            if acc.terminates {
+                return acc;
+            }
+        }
+        acc
     }
 
     pub fn set_no_indent(&mut self) {
@@ -45,6 +56,12 @@ impl Block {
     pub fn with_no_syntax(mut self) -> Self {
         self.parses_syntax = false;
         self
+    }
+}
+
+impl ControlFlow for Block {
+    fn flow(&self) -> FlowSummary {
+        self.flow()
     }
 }
 

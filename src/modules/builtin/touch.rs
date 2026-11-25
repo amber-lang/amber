@@ -111,3 +111,5 @@ impl DocumentationModule for Touch {
         String::new()
     }
 }
+
+crate::impl_flow!(Touch, value, failure_handler);

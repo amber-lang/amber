@@ -65,6 +65,26 @@ impl FailureHandler {
     pub fn set_function_name(&mut self, name: String) {
         self.function_name = Some(name);
     }
+
+    pub fn flow(&self) -> FlowSummary {
+        if !self.is_parsed {
+            return FlowSummary::default();
+        }
+        let inner = self.block.flow();
+        match self.failure_type {
+            FailureType::Exited => inner,
+            FailureType::Failed | FailureType::Succeeded => FlowSummary {
+                terminates: false,
+                reachable_break: inner.reachable_break,
+            },
+        }
+    }
+}
+
+impl ControlFlow for FailureHandler {
+    fn flow(&self) -> FlowSummary {
+        self.flow()
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for FailureHandler {

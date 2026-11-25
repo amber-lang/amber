@@ -1,0 +1,35 @@
+// Output
+// yes
+// no
+// two
+// other
+// ok
+
+fun pick(flag: Bool): Text {
+    if flag {
+        return "yes"
+    } else {
+        return "no"
+    }
+}
+
+fun branch(n: Int): Text {
+    if {
+        n == 1: return "one"
+        n == 2: return "two"
+        else: return "other"
+    }
+}
+
+fun maybe_fail(ok: Bool): Text? {
+    if ok {
+        return "ok"
+    }
+    fail 1
+}
+
+echo(pick(true))
+echo(pick(false))
+echo(branch(2))
+echo(branch(9))
+echo(trust maybe_fail(true))

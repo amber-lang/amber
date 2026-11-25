@@ -141,3 +141,16 @@ impl TranslateModule for Or {
 }
 
 crate::impl_documentation_noop!(Or);
+
+impl crate::modules::ControlFlow for Or {
+    fn flow(&self) -> crate::modules::FlowSummary {
+        match self.cfa {
+            BoolAnalysis {
+                known_value: Some(_),
+                has_side_effects: false,
+                ..
+            } => crate::modules::FlowSummary::default(),
+            _ => self.left.flow().then(|| self.right.flow()),
+        }
+    }
+}

@@ -157,6 +157,16 @@ pub fn run_function_with_args(
     if let Type::Generic = fun.returns {
         fun.returns = context.fun_ret_type.clone().unwrap_or(Type::Null);
     };
+    if fun.returns != Type::Null && !block.terminates_control_flow() {
+        return error!(
+            meta,
+            tok,
+            format!(
+                "Function '{}' with return type '{}' must return a value on all execution paths",
+                fun.name, fun.returns
+            )
+        );
+    }
     // Set the new argument types
     for (arg, new_type) in fun.args.iter_mut().zip(args.iter()) {
         arg.kind = new_type.clone();

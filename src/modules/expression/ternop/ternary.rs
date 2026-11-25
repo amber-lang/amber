@@ -192,3 +192,13 @@ impl TranslateModule for Ternary {
 }
 
 crate::impl_documentation_noop!(Ternary);
+
+impl crate::modules::ControlFlow for Ternary {
+    fn flow(&self) -> crate::modules::FlowSummary {
+        self.cond.flow().then(|| match self.cfa.known_value {
+            Some(true) => self.true_expr.flow(),
+            Some(false) => self.false_expr.flow(),
+            None => self.true_expr.flow().join(self.false_expr.flow()),
+        })
+    }
+}

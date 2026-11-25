@@ -107,3 +107,5 @@ impl TranslateModule for Le {
 }
 
 crate::impl_documentation_noop!(Le);
+
+crate::impl_flow!(Le, left, right);

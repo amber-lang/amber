@@ -59,3 +59,5 @@ impl TranslateModule for Echo {
 }
 
 crate::impl_documentation_noop!(Echo);
+
+crate::impl_flow!(Echo, value);

@@ -84,3 +84,5 @@ impl TranslateModule for Modulo {
 }
 
 crate::impl_documentation_noop!(Modulo);
+
+crate::impl_flow!(Modulo, left, right);

@@ -82,3 +82,5 @@ impl TranslateModule for Div {
 }
 
 crate::impl_documentation_noop!(Div);
+
+crate::impl_flow!(Div, left, right);

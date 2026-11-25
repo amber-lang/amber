@@ -99,3 +99,5 @@ impl TranslateModule for ShorthandDiv {
 }
 
 crate::impl_documentation_noop!(ShorthandDiv);
+
+crate::impl_flow!(ShorthandDiv, expr);

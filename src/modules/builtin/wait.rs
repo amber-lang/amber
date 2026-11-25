@@ -98,3 +98,5 @@ impl TranslateModule for Await {
 }
 
 crate::impl_documentation_noop!(Await);
+
+crate::impl_flow!(Await, pids, failure_handler);

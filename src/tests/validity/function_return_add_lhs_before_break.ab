@@ -1,0 +1,15 @@
+// Output
+// 42
+
+fun value(): Int {
+    loop {
+        const output = ($true$ exited {
+            return 42
+        }) + ($true$ exited {
+            break
+        })
+        echo(output)
+    }
+}
+
+echo(value())

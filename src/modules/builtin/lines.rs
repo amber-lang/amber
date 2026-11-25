@@ -153,3 +153,5 @@ impl TranslateModule for LinesInvocation {
 }
 
 crate::impl_documentation_noop!(LinesInvocation);
+
+crate::impl_flow!(LinesInvocation, path, failure_handler);

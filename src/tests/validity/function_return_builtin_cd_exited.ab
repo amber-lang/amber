@@ -1,0 +1,10 @@
+// Output
+// 42
+
+fun value(): Int {
+    cd(".") exited {
+        return 42
+    }
+}
+
+echo(value())

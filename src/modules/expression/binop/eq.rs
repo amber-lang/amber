@@ -124,3 +124,5 @@ impl TranslateModule for Eq {
 }
 
 crate::impl_documentation_noop!(Eq);
+
+crate::impl_flow!(Eq, left, right);

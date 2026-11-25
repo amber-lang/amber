@@ -22,6 +22,8 @@ impl Typed for Command {
     }
 }
 
+crate::impl_flow!(Command, parts, failure_handler);
+
 impl SyntaxModule<ParserMetadata> for Command {
     syntax_name!("Command");
 

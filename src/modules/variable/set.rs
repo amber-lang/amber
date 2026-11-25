@@ -144,3 +144,5 @@ impl TranslateModule for VariableSet {
 }
 
 crate::impl_documentation_noop!(VariableSet);
+
+crate::impl_flow!(VariableSet, index, expr);

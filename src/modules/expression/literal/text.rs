@@ -50,6 +50,17 @@ pub struct Text {
     parts: Vec<TextPart>,
 }
 
+impl ControlFlow for TextPart {
+    fn flow(&self) -> FlowSummary {
+        match self {
+            TextPart::String(_) => FlowSummary::default(),
+            TextPart::Expr(expr) => expr.flow(),
+        }
+    }
+}
+
+crate::impl_flow!(Text, parts);
+
 impl Text {
     pub fn analyze_control_flow(&self) -> BoolAnalysis {
         BoolAnalysis {
