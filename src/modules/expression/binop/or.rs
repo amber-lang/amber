@@ -144,11 +144,13 @@ crate::impl_documentation_noop!(Or);
 
 impl crate::modules::ControlFlow for Or {
     fn flow(&self) -> crate::modules::FlowSummary {
-        let left_cfa = self.left.analyze_control_flow();
-        self.left.flow().then(|| match left_cfa.known_value {
-            Some(false) => self.right.flow(),
-            Some(true) => crate::modules::FlowSummary::default(),
-            None => self.right.flow().join(crate::modules::FlowSummary::default()),
-        })
+        match self.cfa {
+            BoolAnalysis {
+                known_value: Some(_),
+                has_side_effects: false,
+                ..
+            } => crate::modules::FlowSummary::default(),
+            _ => self.left.flow().then(|| self.right.flow()),
+        }
     }
 }

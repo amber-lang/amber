@@ -138,7 +138,6 @@ impl ExprType {
             ExprType::Neg(v) => v.flow(),
             ExprType::Not(v) => v.flow(),
             ExprType::Cast(v) => v.flow(),
-            ExprType::Is(v) => v.flow(),
             ExprType::Parentheses(v) => v.flow(),
             ExprType::Len(v) => v.flow(),
             ExprType::Ternary(v) => v.flow(),

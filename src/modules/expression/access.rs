@@ -155,4 +155,13 @@ impl TranslateModule for Access {
 
 crate::impl_documentation_noop!(Access);
 
-crate::impl_flow!(Access, left, index);
+impl ControlFlow for Access {
+    fn flow(&self) -> FlowSummary {
+        self.left.flow().then(|| {
+            match self.index.as_ref().as_ref().and_then(|e| e.value.as_ref()) {
+                Some(ExprType::Range(range)) => range.to.flow().then(|| range.from.flow()),
+                _ => self.index.flow(),
+            }
+        })
+    }
+}
