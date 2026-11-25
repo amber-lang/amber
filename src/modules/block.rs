@@ -122,7 +122,16 @@ impl Block {
                     return Ok(());
                 }
                 // Adjusts for regions (text or command) containing newline characters
-                let previous_end_row = previous.pos.0 + previous.word.matches('\n').count();
+                // TODO(parser):
+                // - Heraclitus: implement `SeparatorMode::SemiAutomatic` so the lexer emits line
+                //   breaks between tokens as `\n` tokens. Pattern helpers (`token`, `token_by`,
+                //   `variable`, `syntax`, ...) skip leading `\n` tokens, but restore the index
+                //   when the match fails.
+                // - Amber: switch to `SemiAutomatic` and check the raw current token for `\n`
+                //   or `;` here, removing `previous_end_row` and the comment/newline special
+                //   cases above.
+                let previous_end_row = previous.pos.0
+                    + previous.word.trim_start_matches('\n').matches('\n').count();
                 if current.pos.0 > previous_end_row {
                     return Ok(());
                 }
