@@ -1,0 +1,21 @@
+// Output
+// side
+// 42
+
+fun side(): Bool {
+    echo("side")
+    return true
+}
+
+fun value(): Int {
+    if {
+        false and side() {
+            echo("never")
+        }
+        else {
+            return 42
+        }
+    }
+}
+
+echo(value())

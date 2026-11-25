@@ -164,4 +164,4 @@ impl TranslateModule for VariableSetDestruct {
 
 crate::impl_documentation_noop!(VariableSetDestruct);
 
-crate::impl_reachable_break!(VariableSetDestruct, expr);
+crate::impl_flow!(VariableSetDestruct, expr);

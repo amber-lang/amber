@@ -84,4 +84,4 @@ impl TranslateModule for Sub {
 
 crate::impl_documentation_noop!(Sub);
 
-crate::impl_reachable_break!(Sub, left, right);
+crate::impl_flow!(Sub, left, right);

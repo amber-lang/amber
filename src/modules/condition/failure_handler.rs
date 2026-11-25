@@ -66,20 +66,24 @@ impl FailureHandler {
         self.function_name = Some(name);
     }
 
-    pub fn terminates_control_flow(&self) -> bool {
-        self.is_parsed
-            && matches!(self.failure_type, FailureType::Exited)
-            && self.block.terminates_control_flow()
-    }
-
-    pub fn has_reachable_break(&self) -> bool {
-        self.is_parsed && self.block.has_reachable_break()
+    pub fn flow(&self) -> FlowSummary {
+        if !self.is_parsed {
+            return FlowSummary::default();
+        }
+        let inner = self.block.flow();
+        match self.failure_type {
+            FailureType::Exited => inner,
+            FailureType::Failed | FailureType::Succeeded => FlowSummary {
+                terminates: false,
+                reachable_break: inner.reachable_break,
+            },
+        }
     }
 }
 
-impl ReachableBreak for FailureHandler {
-    fn has_reachable_break(&self) -> bool {
-        self.has_reachable_break()
+impl ControlFlow for FailureHandler {
+    fn flow(&self) -> FlowSummary {
+        self.flow()
     }
 }
 

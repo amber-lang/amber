@@ -50,16 +50,16 @@ pub struct Text {
     parts: Vec<TextPart>,
 }
 
-impl ReachableBreak for TextPart {
-    fn has_reachable_break(&self) -> bool {
+impl ControlFlow for TextPart {
+    fn flow(&self) -> FlowSummary {
         match self {
-            TextPart::String(_) => false,
-            TextPart::Expr(expr) => expr.has_reachable_break(),
+            TextPart::String(_) => FlowSummary::default(),
+            TextPart::Expr(expr) => expr.flow(),
         }
     }
 }
 
-crate::impl_reachable_break!(Text, parts);
+crate::impl_flow!(Text, parts);
 
 impl Text {
     pub fn analyze_control_flow(&self) -> BoolAnalysis {

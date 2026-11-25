@@ -108,4 +108,4 @@ impl TranslateModule for Gt {
 
 crate::impl_documentation_noop!(Gt);
 
-crate::impl_reachable_break!(Gt, left, right);
+crate::impl_flow!(Gt, left, right);

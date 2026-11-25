@@ -118,38 +118,38 @@ impl ExprType {
         }
     }
 
-    pub fn has_reachable_break(&self) -> bool {
-        use crate::modules::ReachableBreak;
+    pub fn flow(&self) -> crate::modules::FlowSummary {
+        use crate::modules::{ControlFlow, FlowSummary};
         match self {
-            ExprType::Add(v) => v.has_reachable_break(),
-            ExprType::Sub(v) => v.has_reachable_break(),
-            ExprType::Mul(v) => v.has_reachable_break(),
-            ExprType::Div(v) => v.has_reachable_break(),
-            ExprType::Modulo(v) => v.has_reachable_break(),
-            ExprType::And(v) => v.has_reachable_break(),
-            ExprType::Or(v) => v.has_reachable_break(),
-            ExprType::Gt(v) => v.has_reachable_break(),
-            ExprType::Ge(v) => v.has_reachable_break(),
-            ExprType::Lt(v) => v.has_reachable_break(),
-            ExprType::Le(v) => v.has_reachable_break(),
-            ExprType::Eq(v) => v.has_reachable_break(),
-            ExprType::Neq(v) => v.has_reachable_break(),
-            ExprType::Range(v) => v.has_reachable_break(),
-            ExprType::Neg(v) => v.has_reachable_break(),
-            ExprType::Not(v) => v.has_reachable_break(),
-            ExprType::Cast(v) => v.has_reachable_break(),
-            ExprType::Is(v) => v.has_reachable_break(),
-            ExprType::Parentheses(v) => v.has_reachable_break(),
-            ExprType::Len(v) => v.has_reachable_break(),
-            ExprType::Ternary(v) => v.has_reachable_break(),
-            ExprType::Access(v) => v.has_reachable_break(),
-            ExprType::Array(v) => v.has_reachable_break(),
-            ExprType::Text(v) => v.has_reachable_break(),
-            ExprType::Command(v) => v.has_reachable_break(),
-            ExprType::FunctionInvocation(v) => v.has_reachable_break(),
-            ExprType::LinesInvocation(v) => v.has_reachable_break(),
-            ExprType::Ls(v) => v.has_reachable_break(),
-            _ => false,
+            ExprType::Add(v) => v.flow(),
+            ExprType::Sub(v) => v.flow(),
+            ExprType::Mul(v) => v.flow(),
+            ExprType::Div(v) => v.flow(),
+            ExprType::Modulo(v) => v.flow(),
+            ExprType::And(v) => v.flow(),
+            ExprType::Or(v) => v.flow(),
+            ExprType::Gt(v) => v.flow(),
+            ExprType::Ge(v) => v.flow(),
+            ExprType::Lt(v) => v.flow(),
+            ExprType::Le(v) => v.flow(),
+            ExprType::Eq(v) => v.flow(),
+            ExprType::Neq(v) => v.flow(),
+            ExprType::Range(v) => v.flow(),
+            ExprType::Neg(v) => v.flow(),
+            ExprType::Not(v) => v.flow(),
+            ExprType::Cast(v) => v.flow(),
+            ExprType::Is(v) => v.flow(),
+            ExprType::Parentheses(v) => v.flow(),
+            ExprType::Len(v) => v.flow(),
+            ExprType::Ternary(v) => v.flow(),
+            ExprType::Access(v) => v.flow(),
+            ExprType::Array(v) => v.flow(),
+            ExprType::Text(v) => v.flow(),
+            ExprType::Command(v) => v.flow(),
+            ExprType::FunctionInvocation(v) => v.flow(),
+            ExprType::LinesInvocation(v) => v.flow(),
+            ExprType::Ls(v) => v.flow(),
+            _ => FlowSummary::default(),
         }
     }
 }
@@ -208,11 +208,11 @@ impl Expr {
     }
 }
 
-impl crate::modules::ReachableBreak for Expr {
-    fn has_reachable_break(&self) -> bool {
+impl crate::modules::ControlFlow for Expr {
+    fn flow(&self) -> crate::modules::FlowSummary {
         self.value
             .as_ref()
-            .is_some_and(ExprType::has_reachable_break)
+            .map_or_else(crate::modules::FlowSummary::default, ExprType::flow)
     }
 }
 

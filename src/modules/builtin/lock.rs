@@ -165,4 +165,4 @@ impl TranslateModule for Lock {
 
 crate::impl_documentation_noop!(Lock);
 
-crate::impl_reachable_break!(Lock, path, failure_handler);
+crate::impl_flow!(Lock, path, failure_handler);

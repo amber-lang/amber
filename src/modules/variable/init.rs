@@ -117,4 +117,4 @@ impl TranslateModule for VariableInit {
 
 crate::impl_documentation_noop!(VariableInit);
 
-crate::impl_reachable_break!(VariableInit, expr);
+crate::impl_flow!(VariableInit, expr);

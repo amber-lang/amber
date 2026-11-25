@@ -100,4 +100,4 @@ impl TranslateModule for ShorthandMul {
 
 crate::impl_documentation_noop!(ShorthandMul);
 
-crate::impl_reachable_break!(ShorthandMul, expr);
+crate::impl_flow!(ShorthandMul, expr);

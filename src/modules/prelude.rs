@@ -1,7 +1,7 @@
 /// This is a prelude module that re-exports all the necessary modules for syntax modules
 pub use crate::docs::module::DocumentationModule;
 pub use crate::modules::typecheck::TypeCheckModule;
-pub use crate::modules::ReachableBreak;
+pub use crate::modules::{ControlFlow, FlowSummary};
 pub use crate::translate::compute::ArithOp;
 pub use crate::translate::fragments::arithmetic::ArithmeticFragment;
 pub use crate::translate::fragments::block::BlockFragment;

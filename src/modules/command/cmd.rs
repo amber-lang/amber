@@ -22,21 +22,7 @@ impl Typed for Command {
     }
 }
 
-impl Command {
-    pub fn terminates_control_flow(&self) -> bool {
-        self.failure_handler.terminates_control_flow()
-    }
-
-    pub fn has_reachable_break(&self) -> bool {
-        self.parts.has_reachable_break() || self.failure_handler.has_reachable_break()
-    }
-}
-
-impl ReachableBreak for Command {
-    fn has_reachable_break(&self) -> bool {
-        self.has_reachable_break()
-    }
-}
+crate::impl_flow!(Command, parts, failure_handler);
 
 impl SyntaxModule<ParserMetadata> for Command {
     syntax_name!("Command");

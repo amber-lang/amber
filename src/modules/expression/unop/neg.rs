@@ -95,4 +95,4 @@ impl Neg {
 
 crate::impl_documentation_noop!(Neg);
 
-crate::impl_reachable_break!(Neg, expr);
+crate::impl_flow!(Neg, expr);

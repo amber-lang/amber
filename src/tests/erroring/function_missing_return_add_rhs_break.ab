@@ -1,0 +1,15 @@
+// Output
+// Function 'value' with return type 'Int' must return a value on all execution paths
+
+fun value(): Int {
+    loop {
+        const output = ($true$ exited {
+            echo("ok")
+        }) + ($true$ exited {
+            break
+        })
+        echo(output)
+    }
+}
+
+echo(value())

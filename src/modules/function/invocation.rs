@@ -329,4 +329,4 @@ impl TranslateModule for FunctionInvocation {
 
 crate::impl_documentation_noop!(FunctionInvocation);
 
-crate::impl_reachable_break!(FunctionInvocation, args, failure_handler);
+crate::impl_flow!(FunctionInvocation, args, failure_handler);

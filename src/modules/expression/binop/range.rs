@@ -306,4 +306,4 @@ impl Range {
 
 crate::impl_documentation_noop!(Range);
 
-crate::impl_reachable_break!(Range, from, to);
+crate::impl_flow!(Range, from, to);

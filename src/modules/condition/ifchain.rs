@@ -40,38 +40,42 @@ pub struct IfChain {
 crate::impl_documentation_noop!(IfChain);
 
 impl IfChain {
-    pub fn terminates_control_flow(&self) -> bool {
-        let mut all_previously_terminated = true;
+    pub fn flow(&self) -> FlowSummary {
+        let mut reachable_break = false;
+        let mut all_terminated = true;
         for branch in &self.cond_blocks {
-            if branch.cfa.known_value == Some(true) {
-                return all_previously_terminated && branch.block.terminates_control_flow();
-            }
-            all_previously_terminated &= branch.block.terminates_control_flow();
-        }
-        match (&self.false_block, all_previously_terminated) {
-            (Some(branch), true) => branch.block.terminates_control_flow(),
-            _ => false,
-        }
-    }
-
-    pub fn has_reachable_break(&self) -> bool {
-        for branch in &self.cond_blocks {
-            if branch.cond.has_reachable_break() {
-                return true;
+            let cond_flow = branch.cond.flow();
+            reachable_break |= cond_flow.reachable_break;
+            if cond_flow.terminates {
+                return FlowSummary {
+                    terminates: all_terminated,
+                    reachable_break,
+                };
             }
             if branch.cfa.known_value == Some(false) {
                 continue;
             }
-            if branch.block.has_reachable_break() {
-                return true;
-            }
+            let body_flow = branch.block.flow();
+            reachable_break |= body_flow.reachable_break;
             if branch.cfa.known_value == Some(true) {
-                return false;
+                return FlowSummary {
+                    terminates: all_terminated && body_flow.terminates,
+                    reachable_break,
+                };
             }
+            all_terminated &= body_flow.terminates;
         }
-        self.false_block
-            .as_ref()
-            .is_some_and(|branch| branch.block.has_reachable_break())
+        let else_terminates = if let Some(branch) = &self.false_block {
+            let else_flow = branch.block.flow();
+            reachable_break |= else_flow.reachable_break;
+            else_flow.terminates
+        } else {
+            false
+        };
+        FlowSummary {
+            terminates: all_terminated && else_terminates,
+            reachable_break,
+        }
     }
 
     fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, reason: &str) {

@@ -127,4 +127,4 @@ impl TranslateModule for ShorthandAdd {
 
 crate::impl_documentation_noop!(ShorthandAdd);
 
-crate::impl_reachable_break!(ShorthandAdd, expr);
+crate::impl_flow!(ShorthandAdd, expr);

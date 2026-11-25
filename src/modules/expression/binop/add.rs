@@ -96,4 +96,4 @@ impl TranslateModule for Add {
 
 crate::impl_documentation_noop!(Add);
 
-crate::impl_reachable_break!(Add, left, right);
+crate::impl_flow!(Add, left, right);

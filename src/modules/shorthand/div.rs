@@ -100,4 +100,4 @@ impl TranslateModule for ShorthandDiv {
 
 crate::impl_documentation_noop!(ShorthandDiv);
 
-crate::impl_reachable_break!(ShorthandDiv, expr);
+crate::impl_flow!(ShorthandDiv, expr);

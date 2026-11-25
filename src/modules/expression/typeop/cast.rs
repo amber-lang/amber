@@ -91,4 +91,4 @@ impl TranslateModule for Cast {
 
 crate::impl_documentation_noop!(Cast);
 
-crate::impl_reachable_break!(Cast, expr);
+crate::impl_flow!(Cast, expr);

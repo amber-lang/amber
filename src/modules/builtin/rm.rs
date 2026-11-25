@@ -186,4 +186,4 @@ impl TranslateModule for Rm {
 
 crate::impl_documentation_noop!(Rm);
 
-crate::impl_reachable_break!(Rm, value, recursive, force, failure_handler);
+crate::impl_flow!(Rm, value, recursive, force, failure_handler);

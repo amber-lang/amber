@@ -11,9 +11,13 @@ pub struct InfiniteLoop {
     block: Block,
 }
 
-impl InfiniteLoop {
-    pub fn terminates_control_flow(&self) -> bool {
-        !self.block.has_reachable_break()
+impl ControlFlow for InfiniteLoop {
+    fn flow(&self) -> FlowSummary {
+        let inner = self.block.flow();
+        FlowSummary {
+            terminates: !inner.reachable_break,
+            reachable_break: false,
+        }
     }
 }
 

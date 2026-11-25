@@ -83,4 +83,4 @@ impl TranslateModule for Div {
 
 crate::impl_documentation_noop!(Div);
 
-crate::impl_reachable_break!(Div, left, right);
+crate::impl_flow!(Div, left, right);

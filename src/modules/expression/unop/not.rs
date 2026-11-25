@@ -107,4 +107,4 @@ impl TranslateModule for Not {
 
 crate::impl_documentation_noop!(Not);
 
-crate::impl_reachable_break!(Not, expr);
+crate::impl_flow!(Not, expr);

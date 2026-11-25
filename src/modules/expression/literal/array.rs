@@ -164,4 +164,4 @@ impl TranslateModule for Array {
 
 crate::impl_documentation_noop!(Array);
 
-crate::impl_reachable_break!(Array, exprs);
+crate::impl_flow!(Array, exprs);

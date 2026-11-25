@@ -60,4 +60,4 @@ impl TranslateModule for Echo {
 
 crate::impl_documentation_noop!(Echo);
 
-crate::impl_reachable_break!(Echo, value);
+crate::impl_flow!(Echo, value);

@@ -99,4 +99,4 @@ impl TranslateModule for Await {
 
 crate::impl_documentation_noop!(Await);
 
-crate::impl_reachable_break!(Await, pids, failure_handler);
+crate::impl_flow!(Await, pids, failure_handler);

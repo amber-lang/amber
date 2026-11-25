@@ -123,4 +123,4 @@ impl TranslateModule for Neq {
 
 crate::impl_documentation_noop!(Neq);
 
-crate::impl_reachable_break!(Neq, left, right);
+crate::impl_flow!(Neq, left, right);

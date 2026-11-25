@@ -85,4 +85,4 @@ impl TranslateModule for Modulo {
 
 crate::impl_documentation_noop!(Modulo);
 
-crate::impl_reachable_break!(Modulo, left, right);
+crate::impl_flow!(Modulo, left, right);

@@ -168,4 +168,4 @@ impl TranslateModule for Cp {
 
 crate::impl_documentation_noop!(Cp);
 
-crate::impl_reachable_break!(Cp, source, destination, force, failure_handler);
+crate::impl_flow!(Cp, source, destination, force, failure_handler);

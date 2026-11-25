@@ -112,4 +112,4 @@ impl DocumentationModule for Touch {
     }
 }
 
-crate::impl_reachable_break!(Touch, value, failure_handler);
+crate::impl_flow!(Touch, value, failure_handler);

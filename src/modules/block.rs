@@ -20,19 +20,18 @@ impl Block {
     }
 
     pub fn terminates_control_flow(&self) -> bool {
-        self.statements.iter().any(|stmt| stmt.terminates_control_flow())
+        self.flow().terminates
     }
 
-    pub fn has_reachable_break(&self) -> bool {
+    pub fn flow(&self) -> FlowSummary {
+        let mut acc = FlowSummary::default();
         for stmt in &self.statements {
-            if stmt.has_reachable_break() {
-                return true;
-            }
-            if stmt.terminates_control_flow() {
-                return false;
+            acc = acc.then(|| stmt.flow());
+            if acc.terminates {
+                return acc;
             }
         }
-        false
+        acc
     }
 
     pub fn set_no_indent(&mut self) {
@@ -60,9 +59,9 @@ impl Block {
     }
 }
 
-impl ReachableBreak for Block {
-    fn has_reachable_break(&self) -> bool {
-        self.has_reachable_break()
+impl ControlFlow for Block {
+    fn flow(&self) -> FlowSummary {
+        self.flow()
     }
 }
 

@@ -184,55 +184,57 @@ impl DocumentationModule for Statement {
 
 impl Statement {
     pub fn terminates_control_flow(&self) -> bool {
-        match &self.value {
-            Some(StmtType::Return(_)) => true,
-            Some(StmtType::Exit(_)) => true,
-            Some(StmtType::Fail(_)) => true,
-            Some(StmtType::Continue(_)) => true,
-            Some(StmtType::IfCondition(if_cond)) => if_cond.terminates_control_flow(),
-            Some(StmtType::IfChain(if_chain)) => if_chain.terminates_control_flow(),
-            Some(StmtType::CommandModifier(cmd_mod)) => cmd_mod
-                .block
-                .as_ref()
-                .is_some_and(|b| b.terminates_control_flow()),
-            Some(StmtType::Command(cmd)) => cmd.terminates_control_flow(),
-            Some(StmtType::InfiniteLoop(inf_loop)) => inf_loop.terminates_control_flow(),
-            _ => false,
-        }
+        self.flow().terminates
     }
 
-    pub fn has_reachable_break(&self) -> bool {
+    pub fn flow(&self) -> FlowSummary {
         match &self.value {
-            Some(StmtType::Break(_)) => true,
-            Some(StmtType::Expr(expr)) => expr.has_reachable_break(),
-            Some(StmtType::VariableInit(v)) => v.has_reachable_break(),
-            Some(StmtType::VariableInitDestruct(v)) => v.has_reachable_break(),
-            Some(StmtType::VariableSet(v)) => v.has_reachable_break(),
-            Some(StmtType::VariableSetDestruct(v)) => v.has_reachable_break(),
-            Some(StmtType::ShorthandAdd(v)) => v.has_reachable_break(),
-            Some(StmtType::ShorthandSub(v)) => v.has_reachable_break(),
-            Some(StmtType::ShorthandMul(v)) => v.has_reachable_break(),
-            Some(StmtType::ShorthandDiv(v)) => v.has_reachable_break(),
-            Some(StmtType::ShorthandModulo(v)) => v.has_reachable_break(),
-            Some(StmtType::IfCondition(v)) => v.has_reachable_break(),
-            Some(StmtType::IfChain(v)) => v.has_reachable_break(),
-            Some(StmtType::IterLoop(v)) => v.iter_expr.has_reachable_break(),
-            Some(StmtType::CommandModifier(v)) => v.block.has_reachable_break(),
-            Some(StmtType::Command(v)) => v.has_reachable_break(),
-            Some(StmtType::Return(v)) => v.expr.has_reachable_break(),
-            Some(StmtType::Fail(v)) => v.expr.has_reachable_break(),
-            Some(StmtType::Cd(v)) => v.has_reachable_break(),
-            Some(StmtType::Echo(v)) => v.has_reachable_break(),
-            Some(StmtType::Mv(v)) => v.has_reachable_break(),
-            Some(StmtType::Touch(v)) => v.has_reachable_break(),
-            Some(StmtType::Exit(v)) => v.has_reachable_break(),
-            Some(StmtType::Sleep(v)) => v.has_reachable_break(),
-            Some(StmtType::Lock(v)) => v.has_reachable_break(),
-            Some(StmtType::Rm(v)) => v.has_reachable_break(),
-            Some(StmtType::Await(v)) => v.has_reachable_break(),
-            Some(StmtType::Cp(v)) => v.has_reachable_break(),
-            // Nested InfiniteLoop / WhileLoop and unexecuted declarations isolate their own `break`.
-            _ => false,
+            Some(StmtType::Return(v)) => v.expr.flow().then(|| FlowSummary {
+                terminates: true,
+                reachable_break: false,
+            }),
+            Some(StmtType::Fail(v)) => v.expr.flow().then(|| FlowSummary {
+                terminates: true,
+                reachable_break: false,
+            }),
+            Some(StmtType::Exit(v)) => v.flow().then(|| FlowSummary {
+                terminates: true,
+                reachable_break: false,
+            }),
+            Some(StmtType::Continue(_)) => FlowSummary {
+                terminates: true,
+                reachable_break: false,
+            },
+            Some(StmtType::Break(_)) => FlowSummary {
+                terminates: false,
+                reachable_break: true,
+            },
+            Some(StmtType::Expr(v)) => v.flow(),
+            Some(StmtType::VariableInit(v)) => v.flow(),
+            Some(StmtType::VariableInitDestruct(v)) => v.flow(),
+            Some(StmtType::VariableSet(v)) => v.flow(),
+            Some(StmtType::VariableSetDestruct(v)) => v.flow(),
+            Some(StmtType::ShorthandAdd(v)) => v.flow(),
+            Some(StmtType::ShorthandSub(v)) => v.flow(),
+            Some(StmtType::ShorthandMul(v)) => v.flow(),
+            Some(StmtType::ShorthandDiv(v)) => v.flow(),
+            Some(StmtType::ShorthandModulo(v)) => v.flow(),
+            Some(StmtType::IfCondition(v)) => v.flow(),
+            Some(StmtType::IfChain(v)) => v.flow(),
+            Some(StmtType::InfiniteLoop(v)) => v.flow(),
+            Some(StmtType::IterLoop(v)) => v.iter_expr.flow().then(FlowSummary::default),
+            Some(StmtType::CommandModifier(v)) => v.block.flow(),
+            Some(StmtType::Command(v)) => v.flow(),
+            Some(StmtType::Cd(v)) => v.flow(),
+            Some(StmtType::Echo(v)) => v.flow(),
+            Some(StmtType::Mv(v)) => v.flow(),
+            Some(StmtType::Touch(v)) => v.flow(),
+            Some(StmtType::Sleep(v)) => v.flow(),
+            Some(StmtType::Lock(v)) => v.flow(),
+            Some(StmtType::Rm(v)) => v.flow(),
+            Some(StmtType::Await(v)) => v.flow(),
+            Some(StmtType::Cp(v)) => v.flow(),
+            _ => FlowSummary::default(),
         }
     }
 }
