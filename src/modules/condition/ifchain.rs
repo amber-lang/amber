@@ -54,6 +54,23 @@ impl IfChain {
         }
     }
 
+    pub fn has_reachable_break(&self) -> bool {
+        for branch in &self.cond_blocks {
+            if branch.cfa.known_value == Some(false) {
+                continue;
+            }
+            if branch.block.has_reachable_break() {
+                return true;
+            }
+            if branch.cfa.known_value == Some(true) {
+                return false;
+            }
+        }
+        self.false_block
+            .as_ref()
+            .is_some_and(|branch| branch.block.has_reachable_break())
+    }
+
     fn warn_dead_code(meta: &mut ParserMetadata, pos: PositionInfo, reason: &str) {
         if meta.context.cc_flags.contains(&CCFlags::AllowDeadCode) {
             return;

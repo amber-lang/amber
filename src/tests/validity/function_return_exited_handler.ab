@@ -1,0 +1,10 @@
+// Output
+// 1
+
+fun value(): Int {
+    $true$ exited {
+        return 1
+    }
+}
+
+echo(value())

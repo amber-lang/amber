@@ -23,6 +23,18 @@ impl Block {
         self.statements.iter().any(|stmt| stmt.terminates_control_flow())
     }
 
+    pub fn has_reachable_break(&self) -> bool {
+        for stmt in &self.statements {
+            if stmt.has_reachable_break() {
+                return true;
+            }
+            if stmt.terminates_control_flow() {
+                return false;
+            }
+        }
+        false
+    }
+
     pub fn set_no_indent(&mut self) {
         self.should_indent = false;
     }

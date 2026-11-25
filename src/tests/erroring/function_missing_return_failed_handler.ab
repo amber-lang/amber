@@ -1,0 +1,10 @@
+// Output
+// Function 'value' with return type 'Int' must return a value on all execution paths
+
+fun value(): Int {
+    $true$ failed {
+        return 1
+    }
+}
+
+echo(value())

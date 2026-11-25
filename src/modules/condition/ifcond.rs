@@ -68,6 +68,28 @@ impl IfCondition {
             },
         }
     }
+
+    pub fn has_reachable_break(&self) -> bool {
+        match self.cfa.known_value {
+            Some(true) => self
+                .true_block
+                .as_ref()
+                .is_some_and(|b| b.has_reachable_break()),
+            Some(false) => self
+                .false_block
+                .as_ref()
+                .is_some_and(|b| b.has_reachable_break()),
+            None => {
+                self.true_block
+                    .as_ref()
+                    .is_some_and(|b| b.has_reachable_break())
+                    || self
+                        .false_block
+                        .as_ref()
+                        .is_some_and(|b| b.has_reachable_break())
+            }
+        }
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for IfCondition {

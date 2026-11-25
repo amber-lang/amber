@@ -65,6 +65,16 @@ impl FailureHandler {
     pub fn set_function_name(&mut self, name: String) {
         self.function_name = Some(name);
     }
+
+    pub fn terminates_control_flow(&self) -> bool {
+        self.is_parsed
+            && matches!(self.failure_type, FailureType::Exited)
+            && self.block.terminates_control_flow()
+    }
+
+    pub fn has_reachable_break(&self) -> bool {
+        self.is_parsed && self.block.has_reachable_break()
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for FailureHandler {

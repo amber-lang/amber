@@ -194,6 +194,23 @@ impl Statement {
                 .block
                 .as_ref()
                 .is_some_and(|b| b.terminates_control_flow()),
+            Some(StmtType::Command(cmd)) => cmd.terminates_control_flow(),
+            Some(StmtType::InfiniteLoop(inf_loop)) => inf_loop.terminates_control_flow(),
+            _ => false,
+        }
+    }
+
+    pub fn has_reachable_break(&self) -> bool {
+        match &self.value {
+            Some(StmtType::Break(_)) => true,
+            Some(StmtType::IfCondition(if_cond)) => if_cond.has_reachable_break(),
+            Some(StmtType::IfChain(if_chain)) => if_chain.has_reachable_break(),
+            Some(StmtType::CommandModifier(cmd_mod)) => cmd_mod
+                .block
+                .as_ref()
+                .is_some_and(|b| b.has_reachable_break()),
+            Some(StmtType::Command(cmd)) => cmd.has_reachable_break(),
+            // Nested loops handle their own `break` statements.
             _ => false,
         }
     }

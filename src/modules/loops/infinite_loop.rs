@@ -11,6 +11,12 @@ pub struct InfiniteLoop {
     block: Block,
 }
 
+impl InfiniteLoop {
+    pub fn terminates_control_flow(&self) -> bool {
+        !self.block.has_reachable_break()
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for InfiniteLoop {
     syntax_name!("Infinite Loop");
 

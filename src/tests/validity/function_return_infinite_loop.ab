@@ -1,0 +1,21 @@
+// Output
+// 1
+// 2
+
+fun value(): Int {
+    loop {
+        return 1
+    }
+}
+
+fun nested(): Int {
+    loop {
+        loop {
+            break
+        }
+        return 2
+    }
+}
+
+echo(value())
+echo(nested())
