@@ -204,6 +204,19 @@ impl TranslateModule for FunctionInvocation {
         // Get the variable prefix based on function name casing
         let prefix = meta.gen_variable_prefix(&self.name);
         let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
+        let deferred_failure_name = if self.is_failable
+            && self.failure_handler.is_parsed
+            && meta.assign_ctx
+            && !self.failure_handler.is_question_mark
+        {
+            Some(self.failure_handler.new_status_name(meta))
+        } else {
+            None
+        };
+        if let Some(status_name) = &deferred_failure_name {
+            meta.stmt_queue
+                .push_back(self.failure_handler.status_declaration(meta, status_name));
+        }
         meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             let silent = meta.gen_silent().to_frag();
             let suppress = meta.gen_suppress().to_frag();
@@ -300,8 +313,10 @@ impl TranslateModule for FunctionInvocation {
             // right-hand side of an assignment the check runs after the assignment
             // instead of before it (#1191). Anywhere else it keeps the established
             // order, which `status()` inside the block relies on.
-            if meta.assign_ctx {
-                let (status_name, check) = self.failure_handler.translate_split(meta);
+            if let Some(status_name) = deferred_failure_name {
+                let check = self
+                    .failure_handler
+                    .translate_split_named(meta, &status_name);
                 meta.stmt_queue
                     .push_back(self.failure_handler.status_capture(&status_name));
                 meta.deferred_queue.push_back(check);

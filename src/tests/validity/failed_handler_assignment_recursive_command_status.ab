@@ -1,0 +1,14 @@
+// Output
+// cmd 1
+
+fun command_walk(n: Num): Text {
+    if n == 0 {
+        return ""
+    }
+    const value = $ test "{n}" -eq 2 $ failed {
+        echo("cmd {status()}")
+    } + command_walk(n - 1)
+    return value
+}
+
+command_walk(2)

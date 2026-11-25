@@ -134,7 +134,7 @@ impl TranslateModule for Command {
                 // output (#1191). Capture the status right after the subprocess and
                 // defer the check to the enclosing block.
                 let is_assigned = meta.assign_ctx;
-                let (status_name, check) = self.failure_handler.translate_split(meta);
+                let defer_handler = is_assigned && !self.failure_handler.is_question_mark;
                 let id = meta.gen_value_id();
                 let value = SubprocessFragment::new(translation).to_frag();
                 let var_stmt = VarStmtFragment::new("command", Type::Text, value)
@@ -142,16 +142,19 @@ impl TranslateModule for Command {
                     .with_ephemeral(true)
                     .with_local(meta.fun_meta.is_some());
                 let var_expr = VarExprFragment::from_stmt(&var_stmt);
-                let status_suffix = raw_fragment!("&& {status_name}=0 || {status_name}=$?");
-                let capture = ListFragment::new(vec![var_stmt.to_frag(), status_suffix])
-                    .with_spaces()
-                    .to_frag();
-                meta.stmt_queue.push_back(capture);
-                if is_assigned {
+                if defer_handler {
+                    let (status_name, check) = self.failure_handler.translate_split(meta);
+                    meta.stmt_queue
+                        .push_back(self.failure_handler.status_declaration(meta, &status_name));
+                    let status_suffix = raw_fragment!("&& {status_name}=0 || {status_name}=$?");
+                    let capture = ListFragment::new(vec![var_stmt.to_frag(), status_suffix])
+                        .with_spaces()
+                        .to_frag();
+                    meta.stmt_queue.push_back(capture);
                     meta.deferred_queue.push_back(check);
                 } else {
-                    // Anywhere else the block keeps its established place, before
-                    // the statement that consumes the captured output.
+                    meta.stmt_queue.push_back(var_stmt.to_frag());
+                    let check = self.failure_handler.translate(meta);
                     meta.stmt_queue.push_back(check);
                 }
                 var_expr.to_frag()

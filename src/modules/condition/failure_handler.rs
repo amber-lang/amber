@@ -265,18 +265,40 @@ impl FailureHandler {
     /// The status capture still has to happen right after the command, so callers
     /// queue it before the assignment and the check after it.
     pub fn translate_split(&self, meta: &mut TranslateMetadata) -> (String, FragmentKind) {
-        let status_id = meta.gen_value_id();
-        let status_name = format!("__status_{status_id}");
-        let check = self.translate_with_status_named(meta, false, &status_name);
-        if !self.is_parsed {
-            return (status_name, check);
+        let status_name = self.new_status_name(meta);
+        let check = self.translate_split_named(meta, &status_name);
+        (status_name, check)
+    }
+
+    pub fn new_status_name(&self, meta: &mut TranslateMetadata) -> String {
+        format!("__status_{}", meta.gen_value_id())
+    }
+
+    pub fn status_declaration(&self, meta: &TranslateMetadata, status_name: &str) -> FragmentKind {
+        if meta.fun_meta.is_some() {
+            VarStmtFragment::new(status_name, Type::Int, fragments!("0"))
+                .with_local(true)
+                .with_optimization_when_unused(false)
+                .to_frag()
+        } else {
+            FragmentKind::Empty
         }
-        let status_expr = VarExprFragment::new(&status_name, Type::Int).to_frag();
+    }
+
+    pub fn translate_split_named(
+        &self,
+        meta: &mut TranslateMetadata,
+        status_name: &str,
+    ) -> FragmentKind {
+        let check = self.translate_with_status_named(meta, false, status_name);
+        if !self.is_parsed {
+            return check;
+        }
+        let status_expr = VarExprFragment::new(status_name, Type::Int).to_frag();
         // `status()` still reads `__status`, so restore the status for this
         // particular command immediately before running its deferred check.
         let restore_status = VarStmtFragment::new("__status", Type::Int, status_expr).to_frag();
-        let deferred_check = BlockFragment::new(vec![restore_status, check], false).to_frag();
-        (status_name, deferred_check)
+        BlockFragment::new(vec![restore_status, check], false).to_frag()
     }
 
     pub fn status_capture(&self, status_name: &str) -> FragmentKind {
