@@ -87,14 +87,48 @@ impl SyntaxModule<ParserMetadata> for Block {
                 };
             }
             self.statements.push(statement);
-            // Handle the semicolon
-            token(meta, ";").ok();
             // Handle single line
             if is_single_line {
+                token(meta, ";").ok();
                 break;
             }
+            self.expect_statement_terminator(meta)?;
         }
         Ok(())
+    }
+}
+
+impl Block {
+    /// Parses statement terminator
+    fn expect_statement_terminator(&self, meta: &mut ParserMetadata) -> SyntaxResult {
+        if token(meta, ";").is_ok() {
+            return Ok(());
+        }
+        let Some(current) = meta.get_current_token() else {
+            return Ok(());
+        };
+        if self.parses_syntax && current.word == "}" {
+            return Ok(());
+        }
+        // Trailing comments on the same line are allowed
+        if current.word.starts_with("//") || current.word.starts_with('\n') {
+            return Ok(());
+        }
+        let index = meta.get_index();
+        // Check if the next token starts at mew like
+        if index > 0 {
+            if let Some(previous) = meta.get_token_at(index - 1) {
+                // Adjusts for regions (text or command) containing newline characters
+                let previous_end_row = previous.pos.0 + previous.word.matches('\n').count();
+                if current.pos.0 > previous_end_row {
+                    return Ok(());
+                }
+            }
+        }
+        error!(meta, Some(current) => {
+            message: "Expected a new line or ';' after statement",
+            comment: "Separate statements with a new line or a semicolon"
+        })
     }
 }
 

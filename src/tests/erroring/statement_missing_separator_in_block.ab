@@ -1,0 +1,6 @@
+// Output
+// Expected a new line or ';' after statement
+
+main {
+    let x = true echo(x)
+}

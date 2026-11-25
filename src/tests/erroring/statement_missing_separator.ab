@@ -1,0 +1,4 @@
+// Output
+// Expected a new line or ';' after statement
+
+const x = 5 6
