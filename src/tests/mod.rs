@@ -1,5 +1,5 @@
 extern crate test_generator;
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use heraclitus_compiler::prelude::Message;
 use itertools::Itertools;
 use pretty_assertions::assert_eq;
@@ -48,7 +48,7 @@ pub enum TestOutcomeTarget {
 
 pub fn eval_amber(code: &str) -> Result<(String, ExitStatus), Message> {
     let options = CompilerOptions::default();
-    let mut compiler = AmberCompiler::new(code.to_string(), None, options);
+    let mut compiler = AmberCompiler::new(code.to_string(), SourcePath::Stdin, options);
     compiler.test_eval()
 }
 
@@ -82,7 +82,7 @@ pub fn test_amber(code: &str, result: &str, target: TestOutcomeTarget) {
 
 pub fn compile_code<T: Into<String>>(code: T) -> String {
     let options = CompilerOptions::default();
-    let compiler = AmberCompiler::new(code.into(), None, options);
+    let compiler = AmberCompiler::new(code.into(), SourcePath::Stdin, options);
     let (_, code) = compiler.compile().unwrap();
     code
 }

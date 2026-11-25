@@ -1,0 +1,19 @@
+// Output
+// 1 2
+// 99 2 3
+
+// Arguments are evaluated from left to right, so the slice is copied before `take_first` modifies the array
+fun take_first(ref items: [Int]): Int {
+    items[0] = 99
+    return 1
+}
+
+fun show(slice: [Int], _taken: Int) {
+    echo(slice)
+}
+
+main {
+    let items = [1, 2, 3]
+    show(items[0..2], take_first(items))
+    echo(items)
+}

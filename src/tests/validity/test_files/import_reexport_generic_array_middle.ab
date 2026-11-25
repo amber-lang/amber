@@ -1,0 +1,4 @@
+// Re-exports a mutable generic array under an alias and infers its element type
+pub import { arr as values } from "./import_alias_generic_array_source.ab"
+
+values += [1]

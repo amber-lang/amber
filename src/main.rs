@@ -17,7 +17,7 @@ pub mod built_info {
 #[cfg(test)]
 pub mod tests;
 
-use crate::compiler::{AmberCompiler, CompilerOptions};
+use crate::compiler::{AmberCompiler, CompilerOptions, SourcePath};
 use crate::utils::io::find_amber_files;
 use crate::utils::ShellType;
 use clap::{Args, CommandFactory, Parser, Subcommand};
@@ -219,19 +219,23 @@ pub(crate) fn set_file_permission(file: &fs::File, path: String) -> io::Result<(
 
 fn compile_input(input: PathBuf, options: CompilerOptions) -> (String, bool) {
     let input = input.to_string_lossy().to_string();
-    let amber_code = if input == "-" {
+    let (amber_code, source_path) = if input == "-" {
         let mut code = String::new();
         match stdin().read_to_string(&mut code) {
-            Ok(_) => code,
+            Ok(_) => (code, SourcePath::Stdin),
             Err(err) => handle_err(err),
         }
     } else {
+        let source_path = match SourcePath::file(&input) {
+            Ok(path) => path,
+            Err(err) => handle_err(err)
+        };
         match fs::read_to_string(&input) {
-            Ok(code) => code,
+            Ok(code) => (code, source_path),
             Err(err) => handle_err(err),
         }
     };
-    let compiler = AmberCompiler::new(amber_code, Some(input), options);
+    let compiler = AmberCompiler::new(amber_code, source_path, options);
     let (messages, bash_code) = match compiler.compile() {
         Ok(result) => result,
         Err(err) => {
@@ -311,7 +315,7 @@ fn handle_eval_with_target(
     let options = CompilerOptions::default()
         .with_target(target)
         .with_env_vars();
-    let compiler = AmberCompiler::new(command.code, None, options);
+    let compiler = AmberCompiler::new(command.code, SourcePath::Stdin, options);
     match compiler.compile() {
         Ok((messages, code)) => {
             messages.iter().for_each(|m| m.show());
@@ -335,8 +339,12 @@ fn handle_docs(command: DocsCommand) -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         }
     };
+    let source_path = match SourcePath::file(&input) {
+        Ok(path) => path,
+        Err(err) => handle_err(err)
+    };
     let options = CompilerOptions::default().with_env_vars();
-    let compiler = AmberCompiler::new(code, Some(input), options);
+    let compiler = AmberCompiler::new(code, source_path, options);
     let output = command.output.unwrap_or_else(|| PathBuf::from("docs"));
     let output = output.to_string_lossy().to_string();
     let output = if output != "-" { Some(output) } else { None };

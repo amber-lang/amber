@@ -1,0 +1,9 @@
+// Output
+// Cannot perform add on value of type '[Int]' and value of type '[Text]'
+
+import { arr as a1, arr as a2 } from "src/tests/validity/test_files/import_alias_generic_array_source.ab"
+
+main {
+    a1 += [1]
+    a2 += ["x"]
+}

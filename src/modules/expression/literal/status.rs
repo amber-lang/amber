@@ -6,6 +6,9 @@ use crate::utils::TranslateMetadata;
 use amber_meta::AutoKeyword;
 use heraclitus_compiler::prelude::*;
 
+/// Name of the shell variable that holds the exit code of the last failable operation
+pub const STATUS_VARIABLE: &str = "__status";
+
 #[derive(Debug, Clone, AutoKeyword)]
 #[keyword = "status"]
 pub struct Status;
@@ -47,7 +50,7 @@ impl TypeCheckModule for Status {
 
 impl TranslateModule for Status {
     fn translate(&self, _meta: &mut TranslateMetadata) -> FragmentKind {
-        VarExprFragment::new("__status", Type::Int).to_frag()
+        VarExprFragment::new(STATUS_VARIABLE, Type::Int).to_frag()
     }
 }
 

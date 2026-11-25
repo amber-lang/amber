@@ -1,0 +1,6 @@
+// Output
+// hi hi
+
+import { greet as first, greet as second } from "src/tests/validity/test_files/import_alias_source.ab"
+
+echo("{first()} {second()}")

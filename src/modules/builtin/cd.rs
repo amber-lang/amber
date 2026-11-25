@@ -2,7 +2,6 @@ use crate::fragments;
 use crate::modules::command::modifier::CommandModifier;
 use crate::modules::condition::failure_handler::FailureHandler;
 use crate::modules::expression::expr::Expr;
-use crate::raw_fragment;
 
 use crate::modules::prelude::*;
 use crate::modules::types::{Type, Typed};
@@ -98,13 +97,10 @@ impl TranslateModule for Cd {
                 .with_spaces()
                 .to_frag();
         if self.failure_handler.is_parsed {
-            // Combine `cd` with `&& __status=0 || __status=$?` on one line
-            // so ShellCheck recognises the exit guard (SC2164) and does not
-            // associate `$?` with a preceding echo/printf (SC2320).
-            let status_suffix = raw_fragment!("&& __status=0 || __status=$?");
-            let combined =
-                ListFragment::new(vec![cd_cmd, status_suffix]).with_spaces().to_frag();
-            let check = self.failure_handler.translate_check_only(meta);
+            // Capture the status on the same line as `cd`
+            // so ShellCheck recognises the exit guard (SC2164)
+            let combined = self.failure_handler.translate_inline_capture(cd_cmd);
+            let check = self.failure_handler.translate_check(meta);
             BlockFragment::new(vec![combined, check], false).to_frag()
         } else {
             cd_cmd

@@ -1,0 +1,9 @@
+// Output
+// Cannot perform add on value of type '[Int]' and value of type '[Text]'
+
+// The re-exporting module inferred `[Int]`, so appending text must be rejected here
+import { values } from "src/tests/validity/test_files/import_reexport_generic_array_middle.ab"
+
+main {
+    values += ["x"]
+}
