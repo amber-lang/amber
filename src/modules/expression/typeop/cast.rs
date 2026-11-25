@@ -91,8 +91,7 @@ impl TranslateModule for Cast {
         if self.expr.get_type() == Type::Null && self.kind.is_array() {
             let id = meta.gen_value_id();
             let args = ListFragment::new(vec![]).with_spaces().to_frag();
-            let var_stmt =
-                VarStmtFragment::new("array", self.kind.clone(), args).with_global_id(id);
+            let var_stmt = VarStmtFragment::new("array", self.kind.clone(), args).with_global_id(id);
             return meta.push_ephemeral_variable(var_stmt).to_frag();
         }
         value
