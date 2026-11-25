@@ -60,6 +60,12 @@ impl Block {
     }
 }
 
+impl ReachableBreak for Block {
+    fn has_reachable_break(&self) -> bool {
+        self.has_reachable_break()
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for Block {
     syntax_name!("Block");
 

@@ -1,0 +1,15 @@
+// Output
+// 1
+
+fun value(flag: Bool): Int {
+    loop {
+        if flag {
+            return 1
+        } else {
+            continue
+        }
+        break
+    }
+}
+
+echo(value(true))

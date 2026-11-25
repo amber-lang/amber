@@ -56,6 +56,9 @@ impl IfChain {
 
     pub fn has_reachable_break(&self) -> bool {
         for branch in &self.cond_blocks {
+            if branch.cond.has_reachable_break() {
+                return true;
+            }
             if branch.cfa.known_value == Some(false) {
                 continue;
             }

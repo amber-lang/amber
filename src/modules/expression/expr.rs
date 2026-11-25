@@ -117,6 +117,41 @@ impl ExprType {
             _ => (HashMap::new(), HashMap::new()),
         }
     }
+
+    pub fn has_reachable_break(&self) -> bool {
+        use crate::modules::ReachableBreak;
+        match self {
+            ExprType::Add(v) => v.has_reachable_break(),
+            ExprType::Sub(v) => v.has_reachable_break(),
+            ExprType::Mul(v) => v.has_reachable_break(),
+            ExprType::Div(v) => v.has_reachable_break(),
+            ExprType::Modulo(v) => v.has_reachable_break(),
+            ExprType::And(v) => v.has_reachable_break(),
+            ExprType::Or(v) => v.has_reachable_break(),
+            ExprType::Gt(v) => v.has_reachable_break(),
+            ExprType::Ge(v) => v.has_reachable_break(),
+            ExprType::Lt(v) => v.has_reachable_break(),
+            ExprType::Le(v) => v.has_reachable_break(),
+            ExprType::Eq(v) => v.has_reachable_break(),
+            ExprType::Neq(v) => v.has_reachable_break(),
+            ExprType::Range(v) => v.has_reachable_break(),
+            ExprType::Neg(v) => v.has_reachable_break(),
+            ExprType::Not(v) => v.has_reachable_break(),
+            ExprType::Cast(v) => v.has_reachable_break(),
+            ExprType::Is(v) => v.has_reachable_break(),
+            ExprType::Parentheses(v) => v.has_reachable_break(),
+            ExprType::Len(v) => v.has_reachable_break(),
+            ExprType::Ternary(v) => v.has_reachable_break(),
+            ExprType::Access(v) => v.has_reachable_break(),
+            ExprType::Array(v) => v.has_reachable_break(),
+            ExprType::Text(v) => v.has_reachable_break(),
+            ExprType::Command(v) => v.has_reachable_break(),
+            ExprType::FunctionInvocation(v) => v.has_reachable_break(),
+            ExprType::LinesInvocation(v) => v.has_reachable_break(),
+            ExprType::Ls(v) => v.has_reachable_break(),
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -170,6 +205,14 @@ impl Expr {
             .as_ref()
             .map(|val| val.extract_facts())
             .unwrap_or_default()
+    }
+}
+
+impl crate::modules::ReachableBreak for Expr {
+    fn has_reachable_break(&self) -> bool {
+        self.value
+            .as_ref()
+            .is_some_and(ExprType::has_reachable_break)
     }
 }
 

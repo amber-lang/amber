@@ -28,7 +28,13 @@ impl Command {
     }
 
     pub fn has_reachable_break(&self) -> bool {
-        self.failure_handler.has_reachable_break()
+        self.parts.has_reachable_break() || self.failure_handler.has_reachable_break()
+    }
+}
+
+impl ReachableBreak for Command {
+    fn has_reachable_break(&self) -> bool {
+        self.has_reachable_break()
     }
 }
 

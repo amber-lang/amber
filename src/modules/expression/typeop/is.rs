@@ -104,3 +104,5 @@ impl TranslateModule for Is {
 }
 
 crate::impl_documentation_noop!(Is);
+
+crate::impl_reachable_break!(Is, expr);

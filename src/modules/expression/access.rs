@@ -154,3 +154,5 @@ impl TranslateModule for Access {
 }
 
 crate::impl_documentation_noop!(Access);
+
+crate::impl_reachable_break!(Access, left, index);

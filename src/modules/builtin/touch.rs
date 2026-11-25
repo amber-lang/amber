@@ -111,3 +111,5 @@ impl DocumentationModule for Touch {
         String::new()
     }
 }
+
+crate::impl_reachable_break!(Touch, value, failure_handler);

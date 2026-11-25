@@ -113,3 +113,5 @@ impl TranslateModule for Cd {
 }
 
 crate::impl_documentation_noop!(Cd);
+
+crate::impl_reachable_break!(Cd, value, failure_handler);

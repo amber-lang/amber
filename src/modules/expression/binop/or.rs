@@ -141,3 +141,5 @@ impl TranslateModule for Or {
 }
 
 crate::impl_documentation_noop!(Or);
+
+crate::impl_reachable_break!(Or, left, right);

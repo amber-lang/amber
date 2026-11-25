@@ -70,6 +70,9 @@ impl IfCondition {
     }
 
     pub fn has_reachable_break(&self) -> bool {
+        if self.expr.has_reachable_break() {
+            return true;
+        }
         match self.cfa.known_value {
             Some(true) => self
                 .true_block
@@ -89,6 +92,12 @@ impl IfCondition {
                         .is_some_and(|b| b.has_reachable_break())
             }
         }
+    }
+}
+
+impl ReachableBreak for IfCondition {
+    fn has_reachable_break(&self) -> bool {
+        self.has_reachable_break()
     }
 }
 

@@ -1,0 +1,13 @@
+// Output
+// Function 'value' with return type 'Int' must return a value on all execution paths
+
+fun value(): Int {
+    loop {
+        let output = $true$ exited {
+            break
+        }
+        return 42
+    }
+}
+
+echo(value())

@@ -107,3 +107,5 @@ impl TranslateModule for Ge {
 }
 
 crate::impl_documentation_noop!(Ge);
+
+crate::impl_reachable_break!(Ge, left, right);

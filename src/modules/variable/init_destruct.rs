@@ -187,3 +187,5 @@ impl TranslateModule for VariableInitDestruct {
 }
 
 crate::impl_documentation_noop!(VariableInitDestruct);
+
+crate::impl_reachable_break!(VariableInitDestruct, expr);

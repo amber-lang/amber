@@ -192,3 +192,5 @@ impl TranslateModule for Ternary {
 }
 
 crate::impl_documentation_noop!(Ternary);
+
+crate::impl_reachable_break!(Ternary, cond, true_expr, false_expr);

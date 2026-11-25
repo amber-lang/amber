@@ -128,3 +128,5 @@ impl TranslateModule for Mv {
 }
 
 crate::impl_documentation_noop!(Mv);
+
+crate::impl_reachable_break!(Mv, source, destination, failure_handler);

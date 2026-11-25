@@ -40,3 +40,36 @@ pub fn handle_symbol_scope_declaration(
 
     Ok(())
 }
+
+pub trait ReachableBreak {
+    fn has_reachable_break(&self) -> bool;
+}
+
+impl<T: ReachableBreak> ReachableBreak for Box<T> {
+    fn has_reachable_break(&self) -> bool {
+        (**self).has_reachable_break()
+    }
+}
+
+impl<T: ReachableBreak> ReachableBreak for Option<T> {
+    fn has_reachable_break(&self) -> bool {
+        self.as_ref().is_some_and(ReachableBreak::has_reachable_break)
+    }
+}
+
+impl<T: ReachableBreak> ReachableBreak for Vec<T> {
+    fn has_reachable_break(&self) -> bool {
+        self.iter().any(ReachableBreak::has_reachable_break)
+    }
+}
+
+#[macro_export]
+macro_rules! impl_reachable_break {
+    ($ty:ty $(, $field:ident)*) => {
+        impl $crate::modules::ReachableBreak for $ty {
+            fn has_reachable_break(&self) -> bool {
+                false $(|| $crate::modules::ReachableBreak::has_reachable_break(&self.$field))*
+            }
+        }
+    };
+}

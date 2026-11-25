@@ -1,0 +1,13 @@
+// Output
+// Function 'value' with return type 'Int' must return a value on all execution paths
+
+fun value(): Int {
+    loop {
+        cd("/nonexistent_amber_path") failed {
+            break
+        }
+        return 42
+    }
+}
+
+echo(value())

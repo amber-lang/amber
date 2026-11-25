@@ -77,6 +77,12 @@ impl FailureHandler {
     }
 }
 
+impl ReachableBreak for FailureHandler {
+    fn has_reachable_break(&self) -> bool {
+        self.has_reachable_break()
+    }
+}
+
 impl SyntaxModule<ParserMetadata> for FailureHandler {
     syntax_name!("Failure Handler Expression");
 

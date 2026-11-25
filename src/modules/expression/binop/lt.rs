@@ -107,3 +107,5 @@ impl TranslateModule for Lt {
 }
 
 crate::impl_documentation_noop!(Lt);
+
+crate::impl_reachable_break!(Lt, left, right);

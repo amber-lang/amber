@@ -85,3 +85,5 @@ impl TranslateModule for Len {
 }
 
 crate::impl_documentation_noop!(Len);
+
+crate::impl_reachable_break!(Len, value);

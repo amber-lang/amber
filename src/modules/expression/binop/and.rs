@@ -139,3 +139,5 @@ impl TranslateModule for And {
 }
 
 crate::impl_documentation_noop!(And);
+
+crate::impl_reachable_break!(And, left, right);
