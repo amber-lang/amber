@@ -117,6 +117,10 @@ impl Block {
         // Check if the next token starts at mew like
         if index > 0 {
             if let Some(previous) = meta.get_token_at(index - 1) {
+                // Handle case where previous statement consumed separator
+                if previous.word == ";" {
+                    return Ok(());
+                }
                 // Adjusts for regions (text or command) containing newline characters
                 let previous_end_row = previous.pos.0 + previous.word.matches('\n').count();
                 if current.pos.0 > previous_end_row {
