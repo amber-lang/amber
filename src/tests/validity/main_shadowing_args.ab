@@ -6,6 +6,7 @@
 fun func1(args: Bool): Text {
     if args:
         return "Succeeded"
+    return "Failed"
 }
 
 main(args) {

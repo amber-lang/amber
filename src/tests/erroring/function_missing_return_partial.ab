@@ -1,0 +1,10 @@
+// Output
+// Function 'x' with return type 'Text' must return a value on all execution paths
+
+fun x(flag: Bool): Text {
+    if flag {
+        return "hello"
+    }
+}
+
+echo(x(true))
