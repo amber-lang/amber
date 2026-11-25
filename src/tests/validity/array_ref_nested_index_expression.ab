@@ -10,7 +10,7 @@ main {
         echo("Succeeded")
         exit(0)
     }
-    const values = ["zero", "one", "two"]
+    let values = ["zero", "one", "two"]
     const idxs = [-1]
     show(values, idxs)
 }

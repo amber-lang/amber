@@ -15,6 +15,6 @@ main {
         echo("Succeeded")
         exit(0)
     }
-    const array = ["zero", "one", "two", "three"]
+    let array = ["zero", "one", "two", "three"]
     test_index(array)
 }

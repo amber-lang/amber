@@ -10,6 +10,7 @@ pub struct VariableGet {
     kind: Type,
     global_id: Option<usize>,
     is_ref: bool,
+    is_const: bool,
     tok: Option<Token>,
 }
 
@@ -23,6 +24,14 @@ impl VariableGet {
     pub fn is_variable_modified(&self) -> bool {
         false
     }
+
+    pub fn is_const(&self) -> bool {
+        self.is_const
+    }
+
+    pub fn token(&self) -> Option<Token> {
+        self.tok.clone()
+    }
 }
 
 impl SyntaxModule<ParserMetadata> for VariableGet {
@@ -34,6 +43,7 @@ impl SyntaxModule<ParserMetadata> for VariableGet {
             kind: Type::Null,
             global_id: None,
             is_ref: false,
+            is_const: false,
             tok: None,
         }
     }
@@ -50,6 +60,7 @@ impl TypeCheckModule for VariableGet {
         let variable = handle_variable_reference(meta, &self.tok, &self.name)?;
         self.global_id = variable.global_id;
         self.is_ref = variable.is_ref;
+        self.is_const = variable.is_const;
         self.kind = variable.kind.clone();
         Ok(())
     }

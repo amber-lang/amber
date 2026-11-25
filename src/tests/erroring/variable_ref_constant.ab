@@ -1,0 +1,10 @@
+// Output
+// Cannot pass constant 'arr' as a reference
+
+fun fill(ref items: [Int]) {
+    items += [1]
+}
+
+const arr = []
+fill(arr)
+echo(arr)
