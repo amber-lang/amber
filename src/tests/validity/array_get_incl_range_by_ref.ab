@@ -40,6 +40,6 @@ fun test_range(ref byref) {
 }
 
 main {
-    const array = ["zero", "one", "two"]
+    let array = ["zero", "one", "two"]
     test_range(array)
 }

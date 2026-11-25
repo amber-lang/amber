@@ -32,13 +32,6 @@ impl Typed for FunctionInvocation {
     }
 }
 
-fn is_ref(expr: &Expr) -> bool {
-    match &expr.value {
-        Some(ExprType::VariableGet(var)) => !var.is_variable_modified(),
-        _ => false,
-    }
-}
-
 impl SyntaxModule<ParserMetadata> for FunctionInvocation {
     syntax_name!("Function Invocation");
 
@@ -141,6 +134,9 @@ impl TypeCheckModule for FunctionInvocation {
                 }
             }
 
+            // Validate reference arguments (must be mutable variables)
+            validate_ref_arguments(meta, &function_unit, &self.args, self.name_tok.clone())?;
+
             // Check for type inference on reference arguments
             for (arg_expr, fun_arg) in izip!(&mut self.args, &function_unit.args) {
                 if fun_arg.is_ref {
@@ -157,9 +153,8 @@ impl TypeCheckModule for FunctionInvocation {
 
             // Validate arguments and get function variant
             let types = self.args.iter().map(Expr::get_type).collect::<Vec<Type>>();
-            let var_refs = self.args.iter().map(is_ref).collect::<Vec<bool>>();
             self.refs = function_unit.args.iter().map(|arg| arg.is_ref).collect();
-            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, &var_refs, self.name_tok.clone())?;
+            (self.kind, self.variant_id) = handle_function_parameters(meta, self.id, function_unit.clone(), &types, self.name_tok.clone())?;
 
             // Mark variables passed as reference as modified and used
             for (arg, is_ref) in izip!(self.args.iter(), self.refs.iter()) {

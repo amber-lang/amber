@@ -1,3 +1,4 @@
+use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::typecheck::TypeCheckModule;
 use crate::modules::types::Type;
 use crate::utils::context::{FunctionDecl, VariableDecl, VariableDeclWarn};
@@ -191,25 +192,51 @@ pub fn handle_function_reference(
     }
 }
 
+pub fn validate_ref_arguments(
+    meta: &mut ParserMetadata,
+    fun: &FunctionDecl,
+    args: &[Expr],
+    tok: Option<Token>,
+) -> SyntaxResult {
+    for (index, (arg, arg_expr)) in izip!(fun.args.iter(), args.iter()).enumerate() {
+        if !arg.is_ref {
+            continue;
+        }
+        match &arg_expr.value {
+            Some(ExprType::VariableGet(var)) if !var.is_variable_modified() => {
+                if var.is_const() {
+                    let err_tok = var.token().or_else(|| tok.clone());
+                    return error!(
+                        meta,
+                        err_tok,
+                        format!("Cannot pass constant '{}' as a reference", var.name)
+                    );
+                }
+            }
+            _ => {
+                let arg_name = &arg.name;
+                let fun_name = &fun.name;
+                let ordinal = ordinal_number(index);
+                return error!(
+                    meta,
+                    tok,
+                    format!(
+                        "Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable"
+                    )
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
 pub fn handle_function_parameters(
     meta: &mut ParserMetadata,
     id: usize,
     fun: FunctionDecl,
     args: &[Type],
-    vars: &[bool],
     tok: Option<Token>,
 ) -> Result<(Type, usize), Failure> {
-    // Check if the function arguments that are references are passed as variables and not as values
-    for (index, (arg, var)) in izip!(fun.args.iter(), vars.iter()).enumerate() {
-        let is_ref = arg.is_ref;
-        let arg_name = &arg.name;
-        if is_ref && !var {
-            let fun_name = &fun.name;
-            let ordinal = ordinal_number(index);
-            return error!(meta, tok, format!("Cannot pass {ordinal} argument '{arg_name}' as a reference to the function '{fun_name}' because it is not a variable"));
-        }
-    }
-
     // On first invocation, run first-pass with declared types (or Generic) to emit correct warnings.
     if !meta.fun_cache.is_first_pass_done(id) {
         let declared_types: Vec<Type> = fun.args.iter().map(|arg| arg.kind.clone()).collect();

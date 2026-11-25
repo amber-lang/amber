@@ -1,0 +1,10 @@
+// Output
+// Cannot pass constant 'VALUE' as a reference
+
+import { VALUE } from "src/tests/validity/test_files/import_public_variable_source.ab"
+
+fun inc(ref x: Int) {
+    x += 1
+}
+
+inc(VALUE)
