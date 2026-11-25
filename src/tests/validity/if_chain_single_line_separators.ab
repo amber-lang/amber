@@ -1,0 +1,14 @@
+// Output
+// two
+// four
+
+fun check(x: Int) {
+    if {
+        x == 1: echo("one"); x == 2: echo("two")
+        x == 3: echo("three") // comment
+        x == 4: echo("four")
+    }
+}
+
+check(2)
+check(4)

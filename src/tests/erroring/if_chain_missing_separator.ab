@@ -1,0 +1,6 @@
+// Output
+// Expected a new line or ';' after statement
+
+if {
+    true: echo("a") false: echo("b")
+}
