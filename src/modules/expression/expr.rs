@@ -133,6 +133,19 @@ impl Typed for Expr {
 }
 
 impl Expr {
+    /// Whether this expression is the failable call an assignment's handler defers for.
+    ///
+    /// `assign_ctx` marks the whole right-hand side of an assignment, so a call nested inside a
+    /// larger expression would inherit it and run its handler only after the sibling operands.
+    /// Only a bare call, or a parenthesised one, is the whole right-hand side.
+    fn is_whole_assignment_value(&self) -> bool {
+        match &self.value {
+            Some(ExprType::FunctionInvocation(_)) | Some(ExprType::Command(_)) => true,
+            Some(ExprType::Parentheses(value)) => value.inner().is_whole_assignment_value(),
+            _ => false,
+        }
+    }
+
     pub fn get_integer_value(&self) -> Option<isize> {
         match &self.value {
             Some(ExprType::Number(value)) => value.get_integer_value(),
@@ -267,7 +280,11 @@ impl TypeCheckModule for Expr {
 
 impl TranslateModule for Expr {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        meta.with_expr_ctx(true, |meta| {
+        // A call that is only part of the right-hand side keeps the immediate handler order, so
+        // its `failed` block still runs before the sibling operands that would precede it.
+        let assignment_ctx = meta.assign_ctx;
+        meta.assign_ctx = assignment_ctx && self.is_whole_assignment_value();
+        let result = meta.with_expr_ctx(true, |meta| {
             translate_expression!(
                 meta,
                 self.value.as_ref().unwrap(),
@@ -313,7 +330,9 @@ impl TranslateModule for Expr {
                     Shellversion
                 ]
             )
-        })
+        });
+        meta.assign_ctx = assignment_ctx;
+        result
     }
 }
 
