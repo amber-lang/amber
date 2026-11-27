@@ -127,13 +127,36 @@ impl TranslateModule for Command {
             (true, false) => translation,
             (false, false) => SubprocessFragment::new(translation).to_frag(),
             (false, true) => {
-                let handler = self.failure_handler.translate(meta);
+                // A command in expression position captures its output into a
+                // temporary that the surrounding statement assigns. Its `failed`
+                // block then has to run after that assignment: a block that writes
+                // the assigned variable must not be overwritten by the captured
+                // output (#1191). Capture the status right after the subprocess and
+                // defer the check to the enclosing block.
+                let is_assigned = meta.assign_ctx;
+                let defer_handler = is_assigned && !self.failure_handler.is_question_mark;
                 let id = meta.gen_value_id();
                 let value = SubprocessFragment::new(translation).to_frag();
-                let var_stmt =
-                    VarStmtFragment::new("command", Type::Text, value).with_global_id(id);
-                let var_expr = meta.push_ephemeral_variable(var_stmt);
-                meta.stmt_queue.push_back(handler);
+                let var_stmt = VarStmtFragment::new("command", Type::Text, value)
+                    .with_global_id(id)
+                    .with_ephemeral(true)
+                    .with_local(meta.fun_meta.is_some());
+                let var_expr = VarExprFragment::from_stmt(&var_stmt);
+                if defer_handler {
+                    let (status_name, check) = self.failure_handler.translate_split(meta);
+                    meta.stmt_queue
+                        .push_back(self.failure_handler.status_declaration(meta, &status_name));
+                    let status_suffix = raw_fragment!("&& {status_name}=0 || {status_name}=$?");
+                    let capture = ListFragment::new(vec![var_stmt.to_frag(), status_suffix])
+                        .with_spaces()
+                        .to_frag();
+                    meta.stmt_queue.push_back(capture);
+                    meta.deferred_queue.push_back(check);
+                } else {
+                    meta.stmt_queue.push_back(var_stmt.to_frag());
+                    let check = self.failure_handler.translate(meta);
+                    meta.stmt_queue.push_back(check);
+                }
                 var_expr.to_frag()
             }
         }

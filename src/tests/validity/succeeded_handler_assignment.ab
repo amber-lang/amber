@@ -1,0 +1,8 @@
+// Output
+// succeeded: overridden
+
+let value = "init"
+value = $ printf '%s' "output" $ succeeded {
+    value = "overridden"
+}
+echo("succeeded: {value}")

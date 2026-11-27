@@ -1,0 +1,19 @@
+// Output
+// handled
+// consume
+// done
+
+fun may_fail(): Text? {
+    fail 7
+    return "unreachable"
+}
+
+fun consume(value: Text): Text {
+    echo("consume")
+    return value
+}
+
+let value = consume(may_fail() failed {
+    echo("handled")
+})
+echo("done")

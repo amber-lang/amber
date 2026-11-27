@@ -1,0 +1,27 @@
+// Output
+// failed 7
+// AFTER
+
+fun failer(): Num? {
+    fail 7
+    return 1
+}
+
+fun side_effect(): Num {
+    echo("SHOULD NOT RUN")
+    return 1
+}
+
+fun calculate(): Null? {
+    // The handler belongs to a call that is only one operand, so it runs before
+    // the sibling operand and its `fail` skips that operand's side effect.
+    const value = failer() failed {
+        echo("failed {status()}")
+        fail status()
+    } + side_effect()
+    echo("value {value}")
+}
+
+echo(calculate() failed {
+    echo("AFTER")
+})

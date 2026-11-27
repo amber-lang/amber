@@ -1,0 +1,21 @@
+// Output
+// failed 7
+
+fun failer(): Num? {
+    fail 7
+    return 1
+}
+
+fun side_effect(): Num {
+    echo("SHOULD NOT RUN")
+    return 1
+}
+
+fun calculate(): Num? {
+    const value = failer()? + side_effect()
+    return value
+}
+
+echo(calculate() failed {
+    echo("failed {status()}")
+})

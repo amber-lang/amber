@@ -204,10 +204,24 @@ impl TranslateModule for FunctionInvocation {
         // Get the variable prefix based on function name casing
         let prefix = meta.gen_variable_prefix(&self.name);
         let name = raw_fragment!("{}{}__{}_v{}", prefix, self.name, self.id, self.variant_id);
+        let deferred_failure_name = if self.is_failable
+            && self.failure_handler.is_parsed
+            && meta.assign_ctx
+            && !self.failure_handler.is_question_mark
+        {
+            Some(self.failure_handler.new_status_name(meta))
+        } else {
+            None
+        };
+        if let Some(status_name) = &deferred_failure_name {
+            meta.stmt_queue
+                .push_back(self.failure_handler.status_declaration(meta, status_name));
+        }
         meta.with_silenced(self.modifier.is_silent || meta.silenced, |meta| {
             let silent = meta.gen_silent().to_frag();
             let suppress = meta.gen_suppress().to_frag();
-            let args = izip!(self.args.iter(), self.refs.iter())
+            let args = meta.with_assign_ctx(false, |meta| {
+                izip!(self.args.iter(), self.refs.iter())
                 .map(|(arg, is_ref)| match arg.translate(meta) {
                     // Pass explicit `ref` arguments as shell references so the callee can alias them directly.
                     FragmentKind::VarExpr(var) if *is_ref => var
@@ -287,14 +301,29 @@ impl TranslateModule for FunctionInvocation {
                     // Plain scalar arguments are passed through unchanged.
                     var => var,
                 })
-                .collect::<Vec<FragmentKind>>();
+                .collect::<Vec<FragmentKind>>()
+            });
             let args = ListFragment::new(args).with_spaces().to_frag();
             meta.stmt_queue
                 .push_back(fragments!(name.clone(), " ", args, suppress, silent));
         });
         if self.is_failable && self.failure_handler.is_parsed {
-            let handler = self.failure_handler.translate(meta);
-            meta.stmt_queue.push_back(handler);
+            // A `failed` block that writes the variable being assigned must not be
+            // overwritten by the call's return value, so when this call is the whole
+            // right-hand side of an assignment the check runs after the assignment
+            // instead of before it (#1191). Anywhere else it keeps the established
+            // order, which `status()` inside the block relies on.
+            if let Some(status_name) = deferred_failure_name {
+                let check = self
+                    .failure_handler
+                    .translate_split_named(meta, &status_name);
+                meta.stmt_queue
+                    .push_back(self.failure_handler.status_capture(&status_name));
+                meta.deferred_queue.push_back(check);
+            } else {
+                let handler = self.failure_handler.translate(meta);
+                meta.stmt_queue.push_back(handler);
+            }
         }
         if self.kind != Type::Null {
             // Get the variable prefix for return values

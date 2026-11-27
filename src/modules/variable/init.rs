@@ -107,7 +107,9 @@ impl TypeCheckModule for VariableInit {
 
 impl TranslateModule for VariableInit {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
-        let expr = self.expr.translate(meta);
+        // The initialiser is what this statement assigns, so a `failed` block it
+        // carries runs after the assignment (#1191).
+        let expr = meta.with_assign_ctx(true, |meta| self.expr.translate(meta));
         VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
             .with_global_id(self.global_id)
             .with_local(self.is_fun_ctx)

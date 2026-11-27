@@ -24,6 +24,10 @@ impl Parentheses {
         self.value.extract_facts()
     }
 
+    /// The expression this pair of parentheses wraps.
+    pub fn inner(&self) -> &Expr {
+        &self.value
+    }
 }
 
 impl Typed for Parentheses {

@@ -134,7 +134,9 @@ impl TypeCheckModule for VariableSet {
 impl TranslateModule for VariableSet {
     fn translate(&self, meta: &mut TranslateMetadata) -> FragmentKind {
         let index = self.index.as_ref().map(|v| v.translate(meta));
-        let expr = self.expr.translate(meta);
+        // The right-hand side is what this statement assigns, so a `failed` block
+        // it carries runs after the assignment (#1191).
+        let expr = meta.with_assign_ctx(true, |meta| self.expr.translate(meta));
         VarStmtFragment::new(&self.name, self.expr.get_type(), expr)
             .with_global_id(self.global_id)
             .with_ref(self.is_ref)

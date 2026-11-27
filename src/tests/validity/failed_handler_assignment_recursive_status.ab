@@ -1,0 +1,22 @@
+// Output
+// handled 9
+// 1
+
+fun result(n: Num): Num? {
+    if n == 2 {
+        fail 9
+    }
+    return n
+}
+
+fun walk(n: Num): Num {
+    if n == 0 {
+        return 0
+    }
+    const value = result(n) failed {
+        echo("handled {status()}")
+    } + walk(n - 1)
+    return value
+}
+
+echo(walk(2))
