@@ -1,0 +1,17 @@
+// Output
+// 0
+// 0
+// 1
+
+#[allow_absurd_cast]
+fun cast_null_to_array() {
+    const x = null as [Text]
+    echo(len(x))
+    const y = null as []
+    echo(len(y))
+    let z = null as [Num]
+    z += [5]
+    echo(len(z))
+}
+
+cast_null_to_array()
