@@ -1,0 +1,7 @@
+// Output
+// 1
+// x
+
+let text = "{1}
+x"
+echo(text)

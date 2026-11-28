@@ -1,0 +1,5 @@
+// Output
+// Expected a new line or ';' after statement
+
+let text = "{1}
+x" echo(text)

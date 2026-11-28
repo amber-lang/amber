@@ -1,0 +1,13 @@
+// Output
+// a
+// b
+// c
+
+fun run(skip: Bool) {
+    if skip: echo("x"); echo("c")
+}
+
+main {
+    if true: echo("a"); echo("b")
+    run(false)
+}

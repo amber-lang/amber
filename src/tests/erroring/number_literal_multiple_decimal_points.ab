@@ -1,0 +1,5 @@
+// Output
+// Expected a new line or ';' after statement
+
+let x = 123.45.67
+echo(x)

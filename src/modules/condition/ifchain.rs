@@ -1,5 +1,5 @@
 use crate::fragments;
-use crate::modules::block::Block;
+use crate::modules::block::{expect_statement_terminator, Block};
 use crate::modules::expression::expr::{Expr, ExprType};
 use crate::modules::prelude::*;
 use crate::modules::statement::comment::Comment;
@@ -128,6 +128,7 @@ impl SyntaxModule<ParserMetadata> for IfChain {
             }
             syntax(meta, &mut cond)?;
             syntax(meta, &mut block)?;
+            expect_statement_terminator(meta, true)?;
 
             self.cond_blocks.push(IfChainBranch::new(comments, cond, block));
         }

@@ -86,7 +86,7 @@ main {
 
 #[test]
 fn and_none_branch_variable() {
-    let code = compile_code(r#"main { let x = true echo("{x and true}") }"#);
+    let code = compile_code(r#"main { let x = true; echo("{x and true}") }"#);
     assert!(
         code.contains("&&"),
         "Variable and constant should use && condition\n--- output ---\n{code}"
@@ -139,7 +139,7 @@ fn or_preserves_right_side_effect() {
 
 #[test]
 fn or_none_branch_variable() {
-    let code = compile_code(r#"main { let x = false echo("{x or false}") }"#);
+    let code = compile_code(r#"main { let x = false; echo("{x or false}") }"#);
     assert!(
         code.contains("||"),
         "Variable or constant should use || condition\n--- output ---\n{code}"
@@ -179,7 +179,7 @@ fn not_preserve_side_effects() {
 
 #[test]
 fn not_none_branch_bool_variable() {
-    let code = compile_code(r#"main { let x = true echo("{not x}") }"#);
+    let code = compile_code(r#"main { let x = true; echo("{not x}") }"#);
     assert!(
         code.contains('!'),
         "not bool variable should use arithmetic NOT\n--- output ---\n{code}"
@@ -188,7 +188,7 @@ fn not_none_branch_bool_variable() {
 
 #[test]
 fn not_none_branch_text_variable() {
-    let code = compile_code(r#"main { let s = "hello" echo("{not s}") }"#);
+    let code = compile_code(r#"main { let s = "hello"; echo("{not s}") }"#);
     assert!(
         !code.contains("$(("),
         "not text should use condition-based NOT, not arithmetic\n--- output ---\n{code}"

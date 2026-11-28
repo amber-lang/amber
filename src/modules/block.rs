@@ -86,15 +86,63 @@ impl SyntaxModule<ParserMetadata> for Block {
                 };
             }
             self.statements.push(statement);
-            // Handle the semicolon
-            token(meta, ";").ok();
             // Handle single line
             if is_single_line {
+                token(meta, ";").ok();
                 break;
             }
+            expect_statement_terminator(meta, self.parses_syntax)?;
         }
         Ok(())
     }
+}
+
+/// Parses statement terminator
+pub fn expect_statement_terminator(
+    meta: &mut ParserMetadata,
+    allows_closing_brace: bool,
+) -> SyntaxResult {
+    if token(meta, ";").is_ok() {
+        return Ok(());
+    }
+    let Some(current) = meta.get_current_token() else {
+        return Ok(());
+    };
+    if allows_closing_brace && current.word == "}" {
+        return Ok(());
+    }
+    // Trailing comments on the same line are allowed
+    if current.word.starts_with("//") || current.word.starts_with('\n') {
+        return Ok(());
+    }
+    let index = meta.get_index();
+    // Check if the next token starts at new line
+    if index > 0 {
+        if let Some(previous) = meta.get_token_at(index - 1) {
+            // Handle case where previous statement consumed separator
+            if previous.word == ";" {
+                return Ok(());
+            }
+            // Adjusts for regions (text or command) containing newline characters
+            // TODO(parser):
+            // - Heraclitus: implement `SeparatorMode::SemiAutomatic` so the lexer emits line
+            //   breaks between tokens as `\n` tokens. Pattern helpers (`token`, `token_by`,
+            //   `variable`, `syntax`, ...) skip leading `\n` tokens, but restore the index
+            //   when the match fails.
+            // - Amber: switch to `SemiAutomatic` and check the raw current token for `\n`
+            //   or `;` here, removing `previous_end_row` and the comment/newline special
+            //   cases above.
+            let previous_end_row =
+                previous.pos.0 + previous.word.trim_start_matches('\n').matches('\n').count();
+            if current.pos.0 > previous_end_row {
+                return Ok(());
+            }
+        }
+    }
+    error!(meta, Some(current) => {
+        message: "Expected a new line or ';' after statement",
+        comment: "Separate statements with a new line or a semicolon"
+    })
 }
 
 impl TypeCheckModule for Block {
