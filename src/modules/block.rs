@@ -116,7 +116,7 @@ pub fn expect_statement_terminator(
         return Ok(());
     }
     let index = meta.get_index();
-    // Check if the next token starts at mew like
+    // Check if the next token starts at new line
     if index > 0 {
         if let Some(previous) = meta.get_token_at(index - 1) {
             // Handle case where previous statement consumed separator
